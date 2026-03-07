@@ -1,6 +1,7 @@
 {
   "framework": null,
-  "buildCommand": "expo export --platform web",
+  "installCommand": "cd ../.. && yarn install",
+  "buildCommand": "cd ../.. && yarn workspace @aureak/web export",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
