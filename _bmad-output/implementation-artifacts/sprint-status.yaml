@@ -1,0 +1,183 @@
+# generated: 2026-03-05
+# project: Application Aureak
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-03-05
+project: Application Aureak
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+
+  # ============================================================
+  # PHASE 1 — MVP (Epics 1-11)
+  # ============================================================
+
+  # Epic 1 : Fondation — Monorepo, Infrastructure & CI/CD
+  epic-1: done
+  1-1-initialisation-du-monorepo-structure-des-packages: done
+  1-2-configuration-supabase-modele-de-donnees-base: done
+  1-3-systeme-de-design-tokens-composants-de-base: done
+  1-4-pipeline-ci-cd-tests-standards-de-code: done
+  epic-1-retrospective: optional
+
+  # Epic 2 : Authentification & Gestion des Rôles
+  epic-2: done
+  2-1-inscription-auth-standard-email-mot-de-passe: done
+  2-2-controle-acces-par-role-rbac-regle-universelle-rls: done
+  2-3-acces-temporaire-cross-implantation-coach: done
+  2-4-auth-rapide-geolocalisee-pin-gps: done
+  2-5-gestion-des-acces-clubs-partenaire-commun: done
+  2-6-permissions-referentiel-pedagogique-rbac-contenu: done
+  epic-2-retrospective: optional
+
+  # Epic 3 : Référentiel Pédagogique
+  epic-3: done
+  3-1-hierarchie-theme-themegroup-theme-sequences: done
+  3-2-criteres-faults-cues: done
+  3-3-arborescence-situationnelle-situationgroup-situation: done
+  3-4-systeme-de-taxonomies-generiques: done
+  3-5-questions-de-quiz-workflow-draft-published: done
+  3-6-ciblage-audience-filtrage-dynamique: done
+  epic-3-retrospective: optional
+
+  # Epic 4 : Gestion des Séances & Planning
+  epic-4: done
+  4-1-modele-de-donnees-sessions-blocs-recurrence: done
+  4-2-roster-attendu-presences-terrain: done
+  4-3-creation-gestion-admin-des-seances: done
+  4-4-planification-recurrente-gestion-des-exceptions: done
+  4-5-annulation-notifications-multicanal: done
+  4-6-confirmation-presence-coach-gestion-du-bloc: done
+  4-7-vue-coach-fiche-seance-notes-feedback-contenu: done
+  epic-4-retrospective: optional
+
+  # Epic 5 : Présences Terrain (Offline-First)
+  epic-5: done
+  5-1-schema-offline-sqlite-sync-queue-serveur: done
+  5-2-event-sourcing-event-log-snapshot-attendance-apply-event: done
+  5-3-enregistrement-presence-offline-2s: done
+  5-4-sync-queue-idempotente-resolution-de-conflits: done
+  5-5-timeline-admin-restauration-via-event-log: done
+  5-6-ux-offline-indicateur-sync-alertes-rappel-j1: done
+  epic-5-retrospective: optional
+
+  # Epic 6 : Évaluation Coach & Clôture de Séance
+  epic-6: done
+  6-1-modele-evaluations-event-sourcing-regle-de-fusion: done
+  6-2-ux-evaluation-rapide-10s-par-enfant: done
+  6-3-double-validation-coach-realtime-fallback-polling: done
+  6-4-cloture-de-seance-idempotente-tracee: done
+  epic-6-retrospective: optional
+
+  # Epic 7 : Notifications & Board Parent
+  epic-7: done
+  7-1-infrastructure-notifications-push-tokens-preferences-urgence: done
+  7-2-notification-post-seance-session-closed-send-once: done
+  7-3-board-parent-fiche-enfant-transparence-terrain-admin: done
+  7-4-systeme-de-tickets-parent-minimal-trace: done
+  epic-7-retrospective: optional
+
+  # Epic 8 : Quiz, Boucle d'Apprentissage & Progression Joueur
+  epic-8: done
+  8-1-modele-de-donnees-apprentissage-maitrise-gamification: done
+  8-2-moteur-de-quiz-adaptatif-stop-conditions-maitrise: done
+  8-3-ux-enfant-acquired-not-acquired-avatar-badges: done
+  8-4-streaks-revision-espacee-declenchement-evenements-gamification: done
+  8-5-rapports-coach-vue-agregee-groupe-acces-parent: done
+  epic-8-retrospective: optional
+
+  # Epic 9 : Supervision Admin & Qualité Multi-Sites
+  epic-9: done
+  9-1-dashboard-agrege-multi-implantations: done
+  9-2-detection-anomalies: done
+  9-3-comparaison-inter-implantations: done
+  9-4-crud-implantations-groupes-assignations-coaches: done
+  9-5-contact-direct-coach: done
+  epic-9-retrospective: optional
+
+  # Epic 10 : Gestion Utilisateurs, Consentements & Conformité RGPD
+  epic-10: done
+  10-1-cycle-de-vie-utilisateur: done
+  10-2-consentements-parentaux-revocation-en-cascade: done
+  10-3-droits-rgpd-parent-acces-rectification-effacement-portabilite: done
+  10-4-audit-trail-admin-policies-completes-indexes-retention: done
+  10-5-exports-conformes: done
+  epic-10-retrospective: optional
+
+  # Epic 11 : Grades Coach & Partenariats Clubs
+  epic-11: done
+  11-1-grades-coach-historique-immuable: done
+  11-2-permissions-de-contenu-par-grade: done
+  11-3-partenariats-clubs: done
+  epic-11-retrospective: optional
+
+  # ============================================================
+  # PHASE 2 — GROWTH (Epics 12-17)
+  # ============================================================
+
+  # Epic 12 : Player Universe & Gamification Layer
+  epic-12: done
+  12-1-modele-de-donnees-badges-points-ledger-cosmetiques-avatar: done
+  12-2-event-bus-gamification-traitement-des-4-evenements-declencheurs: done
+  12-3-avatar-system-equipement-items-debloquables: done
+  12-4-quetes-hebdomadaires-attribution-progression-recompenses: done
+  12-5-carte-de-progression-theme-collection-de-skill-cards: done
+  epic-12-retrospective: optional
+
+  # Epic 13 : Médias — Partage Photo/Vidéo de Séance
+  epic-13: backlog
+  # Stories à définir (Phase 2)
+  epic-13-retrospective: optional
+
+  # Epic 14 : Module Vidéo Avancé (Auto-évaluation & Retour Coach)
+  epic-14: backlog
+  # Stories à définir (Phase 2)
+  epic-14-retrospective: optional
+
+  # Epic 15 : Module Médical
+  epic-15: backlog
+  # Stories à définir (Phase 2)
+  epic-15-retrospective: optional
+
+  # Epic 16 : Module Business — Stages & Paiement Stripe
+  epic-16: backlog
+  # Stories à définir (Phase 2)
+  epic-16-retrospective: optional
+
+  # Epic 17 : Export & Reporting
+  epic-17: backlog
+  # Stories à définir (Phase 2)
+  epic-17-retrospective: optional

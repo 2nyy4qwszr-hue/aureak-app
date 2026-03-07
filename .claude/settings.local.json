@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:aureak.be)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_evaluate",
+      "WebSearch",
+      "Bash(python3:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(node:*)",
+      "Bash(corepack:*)",
+      "Bash(sudo corepack:*)",
+      "Bash(npm install:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir -p /tmp/aureak-starter)",
+      "Read(//tmp/**)",
+      "Read(//Users/jeremydevriendt/.cache/node/corepack/**)",
+      "Bash(cp:*)",
+      "Bash(supabase:*)",
+      "Bash(brew:*)",
+      "Bash(npx supabase:*)",
+      "Bash(mkdir:*)",
+      "Bash(grep:*)",
+      "Bash(\"../../node_modules/.bin/vitest\" run:*)",
+      "Bash(VITEST_LOG_LEVEL=debug \"../../node_modules/.bin/vitest\" run:*)",
+      "Bash(yarn install:*)",
+      "Bash(npx yarn:*)",
+      "Bash(/usr/local/lib/node_modules/corepack/shims/yarn install:*)",
+      "Bash(node_modules/.bin/turbo typecheck:*)",
+      "Bash(node_modules/.bin/tsc:*)",
+      "Bash(node_modules/.bin/vitest run:*)",
+      "Bash(node_modules/.bin/turbo run:*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/_bmad-output/implementation-artifacts/2-5-gestion-des-acces-clubs-partenaire-commun.md\":*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/supabase/RLS_PATTERNS.md\":*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/_bmad-output/implementation-artifacts/2-6-permissions-referentiel-pedagogique-rbac-contenu.md\":*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/supabase/migrations/00010_rls_policies.sql\":*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/packages/api-client/src/index.ts\":*)",
+      "Bash(sed:*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/packages/types/src/entities.ts\":*)"
+    ]
+  }
+}

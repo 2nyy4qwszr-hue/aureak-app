@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREAK — Design Directions</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C1AC5C;
+    --gold-light: #D4C270;
+    --beige: #F3EFE7;
+    --ivory: #F0EDE0;
+    --bg: #1A1A1A;
+    --surface: #171717;
+    --elevated: #242424;
+    --zinc: #424242;
+    --green: #4CAF50;
+    --yellow: #FFC107;
+    --red: #F44336;
+    --text: #FFFFFF;
+    --text-sec: #A0A0A0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0F0F0F;
+    color: white;
+    font-family: 'Geist', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ─── NAV ─── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,15,15,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(193,172,92,0.2);
+    padding: 0 32px;
+    display: flex; align-items: center; gap: 0;
+  }
+  .nav-logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--gold);
+    padding: 16px 24px 16px 0;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    margin-right: 8px;
+    letter-spacing: 1px;
+  }
+  .nav-tab {
+    padding: 18px 20px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-sec);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: white; }
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ─── SECTIONS ─── */
+  .section { display: none; padding: 48px 32px; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 32px; font-weight: 700;
+    color: white; margin-bottom: 8px;
+  }
+  .section-subtitle {
+    font-size: 15px; color: var(--text-sec); margin-bottom: 40px;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(193,172,92,0.15);
+    border: 1px solid rgba(193,172,92,0.3);
+    color: var(--gold);
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 999px;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* ─── DIRECTIONS GRID ─── */
+  .directions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+
+  .direction-card {
+    background: #1C1C1C;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .direction-card:hover { border-color: rgba(193,172,92,0.4); transform: translateY(-2px); }
+  .direction-card.selected { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+
+  .direction-header {
+    padding: 20px 24px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .direction-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px; font-weight: 700;
+  }
+  .direction-tag {
+    font-size: 11px; color: var(--text-sec);
+    background: rgba(255,255,255,0.06);
+    padding: 4px 10px; border-radius: 999px;
+  }
+
+  .phone-frame {
+    margin: 0 24px 24px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.1);
+    position: relative;
+  }
+
+  /* ─── DIR 1: DARK MANGA PREMIUM ─── */
+  .d1-screen {
+    background: #1A1A1A;
+    padding: 0;
+    font-family: 'Geist', sans-serif;
+  }
+  .d1-topbar {
+    background: #1A1A1A;
+    padding: 12px 16px 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(193,172,92,0.15);
+  }
+  .d1-session-info { flex: 1; }
+  .d1-session-group {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 17px; font-weight: 700; color: white;
+    letter-spacing: 0.3px;
+  }
+  .d1-session-meta { font-size: 11px; color: var(--text-sec); margin-top: 1px; }
+  .d1-sync { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--green); }
+  .d1-sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .d1-progress {
+    background: rgba(193,172,92,0.08);
+    padding: 8px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .d1-progress-text { font-size: 12px; color: var(--text-sec); }
+  .d1-progress-count { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; color: var(--gold); }
+  .d1-progress-bar {
+    height: 2px; background: rgba(255,255,255,0.08);
+    margin: 6px 16px 0;
+    border-radius: 999px; overflow: hidden;
+  }
+  .d1-progress-fill { height: 100%; background: var(--gold); width: 67%; border-radius: 999px; }
+
+  .d1-child-card {
+    margin: 12px 16px;
+    background: #242424;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .d1-child-header {
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .d1-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #2A2A2A, #333);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700;
+    color: var(--gold); border: 1px solid rgba(193,172,92,0.3);
+    flex-shrink: 0;
+  }
+  .d1-child-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px; font-weight: 700; color: white;
+  }
+  .d1-presence-badge {
+    margin-left: auto;
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+  }
+  .present { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+  .absent-b { background: rgba(244,67,54,0.15); color: var(--red); border: 1px solid rgba(244,67,54,0.3); }
+
+  .d1-indicators { padding: 10px 14px 12px; }
+  .d1-indicator {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .d1-indicator:last-child { border-bottom: none; }
+  .d1-ind-name { font-size: 12px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+  .d1-toggle {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+  }
+  .toggle-green { background: rgba(76,175,80,0.15); border-color: rgba(76,175,80,0.5); color: var(--green); }
+  .toggle-yellow { background: rgba(255,193,7,0.15); border-color: rgba(255,193,7,0.5); color: var(--yellow); }
+  .toggle-star { background: rgba(193,172,92,0.15); border-color: rgba(193,172,92,0.5); color: var(--gold); }
+  .toggle-empty { color: rgba(255,255,255,0.2); }
+
+  .d1-nav {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; padding: 10px 16px 14px;
+  }
+  .d1-swipe-hint { font-size: 11px; color: rgba(255,255,255,0.2); display: flex; align-items: center; gap: 4px; }
+
+  /* ─── DIR 2: CLEAN SPORT LIGHT ─── */
+  .d2-screen { background: #F8F6F2; padding: 0; font-family: 'Geist', sans-serif; }
+  .d2-topbar {
+    background: white;
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #E8E4DC;
+  }
+  .d2-group {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px; font-weight: 700; color: #171717;
+  }
+  .d2-meta { font-size: 11px; color: #888; }
+  .d2-child-card {
+    margin: 12px 16px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #E8E4DC;
+    overflow: hidden;
+  }
+  .d2-child-header {
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    background: #171717;
+  }
+  .d2-avatar {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: #171717;
+  }
+  .d2-child-name {
+    font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: white;
+  }
+  .d2-indicators { padding: 12px 14px; }
+  .d2-indicator {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid #F0EDE8;
+  }
+  .d2-indicator:last-child { border-bottom: none; }
+  .d2-ind-name { font-size: 12px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .d2-toggle {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    border: 1.5px solid #E0DDD8;
+    background: #F8F6F2;
+  }
+  .d2-toggle-g { background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.4); color: var(--green); }
+  .d2-toggle-y { background: rgba(255,193,7,0.1); border-color: rgba(255,193,7,0.4); color: #B8860B; }
+  .d2-btn {
+    margin: 0 14px 14px;
+    background: #171717; color: white;
+    padding: 12px; border-radius: 12px;
+    text-align: center; font-family: 'Rajdhani', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+  }
+
+  /* ─── DIR 3: NEON FUTURISTE ─── */
+  .d3-screen { background: #0D0D0F; padding: 0; font-family: 'Geist', sans-serif; }
+  .d3-topbar {
+    background: linear-gradient(180deg, #0D0D0F 0%, rgba(13,13,15,0.8) 100%);
+    padding: 12px 16px; border-bottom: 1px solid rgba(0,230,200,0.15);
+  }
+  .d3-group {
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700;
+    color: #00E6C8;
+  }
+  .d3-meta { font-size: 11px; color: rgba(0,230,200,0.5); }
+  .d3-child-card {
+    margin: 12px 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(0,230,200,0.15);
+    overflow: hidden;
+  }
+  .d3-child-header {
+    padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(0,230,200,0.1);
+  }
+  .d3-avatar {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(0,230,200,0.1); border: 1px solid rgba(0,230,200,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: #00E6C8;
+  }
+  .d3-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: white; }
+  .d3-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; margin-left: auto; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: #4CAF50; }
+  .d3-indicators { padding: 10px 14px 12px; }
+  .d3-indicator {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .d3-indicator:last-child { border-bottom: none; }
+  .d3-ind-name { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+  .d3-toggle {
+    width: 30px; height: 30px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .d3-g { background: rgba(76,175,80,0.15); border-color: rgba(76,175,80,0.4); color: #4CAF50; }
+  .d3-y { background: rgba(255,193,7,0.12); border-color: rgba(255,193,7,0.4); color: #FFC107; }
+  .d3-c { background: rgba(0,230,200,0.1); border-color: rgba(0,230,200,0.3); color: #00E6C8; }
+
+  /* ─── DIR 4: WARM ACADEMY ─── */
+  .d4-screen { background: #1E1812; padding: 0; font-family: 'Geist', sans-serif; }
+  .d4-topbar {
+    background: rgba(30,24,18,0.9);
+    padding: 12px 16px; border-bottom: 1px solid rgba(193,172,92,0.2);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .d4-logo {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--gold); display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #1A1A1A;
+  }
+  .d4-group { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: var(--ivory); }
+  .d4-child-card {
+    margin: 12px 16px;
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid rgba(193,172,92,0.2);
+  }
+  .d4-child-header {
+    padding: 12px 14px; background: rgba(193,172,92,0.08);
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(193,172,92,0.15);
+  }
+  .d4-avatar {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: rgba(193,172,92,0.15); border: 1.5px solid rgba(193,172,92,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: var(--gold);
+  }
+  .d4-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: var(--ivory); }
+  .d4-indicators { padding: 10px 14px 14px; background: #1E1812; }
+  .d4-indicator {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid rgba(193,172,92,0.08);
+  }
+  .d4-indicator:last-child { border-bottom: none; }
+  .d4-ind-name { font-size: 12px; color: rgba(240,237,224,0.5); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+  .d4-toggle {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    border: 1.5px solid rgba(193,172,92,0.15);
+    background: rgba(193,172,92,0.04);
+  }
+  .d4-g { background: rgba(76,175,80,0.12); border-color: rgba(76,175,80,0.4); color: #4CAF50; }
+  .d4-y { background: rgba(255,193,7,0.1); border-color: rgba(255,193,7,0.4); color: #FFC107; }
+  .d4-gold { background: rgba(193,172,92,0.12); border-color: rgba(193,172,92,0.4); color: var(--gold); }
+
+  /* ─── NOTIFICATION SECTION ─── */
+  .notif-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;
+    margin-bottom: 40px;
+  }
+  .notif-phone { background: #1C1C1C; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+  .notif-phone-screen { padding: 16px; }
+  .notif-lock { text-align: center; padding: 20px 16px 8px; }
+  .notif-time { font-size: 42px; font-weight: 200; color: white; letter-spacing: -1px; }
+  .notif-date { font-size: 13px; color: rgba(255,255,255,0.6); }
+
+  .notif-banner {
+    margin: 12px 0 0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .nb-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .nb-content { flex: 1; }
+  .nb-app { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+  .nb-title { font-size: 14px; font-weight: 600; color: white; margin-bottom: 3px; }
+  .nb-body { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+  .nb-time { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+  .nb-v1 { background: rgba(28,24,20,0.92); border: 1px solid rgba(193,172,92,0.25); }
+  .nb-v2 { background: rgba(255,255,255,0.12); border: none; backdrop-filter: blur(20px); }
+  .nb-v3 { background: #1A2A1A; border: 1px solid rgba(76,175,80,0.3); }
+
+  .nb-indicators {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+  }
+  .nb-chip {
+    padding: 3px 8px; border-radius: 6px;
+    font-size: 10px; font-weight: 600;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .nb-chip-g { background: rgba(76,175,80,0.15); color: #4CAF50; }
+  .nb-chip-star { background: rgba(193,172,92,0.15); color: var(--gold); }
+
+  /* ─── GAMIFICATION SECTION ─── */
+  .gamif-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;
+  }
+  .gamif-card { background: #1C1C1C; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+  .gamif-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gamif-title { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: white; }
+  .gamif-tag { font-size: 11px; color: var(--text-sec); background: rgba(255,255,255,0.06); padding: 3px 10px; border-radius: 999px; }
+  .gamif-body { padding: 20px; }
+
+  .avatar-display {
+    text-align: center; padding: 20px 16px;
+  }
+  .avatar-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(193,172,92,0.2), rgba(193,172,92,0.05));
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin: 0 auto 12px;
+  }
+  .avatar-name { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: white; }
+  .avatar-level { font-size: 12px; color: var(--gold); font-weight: 600; margin: 4px 0 12px; }
+  .xp-bar-bg { background: rgba(255,255,255,0.06); border-radius: 999px; height: 6px; margin: 0 16px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 999px; width: 68%; }
+  .xp-label { font-size: 11px; color: var(--text-sec); margin-top: 6px; text-align: center; }
+
+  .points-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .points-item {
+    background: rgba(255,255,255,0.04); border-radius: 12px;
+    padding: 12px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .points-val { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--gold); }
+  .points-lbl { font-size: 10px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 0 4px; }
+  .badge-item {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    border: 1.5px solid;
+  }
+  .bi-gold { background: rgba(193,172,92,0.1); border-color: rgba(193,172,92,0.3); }
+  .bi-g { background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.3); }
+  .bi-lock { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); filter: grayscale(1); opacity: 0.3; }
+
+  .quiz-card-preview {
+    background: #242424; border-radius: 14px;
+    overflow: hidden; border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 12px;
+  }
+  .quiz-q { padding: 14px 14px 10px; font-size: 14px; font-weight: 600; color: white; line-height: 1.4; }
+  .quiz-options { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.8);
+    transition: all 0.2s;
+  }
+  .quiz-opt.correct { border-color: rgba(76,175,80,0.5); background: rgba(76,175,80,0.12); color: #4CAF50; }
+  .quiz-opt.wrong { border-color: rgba(244,67,54,0.4); background: rgba(244,67,54,0.08); color: rgba(255,255,255,0.4); }
+  .quiz-timer { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .quiz-timer-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; margin: 0 10px; }
+  .quiz-timer-fill { height: 100%; background: var(--gold); width: 45%; border-radius: 999px; }
+  .quiz-timer-text { font-size: 11px; color: var(--gold); font-weight: 600; }
+
+  /* ─── DASHBOARD WEB ─── */
+  .web-preview {
+    background: #111;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 32px;
+  }
+  .web-topbar {
+    background: #1A1A1A;
+    padding: 12px 24px;
+    display: flex; align-items: center; gap: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .web-logo { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
+  .web-nav { display: flex; gap: 4px; margin-left: auto; }
+  .web-nav-item {
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 13px; color: var(--text-sec); cursor: pointer;
+  }
+  .web-nav-item.active { background: rgba(193,172,92,0.1); color: var(--gold); }
+
+  .web-body { display: grid; grid-template-columns: 200px 1fr; min-height: 360px; }
+  .web-sidebar {
+    background: #161616;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 16px 0;
+  }
+  .web-sidebar-item {
+    padding: 10px 20px;
+    font-size: 13px; color: var(--text-sec); cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    border-left: 2px solid transparent;
+  }
+  .web-sidebar-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(193,172,92,0.05); }
+  .web-sidebar-item .icon { width: 16px; text-align: center; }
+
+  .web-content { padding: 20px 24px; }
+  .web-content-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: white; margin-bottom: 4px; }
+  .web-content-sub { font-size: 12px; color: var(--text-sec); margin-bottom: 20px; }
+  .web-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .web-stat { background: #1A1A1A; border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); }
+  .web-stat-val { font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 700; color: white; }
+  .web-stat-val.gold { color: var(--gold); }
+  .web-stat-val.green { color: var(--green); }
+  .web-stat-lbl { font-size: 11px; color: var(--text-sec); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .web-table { background: #1A1A1A; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+  .web-table-header {
+    display: grid; grid-template-columns: 1fr 80px 80px 80px 80px 80px;
+    padding: 10px 16px; background: rgba(255,255,255,0.03);
+    font-size: 10px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .web-table-row {
+    display: grid; grid-template-columns: 1fr 80px 80px 80px 80px 80px;
+    padding: 10px 16px; font-size: 13px; color: rgba(255,255,255,0.8);
+    border-bottom: 1px solid rgba(255,255,255,0.04); align-items: center;
+  }
+  .web-table-row:last-child { border-bottom: none; }
+  .web-child-name { display: flex; align-items: center; gap: 8px; }
+  .web-mini-avatar {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: rgba(193,172,92,0.15); border: 1px solid rgba(193,172,92,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; color: var(--gold);
+    flex-shrink: 0;
+  }
+  .web-ind { font-size: 14px; text-align: center; }
+  .web-star { color: var(--gold); text-align: center; font-size: 14px; }
+
+  /* ─── SELECTION INDICATOR ─── */
+  .selected-ring {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 24px;
+    border: 2px solid var(--gold);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .direction-card.selected .selected-ring { opacity: 1; }
+  .selected-label {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--gold); color: #1A1A1A;
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .direction-card.selected .selected-label { opacity: 1; }
+
+  /* ─── DIRECTION DESCRIPTION ─── */
+  .dir-desc { padding: 0 24px 20px; }
+  .dir-desc-title { font-size: 12px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; margin-bottom: 6px; }
+  .dir-desc-body { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+  .dir-pros { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .dir-pro {
+    font-size: 11px; padding: 3px 8px; border-radius: 6px;
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5);
+  }
+
+  /* ─── COMPARISON TABLE ─── */
+  .comparison { background: #1C1C1C; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin-top: 32px; }
+  .comparison-header { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .comparison-title { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: white; }
+  .comparison-table { width: 100%; border-collapse: collapse; }
+  .comparison-table th {
+    padding: 12px 16px; text-align: left;
+    font-size: 11px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .comparison-table td {
+    padding: 12px 16px; font-size: 13px; color: rgba(255,255,255,0.7);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table td:first-child { font-weight: 600; color: rgba(255,255,255,0.9); }
+  .check { color: var(--green); font-weight: 700; }
+  .partial { color: var(--yellow); }
+  .cross { color: rgba(255,255,255,0.2); }
+  .highlight-col { background: rgba(193,172,92,0.04); }
+
+  /* ─── FOOTER ─── */
+  .section-footer { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .section-footer-text { font-size: 13px; color: var(--text-sec); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">AUREAK</div>
+  <div class="nav-tab active" onclick="showSection('directions')">Directions design</div>
+  <div class="nav-tab" onclick="showSection('notifications')">Notifications</div>
+  <div class="nav-tab" onclick="showSection('gamification')">Gamification enfant</div>
+  <div class="nav-tab" onclick="showSection('dashboard')">Dashboard web</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1 — DIRECTIONS DESIGN
+═══════════════════════════════════════════════ -->
+<div class="section active" id="s-directions">
+  <div class="badge">Étape 9 — Mode Séance Coach</div>
+  <div class="section-title">Directions de design</div>
+  <div class="section-subtitle">4 directions visuelles pour l'écran d'évaluation — le cœur de l'expérience AUREAK</div>
+
+  <div class="directions-grid">
+
+    <!-- DIR 1: DARK MANGA PREMIUM -->
+    <div class="direction-card selected" id="dir1" onclick="selectDir(1)">
+      <div class="selected-ring"></div>
+      <div class="selected-label">Recommandé</div>
+      <div class="direction-header">
+        <div class="direction-name" style="color:#C1AC5C">Dark Manga Premium</div>
+        <div class="direction-tag">Direction principale</div>
+      </div>
+      <div class="phone-frame">
+        <div class="d1-screen">
+          <div class="d1-topbar">
+            <div class="d1-session-info">
+              <div class="d1-session-group">U11 — Groupe A</div>
+              <div class="d1-session-meta">Séance #24 · Sam 01 mars · 17h00–18h00</div>
+            </div>
+            <div class="d1-sync"><div class="d1-sync-dot"></div>Synced</div>
+          </div>
+          <div class="d1-progress">
+            <div class="d1-progress-text">Enfants évalués</div>
+            <div class="d1-progress-count">8 / 12</div>
+          </div>
+          <div class="d1-progress-bar"><div class="d1-progress-fill"></div></div>
+          <div class="d1-child-card">
+            <div class="d1-child-header">
+              <div class="d1-avatar">LM</div>
+              <div>
+                <div class="d1-child-name">Lucas Martin</div>
+                <div style="font-size:11px;color:var(--text-sec)">U11 · #07</div>
+              </div>
+              <div class="d1-presence-badge present">Présent</div>
+            </div>
+            <div class="d1-indicators">
+              <div class="d1-indicator">
+                <div class="d1-ind-name">Réceptivité</div>
+                <div class="d1-toggle toggle-green">●</div>
+              </div>
+              <div class="d1-indicator">
+                <div class="d1-ind-name">Goût à l'effort</div>
+                <div class="d1-toggle toggle-green">●</div>
+              </div>
+              <div class="d1-indicator">
+                <div class="d1-ind-name">Attitude</div>
+                <div class="d1-toggle toggle-empty">○</div>
+              </div>
+              <div class="d1-indicator">
+                <div class="d1-ind-name">Progression tech.</div>
+                <div class="d1-toggle toggle-yellow">●</div>
+              </div>
+              <div class="d1-indicator">
+                <div class="d1-ind-name">Top séance</div>
+                <div class="d1-toggle toggle-star">★</div>
+              </div>
+            </div>
+          </div>
+          <div class="d1-nav">
+            <div class="d1-swipe-hint">← Swipe pour naviguer →</div>
+          </div>
+        </div>
+      </div>
+      <div class="dir-desc">
+        <div class="dir-desc-title">Description</div>
+        <div class="dir-desc-body">Fond noir chaud du logo, or champagne #C1AC5C, Rajdhani pour les headings. L'esthétique manga premium appliquée à l'outil terrain.</div>
+        <div class="dir-pros">
+          <div class="dir-pro">Cohérent avec le logo</div>
+          <div class="dir-pro">Lisibilité terrain</div>
+          <div class="dir-pro">Premium</div>
+          <div class="dir-pro">Dark mode natif</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIR 2: CLEAN SPORT LIGHT -->
+    <div class="direction-card" id="dir2" onclick="selectDir(2)">
+      <div class="selected-ring"></div>
+      <div class="selected-label">Sélectionné</div>
+      <div class="direction-header">
+        <div class="direction-name" style="color:white">Clean Sport Light</div>
+        <div class="direction-tag">Alternative</div>
+      </div>
+      <div class="phone-frame">
+        <div class="d2-screen">
+          <div class="d2-topbar">
+            <div>
+              <div class="d2-group">U11 — Groupe A</div>
+              <div class="d2-meta">Séance #24 · Sam 01 mars</div>
+            </div>
+            <div style="font-size:12px;color:#888;font-weight:600">8/12</div>
+          </div>
+          <div style="background:white;padding:8px 16px;">
+            <div style="height:3px;background:#EEE;border-radius:999px;overflow:hidden;">
+              <div style="height:100%;background:#C1AC5C;width:67%;border-radius:999px;"></div>
+            </div>
+          </div>
+          <div class="d2-child-card">
+            <div class="d2-child-header">
+              <div class="d2-avatar">LM</div>
+              <div>
+                <div class="d2-child-name">Lucas Martin</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.5)">U11 · #07</div>
+              </div>
+              <div style="margin-left:auto;font-size:11px;background:rgba(76,175,80,0.15);color:#4CAF50;padding:3px 8px;border-radius:6px;font-weight:600;">✓ Présent</div>
+            </div>
+            <div class="d2-indicators">
+              <div class="d2-indicator"><div class="d2-ind-name">Réceptivité</div><div class="d2-toggle d2-toggle-g">●</div></div>
+              <div class="d2-indicator"><div class="d2-ind-name">Goût à l'effort</div><div class="d2-toggle d2-toggle-g">●</div></div>
+              <div class="d2-indicator"><div class="d2-ind-name">Attitude</div><div class="d2-toggle" style="color:#CCC;">○</div></div>
+              <div class="d2-indicator"><div class="d2-ind-name">Progression tech.</div><div class="d2-toggle d2-toggle-y">●</div></div>
+              <div class="d2-indicator"><div class="d2-ind-name">Top séance</div><div class="d2-toggle" style="color:#C1AC5C;background:rgba(193,172,92,0.1);border-color:rgba(193,172,92,0.3);">★</div></div>
+            </div>
+            <div class="d2-btn">Suivant →</div>
+          </div>
+        </div>
+      </div>
+      <div class="dir-desc">
+        <div class="dir-desc-title">Description</div>
+        <div class="dir-desc-body">Fond blanc/beige, accents noirs et or. Proche de l'esthétique du site aureak.be — plus accessible, moins immersif.</div>
+        <div class="dir-pros">
+          <div class="dir-pro">Cohérence site web</div>
+          <div class="dir-pro">Familier</div>
+          <div class="dir-pro">Luminosité terrain</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIR 3: NEON FUTURISTE -->
+    <div class="direction-card" id="dir3" onclick="selectDir(3)">
+      <div class="selected-ring"></div>
+      <div class="selected-label">Sélectionné</div>
+      <div class="direction-header">
+        <div class="direction-name" style="color:#00E6C8">Neon Futuriste</div>
+        <div class="direction-tag">Expérimental</div>
+      </div>
+      <div class="phone-frame">
+        <div class="d3-screen">
+          <div class="d3-topbar">
+            <div class="d3-group">U11 — Groupe A</div>
+            <div class="d3-meta">Séance #24</div>
+          </div>
+          <div style="padding:8px 16px 0;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(0,230,200,0.5);margin-bottom:4px;"><span>Progression</span><span>8/12</span></div>
+            <div style="height:2px;background:rgba(0,230,200,0.08);border-radius:999px;overflow:hidden;"><div style="height:100%;background:#00E6C8;width:67%;border-radius:999px;"></div></div>
+          </div>
+          <div class="d3-child-card">
+            <div class="d3-child-header">
+              <div class="d3-avatar">LM</div>
+              <div>
+                <div class="d3-name">Lucas Martin</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.3)">U11 · #07</div>
+              </div>
+              <div class="d3-badge">✓ Présent</div>
+            </div>
+            <div class="d3-indicators">
+              <div class="d3-indicator"><div class="d3-ind-name">Réceptivité</div><div class="d3-toggle d3-g">●</div></div>
+              <div class="d3-indicator"><div class="d3-ind-name">Goût à l'effort</div><div class="d3-toggle d3-g">●</div></div>
+              <div class="d3-indicator"><div class="d3-ind-name">Attitude</div><div class="d3-toggle" style="color:rgba(255,255,255,0.15);">○</div></div>
+              <div class="d3-indicator"><div class="d3-ind-name">Progression tech.</div><div class="d3-toggle d3-y">●</div></div>
+              <div class="d3-indicator"><div class="d3-ind-name">Top séance</div><div class="d3-toggle d3-c">★</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dir-desc">
+        <div class="dir-desc-title">Description</div>
+        <div class="dir-desc-body">Noir profond avec accent néon cyan. Style gaming/esport futuriste — rupture forte avec l'identité existante.</div>
+        <div class="dir-pros">
+          <div class="dir-pro">Ultra moderne</div>
+          <div class="dir-pro">Gaming</div>
+          <div class="dir-pro">Jeune public</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIR 4: WARM ACADEMY -->
+    <div class="direction-card" id="dir4" onclick="selectDir(4)">
+      <div class="selected-ring"></div>
+      <div class="selected-label">Sélectionné</div>
+      <div class="direction-header">
+        <div class="direction-name" style="color:#F3EFE7">Warm Academy</div>
+        <div class="direction-tag">Chaleureux</div>
+      </div>
+      <div class="phone-frame">
+        <div class="d4-screen">
+          <div class="d4-topbar">
+            <div class="d4-logo">A</div>
+            <div>
+              <div class="d4-group">U11 — Groupe A</div>
+              <div style="font-size:11px;color:rgba(240,237,224,0.4);">Séance #24</div>
+            </div>
+            <div style="margin-left:auto;font-size:20px;color:var(--gold)">8<span style="font-size:13px;color:rgba(193,172,92,0.5)">/12</span></div>
+          </div>
+          <div style="background:rgba(193,172,92,0.05);padding:6px 16px;">
+            <div style="height:2px;background:rgba(193,172,92,0.1);border-radius:999px;overflow:hidden;"><div style="height:100%;background:var(--gold);width:67%;border-radius:999px;"></div></div>
+          </div>
+          <div class="d4-child-card">
+            <div class="d4-child-header">
+              <div class="d4-avatar">LM</div>
+              <div>
+                <div class="d4-name">Lucas Martin</div>
+                <div style="font-size:11px;color:rgba(240,237,224,0.4)">U11 · #07</div>
+              </div>
+              <div style="margin-left:auto;font-size:11px;color:#4CAF50;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);padding:3px 8px;border-radius:6px;font-weight:600;">Présent</div>
+            </div>
+            <div class="d4-indicators">
+              <div class="d4-indicator"><div class="d4-ind-name">Réceptivité</div><div class="d4-toggle d4-g">●</div></div>
+              <div class="d4-indicator"><div class="d4-ind-name">Goût à l'effort</div><div class="d4-toggle d4-g">●</div></div>
+              <div class="d4-indicator"><div class="d4-ind-name">Attitude</div><div class="d4-toggle" style="color:rgba(240,237,224,0.15);">○</div></div>
+              <div class="d4-indicator"><div class="d4-ind-name">Progression tech.</div><div class="d4-toggle d4-y">●</div></div>
+              <div class="d4-indicator"><div class="d4-ind-name">Top séance</div><div class="d4-toggle d4-gold">★</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dir-desc">
+        <div class="dir-desc-title">Description</div>
+        <div class="dir-desc-body">Noir brun chaud avec or et ivoire. Plus académique, chaleureux et intemporel — proche de l'esprit club traditionnel premium.</div>
+        <div class="dir-pros">
+          <div class="dir-pro">Chaleureux</div>
+          <div class="dir-pro">Intemporel</div>
+          <div class="dir-pro">Premium soft</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="comparison">
+    <div class="comparison-header">
+      <div class="comparison-title">Comparaison des directions</div>
+    </div>
+    <table class="comparison-table">
+      <tr>
+        <th>Critère</th>
+        <th style="color:#C1AC5C">Dark Manga</th>
+        <th>Clean Light</th>
+        <th>Neon Futuriste</th>
+        <th>Warm Academy</th>
+      </tr>
+      <tr>
+        <td>Cohérence logo AUREAK</td>
+        <td class="highlight-col"><span class="check">✓✓</span></td>
+        <td><span class="partial">~</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Lisibilité terrain (plein soleil)</td>
+        <td class="highlight-col"><span class="check">✓✓</span></td>
+        <td><span class="check">✓✓</span></td>
+        <td><span class="partial">~</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Ambiance premium / aspirationnelle</td>
+        <td class="highlight-col"><span class="check">✓✓</span></td>
+        <td><span class="partial">~</span></td>
+        <td><span class="check">✓</span></td>
+        <td><span class="check">✓✓</span></td>
+      </tr>
+      <tr>
+        <td>Engagement enfant (fun/gaming)</td>
+        <td class="highlight-col"><span class="check">✓✓</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓✓</span></td>
+        <td><span class="partial">~</span></td>
+      </tr>
+      <tr>
+        <td>Cohérence multi-surfaces (mobile + web)</td>
+        <td class="highlight-col"><span class="check">✓✓</span></td>
+        <td><span class="check">✓</span></td>
+        <td><span class="partial">~</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Accessibilité WCAG (contrastes)</td>
+        <td class="highlight-col"><span class="check">✓✓</span></td>
+        <td><span class="check">✓✓</span></td>
+        <td><span class="partial">~</span></td>
+        <td><span class="check">✓✓</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 2 — NOTIFICATIONS
+═══════════════════════════════════════════════ -->
+<div class="section" id="s-notifications">
+  <div class="badge">Expérience Parent</div>
+  <div class="section-title">Notifications post-séance</div>
+  <div class="section-subtitle">3 variations du moment signature AUREAK — la notification parent dans les 5 minutes</div>
+
+  <div class="notif-grid">
+
+    <!-- V1: Or & Dark -->
+    <div class="notif-phone">
+      <div class="notif-phone-screen" style="background:#0A0A0A">
+        <div class="notif-lock">
+          <div class="notif-time">19:42</div>
+          <div class="notif-date">Samedi 1 mars 2026</div>
+        </div>
+        <div class="notif-banner nb-v1">
+          <div class="nb-icon" style="background:rgba(193,172,92,0.15);">⚽</div>
+          <div class="nb-content">
+            <div class="nb-app">AUREAK · Maintenant</div>
+            <div class="nb-title">Séance de Lucas terminée ⭐</div>
+            <div class="nb-body">Séance #24 — Marc L. a évalué Lucas</div>
+            <div class="nb-indicators">
+              <div class="nb-chip nb-chip-g">● Réceptivité</div>
+              <div class="nb-chip nb-chip-g">● Goût à l'effort</div>
+              <div class="nb-chip nb-chip-star">★ Top séance</div>
+            </div>
+            <div class="nb-time">Il y a 2 min</div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,0.15);">Direction 1 — Dark Manga</div>
+      </div>
+    </div>
+
+    <!-- V2: iOS Style -->
+    <div class="notif-phone">
+      <div class="notif-phone-screen" style="background:linear-gradient(135deg,#1a2a3a,#0a1520)">
+        <div class="notif-lock">
+          <div class="notif-time">19:42</div>
+          <div class="notif-date">Samedi 1 mars 2026</div>
+        </div>
+        <div class="notif-banner nb-v2">
+          <div class="nb-icon" style="background:rgba(193,172,92,0.9);border-radius:10px;">⚽</div>
+          <div class="nb-content">
+            <div class="nb-app" style="color:rgba(0,0,0,0.4)">AUREAK · Maintenant</div>
+            <div class="nb-title" style="color:#111">Lucas — Séance terminée ⭐</div>
+            <div class="nb-body" style="color:rgba(0,0,0,0.6)">Réceptivité ● · Goût à l'effort ● · Top séance ★</div>
+            <div class="nb-time" style="color:rgba(0,0,0,0.3)">Il y a 2 min</div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,0.15);">Direction 2 — iOS Glass</div>
+      </div>
+    </div>
+
+    <!-- V3: Green Accent -->
+    <div class="notif-phone">
+      <div class="notif-phone-screen" style="background:#0A0F0A">
+        <div class="notif-lock">
+          <div class="notif-time" style="color:#E8F5E8">19:42</div>
+          <div class="notif-date" style="color:rgba(232,245,232,0.5)">Samedi 1 mars 2026</div>
+        </div>
+        <div class="notif-banner nb-v3">
+          <div class="nb-icon" style="background:rgba(76,175,80,0.15)">🏅</div>
+          <div class="nb-content">
+            <div class="nb-app" style="color:rgba(76,175,80,0.6)">AUREAK · Maintenant</div>
+            <div class="nb-title">Lucas — Top séance ⭐</div>
+            <div class="nb-body">Marc L. a complété l'évaluation · 3 indicateurs positifs</div>
+            <div class="nb-indicators">
+              <div class="nb-chip nb-chip-g">Réceptivité ✓</div>
+              <div class="nb-chip nb-chip-g">Goût effort ✓</div>
+              <div class="nb-chip nb-chip-star">Top ★</div>
+            </div>
+            <div class="nb-time">Il y a 2 min</div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,0.15);">Direction 3 — Green Accent</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 3 — GAMIFICATION ENFANT
+═══════════════════════════════════════════════ -->
+<div class="section" id="s-gamification">
+  <div class="badge">Expérience Enfant</div>
+  <div class="section-title">Gamification & progression</div>
+  <div class="section-subtitle">Avatar, points, badges et quiz — la boucle d'engagement de l'enfant</div>
+
+  <div class="gamif-grid">
+
+    <!-- Avatar & XP -->
+    <div class="gamif-card">
+      <div class="gamif-header">
+        <div class="gamif-title">Profil & Avatar</div>
+        <div class="gamif-tag">Identité enfant</div>
+      </div>
+      <div class="gamif-body">
+        <div class="avatar-display">
+          <div class="avatar-circle">⚽</div>
+          <div class="avatar-name">Lucas Martin</div>
+          <div class="avatar-level">Niveau 7 — Gardien Confirmé</div>
+          <div class="xp-bar-bg"><div class="xp-bar-fill"></div></div>
+          <div class="xp-label">680 / 1000 XP pour le niveau 8</div>
+        </div>
+        <div class="points-grid">
+          <div class="points-item"><div class="points-val">24</div><div class="points-lbl">Séances</div></div>
+          <div class="points-item"><div class="points-val" style="color:var(--green)">19</div><div class="points-lbl">Présences</div></div>
+          <div class="points-item"><div class="points-val">12</div><div class="points-lbl">Quiz faits</div></div>
+          <div class="points-item"><div class="points-val" style="color:var(--gold)">3</div><div class="points-lbl">Top séance</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="gamif-card">
+      <div class="gamif-header">
+        <div class="gamif-title">Badges débloqués</div>
+        <div class="gamif-tag">Collection</div>
+      </div>
+      <div class="gamif-body">
+        <div style="font-size:12px;color:var(--text-sec);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;">Débloqués (5)</div>
+        <div class="badge-row" style="margin-bottom:16px;">
+          <div class="badge-item bi-gold" title="Top séance">⭐</div>
+          <div class="badge-item bi-g" title="Quiz rapide">⚡</div>
+          <div class="badge-item bi-gold" title="Présence parfaite">🏆</div>
+          <div class="badge-item bi-g" title="Progression">📈</div>
+          <div class="badge-item bi-gold" title="3 top séances">🎯</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-sec);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;">À débloquer (3)</div>
+        <div class="badge-row">
+          <div class="badge-item bi-lock">🥇</div>
+          <div class="badge-item bi-lock">🔥</div>
+          <div class="badge-item bi-lock">💎</div>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:rgba(193,172,92,0.06);border-radius:12px;border:1px solid rgba(193,172,92,0.15);">
+          <div style="font-size:12px;color:var(--gold);font-weight:600;margin-bottom:4px;">Prochain badge</div>
+          <div style="font-size:12px;color:var(--text-sec);">Complète 3 quiz en moins de 72h pour débloquer 🔥 Régularité</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="gamif-card">
+      <div class="gamif-header">
+        <div class="gamif-title">Quiz post-séance</div>
+        <div class="gamif-tag">+50 XP disponibles</div>
+      </div>
+      <div class="gamif-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12px;color:var(--text-sec);">Séance #24 · 3 questions</div>
+          <div style="font-size:11px;color:var(--gold);background:rgba(193,172,92,0.1);padding:3px 8px;border-radius:6px;font-weight:600;">⏱ 47h restantes</div>
+        </div>
+        <div class="quiz-card-preview">
+          <div class="quiz-q">Lors d'une sortie aérienne, quelle est la première chose que le gardien doit faire ?</div>
+          <div class="quiz-options">
+            <div class="quiz-opt correct">✓ Appeler le ballon clairement</div>
+            <div class="quiz-opt wrong">Sauter le plus haut possible</div>
+            <div class="quiz-opt">Attendre l'attaquant</div>
+          </div>
+          <div class="quiz-timer">
+            <div style="font-size:11px;color:var(--text-sec)">Q2/3</div>
+            <div class="quiz-timer-bar"><div class="quiz-timer-fill"></div></div>
+            <div class="quiz-timer-text">+15 XP</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;padding:10px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:10px;text-align:center;">
+            <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--green)">+35</div>
+            <div style="font-size:10px;color:var(--text-sec)">XP gagnés</div>
+          </div>
+          <div style="flex:1;padding:10px;background:rgba(193,172,92,0.06);border:1px solid rgba(193,172,92,0.2);border-radius:10px;text-align:center;">
+            <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--gold)">+15</div>
+            <div style="font-size:10px;color:var(--text-sec)">Bonus rapidité</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 4 — DASHBOARD WEB
+═══════════════════════════════════════════════ -->
+<div class="section" id="s-dashboard">
+  <div class="badge">Surface Web — Admin</div>
+  <div class="section-title">Dashboard administrateur</div>
+  <div class="section-subtitle">Vue agrégée multi-implantations — surface web, dark theme cohérent</div>
+
+  <div class="web-preview">
+    <div class="web-topbar">
+      <div class="web-logo">AUREAK</div>
+      <div style="font-size:12px;color:var(--text-sec);margin-left:8px;">Football Academy</div>
+      <div class="web-nav">
+        <div class="web-nav-item active">Dashboard</div>
+        <div class="web-nav-item">Séances</div>
+        <div class="web-nav-item">Enfants</div>
+        <div class="web-nav-item">Coachs</div>
+      </div>
+    </div>
+    <div class="web-body">
+      <div class="web-sidebar">
+        <div class="web-sidebar-item active"><span class="icon">📊</span>Vue générale</div>
+        <div class="web-sidebar-item"><span class="icon">📅</span>Séances</div>
+        <div class="web-sidebar-item"><span class="icon">👦</span>Enfants</div>
+        <div class="web-sidebar-item"><span class="icon">🏃</span>Coachs</div>
+        <div class="web-sidebar-item"><span class="icon">📍</span>Implantations</div>
+        <div class="web-sidebar-item"><span class="icon">📈</span>Rapports</div>
+        <div class="web-sidebar-item"><span class="icon">⚙️</span>Paramètres</div>
+      </div>
+      <div class="web-content">
+        <div class="web-content-title">Vue générale — Saison 2025/2026</div>
+        <div class="web-content-sub">Implantation Bruxelles · Semaine du 24 fév — 2 mar 2026</div>
+        <div class="web-stats">
+          <div class="web-stat">
+            <div class="web-stat-val green">94%</div>
+            <div class="web-stat-lbl">Check-in numérique</div>
+          </div>
+          <div class="web-stat">
+            <div class="web-stat-val">112</div>
+            <div class="web-stat-lbl">Adhérents actifs</div>
+          </div>
+          <div class="web-stat">
+            <div class="web-stat-val gold">68%</div>
+            <div class="web-stat-lbl">Quiz complétés</div>
+          </div>
+          <div class="web-stat">
+            <div class="web-stat-val">8</div>
+            <div class="web-stat-lbl">Séances ce mois</div>
+          </div>
+        </div>
+        <div class="web-table">
+          <div class="web-table-header">
+            <span>Enfant</span>
+            <span style="text-align:center">Réceptivité</span>
+            <span style="text-align:center">Effort</span>
+            <span style="text-align:center">Attitude</span>
+            <span style="text-align:center">Prog. tech</span>
+            <span style="text-align:center">Top</span>
+          </div>
+          <div class="web-table-row">
+            <div class="web-child-name"><div class="web-mini-avatar">LM</div>Lucas Martin</div>
+            <div class="web-ind">🟢</div><div class="web-ind">🟢</div><div class="web-ind">—</div><div class="web-ind">🟡</div><div class="web-star">⭐</div>
+          </div>
+          <div class="web-table-row">
+            <div class="web-child-name"><div class="web-mini-avatar">TD</div>Tom Dubois</div>
+            <div class="web-ind">🟢</div><div class="web-ind">🟡</div><div class="web-ind">🟢</div><div class="web-ind">🟢</div><div class="web-star">—</div>
+          </div>
+          <div class="web-table-row">
+            <div class="web-child-name"><div class="web-mini-avatar">NB</div>Nathan Bernard</div>
+            <div class="web-ind">🟡</div><div class="web-ind">🟢</div><div class="web-ind">🟢</div><div class="web-ind">—</div><div class="web-star">—</div>
+          </div>
+          <div class="web-table-row">
+            <div class="web-child-name"><div class="web-mini-avatar">AM</div>Alex Morel</div>
+            <div class="web-ind">🟢</div><div class="web-ind">🟢</div><div class="web-ind">🟢</div><div class="web-ind">🟢</div><div class="web-star">⭐</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('s-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function selectDir(num) {
+    document.querySelectorAll('.direction-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('dir' + num).classList.add('selected');
+  }
+</script>
+</body>
+</html>
