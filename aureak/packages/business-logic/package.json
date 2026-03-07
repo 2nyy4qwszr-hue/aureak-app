@@ -1,0 +1,20 @@
+{
+  "name": "@aureak/business-logic",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aureak/api-client": "*",
+    "@aureak/types": "*",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Aureak",
+    "slug": "aureak",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "aureak",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0F"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.aureak.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0F"
+      },
+      "package": "com.aureak.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": { "newArchEnabled": true },
+          "android": { "newArchEnabled": true }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "process.env.SUPABASE_URL",
+      "supabaseAnonKey": "process.env.SUPABASE_ANON_KEY"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "paths": {
+      "@aureak/types": ["../../packages/types/src/index.ts"],
+      "@aureak/theme": ["../../packages/theme/src/index.ts"],
+      "@aureak/ui": ["../../packages/ui/src/index.ts"],
+      "@aureak/api-client": ["../../packages/api-client/src/index.ts"],
+      "@aureak/business-logic": ["../../packages/business-logic/src/index.ts"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

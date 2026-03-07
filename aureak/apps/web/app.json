@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Aureak Web",
+    "slug": "aureak-web",
+    "version": "0.0.1",
+    "scheme": "aureak",
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "https://tuiicxlkvzvanikbkmmf.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aWljeGxrdnp2YW5pa2JrbW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MDE0NzksImV4cCI6MjA4Nzk3NzQ3OX0.sCnZaReg6oznuA2RhywnQyJgXBQmffMa5kMJdKyCa88"
+    }
+  }
+}

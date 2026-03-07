@@ -1,0 +1,74 @@
+// Story 4.5 — Edge Function : notifications multicanal sur annulation de séance
+// Déclenchée via Database Webhook sur UPDATE sessions WHERE status = 'annulée'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+Deno.serve(async (req: Request) => {
+  const { record } = await req.json()
+
+  // Vérifier que la session vient d'être annulée
+  if (record.status !== 'annulée') {
+    return new Response('skipped', { status: 200 })
+  }
+
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  )
+
+  // Récupérer les parents des enfants du roster
+  const { data: attendees } = await supabase
+    .from('session_attendees')
+    .select('child_id, profiles!child_id(parent_child_links(parent_id))')
+    .eq('session_id', record.id)
+
+  const parentIds: string[] = [...new Set(
+    (attendees ?? []).flatMap((a: { profiles?: { parent_child_links?: { parent_id: string }[] } }) =>
+      a.profiles?.parent_child_links?.map(l => l.parent_id) ?? []
+    )
+  )]
+
+  let processed = 0
+
+  for (const parentId of parentIds) {
+    const { data: prefs } = await supabase
+      .from('notification_preferences')
+      .select('push_enabled, email_enabled, sms_enabled')
+      .eq('user_id', parentId)
+      .single()
+
+    const channels: string[] = [
+      prefs?.push_enabled  ? 'push'  : null,
+      prefs?.email_enabled ? 'email' : null,
+      prefs?.sms_enabled   ? 'sms'   : null,
+    ].filter(Boolean) as string[]
+
+    // Si pas de préférences, envoyer push par défaut
+    if (!prefs) channels.push('push')
+
+    for (const channel of channels) {
+      await supabase
+        .from('notification_send_logs')
+        .insert({
+          tenant_id   : record.tenant_id,
+          recipient_id: parentId,
+          channel,
+          event_type  : 'session_cancelled',
+          reference_id: record.id,
+          status      : 'sent',
+          urgency     : 'urgent',
+        })
+        // Idempotent : ON CONFLICT DO NOTHING via unique_send_once
+        .onConflict('tenant_id, recipient_id, reference_id, event_type, channel')
+        .ignore()
+
+      // TODO Story 7.1 : brancher send-notification Edge Function pour l'envoi réel
+      // push → Expo Push API, email → Resend, sms → Twilio
+    }
+
+    processed++
+  }
+
+  return new Response(JSON.stringify({ processed }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+})

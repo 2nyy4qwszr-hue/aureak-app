@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-lint-${{ github.sha }}
+          restore-keys: turbo-lint-
+      - run: yarn turbo lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-typecheck-${{ github.sha }}
+          restore-keys: turbo-typecheck-
+      - run: yarn turbo typecheck
+
+  test:
+    name: Unit & Component Tests
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-test-${{ github.sha }}
+          restore-keys: turbo-test-
+      - run: yarn turbo test

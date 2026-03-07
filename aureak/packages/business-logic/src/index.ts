@@ -1,0 +1,17 @@
+// @aureak/business-logic — Logique métier pure
+
+export { useAuthStore } from './stores/useAuthStore'
+export { isAdmin, isCoach, isParent, isChild, hasRole } from './auth/roles'
+export { filterByAudience } from './referentiel/filterByAudience'
+export type { UserProfile } from './referentiel/filterByAudience'
+
+export { SyncQueueService } from './sync/SyncQueueService'
+export type { QueueOperation, LocalQueueItem, SyncDB, ApplyEventFn } from './sync/SyncQueueService'
+
+export { BackgroundSyncService } from './sync/BackgroundSyncService'
+export { useRecordEvaluation } from './sync/useRecordEvaluation'
+export { useSessionValidation } from './sessions/useSessionValidation'
+export { TICKET_SUBJECT_TEMPLATES } from './tickets/subject-templates'
+export { useQuiz } from './learning/useQuiz'
+export { computeRankings } from './admin/computeRankings'
+export type { ImplantationStat, RankedStat } from './admin/computeRankings'

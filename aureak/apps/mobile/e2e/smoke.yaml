@@ -1,0 +1,14 @@
+# Maestro smoke test — Aureak Mobile
+# Usage local uniquement — NE PAS inclure dans CI PR.
+# Prérequis : simulateur iOS ou émulateur Android actif + app lancée en dev.
+# Lancement : cd aureak && maestro test apps/mobile/e2e/smoke.yaml
+#
+# Installation Maestro :
+#   curl -Ls "https://get.maestro.mobile.dev" | bash
+
+appId: com.aureak.app
+
+---
+- launchApp
+- assertVisible:
+    id: "index"  # L'écran principal doit être visible

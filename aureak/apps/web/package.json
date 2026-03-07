@@ -1,0 +1,51 @@
+{
+  "name": "@aureak/web",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start --web --port 8082",
+    "start": "expo start --web",
+    "build": "tsc --noEmit",
+    "export": "expo export --platform web",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aureak/api-client": "*",
+    "@aureak/business-logic": "*",
+    "@aureak/theme": "*",
+    "@aureak/types": "*",
+    "@aureak/ui": "*",
+    "@hookform/resolvers": "^3.9.0",
+    "@react-navigation/native": "^7.0.14",
+    "@tamagui/config": "^2.0.0-rc.22",
+    "babel-preset-expo": "~54.0.0",
+    "expo": "^54.0.23",
+    "expo-constants": "~17.1.6",
+    "expo-linking": "~8.0.8",
+    "expo-router": "~6.0.14",
+    "expo-splash-screen": "~31.0.10",
+    "expo-status-bar": "~3.0.8",
+    "react": ">=19",
+    "react-dom": "*",
+    "react-hook-form": "^7.53.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "^0.21.0",
+    "tamagui": "^2.0.0-rc.22",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@expo/metro-config": "~54.0.2",
+    "@expo/metro-runtime": "~6.1.2",
+    "@playwright/test": "^1.48.0",
+    "@tamagui/babel-plugin": "^2.0.0-rc.22",
+    "@types/react": "~19.1.10",
+    "react-refresh": "^0.14.0",
+    "typescript": "~5.9.2",
+    "wait-on": "^8.0.0"
+  }
+}

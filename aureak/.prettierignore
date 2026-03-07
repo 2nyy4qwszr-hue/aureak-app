@@ -1,0 +1,9 @@
+node_modules
+dist
+.expo
+.next
+out
+build
+*.tsbuildinfo
+supabase/.branches
+yarn.lock
