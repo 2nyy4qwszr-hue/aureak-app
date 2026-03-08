@@ -10,7 +10,6 @@ import {
   listAvailableCoaches, createSession, assignCoach,
   addSessionTheme, listThemes,
   prefillSessionAttendees,
-  supabase,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
@@ -457,17 +456,15 @@ export default function NewSessionPage() {
     setLoadingImplantations(true)
     setImplantationsError(null)
 
-    // Refresh token first so the JWT definitely has the hook-injected claims
-    supabase.auth.refreshSession().then(() => {
-      listImplantations().then(({ data, error }) => {
-        if (error) {
-          console.error('[NewSession] listImplantations error:', error)
-          setImplantationsError('Impossible de charger les implantations. Vérifiez votre connexion.')
-        } else {
-          setImplantations(data)
-        }
-        setLoadingImplantations(false)
-      })
+    // current_tenant_id() reads from profiles (migration 00053) — no JWT refresh needed
+    listImplantations().then(({ data, error }) => {
+      if (error) {
+        console.error('[NewSession] listImplantations error:', error)
+        setImplantationsError('Impossible de charger les implantations. Vérifiez votre connexion.')
+      } else {
+        setImplantations(data)
+      }
+      setLoadingImplantations(false)
     })
 
     listAvailableCoaches().then(coaches => setAllCoaches(coaches))
@@ -478,8 +475,10 @@ export default function NewSessionPage() {
   useEffect(() => {
     if (!implantationId) { setGroups([]); setGroupId(''); setSelectedGroup(null); return }
     setLoadingGroups(true)
+    setGroups([])
     listGroupsByImplantation(implantationId).then(({ data, error }) => {
-      if (!error) setGroups(data)
+      if (error) console.error('[NewSession] listGroupsByImplantation error:', error)
+      setGroups(data)
       setLoadingGroups(false)
     })
   }, [implantationId])
@@ -631,26 +630,40 @@ export default function NewSessionPage() {
                 <Pressable onPress={() => {
                   setImplantationsError(null)
                   setLoadingImplantations(true)
-                  supabase.auth.refreshSession().then(() =>
-                    listImplantations().then(({ data, error }) => {
-                      if (error) setImplantationsError('Impossible de charger les implantations.')
-                      else setImplantations(data)
-                      setLoadingImplantations(false)
-                    })
-                  )
+                  listImplantations().then(({ data, error }) => {
+                    if (error) setImplantationsError('Impossible de charger les implantations.')
+                    else setImplantations(data)
+                    setLoadingImplantations(false)
+                  })
                 }}>
                   <AureakText variant="caption" style={{ color: colors.accent.gold, marginTop: 4 }}>↺ Réessayer</AureakText>
                 </Pressable>
               </View>
             ) : (
-              <SearchableSelect
-                options={implantOpts}
-                value={implantationId}
-                onSelect={id => { setImplantationId(id); setGroupId('') }}
-                placeholder={loadingImplantations ? 'Chargement…' : implantOpts.length === 0 ? 'Aucune implantation disponible' : 'Sélectionner une implantation…'}
-                disabled={loadingImplantations}
-                zBase={15}
-              />
+              <>
+                <SearchableSelect
+                  options={implantOpts}
+                  value={implantationId}
+                  onSelect={id => { setImplantationId(id); setGroupId('') }}
+                  placeholder={loadingImplantations ? 'Chargement…' : implantOpts.length === 0 ? 'Aucune implantation trouvée' : 'Sélectionner une implantation…'}
+                  disabled={loadingImplantations}
+                  zBase={15}
+                />
+                {!loadingImplantations && implantOpts.length === 0 && (
+                  <View style={p.infoNote}>
+                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                      Aucune implantation configurée.{' '}
+                      <AureakText
+                        variant="caption"
+                        style={{ color: colors.accent.gold }}
+                        onPress={() => router.push('/implantations' as never)}
+                      >
+                        Créer une implantation →
+                      </AureakText>
+                    </AureakText>
+                  </View>
+                )}
+              </>
             )}
           </View>
 
