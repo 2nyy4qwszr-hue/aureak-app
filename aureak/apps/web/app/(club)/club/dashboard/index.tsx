@@ -1,11 +1,11 @@
 'use client'
-// Club Dashboard v2 — filtres · analytics · navigation gardiens · export
+// Club Dashboard v2 — filtres · analytics · navigation gardiens · export · affiliations
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
-import { supabase, listImplantations } from '@aureak/api-client'
+import { supabase, listImplantations, listAffiliatedChildrenByClub } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
-import type { EvaluationSignal } from '@aureak/types'
+import type { EvaluationSignal, ChildClubHistory, FootballTeamLevel } from '@aureak/types'
 import type { Implantation } from '@aureak/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -67,6 +67,15 @@ const SIGNAL_BG: Record<EvaluationSignal, string> = {
   positive : 'rgba(76,175,80,0.16)',
   attention: 'rgba(255,193,7,0.16)',
   none     : colors.background.elevated,
+}
+
+// ── Football affiliation constants ────────────────────────────────────────────
+const TEAM_LEVEL_COLOR: Record<FootballTeamLevel, string> = {
+  'Provinciaux'      : colors.text.secondary,
+  'Interprovinciaux' : colors.status.attention,
+  'Régionaux'        : '#7C8CF8',
+  'Nationaux'        : colors.accent.gold,
+  'International'    : colors.status.present,
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -240,6 +249,7 @@ export default function ClubDashboard() {
   const [goalies,      setGoalies]      = useState<GoalkeeperStat[]>([])
   const [upcoming,     setUpcoming]     = useState<UpcomingSession[]>([])
   const [implants,     setImplants]     = useState<Pick<Implantation, 'id' | 'name'>[]>([])
+  const [affiliated,   setAffiliated]   = useState<ChildClubHistory[]>([])
   const [loading,      setLoading]      = useState(true)
 
   // Filters
@@ -307,6 +317,12 @@ export default function ClubDashboard() {
           .limit(5)
         setUpcoming((upSessions ?? []) as UpcomingSession[])
       }
+
+      // Affiliated children — all seasons, for this club
+      try {
+        const { data: affiliatedData } = await listAffiliatedChildrenByClub(user.id)
+        setAffiliated(affiliatedData)
+      } catch { /* best-effort */ }
 
       setLoading(false)
     }
@@ -700,7 +716,7 @@ export default function ClubDashboard() {
 
           {/* Distribution */}
           {filteredGoalies.length > 0 && (
-            <div>
+            <div style={{ marginBottom: 20 }}>
               <div style={D.sectionLabel}>Distribution assiduité</div>
               <div style={D.rightCard}>
                 {[
@@ -720,6 +736,98 @@ export default function ClubDashboard() {
               </div>
             </div>
           )}
+
+          {/* Affiliations par saison */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={D.sectionLabel}>Affiliations officielles</div>
+              {affiliated.length > 0 && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                  backgroundColor: colors.status.present + '10',
+                  border: `1px solid ${colors.status.present}40`,
+                  color: colors.status.present,
+                }}>
+                  {affiliated.length}
+                </span>
+              )}
+            </div>
+            {affiliated.length === 0 ? (
+              <div style={{ ...D.rightCard, padding: '20px 14px', textAlign: 'center' }}>
+                <div style={{ fontSize: 18, marginBottom: 6 }}>📋</div>
+                <div style={{ fontSize: 12, color: colors.text.secondary }}>
+                  Aucune affiliation officielle enregistrée pour ce club.
+                </div>
+                <div style={{ fontSize: 11, color: colors.text.secondary, marginTop: 6, lineHeight: 1.5 }}>
+                  Les parents peuvent ajouter l'historique via le profil de leur enfant.
+                </div>
+              </div>
+            ) : (
+              <div style={D.rightCard}>
+                {/* Group by season */}
+                {Array.from(new Set(affiliated.map(a => a.season))).sort((a, b) => b.localeCompare(a)).map(season => {
+                  const seasonEntries = affiliated.filter(a => a.season === season)
+                  return (
+                    <div key={season} style={{ borderBottom: `1px solid ${colors.accent.zinc}` }}>
+                      {/* Season header */}
+                      <div style={{
+                        padding: '7px 13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        backgroundColor: 'rgba(193,172,92,0.04)',
+                        borderBottom: `1px solid ${colors.accent.zinc}`,
+                      }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, color: colors.accent.gold, letterSpacing: '0.05em',
+                        }}>
+                          {season}
+                        </span>
+                        <span style={{ fontSize: 10, color: colors.text.secondary }}>
+                          {seasonEntries.length} gardien{seasonEntries.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {/* Children */}
+                      {seasonEntries.map((entry, i) => {
+                        const lvlColor = entry.teamLevel ? TEAM_LEVEL_COLOR[entry.teamLevel] : colors.text.secondary
+                        return (
+                          <div
+                            key={entry.id}
+                            className="cl-row"
+                            style={{
+                              padding: '9px 13px',
+                              borderBottom: i < seasonEntries.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                              cursor: 'pointer', transition: 'background 0.12s',
+                            }}
+                            onClick={() => router.push(`/club/goalkeepers/${entry.childId}` as never)}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                              <div style={{
+                                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                                backgroundColor: colors.status.present + '15',
+                                border: `1px solid ${colors.status.present}40`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 11, fontWeight: 700, color: colors.status.present,
+                              }}>
+                                ✓
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: colors.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {entry.ageCategory}
+                                </div>
+                                {entry.teamLevel && (
+                                  <div style={{ fontSize: 10, color: lvlColor, fontWeight: 500 }}>{entry.teamLevel}</div>
+                                )}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: 12, color: colors.text.secondary }}>›</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

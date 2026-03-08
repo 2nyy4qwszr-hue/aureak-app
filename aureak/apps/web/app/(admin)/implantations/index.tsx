@@ -1,7 +1,8 @@
 'use client'
-// Story 9.4 — CRUD Implantations, Groupes & Assignations Coaches (UI)
+// Story 9.4 — Implantations & Groupes — nommage standardisé automatique
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import {
   listImplantations,
@@ -10,38 +11,199 @@ import {
   deleteImplantation,
   listGroupsByImplantation,
   createGroup,
+  updateGroup,
+  deleteGroup,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
+import {
+  generateGroupName,
+  buildGroupBaseName,
+  GROUP_METHODS,
+  DAYS_OF_WEEK,
+  GROUP_DURATIONS,
+  METHOD_COLOR,
+} from '@aureak/business-logic'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { Implantation, Group, AgeGroup } from '@aureak/types'
+import type { Implantation, Group, GroupMethod } from '@aureak/types'
 
-const AGE_GROUPS: AgeGroup[] = ['U5', 'U8', 'U11', 'Senior']
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const START_HOURS   = [8, 9, 10, 11, 14, 15, 16, 17, 18, 19, 20]
+const START_MINUTES = [0, 15, 30, 45]
+
+const DEFAULT_METHOD  : GroupMethod = 'Goal and Player'
+const DEFAULT_DAY                   = 'Mardi'
+const DEFAULT_HOUR                  = 17
+const DEFAULT_MINUTE                = 0
+const DEFAULT_DURATION              = 60
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatTime(h: number, m: number): string {
+  return `${String(h).padStart(2, '0')}h${String(m).padStart(2, '0')}`
+}
+
+function methodBadgeStyle(method: GroupMethod) {
+  const color = METHOD_COLOR[method]
+  return {
+    backgroundColor: color + '18',
+    borderColor    : color,
+    borderWidth    : 1,
+    borderRadius   : 20,
+    paddingHorizontal: 10,
+    paddingVertical  : 3,
+  }
+}
+
+// ── Group form state ──────────────────────────────────────────────────────────
+
+type GroupFormState = {
+  method          : GroupMethod
+  day             : string
+  startHour       : number
+  startMinute     : number
+  durationMinutes : number
+}
+
+const emptyForm = (): GroupFormState => ({
+  method         : DEFAULT_METHOD,
+  day            : DEFAULT_DAY,
+  startHour      : DEFAULT_HOUR,
+  startMinute    : DEFAULT_MINUTE,
+  durationMinutes: DEFAULT_DURATION,
+})
+
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+function ChipRow<T extends string | number>({
+  options,
+  value,
+  onSelect,
+  label,
+  color,
+}: {
+  options : T[]
+  value   : T
+  onSelect: (v: T) => void
+  label?  : (v: T) => string
+  color?  : (v: T) => string
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+      {options.map((opt) => {
+        const active = opt === value
+        const c      = color ? color(opt) : colors.accent.gold
+        return (
+          <Pressable
+            key={String(opt)}
+            style={{
+              borderWidth      : 1,
+              borderColor      : active ? c : colors.accent.zinc,
+              borderRadius     : 20,
+              paddingHorizontal: 12,
+              paddingVertical  : 4,
+              backgroundColor  : active ? c + '20' : 'transparent',
+            }}
+            onPress={() => onSelect(opt)}
+          >
+            <AureakText
+              variant="caption"
+              style={{ color: active ? c : colors.text.secondary, fontWeight: active ? '700' : '400' }}
+            >
+              {label ? label(opt) : String(opt)}
+            </AureakText>
+          </Pressable>
+        )
+      })}
+    </View>
+  )
+}
+
+function NamePreview({ name }: { name: string }) {
+  return (
+    <View style={styles.namePreview}>
+      <AureakText variant="caption" style={{ color: colors.text.secondary, marginBottom: 2 }}>
+        Nom généré automatiquement
+      </AureakText>
+      <AureakText variant="body" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+        {name}
+      </AureakText>
+    </View>
+  )
+}
+
+function GroupRow({
+  group,
+  onManage,
+  onDelete,
+}: {
+  group   : Group
+  onManage: () => void
+  onDelete: () => void
+}) {
+  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.text.secondary
+  return (
+    <View style={[styles.groupRow, { borderLeftColor: methodColor, borderLeftWidth: 3 }]}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <AureakText variant="body" style={{ fontWeight: '600' }}>{group.name}</AureakText>
+        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          {group.method && (
+            <View style={methodBadgeStyle(group.method)}>
+              <AureakText variant="caption" style={{ color: methodColor, fontWeight: '600' }}>
+                {group.method}
+              </AureakText>
+            </View>
+          )}
+          {group.dayOfWeek && group.startHour !== null && (
+            <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+              {group.dayOfWeek} · {formatTime(group.startHour!, group.startMinute ?? 0)}
+              {group.durationMinutes ? ` · ${group.durationMinutes} min` : ''}
+            </AureakText>
+          )}
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        <Pressable onPress={onManage} style={[styles.deleteBtn, { borderColor: colors.accent.gold + '60' }]}>
+          <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>Gérer →</AureakText>
+        </Pressable>
+        <Pressable onPress={onDelete} style={styles.deleteBtn}>
+          <AureakText variant="caption" style={{ color: colors.status.absent }}>Suppr.</AureakText>
+        </Pressable>
+      </View>
+    </View>
+  )
+}
+
+// ── Main page ────────────────────────────────────────────────────────────────
 
 export default function ImplantationsPage() {
+  const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
+
   const [implantations, setImplantations] = useState<Implantation[]>([])
   const [groups, setGroups]               = useState<Record<string, Group[]>>({})
   const [loading, setLoading]             = useState(true)
   const [expanded, setExpanded]           = useState<string | null>(null)
 
-  // Create implantation form
+  // Create implantation
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName]       = useState('')
   const [newAddress, setNewAddress] = useState('')
   const [creating, setCreating]     = useState(false)
 
   // Edit implantation
-  const [editId, setEditId]       = useState<string | null>(null)
-  const [editName, setEditName]   = useState('')
-  const [editAddr, setEditAddr]   = useState('')
-  const [saving, setSaving]       = useState(false)
+  const [editId, setEditId]   = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editAddr, setEditAddr] = useState('')
+  const [saving, setSaving]     = useState(false)
 
   // Add group
   const [addGroupFor, setAddGroupFor]   = useState<string | null>(null)
-  const [groupName, setGroupName]       = useState('')
-  const [groupAge, setGroupAge]         = useState<AgeGroup>('U8')
+  const [groupForm, setGroupForm]       = useState<GroupFormState>(emptyForm())
   const [addingGroup, setAddingGroup]   = useState(false)
+
+  // ── Data loading ───────────────────────────────────────────────────────────
 
   const load = async () => {
     const { data } = await listImplantations()
@@ -52,7 +214,6 @@ export default function ImplantationsPage() {
   useEffect(() => { load() }, [])
 
   const loadGroups = async (implantationId: string) => {
-    if (groups[implantationId]) return
     const { data } = await listGroupsByImplantation(implantationId)
     setGroups(prev => ({ ...prev, [implantationId]: data }))
   }
@@ -65,6 +226,8 @@ export default function ImplantationsPage() {
       loadGroups(id)
     }
   }
+
+  // ── Implantation CRUD ──────────────────────────────────────────────────────
 
   const handleCreate = async () => {
     if (!newName.trim() || !tenantId) return
@@ -91,17 +254,48 @@ export default function ImplantationsPage() {
     await load()
   }
 
+  // ── Group CRUD ─────────────────────────────────────────────────────────────
+
+  const getGroupName = (implId: string): string => {
+    const impl          = implantations.find(i => i.id === implId)
+    const place         = impl?.name ?? 'Lieu'
+    const existingNames = (groups[implId] ?? []).map(g => g.name)
+    return generateGroupName(
+      place,
+      groupForm.day,
+      groupForm.startHour,
+      groupForm.startMinute,
+      groupForm.method,
+      existingNames,
+    )
+  }
+
   const handleAddGroup = async () => {
-    if (!addGroupFor || !groupName.trim() || !tenantId) return
+    if (!addGroupFor || !tenantId) return
     setAddingGroup(true)
-    await createGroup({ tenantId, implantationId: addGroupFor, name: groupName.trim(), ageGroup: groupAge })
-    // Refresh groups for this implantation
-    const { data } = await listGroupsByImplantation(addGroupFor)
-    setGroups(prev => ({ ...prev, [addGroupFor]: data }))
-    setGroupName('')
+    const name = getGroupName(addGroupFor)
+    await createGroup({
+      tenantId,
+      implantationId  : addGroupFor,
+      name,
+      method          : groupForm.method,
+      dayOfWeek       : groupForm.day,
+      startHour       : groupForm.startHour,
+      startMinute     : groupForm.startMinute,
+      durationMinutes : groupForm.durationMinutes,
+    })
+    await loadGroups(addGroupFor)
+    setGroupForm(emptyForm())
     setAddGroupFor(null)
     setAddingGroup(false)
   }
+
+  const handleDeleteGroup = async (implId: string, groupId: string) => {
+    await deleteGroup(groupId)
+    await loadGroups(implId)
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -114,13 +308,13 @@ export default function ImplantationsPage() {
         />
       </View>
 
-      {/* Create form */}
+      {/* Create implantation form */}
       {showCreate && (
         <View style={styles.formCard}>
           <AureakText variant="h3" style={{ marginBottom: space.sm }}>Nouvelle implantation</AureakText>
           <TextInput
             style={styles.input}
-            placeholder="Nom (ex: Salle des sports Nord)"
+            placeholder="Nom (ex: Onhaye)"
             placeholderTextColor={colors.text.secondary}
             value={newName}
             onChangeText={setNewName}
@@ -148,22 +342,12 @@ export default function ImplantationsPage() {
       ) : (
         implantations.map((impl) => (
           <View key={impl.id} style={styles.card}>
-            {/* Header row */}
+
+            {/* Implantation header */}
             {editId === impl.id ? (
               <View style={{ gap: space.xs }}>
-                <TextInput
-                  style={styles.input}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholderTextColor={colors.text.secondary}
-                />
-                <TextInput
-                  style={styles.input}
-                  value={editAddr}
-                  onChangeText={setEditAddr}
-                  placeholder="Adresse"
-                  placeholderTextColor={colors.text.secondary}
-                />
+                <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholderTextColor={colors.text.secondary} />
+                <TextInput style={styles.input} value={editAddr} onChangeText={setEditAddr} placeholder="Adresse" placeholderTextColor={colors.text.secondary} />
                 <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <AureakButton label="Annuler" onPress={() => setEditId(null)} variant="secondary" />
                   <AureakButton label={saving ? 'Enregistrement...' : 'Enregistrer'} onPress={handleSave} loading={saving} fullWidth />
@@ -174,19 +358,13 @@ export default function ImplantationsPage() {
                 <View style={{ flex: 1 }}>
                   <AureakText variant="h3">{impl.name}</AureakText>
                   {impl.address && (
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>
-                      {impl.address}
-                    </AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>{impl.address}</AureakText>
                   )}
                 </View>
                 <View style={{ flexDirection: 'row', gap: space.xs }}>
                   <Pressable
                     style={styles.actionBtn}
-                    onPress={() => {
-                      setEditId(impl.id)
-                      setEditName(impl.name)
-                      setEditAddr(impl.address ?? '')
-                    }}
+                    onPress={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
                   >
                     <AureakText variant="caption" style={{ color: colors.accent.gold }}>Modifier</AureakText>
                   </Pressable>
@@ -201,56 +379,104 @@ export default function ImplantationsPage() {
             )}
 
             {/* Groups toggle */}
-            <Pressable
-              style={styles.groupsToggle}
-              onPress={() => handleExpand(impl.id)}
-            >
-              <AureakText variant="label" style={{ color: colors.accent.gold }}>
-                {expanded === impl.id ? '▾ Groupes' : '▸ Groupes'}
-              </AureakText>
+            <Pressable style={styles.groupsToggle} onPress={() => handleExpand(impl.id)}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <AureakText variant="label" style={{ color: colors.accent.gold }}>
+                  {expanded === impl.id ? '▾' : '▸'}
+                </AureakText>
+                <AureakText variant="label" style={{ color: colors.accent.gold }}>
+                  Groupes
+                </AureakText>
+                {groups[impl.id] && (
+                  <View style={styles.groupCount}>
+                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                      {groups[impl.id].length}
+                    </AureakText>
+                  </View>
+                )}
+              </View>
             </Pressable>
 
+            {/* Groups section */}
             {expanded === impl.id && (
               <View style={styles.groupsSection}>
-                {(groups[impl.id] ?? []).map((g) => (
-                  <View key={g.id} style={styles.groupRow}>
-                    <AureakText variant="body">{g.name}</AureakText>
-                    {g.ageGroup && (
-                      <Badge label={g.ageGroup} variant="zinc" />
-                    )}
-                  </View>
-                ))}
 
-                {/* Add group */}
-                {addGroupFor === impl.id ? (
-                  <View style={{ gap: space.xs, marginTop: space.sm }}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Nom du groupe"
-                      placeholderTextColor={colors.text.secondary}
-                      value={groupName}
-                      onChangeText={setGroupName}
+                {/* Existing groups */}
+                {(groups[impl.id] ?? []).length === 0 ? (
+                  <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' }}>
+                    Aucun groupe — créez le premier ci-dessous.
+                  </AureakText>
+                ) : (
+                  (groups[impl.id] ?? []).map(g => (
+                    <GroupRow
+                      key={g.id}
+                      group={g}
+                      onManage={() => router.push(`/groups/${g.id}` as never)}
+                      onDelete={() => handleDeleteGroup(impl.id, g.id)}
                     />
-                    <View style={{ flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' }}>
-                      {AGE_GROUPS.map(ag => (
-                        <Pressable
-                          key={ag}
-                          style={[styles.chipBtn, groupAge === ag && styles.chipBtnActive]}
-                          onPress={() => setGroupAge(ag)}
-                        >
-                          <AureakText
-                            variant="caption"
-                            style={{ color: groupAge === ag ? colors.accent.gold : colors.text.secondary }}
-                          >
-                            {ag}
-                          </AureakText>
-                        </Pressable>
-                      ))}
+                  ))
+                )}
+
+                {/* Add group form */}
+                {addGroupFor === impl.id ? (
+                  <View style={styles.groupForm}>
+                    <AureakText variant="label" style={{ color: colors.text.secondary, marginBottom: space.xs }}>
+                      MÉTHODE
+                    </AureakText>
+                    <ChipRow
+                      options={GROUP_METHODS}
+                      value={groupForm.method}
+                      onSelect={(m) => setGroupForm(f => ({ ...f, method: m }))}
+                      color={(m) => METHOD_COLOR[m]}
+                    />
+
+                    <AureakText variant="label" style={{ color: colors.text.secondary, marginTop: space.sm, marginBottom: space.xs }}>
+                      JOUR
+                    </AureakText>
+                    <ChipRow
+                      options={[...DAYS_OF_WEEK]}
+                      value={groupForm.day}
+                      onSelect={(d) => setGroupForm(f => ({ ...f, day: d }))}
+                    />
+
+                    <AureakText variant="label" style={{ color: colors.text.secondary, marginTop: space.sm, marginBottom: space.xs }}>
+                      HEURE DE DÉBUT
+                    </AureakText>
+                    <ChipRow
+                      options={START_HOURS}
+                      value={groupForm.startHour}
+                      onSelect={(h) => setGroupForm(f => ({ ...f, startHour: h }))}
+                      label={(h) => `${String(h).padStart(2, '0')}h`}
+                    />
+                    <View style={{ marginTop: 6 }}>
+                      <ChipRow
+                        options={START_MINUTES}
+                        value={groupForm.startMinute}
+                        onSelect={(m) => setGroupForm(f => ({ ...f, startMinute: m }))}
+                        label={(m) => `h${String(m).padStart(2, '0')}`}
+                      />
                     </View>
-                    <View style={{ flexDirection: 'row', gap: space.sm }}>
-                      <AureakButton label="Annuler" onPress={() => setAddGroupFor(null)} variant="secondary" />
+
+                    <AureakText variant="label" style={{ color: colors.text.secondary, marginTop: space.sm, marginBottom: space.xs }}>
+                      DURÉE
+                    </AureakText>
+                    <ChipRow
+                      options={[...GROUP_DURATIONS]}
+                      value={groupForm.durationMinutes}
+                      onSelect={(d) => setGroupForm(f => ({ ...f, durationMinutes: d }))}
+                      label={(d) => `${d} min`}
+                    />
+
+                    <NamePreview name={getGroupName(impl.id)} />
+
+                    <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
                       <AureakButton
-                        label={addingGroup ? 'Ajout...' : 'Ajouter'}
+                        label="Annuler"
+                        onPress={() => { setAddGroupFor(null); setGroupForm(emptyForm()) }}
+                        variant="secondary"
+                      />
+                      <AureakButton
+                        label={addingGroup ? 'Ajout...' : 'Créer le groupe'}
                         onPress={handleAddGroup}
                         loading={addingGroup}
                         fullWidth
@@ -259,8 +485,8 @@ export default function ImplantationsPage() {
                   </View>
                 ) : (
                   <Pressable
-                    style={{ marginTop: space.sm }}
-                    onPress={() => { setAddGroupFor(impl.id); setGroupName(''); setGroupAge('U8') }}
+                    style={styles.addGroupBtn}
+                    onPress={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
                   >
                     <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un groupe</AureakText>
                   </Pressable>
@@ -273,6 +499,8 @@ export default function ImplantationsPage() {
     </ScrollView>
   )
 }
+
+// ── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container   : { flex: 1, backgroundColor: colors.background.primary },
@@ -296,9 +524,9 @@ const styles = StyleSheet.create({
   },
   cardHeader  : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   actionBtn   : {
-    borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
-    borderRadius   : 6,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
+    borderRadius     : 6,
     paddingHorizontal: space.sm,
     paddingVertical  : space.xs,
   },
@@ -312,25 +540,52 @@ const styles = StyleSheet.create({
     fontSize       : 14,
   },
   groupsToggle : { paddingVertical: space.xs },
-  groupsSection: { gap: space.xs, paddingLeft: space.sm },
-  groupRow     : {
-    flexDirection  : 'row',
-    alignItems     : 'center',
-    justifyContent : 'space-between',
+  groupCount   : {
     backgroundColor: colors.background.elevated,
-    borderRadius   : 6,
-    paddingHorizontal: space.sm,
-    paddingVertical  : space.xs,
+    borderRadius   : 10,
+    paddingHorizontal: 8,
+    paddingVertical  : 1,
   },
-  chipBtn      : {
+  groupsSection: { gap: space.sm, paddingLeft: space.sm },
+  groupRow     : {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    backgroundColor  : colors.background.elevated,
+    borderRadius     : '0 8px 8px 0' as unknown as number,
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.sm,
+    gap              : space.sm,
+  },
+  deleteBtn   : {
+    borderWidth      : 1,
+    borderColor      : colors.status.absent + '40',
+    borderRadius     : 6,
+    paddingHorizontal: 10,
+    paddingVertical  : 3,
+  },
+  groupForm   : {
+    backgroundColor: colors.background.elevated,
+    borderRadius   : 8,
+    padding        : space.md,
     borderWidth    : 1,
     borderColor    : colors.accent.zinc,
-    borderRadius   : 20,
-    paddingHorizontal: space.sm,
-    paddingVertical  : 2,
+    gap            : 0,
   },
-  chipBtnActive: {
-    borderColor    : colors.accent.gold,
-    backgroundColor: colors.background.elevated,
+  namePreview : {
+    backgroundColor: colors.background.primary,
+    borderRadius   : 6,
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '40',
+    padding        : space.sm,
+    marginTop      : space.sm,
+  },
+  addGroupBtn : {
+    paddingVertical  : space.xs,
+    paddingHorizontal: space.sm,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold + '40',
+    borderRadius     : 6,
+    borderStyle      : 'dashed' as const,
+    alignItems       : 'center',
   },
 })

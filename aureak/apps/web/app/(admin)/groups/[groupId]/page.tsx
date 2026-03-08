@@ -1,0 +1,1011 @@
+'use client'
+// Fiche groupe — entité centrale : infos, joueurs, staff, séances
+// Hiérarchie : Implantation → Groupe → Séances → Présences / Évaluations
+import React, { useEffect, useState, useCallback } from 'react'
+import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import {
+  getGroup, updateGroup,
+  listGroupMembersWithProfiles, addGroupMember, removeGroupMember,
+  listGroupStaff, addGroupStaff, removeGroupStaff,
+  listAvailableCoaches, listAvailableChildren,
+  listSessionsByGroup,
+} from '@aureak/api-client'
+import { useAuthStore } from '@aureak/business-logic'
+import {
+  generateGroupName, GROUP_METHODS, DAYS_OF_WEEK, GROUP_DURATIONS, METHOD_COLOR,
+  buildGroupBaseName,
+} from '@aureak/business-logic'
+import { AureakText, Badge } from '@aureak/ui'
+import { colors, space } from '@aureak/theme'
+import type {
+  Group, GroupMethod, GroupStaffRole, GroupStaffWithName, GroupMemberWithName,
+} from '@aureak/types'
+
+// ── Constants ──────────────────────────────────────────────────────────────────
+
+const START_HOURS   = [7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19, 20, 21]
+const START_MINUTES = [0, 15, 30, 45]
+
+const STAFF_ROLES: { key: GroupStaffRole; label: string; color: string }[] = [
+  { key: 'principal',  label: 'Coach principal',  color: colors.accent.gold       },
+  { key: 'assistant',  label: 'Coach assistant',  color: '#4FC3F7'                },
+  { key: 'remplacant', label: 'Coach remplaçant', color: colors.text.secondary    },
+]
+
+const SESSION_STATUS_LABEL: Record<string, string> = {
+  planifiée: 'Planifiée',
+  en_cours : 'En cours',
+  terminée : 'Terminée',
+  annulée  : 'Annulée',
+}
+const SESSION_STATUS_COLOR: Record<string, string> = {
+  planifiée: colors.accent.gold,
+  en_cours : '#4FC3F7',
+  terminée : colors.status.present,
+  annulée  : colors.status.attention,
+}
+
+// ── Tab types ──────────────────────────────────────────────────────────────────
+
+type Tab = 'infos' | 'joueurs' | 'staff' | 'seances'
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function ChipRow<T extends string | number>({
+  options, value, onSelect, label, color,
+}: {
+  options : T[]
+  value   : T
+  onSelect: (v: T) => void
+  label?  : (v: T) => string
+  color?  : (v: T) => string
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+      {options.map(opt => {
+        const active = opt === value
+        const c = color ? color(opt) : colors.accent.gold
+        return (
+          <Pressable
+            key={String(opt)}
+            style={{
+              borderWidth      : 1,
+              borderColor      : active ? c : colors.accent.zinc,
+              borderRadius     : 20,
+              paddingHorizontal: 11,
+              paddingVertical  : 4,
+              backgroundColor  : active ? c + '20' : 'transparent',
+            }}
+            onPress={() => onSelect(opt)}
+          >
+            <AureakText variant="caption" style={{ color: active ? c : colors.text.secondary, fontWeight: active ? '700' : '400' }}>
+              {label ? label(opt) : String(opt)}
+            </AureakText>
+          </Pressable>
+        )
+      })}
+    </View>
+  )
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, marginTop: space.sm, textTransform: 'uppercase' as never }}>
+      {children}
+    </AureakText>
+  )
+}
+
+function SectionCard({ children, style }: { children: React.ReactNode; style?: object }) {
+  return (
+    <View style={[sc.card, style]}>
+      {children}
+    </View>
+  )
+}
+const sc = StyleSheet.create({
+  card: {
+    backgroundColor: colors.background.surface,
+    borderRadius   : 10,
+    borderWidth    : 1,
+    borderColor    : colors.accent.zinc,
+    padding        : space.md,
+    gap            : 2,
+  },
+})
+
+// ── Infos tab ─────────────────────────────────────────────────────────────────
+
+function InfosTab({
+  group,
+  implantationName,
+  onSaved,
+}: {
+  group           : Group & { implantationName: string }
+  implantationName: string
+  onSaved         : () => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [saving,  setSaving]  = useState(false)
+
+  const [method,    setMethod]    = useState<GroupMethod>(group.method ?? 'Goal and Player')
+  const [day,       setDay]       = useState(group.dayOfWeek ?? 'Mardi')
+  const [startH,    setStartH]    = useState(group.startHour ?? 17)
+  const [startM,    setStartM]    = useState(group.startMinute ?? 0)
+  const [duration,  setDuration]  = useState(group.durationMinutes ?? 60)
+
+  // Reset on cancel
+  const handleCancel = () => {
+    setMethod(group.method ?? 'Goal and Player')
+    setDay(group.dayOfWeek ?? 'Mardi')
+    setStartH(group.startHour ?? 17)
+    setStartM(group.startMinute ?? 0)
+    setDuration(group.durationMinutes ?? 60)
+    setEditing(false)
+  }
+
+  const previewName = buildGroupBaseName(implantationName, day, startH, startM, method)
+
+  const handleSave = async () => {
+    setSaving(true)
+    await updateGroup(group.id, {
+      method         : method,
+      dayOfWeek      : day,
+      startHour      : startH,
+      startMinute    : startM,
+      durationMinutes: duration,
+      name           : previewName,
+    })
+    setSaving(false)
+    setEditing(false)
+    onSaved()
+  }
+
+  const methodColor = METHOD_COLOR[group.method ?? 'Goal and Player']
+
+  if (!editing) {
+    return (
+      <SectionCard>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+            PARAMÈTRES DU GROUPE
+          </AureakText>
+          <Pressable
+            style={info.editBtn}
+            onPress={() => setEditing(true)}
+          >
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600', fontSize: 12 }}>
+              Modifier
+            </AureakText>
+          </Pressable>
+        </View>
+
+        <View style={info.row}>
+          <AureakText variant="caption" style={info.label}>Implantation</AureakText>
+          <AureakText variant="body" style={info.value}>{implantationName}</AureakText>
+        </View>
+        <View style={info.row}>
+          <AureakText variant="caption" style={info.label}>Méthode</AureakText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{
+              backgroundColor: methodColor + '18',
+              borderColor    : methodColor,
+              borderWidth    : 1,
+              borderRadius   : 20,
+              paddingHorizontal: 9,
+              paddingVertical  : 2,
+            }}>
+              <AureakText variant="caption" style={{ color: methodColor, fontWeight: '700', fontSize: 11 }}>
+                {group.method ?? '—'}
+              </AureakText>
+            </View>
+          </View>
+        </View>
+        <View style={info.row}>
+          <AureakText variant="caption" style={info.label}>Jour</AureakText>
+          <AureakText variant="body" style={info.value}>{group.dayOfWeek ?? '—'}</AureakText>
+        </View>
+        <View style={info.row}>
+          <AureakText variant="caption" style={info.label}>Heure</AureakText>
+          <AureakText variant="body" style={info.value}>
+            {group.startHour !== null
+              ? `${String(group.startHour).padStart(2,'0')}h${String(group.startMinute ?? 0).padStart(2,'0')}`
+              : '—'}
+          </AureakText>
+        </View>
+        <View style={info.row}>
+          <AureakText variant="caption" style={info.label}>Durée</AureakText>
+          <AureakText variant="body" style={info.value}>
+            {group.durationMinutes ? `${group.durationMinutes} min` : '—'}
+          </AureakText>
+        </View>
+      </SectionCard>
+    )
+  }
+
+  // Edit mode
+  return (
+    <SectionCard style={{ borderColor: colors.accent.gold + '60' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+        <AureakText variant="label" style={{ color: colors.accent.gold, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+          MODIFIER LE GROUPE
+        </AureakText>
+      </View>
+
+      <FieldLabel>Méthode</FieldLabel>
+      <ChipRow
+        options={GROUP_METHODS}
+        value={method}
+        onSelect={setMethod}
+        color={m => METHOD_COLOR[m]}
+      />
+
+      <FieldLabel>Jour</FieldLabel>
+      <ChipRow
+        options={[...DAYS_OF_WEEK]}
+        value={day}
+        onSelect={setDay}
+      />
+
+      <FieldLabel>Heure de début</FieldLabel>
+      <ChipRow
+        options={START_HOURS}
+        value={startH}
+        onSelect={setStartH}
+        label={h => `${String(h).padStart(2,'0')}h`}
+      />
+      <View style={{ marginTop: 6 }}>
+        <ChipRow
+          options={START_MINUTES}
+          value={startM}
+          onSelect={setStartM}
+          label={m => `h${String(m).padStart(2,'0')}`}
+        />
+      </View>
+
+      <FieldLabel>Durée</FieldLabel>
+      <ChipRow
+        options={[...GROUP_DURATIONS]}
+        value={duration}
+        onSelect={setDuration}
+        label={d => `${d} min`}
+      />
+
+      {/* Name preview */}
+      <View style={info.preview}>
+        <AureakText variant="caption" style={{ color: colors.text.secondary, marginBottom: 2 }}>Nouveau nom généré</AureakText>
+        <AureakText variant="body" style={{ color: colors.accent.gold, fontWeight: '700' }}>{previewName}</AureakText>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
+        <Pressable style={info.cancelBtn} onPress={handleCancel}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+        </Pressable>
+        <Pressable style={info.saveBtn} onPress={handleSave} disabled={saving}>
+          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
+          </AureakText>
+        </Pressable>
+      </View>
+    </SectionCard>
+  )
+}
+
+const info = StyleSheet.create({
+  row     : { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '40' },
+  label   : { width: 140, color: colors.text.secondary, fontSize: 12 },
+  value   : { flex: 1, fontSize: 13 },
+  editBtn : {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 4,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold + '60',
+  },
+  preview : {
+    backgroundColor: colors.background.elevated,
+    borderRadius   : 6,
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '40',
+    padding        : space.sm,
+    marginTop      : space.sm,
+  },
+  cancelBtn: {
+    flex: 1, paddingVertical: space.xs + 2,
+    borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc,
+    alignItems: 'center',
+  },
+  saveBtn: {
+    flex: 2, paddingVertical: space.xs + 2,
+    borderRadius: 6, backgroundColor: colors.accent.gold,
+    alignItems: 'center',
+  },
+})
+
+// ── Staff tab ─────────────────────────────────────────────────────────────────
+
+function StaffTab({
+  groupId,
+  staff,
+  coaches,
+  tenantId,
+  onRefresh,
+}: {
+  groupId  : string
+  staff    : GroupStaffWithName[]
+  coaches  : Array<{ id: string; name: string }>
+  tenantId : string
+  onRefresh: () => void
+}) {
+  const [addingRole, setAddingRole] = useState<GroupStaffRole | null>(null)
+  const [selectedId, setSelectedId] = useState<string>('')
+  const [search,     setSearch]     = useState('')
+  const [saving,     setSaving]     = useState(false)
+  const [removing,   setRemoving]   = useState<string | null>(null)
+
+  const assignedCoachIds = new Set(staff.map(s => s.coachId))
+  const filteredCoaches  = coaches.filter(c =>
+    !assignedCoachIds.has(c.id) &&
+    (!search || c.name.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  const handleAdd = async () => {
+    if (!addingRole || !selectedId) return
+    setSaving(true)
+    await addGroupStaff({ groupId, coachId: selectedId, role: addingRole, tenantId })
+    setAddingRole(null)
+    setSelectedId('')
+    setSearch('')
+    setSaving(false)
+    onRefresh()
+  }
+
+  const handleRemove = async (id: string) => {
+    setRemoving(id)
+    await removeGroupStaff(id)
+    setRemoving(null)
+    onRefresh()
+  }
+
+  return (
+    <SectionCard>
+      <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: space.sm }}>
+        STAFF DU GROUPE
+      </AureakText>
+
+      {STAFF_ROLES.map(roleConfig => {
+        const assigned = staff.filter(s => s.role === roleConfig.key)
+        const isAdding = addingRole === roleConfig.key
+
+        return (
+          <View key={roleConfig.key} style={stf.roleBlock}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={[stf.roleDot, { backgroundColor: roleConfig.color }]} />
+                <AureakText variant="caption" style={{ color: roleConfig.color, fontWeight: '700', fontSize: 12 }}>
+                  {roleConfig.label}
+                </AureakText>
+              </View>
+              {!isAdding && (
+                <Pressable
+                  style={stf.addBtn}
+                  onPress={() => { setAddingRole(roleConfig.key); setSelectedId(''); setSearch('') }}
+                >
+                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 11 }}>+ Assigner</AureakText>
+                </Pressable>
+              )}
+            </View>
+
+            {assigned.length === 0 && !isAdding ? (
+              <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never, fontSize: 12, paddingLeft: 16 }}>
+                Non assigné
+              </AureakText>
+            ) : (
+              assigned.map(s => (
+                <View key={s.id} style={stf.coachRow}>
+                  <View style={stf.avatar}>
+                    <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
+                      {s.coachName.charAt(0).toUpperCase()}
+                    </AureakText>
+                  </View>
+                  <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{s.coachName}</AureakText>
+                  <Pressable
+                    style={stf.removeBtn}
+                    onPress={() => handleRemove(s.id)}
+                    disabled={removing === s.id}
+                  >
+                    <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
+                      {removing === s.id ? '…' : '✕'}
+                    </AureakText>
+                  </Pressable>
+                </View>
+              ))
+            )}
+
+            {isAdding && (
+              <View style={stf.addForm}>
+                <TextInput
+                  style={stf.searchInput}
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Rechercher un coach…"
+                  placeholderTextColor={colors.text.secondary}
+                />
+                <View style={stf.coachList}>
+                  {filteredCoaches.length === 0 ? (
+                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, padding: space.xs }}>
+                      Aucun coach disponible.
+                    </AureakText>
+                  ) : (
+                    filteredCoaches.slice(0, 8).map(c => (
+                      <Pressable
+                        key={c.id}
+                        style={[stf.coachOption, selectedId === c.id && stf.coachOptionActive]}
+                        onPress={() => setSelectedId(c.id)}
+                      >
+                        <AureakText variant="caption" style={{ color: selectedId === c.id ? colors.accent.gold : colors.text.primary, fontSize: 12 }}>
+                          {c.name}
+                        </AureakText>
+                      </Pressable>
+                    ))
+                  )}
+                </View>
+                <View style={{ flexDirection: 'row', gap: space.sm }}>
+                  <Pressable style={stf.cancelBtn} onPress={() => { setAddingRole(null); setSelectedId(''); setSearch('') }}>
+                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+                  </Pressable>
+                  <Pressable
+                    style={[stf.confirmBtn, (!selectedId || saving) && { opacity: 0.4 }]}
+                    onPress={handleAdd}
+                    disabled={!selectedId || saving}
+                  >
+                    <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                      {saving ? '…' : 'Assigner'}
+                    </AureakText>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          </View>
+        )
+      })}
+    </SectionCard>
+  )
+}
+
+const stf = StyleSheet.create({
+  roleBlock : {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent.zinc + '40',
+    paddingVertical  : space.sm,
+  },
+  roleDot   : { width: 8, height: 8, borderRadius: 4 },
+  addBtn    : { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.accent.gold + '60' },
+  coachRow  : { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 14, paddingVertical: 4 },
+  avatar    : {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: colors.accent.gold,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  removeBtn : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.status.attention + '40', alignItems: 'center', justifyContent: 'center' },
+  addForm   : { gap: space.sm, paddingLeft: 14, paddingTop: 8, paddingBottom: 4 },
+  searchInput: {
+    backgroundColor: colors.background.elevated,
+    borderWidth    : 1, borderColor: colors.accent.zinc,
+    borderRadius   : 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2,
+    color          : colors.text.primary, fontSize: 12,
+  },
+  coachList : {
+    backgroundColor: colors.background.elevated,
+    borderRadius   : 6, borderWidth: 1, borderColor: colors.accent.zinc,
+    maxHeight      : 160, overflow: 'hidden' as never,
+  },
+  coachOption: { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '30' },
+  coachOptionActive: { backgroundColor: colors.background.primary },
+  cancelBtn  : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center' },
+  confirmBtn : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
+})
+
+// ── Joueurs tab ───────────────────────────────────────────────────────────────
+
+function JoueursTab({
+  groupId,
+  members,
+  children,
+  tenantId,
+  onRefresh,
+}: {
+  groupId  : string
+  members  : GroupMemberWithName[]
+  children : Array<{ id: string; name: string }>
+  tenantId : string
+  onRefresh: () => void
+}) {
+  const [adding,     setAdding]     = useState(false)
+  const [search,     setSearch]     = useState('')
+  const [selectedId, setSelectedId] = useState('')
+  const [saving,     setSaving]     = useState(false)
+  const [removing,   setRemoving]   = useState<string | null>(null)
+
+  const enrolledIds      = new Set(members.map(m => m.childId))
+  const availableChildren = children.filter(c =>
+    !enrolledIds.has(c.id) &&
+    (!search || c.name.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  const handleAdd = async () => {
+    if (!selectedId) return
+    setSaving(true)
+    await addGroupMember(groupId, selectedId, tenantId)
+    setAdding(false)
+    setSelectedId('')
+    setSearch('')
+    setSaving(false)
+    onRefresh()
+  }
+
+  const handleRemove = async (childId: string) => {
+    setRemoving(childId)
+    await removeGroupMember(groupId, childId)
+    setRemoving(null)
+    onRefresh()
+  }
+
+  return (
+    <SectionCard>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+        <View>
+          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+            JOUEURS DU GROUPE
+          </AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: 2 }}>
+            {members.length} joueur{members.length !== 1 ? 's' : ''}
+          </AureakText>
+        </View>
+        {!adding && (
+          <Pressable style={jou.addBtn} onPress={() => { setAdding(true); setSelectedId(''); setSearch('') }}>
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>+ Ajouter</AureakText>
+          </Pressable>
+        )}
+      </View>
+
+      {members.length === 0 && !adding ? (
+        <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>
+          Aucun joueur dans ce groupe. Ajoutez le premier joueur.
+        </AureakText>
+      ) : (
+        members.map((m, idx) => (
+          <View key={m.childId} style={[jou.memberRow, idx % 2 === 1 && { backgroundColor: colors.background.elevated }]}>
+            <View style={jou.memberAvatar}>
+              <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
+                {m.displayName.charAt(0).toUpperCase()}
+              </AureakText>
+            </View>
+            <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{m.displayName}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginRight: space.sm }}>
+              {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
+            </AureakText>
+            <Pressable
+              style={jou.removeBtn}
+              onPress={() => handleRemove(m.childId)}
+              disabled={removing === m.childId}
+            >
+              <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
+                {removing === m.childId ? '…' : '✕'}
+              </AureakText>
+            </Pressable>
+          </View>
+        ))
+      )}
+
+      {adding && (
+        <View style={jou.addForm}>
+          <TextInput
+            style={jou.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher un joueur…"
+            placeholderTextColor={colors.text.secondary}
+          />
+          <View style={jou.childList}>
+            {availableChildren.length === 0 ? (
+              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, padding: space.sm }}>
+                Aucun joueur disponible (tous déjà inscrits, ou aucun compte enfant).
+              </AureakText>
+            ) : (
+              availableChildren.slice(0, 10).map(c => (
+                <Pressable
+                  key={c.id}
+                  style={[jou.childOption, selectedId === c.id && jou.childOptionActive]}
+                  onPress={() => setSelectedId(c.id)}
+                >
+                  <AureakText variant="caption" style={{ color: selectedId === c.id ? colors.accent.gold : colors.text.primary, fontSize: 12 }}>
+                    {c.name}
+                  </AureakText>
+                </Pressable>
+              ))
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', gap: space.sm }}>
+            <Pressable style={jou.cancelBtn} onPress={() => { setAdding(false); setSelectedId(''); setSearch('') }}>
+              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+            </Pressable>
+            <Pressable
+              style={[jou.confirmBtn, (!selectedId || saving) && { opacity: 0.4 }]}
+              onPress={handleAdd}
+              disabled={!selectedId || saving}
+            >
+              <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                {saving ? '…' : 'Ajouter au groupe'}
+              </AureakText>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </SectionCard>
+  )
+}
+
+const jou = StyleSheet.create({
+  addBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.sm + 2, paddingVertical: 4, borderRadius: 6 },
+  memberRow    : { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, paddingHorizontal: 6, borderRadius: 6 },
+  memberAvatar : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center' },
+  removeBtn    : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.status.attention + '40', alignItems: 'center', justifyContent: 'center' },
+  addForm      : { gap: space.sm, marginTop: space.sm, padding: space.sm, backgroundColor: colors.background.elevated, borderRadius: 8, borderWidth: 1, borderColor: colors.accent.zinc },
+  searchInput  : { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 12 },
+  childList    : { backgroundColor: colors.background.primary, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, maxHeight: 180, overflow: 'hidden' as never },
+  childOption  : { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '30' },
+  childOptionActive: { backgroundColor: colors.background.elevated },
+  cancelBtn    : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center' },
+  confirmBtn   : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
+})
+
+// ── Séances tab ───────────────────────────────────────────────────────────────
+
+function SeancesTab({
+  groupId,
+  sessions,
+  onNewSession,
+}: {
+  groupId     : string
+  sessions    : Array<{ id: string; scheduledAt: string; status: string; durationMinutes: number }>
+  onNewSession: () => void
+}) {
+  return (
+    <SectionCard>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+        <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+          SÉANCES DU GROUPE
+        </AureakText>
+        <Pressable style={sea.newBtn} onPress={onNewSession}>
+          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>
+            + Nouvelle séance
+          </AureakText>
+        </Pressable>
+      </View>
+
+      {sessions.length === 0 ? (
+        <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>
+          Aucune séance. Créez la première séance de ce groupe.
+        </AureakText>
+      ) : (
+        sessions.map(session => {
+          const d     = new Date(session.scheduledAt)
+          const color = SESSION_STATUS_COLOR[session.status] ?? colors.text.secondary
+          return (
+            <View key={session.id} style={sea.sessionRow}>
+              {/* Date column */}
+              <View style={sea.dateBlock}>
+                <AureakText variant="body" style={{ fontWeight: '700', fontSize: 16, color: colors.accent.gold }}>
+                  {String(d.getDate()).padStart(2,'0')}
+                </AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+                  {d.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase()}
+                </AureakText>
+              </View>
+
+              {/* Main content */}
+              <View style={{ flex: 1 }}>
+                <AureakText variant="body" style={{ fontWeight: '600', fontSize: 13 }}>
+                  {d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  {session.durationMinutes ? ` · ${session.durationMinutes} min` : ''}
+                </AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                  {d.toLocaleDateString('fr-FR', { weekday: 'long' })}
+                </AureakText>
+              </View>
+
+              {/* Status */}
+              <View style={[sea.statusBadge, { borderColor: color + '60', backgroundColor: color + '15' }]}>
+                <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 10 }}>
+                  {SESSION_STATUS_LABEL[session.status] ?? session.status}
+                </AureakText>
+              </View>
+            </View>
+          )
+        })
+      )}
+    </SectionCard>
+  )
+}
+
+const sea = StyleSheet.create({
+  newBtn    : { backgroundColor: colors.accent.gold, paddingHorizontal: space.sm + 2, paddingVertical: 4, borderRadius: 6 },
+  sessionRow: {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    gap            : space.md,
+    paddingVertical: space.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent.zinc + '40',
+  },
+  dateBlock: {
+    width          : 40,
+    alignItems     : 'center',
+    justifyContent : 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical  : 3,
+    borderRadius     : 12,
+    borderWidth      : 1,
+  },
+})
+
+// ── Main page ──────────────────────────────────────────────────────────────────
+
+type GroupState = (Group & { implantationName: string }) | null
+
+export default function GroupDetailPage() {
+  const { groupId } = useLocalSearchParams<{ groupId: string }>()
+  const router      = useRouter()
+  const tenantId    = useAuthStore(s => s.tenantId) ?? ''
+
+  const [tab,     setTab]     = useState<Tab>('infos')
+  const [group,   setGroup]   = useState<GroupState>(null)
+  const [staff,   setStaff]   = useState<GroupStaffWithName[]>([])
+  const [members, setMembers] = useState<GroupMemberWithName[]>([])
+  const [sessions, setSessions] = useState<Array<{ id: string; scheduledAt: string; status: string; durationMinutes: number }>>([])
+  const [coaches,  setCoaches]  = useState<Array<{ id: string; name: string }>>([])
+  const [children, setChildren] = useState<Array<{ id: string; name: string }>>([])
+  const [loading,  setLoading]  = useState(true)
+
+  const loadGroup = useCallback(async () => {
+    if (!groupId) return
+    const { data } = await getGroup(groupId)
+    setGroup(data as GroupState)
+  }, [groupId])
+
+  const loadStaff = useCallback(async () => {
+    if (!groupId) return
+    const data = await listGroupStaff(groupId)
+    setStaff(data)
+  }, [groupId])
+
+  const loadMembers = useCallback(async () => {
+    if (!groupId) return
+    const data = await listGroupMembersWithProfiles(groupId)
+    setMembers(data)
+  }, [groupId])
+
+  const loadSessions = useCallback(async () => {
+    if (!groupId) return
+    const data = await listSessionsByGroup(groupId, { limit: 10 })
+    setSessions(data)
+  }, [groupId])
+
+  const loadAll = useCallback(async () => {
+    if (!groupId) return
+    setLoading(true)
+    const [_, __, ___, ____, coachList, childList] = await Promise.all([
+      loadGroup(),
+      loadStaff(),
+      loadMembers(),
+      loadSessions(),
+      listAvailableCoaches(),
+      listAvailableChildren(),
+    ])
+    setCoaches(coachList)
+    setChildren(childList)
+    setLoading(false)
+  }, [groupId, loadGroup, loadStaff, loadMembers, loadSessions])
+
+  useEffect(() => { loadAll() }, [loadAll])
+
+  const TABS: { key: Tab; label: string; count?: number }[] = [
+    { key: 'infos',   label: 'Infos'   },
+    { key: 'joueurs', label: 'Joueurs', count: members.length  },
+    { key: 'staff',   label: 'Staff',   count: staff.length    },
+    { key: 'seances', label: 'Séances', count: sessions.length },
+  ]
+
+  if (loading) {
+    return (
+      <View style={s.center}>
+        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+      </View>
+    )
+  }
+
+  if (!group) {
+    return (
+      <View style={s.center}>
+        <AureakText variant="h3" style={{ color: colors.text.secondary }}>Groupe introuvable</AureakText>
+        <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
+          <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
+        </Pressable>
+      </View>
+    )
+  }
+
+  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.accent.zinc
+
+  return (
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+
+      {/* ── Back ── */}
+      <Pressable onPress={() => router.back()} style={{ marginBottom: space.sm }}>
+        <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Groupes</AureakText>
+      </Pressable>
+
+      {/* ── Hero header ── */}
+      <View style={[s.hero, { borderTopColor: methodColor }]}>
+        <View style={{ flex: 1 }}>
+          <AureakText variant="h2" style={{ marginBottom: 4 }}>{group.name}</AureakText>
+          <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Implantation chip */}
+            <View style={s.chip}>
+              <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+                {group.implantationName}
+              </AureakText>
+            </View>
+            {/* Method */}
+            {group.method && (
+              <View style={[s.chip, { borderColor: methodColor, backgroundColor: methodColor + '18' }]}>
+                <AureakText variant="caption" style={{ fontSize: 11, color: methodColor, fontWeight: '700' }}>
+                  {group.method}
+                </AureakText>
+              </View>
+            )}
+            {/* Schedule */}
+            {group.dayOfWeek && (
+              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+                {group.dayOfWeek}
+                {group.startHour !== null ? ` · ${String(group.startHour).padStart(2,'0')}h${String(group.startMinute ?? 0).padStart(2,'0')}` : ''}
+                {group.durationMinutes ? ` · ${group.durationMinutes} min` : ''}
+              </AureakText>
+            )}
+          </View>
+        </View>
+        {/* Staff summary */}
+        <View style={s.staffSummary}>
+          {STAFF_ROLES.map(r => {
+            const assigned = staff.find(s => s.role === r.key)
+            return (
+              <View key={r.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={[s.roleDot, { backgroundColor: r.color }]} />
+                <AureakText variant="caption" style={{ fontSize: 11, color: assigned ? colors.text.primary : colors.text.secondary }}>
+                  {assigned ? assigned.coachName : 'Non assigné'}
+                </AureakText>
+              </View>
+            )
+          })}
+        </View>
+      </View>
+
+      {/* ── Tabs ── */}
+      <View style={s.tabBar}>
+        {TABS.map(t => (
+          <Pressable
+            key={t.key}
+            style={[s.tabBtn, tab === t.key && s.tabBtnActive]}
+            onPress={() => setTab(t.key)}
+          >
+            <AureakText
+              variant="caption"
+              style={{
+                color     : tab === t.key ? colors.accent.gold : colors.text.secondary,
+                fontWeight: tab === t.key ? '700' : '400',
+                fontSize  : 13,
+              }}
+            >
+              {t.label}
+              {t.count !== undefined && t.count > 0 && (
+                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+                  {' '}({t.count})
+                </AureakText>
+              )}
+            </AureakText>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* ── Tab content ── */}
+      {tab === 'infos' && (
+        <InfosTab
+          group={group}
+          implantationName={group.implantationName}
+          onSaved={loadGroup}
+        />
+      )}
+
+      {tab === 'joueurs' && (
+        <JoueursTab
+          groupId={groupId!}
+          members={members}
+          children={children}
+          tenantId={tenantId}
+          onRefresh={loadMembers}
+        />
+      )}
+
+      {tab === 'staff' && (
+        <StaffTab
+          groupId={groupId!}
+          staff={staff}
+          coaches={coaches}
+          tenantId={tenantId}
+          onRefresh={loadStaff}
+        />
+      )}
+
+      {tab === 'seances' && (
+        <SeancesTab
+          groupId={groupId!}
+          sessions={sessions}
+          onNewSession={() => router.push('/sessions' as never)}
+        />
+      )}
+
+    </ScrollView>
+  )
+}
+
+const s = StyleSheet.create({
+  container  : { flex: 1, backgroundColor: colors.background.primary },
+  content    : { padding: space.xl, gap: space.md, maxWidth: 860 },
+  center     : { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
+  hero       : {
+    backgroundColor: colors.background.surface,
+    borderRadius   : 10,
+    borderWidth    : 1,
+    borderTopWidth : 3,
+    borderColor    : colors.accent.zinc,
+    padding        : space.md,
+    flexDirection  : 'row',
+    alignItems     : 'flex-start',
+    gap            : space.md,
+  },
+  chip       : {
+    paddingHorizontal: 10,
+    paddingVertical  : 3,
+    borderRadius     : 12,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
+    backgroundColor  : colors.background.elevated,
+  },
+  staffSummary: {
+    gap     : 4,
+    minWidth: 160,
+    alignItems: 'flex-end' as never,
+  },
+  roleDot    : { width: 7, height: 7, borderRadius: 4 },
+
+  tabBar     : {
+    flexDirection  : 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent.zinc,
+    gap            : 0,
+  },
+  tabBtn     : {
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabBtnActive: {
+    borderBottomColor: colors.accent.gold,
+  },
+})

@@ -15,3 +15,22 @@ export { TICKET_SUBJECT_TEMPLATES } from './tickets/subject-templates'
 export { useQuiz } from './learning/useQuiz'
 export { computeRankings } from './admin/computeRankings'
 export type { ImplantationStat, RankedStat } from './admin/computeRankings'
+
+export {
+  generateGroupName,
+  buildGroupBaseName,
+  formatGroupTime,
+  GROUP_METHODS,
+  DAYS_OF_WEEK,
+  GROUP_DURATIONS,
+  AGE_CATEGORY_TO_METHOD,
+  METHOD_COLOR,
+} from './groups/generateGroupName'
+export type { GroupMethod, DayOfWeek } from './groups/generateGroupName'
+
+export {
+  ACADEMY_STATUS_CONFIG,
+  generateAcademyBadges,
+  isActiveAcademician,
+  hasAcademyHistory,
+} from './groups/academyStatus'

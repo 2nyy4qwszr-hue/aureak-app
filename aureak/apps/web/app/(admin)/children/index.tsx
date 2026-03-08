@@ -1,33 +1,70 @@
 'use client'
-// Story 10.1 — Gestion des enfants (admin)
-import { useEffect, useState } from 'react'
+// Annuaire joueurs — child_directory (import Notion)
+// Terminologie officielle : joueur = enfant = child
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { supabase, suspendUser, reactivateUser } from '@aureak/api-client'
-import { AureakText, Badge } from '@aureak/ui'
+import { listJoueurs, listAcademySeasons, type JoueurListItem } from '@aureak/api-client'
+import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
+import type { AcademyStatus } from '@aureak/types'
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 50
 
-type ChildProfile = {
-  userId     : string
-  displayName: string | null
-  status     : 'active' | 'suspended' | 'deletion_requested'
-  createdAt  : string
+// ── Filter types ───────────────────────────────────────────────────────────────
+
+type AcadStatusFilter = 'all' | AcademyStatus
+type SeasonFilter     = 'all' | 'eq1' | 'eq2' | 'gte3'
+type StageFilter      = 'all' | 'eq0' | 'eq1' | 'eq2' | 'gte3'
+
+// Built dynamically in the component using currentSeasonLabel
+const SEASON_TABS: { key: SeasonFilter; label: string }[] = [
+  { key: 'all',  label: 'Toutes'    },
+  { key: 'eq1',  label: '1 saison'  },
+  { key: 'eq2',  label: '2 saisons' },
+  { key: 'gte3', label: '3+'        },
+]
+
+const STAGE_TABS: { key: StageFilter; label: string }[] = [
+  { key: 'all',  label: 'Tous'       },
+  { key: 'eq0',  label: 'Aucun'      },
+  { key: 'eq1',  label: '1 stage'    },
+  { key: 'eq2',  label: '2 stages'   },
+  { key: 'gte3', label: '3+'         },
+]
+
+// ── Status badge chip ──────────────────────────────────────────────────────────
+
+function StatusChip({ status }: { status: string }) {
+  const cfg = ACADEMY_STATUS_CONFIG[status as AcademyStatus]
+  if (!cfg) return null
+  return (
+    <View style={[chip.base, { backgroundColor: cfg.bg, borderColor: cfg.color + '40' }]}>
+      <AureakText style={[chip.label, { color: cfg.color }] as never}>{cfg.label}</AureakText>
+    </View>
+  )
 }
 
-const STATUS_VARIANT = (s: ChildProfile['status']): 'present' | 'attention' | 'zinc' => {
-  if (s === 'active')    return 'present'
-  if (s === 'suspended') return 'attention'
-  return 'zinc'
-}
-const STATUS_LABEL = (s: ChildProfile['status']): string => {
-  if (s === 'active')    return 'Actif'
-  if (s === 'suspended') return 'Suspendu'
-  return 'Suppression demandée'
+function InfoChip({ label, color }: { label: string; color: string }) {
+  return (
+    <View style={[chip.base, { backgroundColor: color + '14', borderColor: color + '30' }]}>
+      <AureakText style={[chip.label, { color }] as never}>{label}</AureakText>
+    </View>
+  )
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+const chip = StyleSheet.create({
+  base : {
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: 4, borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  label: { fontSize: 10, fontWeight: '600' as never, letterSpacing: 0.3 },
+})
+
+// ── Pagination ─────────────────────────────────────────────────────────────────
+
 function Pagination({
   page, total, onPrev, onNext,
 }: { page: number; total: number; onPrev: () => void; onNext: () => void }) {
@@ -40,13 +77,13 @@ function Pagination({
         {total > 0 ? `${start}–${end} sur ${total}` : '0 résultat'}
       </AureakText>
       <View style={pag.btnRow}>
-        <Pressable style={[pag.btn, page === 0 && pag.btnDisabled]} onPress={onPrev} disabled={page === 0}>
+        <Pressable style={[pag.btn, page === 0 && pag.disabled]} onPress={onPrev} disabled={page === 0}>
           <AureakText variant="caption" style={{ color: page === 0 ? colors.text.secondary : colors.text.primary }}>←</AureakText>
         </Pressable>
         <AureakText variant="caption" style={{ color: colors.text.secondary, paddingHorizontal: space.sm }}>
           {page + 1} / {totalPages}
         </AureakText>
-        <Pressable style={[pag.btn, end >= total && pag.btnDisabled]} onPress={onNext} disabled={end >= total}>
+        <Pressable style={[pag.btn, end >= total && pag.disabled]} onPress={onNext} disabled={end >= total}>
           <AureakText variant="caption" style={{ color: end >= total ? colors.text.secondary : colors.text.primary }}>→</AureakText>
         </Pressable>
       </View>
@@ -54,168 +91,267 @@ function Pagination({
   )
 }
 const pag = StyleSheet.create({
-  row       : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
-  btnRow    : { flexDirection: 'row', alignItems: 'center' },
-  btn       : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.surface },
-  btnDisabled: { opacity: 0.35 },
+  row    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
+  btnRow : { flexDirection: 'row', alignItems: 'center' },
+  btn    : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.surface },
+  disabled: { opacity: 0.35 },
 })
 
-// ── Main page ──────────────────────────────────────────────────────────────────
-export default function ChildrenPage() {
-  const router   = useRouter()
-  const [children, setChildren] = useState<ChildProfile[]>([])
-  const [total,    setTotal]    = useState(0)
-  const [page,     setPage]     = useState(0)
-  const [search,   setSearch]   = useState('')
-  const [loading,  setLoading]  = useState(true)
-  const [working,  setWorking]  = useState<string | null>(null)
+// ── Player row ─────────────────────────────────────────────────────────────────
 
-  const load = async () => {
-    setLoading(true)
-    let query = supabase
-      .from('profiles')
-      .select('user_id, display_name, lifecycle_status, created_at', { count: 'exact' })
-      .eq('user_role', 'child')
-      .is('deleted_at', null)
-      .order('display_name', { ascending: true })
-
-    if (search.trim()) {
-      query = query.ilike('display_name', `%${search.trim()}%`)
-    }
-
-    query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
-
-    const { data, count } = await query
-
-    const list: ChildProfile[] = ((data ?? []) as {
-      user_id: string; display_name: string | null; lifecycle_status: string; created_at: string
-    }[]).map(p => ({
-      userId     : p.user_id,
-      displayName: p.display_name,
-      status     : (p.lifecycle_status ?? 'active') as ChildProfile['status'],
-      createdAt  : p.created_at,
-    }))
-
-    setChildren(list)
-    setTotal(count ?? 0)
-    setLoading(false)
-  }
-
-  // Reset to page 0 when search changes
-  useEffect(() => { setPage(0) }, [search])
-  useEffect(() => { load() }, [page, search])
-
-  const handleSuspend = async (userId: string) => {
-    setWorking(userId); await suspendUser(userId); setWorking(null); await load()
-  }
-  const handleReactivate = async (userId: string) => {
-    setWorking(userId); await reactivateUser(userId); setWorking(null); await load()
-  }
+function JoueurRow({ item, onPress }: { item: JoueurListItem; onPress: () => void }) {
+  const seasonColor = '#9E9E9E'
+  const stageColor  = '#4FC3F7'
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* ── Page header ── */}
-      <View style={styles.pageHeader}>
-        <View>
-          <AureakText variant="h2">Enfants</AureakText>
-          {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
-              {total} inscrit{total !== 1 ? 's' : ''}
-              {search.trim() ? ` · recherche « ${search.trim()} »` : ''}
+    <View style={row.container}>
+      <View style={row.info}>
+        <AureakText variant="body" style={row.name}>{item.displayName}</AureakText>
+        <View style={row.meta}>
+          {item.currentClub && (
+            <AureakText variant="caption" style={row.metaText}>⚽ {item.currentClub}</AureakText>
+          )}
+          {item.niveauClub && (
+            <AureakText variant="caption" style={[row.metaText, { color: colors.text.secondary }] as never}>
+              {item.currentClub ? ' · ' : ''}{item.niveauClub}
             </AureakText>
           )}
         </View>
-        <Pressable
-          style={styles.inviteBtn}
-          onPress={() => router.push('/(admin)/users/new' as never)}
-        >
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            + Inviter
-          </AureakText>
-        </Pressable>
+        <View style={row.badges}>
+          {item.computedStatus && <StatusChip status={item.computedStatus} />}
+          {item.totalAcademySeasons > 0 && (
+            <InfoChip
+              label={`${item.totalAcademySeasons} saison${item.totalAcademySeasons > 1 ? 's' : ''}`}
+              color={seasonColor}
+            />
+          )}
+          {item.totalStages > 0 && (
+            <InfoChip
+              label={`${item.totalStages} stage${item.totalStages > 1 ? 's' : ''}`}
+              color={stageColor}
+            />
+          )}
+        </View>
+      </View>
+      <Pressable style={row.btn} onPress={onPress}>
+        <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
+          Voir
+        </AureakText>
+      </Pressable>
+    </View>
+  )
+}
+
+const row = StyleSheet.create({
+  container: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: space.md, paddingVertical: space.sm + 2,
+    borderBottomWidth: 1, borderBottomColor: colors.accent.zinc,
+  },
+  info   : { flex: 1, gap: 3 },
+  name   : { fontWeight: '600' as never, fontSize: 14 },
+  meta   : { flexDirection: 'row', flexWrap: 'wrap' },
+  metaText: { color: colors.text.primary, fontSize: 12 },
+  badges : { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginTop: 2 },
+  btn    : {
+    paddingHorizontal: space.sm, paddingVertical: 4,
+    borderRadius: 5, borderWidth: 1, borderColor: colors.accent.gold,
+    marginLeft: space.sm,
+  },
+})
+
+// ── Filter tab row ─────────────────────────────────────────────────────────────
+
+function FilterRow<K extends string>({
+  label, tabs, active, onSelect, getColor,
+}: {
+  label    : string
+  tabs     : { key: K; label: string }[]
+  active   : K
+  onSelect : (key: K) => void
+  getColor?: (key: K) => string
+}) {
+  return (
+    <View style={fr.wrap}>
+      <AureakText variant="caption" style={fr.label}>{label}</AureakText>
+      <View style={fr.row}>
+        {tabs.map(t => {
+          const isActive = active === t.key
+          const color = getColor ? getColor(t.key) : colors.accent.gold
+          return (
+            <Pressable key={t.key} style={[fr.tab, isActive && { borderColor: color + '60' }]} onPress={() => onSelect(t.key)}>
+              <AureakText
+                variant="caption"
+                style={{ color: isActive ? color : colors.text.secondary, fontWeight: isActive ? '700' : '400' }}
+              >
+                {t.label}
+              </AureakText>
+            </Pressable>
+          )
+        })}
+      </View>
+    </View>
+  )
+}
+
+const fr = StyleSheet.create({
+  wrap  : { gap: 4 },
+  label : { color: colors.text.secondary, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, fontWeight: '700' as never },
+  row   : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' },
+  tab   : { paddingHorizontal: space.sm + 2, paddingVertical: 5, borderRadius: 5, borderWidth: 1, borderColor: 'transparent' },
+})
+
+// ── Main ───────────────────────────────────────────────────────────────────────
+
+export default function JoueursPage() {
+  const router = useRouter()
+
+  const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
+  const [total,              setTotal]              = useState(0)
+  const [page,               setPage]               = useState(0)
+  const [loading,            setLoading]            = useState(true)
+  const [currentSeasonLabel, setCurrentSeasonLabel] = useState<string | null>(null)
+
+  const [searchInput,   setSearchInput]   = useState('')
+  const [search,        setSearch]        = useState('')
+  const [acadStatus,    setAcadStatus]    = useState<AcadStatusFilter>('all')
+  const [seasonFilter,  setSeasonFilter]  = useState<SeasonFilter>('all')
+  const [stageFilter,   setStageFilter]   = useState<StageFilter>('all')
+
+  // Load current season label once (for the filter tab label)
+  useEffect(() => {
+    listAcademySeasons().then(({ data }) => {
+      const current = data.find(s => s.isCurrent)
+      setCurrentSeasonLabel(current?.label ?? null)
+    }).catch(() => {/* non-critical */})
+  }, [])
+
+  // Dynamic tab list — "Académicien 2025-2026" uses real season label
+  const acadStatusTabs = useMemo<{ key: AcadStatusFilter; label: string; color: string }[]>(() => [
+    { key: 'all',               label: 'Tous',                                                       color: colors.text.secondary },
+    { key: 'ACADÉMICIEN',       label: currentSeasonLabel ? `Acad. ${currentSeasonLabel}` : 'Académicien (saison actuelle)', color: ACADEMY_STATUS_CONFIG['ACADÉMICIEN'].color },
+    { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau académicien',                                      color: ACADEMY_STATUS_CONFIG['NOUVEAU_ACADÉMICIEN'].color },
+    { key: 'ANCIEN',            label: 'Ancien académicien',                                         color: ACADEMY_STATUS_CONFIG['ANCIEN'].color },
+    { key: 'STAGE_UNIQUEMENT',  label: 'Stage uniquement',                                           color: ACADEMY_STATUS_CONFIG['STAGE_UNIQUEMENT'].color },
+    { key: 'PROSPECT',          label: 'Non affilié',                                                color: ACADEMY_STATUS_CONFIG['PROSPECT'].color },
+  ], [currentSeasonLabel])
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data, count } = await listJoueurs({
+        search         : search || undefined,
+        computedStatus : acadStatus !== 'all' ? acadStatus : undefined,
+        totalSeasonsCmp: seasonFilter !== 'all' ? seasonFilter : undefined,
+        totalStagesCmp : stageFilter  !== 'all' ? stageFilter  : undefined,
+        page,
+        pageSize: PAGE_SIZE,
+      })
+      setJoueurs(data)
+      setTotal(count)
+    } catch (e) {
+      console.error('[JoueursPage] load error', e)
+    }
+    setLoading(false)
+  }, [search, acadStatus, seasonFilter, stageFilter, page])
+
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter])
+
+  const handleSearch = () => setSearch(searchInput.trim())
+
+  return (
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+
+      {/* Header */}
+      <View style={s.header}>
+        <View>
+          <AureakText variant="h2">Joueurs</AureakText>
+          {!loading && (
+            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+              {total} joueur{total !== 1 ? 's' : ''} · annuaire Notion
+            </AureakText>
+          )}
+        </View>
       </View>
 
-      {/* ── Search ── */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Rechercher par nom…"
-        placeholderTextColor={colors.text.secondary}
-        value={search}
-        onChangeText={setSearch}
-      />
-
-      {/* ── Table ── */}
-      {loading ? (
-        <View style={styles.loadingRows}>
-          {[0,1,2,3,4].map(i => <View key={i} style={styles.skeletonRow} />)}
-        </View>
-      ) : children.length === 0 ? (
-        <View style={styles.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.secondary }}>
-            {search.trim() ? 'Aucun résultat' : 'Aucun enfant inscrit'}
+      {/* Search */}
+      <View style={s.searchRow}>
+        <TextInput
+          style={s.searchInput}
+          value={searchInput}
+          onChangeText={setSearchInput}
+          onSubmitEditing={handleSearch}
+          placeholder="Rechercher par nom…"
+          placeholderTextColor={colors.text.secondary}
+          returnKeyType="search"
+        />
+        <Pressable style={s.searchBtn} onPress={handleSearch}>
+          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+            Chercher
           </AureakText>
+        </Pressable>
+        {search !== '' && (
+          <Pressable style={s.clearBtn} onPress={() => { setSearch(''); setSearchInput('') }}>
+            <AureakText variant="caption" style={{ color: colors.text.secondary }}>✕</AureakText>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Filters */}
+      <View style={s.filters}>
+        <FilterRow
+          label="Statut académie"
+          tabs={acadStatusTabs}
+          active={acadStatus}
+          onSelect={setAcadStatus}
+          getColor={k => k === 'all' ? colors.accent.gold : ACADEMY_STATUS_CONFIG[k as AcademyStatus]?.color ?? colors.accent.gold}
+        />
+        <View style={s.filtersRow2}>
+          <View style={s.filterHalf}>
+            <FilterRow
+              label="Expérience académie"
+              tabs={SEASON_TABS}
+              active={seasonFilter}
+              onSelect={setSeasonFilter}
+            />
+          </View>
+          <View style={s.filterHalf}>
+            <FilterRow
+              label="Expérience stage"
+              tabs={STAGE_TABS}
+              active={stageFilter}
+              onSelect={setStageFilter}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* List */}
+      {loading ? (
+        <View style={s.skeletonBox}>
+          {[0,1,2,3,4,5].map(i => <View key={i} style={s.skeletonRow} />)}
+        </View>
+      ) : joueurs.length === 0 ? (
+        <View style={s.emptyState}>
+          <AureakText variant="h3" style={{ color: colors.text.secondary }}>Aucun joueur</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4 }}>
-            {search.trim() ? 'Modifiez votre recherche.' : 'Invitez le premier enfant.'}
+            {search.trim() ? 'Modifiez votre recherche.' : 'Aucun joueur ne correspond aux filtres.'}
           </AureakText>
         </View>
       ) : (
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={styles.tableHeader}>
-            <AureakText variant="caption" style={[styles.thLabel, { flex: 2 }]}>Nom</AureakText>
-            <AureakText variant="caption" style={[styles.thLabel, { flex: 1 }]}>Statut</AureakText>
-            <AureakText variant="caption" style={[styles.thLabel, { flex: 1 }]}>Inscrit le</AureakText>
-            <AureakText variant="caption" style={[styles.thLabel, { width: 130, textAlign: 'right' }]}>Actions</AureakText>
-          </View>
-
-          {children.map((child, idx) => (
-            <View key={child.userId} style={[styles.tableRow, idx % 2 === 1 && styles.tableRowAlt]}>
-              <View style={{ flex: 2 }}>
-                <AureakText variant="body" style={{ fontWeight: '600' }}>
-                  {child.displayName ?? '—'}
-                </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
-                  {child.userId.slice(0, 8)}…
-                </AureakText>
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <Badge label={STATUS_LABEL(child.status)} variant={STATUS_VARIANT(child.status)} />
-              </View>
-
-              <AureakText variant="caption" style={{ flex: 1, color: colors.text.secondary }}>
-                {new Date(child.createdAt).toLocaleDateString('fr-FR')}
-              </AureakText>
-
-              <View style={{ width: 130, flexDirection: 'row', justifyContent: 'flex-end', gap: space.xs }}>
-                {child.status === 'active' ? (
-                  <Pressable
-                    style={[styles.actionBtn, styles.actionBtnWarning]}
-                    onPress={() => handleSuspend(child.userId)}
-                    disabled={working === child.userId}
-                  >
-                    <AureakText variant="caption" style={{ color: colors.status.attention, fontWeight: '600', fontSize: 11 }}>
-                      {working === child.userId ? '...' : 'Suspendre'}
-                    </AureakText>
-                  </Pressable>
-                ) : child.status === 'suspended' ? (
-                  <Pressable
-                    style={[styles.actionBtn, styles.actionBtnSuccess]}
-                    onPress={() => handleReactivate(child.userId)}
-                    disabled={working === child.userId}
-                  >
-                    <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600', fontSize: 11 }}>
-                      {working === child.userId ? '...' : 'Réactiver'}
-                    </AureakText>
-                  </Pressable>
-                ) : null}
-              </View>
-            </View>
+        <View style={s.list}>
+          {joueurs.map(item => (
+            <JoueurRow
+              key={item.id}
+              item={item}
+              onPress={() => router.push(`/children/${item.id}` as never)}
+            />
           ))}
         </View>
       )}
 
-      {/* ── Pagination ── */}
+      {/* Pagination */}
       {!loading && total > PAGE_SIZE && (
         <Pagination
           page={page}
@@ -228,81 +364,58 @@ export default function ChildrenPage() {
   )
 }
 
-const styles = StyleSheet.create({
-  container       : { flex: 1, backgroundColor: colors.background.primary },
-  content         : { padding: space.xl, gap: space.md },
-  pageHeader      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  inviteBtn       : {
-    backgroundColor  : colors.accent.gold,
+const s = StyleSheet.create({
+  container : { flex: 1, backgroundColor: colors.background.primary },
+  content   : { padding: space.xl, gap: space.md },
+  header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+
+  searchRow : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
+  searchInput: {
+    flex             : 1,
+    backgroundColor  : colors.background.surface,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
+    borderRadius     : 7,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    color            : colors.text.primary,
+    fontSize         : 13,
+  },
+  searchBtn: {
+    backgroundColor  : colors.background.elevated,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
     borderRadius     : 7,
   },
-  searchInput     : {
+  clearBtn: {
+    width: 32, height: 32,
+    alignItems: 'center', justifyContent: 'center',
+    borderRadius: 6, borderWidth: 1,
+    borderColor: colors.accent.zinc,
     backgroundColor: colors.background.surface,
-    borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
-    borderRadius   : 8,
-    color          : colors.text.primary,
-    padding        : space.sm,
-    fontSize       : 14,
   },
-  table           : {
+
+  filters    : { gap: space.sm },
+  filtersRow2: { flexDirection: 'row', gap: space.lg, flexWrap: 'wrap' },
+  filterHalf : { flex: 1, minWidth: 200 },
+
+  list : {
     backgroundColor: colors.background.surface,
-    borderRadius   : 10,
-    borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
-    overflow       : 'hidden',
+    borderRadius   : 10, borderWidth: 1,
+    borderColor    : colors.accent.zinc, overflow: 'hidden',
   },
-  tableHeader     : {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
-    backgroundColor  : colors.background.elevated,
+
+  skeletonBox: { gap: space.xs },
+  skeletonRow: {
+    height: 68, backgroundColor: colors.background.surface,
+    borderRadius: 6, opacity: 0.5,
+    borderWidth: 1, borderColor: colors.accent.zinc,
   },
-  thLabel         : {
-    color          : colors.text.secondary,
-    fontWeight     : '700',
-    letterSpacing  : 0.8,
-    textTransform  : 'uppercase',
-    fontSize       : 10,
-  },
-  tableRow        : {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm + 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
-    gap              : space.sm,
-  },
-  tableRowAlt     : { backgroundColor: colors.background.elevated },
-  actionBtn       : {
-    paddingHorizontal: space.sm,
-    paddingVertical  : 4,
-    borderRadius     : 5,
-    borderWidth      : 1,
-  },
-  actionBtnSuccess: { backgroundColor: colors.status.present, borderColor: colors.status.present },
-  actionBtnWarning: { backgroundColor: 'transparent', borderColor: colors.status.attention },
-  loadingRows     : { gap: space.xs },
-  skeletonRow     : {
-    height         : 52,
+  emptyState: {
     backgroundColor: colors.background.surface,
-    borderRadius   : 6,
-    borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
-    opacity        : 0.5,
-  },
-  emptyState      : {
-    backgroundColor: colors.background.surface,
-    borderRadius   : 10,
-    padding        : space.xxl,
-    alignItems     : 'center',
-    borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderRadius: 10, padding: space.xxl,
+    alignItems: 'center', borderWidth: 1, borderColor: colors.accent.zinc,
   },
 })

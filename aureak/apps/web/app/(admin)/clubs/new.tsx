@@ -1,210 +1,345 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { createClub } from '@aureak/api-client'
+import { createClubDirectoryEntry } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import type { BelgianProvince } from '@aureak/types'
+import { BELGIAN_PROVINCES } from '@aureak/types'
 
-const clubSchema = z.object({
-  name       : z.string().min(1, 'Nom du club requis'),
-  email      : z.string().min(1, 'Email requis').email('Email invalide'),
-  accessLevel: z.enum(['partner', 'common'] as const, {
-    errorMap: () => ({ message: 'Niveau d\'accès requis' }),
-  }),
+// ── Field components ─────────────────────────────────────────────────────────
+
+function FormField({
+  label, value, onChange, placeholder, required, keyboardType, multiline,
+}: {
+  label       : string
+  value       : string
+  onChange    : (v: string) => void
+  placeholder?: string
+  required?   : boolean
+  keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'url'
+  multiline?  : boolean
+}) {
+  return (
+    <View style={ff.wrapper}>
+      <AureakText variant="caption" style={ff.label}>
+        {label}{required ? ' *' : ''}
+      </AureakText>
+      <TextInput
+        style={[ff.input, multiline && ff.textarea]}
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={colors.text.secondary}
+        keyboardType={keyboardType ?? 'default'}
+        multiline={multiline}
+        autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'sentences'}
+      />
+    </View>
+  )
+}
+const ff = StyleSheet.create({
+  wrapper : { gap: 4 },
+  label   : { color: colors.text.secondary, fontSize: 11, fontWeight: '600' },
+  input   : {
+    backgroundColor  : colors.background.surface,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
+    borderRadius     : 7,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    color            : colors.text.primary,
+    fontSize         : 13,
+    fontFamily       : 'System',
+  },
+  textarea: { minHeight: 80, textAlignVertical: 'top' as never },
 })
 
-type ClubForm = z.infer<typeof clubSchema>
+// ── Province selector ─────────────────────────────────────────────────────────
 
-const ACCESS_LEVELS: Array<{ value: 'partner' | 'common'; label: string }> = [
-  { value: 'partner', label: 'Partenaire — accès étendu (présences + rapports mi/fin saison)' },
-  { value: 'common',  label: 'Commun — accès de base (présences uniquement)' },
-]
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.primary,
-    alignItems: 'center',
-  },
-  card: {
-    width: '100%',
-    maxWidth: 520,
-    padding: space.xl,
-    gap: space.md,
-    marginTop: space.xl,
-  },
-  levelOption: {
-    padding: space.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.accent.zinc,
-    cursor: 'pointer' as never,
-  },
-  levelOptionSelected: {
-    borderColor: colors.accent.gold,
-    backgroundColor: colors.background.elevated,
-  },
-  successBanner: {
-    backgroundColor: colors.background.elevated,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.status.present,
-    borderRadius: 4,
-    padding: space.md,
-  },
-  errorBanner: {
-    backgroundColor: colors.background.elevated,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.status.absent,
-    borderRadius: 4,
-    padding: space.md,
-  },
+function ProvinceSelector({ value, onChange }: { value: BelgianProvince | null; onChange: (v: BelgianProvince | null) => void }) {
+  return (
+    <View style={{ gap: 6 }}>
+      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, fontWeight: '600' }}>Province</AureakText>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+        <Pressable style={[chip.base, value === null && chip.active]} onPress={() => onChange(null)}>
+          <AureakText variant="caption" style={{ color: value === null ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>—</AureakText>
+        </Pressable>
+        {BELGIAN_PROVINCES.map(p => (
+          <Pressable key={p} style={[chip.base, value === p && chip.active]} onPress={() => onChange(p)}>
+            <AureakText variant="caption" style={{ color: value === p ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>{p}</AureakText>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  )
+}
+const chip = StyleSheet.create({
+  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
+  active: { borderColor: colors.accent.gold, backgroundColor: colors.background.surface },
 })
+
+// ── Section wrapper ───────────────────────────────────────────────────────────
+
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <AureakText
+      variant="caption"
+      style={{
+        color        : colors.text.secondary,
+        fontSize     : 10,
+        fontWeight   : '700',
+        letterSpacing: 1.2,
+        textTransform: 'uppercase' as never,
+        paddingTop   : space.sm,
+        borderTopWidth: 1,
+        borderTopColor: colors.accent.zinc,
+      }}
+    >
+      {title}
+    </AureakText>
+  )
+}
+
+// ── Toggle chip ───────────────────────────────────────────────────────────────
+
+function ToggleChip({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <Pressable style={[chip.base, value && chip.active]} onPress={() => onChange(!value)}>
+      <AureakText variant="caption" style={{ color: value ? colors.accent.gold : colors.text.secondary }}>
+        {label}
+      </AureakText>
+    </Pressable>
+  )
+}
+
+// ── Form state ────────────────────────────────────────────────────────────────
+
+type Form = {
+  nom                         : string
+  matricule                   : string
+  label                       : string
+  province                    : BelgianProvince | null
+  adresseRue                  : string
+  codePostal                  : string
+  ville                       : string
+  siteInternet                : string
+  correspondant               : string
+  emailPrincipal              : string
+  telephonePrincipal          : string
+  responsableSportif          : string
+  emailResponsableSportif     : string
+  telephoneResponsableSportif : string
+  clubPartenaire              : boolean
+  actif                       : boolean
+  notesInternes               : string
+}
+
+const EMPTY_FORM: Form = {
+  nom                         : '',
+  matricule                   : '',
+  label                       : '',
+  province                    : null,
+  adresseRue                  : '',
+  codePostal                  : '',
+  ville                       : '',
+  siteInternet                : '',
+  correspondant               : '',
+  emailPrincipal              : '',
+  telephonePrincipal          : '',
+  responsableSportif          : '',
+  emailResponsableSportif     : '',
+  telephoneResponsableSportif : '',
+  clubPartenaire              : false,
+  actif                       : true,
+  notesInternes               : '',
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function NewClubScreen() {
-  const router = useRouter()
+  const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
-  const user = useAuthStore((s) => s.user)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const user     = useAuthStore((s) => s.user)
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ClubForm>({
-    resolver: zodResolver(clubSchema),
-    defaultValues: { name: '', email: '', accessLevel: 'common' },
-  })
+  const [form,       setForm]       = useState<Form>(EMPTY_FORM)
+  const [submitting, setSubmitting] = useState(false)
+  const [error,      setError]      = useState<string | null>(null)
 
-  const onSubmit = async ({ name, email, accessLevel }: ClubForm) => {
-    setError(null)
-    setSuccess(false)
+  const setField = (key: keyof Form, value: unknown) =>
+    setForm(f => ({ ...f, [key]: value }))
 
+  const handleSubmit = async () => {
+    if (!form.nom.trim()) {
+      setError('Le nom du club est obligatoire.')
+      return
+    }
     if (!tenantId || !user?.id) {
       setError('Session invalide. Reconnectez-vous.')
       return
     }
 
-    const { error: createError } = await createClub({
-      name,
-      email,
-      accessLevel,
-      tenantId,
+    setError(null)
+    setSubmitting(true)
+
+    const { data, error: err } = await createClubDirectoryEntry({
+      tenantId : tenantId,
       createdBy: user.id,
+      nom                         : form.nom.trim(),
+      matricule                   : form.matricule.trim() || null,
+      label                       : form.label.trim() || null,
+      province                    : form.province,
+      adresseRue                  : form.adresseRue.trim() || null,
+      codePostal                  : form.codePostal.trim() || null,
+      ville                       : form.ville.trim() || null,
+      siteInternet                : form.siteInternet.trim() || null,
+      correspondant               : form.correspondant.trim() || null,
+      emailPrincipal              : form.emailPrincipal.trim() || null,
+      telephonePrincipal          : form.telephonePrincipal.trim() || null,
+      responsableSportif          : form.responsableSportif.trim() || null,
+      emailResponsableSportif     : form.emailResponsableSportif.trim() || null,
+      telephoneResponsableSportif : form.telephoneResponsableSportif.trim() || null,
+      clubPartenaire              : form.clubPartenaire,
+      actif                       : form.actif,
+      notesInternes               : form.notesInternes.trim() || null,
     })
 
-    if (createError) {
+    setSubmitting(false)
+
+    if (err || !data) {
       setError('Erreur lors de la création du club.')
       return
     }
 
-    setSuccess(true)
-    reset()
+    router.replace(`/clubs/${data.id}` as never)
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.card}>
-        <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
 
-        <AureakText variant="h2">Nouveau club</AureakText>
+        {/* Header */}
+        <View style={styles.cardHeader}>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+          </Pressable>
+          <AureakText variant="h2">Nouveau club</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+            Ajoutez un club à l'annuaire. Les champs marqués * sont obligatoires.
+          </AureakText>
+        </View>
 
-        {success && (
-          <View style={styles.successBanner}>
-            <AureakText variant="body" style={{ color: colors.status.present }}>
-              Club créé. L'invitation a été envoyée par email.
-            </AureakText>
-          </View>
-        )}
-
+        {/* Error */}
         {error && (
           <View style={styles.errorBanner}>
-            <AureakText variant="body" style={{ color: colors.status.absent }}>
-              {error}
-            </AureakText>
+            <AureakText variant="body" style={{ color: '#f87171' }}>{error}</AureakText>
           </View>
         )}
 
-        <Controller
-          control={control}
-          name="name"
-          render={({ field: { onChange, value } }) => (
-            <Input
-              label="Nom du club"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Club Sportif Example"
-              autoCapitalize="words"
-              error={errors.name?.message}
-            />
-          )}
-        />
+        {/* ── Identité ── */}
+        <SectionTitle title="Identité" />
+        <FormField label="Nom du club" value={form.nom} onChange={v => setField('nom', v)} placeholder="RFC Liège" required />
+        <FormField label="Matricule"   value={form.matricule} onChange={v => setField('matricule', v)} placeholder="0001" />
+        <FormField label="Label"       value={form.label} onChange={v => setField('label', v)} placeholder="ex: Académie, U15…" />
+        <ProvinceSelector value={form.province} onChange={v => setField('province', v)} />
 
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <Input
-              label="Email du compte club"
-              value={value}
-              onChangeText={onChange}
-              placeholder="contact@club.be"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={errors.email?.message}
-            />
-          )}
-        />
+        {/* ── Adresse ── */}
+        <SectionTitle title="Adresse" />
+        <FormField label="Rue et numéro" value={form.adresseRue}   onChange={v => setField('adresseRue', v)}   placeholder="Rue de l'Académie 12" />
+        <View style={styles.twoCol}>
+          <View style={{ flex: 1 }}>
+            <FormField label="Code postal" value={form.codePostal} onChange={v => setField('codePostal', v)} placeholder="4000" />
+          </View>
+          <View style={{ flex: 2 }}>
+            <FormField label="Ville" value={form.ville} onChange={v => setField('ville', v)} placeholder="Liège" />
+          </View>
+        </View>
+        <FormField label="Site internet" value={form.siteInternet} onChange={v => setField('siteInternet', v)} placeholder="https://www.club.be" keyboardType="url" />
 
-        <View>
-          <AureakText variant="label" style={{ marginBottom: space.sm }}>
-            Niveau d'accès
-          </AureakText>
-          <Controller
-            control={control}
-            name="accessLevel"
-            render={({ field: { onChange, value } }) => (
-              <View style={{ gap: space.sm }}>
-                {ACCESS_LEVELS.map((level) => (
-                  <View
-                    key={level.value}
-                    style={[styles.levelOption, value === level.value && styles.levelOptionSelected]}
-                    onTouchEnd={() => onChange(level.value)}
-                  >
-                    <AureakText
-                      variant="label"
-                      style={{ color: value === level.value ? colors.accent.gold : colors.text.primary }}
-                    >
-                      {level.label}
-                    </AureakText>
-                  </View>
-                ))}
-              </View>
-            )}
-          />
-          {errors.accessLevel && (
-            <AureakText variant="caption" style={{ color: colors.status.absent, marginTop: 4 }}>
-              {errors.accessLevel.message}
+        {/* ── Contact général ── */}
+        <SectionTitle title="Contact général" />
+        <FormField label="Correspondant"   value={form.correspondant}     onChange={v => setField('correspondant', v)}     placeholder="Jean Dupont" />
+        <FormField label="Email principal" value={form.emailPrincipal}    onChange={v => setField('emailPrincipal', v)}    placeholder="contact@club.be" keyboardType="email-address" />
+        <FormField label="Téléphone"       value={form.telephonePrincipal} onChange={v => setField('telephonePrincipal', v)} placeholder="+32 4 xx xx xx xx" keyboardType="phone-pad" />
+
+        {/* ── Responsable sportif ── */}
+        <SectionTitle title="Responsable sportif" />
+        <FormField label="Nom"       value={form.responsableSportif}          onChange={v => setField('responsableSportif', v)}          placeholder="Marie Martin" />
+        <FormField label="Email"     value={form.emailResponsableSportif}     onChange={v => setField('emailResponsableSportif', v)}     placeholder="sport@club.be" keyboardType="email-address" />
+        <FormField label="Téléphone" value={form.telephoneResponsableSportif} onChange={v => setField('telephoneResponsableSportif', v)} placeholder="+32 4 xx xx xx xx" keyboardType="phone-pad" />
+
+        {/* ── Statut ── */}
+        <SectionTitle title="Statut" />
+        <View style={{ flexDirection: 'row', gap: space.md, flexWrap: 'wrap' }}>
+          <ToggleChip label="Club partenaire" value={form.clubPartenaire} onChange={v => setField('clubPartenaire', v)} />
+          <ToggleChip label="Actif"           value={form.actif}          onChange={v => setField('actif', v)} />
+        </View>
+
+        {/* ── Notes internes ── */}
+        <SectionTitle title="Notes internes" />
+        <FormField label="" value={form.notesInternes} onChange={v => setField('notesInternes', v)} placeholder="Notes visibles uniquement par l'admin…" multiline />
+
+        {/* ── Actions ── */}
+        <View style={styles.actions}>
+          <Pressable style={styles.cancelBtn} onPress={() => router.back()}>
+            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+          </Pressable>
+          <Pressable style={[styles.submitBtn, submitting && styles.submitBtnDisabled]} onPress={handleSubmit} disabled={submitting}>
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              {submitting ? 'Création en cours…' : 'Créer le club'}
             </AureakText>
-          )}
+          </Pressable>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: space.sm }}>
-          <AureakButton label="Annuler" onPress={() => router.back()} variant="secondary" />
-          <AureakButton
-            label={isSubmitting ? 'Création...' : 'Créer le club'}
-            onPress={handleSubmit(onSubmit)}
-            loading={isSubmitting}
-            fullWidth
-          />
-        </View>
       </View>
     </ScrollView>
   )
 }
+
+const styles = StyleSheet.create({
+  container  : { flex: 1, backgroundColor: colors.background.primary },
+  content    : { alignItems: 'center', paddingVertical: space.xl, paddingHorizontal: space.md },
+  card       : {
+    width           : '100%',
+    maxWidth        : 640,
+    backgroundColor : colors.background.surface,
+    borderRadius    : 12,
+    borderWidth     : 1,
+    borderColor     : colors.accent.zinc,
+    padding         : space.xl,
+    gap             : space.md,
+  },
+  cardHeader : { gap: space.xs },
+  backBtn    : { paddingBottom: space.xs },
+
+  twoCol     : { flexDirection: 'row', gap: space.sm },
+
+  errorBanner: {
+    backgroundColor: colors.background.elevated,
+    borderLeftWidth: 3,
+    borderLeftColor: '#f87171',
+    borderRadius   : 4,
+    padding        : space.md,
+  },
+
+  actions    : { flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, paddingTop: space.sm },
+  cancelBtn  : {
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    borderRadius     : 7,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
+  },
+  submitBtn  : {
+    paddingHorizontal: space.xl,
+    paddingVertical  : space.xs + 2,
+    borderRadius     : 7,
+    backgroundColor  : colors.accent.gold,
+  },
+  submitBtnDisabled: { opacity: 0.6 },
+})

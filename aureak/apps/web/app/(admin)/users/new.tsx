@@ -292,7 +292,7 @@ export default function NewUserScreen() {
           <div>
             <p style={s.stepLabel}>Étape 3 — Informations</p>
             <h2 style={s.stepTitle}>
-              {role === 'child'  ? 'Fiche enfant'
+              {role === 'child'  ? 'Fiche joueur'
               : role === 'parent' ? 'Fiche parent'
               : role === 'coach'  ? 'Fiche coach'
               : 'Fiche club'}

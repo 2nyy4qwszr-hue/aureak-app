@@ -3,6 +3,30 @@
 
 export { supabase } from './supabase'
 export { signIn, signOut, getSession, inviteUser, disableUser } from './auth'
+
+export {
+  getChildAcademyStatus,
+  listAcademySeasons,
+  createAcademySeason,
+  setCurrentSeason,
+  listChildAcademyMemberships,
+  addChildAcademyMembership,
+  removeChildAcademyMembership,
+  listChildStageParticipations,
+  addChildStageParticipation,
+  removeChildStageParticipation,
+} from './academy/academyStatus'
+
+export {
+  listStages, getStage, createStage, updateStage, softDeleteStage,
+  listStageDays, createStageDay, updateStageDay, deleteStageDay,
+  listStageBlocks, createStageBlock, updateStageBlock, deleteStageBlock,
+  listStageBlockParticipants, addStageBlockParticipant, removeStageBlockParticipant,
+} from './admin/stages'
+export type {
+  CreateStageParams, UpdateStageParams,
+  CreateStageDayParams, CreateStageBlockParams, UpdateStageBlockParams,
+} from './admin/stages'
 export type { SignInParams, InviteUserParams } from './auth'
 
 // Re-export des types Supabase — les autres packages ne doivent pas importer @supabase/supabase-js
@@ -66,11 +90,16 @@ export type { CreateSessionParams, UpdateSessionParams } from './sessions/sessio
 
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,
-  createGroup, listGroupsByImplantation,
-  addGroupMember, removeGroupMember, listGroupMembers,
+  createGroup, updateGroup, deleteGroup, listGroupsByImplantation,
+  getGroup, listAllGroups,
+  addGroupMember, removeGroupMember, listGroupMembers, listGroupMembersWithProfiles,
+  listGroupStaff, addGroupStaff, updateGroupStaffRole, removeGroupStaff,
+  listAvailableCoaches, listAvailableChildren,
+  listSessionsByGroup,
 } from './sessions/implantations'
-export type { CreateImplantationParams, CreateGroupParams } from './sessions/implantations'
-
+export type {
+  CreateImplantationParams, CreateGroupParams, AddGroupStaffParams,
+} from './sessions/implantations'
 export {
   listSessionAttendees, prefillSessionAttendees,
   recordAttendance, listAttendancesBySession,
@@ -173,3 +202,47 @@ export {
   listPartnerships, createPartnership, updatePartnership, listPartnerAccessStats,
 } from './admin/partnerships'
 export type { PartnershipAccessLevel, ClubPartnership, CreatePartnershipParams } from './admin/partnerships'
+
+export {
+  listHistoryByChild, listAffiliatedChildrenByClub,
+  addHistoryEntry, updateHistoryEntry, deleteHistoryEntry,
+} from './child-club-history'
+export type { AddHistoryEntryParams, UpdateHistoryEntryParams } from './child-club-history'
+
+export {
+  listChildDirectory, getChildDirectoryEntry,
+  updateChildDirectoryEntry, softDeleteChildDirectoryEntry,
+  listChildDirectoryHistory, addChildHistoryEntry, updateChildHistoryEntry, deleteChildHistoryEntry,
+  listJoueurs,
+} from './admin/child-directory'
+export type {
+  ListChildDirectoryOpts, UpdateChildDirectoryParams,
+  AddChildHistoryParams, UpdateChildHistoryParams,
+  JoueurListItem, ListJoueursOpts,
+} from './admin/child-directory'
+
+export {
+  listClubDirectory, getClubDirectoryEntry,
+  createClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,
+  listChildrenOfClub, listCurrentPlayersOfClub, listAffiliatedPlayersOfClub,
+  linkChildToClubDirectory, unlinkChildFromClubDirectory,
+  listCoachesOfClub, linkCoachToClubDirectory, unlinkCoachFromClubDirectory,
+} from './admin/club-directory'
+export type {
+  ClubDirectoryFields, CreateClubDirectoryParams, UpdateClubDirectoryParams,
+  ListClubDirectoryOpts, ClubChildLinkRow,
+} from './admin/club-directory'
+
+// ── Méthodologie pédagogique (migration 00050) ────────────────────────────────
+export {
+  listMethodologyThemes, getMethodologyTheme, createMethodologyTheme, updateMethodologyTheme, toggleMethodologyTheme,
+  listMethodologySituations, getMethodologySituation, createMethodologySituation, updateMethodologySituation, toggleMethodologySituation,
+  listMethodologySessions, getMethodologySession, createMethodologySession, updateMethodologySession, toggleMethodologySession,
+  linkMethodologySessionTheme, unlinkMethodologySessionTheme, listMethodologySessionThemes,
+  linkMethodologySessionSituation, unlinkMethodologySessionSituation, listMethodologySessionSituations,
+} from './methodology'
+export type {
+  CreateMethodologyThemeParams,
+  CreateMethodologySituationParams,
+  CreateMethodologySessionParams,
+} from './methodology'

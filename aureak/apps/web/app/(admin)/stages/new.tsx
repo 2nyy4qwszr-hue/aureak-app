@@ -1,0 +1,264 @@
+'use client'
+// Formulaire de création d'un stage
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
+import { createStage, listImplantations } from '@aureak/api-client'
+import { AureakText } from '@aureak/ui'
+import { colors, space } from '@aureak/theme'
+import type { Implantation, StageType } from '@aureak/types'
+
+const STAGE_TYPES: { value: StageType; label: string }[] = [
+  { value: 'été',       label: 'Été'          },
+  { value: 'toussaint', label: 'Toussaint'    },
+  { value: 'hiver',     label: 'Hiver'        },
+  { value: 'pâques',    label: 'Pâques'       },
+  { value: 'custom',    label: 'Personnalisé' },
+]
+
+export default function NewStagePage() {
+  const router = useRouter()
+
+  const [implantations, setImplantations] = useState<Implantation[]>([])
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState<string | null>(null)
+
+  const [name,           setName]           = useState('')
+  const [startDate,      setStartDate]      = useState('')
+  const [endDate,        setEndDate]        = useState('')
+  const [location,       setLocation]       = useState('')
+  const [type,           setType]           = useState<StageType | ''>('')
+  const [implantationId, setImplantationId] = useState<string>('')
+  const [maxParticipants,setMaxParticipants]= useState('')
+  const [seasonLabel,    setSeasonLabel]    = useState('')
+  const [notes,          setNotes]          = useState('')
+
+  useEffect(() => {
+    listImplantations().then(({ data }) => setImplantations(data))
+  }, [])
+
+  const isValid = name.trim() && startDate && endDate && startDate <= endDate
+
+  const handleSave = async () => {
+    if (!isValid) return
+    setSaving(true)
+    setError(null)
+    try {
+      const stage = await createStage({
+        name,
+        startDate,
+        endDate,
+        location       : location || null,
+        type           : (type as StageType) || null,
+        implantationId : implantationId || null,
+        maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
+        seasonLabel    : seasonLabel || null,
+        notes          : notes || null,
+      })
+      router.push(`/stages/${stage.id}` as never)
+    } catch (e: unknown) {
+      setError((e as Error).message ?? 'Erreur lors de la création')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+
+      {/* Header */}
+      <View style={s.header}>
+        <Pressable onPress={() => router.back()}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+        </Pressable>
+        <AureakText variant="h2">Nouveau stage</AureakText>
+      </View>
+
+      <View style={s.form}>
+
+        {/* Nom */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Nom du stage *</AureakText>
+          <TextInput
+            style={s.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Stage Été 2026"
+            placeholderTextColor={colors.text.secondary}
+          />
+        </View>
+
+        {/* Type */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Type</AureakText>
+          <View style={s.chipRow}>
+            {STAGE_TYPES.map(t => (
+              <Pressable
+                key={t.value}
+                style={[s.chip, type === t.value && s.chipActive]}
+                onPress={() => setType(prev => prev === t.value ? '' : t.value)}
+              >
+                <AureakText
+                  variant="caption"
+                  style={{ color: type === t.value ? colors.accent.gold : colors.text.secondary, fontWeight: type === t.value ? '700' : '400' }}
+                >
+                  {t.label}
+                </AureakText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Dates */}
+        <View style={{ flexDirection: 'row', gap: space.md }}>
+          <View style={[s.field, { flex: 1 }]}>
+            <AureakText variant="caption" style={s.label}>Date de début *</AureakText>
+            <TextInput
+              style={s.input}
+              value={startDate}
+              onChangeText={setStartDate}
+              placeholder="AAAA-MM-JJ"
+              placeholderTextColor={colors.text.secondary}
+            />
+          </View>
+          <View style={[s.field, { flex: 1 }]}>
+            <AureakText variant="caption" style={s.label}>Date de fin *</AureakText>
+            <TextInput
+              style={s.input}
+              value={endDate}
+              onChangeText={setEndDate}
+              placeholder="AAAA-MM-JJ"
+              placeholderTextColor={colors.text.secondary}
+            />
+          </View>
+        </View>
+
+        {/* Saison */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Saison</AureakText>
+          <TextInput
+            style={s.input}
+            value={seasonLabel}
+            onChangeText={setSeasonLabel}
+            placeholder="2025-2026"
+            placeholderTextColor={colors.text.secondary}
+          />
+        </View>
+
+        {/* Implantation */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Implantation</AureakText>
+          <View style={s.chipRow}>
+            <Pressable
+              style={[s.chip, implantationId === '' && s.chipActive]}
+              onPress={() => setImplantationId('')}
+            >
+              <AureakText variant="caption" style={{ color: implantationId === '' ? colors.accent.gold : colors.text.secondary }}>
+                Aucune
+              </AureakText>
+            </Pressable>
+            {implantations.map(i => (
+              <Pressable
+                key={i.id}
+                style={[s.chip, implantationId === i.id && s.chipActive]}
+                onPress={() => setImplantationId(prev => prev === i.id ? '' : i.id)}
+              >
+                <AureakText variant="caption" style={{ color: implantationId === i.id ? colors.accent.gold : colors.text.secondary, fontWeight: implantationId === i.id ? '700' : '400' }}>
+                  {i.name}
+                </AureakText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Location */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Lieu (terrain, salle…)</AureakText>
+          <TextInput
+            style={s.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="Stade municipal, Hall A"
+            placeholderTextColor={colors.text.secondary}
+          />
+        </View>
+
+        {/* Max participants */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Participants max</AureakText>
+          <TextInput
+            style={s.input}
+            value={maxParticipants}
+            onChangeText={setMaxParticipants}
+            placeholder="Ex : 20"
+            placeholderTextColor={colors.text.secondary}
+            keyboardType="number-pad"
+          />
+        </View>
+
+        {/* Notes */}
+        <View style={s.field}>
+          <AureakText variant="caption" style={s.label}>Notes internes</AureakText>
+          <TextInput
+            style={[s.input, { height: 80, textAlignVertical: 'top' as never }]}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Informations complémentaires…"
+            placeholderTextColor={colors.text.secondary}
+            multiline
+          />
+        </View>
+
+        {error && (
+          <View style={s.errorBox}>
+            <AureakText variant="caption" style={{ color: '#f87171' }}>{error}</AureakText>
+          </View>
+        )}
+
+        <Pressable
+          style={[s.saveBtn, !isValid && { opacity: 0.4 }]}
+          onPress={handleSave}
+          disabled={!isValid || saving}
+        >
+          <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' }}>
+            {saving ? 'Création…' : 'Créer le stage'}
+          </AureakText>
+        </Pressable>
+      </View>
+    </ScrollView>
+  )
+}
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background.primary },
+  content  : { padding: space.xl, gap: space.lg },
+  header   : { gap: space.xs },
+
+  form  : { backgroundColor: colors.background.surface, borderRadius: 12, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: colors.accent.zinc },
+  field : { gap: 6 },
+  label : { color: colors.text.secondary, fontSize: 11, textTransform: 'uppercase' as never, letterSpacing: 0.8, fontWeight: '600' },
+
+  input: {
+    backgroundColor  : colors.background.elevated,
+    borderWidth      : 1,
+    borderColor      : colors.accent.zinc,
+    borderRadius     : 7,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    color            : colors.text.primary,
+    fontSize         : 13,
+  },
+
+  chipRow  : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
+  chip     : { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
+  chipActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
+
+  errorBox: { backgroundColor: '#f8717120', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: '#f87171' },
+
+  saveBtn: {
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 8,
+    paddingVertical: space.sm + 2,
+    alignItems     : 'center',
+    marginTop      : space.xs,
+  },
+})

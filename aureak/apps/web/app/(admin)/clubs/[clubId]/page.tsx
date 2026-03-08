@@ -1,224 +1,738 @@
-import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { linkChildToClub, unlinkChildFromClub, updateClubAccessLevel } from '@aureak/api-client'
+import {
+  getClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,
+  listChildrenOfClub, linkChildToClubDirectory, unlinkChildFromClubDirectory,
+  listCoachesOfClub, linkCoachToClubDirectory, unlinkCoachFromClubDirectory,
+  listChildDirectory,
+  listAvailableCoaches,
+} from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { supabase } from '@aureak/api-client'
-import { AureakButton, Input } from '@aureak/ui'
-import { AureakText } from '@aureak/ui'
+import { AureakText, Badge } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType } from '@aureak/types'
+import { BELGIAN_PROVINCES } from '@aureak/types'
+import type { ClubChildLinkRow } from '@aureak/api-client'
 
-type ChildLink = {
-  child_id  : string
-  created_at: string
-  profiles  : { display_name: string | null }
+// ── Section wrapper ───────────────────────────────────────────────────────────
+
+function Section({ title, count, accent, children }: {
+  title   : string
+  count?  : number
+  accent? : string
+  children: React.ReactNode
+}) {
+  return (
+    <View style={sec.container}>
+      <View style={[sec.header, accent ? { borderLeftWidth: 3, borderLeftColor: accent } : {}]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <AureakText variant="label" style={{ color: colors.text.secondary, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' as never }}>
+            {title}
+          </AureakText>
+          {count !== undefined && (
+            <View style={[sec.countBadge, accent ? { backgroundColor: accent + '20', borderColor: accent } : {}]}>
+              <AureakText variant="caption" style={{ fontSize: 10, color: accent ?? colors.text.secondary, fontWeight: '700' }}>
+                {count}
+              </AureakText>
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={sec.body}>{children}</View>
+    </View>
+  )
+}
+const sec = StyleSheet.create({
+  container : { backgroundColor: colors.background.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.accent.zinc, overflow: 'hidden' },
+  header    : { paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
+  countBadge: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 10, borderWidth: 1, borderColor: colors.accent.zinc },
+  body      : { padding: space.md, gap: space.sm },
+})
+
+// ── Field display ────────────────────────────────────────────────────────────
+
+function FieldRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <View style={f.row}>
+      <AureakText variant="caption" style={f.label}>{label}</AureakText>
+      <AureakText variant="body" style={f.value}>{value || '—'}</AureakText>
+    </View>
+  )
+}
+const f = StyleSheet.create({
+  row  : { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
+  label: { width: 200, color: colors.text.secondary, fontSize: 12, flexShrink: 0 },
+  value: { flex: 1, color: colors.text.primary, fontSize: 13 },
+})
+
+// ── Editable field ────────────────────────────────────────────────────────────
+
+function EditField({ label, value, onChange, multiline }: {
+  label    : string
+  value    : string
+  onChange : (v: string) => void
+  multiline?: boolean
+}) {
+  return (
+    <View style={ef.wrapper}>
+      <AureakText variant="caption" style={ef.label}>{label}</AureakText>
+      <TextInput
+        style={[ef.input, multiline && ef.textarea]}
+        value={value}
+        onChangeText={onChange}
+        multiline={multiline}
+        placeholderTextColor={colors.text.secondary}
+      />
+    </View>
+  )
+}
+const ef = StyleSheet.create({
+  wrapper : { gap: 4 },
+  label   : { color: colors.text.secondary, fontSize: 11 },
+  input   : { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 13 },
+  textarea: { minHeight: 80, textAlignVertical: 'top' as never },
+})
+
+// ── Province selector ────────────────────────────────────────────────────────
+
+function ProvinceSelector({ value, onChange }: { value: BelgianProvince | null; onChange: (v: BelgianProvince | null) => void }) {
+  return (
+    <View style={{ gap: 6 }}>
+      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>Province</AureakText>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+        <Pressable style={[pill.base, value === null && pill.active]} onPress={() => onChange(null)}>
+          <AureakText variant="caption" style={{ color: value === null ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>—</AureakText>
+        </Pressable>
+        {BELGIAN_PROVINCES.map(p => (
+          <Pressable key={p} style={[pill.base, value === p && pill.active]} onPress={() => onChange(p)}>
+            <AureakText variant="caption" style={{ color: value === p ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>{p}</AureakText>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  )
+}
+const pill = StyleSheet.create({
+  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.surface },
+  active: { borderColor: colors.accent.gold, backgroundColor: colors.background.elevated },
+})
+
+// ── Statut badge ─────────────────────────────────────────────────────────────
+
+const STATUT_COLORS: Record<string, string> = {
+  'Académicien': colors.accent.gold,
+  'Nouveau'    : '#4ade80',
+  'Stagiaire'  : '#60a5fa',
+  'Ancien'     : colors.text.secondary,
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.primary,
-  },
-  content: {
-    padding: space.xl,
-    gap: space.lg,
-  },
-  section: {
-    gap: space.md,
-  },
-  linkCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.background.surface,
-    borderRadius: 8,
-    padding: space.md,
-    borderWidth: 1,
-    borderColor: colors.accent.zinc,
-  },
-  accessRow: {
-    flexDirection: 'row',
-    gap: space.sm,
-    flexWrap: 'wrap',
-  },
-  accessChip: {
-    paddingHorizontal: space.md,
-    paddingVertical: space.xs,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.accent.zinc,
-    cursor: 'pointer' as never,
-  },
-  accessChipSelected: {
-    borderColor: colors.accent.gold,
-    backgroundColor: colors.background.elevated,
-  },
-  errorBanner: {
-    backgroundColor: colors.background.elevated,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.status.absent,
-    borderRadius: 4,
-    padding: space.md,
-  },
+function StatutBadge({ statut }: { statut: string | null }) {
+  if (!statut) return null
+  const color = STATUT_COLORS[statut] ?? colors.text.secondary
+  return (
+    <View style={{ backgroundColor: color + '20', borderColor: color, borderWidth: 1, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 1 }}>
+      <AureakText variant="caption" style={{ color, fontSize: 9, fontWeight: '700' }}>{statut.toUpperCase()}</AureakText>
+    </View>
+  )
+}
+
+// ── Player row in a club section ──────────────────────────────────────────────
+
+function PlayerRow({ row, onRemove }: { row: ClubChildLinkRow; onRemove: () => void }) {
+  return (
+    <View style={pr.row}>
+      {/* Avatar initials */}
+      <View style={pr.avatar}>
+        <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 11 }}>
+          {(row.displayName ?? '?').charAt(0).toUpperCase()}
+        </AureakText>
+      </View>
+
+      {/* Name + meta */}
+      <View style={{ flex: 1, gap: 2 }}>
+        <AureakText variant="body" style={{ fontSize: 13, fontWeight: '600' }}>
+          {row.displayName ?? row.childId.slice(0, 8) + '…'}
+        </AureakText>
+        <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          {row.statut && <StatutBadge statut={row.statut} />}
+          {row.niveauClub && (
+            <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+              {row.niveauClub}
+            </AureakText>
+          )}
+        </View>
+      </View>
+
+      <Pressable onPress={onRemove} style={pr.removeBtn}>
+        <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>Retirer</AureakText>
+      </Pressable>
+    </View>
+  )
+}
+const pr = StyleSheet.create({
+  row      : { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs + 2, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc },
+  avatar   : { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.accent.gold, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  removeBtn: { paddingHorizontal: space.sm, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.accent.zinc },
 })
+
+// ── Player picker (searchable) ────────────────────────────────────────────────
+
+type PlayerOption = { id: string; displayName: string; statut: string | null; niveauClub: string | null }
+
+function PlayerPicker({
+  players,
+  excludeIds,
+  onSelect,
+  accent,
+}: {
+  players   : PlayerOption[]
+  excludeIds: Set<string>
+  onSelect  : (p: PlayerOption) => void
+  accent    : string
+}) {
+  const [search, setSearch] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase()
+    return players
+      .filter(p => !excludeIds.has(p.id))
+      .filter(p => !q || p.displayName.toLowerCase().includes(q))
+      .slice(0, 8)
+  }, [players, excludeIds, search])
+
+  return (
+    <View style={pp.container}>
+      <TextInput
+        style={pp.input}
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Rechercher un joueur par nom…"
+        placeholderTextColor={colors.text.secondary}
+      />
+      {search.length > 0 && (
+        <View style={pp.results}>
+          {filtered.length === 0 ? (
+            <AureakText variant="caption" style={{ color: colors.text.secondary, padding: space.sm }}>
+              Aucun résultat.
+            </AureakText>
+          ) : (
+            filtered.map(p => (
+              <Pressable
+                key={p.id}
+                style={pp.option}
+                onPress={() => { onSelect(p); setSearch('') }}
+              >
+                <View style={{ flex: 1 }}>
+                  <AureakText variant="body" style={{ fontSize: 13 }}>{p.displayName}</AureakText>
+                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 2 }}>
+                    {p.statut && <StatutBadge statut={p.statut} />}
+                    {p.niveauClub && (
+                      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+                        {p.niveauClub}
+                      </AureakText>
+                    )}
+                  </View>
+                </View>
+                <View style={[pp.addDot, { backgroundColor: accent }]}>
+                  <AureakText variant="caption" style={{ color: colors.text.dark, fontSize: 14, lineHeight: 18 }}>+</AureakText>
+                </View>
+              </Pressable>
+            ))
+          )}
+        </View>
+      )}
+    </View>
+  )
+}
+const pp = StyleSheet.create({
+  container: { gap: 4 },
+  input    : { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 7, paddingHorizontal: space.md, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 13 },
+  results  : { backgroundColor: colors.background.elevated, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.zinc, overflow: 'hidden' },
+  option   : { flexDirection: 'row', alignItems: 'center', padding: space.sm, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc },
+  addDot   : { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+})
+
+// ── Coach row ─────────────────────────────────────────────────────────────────
+
+function CoachRow({ name, onRemove }: { name: string; onRemove: () => void }) {
+  return (
+    <View style={pr.row}>
+      <View style={[pr.avatar, { backgroundColor: '#60a5fa' }]}>
+        <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 11 }}>
+          {name.charAt(0).toUpperCase()}
+        </AureakText>
+      </View>
+      <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{name}</AureakText>
+      <Pressable onPress={onRemove} style={pr.removeBtn}>
+        <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>Retirer</AureakText>
+      </Pressable>
+    </View>
+  )
+}
+
+// ── EditForm type ────────────────────────────────────────────────────────────
+
+type EditForm = {
+  nom: string; matricule: string; label: string; province: BelgianProvince | null
+  adresseRue: string; codePostal: string; ville: string; siteInternet: string
+  correspondant: string; emailPrincipal: string; telephonePrincipal: string
+  responsableSportif: string; emailResponsableSportif: string; telephoneResponsableSportif: string
+  clubPartenaire: boolean; actif: boolean; notesInternes: string
+}
+
+function entryToForm(e: ClubDirectoryEntry): EditForm {
+  return {
+    nom: e.nom, matricule: e.matricule ?? '', label: e.label ?? '', province: e.province ?? null,
+    adresseRue: e.adresseRue ?? '', codePostal: e.codePostal ?? '', ville: e.ville ?? '', siteInternet: e.siteInternet ?? '',
+    correspondant: e.correspondant ?? '', emailPrincipal: e.emailPrincipal ?? '', telephonePrincipal: e.telephonePrincipal ?? '',
+    responsableSportif: e.responsableSportif ?? '', emailResponsableSportif: e.emailResponsableSportif ?? '', telephoneResponsableSportif: e.telephoneResponsableSportif ?? '',
+    clubPartenaire: e.clubPartenaire, actif: e.actif, notesInternes: e.notesInternes ?? '',
+  }
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ClubDetailPage() {
   const { clubId } = useLocalSearchParams<{ clubId: string }>()
-  const router = useRouter()
-  const tenantId = useAuthStore((s) => s.tenantId)
-  const user = useAuthStore((s) => s.user)
+  const router     = useRouter()
+  const tenantId   = useAuthStore((s) => s.tenantId)
+  const user       = useAuthStore((s) => s.user)
 
-  const [links, setLinks] = useState<ChildLink[]>([])
-  const [accessLevel, setAccessLevel] = useState<'partner' | 'common'>('common')
-  const [newChildId, setNewChildId] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [club,    setClub]    = useState<ClubDirectoryEntry | null>(null)
   const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [saving,  setSaving]  = useState(false)
+  const [error,   setError]   = useState<string | null>(null)
+  const [form,    setForm]    = useState<EditForm | null>(null)
 
-  const fetchData = async () => {
+  // Players split by type
+  const [currentPlayers,    setCurrentPlayers]    = useState<ClubChildLinkRow[]>([])
+  const [affiliatedPlayers, setAffiliatedPlayers] = useState<ClubChildLinkRow[]>([])
+
+  // Coach links
+  const [coaches, setCoaches] = useState<{ coachId: string; displayName: string | null; createdAt: string }[]>([])
+
+  // All available players/coaches for the picker
+  const [allPlayers, setAllPlayers] = useState<PlayerOption[]>([])
+  const [allCoaches, setAllCoaches] = useState<{ id: string; name: string }[]>([])
+
+  // Coach picker search
+  const [coachSearch, setCoachSearch] = useState('')
+
+  // Excluded sets per section
+  const currentIds    = useMemo(() => new Set(currentPlayers.map(p => p.childId)),    [currentPlayers])
+  const affiliatedIds = useMemo(() => new Set(affiliatedPlayers.map(p => p.childId)), [affiliatedPlayers])
+  const coachIds      = useMemo(() => new Set(coaches.map(c => c.coachId)),            [coaches])
+
+  const filteredCoaches = useMemo(() => {
+    const q = coachSearch.toLowerCase()
+    return allCoaches.filter(c => !coachIds.has(c.id) && (!q || c.name.toLowerCase().includes(q))).slice(0, 6)
+  }, [allCoaches, coachIds, coachSearch])
+
+  const load = useCallback(async () => {
     if (!clubId) return
     setLoading(true)
-
-    const [clubRes, linksRes] = await Promise.all([
-      supabase.from('clubs').select('club_access_level').eq('user_id', clubId).single(),
-      supabase
-        .from('club_child_links')
-        .select('child_id, created_at, profiles(display_name)')
-        .eq('club_id', clubId),
+    const [clubRes, linksRes, coachesRes, playersRes, coachListRes] = await Promise.all([
+      getClubDirectoryEntry(clubId),
+      listChildrenOfClub(clubId),           // all links for this club
+      listCoachesOfClub(clubId),
+      listChildDirectory({ page: 0, pageSize: 500, actif: true }),
+      listAvailableCoaches(),
     ])
-
-    if (clubRes.data) setAccessLevel(clubRes.data.club_access_level)
-    setLinks((linksRes.data as unknown as ChildLink[]) ?? [])
+    if (clubRes.data) { setClub(clubRes.data); setForm(entryToForm(clubRes.data)) }
+    setCurrentPlayers(linksRes.data.filter(r => r.linkType === 'current'))
+    setAffiliatedPlayers(linksRes.data.filter(r => r.linkType === 'affiliated'))
+    setCoaches(coachesRes.data)
+    setAllPlayers((playersRes.data ?? []).map(p => ({
+      id         : p.id,
+      displayName: p.displayName,
+      statut     : p.statut,
+      niveauClub : p.niveauClub,
+    })))
+    setAllCoaches(coachListRes)
     setLoading(false)
-  }
-
-  useEffect(() => {
-    fetchData()
   }, [clubId])
 
-  const handleUpdateAccessLevel = async (level: 'partner' | 'common') => {
-    if (!clubId || !tenantId || !user?.id) return
-    const { error: err } = await updateClubAccessLevel({
-      clubId,
-      accessLevel: level,
-      tenantId,
-      updatedBy: user.id,
+  useEffect(() => { load() }, [load])
+
+  // ── Save club info ────────────────────────────────────────────────────────
+
+  const handleSave = async () => {
+    if (!club || !form || !clubId || !tenantId || !user?.id) return
+    setSaving(true); setError(null)
+    const { error: err } = await updateClubDirectoryEntry({
+      clubId, tenantId, updatedBy: user.id,
+      nom: form.nom, matricule: form.matricule || null, label: form.label || null, province: form.province,
+      adresseRue: form.adresseRue || null, codePostal: form.codePostal || null, ville: form.ville || null, siteInternet: form.siteInternet || null,
+      correspondant: form.correspondant || null, emailPrincipal: form.emailPrincipal || null, telephonePrincipal: form.telephonePrincipal || null,
+      responsableSportif: form.responsableSportif || null, emailResponsableSportif: form.emailResponsableSportif || null, telephoneResponsableSportif: form.telephoneResponsableSportif || null,
+      clubPartenaire: form.clubPartenaire, actif: form.actif, notesInternes: form.notesInternes || null,
     })
-    if (err) {
-      setError('Erreur lors de la mise à jour du niveau d\'accès.')
-      return
-    }
-    setAccessLevel(level)
+    setSaving(false)
+    if (err) { setError('Erreur lors de la sauvegarde.'); return }
+    setEditing(false)
+    await load()
   }
 
-  const handleLink = async () => {
-    if (!newChildId || !clubId || !tenantId || !user?.id) return
-    setError(null)
-    const { error: err } = await linkChildToClub({
-      clubId,
-      childId: newChildId,
-      tenantId,
-      linkedBy: user.id,
-    })
-    if (err) {
-      setError('Erreur lors de l\'ajout de l\'enfant.')
-      return
-    }
-    setNewChildId('')
-    await fetchData()
+  const handleDelete = async () => {
+    if (!clubId || !tenantId || !user?.id) return
+    if (typeof window !== 'undefined' && !window.confirm('Supprimer ce club ?')) return
+    await softDeleteClubDirectoryEntry({ clubId, tenantId, deletedBy: user.id })
+    router.replace('/clubs' as never)
   }
 
-  const handleUnlink = async (childId: string) => {
+  // ── Link helpers ──────────────────────────────────────────────────────────
+
+  const linkPlayer = async (player: PlayerOption, linkType: ClubChildLinkType) => {
     if (!clubId || !tenantId || !user?.id) return
     setError(null)
-    const { error: err } = await unlinkChildFromClub({
-      clubId,
-      childId,
-      tenantId,
-      unlinkedBy: user.id,
-    })
-    if (err) {
-      setError('Erreur lors de la suppression du lien.')
-      return
+    const { error: err } = await linkChildToClubDirectory({ clubId, childId: player.id, linkType, tenantId, linkedBy: user.id })
+    if (err) { setError('Impossible d\'ajouter ce joueur.'); return }
+    const row: ClubChildLinkRow = {
+      childId    : player.id,
+      displayName: player.displayName,
+      statut     : player.statut,
+      niveauClub : player.niveauClub,
+      linkType,
+      createdAt  : new Date().toISOString(),
     }
-    await fetchData()
+    if (linkType === 'current')    setCurrentPlayers(prev => [...prev, row])
+    else                           setAffiliatedPlayers(prev => [...prev, row])
   }
+
+  const unlinkPlayer = async (childId: string, linkType: ClubChildLinkType) => {
+    if (!clubId || !tenantId || !user?.id) return
+    await unlinkChildFromClubDirectory({ clubId, childId, linkType, tenantId, linkedBy: user.id })
+    if (linkType === 'current')    setCurrentPlayers(prev => prev.filter(p => p.childId !== childId))
+    else                           setAffiliatedPlayers(prev => prev.filter(p => p.childId !== childId))
+  }
+
+  const linkCoach = async (coachId: string, name: string) => {
+    if (!clubId || !tenantId || !user?.id) return
+    const { error: err } = await linkCoachToClubDirectory({ clubId, coachId, tenantId, linkedBy: user.id })
+    if (err) { setError('Impossible d\'ajouter ce coach.'); return }
+    setCoaches(prev => [...prev, { coachId, displayName: name, createdAt: new Date().toISOString() }])
+    setCoachSearch('')
+  }
+
+  const unlinkCoach = async (coachId: string) => {
+    if (!clubId || !tenantId || !user?.id) return
+    await unlinkCoachFromClubDirectory({ clubId, coachId, tenantId, linkedBy: user.id })
+    setCoaches(prev => prev.filter(c => c.coachId !== coachId))
+  }
+
+  const setField = (key: keyof EditForm, value: unknown) =>
+    setForm(f => f ? { ...f, [key]: value } : f)
+
+  // ── Loading / not found ───────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
+        <View style={{ gap: space.md }}>
+          {[0,1,2,3].map(i => <View key={i} style={s.skeletonCard} />)}
+        </View>
+      </ScrollView>
+    )
+  }
+
+  if (!club || !form) {
+    return (
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
+        <Pressable onPress={() => router.back()} style={s.backBtn}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+        </Pressable>
+        <AureakText variant="body" style={{ color: colors.text.secondary }}>Club introuvable.</AureakText>
+      </ScrollView>
+    )
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
-      <AureakText variant="h2">Gestion du club</AureakText>
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
 
+      {/* Header */}
+      <View style={s.pageHeader}>
+        <Pressable onPress={() => router.back()} style={s.backBtn}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Clubs</AureakText>
+        </Pressable>
+        <View style={s.headerActions}>
+          {!editing ? (
+            <>
+              <Pressable style={s.editBtn} onPress={() => setEditing(true)}>
+                <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>Modifier</AureakText>
+              </Pressable>
+              <Pressable style={s.deleteBtn} onPress={handleDelete}>
+                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>Supprimer</AureakText>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Pressable style={s.cancelBtn} onPress={() => { setEditing(false); setForm(entryToForm(club)) }}>
+                <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+              </Pressable>
+              <Pressable style={s.saveBtn} onPress={handleSave} disabled={saving}>
+                <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                </AureakText>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </View>
+
+      {/* Title row */}
+      <View style={s.titleRow}>
+        <View style={{ flex: 1 }}>
+          <AureakText variant="h2">{club.nom}</AureakText>
+          {club.matricule && (
+            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+              Matricule : {club.matricule}
+            </AureakText>
+          )}
+        </View>
+        <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center', flexWrap: 'wrap' }}>
+          {club.clubPartenaire && <Badge label="Partenaire" variant="gold" />}
+          <Badge label={club.actif ? 'Actif' : 'Inactif'} variant={club.actif ? 'present' : 'zinc'} />
+          {club.notionPageId && <Badge label="Notion" variant="zinc" />}
+        </View>
+      </View>
+
+      {/* Error banner */}
       {error && (
-        <View style={styles.errorBanner}>
-          <AureakText variant="body" style={{ color: colors.status.absent }}>{error}</AureakText>
+        <View style={s.errorBanner}>
+          <AureakText variant="body" style={{ color: '#f87171' }}>{error}</AureakText>
         </View>
       )}
 
-      {/* Niveau d'accès */}
-      <View style={styles.section}>
-        <AureakText variant="label">Niveau d'accès</AureakText>
-        <View style={styles.accessRow}>
-          {(['common', 'partner'] as const).map((level) => (
-            <View
-              key={level}
-              style={[styles.accessChip, accessLevel === level && styles.accessChipSelected]}
-              onTouchEnd={() => handleUpdateAccessLevel(level)}
-            >
-              <AureakText
-                variant="label"
-                style={{ color: accessLevel === level ? colors.accent.gold : colors.text.secondary }}
-              >
-                {level === 'partner' ? 'Partenaire' : 'Commun'}
+      {/* ── Info sections (read/edit) ── */}
+      {!editing && (
+        <>
+          <Section title="Identité">
+            <FieldRow label="Nom officiel"  value={club.nom} />
+            <FieldRow label="Matricule"     value={club.matricule} />
+            <FieldRow label="Label"         value={club.label} />
+            <FieldRow label="Province"      value={club.province} />
+          </Section>
+          <Section title="Adresse">
+            <FieldRow label="Rue"           value={club.adresseRue} />
+            <FieldRow label="Code postal"   value={club.codePostal} />
+            <FieldRow label="Ville"         value={club.ville} />
+            <FieldRow label="Site internet" value={club.siteInternet} />
+          </Section>
+          <Section title="Contact général">
+            <FieldRow label="Correspondant" value={club.correspondant} />
+            <FieldRow label="Email"         value={club.emailPrincipal} />
+            <FieldRow label="Téléphone"     value={club.telephonePrincipal} />
+          </Section>
+          <Section title="Responsable sportif">
+            <FieldRow label="Nom"       value={club.responsableSportif} />
+            <FieldRow label="Email"     value={club.emailResponsableSportif} />
+            <FieldRow label="Téléphone" value={club.telephoneResponsableSportif} />
+          </Section>
+          {club.notesInternes && (
+            <Section title="Notes internes">
+              <AureakText variant="body" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>
+                {club.notesInternes}
               </AureakText>
+            </Section>
+          )}
+          {club.notionPageId && (
+            <Section title="Synchronisation Notion">
+              <FieldRow label="Notion page ID" value={club.notionPageId} />
+              <FieldRow label="Dernier sync"   value={club.notionSyncedAt ?? 'Jamais'} />
+            </Section>
+          )}
+        </>
+      )}
+
+      {editing && (
+        <>
+          <Section title="Identité">
+            <EditField label="Nom officiel *" value={form.nom}       onChange={v => setField('nom', v)} />
+            <EditField label="Matricule"      value={form.matricule} onChange={v => setField('matricule', v)} />
+            <EditField label="Label"          value={form.label}     onChange={v => setField('label', v)} />
+            <ProvinceSelector value={form.province} onChange={v => setField('province', v)} />
+          </Section>
+          <Section title="Adresse">
+            <EditField label="Rue"           value={form.adresseRue}   onChange={v => setField('adresseRue', v)} />
+            <EditField label="Code postal"   value={form.codePostal}   onChange={v => setField('codePostal', v)} />
+            <EditField label="Ville"         value={form.ville}        onChange={v => setField('ville', v)} />
+            <EditField label="Site internet" value={form.siteInternet} onChange={v => setField('siteInternet', v)} />
+          </Section>
+          <Section title="Contact général">
+            <EditField label="Correspondant" value={form.correspondant}      onChange={v => setField('correspondant', v)} />
+            <EditField label="Email"         value={form.emailPrincipal}     onChange={v => setField('emailPrincipal', v)} />
+            <EditField label="Téléphone"     value={form.telephonePrincipal} onChange={v => setField('telephonePrincipal', v)} />
+          </Section>
+          <Section title="Responsable sportif">
+            <EditField label="Nom"       value={form.responsableSportif}          onChange={v => setField('responsableSportif', v)} />
+            <EditField label="Email"     value={form.emailResponsableSportif}     onChange={v => setField('emailResponsableSportif', v)} />
+            <EditField label="Téléphone" value={form.telephoneResponsableSportif} onChange={v => setField('telephoneResponsableSportif', v)} />
+          </Section>
+          <Section title="Statut">
+            <View style={{ flexDirection: 'row', gap: space.md }}>
+              <Pressable style={[pill.base, form.clubPartenaire && pill.active]} onPress={() => setField('clubPartenaire', !form.clubPartenaire)}>
+                <AureakText variant="caption" style={{ color: form.clubPartenaire ? colors.accent.gold : colors.text.secondary }}>Club partenaire</AureakText>
+              </Pressable>
+              <Pressable style={[pill.base, form.actif && pill.active]} onPress={() => setField('actif', !form.actif)}>
+                <AureakText variant="caption" style={{ color: form.actif ? colors.accent.gold : colors.text.secondary }}>Actif</AureakText>
+              </Pressable>
             </View>
-          ))}
-        </View>
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>
-          Changement effectif immédiatement (aucun reissue de token requis).
-        </AureakText>
-      </View>
+          </Section>
+          <Section title="Notes internes">
+            <EditField label="" value={form.notesInternes} onChange={v => setField('notesInternes', v)} multiline />
+          </Section>
+        </>
+      )}
 
-      {/* Lier un enfant */}
-      <View style={styles.section}>
-        <AureakText variant="label">Lier un enfant</AureakText>
-        <View style={{ flexDirection: 'row', gap: space.sm }}>
-          <Input
-            value={newChildId}
-            onChangeText={setNewChildId}
-            placeholder="UUID de l'enfant"
-            autoCapitalize="none"
-            style={{ flex: 1 }}
-          />
-          <AureakButton label="Lier" onPress={handleLink} variant="primary" />
-        </View>
-      </View>
+      {/* ══════════════════════════════════════════════════════════════
+          JOUEURS — deux sections distinctes
+      ══════════════════════════════════════════════════════════════ */}
 
-      {/* Enfants liés */}
-      <View style={styles.section}>
-        <AureakText variant="label">
-          Enfants liés ({links.length})
-        </AureakText>
-        {loading && (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
-        )}
-        {links.map((link) => (
-          <View key={link.child_id} style={styles.linkCard}>
-            <AureakText variant="body">
-              {link.profiles?.display_name ?? link.child_id}
-            </AureakText>
-            <AureakButton
-              label="Retirer"
-              onPress={() => handleUnlink(link.child_id)}
-              variant="secondary"
-            />
-          </View>
-        ))}
-        {!loading && links.length === 0 && (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>
-            Aucun enfant lié.
+      {/* ── Section 1 : Joueurs actuellement au club ── */}
+      <Section
+        title="Joueurs actuellement au club"
+        count={currentPlayers.length}
+        accent={colors.accent.gold}
+      >
+        <View style={s.sectionNote}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, fontStyle: 'italic' as never }}>
+            Joueurs qui s'entraînent ou jouent actuellement dans ce club (lien opérationnel).
+            Un joueur en prêt apparaît ici dans son club d'accueil.
           </AureakText>
+        </View>
+
+        {currentPlayers.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun joueur actuellement lié.</AureakText>
+        ) : (
+          currentPlayers.map(p => (
+            <PlayerRow
+              key={p.childId}
+              row={p}
+              onRemove={() => unlinkPlayer(p.childId, 'current')}
+            />
+          ))
         )}
-      </View>
+
+        <View style={s.pickerWrapper}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+            Ajouter un joueur :
+          </AureakText>
+          <PlayerPicker
+            players={allPlayers}
+            excludeIds={currentIds}
+            onSelect={p => linkPlayer(p, 'current')}
+            accent={colors.accent.gold}
+          />
+        </View>
+      </Section>
+
+      {/* ── Section 2 : Joueurs affiliés au club ── */}
+      <Section
+        title="Joueurs affiliés au club"
+        count={affiliatedPlayers.length}
+        accent="#60a5fa"
+      >
+        <View style={s.sectionNote}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, fontStyle: 'italic' as never }}>
+            Joueurs officiellement affiliés à ce club au niveau fédéral (matricule, contrat).
+            Un joueur peut être affilié ici tout en jouant dans un autre club (prêt).
+          </AureakText>
+        </View>
+
+        {affiliatedPlayers.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun joueur affilié.</AureakText>
+        ) : (
+          affiliatedPlayers.map(p => (
+            <PlayerRow
+              key={p.childId}
+              row={p}
+              onRemove={() => unlinkPlayer(p.childId, 'affiliated')}
+            />
+          ))
+        )}
+
+        <View style={s.pickerWrapper}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+            Ajouter un joueur affilié :
+          </AureakText>
+          <PlayerPicker
+            players={allPlayers}
+            excludeIds={affiliatedIds}
+            onSelect={p => linkPlayer(p, 'affiliated')}
+            accent="#60a5fa"
+          />
+        </View>
+      </Section>
+
+      {/* ── Section 3 : Coachs liés ── */}
+      <Section title="Coachs liés" count={coaches.length}>
+        {coaches.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun coach lié.</AureakText>
+        ) : (
+          coaches.map(c => (
+            <CoachRow
+              key={c.coachId}
+              name={c.displayName ?? c.coachId.slice(0, 8) + '…'}
+              onRemove={() => unlinkCoach(c.coachId)}
+            />
+          ))
+        )}
+
+        <View style={s.pickerWrapper}>
+          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+            Ajouter un coach :
+          </AureakText>
+          <TextInput
+            style={pp.input}
+            value={coachSearch}
+            onChangeText={setCoachSearch}
+            placeholder="Rechercher un coach…"
+            placeholderTextColor={colors.text.secondary}
+          />
+          {coachSearch.length > 0 && filteredCoaches.length > 0 && (
+            <View style={pp.results}>
+              {filteredCoaches.map(c => (
+                <Pressable
+                  key={c.id}
+                  style={pp.option}
+                  onPress={() => linkCoach(c.id, c.name)}
+                >
+                  <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{c.name}</AureakText>
+                  <View style={[pp.addDot, { backgroundColor: '#60a5fa' }]}>
+                    <AureakText variant="caption" style={{ color: colors.text.dark, fontSize: 14, lineHeight: 18 }}>+</AureakText>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+      </Section>
+
     </ScrollView>
   )
 }
+
+const s = StyleSheet.create({
+  container    : { flex: 1, backgroundColor: colors.background.primary },
+  content      : { padding: space.xl, gap: space.md },
+  pageHeader   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerActions: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
+  backBtn      : { paddingVertical: space.xs, paddingRight: space.sm },
+  titleRow     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: space.sm },
+
+  editBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.gold },
+  deleteBtn: { paddingHorizontal: space.sm, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.zinc },
+  cancelBtn: { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.zinc },
+  saveBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, backgroundColor: colors.accent.gold },
+
+  errorBanner : { backgroundColor: colors.background.elevated, borderLeftWidth: 3, borderLeftColor: '#f87171', borderRadius: 4, padding: space.md },
+
+  sectionNote  : { backgroundColor: colors.background.primary, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.accent.zinc },
+  pickerWrapper: { marginTop: space.sm, borderTopWidth: 1, borderTopColor: colors.accent.zinc, paddingTop: space.sm },
+
+  skeletonCard : { height: 120, backgroundColor: colors.background.surface, borderRadius: 10, opacity: 0.5, borderWidth: 1, borderColor: colors.accent.zinc },
+})

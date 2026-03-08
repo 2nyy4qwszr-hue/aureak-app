@@ -165,7 +165,7 @@ export default function SessionsPage() {
       {/* ── Header ── */}
       <View style={styles.pageHeader}>
         <View>
-          <AureakText variant="h2">Sessions</AureakText>
+          <AureakText variant="h2">Séances</AureakText>
           {!loading && (
             <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
               {total} séance{total !== 1 ? 's' : ''}
@@ -219,26 +219,26 @@ export default function SessionsPage() {
         <View style={styles.table}>
           {/* Table header */}
           <View style={styles.thead}>
-            <AureakText variant="caption" style={[styles.th, { flex: 2 }]}>Date</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 60 }]}>Heure</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 70 }]}>Durée</AureakText>
-            <AureakText variant="caption" style={[styles.th, { flex: 2 }]}>Implantation</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 100 }]}>Statut</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 80, textAlign: 'right' }]}>Actions</AureakText>
+            <AureakText variant="caption" style={[styles.th, { flex: 2 }] as never}>Date</AureakText>
+            <AureakText variant="caption" style={[styles.th, { width: 60 }] as never}>Heure</AureakText>
+            <AureakText variant="caption" style={[styles.th, { width: 70 }] as never}>Durée</AureakText>
+            <AureakText variant="caption" style={[styles.th, { flex: 2 }] as never}>Implantation</AureakText>
+            <AureakText variant="caption" style={[styles.th, { width: 100 }] as never}>Statut</AureakText>
+            <AureakText variant="caption" style={[styles.th, { width: 80, textAlign: 'right' }] as never}>Actions</AureakText>
           </View>
 
           {sessions.map((s, idx) => (
             <View key={s.id} style={[styles.tr, idx % 2 === 1 && styles.trAlt]}>
-              <AureakText variant="body" style={[styles.td, { flex: 2, fontWeight: '600' }]}>
+              <AureakText variant="body" style={[styles.td, { flex: 2, fontWeight: '600' }] as never}>
                 {fmt(s.scheduledAt)}
               </AureakText>
-              <AureakText variant="caption" style={[styles.td, { width: 60, color: colors.text.secondary }]}>
+              <AureakText variant="caption" style={[styles.td, { width: 60, color: colors.text.secondary }] as never}>
                 {fmtTime(s.scheduledAt)}
               </AureakText>
-              <AureakText variant="caption" style={[styles.td, { width: 70, color: colors.text.secondary }]}>
+              <AureakText variant="caption" style={[styles.td, { width: 70, color: colors.text.secondary }] as never}>
                 {s.durationMinutes} min
               </AureakText>
-              <AureakText variant="caption" style={[styles.td, { flex: 2, color: colors.text.secondary }]}>
+              <AureakText variant="caption" style={[styles.td, { flex: 2, color: colors.text.secondary }] as never}>
                 {implantName(s.implantationId)}
               </AureakText>
               <View style={[styles.td, { width: 100 }]}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Modal } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Modal, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSessionById, listSessionCoaches, listAttendancesBySession, cancelSessionRpc,
@@ -84,7 +84,7 @@ export default function SessionDetailPage() {
       {/* Breadcrumb */}
       <View style={styles.breadcrumb}>
         <Pressable onPress={() => router.push('/sessions' as never)}>
-          <AureakText variant="caption" style={styles.breadcrumbLink}>Sessions</AureakText>
+          <AureakText variant="caption" style={styles.breadcrumbLink}>Séances</AureakText>
         </Pressable>
         <AureakText variant="caption" style={styles.breadcrumbSep}>/</AureakText>
         <AureakText variant="caption" style={styles.breadcrumbCurrent}>

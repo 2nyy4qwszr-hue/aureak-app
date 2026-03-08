@@ -92,9 +92,10 @@ function AttMiniChart({ attendances }: { attendances: AttendanceRow[] }) {
 function SubNav({ childId, active }: { childId: string; active: string }) {
   const router = useRouter()
   const tabs = [
-    { label: 'Fiche',       href: `/parent/children/${childId}`          },
-    { label: 'Séances',     href: `/parent/children/${childId}/sessions` },
-    { label: 'Progression', href: `/parent/children/${childId}/progress` },
+    { label: 'Fiche',       href: `/parent/children/${childId}`                   },
+    { label: 'Séances',     href: `/parent/children/${childId}/sessions`          },
+    { label: 'Progression', href: `/parent/children/${childId}/progress`          },
+    { label: 'Football',    href: `/parent/children/${childId}/football-history`  },
   ]
   return (
     <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${colors.accent.zinc}`, marginBottom: 20 }}>

@@ -258,7 +258,7 @@ export default function DashboardPage() {
       {/* ── Global KPI Strip ── */}
       <div style={S.kpiStrip}>
         <KpiCard
-          label="Enfants actifs"
+          label="Joueurs actifs"
           value={childrenTotal ?? '—'}
           accent={colors.accent.gold}
         />

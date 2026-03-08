@@ -15,17 +15,33 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Opérations',
     items: [
       { label: 'Tableau de bord', href: '/dashboard'   },
-      { label: 'Sessions',        href: '/sessions'    },
+      { label: 'Séances',          href: '/sessions'    },
       { label: 'Présences',       href: '/attendance'  },
       { label: 'Évaluations',     href: '/evaluations' },
     ],
   },
   {
+    label: 'Méthodologie',
+    items: [
+      { label: 'Entraînements pédagogiques', href: '/methodologie/seances'    },
+      { label: 'Thèmes',              href: '/methodologie/themes'     },
+      { label: 'Situations',          href: '/methodologie/situations' },
+    ],
+  },
+  {
     label: 'Gestion',
     items: [
-      { label: 'Enfants',       href: '/children'      },
+      { label: 'Joueurs',       href: '/children'      },
       { label: 'Coachs',        href: '/coaches'       },
+      { label: 'Clubs',         href: '/clubs'         },
+      { label: 'Groupes',       href: '/groups'        },
       { label: 'Implantations', href: '/implantations' },
+    ],
+  },
+  {
+    label: 'Événements',
+    items: [
+      { label: 'Stages', href: '/stages' },
     ],
   },
   {

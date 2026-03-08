@@ -1,10 +1,10 @@
 'use client'
-// Fiche gardien — vue détaillée club : historique · évals · progression · alertes
+// Fiche gardien — vue détaillée club : historique · évals · progression · alertes · parcours football
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { supabase, getChildThemeProgression } from '@aureak/api-client'
+import { supabase, getChildThemeProgression, listHistoryByChild } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
-import type { EvaluationSignal } from '@aureak/types'
+import type { EvaluationSignal, FootballTeamLevel, ChildClubHistory } from '@aureak/types'
 import type { ThemeProgressEntry, MasteryStatus } from '@aureak/api-client'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -59,6 +59,14 @@ const SIGNAL_COLOR: Record<EvaluationSignal, string> = {
 const SIGNAL_BG: Record<EvaluationSignal, string> = {
   positive: 'rgba(76,175,80,0.16)', attention: 'rgba(255,193,7,0.16)', none: colors.background.elevated,
 }
+const TEAM_LEVEL_COLOR: Record<FootballTeamLevel, string> = {
+  'Provinciaux'      : colors.text.secondary,
+  'Interprovinciaux' : colors.status.attention,
+  'Régionaux'        : '#7C8CF8',
+  'Nationaux'        : colors.accent.gold,
+  'International'    : colors.status.present,
+}
+
 const MASTERY_COLOR: Record<MasteryStatus, string> = {
   not_started: colors.text.secondary,
   in_progress: colors.status.attention,
@@ -162,13 +170,14 @@ export default function GoalkeeperDetailPage() {
   const { childId } = useLocalSearchParams<{ childId: string }>()
   const router      = useRouter()
 
-  const [displayName, setDisplayName] = useState('')
-  const [attendances, setAttendances] = useState<DetailAtt[]>([])
-  const [evaluations, setEvaluations] = useState<DetailEval[]>([])
-  const [notes,       setNotes]       = useState<CoachNote[]>([])
-  const [themes,      setThemes]      = useState<ThemeProgressEntry[]>([])
-  const [upcoming,    setUpcoming]    = useState<UpcomingSession[]>([])
-  const [loading,     setLoading]     = useState(true)
+  const [displayName,    setDisplayName]    = useState('')
+  const [attendances,    setAttendances]    = useState<DetailAtt[]>([])
+  const [evaluations,    setEvaluations]    = useState<DetailEval[]>([])
+  const [notes,          setNotes]          = useState<CoachNote[]>([])
+  const [themes,         setThemes]         = useState<ThemeProgressEntry[]>([])
+  const [upcoming,       setUpcoming]       = useState<UpcomingSession[]>([])
+  const [footballHistory,setFootballHistory] = useState<ChildClubHistory[]>([])
+  const [loading,        setLoading]        = useState(true)
 
   useEffect(() => {
     if (!childId) return
@@ -229,6 +238,12 @@ export default function GoalkeeperDetailPage() {
       try {
         const themeData = await getChildThemeProgression(childId)
         setThemes(themeData)
+      } catch { /* RLS may deny access */ }
+
+      // Football history (best-effort — RLS filters to linked/affiliated children)
+      try {
+        const { data: histData } = await listHistoryByChild(childId)
+        setFootballHistory(histData)
       } catch { /* RLS may deny access */ }
 
       setLoading(false)
@@ -608,7 +623,7 @@ export default function GoalkeeperDetailPage() {
 
           {/* Coach notes */}
           {notes.length > 0 && (
-            <section>
+            <section style={{ marginBottom: 20 }}>
               <div style={G.sectionLabel}>Observations coach</div>
               <div style={G.sideCard}>
                 {notes.map((n, i) => (
@@ -626,6 +641,83 @@ export default function GoalkeeperDetailPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Football history */}
+          {footballHistory.length > 0 && (
+            <section>
+              <div style={G.sectionLabel}>Parcours football</div>
+              <div style={G.sideCard}>
+                {/* Affiliation summary */}
+                <div style={{ padding: '10px 12px 8px', borderBottom: `1px solid ${colors.accent.zinc}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, color: colors.text.secondary }}>
+                      {footballHistory.length} saison{footballHistory.length > 1 ? 's' : ''}
+                    </span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                      border: `1px solid ${colors.status.present}40`,
+                      backgroundColor: colors.status.present + '10',
+                      color: colors.status.present,
+                    }}>
+                      {footballHistory.filter(h => h.isAffiliated).length} affilié{footballHistory.filter(h => h.isAffiliated).length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+
+                {footballHistory.map((entry, i) => {
+                  const lvlColor = entry.teamLevel ? TEAM_LEVEL_COLOR[entry.teamLevel] : colors.text.secondary
+                  return (
+                    <div key={entry.id} style={{
+                      padding: '10px 12px',
+                      borderBottom: i < footballHistory.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3,
+                          backgroundColor: 'rgba(193,172,92,0.10)',
+                          border: `1px solid ${colors.accent.gold}40`,
+                          color: colors.accent.gold, letterSpacing: '0.04em',
+                        }}>
+                          {entry.season}
+                        </span>
+                        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                          <span style={{
+                            fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 3,
+                            backgroundColor: colors.background.elevated,
+                            border: `1px solid ${colors.accent.zinc}`,
+                            color: colors.text.secondary,
+                          }}>
+                            {entry.ageCategory}
+                          </span>
+                          {entry.isAffiliated && (
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3,
+                              backgroundColor: colors.status.present + '10',
+                              border: `1px solid ${colors.status.present}40`,
+                              color: colors.status.present,
+                            }}>✓</span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.primary, marginBottom: 2 }}>
+                        {entry.clubName}
+                      </div>
+                      {entry.teamLevel && (
+                        <div style={{ fontSize: 11, color: lvlColor, fontWeight: 500 }}>
+                          {entry.teamLevel}
+                        </div>
+                      )}
+                      {entry.notes && (
+                        <div style={{ fontSize: 11, color: colors.text.secondary, fontStyle: 'italic', marginTop: 4, lineHeight: 1.4 }}>
+                          {entry.notes}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </section>
           )}

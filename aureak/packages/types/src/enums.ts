@@ -20,3 +20,99 @@ export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed'
 
 /** Canaux de notification — miroir de l'enum PostgreSQL `notification_channel` */
 export type NotificationChannel = 'push' | 'email' | 'sms'
+
+/** Catégorie d'âge football — miroir de l'enum PostgreSQL `football_age_category` */
+export type FootballAgeCategory =
+  | 'U6'  | 'U7'  | 'U8'  | 'U9'  | 'U10'
+  | 'U11' | 'U12' | 'U13' | 'U14' | 'U15'
+  | 'U16' | 'U17' | 'U18' | 'U19' | 'U20' | 'U21'
+  | 'Senior'
+
+export const FOOTBALL_AGE_CATEGORIES: FootballAgeCategory[] = [
+  'U6', 'U7', 'U8', 'U9', 'U10',
+  'U11', 'U12', 'U13', 'U14', 'U15',
+  'U16', 'U17', 'U18', 'U19', 'U20', 'U21',
+  'Senior',
+]
+
+/** Niveau d'équipe football — miroir de l'enum PostgreSQL `football_team_level` */
+export type FootballTeamLevel =
+  | 'Provinciaux'
+  | 'Interprovinciaux'
+  | 'Régionaux'
+  | 'Nationaux'
+  | 'International'
+
+export const FOOTBALL_TEAM_LEVELS: FootballTeamLevel[] = [
+  'Provinciaux', 'Interprovinciaux', 'Régionaux', 'Nationaux', 'International',
+]
+
+/** 10 provinces belges — miroir de l'enum PostgreSQL `belgian_province` (migration 00033) */
+export type BelgianProvince =
+  | 'Anvers'
+  | 'Brabant flamand'
+  | 'Brabant wallon'
+  | 'Flandre occidentale'
+  | 'Flandre orientale'
+  | 'Hainaut'
+  | 'Liège'
+  | 'Limbourg'
+  | 'Luxembourg'
+  | 'Namur'
+
+export const BELGIAN_PROVINCES: BelgianProvince[] = [
+  'Anvers',
+  'Brabant flamand',
+  'Brabant wallon',
+  'Flandre occidentale',
+  'Flandre orientale',
+  'Hainaut',
+  'Liège',
+  'Limbourg',
+  'Luxembourg',
+  'Namur',
+]
+
+// ── Méthodologie pédagogique ──────────────────────────────────────────────────
+
+/** Méthodes pédagogiques — utilisées dans methodology_sessions, methodology_themes, methodology_situations */
+export type MethodologyMethod =
+  | 'Goal and Player'
+  | 'Technique'
+  | 'Situationnel'
+  | 'Décisionnel'
+  | 'Intégration'
+  | 'Perfectionnement'
+
+/** Contexte d'utilisation d'une séance pédagogique */
+export type MethodologyContextType = 'academie' | 'stage'
+
+/** Niveau de difficulté d'une séance pédagogique (conservé en DB, non affiché dans le formulaire) */
+export type MethodologyLevel = 'debutant' | 'intermediaire' | 'avance'
+
+export const METHODOLOGY_METHODS: MethodologyMethod[] = [
+  'Goal and Player', 'Technique', 'Situationnel', 'Décisionnel', 'Intégration', 'Perfectionnement',
+]
+
+export const METHODOLOGY_CONTEXT_TYPES: MethodologyContextType[] = ['academie', 'stage']
+export const METHODOLOGY_LEVELS: MethodologyLevel[] = ['debutant', 'intermediaire', 'avance']
+
+export const METHODOLOGY_LEVEL_LABELS: Record<MethodologyLevel, string> = {
+  debutant     : 'Débutant',
+  intermediaire: 'Intermédiaire',
+  avance       : 'Avancé',
+}
+
+export const METHODOLOGY_CONTEXT_LABELS: Record<MethodologyContextType, string> = {
+  academie: 'Académie',
+  stage   : 'Stage',
+}
+
+export const METHODOLOGY_METHOD_COLOR: Record<MethodologyMethod, string> = {
+  'Goal and Player' : '#FFB800',
+  'Technique'       : '#4FC3F7',
+  'Situationnel'    : '#66BB6A',
+  'Décisionnel'     : '#CE93D8',
+  'Intégration'     : '#F97316',
+  'Perfectionnement': '#EC4899',
+}
