@@ -225,79 +225,96 @@ ALTER TABLE theme_badge_levels        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE theme_resources           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE theme_age_differentiation ENABLE ROW LEVEL SECURITY;
 
--- Policies tenant isolation (pattern du projet)
-CREATE POLICY "tenant_isolation" ON theme_vision
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_page_terrain
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_mini_exercises
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_home_exercises
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_video_eval_templates
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_video_evaluations
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_badge_levels
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_resources
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
-CREATE POLICY "tenant_isolation" ON theme_age_differentiation
-  USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
-  WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
-
--- join tables : pas de tenant_id direct, accès via parent
-CREATE POLICY "access_via_parent" ON sequence_criteria
-  USING (EXISTS (
-    SELECT 1 FROM theme_sequences ts
-    JOIN themes t ON t.id = ts.theme_id
-    WHERE ts.id = sequence_criteria.sequence_id
-      AND t.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
-  ));
-
-CREATE POLICY "access_via_parent" ON home_exercise_criteria
-  USING (EXISTS (
-    SELECT 1 FROM theme_home_exercises he
-    WHERE he.id = home_exercise_criteria.exercise_id
-      AND he.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
-  ));
-
-CREATE POLICY "access_via_parent" ON video_eval_template_criteria
-  USING (EXISTS (
-    SELECT 1 FROM theme_video_eval_templates vt
-    WHERE vt.id = video_eval_template_criteria.template_id
-      AND vt.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
-  ));
-
-CREATE POLICY "access_via_parent" ON video_evaluation_criterion_results
-  USING (EXISTS (
-    SELECT 1 FROM theme_video_evaluations ve
-    WHERE ve.id = video_evaluation_criterion_results.evaluation_id
-      AND ve.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
-  ));
+-- Policies tenant isolation (pattern du projet) — idempotent
+DO $pol$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_vision' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_vision
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_page_terrain' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_page_terrain
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_mini_exercises' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_mini_exercises
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_home_exercises' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_home_exercises
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_video_eval_templates' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_video_eval_templates
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_video_evaluations' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_video_evaluations
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_badge_levels' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_badge_levels
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_resources' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_resources
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='theme_age_differentiation' AND policyname='tenant_isolation') THEN
+    CREATE POLICY "tenant_isolation" ON theme_age_differentiation
+      USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+      WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
+  END IF;
+  -- join tables : pas de tenant_id direct, accès via parent
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='sequence_criteria' AND policyname='access_via_parent') THEN
+    CREATE POLICY "access_via_parent" ON sequence_criteria
+      USING (EXISTS (
+        SELECT 1 FROM theme_sequences ts
+        JOIN themes t ON t.id = ts.theme_id
+        WHERE ts.id = sequence_criteria.sequence_id
+          AND t.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
+      ));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='home_exercise_criteria' AND policyname='access_via_parent') THEN
+    CREATE POLICY "access_via_parent" ON home_exercise_criteria
+      USING (EXISTS (
+        SELECT 1 FROM theme_home_exercises he
+        WHERE he.id = home_exercise_criteria.exercise_id
+          AND he.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
+      ));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='video_eval_template_criteria' AND policyname='access_via_parent') THEN
+    CREATE POLICY "access_via_parent" ON video_eval_template_criteria
+      USING (EXISTS (
+        SELECT 1 FROM theme_video_eval_templates vt
+        WHERE vt.id = video_eval_template_criteria.template_id
+          AND vt.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
+      ));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='video_evaluation_criterion_results' AND policyname='access_via_parent') THEN
+    CREATE POLICY "access_via_parent" ON video_evaluation_criterion_results
+      USING (EXISTS (
+        SELECT 1 FROM theme_video_evaluations ve
+        WHERE ve.id = video_evaluation_criterion_results.evaluation_id
+          AND ve.tenant_id = (auth.jwt() ->> 'tenant_id')::uuid
+      ));
+  END IF;
+END $pol$;
 
 -- ── TRIGGERS updated_at ───────────────────────
--- Pattern du projet : une fonction dédiée par table
+-- Pattern du projet : une fonction dédiée par table — triggers idempotents
 
 CREATE OR REPLACE FUNCTION set_theme_vision_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_vision_updated_at ON theme_vision;
 CREATE TRIGGER theme_vision_updated_at
   BEFORE UPDATE ON theme_vision
   FOR EACH ROW EXECUTE FUNCTION set_theme_vision_updated_at();
@@ -305,6 +322,7 @@ CREATE TRIGGER theme_vision_updated_at
 CREATE OR REPLACE FUNCTION set_theme_page_terrain_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_page_terrain_updated_at ON theme_page_terrain;
 CREATE TRIGGER theme_page_terrain_updated_at
   BEFORE UPDATE ON theme_page_terrain
   FOR EACH ROW EXECUTE FUNCTION set_theme_page_terrain_updated_at();
@@ -312,6 +330,7 @@ CREATE TRIGGER theme_page_terrain_updated_at
 CREATE OR REPLACE FUNCTION set_theme_mini_exercises_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_mini_exercises_updated_at ON theme_mini_exercises;
 CREATE TRIGGER theme_mini_exercises_updated_at
   BEFORE UPDATE ON theme_mini_exercises
   FOR EACH ROW EXECUTE FUNCTION set_theme_mini_exercises_updated_at();
@@ -319,6 +338,7 @@ CREATE TRIGGER theme_mini_exercises_updated_at
 CREATE OR REPLACE FUNCTION set_theme_home_exercises_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_home_exercises_updated_at ON theme_home_exercises;
 CREATE TRIGGER theme_home_exercises_updated_at
   BEFORE UPDATE ON theme_home_exercises
   FOR EACH ROW EXECUTE FUNCTION set_theme_home_exercises_updated_at();
@@ -326,6 +346,7 @@ CREATE TRIGGER theme_home_exercises_updated_at
 CREATE OR REPLACE FUNCTION set_theme_video_eval_templates_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_video_eval_templates_updated_at ON theme_video_eval_templates;
 CREATE TRIGGER theme_video_eval_templates_updated_at
   BEFORE UPDATE ON theme_video_eval_templates
   FOR EACH ROW EXECUTE FUNCTION set_theme_video_eval_templates_updated_at();
@@ -333,6 +354,7 @@ CREATE TRIGGER theme_video_eval_templates_updated_at
 CREATE OR REPLACE FUNCTION set_theme_video_evaluations_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_video_evaluations_updated_at ON theme_video_evaluations;
 CREATE TRIGGER theme_video_evaluations_updated_at
   BEFORE UPDATE ON theme_video_evaluations
   FOR EACH ROW EXECUTE FUNCTION set_theme_video_evaluations_updated_at();
@@ -340,6 +362,7 @@ CREATE TRIGGER theme_video_evaluations_updated_at
 CREATE OR REPLACE FUNCTION set_theme_age_differentiation_updated_at()
   RETURNS TRIGGER LANGUAGE plpgsql AS $$
   BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS theme_age_differentiation_updated_at ON theme_age_differentiation;
 CREATE TRIGGER theme_age_differentiation_updated_at
   BEFORE UPDATE ON theme_age_differentiation
   FOR EACH ROW EXECUTE FUNCTION set_theme_age_differentiation_updated_at();
