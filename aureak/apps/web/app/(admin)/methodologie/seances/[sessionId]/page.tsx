@@ -11,10 +11,10 @@ import {
   linkMethodologySessionSituation, unlinkMethodologySessionSituation,
 } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS, METHODOLOGY_CONTEXT_TYPES, METHODOLOGY_LEVELS,
-  METHODOLOGY_METHOD_COLOR, METHODOLOGY_CONTEXT_LABELS, METHODOLOGY_LEVEL_LABELS,
+  METHODOLOGY_CONTEXT_LABELS, METHODOLOGY_LEVEL_LABELS,
   type MethodologyMethod, type MethodologyContextType, type MethodologyLevel,
 } from '@aureak/types'
 import type { MethodologySession, MethodologyTheme, MethodologySituation } from '@aureak/types'
@@ -23,7 +23,7 @@ import type { MethodologySession, MethodologyTheme, MethodologySituation } from 
 
 function FieldLabel({ children }: { children: string }) {
   return (
-    <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, textTransform: 'uppercase' as never }}>
+    <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, textTransform: 'uppercase' as never }}>
       {children}
     </AureakText>
   )
@@ -34,10 +34,10 @@ function SectionCard({ children, style }: { children: React.ReactNode; style?: o
 }
 const sc = StyleSheet.create({
   card: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     gap            : 4,
   },
@@ -45,7 +45,7 @@ const sc = StyleSheet.create({
 
 function MethodBadge({ method }: { method: string | null }) {
   if (!method) return null
-  const color = METHODOLOGY_METHOD_COLOR[method as MethodologyMethod] ?? colors.accent.zinc
+  const color = methodologyMethodColors[method as MethodologyMethod] ?? colors.border.light
   return (
     <View style={{ backgroundColor: color + '18', borderColor: color, borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 }}>
       <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 11 }}>{method}</AureakText>
@@ -71,9 +71,9 @@ function ChipSelect<T extends string>({
           <Pressable
             key={opt}
             onPress={() => onSelect(active ? null : opt)}
-            style={{ borderWidth: 1, borderColor: active ? c : colors.accent.zinc, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? c + '20' : 'transparent' }}
+            style={{ borderWidth: 1, borderColor: active ? c : colors.border.light, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? c + '20' : 'transparent' }}
           >
-            <AureakText variant="caption" style={{ color: active ? c : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+            <AureakText variant="caption" style={{ color: active ? c : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
               {label ? label(opt) : opt}
             </AureakText>
           </Pressable>
@@ -144,7 +144,7 @@ function LinkedBlocsPanel({
       {/* Thèmes liés */}
       <SectionCard>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+          <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
             THÈMES ASSOCIÉS ({linkedThemes.length})
           </AureakText>
           {!addingTheme && (
@@ -155,7 +155,7 @@ function LinkedBlocsPanel({
         </View>
 
         {linkedThemes.length === 0 && !addingTheme && (
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>Aucun thème associé.</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>Aucun thème associé.</AureakText>
         )}
 
         {linkedThemes.map(t => (
@@ -175,20 +175,20 @@ function LinkedBlocsPanel({
               value={themeSearch}
               onChangeText={setThemeSearch}
               placeholder="Rechercher un thème…"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
               autoFocus
             />
             {availThemes.slice(0, 8).map(t => (
               <Pressable key={t.id} style={bl.availRow} onPress={() => handleLinkTheme(t.id)}>
-                <AureakText variant="caption" style={{ color: colors.text.primary, fontSize: 12 }}>{t.title}</AureakText>
-                {t.method && <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>{t.method}</AureakText>}
+                <AureakText variant="caption" style={{ color: colors.text.dark, fontSize: 12 }}>{t.title}</AureakText>
+                {t.method && <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{t.method}</AureakText>}
               </Pressable>
             ))}
             {availThemes.length === 0 && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, padding: 8 }}>Aucun thème disponible.</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, padding: 8 }}>Aucun thème disponible.</AureakText>
             )}
             <Pressable onPress={() => { setAddingTheme(false); setThemeSearch('') }}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 6 }}>Annuler</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 6 }}>Annuler</AureakText>
             </Pressable>
           </View>
         )}
@@ -197,7 +197,7 @@ function LinkedBlocsPanel({
       {/* Situations liées */}
       <SectionCard>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+          <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
             SITUATIONS ASSOCIÉES ({linkedSituations.length})
           </AureakText>
           {!addingSit && (
@@ -208,7 +208,7 @@ function LinkedBlocsPanel({
         </View>
 
         {linkedSituations.length === 0 && !addingSit && (
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>Aucune situation associée.</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>Aucune situation associée.</AureakText>
         )}
 
         {linkedSituations.map(s => (
@@ -228,20 +228,20 @@ function LinkedBlocsPanel({
               value={sitSearch}
               onChangeText={setSitSearch}
               placeholder="Rechercher une situation…"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
               autoFocus
             />
             {availSits.slice(0, 8).map(s => (
               <Pressable key={s.id} style={bl.availRow} onPress={() => handleLinkSit(s.id)}>
-                <AureakText variant="caption" style={{ color: colors.text.primary, fontSize: 12 }}>{s.title}</AureakText>
-                {s.method && <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>{s.method}</AureakText>}
+                <AureakText variant="caption" style={{ color: colors.text.dark, fontSize: 12 }}>{s.title}</AureakText>
+                {s.method && <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{s.method}</AureakText>}
               </Pressable>
             ))}
             {availSits.length === 0 && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, padding: 8 }}>Aucune situation disponible.</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, padding: 8 }}>Aucune situation disponible.</AureakText>
             )}
             <Pressable onPress={() => { setAddingSit(false); setSitSearch('') }}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 6 }}>Annuler</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 6 }}>Annuler</AureakText>
             </Pressable>
           </View>
         )}
@@ -253,11 +253,11 @@ function LinkedBlocsPanel({
 
 const bl = StyleSheet.create({
   addBtn    : { backgroundColor: colors.accent.gold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  linkedRow : { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '30' },
+  linkedRow : { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   dot       : { width: 8, height: 8, borderRadius: 4 },
-  addPanel  : { gap: 4, padding: space.sm, backgroundColor: colors.background.elevated, borderRadius: 8, borderWidth: 1, borderColor: colors.accent.zinc, marginTop: 6 },
-  searchInput: { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6, color: colors.text.primary, fontSize: 12 },
-  availRow  : { paddingHorizontal: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '30', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  addPanel  : { gap: 4, padding: space.sm, backgroundColor: colors.light.muted, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light, marginTop: 6 },
+  searchInput: { backgroundColor: colors.light.primary, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6, color: colors.text.dark, fontSize: 12 },
+  availRow  : { paddingHorizontal: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border.divider, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 })
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -364,20 +364,20 @@ export default function SeanceDetailPage() {
 
   if (loading) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+      <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
     </View>
   }
 
   if (!session) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <AureakText variant="h3" style={{ color: colors.text.secondary }}>Entraînement introuvable</AureakText>
+      <AureakText variant="h3" style={{ color: colors.text.muted }}>Entraînement introuvable</AureakText>
       <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
         <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
       </Pressable>
     </View>
   }
 
-  const methodColor = session.method ? (METHODOLOGY_METHOD_COLOR[session.method as MethodologyMethod] ?? colors.accent.zinc) : colors.accent.zinc
+  const methodColor = session.method ? (methodologyMethodColors[session.method as MethodologyMethod] ?? colors.border.light) : colors.border.light
 
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
@@ -395,14 +395,14 @@ export default function SeanceDetailPage() {
             <MethodBadge method={session.method} />
             {session.contextType && (
               <View style={s.chip}>
-                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
                   {METHODOLOGY_CONTEXT_LABELS[session.contextType as MethodologyContextType] ?? session.contextType}
                 </AureakText>
               </View>
             )}
             {session.moduleName && (
               <View style={s.chip}>
-                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
                   {session.moduleName}
                 </AureakText>
               </View>
@@ -439,38 +439,38 @@ export default function SeanceDetailPage() {
       {/* ── Edit form ── */}
       {editing && (
         <SectionCard>
-          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: 8 }}>MODIFIER</AureakText>
+          <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: 8 }}>MODIFIER</AureakText>
 
           <FieldLabel>Titre</FieldLabel>
-          <TextInput style={si.input} value={title} onChangeText={setTitle} placeholderTextColor={colors.text.secondary} />
+          <TextInput style={si.input} value={title} onChangeText={setTitle} placeholderTextColor={colors.text.muted} />
 
           <FieldLabel>Méthode</FieldLabel>
-          <ChipSelect options={METHODOLOGY_METHODS} value={method} onSelect={setMethod} color={m => METHODOLOGY_METHOD_COLOR[m]} />
+          <ChipSelect options={METHODOLOGY_METHODS} value={method} onSelect={setMethod} color={m => methodologyMethodColors[m]} />
 
           <FieldLabel>Contexte</FieldLabel>
           <ChipSelect options={METHODOLOGY_CONTEXT_TYPES} value={contextType} onSelect={setContextType} label={c => METHODOLOGY_CONTEXT_LABELS[c]} />
 
           <FieldLabel>Module</FieldLabel>
-          <TextInput style={si.input} value={moduleName} onChangeText={setModuleName} placeholder="Ex : Module Tir au but…" placeholderTextColor={colors.text.secondary} />
+          <TextInput style={si.input} value={moduleName} onChangeText={setModuleName} placeholder="Ex : Module Tir au but…" placeholderTextColor={colors.text.muted} />
 
           <FieldLabel>Référence / Numéro</FieldLabel>
-          <TextInput style={si.input} value={trainingRef} onChangeText={setTrainingRef} placeholder="Ex : 22" placeholderTextColor={colors.text.secondary} keyboardType="numeric" />
+          <TextInput style={si.input} value={trainingRef} onChangeText={setTrainingRef} placeholder="Ex : 22" placeholderTextColor={colors.text.muted} keyboardType="numeric" />
 
           <FieldLabel>Description</FieldLabel>
-          <TextInput style={[si.input, si.textarea]} value={description} onChangeText={setDescription} multiline placeholderTextColor={colors.text.secondary} />
+          <TextInput style={[si.input, si.textarea]} value={description} onChangeText={setDescription} multiline placeholderTextColor={colors.text.muted} />
 
           <FieldLabel>URL PDF</FieldLabel>
-          <TextInput style={si.input} value={pdfUrl} onChangeText={setPdfUrl} placeholder="https://…" placeholderTextColor={colors.text.secondary} autoCapitalize="none" keyboardType="url" />
+          <TextInput style={si.input} value={pdfUrl} onChangeText={setPdfUrl} placeholder="https://…" placeholderTextColor={colors.text.muted} autoCapitalize="none" keyboardType="url" />
 
           <FieldLabel>URL Vidéo</FieldLabel>
-          <TextInput style={si.input} value={videoUrl} onChangeText={setVideoUrl} placeholder="https://…" placeholderTextColor={colors.text.secondary} autoCapitalize="none" keyboardType="url" />
+          <TextInput style={si.input} value={videoUrl} onChangeText={setVideoUrl} placeholder="https://…" placeholderTextColor={colors.text.muted} autoCapitalize="none" keyboardType="url" />
 
           <FieldLabel>URL Audio</FieldLabel>
-          <TextInput style={si.input} value={audioUrl} onChangeText={setAudioUrl} placeholder="https://…" placeholderTextColor={colors.text.secondary} autoCapitalize="none" keyboardType="url" />
+          <TextInput style={si.input} value={audioUrl} onChangeText={setAudioUrl} placeholder="https://…" placeholderTextColor={colors.text.muted} autoCapitalize="none" keyboardType="url" />
 
           <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end', marginTop: 8 }}>
             <Pressable style={si.cancelBtn} onPress={() => setEditing(false)}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
             </Pressable>
             <Pressable style={[si.saveBtn, saving && { opacity: 0.5 }]} onPress={handleSave} disabled={saving}>
               <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
@@ -494,24 +494,24 @@ export default function SeanceDetailPage() {
             {session.description && (
               <>
                 <FieldLabel>Description</FieldLabel>
-                <AureakText variant="body" style={{ fontSize: 13, color: colors.text.secondary, lineHeight: 20 }}>{session.description}</AureakText>
+                <AureakText variant="body" style={{ fontSize: 13, color: colors.text.muted, lineHeight: 20 }}>{session.description}</AureakText>
               </>
             )}
             {session.notes && (
               <>
                 <FieldLabel>Notes internes</FieldLabel>
-                <AureakText variant="caption" style={{ fontSize: 12, color: colors.text.secondary, fontStyle: 'italic' as never, lineHeight: 18 }}>{session.notes}</AureakText>
+                <AureakText variant="caption" style={{ fontSize: 12, color: colors.text.muted, fontStyle: 'italic' as never, lineHeight: 18 }}>{session.notes}</AureakText>
               </>
             )}
             {!session.objective && !session.description && !session.notes && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>Aucune description renseignée.</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>Aucune description renseignée.</AureakText>
             )}
           </SectionCard>
 
           {/* Médias */}
           {(session.pdfUrl || session.videoUrl || session.audioUrl) && (
             <SectionCard>
-              <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: 8 }}>MÉDIAS</AureakText>
+              <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: 8 }}>MÉDIAS</AureakText>
               {session.pdfUrl && (
                 <View style={{ gap: 4 }}>
                   <FieldLabel>Document PDF</FieldLabel>
@@ -556,27 +556,27 @@ export default function SeanceDetailPage() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.lg, gap: space.md, maxWidth: 860, alignSelf: 'center', width: '100%' },
   hero     : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     borderTopWidth : 3,
     padding        : space.md,
     flexDirection  : 'row',
     gap            : space.md,
     alignItems     : 'flex-start',
   },
-  chip   : { borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
+  chip   : { borderWidth: 1, borderColor: colors.border.light, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   editBtn: { borderWidth: 1, borderColor: colors.accent.gold + '60', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5 },
   pdfBtn   : { backgroundColor: colors.accent.gold, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: 10, alignSelf: 'flex-start' },
   mediaBtn : { backgroundColor: colors.accent.gold, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: 10, alignSelf: 'flex-start' },
 })
 const si = StyleSheet.create({
-  input    : { backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, color: colors.text.primary, fontSize: 13 },
+  input    : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, color: colors.text.dark, fontSize: 13 },
   textarea : { minHeight: 80, textAlignVertical: 'top' as never, paddingTop: 8 },
-  cancelBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: colors.accent.zinc },
+  cancelBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light },
   saveBtn  : { backgroundColor: colors.accent.gold, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8 },
 })

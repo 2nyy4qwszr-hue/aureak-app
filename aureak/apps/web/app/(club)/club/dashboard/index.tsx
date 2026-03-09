@@ -61,17 +61,17 @@ const SIGNAL_ICON : Record<EvaluationSignal, string> = { positive: '✓', attent
 const SIGNAL_COLOR: Record<EvaluationSignal, string> = {
   positive : colors.status.present,
   attention: colors.status.attention,
-  none     : colors.text.secondary,
+  none     : colors.text.muted,
 }
 const SIGNAL_BG: Record<EvaluationSignal, string> = {
   positive : 'rgba(76,175,80,0.16)',
   attention: 'rgba(255,193,7,0.16)',
-  none     : colors.background.elevated,
+  none     : colors.light.muted,
 }
 
 // ── Football affiliation constants ────────────────────────────────────────────
 const TEAM_LEVEL_COLOR: Record<FootballTeamLevel, string> = {
-  'Provinciaux'      : colors.text.secondary,
+  'Provinciaux'      : colors.text.muted,
   'Interprovinciaux' : colors.status.attention,
   'Régionaux'        : '#7C8CF8',
   'Nationaux'        : colors.accent.gold,
@@ -96,7 +96,7 @@ function cutoffFor(period: PeriodKey): Date | null {
   return d
 }
 function rateColor(rate: number | null): string {
-  if (rate === null) return colors.text.secondary
+  if (rate === null) return colors.text.muted
   if (rate >= 80)   return colors.status.present
   if (rate >= 60)   return colors.status.attention
   return colors.status.absent
@@ -109,12 +109,12 @@ function computeRate(sessions: AttendanceRow[]): number | null {
 // ── MiniBar ───────────────────────────────────────────────────────────────────
 function MiniBar({ sessions }: { sessions: AttendanceRow[] }) {
   const last8 = [...sessions].slice(0, 8)
-  if (last8.length === 0) return <span style={{ fontSize: 11, color: colors.text.secondary }}>–</span>
+  if (last8.length === 0) return <span style={{ fontSize: 11, color: colors.text.muted }}>–</span>
   return (
     <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end' }}>
       {last8.map((s, i) => {
         const ok    = PRESENT_STATUSES.has(s.status)
-        const color = ok ? colors.status.present : s.status === 'absent' ? colors.status.absent : colors.text.secondary
+        const color = ok ? colors.status.present : s.status === 'absent' ? colors.status.absent : colors.text.muted
         return (
           <div key={i} style={{
             width: 10, height: ok ? 18 : 7, borderRadius: 2,
@@ -128,7 +128,7 @@ function MiniBar({ sessions }: { sessions: AttendanceRow[] }) {
 
 // ── EvalDots ──────────────────────────────────────────────────────────────────
 function EvalDots({ ev }: { ev: EvalRow | null }) {
-  if (!ev) return <span style={{ fontSize: 11, color: colors.text.secondary }}>–</span>
+  if (!ev) return <span style={{ fontSize: 11, color: colors.text.muted }}>–</span>
   return (
     <div style={{ display: 'flex', gap: 4 }}>
       {(['receptivite', 'gout_effort', 'attitude'] as const).map(key => (
@@ -175,19 +175,19 @@ function MonthlyChart({ goalies }: { goalies: GoalkeeperStat[] }) {
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', height: 90, padding: '0 4px' }}>
         {data.map((m, i) => {
           const height = m.rate !== null ? Math.max(m.rate * 0.7, 4) : 4
-          const color  = m.rate === null ? colors.background.elevated
+          const color  = m.rate === null ? colors.light.muted
             : m.rate >= 80 ? colors.status.present
             : m.rate >= 60 ? colors.status.attention
             : colors.status.absent
           return (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: m.rate !== null ? color : colors.text.secondary }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: m.rate !== null ? color : colors.text.muted }}>
                 {m.rate !== null ? `${m.rate}%` : '–'}
               </div>
               <div style={{ width: '100%', height: 70, display: 'flex', alignItems: 'flex-end', position: 'relative' }}>
                 <div style={{
                   width: '100%', height: '100%',
-                  backgroundColor: colors.background.elevated, borderRadius: 4, position: 'absolute', bottom: 0,
+                  backgroundColor: colors.light.muted, borderRadius: 4, position: 'absolute', bottom: 0,
                 }} />
                 <div style={{
                   width: '100%', height: `${height}px`,
@@ -195,11 +195,11 @@ function MonthlyChart({ goalies }: { goalies: GoalkeeperStat[] }) {
                   transition: 'height 0.4s ease', opacity: m.rate !== null ? 0.8 : 0.3,
                 }} />
               </div>
-              <div style={{ fontSize: 10, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: 10, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {m.label}
               </div>
               {m.total > 0 && (
-                <div style={{ fontSize: 9, color: colors.text.secondary }}>{m.total}</div>
+                <div style={{ fontSize: 9, color: colors.text.muted }}>{m.total}</div>
               )}
             </div>
           )
@@ -213,7 +213,7 @@ function MonthlyChart({ goalies }: { goalies: GoalkeeperStat[] }) {
         ].map(l => (
           <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: l.color }} />
-            <span style={{ fontSize: 11, color: colors.text.secondary }}>{l.label}</span>
+            <span style={{ fontSize: 11, color: colors.text.muted }}>{l.label}</span>
           </div>
         ))}
       </div>
@@ -225,7 +225,7 @@ function MonthlyChart({ goalies }: { goalies: GoalkeeperStat[] }) {
 function Skeleton() {
   return (
     <div style={D.page}>
-      <style>{`@keyframes cl-p{0%,100%{opacity:.12}50%{opacity:.35}} .cl-sk{background:${colors.background.elevated};border-radius:6px;animation:cl-p 1.9s ease-in-out infinite}`}</style>
+      <style>{`@keyframes cl-p{0%,100%{opacity:.12}50%{opacity:.35}} .cl-sk{background:${colors.light.muted};border-radius:6px;animation:cl-p 1.9s ease-in-out infinite}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
         <div className="cl-sk" style={{ width: 48, height: 48, borderRadius: '50%' }} />
         <div><div className="cl-sk" style={{ height: 26, width: 200, marginBottom: 6 }} /><div className="cl-sk" style={{ height: 13, width: 100 }} /></div>
@@ -377,14 +377,14 @@ export default function ClubDashboard() {
     {
       value: `${evalPct}%`,
       label: 'Couverture évals',
-      color: evalPct >= 70 ? colors.status.present : evalPct >= 40 ? colors.status.attention : colors.text.secondary,
+      color: evalPct >= 70 ? colors.status.present : evalPct >= 40 ? colors.status.attention : colors.text.muted,
       icon: '📋',
     },
-    { value: upcoming.length, label: 'Séances à venir', color: upcoming.length > 0 ? colors.accent.gold : colors.text.secondary, icon: '📅' },
+    { value: upcoming.length, label: 'Séances à venir', color: upcoming.length > 0 ? colors.accent.gold : colors.text.muted, icon: '📅' },
   ]
 
   const accessLabel = club?.club_access_level === 'partner' ? 'Partenaire' : 'Commun'
-  const accessColor = club?.club_access_level === 'partner' ? colors.status.present : colors.text.secondary
+  const accessColor = club?.club_access_level === 'partner' ? colors.status.present : colors.text.muted
 
   return (
     <div style={D.page}>
@@ -412,13 +412,13 @@ export default function ClubDashboard() {
                 border: `1px solid ${accessColor}40`, backgroundColor: accessColor + '12',
                 color: accessColor, textTransform: 'uppercase', letterSpacing: '0.07em',
               }}>{accessLabel}</span>
-              <span style={{ fontSize: 11, color: colors.text.secondary }}>Vue opérationnelle</span>
+              <span style={{ fontSize: 11, color: colors.text.muted }}>Vue opérationnelle</span>
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="no-print">
-          <div style={{ fontSize: 11, color: colors.text.secondary, textAlign: 'right' }}>
-            <div style={{ fontWeight: 700, color: colors.text.primary, marginBottom: 1 }}>
+          <div style={{ fontSize: 11, color: colors.text.muted, textAlign: 'right' }}>
+            <div style={{ fontWeight: 700, color: colors.text.dark, marginBottom: 1 }}>
               {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' })}
             </div>
             Données live
@@ -427,9 +427,9 @@ export default function ClubDashboard() {
             className="cl-exp"
             style={{
               padding: '8px 14px', borderRadius: 7,
-              border: `1px solid ${colors.accent.zinc}`,
-              backgroundColor: colors.background.surface,
-              color: colors.text.secondary, fontSize: 12, fontWeight: 600,
+              border: `1px solid ${colors.border.light}`,
+              backgroundColor: colors.light.surface,
+              color: colors.text.muted, fontSize: 12, fontWeight: 600,
               cursor: 'pointer', transition: 'opacity 0.15s', marginLeft: 8,
             }}
             onClick={() => window.print()}
@@ -447,7 +447,7 @@ export default function ClubDashboard() {
             <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: k.color, lineHeight: 1 }}>
               {k.value}
             </div>
-            <div style={{ fontSize: 10, color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
+            <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
               {k.label}
             </div>
           </div>
@@ -465,9 +465,9 @@ export default function ClubDashboard() {
               style={{
                 padding: '5px 11px', borderRadius: 20, fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', transition: 'all 0.15s',
-                border: `1px solid ${period === pk ? colors.accent.gold : colors.accent.zinc}`,
-                color: period === pk ? colors.accent.gold : colors.text.secondary,
-                backgroundColor: period === pk ? 'rgba(193,172,92,0.10)' : colors.background.elevated,
+                border: `1px solid ${period === pk ? colors.accent.gold : colors.border.light}`,
+                color: period === pk ? colors.accent.gold : colors.text.muted,
+                backgroundColor: period === pk ? 'rgba(193,172,92,0.10)' : colors.light.muted,
               }}
               onClick={() => setPeriod(pk)}
             >
@@ -476,7 +476,7 @@ export default function ClubDashboard() {
           ))}
         </div>
 
-        <div style={{ width: 1, backgroundColor: colors.accent.zinc, alignSelf: 'stretch' }} />
+        <div style={{ width: 1, backgroundColor: colors.border.light, alignSelf: 'stretch' }} />
 
         {/* Implantation dropdown */}
         {implants.length > 0 && (
@@ -531,7 +531,7 @@ export default function ClubDashboard() {
               <span style={{ fontSize: 13, fontWeight: 700, color: colors.status.attention }}>
                 {alerts.length} gardien{alerts.length > 1 ? 's' : ''} avec une assiduité &lt; 60%
               </span>
-              <div style={{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: colors.text.muted, marginTop: 2 }}>
                 {alerts.map(a => a.name).join(', ')} — Cliquez pour voir le détail
               </div>
             </div>
@@ -554,7 +554,7 @@ export default function ClubDashboard() {
             <div style={D.emptyState}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🥊</div>
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Aucun gardien lié</div>
-              <div style={{ fontSize: 13, color: colors.text.secondary, maxWidth: 260 }}>
+              <div style={{ fontSize: 13, color: colors.text.muted, maxWidth: 260 }}>
                 Contactez l'académie pour associer vos gardiens à ce club.
               </div>
             </div>
@@ -562,7 +562,7 @@ export default function ClubDashboard() {
             <div style={D.emptyState}>
               <div style={{ fontSize: 28, marginBottom: 10 }}>🔍</div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Aucun résultat</div>
-              <div style={{ fontSize: 12, color: colors.text.secondary }}>Essayez d'ajuster les filtres.</div>
+              <div style={{ fontSize: 12, color: colors.text.muted }}>Essayez d'ajuster les filtres.</div>
             </div>
           ) : (
             <div style={D.table}>
@@ -588,7 +588,7 @@ export default function ClubDashboard() {
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{
                         width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-                        backgroundColor: colors.background.elevated,
+                        backgroundColor: colors.light.muted,
                         border: `1px solid ${color}50`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 12, fontWeight: 700, color,
@@ -597,7 +597,7 @@ export default function ClubDashboard() {
                       </div>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600 }}>{g.name}</div>
-                        <div style={{ fontSize: 11, color: colors.text.secondary }}>
+                        <div style={{ fontSize: 11, color: colors.text.muted }}>
                           {g.filteredSessions.length} séance{g.filteredSessions.length !== 1 ? 's' : ''}
                         </div>
                       </div>
@@ -607,11 +607,11 @@ export default function ClubDashboard() {
                       {g.rate !== null ? (
                         <>
                           <div style={{ fontSize: 13, fontWeight: 700, color }}>{g.rate}%</div>
-                          <div style={{ height: 3, backgroundColor: colors.background.elevated, borderRadius: 2, marginTop: 3, overflow: 'hidden' }}>
+                          <div style={{ height: 3, backgroundColor: colors.light.muted, borderRadius: 2, marginTop: 3, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${g.rate}%`, backgroundColor: color, borderRadius: 2 }} />
                           </div>
                         </>
-                      ) : <span style={{ fontSize: 12, color: colors.text.secondary }}>–</span>}
+                      ) : <span style={{ fontSize: 12, color: colors.text.muted }}>–</span>}
                     </div>
 
                     <div style={{ width: 90 }}>
@@ -622,7 +622,7 @@ export default function ClubDashboard() {
                       <EvalDots ev={g.lastEval} />
                     </div>
 
-                    <div style={{ width: 24, color: colors.text.secondary, fontSize: 14 }}>›</div>
+                    <div style={{ width: 24, color: colors.text.muted, fontSize: 14 }}>›</div>
                   </div>
                 )
               })}
@@ -641,7 +641,7 @@ export default function ClubDashboard() {
             {upcoming.length === 0 ? (
               <div style={{ ...D.rightCard, padding: '20px 14px', textAlign: 'center' }}>
                 <div style={{ fontSize: 20, marginBottom: 6 }}>📅</div>
-                <div style={{ fontSize: 12, color: colors.text.secondary }}>Aucune séance planifiée</div>
+                <div style={{ fontSize: 12, color: colors.text.muted }}>Aucune séance planifiée</div>
               </div>
             ) : (
               <div style={D.rightCard}>
@@ -653,17 +653,17 @@ export default function ClubDashboard() {
                     <div key={s.id} className="cl-sess" style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '11px 13px', transition: 'background 0.12s',
-                      borderBottom: i < upcoming.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                      borderBottom: i < upcoming.length - 1 ? `1px solid ${colors.border.light}` : 'none',
                     }}>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 1 }}>{fmtDate(d)} · {fmtTime(d)}</div>
-                        <div style={{ fontSize: 11, color: colors.text.secondary }}>{s.duration_minutes} min{s.location ? ` · ${s.location}` : ''}</div>
+                        <div style={{ fontSize: 11, color: colors.text.muted }}>{s.duration_minutes} min{s.location ? ` · ${s.location}` : ''}</div>
                       </div>
                       <div style={{
                         fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, whiteSpace: 'nowrap',
-                        backgroundColor: near ? 'rgba(193,172,92,0.10)' : colors.background.elevated,
-                        color: near ? colors.accent.gold : colors.text.secondary,
-                        border: `1px solid ${near ? colors.accent.gold + '40' : colors.accent.zinc}`,
+                        backgroundColor: near ? 'rgba(193,172,92,0.10)' : colors.light.muted,
+                        color: near ? colors.accent.gold : colors.text.muted,
+                        border: `1px solid ${near ? colors.accent.gold + '40' : colors.border.light}`,
                       }}>
                         {days === 0 ? "Aujourd'hui" : days === 1 ? 'Demain' : `J-${days}`}
                       </div>
@@ -704,8 +704,8 @@ export default function ClubDashboard() {
                   color: colors.status.attention,
                 },
               ].map((stat, i) => (
-                <div key={i} style={{ padding: '11px 13px', borderBottom: i < 2 ? `1px solid ${colors.accent.zinc}` : 'none' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>
+                <div key={i} style={{ padding: '11px 13px', borderBottom: i < 2 ? `1px solid ${colors.border.light}` : 'none' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>
                     {stat.label}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: stat.color }}>{stat.value}</div>
@@ -723,14 +723,14 @@ export default function ClubDashboard() {
                   { label: 'Bon (≥ 80%)', count: filteredGoalies.filter(g => g.rate !== null && g.rate >= 80).length, color: colors.status.present },
                   { label: 'Moyen (60–79%)', count: filteredGoalies.filter(g => g.rate !== null && g.rate >= 60 && g.rate < 80).length, color: colors.status.attention },
                   { label: 'Faible (< 60%)', count: filteredGoalies.filter(g => g.rate !== null && g.rate < 60).length, color: colors.status.absent },
-                  { label: 'Sans données', count: filteredGoalies.filter(g => g.rate === null).length, color: colors.text.secondary },
+                  { label: 'Sans données', count: filteredGoalies.filter(g => g.rate === null).length, color: colors.text.muted },
                 ].map((seg, i) => (
-                  <div key={i} style={{ padding: '9px 13px', borderBottom: i < 3 ? `1px solid ${colors.accent.zinc}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={i} style={{ padding: '9px 13px', borderBottom: i < 3 ? `1px solid ${colors.border.light}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: seg.color }} />
-                      <span style={{ fontSize: 12, color: colors.text.secondary }}>{seg.label}</span>
+                      <span style={{ fontSize: 12, color: colors.text.muted }}>{seg.label}</span>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: seg.count > 0 ? seg.color : colors.text.secondary }}>{seg.count}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: seg.count > 0 ? seg.color : colors.text.muted }}>{seg.count}</span>
                   </div>
                 ))}
               </div>
@@ -755,10 +755,10 @@ export default function ClubDashboard() {
             {affiliated.length === 0 ? (
               <div style={{ ...D.rightCard, padding: '20px 14px', textAlign: 'center' }}>
                 <div style={{ fontSize: 18, marginBottom: 6 }}>📋</div>
-                <div style={{ fontSize: 12, color: colors.text.secondary }}>
+                <div style={{ fontSize: 12, color: colors.text.muted }}>
                   Aucune affiliation officielle enregistrée pour ce club.
                 </div>
-                <div style={{ fontSize: 11, color: colors.text.secondary, marginTop: 6, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 6, lineHeight: 1.5 }}>
                   Les parents peuvent ajouter l'historique via le profil de leur enfant.
                 </div>
               </div>
@@ -768,32 +768,32 @@ export default function ClubDashboard() {
                 {Array.from(new Set(affiliated.map(a => a.season))).sort((a, b) => b.localeCompare(a)).map(season => {
                   const seasonEntries = affiliated.filter(a => a.season === season)
                   return (
-                    <div key={season} style={{ borderBottom: `1px solid ${colors.accent.zinc}` }}>
+                    <div key={season} style={{ borderBottom: `1px solid ${colors.border.light}` }}>
                       {/* Season header */}
                       <div style={{
                         padding: '7px 13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                         backgroundColor: 'rgba(193,172,92,0.04)',
-                        borderBottom: `1px solid ${colors.accent.zinc}`,
+                        borderBottom: `1px solid ${colors.border.light}`,
                       }}>
                         <span style={{
                           fontSize: 10, fontWeight: 700, color: colors.accent.gold, letterSpacing: '0.05em',
                         }}>
                           {season}
                         </span>
-                        <span style={{ fontSize: 10, color: colors.text.secondary }}>
+                        <span style={{ fontSize: 10, color: colors.text.muted }}>
                           {seasonEntries.length} gardien{seasonEntries.length > 1 ? 's' : ''}
                         </span>
                       </div>
                       {/* Children */}
                       {seasonEntries.map((entry, i) => {
-                        const lvlColor = entry.teamLevel ? TEAM_LEVEL_COLOR[entry.teamLevel] : colors.text.secondary
+                        const lvlColor = entry.teamLevel ? TEAM_LEVEL_COLOR[entry.teamLevel] : colors.text.muted
                         return (
                           <div
                             key={entry.id}
                             className="cl-row"
                             style={{
                               padding: '9px 13px',
-                              borderBottom: i < seasonEntries.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                              borderBottom: i < seasonEntries.length - 1 ? `1px solid ${colors.border.light}` : 'none',
                               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                               cursor: 'pointer', transition: 'background 0.12s',
                             }}
@@ -810,7 +810,7 @@ export default function ClubDashboard() {
                                 ✓
                               </div>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontSize: 12, fontWeight: 600, color: colors.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: colors.text.dark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                   {entry.ageCategory}
                                 </div>
                                 {entry.teamLevel && (
@@ -818,7 +818,7 @@ export default function ClubDashboard() {
                                 )}
                               </div>
                             </div>
-                            <div style={{ fontSize: 12, color: colors.text.secondary }}>›</div>
+                            <div style={{ fontSize: 12, color: colors.text.muted }}>›</div>
                           </div>
                         )
                       })}
@@ -836,23 +836,23 @@ export default function ClubDashboard() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const D: Record<string, React.CSSProperties> = {
-  page       : { padding: '26px 30px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 1100 },
+  page       : { padding: '26px 30px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 1100 },
   header     : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
   clubAvatar : { width: 46, height: 46, borderRadius: '50%', backgroundColor: colors.accent.gold, color: colors.text.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, flexShrink: 0 },
   clubName   : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 5px', letterSpacing: '0.02em' },
   kpiRow     : { display: 'flex', gap: 10, marginBottom: 16 },
-  kpiCard    : { flex: 1, backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, padding: '18px 16px', cursor: 'default', transition: 'border-color 0.15s, transform 0.15s' },
-  filterBar  : { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '10px 14px', backgroundColor: colors.background.surface, borderRadius: 8, border: `1px solid ${colors.accent.zinc}`, marginBottom: 16 },
-  select     : { padding: '5px 10px', borderRadius: 6, border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.elevated, color: colors.text.primary, fontSize: 12, cursor: 'pointer', outline: 'none' },
+  kpiCard    : { flex: 1, backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, padding: '18px 16px', cursor: 'default', transition: 'border-color 0.15s, transform 0.15s' },
+  filterBar  : { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '10px 14px', backgroundColor: colors.light.surface, borderRadius: 8, border: `1px solid ${colors.border.light}`, marginBottom: 16 },
+  select     : { padding: '5px 10px', borderRadius: 6, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.muted, color: colors.text.dark, fontSize: 12, cursor: 'pointer', outline: 'none' },
   alertBanner: { padding: '11px 14px', borderRadius: 8, marginBottom: 16, backgroundColor: 'rgba(255,193,7,0.05)', border: `1px solid ${colors.status.attention}30` },
   twoCol     : { display: 'flex', gap: 20, alignItems: 'flex-start' },
   rightCol   : { width: 268, flexShrink: 0 },
-  sectionLabel: { fontSize: 10, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 },
-  sectionBox : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, padding: '16px' },
-  table      : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden' },
-  tableHead  : { display: 'flex', alignItems: 'center', gap: 12, padding: '9px 14px', backgroundColor: colors.background.elevated, borderBottom: `1px solid ${colors.accent.zinc}` },
-  headCell   : { fontSize: 9, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.09em' } as React.CSSProperties,
-  tableRow   : { display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderBottom: `1px solid ${colors.accent.zinc}`, transition: 'background 0.12s', userSelect: 'none' } as React.CSSProperties,
-  rightCard  : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden' },
-  emptyState : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, padding: '36px 20px', textAlign: 'center', color: colors.text.primary },
+  sectionLabel: { fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 },
+  sectionBox : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, padding: '16px' },
+  table      : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden' },
+  tableHead  : { display: 'flex', alignItems: 'center', gap: 12, padding: '9px 14px', backgroundColor: colors.light.muted, borderBottom: `1px solid ${colors.border.light}` },
+  headCell   : { fontSize: 9, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.09em' } as React.CSSProperties,
+  tableRow   : { display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderBottom: `1px solid ${colors.border.light}`, transition: 'background 0.12s', userSelect: 'none' } as React.CSSProperties,
+  rightCard  : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden' },
+  emptyState : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, padding: '36px 20px', textAlign: 'center', color: colors.text.dark },
 }

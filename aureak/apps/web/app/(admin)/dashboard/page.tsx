@@ -1,12 +1,12 @@
 'use client'
-// Admin Dashboard — vue de contrôle multi-implantations
+// Admin Dashboard — vue de contrôle multi-implantations (Light Premium DA)
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, supabase,
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent } from '@aureak/api-client'
-import { colors } from '@aureak/theme'
+import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 // ── Design tokens (local helpers) ─────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ const SEV_LABEL: Record<string, string> = {
 }
 
 function rateColor(pct: number | null): string {
-  if (pct === null || pct === undefined) return colors.text.secondary
+  if (pct === null || pct === undefined) return colors.text.muted
   if (pct >= 80) return colors.status.present
   if (pct >= 60) return colors.status.attention
   return colors.status.absent
@@ -48,8 +48,8 @@ function DashboardSkeleton() {
   return (
     <div style={S.container}>
       <style>{`
-        @keyframes a-pulse{0%,100%{opacity:.18}50%{opacity:.45}}
-        .a-skel{background:${colors.background.elevated};animation:a-pulse 1.8s ease-in-out infinite}
+        @keyframes a-pulse{0%,100%{opacity:.12}50%{opacity:.25}}
+        .a-skel{background:${colors.border.divider};animation:a-pulse 1.8s ease-in-out infinite}
       `}</style>
 
       {/* Header skeleton */}
@@ -63,7 +63,7 @@ function DashboardSkeleton() {
 
       {/* KPI strip skeleton */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 24 }}>
-        {[0,1,2,3,4,5].map(i => <SkeletonBlock key={i} h={92} r={10} />)}
+        {[0,1,2,3,4,5].map(i => <SkeletonBlock key={i} h={92} r={radius.card} />)}
       </div>
 
       {/* Implantation cards skeleton */}
@@ -71,7 +71,7 @@ function DashboardSkeleton() {
         <SkeletonBlock h={16} w="140px" r={4} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-        {[0,1,2].map(i => <SkeletonBlock key={i} h={188} r={12} />)}
+        {[0,1,2].map(i => <SkeletonBlock key={i} h={188} r={radius.card} />)}
       </div>
     </div>
   )
@@ -84,11 +84,12 @@ type KpiCardProps = {
   value : string | number
   sub  ?: string
   accent: string
+  borderAccent?: string
 }
 
-function KpiCard({ label, value, sub, accent }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent, borderAccent }: KpiCardProps) {
   return (
-    <div style={{ ...S.kpiCard, borderTop: `2px solid ${accent}` }}>
+    <div style={{ ...S.kpiCard, borderTop: `3px solid ${borderAccent ?? accent}` }}>
       <div style={S.kpiLabel}>{label}</div>
       <div style={{ ...S.kpiValue, color: accent }}>{value}</div>
       {sub && <div style={S.kpiSub}>{sub}</div>}
@@ -104,7 +105,7 @@ function ProgressBar({ pct, label }: { pct: number | null; label: string }) {
   return (
     <div style={{ marginBottom: 11 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-        <span style={{ fontSize: 11, color: colors.text.secondary }}>{label}</span>
+        <span style={{ fontSize: 11, color: colors.text.muted }}>{label}</span>
         <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'Geist Mono, monospace' }}>
           {pct !== null && pct !== undefined ? `${val}%` : '—'}
         </span>
@@ -128,18 +129,18 @@ function ImplantationCard({ stat }: { stat: ImplantationStats }) {
     : null
 
   return (
-    <div style={{ ...S.implantCard, borderTop: `2px solid ${attendanceColor}` }}>
+    <div className="aureak-card" style={{ ...S.implantCard, borderTop: `3px solid ${attendanceColor}` }}>
       <div style={S.implantName}>{stat.implantation_name}</div>
 
       <ProgressBar pct={stat.attendance_rate_pct} label="Présence" />
       <ProgressBar pct={stat.mastery_rate_pct} label="Maîtrise" />
 
       <div style={S.implantFooter}>
-        <span style={{ fontSize: 11, color: colors.text.secondary }}>Séances clôturées</span>
+        <span style={{ fontSize: 11, color: colors.text.muted }}>Séances clôturées</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={S.implantSeances}>{seancesRatio}</span>
           {seancesPct !== null && (
-            <span style={{ fontSize: 10, color: colors.text.secondary }}>({seancesPct}%)</span>
+            <span style={{ fontSize: 10, color: colors.text.muted }}>({seancesPct}%)</span>
           )}
         </div>
       </div>
@@ -296,8 +297,8 @@ export default function DashboardPage() {
       <style>{`
         .aureak-resolve-btn:hover { opacity: 0.85; }
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
-        .aureak-card:hover { border-color: ${colors.accent.zinc}; transform: translateY(-1px); }
-        .aureak-implant-opt { background: ${colors.background.surface}; color: ${colors.text.primary}; }
+        .aureak-card:hover { box-shadow: ${shadows.md}; transform: translateY(-2px); }
+        .aureak-qa-btn:hover { transform: translateY(-1px); box-shadow: ${shadows.sm}; }
       `}</style>
 
       {/* ── Page Header ── */}
@@ -306,7 +307,7 @@ export default function DashboardPage() {
           <h1 style={S.pageTitle}>Tableau de bord</h1>
           <div style={S.pageSubtitle}>
             {selectedName
-              ? <>Vue filtrée · <span style={{ color: colors.accent.gold }}>{selectedName}</span></>
+              ? <>Vue filtrée · <span style={{ color: colors.accent.gold, fontWeight: 600 }}>{selectedName}</span></>
               : `Vue globale · ${stats.length} implantation${stats.length !== 1 ? 's' : ''}`
             }
           </div>
@@ -337,7 +338,7 @@ export default function DashboardPage() {
               style={S.dateInput}
             />
           </div>
-          <span style={{ color: colors.text.secondary, fontSize: 13, paddingTop: 16 }}>→</span>
+          <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
           <div style={S.dateGroup}>
             <label style={S.dateLabel}>Au</label>
             <input
@@ -365,31 +366,33 @@ export default function DashboardPage() {
           label="Coachs"
           value={countVal(coachesTotal)}
           sub={selectedName ? `assignés` : undefined}
-          accent={colors.status.present}
+          accent={colors.accent.gold}
         />
         <KpiCard
           label="Groupes"
           value={countVal(groupsTotal)}
           sub={selectedName ? `dans ${selectedName}` : undefined}
-          accent={'#4FC3F7'}
+          accent={colors.accent.gold}
         />
         <KpiCard
           label="Séances"
           value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
           sub="clôturées / total"
-          accent={colors.text.primary}
+          accent={colors.accent.gold}
         />
         <KpiCard
           label="Taux de présence"
           value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
           sub={selectedName ? 'implantation' : 'moyenne globale'}
           accent={rateColor(avgAttendance)}
+          borderAccent={colors.accent.gold}
         />
         <KpiCard
           label="Taux de maîtrise"
           value={avgMastery !== null ? `${avgMastery}%` : '—'}
           sub={selectedName ? 'implantation' : 'moyenne globale'}
           accent={rateColor(avgMastery)}
+          borderAccent={colors.accent.gold}
         />
       </div>
 
@@ -400,6 +403,7 @@ export default function DashboardPage() {
           {QUICK_ACTIONS.map(action => (
             <button
               key={action.href}
+              className="aureak-qa-btn"
               style={action.primary ? S.qaBtnPrimary : S.qaBtnSecondary}
               onClick={() => router.push(action.href as never)}
             >
@@ -429,13 +433,13 @@ export default function DashboardPage() {
                 {anomalies.length} anomalie{anomalies.length > 1 ? 's' : ''} non résolue{anomalies.length > 1 ? 's' : ''}
               </span>
               {criticalCount > 0 && (
-                <span style={{ fontSize: 11, color: colors.text.secondary }}>
+                <span style={{ fontSize: 11, color: colors.text.muted }}>
                   dont {criticalCount} critique{criticalCount > 1 ? 's' : ''}
                 </span>
               )}
             </div>
             {selectedName && (
-              <span style={{ fontSize: 11, color: colors.text.secondary, fontStyle: 'italic' }}>
+              <span style={{ fontSize: 11, color: colors.text.muted, fontStyle: 'italic' }}>
                 Anomalies non filtrables par implantation
               </span>
             )}
@@ -448,12 +452,12 @@ export default function DashboardPage() {
                 {/* Severity dot */}
                 <div style={{
                   width: 7, height: 7, borderRadius: 4,
-                  backgroundColor: SEV_COLOR[a.severity] ?? colors.text.secondary,
+                  backgroundColor: SEV_COLOR[a.severity] ?? colors.text.muted,
                   flexShrink: 0,
                 }} />
 
                 {/* Type */}
-                <div style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
+                <div style={{ flex: 1, fontSize: 13, color: colors.text.dark }}>
                   {anomalyLabel(a.anomalyType)}
                 </div>
 
@@ -465,8 +469,8 @@ export default function DashboardPage() {
                   textTransform: 'uppercase',
                   padding      : '2px 8px',
                   borderRadius : 4,
-                  backgroundColor: colors.background.primary,
-                  color        : SEV_COLOR[a.severity] ?? colors.text.secondary,
+                  backgroundColor: colors.light.muted,
+                  color        : SEV_COLOR[a.severity] ?? colors.text.muted,
                 }}>
                   {SEV_LABEL[a.severity] ?? a.severity}
                 </span>
@@ -503,10 +507,10 @@ export default function DashboardPage() {
       {visibleStats.length === 0 ? (
         <div style={S.emptyState}>
           <div style={{ fontSize: 36, marginBottom: 14 }}>📊</div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Rajdhani, sans-serif' }}>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
             Aucune donnée disponible
           </div>
-          <div style={{ fontSize: 13, color: colors.text.secondary, maxWidth: 320, textAlign: 'center', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: colors.text.muted, maxWidth: 320, textAlign: 'center', lineHeight: 1.5 }}>
             {selectedName
               ? `Aucune séance enregistrée pour ${selectedName} sur cette période.`
               : 'Ajustez la période de filtrage ou vérifiez que des séances ont été enregistrées.'
@@ -524,14 +528,14 @@ export default function DashboardPage() {
   )
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+// ── Styles (Light Premium DA) ─────────────────────────────────────────────────
 
 const S: Record<string, React.CSSProperties> = {
   container       : {
     padding        : '28px 32px',
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     minHeight      : '100vh',
-    color          : colors.text.primary,
+    color          : colors.text.dark,
     fontFamily     : 'Geist, system-ui, sans-serif',
     boxSizing      : 'border-box',
   },
@@ -547,16 +551,16 @@ const S: Record<string, React.CSSProperties> = {
   },
   pageTitle       : {
     fontSize       : 26,
-    fontWeight     : 700,
+    fontWeight     : 900,
     fontFamily     : 'Rajdhani, sans-serif',
     letterSpacing  : 0.4,
     margin         : 0,
-    color          : colors.text.primary,
+    color          : colors.accent.gold,
     lineHeight     : 1.1,
   },
   pageSubtitle    : {
     fontSize       : 12,
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     marginTop      : 4,
     letterSpacing  : 0.3,
   },
@@ -576,45 +580,47 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight     : 600,
     letterSpacing  : 1,
     textTransform  : 'uppercase',
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
   },
   dateInput       : {
     padding        : '7px 11px',
-    borderRadius   : 7,
-    border         : `1px solid ${colors.accent.zinc}`,
-    backgroundColor: colors.background.surface,
-    color          : colors.text.primary,
+    borderRadius   : radius.xs,
+    border         : `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.surface,
+    color          : colors.text.dark,
     fontSize       : 13,
     outline        : 'none',
     cursor         : 'pointer',
     fontFamily     : 'Geist, sans-serif',
+    transition     : `border-color ${transitions.fast}`,
   },
   implantSelect   : {
     padding        : '7px 32px 7px 11px',
-    borderRadius   : 7,
-    border         : `1px solid ${colors.accent.zinc}`,
-    backgroundColor: colors.background.surface,
-    color          : colors.text.primary,
+    borderRadius   : radius.xs,
+    border         : `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.surface,
+    color          : colors.text.dark,
     fontSize       : 13,
     outline        : 'none',
     cursor         : 'pointer',
     fontFamily     : 'Geist, sans-serif',
     minWidth       : 210,
     appearance     : 'none',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717A' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
     backgroundRepeat  : 'no-repeat',
     backgroundPosition: 'right 10px center',
+    transition     : `border-color ${transitions.fast}`,
   },
   refreshBtn      : {
     padding        : '7px 16px',
-    borderRadius   : 7,
-    border         : `1px solid ${colors.accent.zinc}`,
-    backgroundColor: 'transparent',
-    color          : colors.text.secondary,
+    borderRadius   : radius.xs,
+    border         : `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.surface,
+    color          : colors.text.muted,
     fontSize       : 13,
     cursor         : 'pointer',
     fontFamily     : 'Geist, sans-serif',
-    transition     : 'all 0.15s',
+    transition     : `all ${transitions.fast}`,
     whiteSpace     : 'nowrap',
   },
 
@@ -626,20 +632,22 @@ const S: Record<string, React.CSSProperties> = {
     marginBottom          : 24,
   },
   kpiCard         : {
-    backgroundColor: colors.background.surface,
-    borderRadius   : 10,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     padding        : '16px 18px',
-    border         : `1px solid ${colors.accent.zinc}`,
+    border         : `1px solid ${colors.border.light}`,
+    boxShadow      : shadows.sm,
     display        : 'flex',
     flexDirection  : 'column',
     gap            : 0,
+    transition     : `box-shadow ${transitions.normal}`,
   },
   kpiLabel        : {
     fontSize       : 10,
     fontWeight     : 600,
     letterSpacing  : 1.1,
     textTransform  : 'uppercase',
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     marginBottom   : 8,
   },
   kpiValue        : {
@@ -651,17 +659,18 @@ const S: Record<string, React.CSSProperties> = {
   },
   kpiSub          : {
     fontSize       : 11,
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     marginTop      : 5,
     lineHeight     : 1.3,
   },
 
   // Anomaly Panel
   anomalyPanel    : {
-    backgroundColor: colors.background.surface,
-    borderRadius   : 10,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     padding        : '14px 18px',
-    border         : `1px solid ${colors.accent.zinc}`,
+    border         : `1px solid ${colors.border.light}`,
+    boxShadow      : shadows.sm,
     marginBottom   : 24,
   },
   anomalyPanelHeader: {
@@ -675,20 +684,20 @@ const S: Record<string, React.CSSProperties> = {
     alignItems     : 'center',
     gap            : 10,
     padding        : '8px 10px',
-    borderRadius   : 6,
-    backgroundColor: colors.background.elevated,
+    borderRadius   : radius.xs,
+    backgroundColor: colors.light.muted,
   },
   resolveBtn      : {
     padding        : '4px 12px',
     borderRadius   : 5,
     border         : 'none',
     backgroundColor: colors.status.present,
-    color          : colors.text.dark,
+    color          : '#FFFFFF',
     fontSize       : 12,
     fontWeight     : 600,
     fontFamily     : 'Geist, sans-serif',
     flexShrink     : 0,
-    transition     : 'opacity 0.15s',
+    transition     : `opacity ${transitions.fast}`,
   },
 
   // Section header
@@ -709,7 +718,7 @@ const S: Record<string, React.CSSProperties> = {
   },
   sectionCount    : {
     fontSize       : 11,
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     paddingTop     : 1,
   },
 
@@ -720,23 +729,25 @@ const S: Record<string, React.CSSProperties> = {
     gap                   : 16,
   },
   implantCard     : {
-    backgroundColor: colors.background.surface,
-    borderRadius   : 12,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     padding        : '20px',
-    border         : `1px solid ${colors.accent.zinc}`,
-    transition     : 'transform 0.15s',
+    border         : `1px solid ${colors.border.light}`,
+    boxShadow      : shadows.sm,
+    transition     : `all ${transitions.normal}`,
+    cursor         : 'default',
   },
   implantName     : {
     fontSize       : 16,
     fontWeight     : 700,
     fontFamily     : 'Rajdhani, sans-serif',
     letterSpacing  : 0.3,
-    color          : colors.text.primary,
+    color          : colors.text.dark,
     marginBottom   : 14,
   },
   progressTrack   : {
     height         : 4,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.border.divider,
     borderRadius   : 2,
     overflow       : 'hidden',
   },
@@ -751,13 +762,13 @@ const S: Record<string, React.CSSProperties> = {
     alignItems     : 'center',
     paddingTop     : 12,
     marginTop      : 4,
-    borderTop      : `1px solid ${colors.accent.zinc}`,
+    borderTop      : `1px solid ${colors.border.divider}`,
   },
   implantSeances  : {
     fontSize       : 13,
     fontWeight     : 700,
     fontFamily     : 'Geist Mono, monospace',
-    color          : colors.text.primary,
+    color          : colors.text.dark,
   },
 
   // Quick actions
@@ -767,9 +778,10 @@ const S: Record<string, React.CSSProperties> = {
     gap            : 16,
     marginBottom   : 24,
     padding        : '12px 16px',
-    backgroundColor: colors.background.surface,
-    borderRadius   : 10,
-    border         : `1px solid ${colors.accent.zinc}`,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    border         : `1px solid ${colors.border.light}`,
+    boxShadow      : shadows.sm,
     flexWrap       : 'wrap',
   },
   qaBarLabel      : {
@@ -777,7 +789,7 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight     : 700,
     letterSpacing  : 1.2,
     textTransform  : 'uppercase',
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     whiteSpace     : 'nowrap',
   },
   qaRow           : {
@@ -788,7 +800,7 @@ const S: Record<string, React.CSSProperties> = {
   },
   qaBtnPrimary    : {
     padding        : '6px 14px',
-    borderRadius   : 6,
+    borderRadius   : radius.button,
     border         : 'none',
     backgroundColor: colors.accent.gold,
     color          : colors.text.dark,
@@ -797,29 +809,30 @@ const S: Record<string, React.CSSProperties> = {
     cursor         : 'pointer',
     fontFamily     : 'Geist, sans-serif',
     whiteSpace     : 'nowrap',
-    transition     : 'opacity 0.15s',
+    transition     : `all ${transitions.fast}`,
   },
   qaBtnSecondary  : {
     padding        : '6px 14px',
-    borderRadius   : 6,
-    border         : `1px solid ${colors.accent.zinc}`,
-    backgroundColor: 'transparent',
-    color          : colors.text.secondary,
+    borderRadius   : radius.button,
+    border         : `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.surface,
+    color          : colors.text.muted,
     fontSize       : 12,
     fontWeight     : 600,
     cursor         : 'pointer',
     fontFamily     : 'Geist, sans-serif',
     whiteSpace     : 'nowrap',
-    transition     : 'all 0.15s',
+    transition     : `all ${transitions.fast}`,
   },
 
   // Empty state
   emptyState      : {
-    backgroundColor: colors.background.surface,
-    borderRadius   : 12,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     padding        : '48px 24px',
     textAlign      : 'center',
-    border         : `1px solid ${colors.accent.zinc}`,
+    border         : `1px solid ${colors.border.light}`,
+    boxShadow      : shadows.sm,
     display        : 'flex',
     flexDirection  : 'column',
     alignItems     : 'center',

@@ -24,7 +24,7 @@ import type {
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
   en_cours : '#4ade80',
-  terminé  : colors.text.secondary,
+  terminé  : colors.text.muted,
   annulé   : '#f87171',
 }
 
@@ -78,7 +78,7 @@ function BlockCard({
   onDelete   : (id: string) => void
 }) {
   const method = block.method
-  const color  = method ? METHOD_COLOR[method] : colors.accent.zinc
+  const color  = method ? METHOD_COLOR[method] : colors.border.light
 
   return (
     <View style={[bc.card, { borderLeftColor: color }]}>
@@ -89,7 +89,7 @@ function BlockCard({
         </AureakText>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <Pressable onPress={() => onEdit(block)} style={bc.actionBtn}>
-            <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.secondary }}>Éditer</AureakText>
+            <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>Éditer</AureakText>
           </Pressable>
           <Pressable onPress={() => onDelete(block.id)} style={bc.actionBtn}>
             <AureakText variant="caption" style={{ fontSize: 10, color: '#f87171' }}>Suppr.</AureakText>
@@ -104,8 +104,8 @@ function BlockCard({
             <AureakText variant="caption" style={{ color, fontSize: 10, fontWeight: '700' }}>{method}</AureakText>
           </View>
         )}
-        <View style={{ backgroundColor: colors.background.elevated, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
-          <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.secondary }}>
+        <View style={{ backgroundColor: colors.light.muted, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+          <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>
             {SESSION_TYPES.find(t => t.value === block.sessionType)?.label ?? block.sessionType}
           </AureakText>
         </View>
@@ -113,14 +113,14 @@ function BlockCard({
 
       {/* Theme */}
       {block.theme && (
-        <AureakText variant="caption" style={{ color: colors.text.primary, marginTop: 4, fontSize: 12, fontWeight: '600' }}>
+        <AureakText variant="caption" style={{ color: colors.text.dark, marginTop: 4, fontSize: 12, fontWeight: '600' }}>
           {block.theme}
         </AureakText>
       )}
 
       {/* Terrain */}
       {block.terrain && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
           📍 {block.terrain}
         </AureakText>
       )}
@@ -129,12 +129,12 @@ function BlockCard({
       {(block.coachPrincipalId || block.coachAssistantId) && (
         <View style={{ flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
           {block.coachPrincipalId && (
-            <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+            <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
               👤 {coachNames.get(block.coachPrincipalId) ?? '…'}
             </AureakText>
           )}
           {block.coachAssistantId && (
-            <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+            <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
               · {coachNames.get(block.coachAssistantId) ?? '…'}
             </AureakText>
           )}
@@ -143,7 +143,7 @@ function BlockCard({
 
       {/* Notes */}
       {block.notes && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: 4, fontStyle: 'italic' }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 4, fontStyle: 'italic' }}>
           {block.notes}
         </AureakText>
       )}
@@ -153,18 +153,18 @@ function BlockCard({
 
 const bc = StyleSheet.create({
   card: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 8,
     padding        : space.sm,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent.zinc,
+    borderLeftColor: colors.border.light,
     gap            : 2,
   },
   actionBtn: {
     paddingHorizontal: 8,
     paddingVertical  : 3,
     borderRadius     : 5,
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
   },
 })
 
@@ -241,7 +241,7 @@ function BlockModal({
                 style={[m.chip, active && { borderColor: color, backgroundColor: color + '18' }]}
                 onPress={() => onSelect(active ? null : v)}
               >
-                <AureakText variant="caption" style={{ color: active ? color : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 11 }}>
+                <AureakText variant="caption" style={{ color: active ? color : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 11 }}>
                   {getLabel(v)}
                 </AureakText>
               </Pressable>
@@ -260,7 +260,7 @@ function BlockModal({
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <AureakText variant="h3">Bloc d'entraînement</AureakText>
             <Pressable onPress={onClose}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>✕</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
             </Pressable>
           </View>
 
@@ -274,7 +274,7 @@ function BlockModal({
                   style={[m.chip, d.startHour === h && m.chipActive]}
                   onPress={() => setD(prev => ({ ...prev, startHour: h }))}
                 >
-                  <AureakText variant="caption" style={{ color: d.startHour === h ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: d.startHour === h ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>
                     {String(h).padStart(2, '0')}h
                   </AureakText>
                 </Pressable>
@@ -291,7 +291,7 @@ function BlockModal({
                   style={[m.chip, d.startMinute === min && m.chipActive]}
                   onPress={() => setD(prev => ({ ...prev, startMinute: min }))}
                 >
-                  <AureakText variant="caption" style={{ color: d.startMinute === min ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: d.startMinute === min ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>
                     :{String(min).padStart(2, '0')}
                   </AureakText>
                 </Pressable>
@@ -308,7 +308,7 @@ function BlockModal({
                   style={[m.chip, d.durationMinutes === dur && m.chipActive]}
                   onPress={() => setD(prev => ({ ...prev, durationMinutes: dur }))}
                 >
-                  <AureakText variant="caption" style={{ color: d.durationMinutes === dur ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: d.durationMinutes === dur ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>
                     {fmtDuration(dur)}
                   </AureakText>
                 </Pressable>
@@ -344,7 +344,7 @@ function BlockModal({
               value={d.theme}
               onChangeText={v => setD(prev => ({ ...prev, theme: v }))}
               placeholder="Ex : Sortie au sol, Jeu aérien…"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
             />
           </View>
 
@@ -356,7 +356,7 @@ function BlockModal({
               value={d.terrain}
               onChangeText={v => setD(prev => ({ ...prev, terrain: v }))}
               placeholder="Terrain 1, Hall B…"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
             />
           </View>
 
@@ -365,7 +365,7 @@ function BlockModal({
             <AureakText variant="caption" style={m.label}>Coach principal</AureakText>
             <View style={m.chipRow}>
               <Pressable style={[m.chip, d.coachPrincipalId === '' && m.chipActive]} onPress={() => setD(prev => ({ ...prev, coachPrincipalId: '' }))}>
-                <AureakText variant="caption" style={{ fontSize: 11, color: d.coachPrincipalId === '' ? colors.accent.gold : colors.text.secondary }}>Aucun</AureakText>
+                <AureakText variant="caption" style={{ fontSize: 11, color: d.coachPrincipalId === '' ? colors.accent.gold : colors.text.muted }}>Aucun</AureakText>
               </Pressable>
               {coaches.map(c => (
                 <Pressable
@@ -373,7 +373,7 @@ function BlockModal({
                   style={[m.chip, d.coachPrincipalId === c.id && m.chipActive]}
                   onPress={() => setD(prev => ({ ...prev, coachPrincipalId: prev.coachPrincipalId === c.id ? '' : c.id }))}
                 >
-                  <AureakText variant="caption" style={{ fontSize: 11, color: d.coachPrincipalId === c.id ? colors.accent.gold : colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ fontSize: 11, color: d.coachPrincipalId === c.id ? colors.accent.gold : colors.text.muted }}>
                     {c.name}
                   </AureakText>
                 </Pressable>
@@ -385,7 +385,7 @@ function BlockModal({
             <AureakText variant="caption" style={m.label}>Coach assistant</AureakText>
             <View style={m.chipRow}>
               <Pressable style={[m.chip, d.coachAssistantId === '' && m.chipActive]} onPress={() => setD(prev => ({ ...prev, coachAssistantId: '' }))}>
-                <AureakText variant="caption" style={{ fontSize: 11, color: d.coachAssistantId === '' ? colors.accent.gold : colors.text.secondary }}>Aucun</AureakText>
+                <AureakText variant="caption" style={{ fontSize: 11, color: d.coachAssistantId === '' ? colors.accent.gold : colors.text.muted }}>Aucun</AureakText>
               </Pressable>
               {coaches.map(c => (
                 <Pressable
@@ -393,7 +393,7 @@ function BlockModal({
                   style={[m.chip, d.coachAssistantId === c.id && m.chipActive]}
                   onPress={() => setD(prev => ({ ...prev, coachAssistantId: prev.coachAssistantId === c.id ? '' : c.id }))}
                 >
-                  <AureakText variant="caption" style={{ fontSize: 11, color: d.coachAssistantId === c.id ? colors.accent.gold : colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ fontSize: 11, color: d.coachAssistantId === c.id ? colors.accent.gold : colors.text.muted }}>
                     {c.name}
                   </AureakText>
                 </Pressable>
@@ -409,7 +409,7 @@ function BlockModal({
               value={d.notes}
               onChangeText={v => setD(prev => ({ ...prev, notes: v }))}
               placeholder="Consignes, matériel…"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
               multiline
             />
           </View>
@@ -426,24 +426,24 @@ function BlockModal({
 const m = StyleSheet.create({
   overlay : { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   sheet   : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     padding: space.lg,
     maxHeight: '90%' as never,
   },
   field   : { gap: 6 },
-  label   : { color: colors.text.secondary, fontSize: 11, textTransform: 'uppercase' as never, letterSpacing: 0.8, fontWeight: '600' },
+  label   : { color: colors.text.muted, fontSize: 11, textTransform: 'uppercase' as never, letterSpacing: 0.8, fontWeight: '600' },
   input   : {
-    backgroundColor  : colors.background.elevated,
-    borderWidth      : 1, borderColor: colors.accent.zinc,
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1, borderColor: colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
   chipRow  : { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip     : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
+  chip     : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
   chipActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
   saveBtn  : { backgroundColor: colors.accent.gold, borderRadius: 8, paddingVertical: space.sm + 2, alignItems: 'center' },
 })
@@ -621,18 +621,18 @@ export default function StageDetailPage() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background.primary, padding: space.xl }}>
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+      <View style={{ flex: 1, backgroundColor: colors.light.primary, padding: space.xl }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       </View>
     )
   }
 
   if (!stage) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background.primary, padding: space.xl }}>
+      <View style={{ flex: 1, backgroundColor: colors.light.primary, padding: space.xl }}>
         <AureakText variant="caption" style={{ color: '#f87171' }}>Stage introuvable.</AureakText>
         <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
         </Pressable>
       </View>
     )
@@ -648,7 +648,7 @@ export default function StageDetailPage() {
 
         {/* ── Back ── */}
         <Pressable onPress={() => router.push('/stages' as never)}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Stages</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Stages</AureakText>
         </Pressable>
 
         {/* ── Hero ── */}
@@ -672,7 +672,7 @@ export default function StageDetailPage() {
               {STATUSES.map(st => (
                 <Pressable key={st} style={p.statusOption} onPress={() => handleStatusChange(st)}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: STATUS_COLORS[st], marginRight: 8 }} />
-                  <AureakText variant="caption" style={{ color: colors.text.primary }}>
+                  <AureakText variant="caption" style={{ color: colors.text.dark }}>
                     {st.charAt(0).toUpperCase() + st.slice(1)}
                   </AureakText>
                 </Pressable>
@@ -712,7 +712,7 @@ export default function StageDetailPage() {
           </View>
 
           {stage.notes && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: space.xs, fontStyle: 'italic' }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: space.xs, fontStyle: 'italic' }}>
               {stage.notes}
             </AureakText>
           )}
@@ -740,7 +740,7 @@ export default function StageDetailPage() {
                 value={newDayDate}
                 onChangeText={setNewDayDate}
                 placeholder="AAAA-MM-JJ"
-                placeholderTextColor={colors.text.secondary}
+                placeholderTextColor={colors.text.muted}
               />
               {dayError && (
                 <AureakText variant="caption" style={{ color: '#f87171' }}>{dayError}</AureakText>
@@ -769,7 +769,7 @@ export default function StageDetailPage() {
                         style={[p.dayTab, isActive && p.dayTabActive]}
                         onPress={() => setActiveDayId(day.id)}
                       >
-                        <AureakText variant="caption" style={{ color: isActive ? colors.accent.gold : colors.text.secondary, fontWeight: isActive ? '700' : '400', fontSize: 11 }}>
+                        <AureakText variant="caption" style={{ color: isActive ? colors.accent.gold : colors.text.muted, fontWeight: isActive ? '700' : '400', fontSize: 11 }}>
                           {fmtDate(day.date)}
                         </AureakText>
                         {dayBlocks.length > 0 && (
@@ -781,7 +781,7 @@ export default function StageDetailPage() {
                                   width : 8,
                                   height: 4,
                                   borderRadius   : 2,
-                                  backgroundColor: b.method ? METHOD_COLOR[b.method] : colors.accent.zinc,
+                                  backgroundColor: b.method ? METHOD_COLOR[b.method] : colors.border.light,
                                 }}
                               />
                             ))}
@@ -818,7 +818,7 @@ export default function StageDetailPage() {
                         {usedMethods.map(method => (
                           <View key={method} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                             <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: METHOD_COLOR[method] }} />
-                            <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.secondary }}>{method}</AureakText>
+                            <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>{method}</AureakText>
                           </View>
                         ))}
                       </View>
@@ -828,7 +828,7 @@ export default function StageDetailPage() {
                   {/* Block timeline */}
                   {activeBlocks.length === 0 ? (
                     <View style={p.emptyDay}>
-                      <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun bloc.</AureakText>
+                      <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun bloc.</AureakText>
                       <Pressable onPress={openCreateBlock} style={{ marginTop: space.xs }}>
                         <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un bloc d'entraînement</AureakText>
                       </Pressable>
@@ -851,7 +851,7 @@ export default function StageDetailPage() {
             </>
           ) : (
             <View style={p.emptyDays}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
                 Aucune journée planifiée. Ajoutez la première journée.
               </AureakText>
             </View>
@@ -873,14 +873,14 @@ export default function StageDetailPage() {
 }
 
 const p = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.xl, gap: space.lg },
 
   hero: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 12,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     borderTopWidth : 3,
     borderTopColor : colors.accent.gold,
     padding        : space.lg,
@@ -888,10 +888,10 @@ const p = StyleSheet.create({
   },
 
   statusPicker: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 8,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.xs,
     marginTop      : 4,
     alignSelf      : 'flex-end',
@@ -904,19 +904,19 @@ const p = StyleSheet.create({
   },
 
   metaChip: {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderRadius     : 12,
     paddingHorizontal: 10,
     paddingVertical  : 3,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
   },
 
   section: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 12,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.lg,
   },
 
@@ -924,13 +924,13 @@ const p = StyleSheet.create({
   addDayForm: { flexDirection: 'row', gap: space.sm, alignItems: 'center', marginBottom: space.sm },
   input: {
     flex             : 1,
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
   addDayConfirmBtn: {
@@ -945,8 +945,8 @@ const p = StyleSheet.create({
     paddingVertical  : 8,
     borderRadius     : 8,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
-    backgroundColor  : colors.background.elevated,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.muted,
     alignItems       : 'center',
   },
   dayTabActive: {
@@ -955,7 +955,7 @@ const p = StyleSheet.create({
   },
 
   dayContent: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 10,
     padding        : space.md,
     gap            : 4,
@@ -974,7 +974,7 @@ const p = StyleSheet.create({
     padding        : space.lg,
     borderRadius   : 8,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     borderStyle    : 'dashed' as never,
   },
 

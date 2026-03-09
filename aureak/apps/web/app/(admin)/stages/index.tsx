@@ -11,7 +11,7 @@ import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
   en_cours : '#4ade80',
-  terminé  : colors.text.secondary,
+  terminé  : colors.text.muted,
   annulé   : '#f87171',
 }
 
@@ -68,9 +68,9 @@ export default function StagesPage() {
       {/* Header */}
       <View style={s.header}>
         <View>
-          <AureakText variant="h2">Stages</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Stages</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {filtered.length} stage{filtered.length !== 1 ? 's' : ''}
             </AureakText>
           )}
@@ -91,30 +91,31 @@ export default function StagesPage() {
         value={search}
         onChangeText={setSearch}
         placeholder="Rechercher par nom…"
-        placeholderTextColor={colors.text.secondary}
+        placeholderTextColor={colors.text.muted}
       />
 
       {/* Status filter tabs */}
       <View style={s.filterRow}>
-        {(['all', 'planifié', 'en_cours', 'terminé', 'annulé'] as FilterStatus[]).map(st => (
-          <Pressable
-            key={st}
-            style={[s.tab, filter === st && s.tabActive]}
-            onPress={() => setFilter(st)}
-          >
-            <AureakText
-              variant="caption"
-              style={{
-                color     : filter === st
-                  ? (st === 'all' ? colors.accent.gold : STATUS_COLORS[st as StageStatus])
-                  : colors.text.secondary,
-                fontWeight: filter === st ? '700' : '400',
-              }}
+        {(['all', 'planifié', 'en_cours', 'terminé', 'annulé'] as FilterStatus[]).map(st => {
+          const isActive = filter === st
+          return (
+            <Pressable
+              key={st}
+              style={[s.tab, isActive ? s.tabActive : s.tabInactive]}
+              onPress={() => setFilter(st)}
             >
-              {st === 'all' ? 'Tous' : st.charAt(0).toUpperCase() + st.slice(1)}
-            </AureakText>
-          </Pressable>
-        ))}
+              <AureakText
+                variant="caption"
+                style={{
+                  color     : isActive ? colors.text.dark : colors.text.muted,
+                  fontWeight: isActive ? '700' : '400',
+                }}
+              >
+                {st === 'all' ? 'Tous' : st.charAt(0).toUpperCase() + st.slice(1)}
+              </AureakText>
+            </Pressable>
+          )
+        })}
       </View>
 
       {/* Grid */}
@@ -124,8 +125,8 @@ export default function StagesPage() {
         </View>
       ) : filtered.length === 0 ? (
         <View style={s.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.secondary }}>Aucun stage</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4 }}>
+          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun stage</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
             {search ? 'Aucun résultat.' : 'Créez votre premier stage.'}
           </AureakText>
         </View>
@@ -151,14 +152,14 @@ export default function StagesPage() {
 
                 {/* Type + season */}
                 {(stage.type || stage.seasonLabel) && (
-                  <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
                     {[stage.type ? TYPE_LABELS[stage.type] : null, stage.seasonLabel].filter(Boolean).join(' · ')}
                   </AureakText>
                 )}
 
                 {/* Implantation */}
                 {stage.implantationName && (
-                  <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
                     📍 {stage.implantationName}
                   </AureakText>
                 )}
@@ -173,10 +174,10 @@ export default function StagesPage() {
                 {/* Footer stats */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.xs }}>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                       {stage.dayCount} jour{stage.dayCount !== 1 ? 's' : ''}
                     </AureakText>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                       · {stage.participantCount} joueur{stage.participantCount !== 1 ? 's' : ''}
                     </AureakText>
                   </View>
@@ -194,7 +195,7 @@ export default function StagesPage() {
 }
 
 const s = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
   header     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
 
@@ -206,26 +207,26 @@ const s = StyleSheet.create({
   },
 
   searchInput: {
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
 
   filterRow : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' as never },
   tab       : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 5 },
-  tabActive : { backgroundColor: colors.background.elevated },
+  tabActive : { backgroundColor: colors.light.muted },
 
   grid        : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   card        : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     overflow       : 'hidden',
     width          : '100%' as never,
     maxWidth       : 360,
@@ -233,23 +234,23 @@ const s = StyleSheet.create({
   },
   cardAccent  : { height: 3 },
   chip        : {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderRadius     : 12,
     paddingHorizontal: 8,
     paddingVertical  : 3,
     alignSelf        : 'flex-start',
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
   },
 
   skeletonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  skeletonCard: { width: 300, height: 150, backgroundColor: colors.background.surface, borderRadius: 10, opacity: 0.5 },
+  skeletonCard: { width: 300, height: 150, backgroundColor: colors.light.surface, borderRadius: 10, opacity: 0.5 },
   emptyState  : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.xxl,
     alignItems     : 'center',
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
 })

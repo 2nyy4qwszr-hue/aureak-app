@@ -11,7 +11,7 @@ import type { ThemeGroup } from '@aureak/types'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -23,11 +23,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   groupCard: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     width: 56,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
     borderRadius: 4,
@@ -109,7 +109,7 @@ export default function ThemeGroupsPage() {
       </View>
 
       {loading && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
       {groups.map((group) => (
@@ -126,7 +126,7 @@ export default function ThemeGroupsPage() {
       ))}
 
       {!loading && groups.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucun groupe configuré.
         </AureakText>
       )}

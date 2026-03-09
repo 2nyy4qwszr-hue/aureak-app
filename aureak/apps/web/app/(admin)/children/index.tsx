@@ -6,7 +6,7 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native
 import { useRouter } from 'expo-router'
 import { listJoueurs, listAcademySeasons, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import type { AcademyStatus } from '@aureak/types'
 
@@ -73,18 +73,18 @@ function Pagination({
   const end   = Math.min((page + 1) * PAGE_SIZE, total)
   return (
     <View style={pag.row}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted }}>
         {total > 0 ? `${start}–${end} sur ${total}` : '0 résultat'}
       </AureakText>
       <View style={pag.btnRow}>
         <Pressable style={[pag.btn, page === 0 && pag.disabled]} onPress={onPrev} disabled={page === 0}>
-          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.secondary : colors.text.primary }}>←</AureakText>
+          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.muted : colors.text.dark }}>←</AureakText>
         </Pressable>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, paddingHorizontal: space.sm }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.sm }}>
           {page + 1} / {totalPages}
         </AureakText>
         <Pressable style={[pag.btn, end >= total && pag.disabled]} onPress={onNext} disabled={end >= total}>
-          <AureakText variant="caption" style={{ color: end >= total ? colors.text.secondary : colors.text.primary }}>→</AureakText>
+          <AureakText variant="caption" style={{ color: end >= total ? colors.text.muted : colors.text.dark }}>→</AureakText>
         </Pressable>
       </View>
     </View>
@@ -93,7 +93,7 @@ function Pagination({
 const pag = StyleSheet.create({
   row    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
   btnRow : { flexDirection: 'row', alignItems: 'center' },
-  btn    : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.surface },
+  btn    : { width: 30, height: 30, borderRadius: radius.xs, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.light.surface },
   disabled: { opacity: 0.35 },
 })
 
@@ -112,7 +112,7 @@ function JoueurRow({ item, onPress }: { item: JoueurListItem; onPress: () => voi
             <AureakText variant="caption" style={row.metaText}>⚽ {item.currentClub}</AureakText>
           )}
           {item.niveauClub && (
-            <AureakText variant="caption" style={[row.metaText, { color: colors.text.secondary }] as never}>
+            <AureakText variant="caption" style={[row.metaText, { color: colors.text.muted }] as never}>
               {item.currentClub ? ' · ' : ''}{item.niveauClub}
             </AureakText>
           )}
@@ -146,12 +146,12 @@ const row = StyleSheet.create({
   container: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: space.md, paddingVertical: space.sm + 2,
-    borderBottomWidth: 1, borderBottomColor: colors.accent.zinc,
+    borderBottomWidth: 1, borderBottomColor: colors.border.divider,
   },
   info   : { flex: 1, gap: 3 },
   name   : { fontWeight: '600' as never, fontSize: 14 },
   meta   : { flexDirection: 'row', flexWrap: 'wrap' },
-  metaText: { color: colors.text.primary, fontSize: 12 },
+  metaText: { color: colors.text.dark, fontSize: 12 },
   badges : { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginTop: 2 },
   btn    : {
     paddingHorizontal: space.sm, paddingVertical: 4,
@@ -163,13 +163,12 @@ const row = StyleSheet.create({
 // ── Filter tab row ─────────────────────────────────────────────────────────────
 
 function FilterRow<K extends string>({
-  label, tabs, active, onSelect, getColor,
+  label, tabs, active, onSelect,
 }: {
   label    : string
   tabs     : { key: K; label: string }[]
   active   : K
   onSelect : (key: K) => void
-  getColor?: (key: K) => string
 }) {
   return (
     <View style={fr.wrap}>
@@ -177,12 +176,11 @@ function FilterRow<K extends string>({
       <View style={fr.row}>
         {tabs.map(t => {
           const isActive = active === t.key
-          const color = getColor ? getColor(t.key) : colors.accent.gold
           return (
-            <Pressable key={t.key} style={[fr.tab, isActive && { borderColor: color + '60' }]} onPress={() => onSelect(t.key)}>
+            <Pressable key={t.key} style={[fr.tab, isActive ? { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' } : { borderColor: colors.border.light, backgroundColor: 'transparent' }]} onPress={() => onSelect(t.key)}>
               <AureakText
                 variant="caption"
-                style={{ color: isActive ? color : colors.text.secondary, fontWeight: isActive ? '700' : '400' }}
+                style={{ color: isActive ? colors.text.dark : colors.text.muted, fontWeight: isActive ? '700' : '400' }}
               >
                 {t.label}
               </AureakText>
@@ -196,9 +194,9 @@ function FilterRow<K extends string>({
 
 const fr = StyleSheet.create({
   wrap  : { gap: 4 },
-  label : { color: colors.text.secondary, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, fontWeight: '700' as never },
+  label : { color: colors.text.muted, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, fontWeight: '700' as never },
   row   : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' },
-  tab   : { paddingHorizontal: space.sm + 2, paddingVertical: 5, borderRadius: 5, borderWidth: 1, borderColor: 'transparent' },
+  tab   : { paddingHorizontal: space.sm + 2, paddingVertical: 5, borderRadius: 5, borderWidth: 1, borderColor: colors.border.light },
 })
 
 // ── Main ───────────────────────────────────────────────────────────────────────
@@ -228,7 +226,7 @@ export default function JoueursPage() {
 
   // Dynamic tab list — "Académicien 2025-2026" uses real season label
   const acadStatusTabs = useMemo<{ key: AcadStatusFilter; label: string; color: string }[]>(() => [
-    { key: 'all',               label: 'Tous',                                                       color: colors.text.secondary },
+    { key: 'all',               label: 'Tous',                                                       color: colors.text.muted },
     { key: 'ACADÉMICIEN',       label: currentSeasonLabel ? `Acad. ${currentSeasonLabel}` : 'Académicien (saison actuelle)', color: ACADEMY_STATUS_CONFIG['ACADÉMICIEN'].color },
     { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau académicien',                                      color: ACADEMY_STATUS_CONFIG['NOUVEAU_ACADÉMICIEN'].color },
     { key: 'ANCIEN',            label: 'Ancien académicien',                                         color: ACADEMY_STATUS_CONFIG['ANCIEN'].color },
@@ -266,9 +264,9 @@ export default function JoueursPage() {
       {/* Header */}
       <View style={s.header}>
         <View>
-          <AureakText variant="h2">Joueurs</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Joueurs</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {total} joueur{total !== 1 ? 's' : ''} · annuaire Notion
             </AureakText>
           )}
@@ -283,7 +281,7 @@ export default function JoueursPage() {
           onChangeText={setSearchInput}
           onSubmitEditing={handleSearch}
           placeholder="Rechercher par nom…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           returnKeyType="search"
         />
         <Pressable style={s.searchBtn} onPress={handleSearch}>
@@ -293,7 +291,7 @@ export default function JoueursPage() {
         </Pressable>
         {search !== '' && (
           <Pressable style={s.clearBtn} onPress={() => { setSearch(''); setSearchInput('') }}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>✕</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
           </Pressable>
         )}
       </View>
@@ -305,7 +303,6 @@ export default function JoueursPage() {
           tabs={acadStatusTabs}
           active={acadStatus}
           onSelect={setAcadStatus}
-          getColor={k => k === 'all' ? colors.accent.gold : ACADEMY_STATUS_CONFIG[k as AcademyStatus]?.color ?? colors.accent.gold}
         />
         <View style={s.filtersRow2}>
           <View style={s.filterHalf}>
@@ -334,8 +331,8 @@ export default function JoueursPage() {
         </View>
       ) : joueurs.length === 0 ? (
         <View style={s.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.secondary }}>Aucun joueur</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4 }}>
+          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun joueur</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
             {search.trim() ? 'Modifiez votre recherche.' : 'Aucun joueur ne correspond aux filtres.'}
           </AureakText>
         </View>
@@ -365,26 +362,26 @@ export default function JoueursPage() {
 }
 
 const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.background.primary },
+  container : { flex: 1, backgroundColor: colors.light.primary },
   content   : { padding: space.xl, gap: space.md },
   header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
 
   searchRow : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   searchInput: {
     flex             : 1,
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
   searchBtn: {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
     borderRadius     : 7,
@@ -392,9 +389,9 @@ const s = StyleSheet.create({
   clearBtn: {
     width: 32, height: 32,
     alignItems: 'center', justifyContent: 'center',
-    borderRadius: 6, borderWidth: 1,
-    borderColor: colors.accent.zinc,
-    backgroundColor: colors.background.surface,
+    borderRadius: radius.xs, borderWidth: 1,
+    borderColor: colors.border.light,
+    backgroundColor: colors.light.surface,
   },
 
   filters    : { gap: space.sm },
@@ -402,20 +399,22 @@ const s = StyleSheet.create({
   filterHalf : { flex: 1, minWidth: 200 },
 
   list : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10, borderWidth: 1,
-    borderColor    : colors.accent.zinc, overflow: 'hidden',
+    borderColor    : colors.border.light, overflow: 'hidden',
+    ...shadows.sm,
   },
 
   skeletonBox: { gap: space.xs },
   skeletonRow: {
-    height: 68, backgroundColor: colors.background.surface,
-    borderRadius: 6, opacity: 0.5,
-    borderWidth: 1, borderColor: colors.accent.zinc,
+    height: 68, backgroundColor: colors.light.surface,
+    borderRadius: radius.xs, opacity: 0.5,
+    borderWidth: 1, borderColor: colors.border.light,
   },
   emptyState: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 10, padding: space.xxl,
-    alignItems: 'center', borderWidth: 1, borderColor: colors.accent.zinc,
+    alignItems: 'center', borderWidth: 1, borderColor: colors.border.light,
+    ...shadows.sm,
   },
 })

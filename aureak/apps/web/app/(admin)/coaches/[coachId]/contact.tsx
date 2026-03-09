@@ -2,7 +2,7 @@
 // Story 9.5 — Formulaire contact coach (Admin → Coach)
 import { useEffect, useState } from 'react'
 import { sendAdminMessage, listAdminMessages } from '@aureak/api-client'
-import { colors } from '@aureak/theme'
+import { colors, shadows } from '@aureak/theme'
 
 type AdminMessage = {
   id          : string
@@ -128,30 +128,30 @@ export default function ContactCoachPage({ params }: Props) {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container      : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: '720px' },
-  loading        : { padding: '24px', textAlign: 'center', color: colors.text.secondary },
+  container      : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: '720px' },
+  loading        : { padding: '24px', textAlign: 'center', color: colors.text.muted },
   breadcrumb     : { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' },
   breadcrumbLink : { fontSize: '12px', color: colors.accent.gold, textDecoration: 'none', fontWeight: 600 },
-  breadcrumbSep  : { fontSize: '12px', color: colors.text.secondary },
-  breadcrumbCurrent: { fontSize: '12px', color: colors.text.primary, fontWeight: 600 },
+  breadcrumbSep  : { fontSize: '12px', color: colors.text.muted },
+  breadcrumbCurrent: { fontSize: '12px', color: colors.text.dark, fontWeight: 600 },
   title          : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Rajdhani, sans-serif' },
-  card           : { backgroundColor: colors.background.surface, borderRadius: '12px', padding: '24px', marginBottom: '32px' },
+  card           : { backgroundColor: colors.light.surface, borderRadius: '12px', padding: '24px', marginBottom: '32px', ...shadows.sm },
   sectionTitle   : { fontSize: '20px', fontWeight: 600, marginBottom: '16px', color: colors.accent.gold },
-  textarea       : { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: colors.background.primary, color: colors.text.primary, fontSize: '14px', resize: 'vertical', boxSizing: 'border-box' },
-  charCount      : { fontSize: '12px', color: colors.text.secondary, textAlign: 'right', marginTop: '4px' },
+  textarea       : { width: '100%', padding: '12px', borderRadius: '8px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.primary, color: colors.text.dark, fontSize: '14px', resize: 'vertical', boxSizing: 'border-box' },
+  charCount      : { fontSize: '12px', color: colors.text.muted, textAlign: 'right', marginTop: '4px' },
   urgencyRow     : { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' },
-  urgencyLabel   : { fontSize: '14px', color: colors.text.secondary },
-  urgencyBtn     : { padding: '6px 14px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.background.primary, color: colors.text.secondary, cursor: 'pointer', fontSize: '14px' },
+  urgencyLabel   : { fontSize: '14px', color: colors.text.muted },
+  urgencyBtn     : { padding: '6px 14px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.primary, color: colors.text.muted, cursor: 'pointer', fontSize: '14px' },
   urgencyBtnActive: { borderColor: colors.accent.gold, color: colors.accent.gold, backgroundColor: 'rgba(245,158,11,0.1)' },
   urgencyWarning : { marginTop: '8px', padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(239,68,68,0.1)', color: colors.status.absent, fontSize: '12px' },
-  sendBtn        : { marginTop: '16px', padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.primary, cursor: 'pointer', fontWeight: 600, fontSize: '14px' },
+  sendBtn        : { marginTop: '16px', padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 600, fontSize: '14px' },
   successMsg     : { marginTop: '12px', color: colors.status.present, fontSize: '14px' },
-  empty          : { color: colors.text.secondary, fontSize: '14px', padding: '16px 0' },
-  msgRow         : { backgroundColor: colors.background.surface, borderRadius: '8px', padding: '16px', marginBottom: '8px' },
+  empty          : { color: colors.text.muted, fontSize: '14px', padding: '16px 0' },
+  msgRow         : { backgroundColor: colors.light.surface, borderRadius: '8px', padding: '16px', marginBottom: '8px', ...shadows.sm },
   msgRowUrgent   : { borderLeft: '4px solid #EF4444' },
   msgHeader      : { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
-  badgeRoutine   : { fontSize: '12px', padding: '2px 8px', borderRadius: '4px', backgroundColor: colors.accent.zinc, color: colors.text.secondary },
+  badgeRoutine   : { fontSize: '12px', padding: '2px 8px', borderRadius: '4px', backgroundColor: colors.border.light, color: colors.text.muted },
   badgeUrgent    : { fontSize: '12px', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(239,68,68,0.15)', color: colors.status.absent },
-  msgDate        : { fontSize: '12px', color: colors.text.secondary },
-  msgBody        : { fontSize: '14px', color: colors.text.secondary, lineHeight: '1.5' },
+  msgDate        : { fontSize: '12px', color: colors.text.muted },
+  msgBody        : { fontSize: '14px', color: colors.text.muted, lineHeight: '1.5' },
 }

@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase, listImplantations } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions } from '@aureak/theme'
 import type { Implantation } from '@aureak/types'
 
 const PAGE_SIZE = 25
@@ -58,7 +58,7 @@ function Pagination({
   const end   = Math.min((page + 1) * PAGE_SIZE, total)
   return (
     <View style={pag.row}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted }}>
         {total > 0 ? `${start}–${end} sur ${total}` : '0 résultat'}
       </AureakText>
       <View style={pag.btnRow}>
@@ -67,11 +67,11 @@ function Pagination({
           onPress={onPrev}
           disabled={page === 0}
         >
-          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.secondary : colors.text.primary }}>
+          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.muted : colors.text.dark }}>
             ←
           </AureakText>
         </Pressable>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, paddingHorizontal: space.sm }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.sm }}>
           {page + 1} / {totalPages}
         </AureakText>
         <Pressable
@@ -79,7 +79,7 @@ function Pagination({
           onPress={onNext}
           disabled={end >= total}
         >
-          <AureakText variant="caption" style={{ color: end >= total ? colors.text.secondary : colors.text.primary }}>
+          <AureakText variant="caption" style={{ color: end >= total ? colors.text.muted : colors.text.dark }}>
             →
           </AureakText>
         </Pressable>
@@ -90,7 +90,7 @@ function Pagination({
 const pag = StyleSheet.create({
   row       : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
   btnRow    : { flexDirection: 'row', alignItems: 'center' },
-  btn       : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.surface },
+  btn       : { width: 30, height: 30, borderRadius: radius.xs, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.light.surface },
   btnDisabled: { opacity: 0.35 },
 })
 
@@ -165,9 +165,9 @@ export default function SessionsPage() {
       {/* ── Header ── */}
       <View style={styles.pageHeader}>
         <View>
-          <AureakText variant="h2">Séances</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Séances</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {total} séance{total !== 1 ? 's' : ''}
             </AureakText>
           )}
@@ -184,23 +184,26 @@ export default function SessionsPage() {
 
       {/* ── Status tabs ── */}
       <View style={styles.tabRow}>
-        {STATUS_TABS.map(tab => (
-          <Pressable
-            key={tab.key}
-            style={[styles.tab, statusFilter === tab.key && styles.tabActive]}
-            onPress={() => setStatusFilter(tab.key)}
-          >
-            <AureakText
-              variant="caption"
-              style={{
-                color     : statusFilter === tab.key ? colors.accent.gold : colors.text.secondary,
-                fontWeight: statusFilter === tab.key ? '700' : '400',
-              }}
+        {STATUS_TABS.map(tab => {
+          const active = statusFilter === tab.key
+          return (
+            <Pressable
+              key={tab.key}
+              style={[styles.tab, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
+              onPress={() => setStatusFilter(tab.key)}
             >
-              {tab.label}
-            </AureakText>
-          </Pressable>
-        ))}
+              <AureakText
+                variant="caption"
+                style={{
+                  color     : active ? colors.text.dark : colors.text.muted,
+                  fontWeight: active ? '700' : '400',
+                }}
+              >
+                {tab.label}
+              </AureakText>
+            </Pressable>
+          )
+        })}
       </View>
 
       {/* ── Table ── */}
@@ -210,8 +213,8 @@ export default function SessionsPage() {
         </View>
       ) : sessions.length === 0 ? (
         <View style={styles.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.secondary }}>Aucune séance</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4 }}>
+          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucune séance</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
             Aucune séance ne correspond aux critères sélectionnés.
           </AureakText>
         </View>
@@ -232,13 +235,13 @@ export default function SessionsPage() {
               <AureakText variant="body" style={[styles.td, { flex: 2, fontWeight: '600' }] as never}>
                 {fmt(s.scheduledAt)}
               </AureakText>
-              <AureakText variant="caption" style={[styles.td, { width: 60, color: colors.text.secondary }] as never}>
+              <AureakText variant="caption" style={[styles.td, { width: 60, color: colors.text.muted }] as never}>
                 {fmtTime(s.scheduledAt)}
               </AureakText>
-              <AureakText variant="caption" style={[styles.td, { width: 70, color: colors.text.secondary }] as never}>
+              <AureakText variant="caption" style={[styles.td, { width: 70, color: colors.text.muted }] as never}>
                 {s.durationMinutes} min
               </AureakText>
-              <AureakText variant="caption" style={[styles.td, { flex: 2, color: colors.text.secondary }] as never}>
+              <AureakText variant="caption" style={[styles.td, { flex: 2, color: colors.text.muted }] as never}>
                 {implantName(s.implantationId)}
               </AureakText>
               <View style={[styles.td, { width: 100 }]}>
@@ -276,7 +279,7 @@ export default function SessionsPage() {
 }
 
 const styles = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
   pageHeader : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   newBtn     : {
@@ -290,21 +293,22 @@ const styles = StyleSheet.create({
     gap            : space.xs,
     flexWrap       : 'wrap',
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.divider,
     paddingBottom  : space.sm,
   },
   tab        : {
     paddingHorizontal: space.sm + 2,
     paddingVertical: 5,
-    borderRadius   : 5,
+    borderRadius   : 20,
+    borderWidth    : 1,
   },
-  tabActive  : { backgroundColor: colors.background.elevated },
   table      : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     overflow       : 'hidden',
+    ...shadows.sm,
   },
   thead      : {
     flexDirection  : 'row',
@@ -312,11 +316,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical: space.xs + 2,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
-    backgroundColor: colors.background.elevated,
+    borderBottomColor: colors.border.divider,
+    backgroundColor: colors.light.muted,
   },
   th         : {
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     fontWeight     : '700',
     letterSpacing  : 0.8,
     textTransform  : 'uppercase',
@@ -328,9 +332,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.divider,
   },
-  trAlt      : { backgroundColor: colors.background.elevated },
+  trAlt      : { backgroundColor: colors.light.muted },
   td         : { paddingRight: space.sm },
   manageBtn  : {
     paddingHorizontal: space.sm,
@@ -342,18 +346,19 @@ const styles = StyleSheet.create({
   skeletonBox : { gap: space.xs },
   skeletonRow : {
     height         : 48,
-    backgroundColor: colors.background.surface,
-    borderRadius   : 6,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.xs,
     opacity        : 0.5,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
   emptyState  : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.xxl,
     alignItems     : 'center',
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
+    ...shadows.sm,
   },
 })

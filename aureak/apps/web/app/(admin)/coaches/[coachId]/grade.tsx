@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { awardCoachGrade, listCoachGradeHistory, getCoachCurrentGrade, supabase } from '@aureak/api-client'
 import type { CoachGrade, CoachGradeLevel } from '@aureak/api-client'
-import { colors } from '@aureak/theme'
+import { colors, shadows } from '@aureak/theme'
 
 const GRADES: { value: CoachGradeLevel; label: string; color: string; emoji: string }[] = [
   { value: 'bronze',   label: 'Bronze',   color: colors.accent.gold, emoji: '🥉' },
@@ -88,7 +88,7 @@ export default function CoachGradePage({ params }: Props) {
       {current && (
         <div style={styles.currentCard}>
           <span style={styles.currentLabel}>Grade actuel</span>
-          <span style={{ ...styles.currentGrade, color: GRADES.find(g => g.value === current.grade_level)?.color ?? colors.text.primary }}>
+          <span style={{ ...styles.currentGrade, color: GRADES.find(g => g.value === current.grade_level)?.color ?? colors.text.dark }}>
             {GRADES.find(g => g.value === current.grade_level)?.emoji} {GRADES.find(g => g.value === current.grade_level)?.label}
           </span>
           <span style={styles.currentDate}>
@@ -163,34 +163,34 @@ export default function CoachGradePage({ params }: Props) {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container      : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: '720px' },
-  loading        : { padding: '48px', textAlign: 'center', color: colors.text.secondary },
+  container      : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: '720px' },
+  loading        : { padding: '48px', textAlign: 'center', color: colors.text.muted },
   breadcrumb     : { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' },
   breadcrumbLink : { fontSize: '12px', color: colors.accent.gold, textDecoration: 'none', fontWeight: 600 },
-  breadcrumbSep  : { fontSize: '12px', color: colors.text.secondary },
-  breadcrumbPart : { fontSize: '12px', color: colors.text.secondary },
-  breadcrumbCurrent: { fontSize: '12px', color: colors.text.primary, fontWeight: 600 },
+  breadcrumbSep  : { fontSize: '12px', color: colors.text.muted },
+  breadcrumbPart : { fontSize: '12px', color: colors.text.muted },
+  breadcrumbCurrent: { fontSize: '12px', color: colors.text.dark, fontWeight: 600 },
   title          : { fontSize: '26px', fontWeight: 700, marginBottom: '4px', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.4px' },
-  coachLabel     : { fontSize: '13px', color: colors.text.secondary, marginBottom: '20px' },
-  currentCard : { backgroundColor: colors.background.surface, borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '4px' },
-  currentLabel: { fontSize: '12px', color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' },
+  coachLabel     : { fontSize: '13px', color: colors.text.muted, marginBottom: '20px' },
+  currentCard : { backgroundColor: colors.light.surface, borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '4px', ...shadows.sm },
+  currentLabel: { fontSize: '12px', color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.05em' },
   currentGrade: { fontSize: '24px', fontWeight: 900 },
-  currentDate : { fontSize: '12px', color: colors.text.secondary },
-  currentNotes: { fontSize: '13px', color: colors.text.secondary, fontStyle: 'italic' },
-  card        : { backgroundColor: colors.background.surface, borderRadius: '12px', padding: '20px', marginBottom: '24px' },
+  currentDate : { fontSize: '12px', color: colors.text.muted },
+  currentNotes: { fontSize: '13px', color: colors.text.muted, fontStyle: 'italic' },
+  card        : { backgroundColor: colors.light.surface, borderRadius: '12px', padding: '20px', marginBottom: '24px', ...shadows.sm },
   sectionTitle: { fontSize: '18px', fontWeight: 600, marginBottom: '16px', color: colors.accent.gold },
   gradeGrid   : { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' },
-  gradeBtn    : { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '14px', borderRadius: '8px', border: '2px solid #334155', backgroundColor: 'transparent', cursor: 'pointer' },
+  gradeBtn    : { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '14px', borderRadius: '8px', border: `2px solid ${colors.border.light}`, backgroundColor: 'transparent', cursor: 'pointer' },
   gradeEmoji  : { fontSize: '24px' },
   gradeLabel  : { fontSize: '12px', fontWeight: 700 },
-  textarea    : { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: colors.background.primary, color: colors.text.primary, fontSize: '14px', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' },
-  awardBtn    : { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: colors.accent.gold, color: colors.background.primary, cursor: 'pointer', fontWeight: 700, fontSize: '15px' },
+  textarea    : { width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.primary, color: colors.text.dark, fontSize: '14px', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' },
+  awardBtn    : { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 700, fontSize: '15px' },
   error       : { color: colors.status.absent, marginTop: '10px', fontSize: '14px' },
   success     : { color: colors.status.present, marginTop: '10px', fontSize: '14px' },
-  empty       : { color: colors.text.secondary, fontSize: '14px' },
-  historyRow  : { display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: colors.background.surface, borderRadius: '8px', padding: '12px 16px', marginBottom: '8px' },
+  empty       : { color: colors.text.muted, fontSize: '14px' },
+  historyRow  : { display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: colors.light.surface, borderRadius: '8px', padding: '12px 16px', marginBottom: '8px', ...shadows.sm },
   historyInfo : { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' },
   historyGrade: { fontSize: '14px', fontWeight: 700 },
-  historyNotes: { fontSize: '12px', color: colors.text.secondary },
-  historyDate : { fontSize: '12px', color: colors.text.secondary },
+  historyNotes: { fontSize: '12px', color: colors.text.muted },
+  historyDate : { fontSize: '12px', color: colors.text.muted },
 }

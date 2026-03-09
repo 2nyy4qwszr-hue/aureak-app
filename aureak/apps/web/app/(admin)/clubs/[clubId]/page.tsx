@@ -27,12 +27,12 @@ function Section({ title, count, accent, children }: {
     <View style={sec.container}>
       <View style={[sec.header, accent ? { borderLeftWidth: 3, borderLeftColor: accent } : {}]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <AureakText variant="label" style={{ color: colors.text.secondary, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' as never }}>
+          <AureakText variant="label" style={{ color: colors.text.muted, fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' as never }}>
             {title}
           </AureakText>
           {count !== undefined && (
             <View style={[sec.countBadge, accent ? { backgroundColor: accent + '20', borderColor: accent } : {}]}>
-              <AureakText variant="caption" style={{ fontSize: 10, color: accent ?? colors.text.secondary, fontWeight: '700' }}>
+              <AureakText variant="caption" style={{ fontSize: 10, color: accent ?? colors.text.muted, fontWeight: '700' }}>
                 {count}
               </AureakText>
             </View>
@@ -44,9 +44,9 @@ function Section({ title, count, accent, children }: {
   )
 }
 const sec = StyleSheet.create({
-  container : { backgroundColor: colors.background.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.accent.zinc, overflow: 'hidden' },
-  header    : { paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
-  countBadge: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 10, borderWidth: 1, borderColor: colors.accent.zinc },
+  container : { backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, overflow: 'hidden' },
+  header    : { paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: colors.border.divider, backgroundColor: colors.light.muted },
+  countBadge: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light },
   body      : { padding: space.md, gap: space.sm },
 })
 
@@ -62,8 +62,8 @@ function FieldRow({ label, value }: { label: string; value: string | null | unde
 }
 const f = StyleSheet.create({
   row  : { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
-  label: { width: 200, color: colors.text.secondary, fontSize: 12, flexShrink: 0 },
-  value: { flex: 1, color: colors.text.primary, fontSize: 13 },
+  label: { width: 200, color: colors.text.muted, fontSize: 12, flexShrink: 0 },
+  value: { flex: 1, color: colors.text.dark, fontSize: 13 },
 })
 
 // ── Editable field ────────────────────────────────────────────────────────────
@@ -82,15 +82,15 @@ function EditField({ label, value, onChange, multiline }: {
         value={value}
         onChangeText={onChange}
         multiline={multiline}
-        placeholderTextColor={colors.text.secondary}
+        placeholderTextColor={colors.text.muted}
       />
     </View>
   )
 }
 const ef = StyleSheet.create({
   wrapper : { gap: 4 },
-  label   : { color: colors.text.secondary, fontSize: 11 },
-  input   : { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 13 },
+  label   : { color: colors.text.muted, fontSize: 11 },
+  input   : { backgroundColor: colors.light.primary, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.dark, fontSize: 13 },
   textarea: { minHeight: 80, textAlignVertical: 'top' as never },
 })
 
@@ -99,14 +99,14 @@ const ef = StyleSheet.create({
 function ProvinceSelector({ value, onChange }: { value: BelgianProvince | null; onChange: (v: BelgianProvince | null) => void }) {
   return (
     <View style={{ gap: 6 }}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>Province</AureakText>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>Province</AureakText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         <Pressable style={[pill.base, value === null && pill.active]} onPress={() => onChange(null)}>
-          <AureakText variant="caption" style={{ color: value === null ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>—</AureakText>
+          <AureakText variant="caption" style={{ color: value === null ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>—</AureakText>
         </Pressable>
         {BELGIAN_PROVINCES.map(p => (
           <Pressable key={p} style={[pill.base, value === p && pill.active]} onPress={() => onChange(p)}>
-            <AureakText variant="caption" style={{ color: value === p ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>{p}</AureakText>
+            <AureakText variant="caption" style={{ color: value === p ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>{p}</AureakText>
           </Pressable>
         ))}
       </View>
@@ -114,8 +114,8 @@ function ProvinceSelector({ value, onChange }: { value: BelgianProvince | null; 
   )
 }
 const pill = StyleSheet.create({
-  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.surface },
-  active: { borderColor: colors.accent.gold, backgroundColor: colors.background.elevated },
+  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.surface },
+  active: { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
 })
 
 // ── Statut badge ─────────────────────────────────────────────────────────────
@@ -124,12 +124,12 @@ const STATUT_COLORS: Record<string, string> = {
   'Académicien': colors.accent.gold,
   'Nouveau'    : '#4ade80',
   'Stagiaire'  : '#60a5fa',
-  'Ancien'     : colors.text.secondary,
+  'Ancien'     : colors.text.muted,
 }
 
 function StatutBadge({ statut }: { statut: string | null }) {
   if (!statut) return null
-  const color = STATUT_COLORS[statut] ?? colors.text.secondary
+  const color = STATUT_COLORS[statut] ?? colors.text.muted
   return (
     <View style={{ backgroundColor: color + '20', borderColor: color, borderWidth: 1, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 1 }}>
       <AureakText variant="caption" style={{ color, fontSize: 9, fontWeight: '700' }}>{statut.toUpperCase()}</AureakText>
@@ -157,7 +157,7 @@ function PlayerRow({ row, onRemove }: { row: ClubChildLinkRow; onRemove: () => v
         <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           {row.statut && <StatutBadge statut={row.statut} />}
           {row.niveauClub && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
               {row.niveauClub}
             </AureakText>
           )}
@@ -171,9 +171,9 @@ function PlayerRow({ row, onRemove }: { row: ClubChildLinkRow; onRemove: () => v
   )
 }
 const pr = StyleSheet.create({
-  row      : { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs + 2, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc },
+  row      : { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs + 2, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   avatar   : { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.accent.gold, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  removeBtn: { paddingHorizontal: space.sm, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.accent.zinc },
+  removeBtn: { paddingHorizontal: space.sm, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.border.light },
 })
 
 // ── Player picker (searchable) ────────────────────────────────────────────────
@@ -208,12 +208,12 @@ function PlayerPicker({
         value={search}
         onChangeText={setSearch}
         placeholder="Rechercher un joueur par nom…"
-        placeholderTextColor={colors.text.secondary}
+        placeholderTextColor={colors.text.muted}
       />
       {search.length > 0 && (
         <View style={pp.results}>
           {filtered.length === 0 ? (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, padding: space.sm }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, padding: space.sm }}>
               Aucun résultat.
             </AureakText>
           ) : (
@@ -228,7 +228,7 @@ function PlayerPicker({
                   <View style={{ flexDirection: 'row', gap: 6, marginTop: 2 }}>
                     {p.statut && <StatutBadge statut={p.statut} />}
                     {p.niveauClub && (
-                      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
                         {p.niveauClub}
                       </AureakText>
                     )}
@@ -247,9 +247,9 @@ function PlayerPicker({
 }
 const pp = StyleSheet.create({
   container: { gap: 4 },
-  input    : { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 7, paddingHorizontal: space.md, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 13 },
-  results  : { backgroundColor: colors.background.elevated, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.zinc, overflow: 'hidden' },
-  option   : { flexDirection: 'row', alignItems: 'center', padding: space.sm, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc },
+  input    : { backgroundColor: colors.light.primary, borderWidth: 1, borderColor: colors.border.light, borderRadius: 7, paddingHorizontal: space.md, paddingVertical: space.xs + 2, color: colors.text.dark, fontSize: 13 },
+  results  : { backgroundColor: colors.light.muted, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light, overflow: 'hidden' },
+  option   : { flexDirection: 'row', alignItems: 'center', padding: space.sm, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   addDot   : { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 })
 
@@ -441,9 +441,9 @@ export default function ClubDetailPage() {
     return (
       <ScrollView style={s.container} contentContainerStyle={s.content}>
         <Pressable onPress={() => router.back()} style={s.backBtn}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
         </Pressable>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Club introuvable.</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Club introuvable.</AureakText>
       </ScrollView>
     )
   }
@@ -456,7 +456,7 @@ export default function ClubDetailPage() {
       {/* Header */}
       <View style={s.pageHeader}>
         <Pressable onPress={() => router.back()} style={s.backBtn}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Clubs</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Clubs</AureakText>
         </Pressable>
         <View style={s.headerActions}>
           {!editing ? (
@@ -465,13 +465,13 @@ export default function ClubDetailPage() {
                 <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>Modifier</AureakText>
               </Pressable>
               <Pressable style={s.deleteBtn} onPress={handleDelete}>
-                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>Supprimer</AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>Supprimer</AureakText>
               </Pressable>
             </>
           ) : (
             <>
               <Pressable style={s.cancelBtn} onPress={() => { setEditing(false); setForm(entryToForm(club)) }}>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
               </Pressable>
               <Pressable style={s.saveBtn} onPress={handleSave} disabled={saving}>
                 <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
@@ -488,7 +488,7 @@ export default function ClubDetailPage() {
         <View style={{ flex: 1 }}>
           <AureakText variant="h2">{club.nom}</AureakText>
           {club.matricule && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               Matricule : {club.matricule}
             </AureakText>
           )}
@@ -534,7 +534,7 @@ export default function ClubDetailPage() {
           </Section>
           {club.notesInternes && (
             <Section title="Notes internes">
-              <AureakText variant="body" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>
+              <AureakText variant="body" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
                 {club.notesInternes}
               </AureakText>
             </Section>
@@ -575,10 +575,10 @@ export default function ClubDetailPage() {
           <Section title="Statut">
             <View style={{ flexDirection: 'row', gap: space.md }}>
               <Pressable style={[pill.base, form.clubPartenaire && pill.active]} onPress={() => setField('clubPartenaire', !form.clubPartenaire)}>
-                <AureakText variant="caption" style={{ color: form.clubPartenaire ? colors.accent.gold : colors.text.secondary }}>Club partenaire</AureakText>
+                <AureakText variant="caption" style={{ color: form.clubPartenaire ? colors.accent.gold : colors.text.muted }}>Club partenaire</AureakText>
               </Pressable>
               <Pressable style={[pill.base, form.actif && pill.active]} onPress={() => setField('actif', !form.actif)}>
-                <AureakText variant="caption" style={{ color: form.actif ? colors.accent.gold : colors.text.secondary }}>Actif</AureakText>
+                <AureakText variant="caption" style={{ color: form.actif ? colors.accent.gold : colors.text.muted }}>Actif</AureakText>
               </Pressable>
             </View>
           </Section>
@@ -599,14 +599,14 @@ export default function ClubDetailPage() {
         accent={colors.accent.gold}
       >
         <View style={s.sectionNote}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, fontStyle: 'italic' as never }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, fontStyle: 'italic' as never }}>
             Joueurs qui s'entraînent ou jouent actuellement dans ce club (lien opérationnel).
             Un joueur en prêt apparaît ici dans son club d'accueil.
           </AureakText>
         </View>
 
         {currentPlayers.length === 0 ? (
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun joueur actuellement lié.</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun joueur actuellement lié.</AureakText>
         ) : (
           currentPlayers.map(p => (
             <PlayerRow
@@ -618,7 +618,7 @@ export default function ClubDetailPage() {
         )}
 
         <View style={s.pickerWrapper}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginBottom: 4 }}>
             Ajouter un joueur :
           </AureakText>
           <PlayerPicker
@@ -637,14 +637,14 @@ export default function ClubDetailPage() {
         accent="#60a5fa"
       >
         <View style={s.sectionNote}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, fontStyle: 'italic' as never }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, fontStyle: 'italic' as never }}>
             Joueurs officiellement affiliés à ce club au niveau fédéral (matricule, contrat).
             Un joueur peut être affilié ici tout en jouant dans un autre club (prêt).
           </AureakText>
         </View>
 
         {affiliatedPlayers.length === 0 ? (
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun joueur affilié.</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun joueur affilié.</AureakText>
         ) : (
           affiliatedPlayers.map(p => (
             <PlayerRow
@@ -656,7 +656,7 @@ export default function ClubDetailPage() {
         )}
 
         <View style={s.pickerWrapper}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginBottom: 4 }}>
             Ajouter un joueur affilié :
           </AureakText>
           <PlayerPicker
@@ -671,7 +671,7 @@ export default function ClubDetailPage() {
       {/* ── Section 3 : Coachs liés ── */}
       <Section title="Coachs liés" count={coaches.length}>
         {coaches.length === 0 ? (
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun coach lié.</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun coach lié.</AureakText>
         ) : (
           coaches.map(c => (
             <CoachRow
@@ -683,7 +683,7 @@ export default function ClubDetailPage() {
         )}
 
         <View style={s.pickerWrapper}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginBottom: 4 }}>
             Ajouter un coach :
           </AureakText>
           <TextInput
@@ -691,7 +691,7 @@ export default function ClubDetailPage() {
             value={coachSearch}
             onChangeText={setCoachSearch}
             placeholder="Rechercher un coach…"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
           />
           {coachSearch.length > 0 && filteredCoaches.length > 0 && (
             <View style={pp.results}>
@@ -717,7 +717,7 @@ export default function ClubDetailPage() {
 }
 
 const s = StyleSheet.create({
-  container    : { flex: 1, backgroundColor: colors.background.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
   content      : { padding: space.xl, gap: space.md },
   pageHeader   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerActions: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
@@ -725,14 +725,14 @@ const s = StyleSheet.create({
   titleRow     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: space.sm },
 
   editBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.gold },
-  deleteBtn: { paddingHorizontal: space.sm, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.zinc },
-  cancelBtn: { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.zinc },
+  deleteBtn: { paddingHorizontal: space.sm, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },
+  cancelBtn: { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },
   saveBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, backgroundColor: colors.accent.gold },
 
-  errorBanner : { backgroundColor: colors.background.elevated, borderLeftWidth: 3, borderLeftColor: '#f87171', borderRadius: 4, padding: space.md },
+  errorBanner : { backgroundColor: colors.light.muted, borderLeftWidth: 3, borderLeftColor: '#f87171', borderRadius: 4, padding: space.md },
 
-  sectionNote  : { backgroundColor: colors.background.primary, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.accent.zinc },
-  pickerWrapper: { marginTop: space.sm, borderTopWidth: 1, borderTopColor: colors.accent.zinc, paddingTop: space.sm },
+  sectionNote  : { backgroundColor: colors.light.primary, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.border.light },
+  pickerWrapper: { marginTop: space.sm, borderTopWidth: 1, borderTopColor: colors.border.divider, paddingTop: space.sm },
 
-  skeletonCard : { height: 120, backgroundColor: colors.background.surface, borderRadius: 10, opacity: 0.5, borderWidth: 1, borderColor: colors.accent.zinc },
+  skeletonCard : { height: 120, backgroundColor: colors.light.surface, borderRadius: 10, opacity: 0.5, borderWidth: 1, borderColor: colors.border.light },
 })

@@ -24,7 +24,7 @@ function SessionSubNav({ sessionId, active }: { sessionId: string; active: strin
             <AureakText
               variant="caption"
               style={{
-                color     : active === tab.label ? colors.accent.gold : colors.text.secondary,
+                color     : active === tab.label ? colors.accent.gold : colors.text.muted,
                 fontWeight: '600',
               }}
             >
@@ -38,7 +38,7 @@ function SessionSubNav({ sessionId, active }: { sessionId: string; active: strin
 }
 
 const subNavStyles = StyleSheet.create({
-  bar     : { flexDirection: 'row', gap: space.md, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc, paddingBottom: space.sm },
+  bar     : { flexDirection: 'row', gap: space.md, borderBottomWidth: 1, borderBottomColor: colors.border.light, paddingBottom: space.sm },
   tab     : { paddingBottom: 4 },
   tabActive: { borderBottomWidth: 2, borderBottomColor: colors.accent.gold },
 })
@@ -93,7 +93,7 @@ export default function NotesPage() {
               weekday: 'long', day: '2-digit', month: 'long',
             })}
           </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
             {new Date(session.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
           </AureakText>
         </View>
@@ -102,10 +102,10 @@ export default function NotesPage() {
       <SessionSubNav sessionId={sessionId} active="Notes" />
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : (
         <View style={styles.noteCard}>
-          <AureakText variant="label" style={{ color: colors.text.secondary, marginBottom: space.xs }}>
+          <AureakText variant="label" style={{ color: colors.text.muted, marginBottom: space.xs }}>
             Note de séance
           </AureakText>
           <TextInput
@@ -113,7 +113,7 @@ export default function NotesPage() {
             value={note}
             onChangeText={text => { setNote(text); setSaved(false) }}
             placeholder="Observations générales, points à retenir, incidents..."
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             multiline
             numberOfLines={8}
             textAlignVertical="top"
@@ -124,15 +124,15 @@ export default function NotesPage() {
               <AureakText variant="body" style={{ fontWeight: '600' }}>
                 Visible par l'administrateur
               </AureakText>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
                 Décochez pour une note personnelle uniquement
               </AureakText>
             </View>
             <Switch
               value={visibleToAdmin}
               onValueChange={setVisibleToAdmin}
-              trackColor={{ false: colors.accent.zinc, true: colors.status.present }}
-              thumbColor={colors.text.primary}
+              trackColor={{ false: colors.border.light, true: colors.status.present }}
+              thumbColor={colors.text.dark}
             />
           </View>
 
@@ -141,7 +141,7 @@ export default function NotesPage() {
             onPress={handleSave}
             disabled={saving || !note.trim()}
           >
-            <AureakText variant="label" style={{ color: colors.background.primary }}>
+            <AureakText variant="label" style={{ color: colors.light.primary }}>
               {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
             </AureakText>
           </Pressable>
@@ -150,7 +150,7 @@ export default function NotesPage() {
 
       {/* Info box */}
       <View style={styles.infoBox}>
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
           Les notes de séance sont sauvegardées par séance. Vous pouvez les modifier jusqu'à la clôture.
         </AureakText>
       </View>
@@ -159,22 +159,22 @@ export default function NotesPage() {
 }
 
 const styles = StyleSheet.create({
-  container    : { flex: 1, backgroundColor: colors.background.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
   content      : { padding: space.xl, gap: space.md },
   noteCard     : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     gap            : space.md,
   },
   textarea     : {
-    backgroundColor: colors.background.primary,
-    color          : colors.text.primary,
+    backgroundColor: colors.light.primary,
+    color          : colors.text.dark,
     borderRadius   : 6,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     fontSize       : 14,
     minHeight      : 160,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     gap            : space.md,
     paddingTop     : space.sm,
     borderTopWidth : 1,
-    borderTopColor : colors.accent.zinc,
+    borderTopColor : colors.border.light,
   },
   saveBtn      : {
     backgroundColor: colors.accent.gold,
@@ -195,10 +195,10 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.5 },
   infoBox      : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 6,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
 })

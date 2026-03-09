@@ -37,7 +37,7 @@ function getMotivation(streak: number, pts: number, acquired: number): { msg: st
 }
 
 const RARITY_COLOR: Record<string, string> = {
-  common: colors.text.secondary, rare: colors.status.present,
+  common: colors.text.muted, rare: colors.status.present,
   epic: colors.status.attention, legendary: colors.accent.gold,
 }
 const RARITY_LABEL: Record<string, string> = {
@@ -45,10 +45,10 @@ const RARITY_LABEL: Record<string, string> = {
 }
 const SIGNAL_ICON : Record<string, string> = { positive: '✓', attention: '!', none: '–' }
 const SIGNAL_COLOR: Record<string, string> = {
-  positive: colors.status.present, attention: colors.status.attention, none: colors.text.secondary,
+  positive: colors.status.present, attention: colors.status.attention, none: colors.text.muted,
 }
 const SIGNAL_BG: Record<string, string> = {
-  positive: 'rgba(76,175,80,0.14)', attention: 'rgba(255,193,7,0.14)', none: colors.background.elevated,
+  positive: 'rgba(76,175,80,0.14)', attention: 'rgba(255,193,7,0.14)', none: colors.light.muted,
 }
 const EVAL_LABEL: Record<string, string> = {
   receptivite: 'Récep.', gout_effort: 'Effort', attitude: 'Attitude',
@@ -63,7 +63,7 @@ function Skeleton() {
     <div style={D.page}>
       <style>{`
         @keyframes dsh{0%,100%{opacity:.13}50%{opacity:.36}}
-        .ds{background:${colors.background.elevated};border-radius:6px;animation:dsh 1.8s ease-in-out infinite}
+        .ds{background:${colors.light.muted};border-radius:6px;animation:dsh 1.8s ease-in-out infinite}
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
@@ -92,7 +92,7 @@ function EmptyFirst({ firstName }: { firstName: string }) {
       <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', marginBottom: 8 }}>
         Bienvenue, {firstName} !
       </div>
-      <div style={{ fontSize: 14, color: colors.text.secondary, lineHeight: 1.6, marginBottom: 24 }}>
+      <div style={{ fontSize: 14, color: colors.text.muted, lineHeight: 1.6, marginBottom: 24 }}>
         Ton aventure commence ici.<br />Fais ton premier quiz pour débloquer tes points et monter en niveau !
       </div>
       <button style={D.btnStart} onClick={() => router.push('/child/quiz' as never)}>
@@ -198,7 +198,7 @@ export default function ChildDashboardPage() {
     <div style={D.page}>
       <style>{`
         @keyframes dsh{0%,100%{opacity:.13}50%{opacity:.36}}
-        .ds{background:${colors.background.elevated};border-radius:6px;animation:dsh 1.8s ease-in-out infinite}
+        .ds{background:${colors.light.muted};border-radius:6px;animation:dsh 1.8s ease-in-out infinite}
 
         @keyframes xpfill{from{width:0}to{width:${levelPct}%}}
         .xp-fill{animation:xpfill 1.1s cubic-bezier(0.4,0,0.2,1) 0.35s both}
@@ -240,7 +240,7 @@ export default function ChildDashboardPage() {
               <div style={{ fontSize: 26, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
                 {streak}
               </div>
-              <div style={{ fontSize: 9, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: 9, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 jours
               </div>
             </div>
@@ -263,11 +263,11 @@ export default function ChildDashboardPage() {
               <div style={{ fontSize: 10, fontWeight: 700, color: colors.accent.gold, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>
                 {levelTitle}
               </div>
-              <div style={{ fontSize: 42, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.primary, lineHeight: 1 }}>
+              <div style={{ fontSize: 42, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark, lineHeight: 1 }}>
                 {pts.toLocaleString('fr-FR')}
-                <span style={{ fontSize: 18, color: colors.text.secondary, fontWeight: 500, marginLeft: 6 }}>pts</span>
+                <span style={{ fontSize: 18, color: colors.text.muted, fontWeight: 500, marginLeft: 6 }}>pts</span>
               </div>
-              <div style={{ fontSize: 12, color: colors.text.secondary, marginTop: 3 }}>
+              <div style={{ fontSize: 12, color: colors.text.muted, marginTop: 3 }}>
                 Niveau {level} · encore {(LEVEL_XP - levelPts).toLocaleString('fr-FR')} pts
               </div>
             </div>
@@ -277,14 +277,14 @@ export default function ChildDashboardPage() {
               <div style={{ fontSize: 30, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
                 {level}
               </div>
-              <div style={{ fontSize: 8, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: 8, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 niv.
               </div>
             </div>
           </div>
 
           {/* XP gradient bar */}
-          <div style={{ height: 10, backgroundColor: colors.background.elevated, borderRadius: 5, overflow: 'hidden', marginBottom: 6 }}>
+          <div style={{ height: 10, backgroundColor: colors.light.muted, borderRadius: 5, overflow: 'hidden', marginBottom: 6 }}>
             <div
               className="xp-fill"
               style={{
@@ -297,24 +297,24 @@ export default function ChildDashboardPage() {
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18 }}>
-            <span style={{ fontSize: 10, color: colors.text.secondary }}>Niv. {level}</span>
+            <span style={{ fontSize: 10, color: colors.text.muted }}>Niv. {level}</span>
             <span style={{ fontSize: 10, color: colors.accent.gold, fontWeight: 700 }}>{levelPct}%</span>
-            <span style={{ fontSize: 10, color: colors.text.secondary }}>Niv. {level + 1}</span>
+            <span style={{ fontSize: 10, color: colors.text.muted }}>Niv. {level + 1}</span>
           </div>
 
           {/* 4 mini KPIs */}
-          <div style={{ display: 'flex', borderTop: `1px solid ${colors.accent.zinc}`, paddingTop: 14, gap: 0 }}>
+          <div style={{ display: 'flex', borderTop: `1px solid ${colors.border.light}`, paddingTop: 14, gap: 0 }}>
             {[
-              { val: streak,      label: 'Série',   color: streak > 0 ? colors.status.present : colors.text.secondary },
-              { val: acquired,    label: 'Acquis',  color: acquired > 0 ? colors.accent.gold : colors.text.secondary  },
-              { val: inProgress,  label: 'En cours', color: inProgress > 0 ? colors.status.attention : colors.text.secondary },
-              { val: themes.length, label: 'Thèmes', color: colors.text.secondary },
+              { val: streak,      label: 'Série',   color: streak > 0 ? colors.status.present : colors.text.muted },
+              { val: acquired,    label: 'Acquis',  color: acquired > 0 ? colors.accent.gold : colors.text.muted  },
+              { val: inProgress,  label: 'En cours', color: inProgress > 0 ? colors.status.attention : colors.text.muted },
+              { val: themes.length, label: 'Thèmes', color: colors.text.muted },
             ].map((k, i, arr) => (
-              <div key={k.label} style={{ flex: 1, textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none' }}>
+              <div key={k.label} style={{ flex: 1, textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${colors.border.light}` : 'none' }}>
                 <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: k.color, lineHeight: 1 }}>
                   {k.val}
                 </div>
-                <div style={{ fontSize: 9, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
+                <div style={{ fontSize: 9, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
                   {k.label}
                 </div>
               </div>
@@ -343,12 +343,12 @@ export default function ChildDashboardPage() {
           <div style={D.sessionCard}>
             <div style={{ fontSize: 32, marginRight: 14, flexShrink: 0 }}>📅</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: colors.text.primary, marginBottom: 3 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colors.text.dark, marginBottom: 3 }}>
                 {new Date(nextSession.scheduled_at).toLocaleDateString('fr-FR', {
                   weekday: 'long', day: 'numeric', month: 'long',
                 })}
               </div>
-              <div style={{ fontSize: 12, color: colors.text.secondary }}>
+              <div style={{ fontSize: 12, color: colors.text.muted }}>
                 {new Date(nextSession.scheduled_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 {nextSession.duration_minutes ? ` · ${nextSession.duration_minutes} min` : ''}
                 {nextSession.location ? ` · ${nextSession.location}` : ''}
@@ -364,7 +364,7 @@ export default function ChildDashboardPage() {
                   <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
                     {daysUntil}
                   </div>
-                  <div style={{ fontSize: 9, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase' }}>jours</div>
+                  <div style={{ fontSize: 9, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase' }}>jours</div>
                 </>
               )}
             </div>
@@ -373,7 +373,7 @@ export default function ChildDashboardPage() {
       ) : !isNewPlayer ? (
         <div style={{ ...D.sessionCard, opacity: 0.5 }}>
           <div style={{ fontSize: 32, marginRight: 14 }}>📅</div>
-          <div style={{ fontSize: 13, color: colors.text.secondary }}>Aucune séance planifiée pour l'instant.</div>
+          <div style={{ fontSize: 13, color: colors.text.muted }}>Aucune séance planifiée pour l'instant.</div>
         </div>
       ) : null}
 
@@ -391,7 +391,7 @@ export default function ChildDashboardPage() {
               <div style={D.navBadge}>{item.badge}</div>
             )}
             <span style={{ fontSize: 30, display: 'block', marginBottom: 8, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: colors.text.primary }}>{item.label}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark }}>{item.label}</span>
           </button>
         ))}
       </div>
@@ -418,8 +418,8 @@ export default function ChildDashboardPage() {
                   className="quest-row"
                   style={{
                     ...D.questCard,
-                    borderColor: hot ? `${colors.accent.gold}55` : colors.accent.zinc,
-                    background : hot ? 'rgba(193,172,92,0.05)' : colors.background.surface,
+                    borderColor: hot ? `${colors.accent.gold}55` : colors.border.light,
+                    background : hot ? 'rgba(193,172,92,0.05)' : colors.light.surface,
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -428,19 +428,19 @@ export default function ChildDashboardPage() {
                         {hot ? '⚡ ' : ''}{def?.name ?? 'Quête'}
                       </div>
                       {def?.description && (
-                        <div style={{ fontSize: 12, color: colors.text.secondary }}>{def.description}</div>
+                        <div style={{ fontSize: 12, color: colors.text.muted }}>{def.description}</div>
                       )}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: 18, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: pct >= 100 ? colors.status.present : colors.accent.gold, lineHeight: 1 }}>
                         {pct}%
                       </div>
-                      <div style={{ fontSize: 10, color: colors.text.secondary }}>
+                      <div style={{ fontSize: 10, color: colors.text.muted }}>
                         {q.current_value}/{q.target_value}
                       </div>
                     </div>
                   </div>
-                  <div style={{ height: 8, backgroundColor: colors.background.elevated, borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ height: 8, backgroundColor: colors.light.muted, borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{
                       height: '100%',
                       width: `${pct}%`,
@@ -461,7 +461,7 @@ export default function ChildDashboardPage() {
         <div style={D.emptySection}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>🎯</div>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Aucune quête active</div>
-          <div style={{ fontSize: 12, color: colors.text.secondary }}>Les quêtes apparaissent au fil des séances.</div>
+          <div style={{ fontSize: 12, color: colors.text.muted }}>Les quêtes apparaissent au fil des séances.</div>
         </div>
       ) : null}
 
@@ -477,16 +477,16 @@ export default function ChildDashboardPage() {
                   <div key={key} style={{ textAlign: 'center' }}>
                     <div style={{
                       width: 48, height: 48, borderRadius: '50%',
-                      backgroundColor: SIGNAL_BG[val] ?? colors.background.elevated,
-                      border: `2px solid ${SIGNAL_COLOR[val] ?? colors.accent.zinc}`,
+                      backgroundColor: SIGNAL_BG[val] ?? colors.light.muted,
+                      border: `2px solid ${SIGNAL_COLOR[val] ?? colors.border.light}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       margin: '0 auto 8px',
                       fontSize: 18, fontWeight: 800,
-                      color: SIGNAL_COLOR[val] ?? colors.text.secondary,
+                      color: SIGNAL_COLOR[val] ?? colors.text.muted,
                     }}>
                       {SIGNAL_ICON[val] ?? '–'}
                     </div>
-                    <div style={{ fontSize: 10, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                       {EVAL_LABEL[key]}
                     </div>
                   </div>
@@ -494,7 +494,7 @@ export default function ChildDashboardPage() {
               })}
             </div>
             {lastEval.top_seance === 'star' && (
-              <div style={{ textAlign: 'center', paddingTop: 12, borderTop: `1px solid ${colors.accent.zinc}` }}>
+              <div style={{ textAlign: 'center', paddingTop: 12, borderTop: `1px solid ${colors.border.light}` }}>
                 <span style={{ fontSize: 24 }}>⭐</span>
                 <div style={{ fontSize: 12, color: colors.accent.gold, fontWeight: 700, marginTop: 4 }}>
                   Top séance — ton coach t'a mis en avant !
@@ -516,14 +516,14 @@ export default function ChildDashboardPage() {
           </div>
           <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 6 }}>
             {cards.map(card => {
-              const rc = RARITY_COLOR[card.rarity] ?? colors.text.secondary
+              const rc = RARITY_COLOR[card.rarity] ?? colors.text.muted
               return (
                 <div
                   key={card.id}
                   style={{
                     flexShrink: 0,
                     width: 94,
-                    backgroundColor: colors.background.surface,
+                    backgroundColor: colors.light.surface,
                     borderRadius: 10,
                     border: `1.5px solid ${rc}55`,
                     padding: '10px 8px',
@@ -534,11 +534,11 @@ export default function ChildDashboardPage() {
                   <div style={{ fontSize: 9, fontWeight: 700, color: rc, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
                     {RARITY_LABEL[card.rarity]}
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: colors.text.primary, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: colors.text.dark, lineHeight: 1.4 }}>
                     {card.name}
                   </div>
                   {card.collected_at && (
-                    <div style={{ fontSize: 9, color: colors.text.secondary, marginTop: 6 }}>
+                    <div style={{ fontSize: 9, color: colors.text.muted, marginTop: 6 }}>
                       {new Date(card.collected_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
                     </div>
                   )}
@@ -555,21 +555,21 @@ export default function ChildDashboardPage() {
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 const D: Record<string, React.CSSProperties> = {
-  page       : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 780 },
+  page       : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
   header     : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   title      : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, marginBottom: 4, display: 'flex', alignItems: 'center' },
-  subtitle   : { fontSize: 13, color: colors.text.secondary, margin: 0 },
+  subtitle   : { fontSize: 13, color: colors.text.muted, margin: 0 },
   streakBadge: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 12, padding: '12px 16px',
     border: `1px solid rgba(193,172,92,0.35)`,
     boxShadow: '0 0 16px rgba(193,172,92,0.08)',
   },
   xpHero     : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 16, padding: '20px 20px 16px',
-    border: `1px solid ${colors.accent.zinc}`,
+    border: `1px solid ${colors.border.light}`,
     marginBottom: 14,
     position: 'relative', overflow: 'hidden',
   },
@@ -589,18 +589,18 @@ const D: Record<string, React.CSSProperties> = {
   alertBtn   : { fontSize: 12, fontWeight: 800, color: colors.accent.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' },
   sessionCard: {
     display: 'flex', alignItems: 'center',
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 12, padding: '14px 18px',
-    border: `1px solid ${colors.accent.zinc}`,
+    border: `1px solid ${colors.border.light}`,
     marginBottom: 20,
   },
   dayBadge   : { textAlign: 'center', minWidth: 48, flexShrink: 0 },
-  sectionLabel: { fontSize: 10, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10, marginTop: 4 },
+  sectionLabel: { fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10, marginTop: 4 },
   navGrid    : { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 },
   navCard    : {
     padding: '18px 8px 14px', borderRadius: 12,
-    border: `1px solid ${colors.accent.zinc}`,
-    backgroundColor: colors.background.surface,
+    border: `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.surface,
     textAlign: 'center' as const, position: 'relative',
   },
   navBadge   : {
@@ -612,21 +612,21 @@ const D: Record<string, React.CSSProperties> = {
   },
   questCard  : { borderRadius: 12, padding: '14px 16px', border: '1px solid', transition: 'background 0.13s' },
   evalCard   : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 12, padding: '20px',
-    border: `1px solid ${colors.accent.zinc}`,
+    border: `1px solid ${colors.border.light}`,
     marginBottom: 20,
   },
   emptySection: {
     textAlign: 'center', padding: '24px',
-    backgroundColor: colors.background.surface,
-    borderRadius: 12, border: `1px solid ${colors.accent.zinc}`,
+    backgroundColor: colors.light.surface,
+    borderRadius: 12, border: `1px solid ${colors.border.light}`,
     marginBottom: 20,
   },
   emptyHero  : {
     textAlign: 'center', padding: '40px 28px',
-    backgroundColor: colors.background.surface,
-    borderRadius: 16, border: `1px solid ${colors.accent.zinc}`,
+    backgroundColor: colors.light.surface,
+    borderRadius: 16, border: `1px solid ${colors.border.light}`,
     marginBottom: 20,
   },
   btnStart   : {

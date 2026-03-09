@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { supabase, getChildProfile } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { colors } from '@aureak/theme'
+import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 type EvalSignal = 'none' | 'positive' | 'attention'
 
@@ -27,12 +27,12 @@ const PRESENT_STATUSES = new Set(['present', 'late', 'trial'])
 const SIGNAL_COLOR: Record<EvalSignal, string> = {
   positive : colors.status.present,
   attention: colors.status.attention,
-  none     : colors.text.secondary,
+  none     : colors.text.muted,
 }
 const SIGNAL_BG: Record<EvalSignal, string> = {
   positive : 'rgba(76,175,80,0.12)',
   attention: 'rgba(255,193,7,0.12)',
-  none     : colors.background.elevated,
+  none     : colors.light.muted,
 }
 const SIGNAL_LABEL: Record<EvalSignal, string> = {
   positive : '✓',
@@ -50,11 +50,11 @@ function rateColor(pct: number): string {
 function Skeleton() {
   return (
     <div style={P.container}>
-      <style>{`@keyframes pdp{0%,100%{opacity:.18}50%{opacity:.45}} .pds{background:${colors.background.elevated};border-radius:6px;animation:pdp 1.8s ease-in-out infinite}`}</style>
+      <style>{`@keyframes pdp{0%,100%{opacity:.18}50%{opacity:.45}} .pds{background:${colors.light.muted};border-radius:${radius.xs}px;animation:pdp 1.8s ease-in-out infinite}`}</style>
       <div className="pds" style={{ height: 28, width: 260, marginBottom: 8 }} />
       <div className="pds" style={{ height: 14, width: 200, marginBottom: 32 }} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 20 }}>
-        {[0,1].map(i => <div key={i} className="pds" style={{ height: 260, borderRadius: 12 }} />)}
+        {[0,1].map(i => <div key={i} className="pds" style={{ height: 260, borderRadius: radius.card }} />)}
       </div>
     </div>
   )
@@ -74,7 +74,7 @@ function SignalChip({ label, value }: { label: string; value: EvalSignal }) {
       }}>
         {SIGNAL_LABEL[value]}
       </div>
-      <div style={{ fontSize: 10, color: colors.text.secondary, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+      <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
         {label}
       </div>
     </div>
@@ -142,9 +142,9 @@ export default function ParentDashboardPage() {
     <div style={P.container}>
       <style>{`
         @keyframes pdp{0%,100%{opacity:.18}50%{opacity:.45}}
-        .pds{background:${colors.background.elevated};border-radius:6px;animation:pdp 1.8s ease-in-out infinite}
+        .pds{background:${colors.light.muted};border-radius:${radius.xs}px;animation:pdp 1.8s ease-in-out infinite}
         .p-btn:hover{opacity:.85}
-        .p-nav:hover{background:${colors.background.elevated}}
+        .p-nav:hover{background:${colors.light.muted}}
       `}</style>
 
       {/* ── Header ── */}
@@ -160,7 +160,7 @@ export default function ParentDashboardPage() {
         <div style={P.emptyCard}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Aucun joueur associé</div>
-          <div style={{ fontSize: 14, color: colors.text.secondary }}>
+          <div style={{ fontSize: 14, color: colors.text.muted }}>
             Contactez votre club pour lier un profil joueur à votre compte.
           </div>
         </div>
@@ -183,11 +183,11 @@ export default function ParentDashboardPage() {
                 <div style={P.cardTop}>
                   <div style={P.avatar}>{initial}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', color: colors.text.primary }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
                       {child.displayName}
                     </div>
                     {child.lastSessionAt && (
-                      <div style={{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: colors.text.muted, marginTop: 2 }}>
                         Dernière séance : {new Date(child.lastSessionAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })}
                       </div>
                     )}
@@ -216,7 +216,7 @@ export default function ParentDashboardPage() {
                   <div style={P.kpi}>
                     <div style={{
                       fontSize: 26, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif',
-                      color: rate !== null ? rateColor(rate) : colors.text.secondary,
+                      color: rate !== null ? rateColor(rate) : colors.text.muted,
                     }}>
                       {rate !== null ? `${rate}%` : '—'}
                     </div>
@@ -227,11 +227,11 @@ export default function ParentDashboardPage() {
                 {/* ── Attendance bar ── */}
                 {child.totalSessions > 0 && (
                   <div style={{ padding: '0 20px 16px' }}>
-                    <div style={{ height: 4, backgroundColor: colors.background.elevated, borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: 4, backgroundColor: colors.light.muted, borderRadius: 2, overflow: 'hidden' }}>
                       <div style={{
                         height: '100%',
                         width: `${Math.round((child.presentCount / child.totalSessions) * 100)}%`,
-                        backgroundColor: rate !== null ? rateColor(rate) : colors.accent.zinc,
+                        backgroundColor: rate !== null ? rateColor(rate) : colors.border.light,
                         borderRadius: 2,
                         transition: 'width 0.4s cubic-bezier(0.4,0,0.2,1)',
                       }} />
@@ -285,20 +285,20 @@ export default function ParentDashboardPage() {
 }
 
 const P: Record<string, React.CSSProperties> = {
-  container  : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 900 },
+  container  : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 900 },
   header     : { marginBottom: 28 },
   title      : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, marginBottom: 4 },
-  subtitle   : { fontSize: 13, color: colors.text.secondary, margin: 0 },
-  emptyCard  : { backgroundColor: colors.background.surface, borderRadius: 12, padding: '48px 32px', textAlign: 'center', border: `1px solid ${colors.accent.zinc}` },
-  childCard  : { backgroundColor: colors.background.surface, borderRadius: 12, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden' },
+  subtitle   : { fontSize: 13, color: colors.text.muted, margin: 0 },
+  emptyCard  : { backgroundColor: colors.light.surface, borderRadius: radius.card, padding: '48px 32px', textAlign: 'center', border: `1px solid ${colors.border.light}`, boxShadow: shadows.sm },
+  childCard  : { backgroundColor: colors.light.surface, borderRadius: radius.card, border: `1px solid ${colors.border.light}`, overflow: 'hidden', boxShadow: shadows.sm },
   cardTop    : { display: 'flex', alignItems: 'center', gap: 14, padding: '20px 20px 16px' },
   avatar     : { width: 44, height: 44, borderRadius: '50%', backgroundColor: colors.accent.gold, color: colors.text.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, flexShrink: 0 },
-  kpiRow     : { display: 'flex', alignItems: 'center', borderTop: `1px solid ${colors.accent.zinc}`, borderBottom: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.elevated },
+  kpiRow     : { display: 'flex', alignItems: 'center', borderTop: `1px solid ${colors.border.light}`, borderBottom: `1px solid ${colors.border.light}`, backgroundColor: colors.light.muted },
   kpi        : { flex: 1, padding: '14px 0', textAlign: 'center' as const },
-  kpiLabel   : { fontSize: 11, color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginTop: 2 },
-  kpiDivider : { width: 1, height: 40, backgroundColor: colors.accent.zinc, flexShrink: 0 },
-  evalSection: { padding: '16px 20px', borderTop: `1px solid ${colors.accent.zinc}`, textAlign: 'center' as const },
-  evalLabel  : { fontSize: 11, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', marginBottom: 12 },
-  navRow     : { display: 'flex', padding: '12px 16px', gap: 8, borderTop: `1px solid ${colors.accent.zinc}` },
-  navBtn     : { flex: 1, padding: '8px 12px', borderRadius: 6, border: `1px solid ${colors.accent.zinc}`, backgroundColor: 'transparent', color: colors.accent.gold, fontWeight: 600, fontSize: 13, cursor: 'pointer', textAlign: 'center' as const, transition: 'background 0.15s' },
+  kpiLabel   : { fontSize: 11, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginTop: 2 },
+  kpiDivider : { width: 1, height: 40, backgroundColor: colors.border.light, flexShrink: 0 },
+  evalSection: { padding: '16px 20px', borderTop: `1px solid ${colors.border.light}`, textAlign: 'center' as const },
+  evalLabel  : { fontSize: 11, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', marginBottom: 12 },
+  navRow     : { display: 'flex', padding: '12px 16px', gap: 8, borderTop: `1px solid ${colors.border.light}` },
+  navBtn     : { flex: 1, padding: '8px 12px', borderRadius: radius.xs, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.accent.gold, fontWeight: 600, fontSize: 13, cursor: 'pointer', textAlign: 'center' as const, transition: transitions.fast },
 }

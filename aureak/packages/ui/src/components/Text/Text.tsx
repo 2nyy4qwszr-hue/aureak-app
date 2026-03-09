@@ -13,68 +13,70 @@ export type AureakTextProps = {
   accessibilityLabel?: string
 }
 
+// Default colors optimized for Light Premium theme (beige/white backgrounds)
+// Override via `color` prop when used on dark surfaces
 const styles = StyleSheet.create({
   display: {
     fontFamily: 'Rajdhani-Bold',
     fontSize: typography.display.size,
     fontWeight: typography.display.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
     letterSpacing: typography.display.letterSpacing,
   },
   h1: {
     fontFamily: 'Rajdhani-Bold',
     fontSize: typography.h1.size,
     fontWeight: typography.h1.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
     letterSpacing: typography.h1.letterSpacing,
   },
   h2: {
     fontFamily: 'Rajdhani-SemiBold',
     fontSize: typography.h2.size,
     fontWeight: typography.h2.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
     letterSpacing: typography.h2.letterSpacing,
   },
   h3: {
     fontFamily: 'Rajdhani-SemiBold',
     fontSize: typography.h3.size,
     fontWeight: typography.h3.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
     letterSpacing: typography.h3.letterSpacing,
   },
   bodyLg: {
     fontFamily: 'Geist-Regular',
     fontSize: typography.bodyLg.size,
     fontWeight: typography.bodyLg.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
     lineHeight: typography.bodyLg.lineHeight,
   },
   body: {
     fontFamily: 'Geist-Regular',
     fontSize: typography.body.size,
     fontWeight: typography.body.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
     lineHeight: typography.body.lineHeight,
   },
   bodySm: {
     fontFamily: 'Geist-Regular',
     fontSize: typography.bodySm.size,
     fontWeight: typography.bodySm.weight,
-    color: colors.text.secondary,
+    color: colors.text.muted,
     lineHeight: typography.bodySm.lineHeight,
   },
   caption: {
     fontFamily: 'Geist-Regular',
     fontSize: typography.caption.size,
     fontWeight: typography.caption.weight,
-    color: colors.text.secondary,
+    color: colors.text.muted,
     lineHeight: typography.caption.lineHeight,
   },
   label: {
     fontFamily: 'Geist-SemiBold',
     fontSize: typography.label.size,
     fontWeight: typography.label.weight,
-    color: colors.text.secondary,
+    color: colors.text.muted,
     letterSpacing: typography.label.letterSpacing,
     textTransform: typography.label.textTransform,
   },
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
     fontFamily: 'GeistMono-Regular',
     fontSize: typography.stat.size,
     fontWeight: typography.stat.weight,
-    color: colors.text.primary,
+    color: colors.text.dark,
   },
 })
 

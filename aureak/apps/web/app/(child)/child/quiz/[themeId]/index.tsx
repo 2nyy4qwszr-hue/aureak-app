@@ -124,7 +124,7 @@ export default function ChildQuizSessionPage() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       </View>
     )
   }
@@ -157,16 +157,16 @@ export default function ChildQuizSessionPage() {
           >
             {acquired ? 'Thème ACQUIS !' : 'Continue tes efforts !'}
           </AureakText>
-          <AureakText variant="body" style={{ textAlign: 'center', color: colors.text.secondary }}>
+          <AureakText variant="body" style={{ textAlign: 'center', color: colors.text.muted }}>
             Maîtrise : {quiz.masteryPercent}%
           </AureakText>
-          <AureakText variant="body" style={{ textAlign: 'center', color: colors.text.secondary }}>
+          <AureakText variant="body" style={{ textAlign: 'center', color: colors.text.muted }}>
             {quiz.correctCount} bonne{quiz.correctCount !== 1 ? 's' : ''} réponse{quiz.correctCount !== 1 ? 's' : ''}
           </AureakText>
         </View>
 
         <Pressable style={styles.btn} onPress={() => router.push('/child/quiz' as never)}>
-          <AureakText variant="body" style={{ color: colors.background.primary, fontWeight: '700' }}>
+          <AureakText variant="body" style={{ color: colors.light.primary, fontWeight: '700' }}>
             Choisir un autre thème
           </AureakText>
         </Pressable>
@@ -199,13 +199,13 @@ export default function ChildQuizSessionPage() {
           >
             {res.is_correct ? 'Bonne réponse !' : 'Mauvaise réponse'}
           </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, textAlign: 'center' }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center' }}>
             Maîtrise : {res.mastery_percent}%
           </AureakText>
         </View>
 
         <Pressable style={styles.btn} onPress={handleNext}>
-          <AureakText variant="body" style={{ color: colors.background.primary, fontWeight: '700' }}>
+          <AureakText variant="body" style={{ color: colors.light.primary, fontWeight: '700' }}>
             Question suivante →
           </AureakText>
         </Pressable>
@@ -223,7 +223,7 @@ export default function ChildQuizSessionPage() {
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress}%` as never }]} />
       </View>
-      <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted }}>
         Question {quiz.currentIndex + 1} / {quiz.questions.length}
       </AureakText>
 
@@ -244,7 +244,7 @@ export default function ChildQuizSessionPage() {
       ))}
 
       <Pressable onPress={handleQuit}>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, textAlign: 'center' }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center' }}>
           Abandonner le quiz
         </AureakText>
       </Pressable>
@@ -253,34 +253,34 @@ export default function ChildQuizSessionPage() {
 }
 
 const styles = StyleSheet.create({
-  container    : { flex: 1, backgroundColor: colors.background.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
   content      : { padding: space.xl, gap: space.md },
-  center       : { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, backgroundColor: colors.background.primary },
-  progressTrack: { height: 6, backgroundColor: colors.background.elevated, borderRadius: 3, overflow: 'hidden' },
+  center       : { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, backgroundColor: colors.light.primary },
+  progressTrack: { height: 6, backgroundColor: colors.light.muted, borderRadius: 3, overflow: 'hidden' },
   progressFill : { height: 6, backgroundColor: colors.accent.gold, borderRadius: 3 },
   questionCard : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.lg,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
   optionCard   : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
   feedbackCard : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.xl,
     borderWidth    : 2,
     gap            : space.sm,
   },
   resultCard   : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 12,
     padding        : space.xl,
     borderWidth    : 2,

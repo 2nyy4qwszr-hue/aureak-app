@@ -99,7 +99,7 @@ function ChipRow<T extends string | number>({
             key={String(opt)}
             style={{
               borderWidth      : 1,
-              borderColor      : active ? c : colors.accent.zinc,
+              borderColor      : active ? c : colors.border.light,
               borderRadius     : 20,
               paddingHorizontal: 12,
               paddingVertical  : 4,
@@ -109,7 +109,7 @@ function ChipRow<T extends string | number>({
           >
             <AureakText
               variant="caption"
-              style={{ color: active ? c : colors.text.secondary, fontWeight: active ? '700' : '400' }}
+              style={{ color: active ? c : colors.text.muted, fontWeight: active ? '700' : '400' }}
             >
               {label ? label(opt) : String(opt)}
             </AureakText>
@@ -123,7 +123,7 @@ function ChipRow<T extends string | number>({
 function NamePreview({ name }: { name: string }) {
   return (
     <View style={styles.namePreview}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, marginBottom: 2 }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 2 }}>
         Nom généré automatiquement
       </AureakText>
       <AureakText variant="body" style={{ color: colors.accent.gold, fontWeight: '700' }}>
@@ -142,7 +142,7 @@ function GroupRow({
   onManage: () => void
   onDelete: () => void
 }) {
-  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.text.secondary
+  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.text.muted
   return (
     <View style={[styles.groupRow, { borderLeftColor: methodColor, borderLeftWidth: 3 }]}>
       <View style={{ flex: 1, gap: 2 }}>
@@ -156,7 +156,7 @@ function GroupRow({
             </View>
           )}
           {group.dayOfWeek && group.startHour !== null && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
               {group.dayOfWeek} · {formatTime(group.startHour!, group.startMinute ?? 0)}
               {group.durationMinutes ? ` · ${group.durationMinutes} min` : ''}
             </AureakText>
@@ -300,7 +300,7 @@ export default function ImplantationsPage() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <AureakText variant="h2">Implantations</AureakText>
+        <AureakText variant="h2" color={colors.accent.gold}>Implantations</AureakText>
         <AureakButton
           label="+ Nouvelle implantation"
           onPress={() => setShowCreate(true)}
@@ -315,14 +315,14 @@ export default function ImplantationsPage() {
           <TextInput
             style={styles.input}
             placeholder="Nom (ex: Onhaye)"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             value={newName}
             onChangeText={setNewName}
           />
           <TextInput
             style={styles.input}
             placeholder="Adresse (optionnel)"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             value={newAddress}
             onChangeText={setNewAddress}
           />
@@ -334,9 +334,9 @@ export default function ImplantationsPage() {
       )}
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : implantations.length === 0 ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune implantation. Créez la première.
         </AureakText>
       ) : (
@@ -346,8 +346,8 @@ export default function ImplantationsPage() {
             {/* Implantation header */}
             {editId === impl.id ? (
               <View style={{ gap: space.xs }}>
-                <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholderTextColor={colors.text.secondary} />
-                <TextInput style={styles.input} value={editAddr} onChangeText={setEditAddr} placeholder="Adresse" placeholderTextColor={colors.text.secondary} />
+                <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholderTextColor={colors.text.muted} />
+                <TextInput style={styles.input} value={editAddr} onChangeText={setEditAddr} placeholder="Adresse" placeholderTextColor={colors.text.muted} />
                 <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <AureakButton label="Annuler" onPress={() => setEditId(null)} variant="secondary" />
                   <AureakButton label={saving ? 'Enregistrement...' : 'Enregistrer'} onPress={handleSave} loading={saving} fullWidth />
@@ -358,7 +358,7 @@ export default function ImplantationsPage() {
                 <View style={{ flex: 1 }}>
                   <AureakText variant="h3">{impl.name}</AureakText>
                   {impl.address && (
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>{impl.address}</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>{impl.address}</AureakText>
                   )}
                 </View>
                 <View style={{ flexDirection: 'row', gap: space.xs }}>
@@ -389,7 +389,7 @@ export default function ImplantationsPage() {
                 </AureakText>
                 {groups[impl.id] && (
                   <View style={styles.groupCount}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                       {groups[impl.id].length}
                     </AureakText>
                   </View>
@@ -403,7 +403,7 @@ export default function ImplantationsPage() {
 
                 {/* Existing groups */}
                 {(groups[impl.id] ?? []).length === 0 ? (
-                  <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
                     Aucun groupe — créez le premier ci-dessous.
                   </AureakText>
                 ) : (
@@ -420,7 +420,7 @@ export default function ImplantationsPage() {
                 {/* Add group form */}
                 {addGroupFor === impl.id ? (
                   <View style={styles.groupForm}>
-                    <AureakText variant="label" style={{ color: colors.text.secondary, marginBottom: space.xs }}>
+                    <AureakText variant="label" style={{ color: colors.text.muted, marginBottom: space.xs }}>
                       MÉTHODE
                     </AureakText>
                     <ChipRow
@@ -430,7 +430,7 @@ export default function ImplantationsPage() {
                       color={(m) => METHOD_COLOR[m]}
                     />
 
-                    <AureakText variant="label" style={{ color: colors.text.secondary, marginTop: space.sm, marginBottom: space.xs }}>
+                    <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
                       JOUR
                     </AureakText>
                     <ChipRow
@@ -439,7 +439,7 @@ export default function ImplantationsPage() {
                       onSelect={(d) => setGroupForm(f => ({ ...f, day: d }))}
                     />
 
-                    <AureakText variant="label" style={{ color: colors.text.secondary, marginTop: space.sm, marginBottom: space.xs }}>
+                    <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
                       HEURE DE DÉBUT
                     </AureakText>
                     <ChipRow
@@ -457,7 +457,7 @@ export default function ImplantationsPage() {
                       />
                     </View>
 
-                    <AureakText variant="label" style={{ color: colors.text.secondary, marginTop: space.sm, marginBottom: space.xs }}>
+                    <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
                       DURÉE
                     </AureakText>
                     <ChipRow
@@ -503,11 +503,11 @@ export default function ImplantationsPage() {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container   : { flex: 1, backgroundColor: colors.background.primary },
+  container   : { flex: 1, backgroundColor: colors.light.primary },
   content     : { padding: space.xl, gap: space.md },
   header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   formCard    : {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 10,
     padding        : space.md,
     gap            : space.sm,
@@ -515,33 +515,33 @@ const styles = StyleSheet.create({
     borderColor    : colors.accent.gold,
   },
   card        : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     gap            : space.sm,
   },
   cardHeader  : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   actionBtn   : {
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 6,
     paddingHorizontal: space.sm,
     paddingVertical  : space.xs,
   },
   input       : {
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     borderRadius   : 6,
-    color          : colors.text.primary,
+    color          : colors.text.dark,
     padding        : space.sm,
     fontSize       : 14,
   },
   groupsToggle : { paddingVertical: space.xs },
   groupCount   : {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 10,
     paddingHorizontal: 8,
     paddingVertical  : 1,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   groupRow     : {
     flexDirection    : 'row',
     alignItems       : 'center',
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderRadius     : '0 8px 8px 0' as unknown as number,
     paddingHorizontal: space.sm,
     paddingVertical  : space.sm,
@@ -564,15 +564,15 @@ const styles = StyleSheet.create({
     paddingVertical  : 3,
   },
   groupForm   : {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     gap            : 0,
   },
   namePreview : {
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     borderRadius   : 6,
     borderWidth    : 1,
     borderColor    : colors.accent.gold + '40',

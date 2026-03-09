@@ -1,6 +1,6 @@
 # Story 1.1 : Initialisation du Monorepo & Structure des Packages
 
-Status: review
+Status: done
 
 ## Story
 

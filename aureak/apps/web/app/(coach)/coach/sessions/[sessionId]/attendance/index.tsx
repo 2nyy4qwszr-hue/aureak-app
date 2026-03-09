@@ -7,7 +7,7 @@ import {
   prefillSessionAttendees, supabase,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { colors } from '@aureak/theme'
+import { colors, shadows, radius, transitions } from '@aureak/theme'
 import type { Session, Attendance } from '@aureak/types'
 import type { AttendanceStatus } from '@aureak/types'
 
@@ -22,7 +22,7 @@ const STATUS_OPTIONS: {
   { value: 'present', label: 'Présent',    color: colors.status.present,   bg: 'rgba(76,175,80,0.14)'   },
   { value: 'late',    label: 'En retard',  color: colors.status.attention,  bg: 'rgba(255,193,7,0.14)'   },
   { value: 'trial',   label: 'Essai',      color: colors.accent.gold,       bg: 'rgba(193,172,92,0.14)'  },
-  { value: 'absent',  label: 'Absent',     color: colors.text.secondary,    bg: colors.background.elevated },
+  { value: 'absent',  label: 'Absent',     color: colors.text.muted,        bg: colors.light.muted },
   { value: 'injured', label: 'Blessé',     color: colors.status.absent,     bg: 'rgba(244,67,54,0.10)'   },
 ]
 
@@ -31,7 +31,7 @@ function Skeleton({ sessionId }: { sessionId: string }) {
   const router = useRouter()
   return (
     <div style={A.page}>
-      <style>{`@keyframes ap{0%,100%{opacity:.15}50%{opacity:.42}} .as{background:${colors.background.elevated};border-radius:6px;animation:ap 1.8s ease-in-out infinite}`}</style>
+      <style>{`@keyframes ap{0%,100%{opacity:.15}50%{opacity:.42}} .as{background:${colors.light.muted};border-radius:${radius.xs}px;animation:ap 1.8s ease-in-out infinite}`}</style>
       <button style={A.back} onClick={() => router.push('/coach/sessions' as never)}>← Mes séances</button>
       <div className="as" style={{ height: 28, width: 280, marginBottom: 8 }} />
       <div className="as" style={{ height: 14, width: 180, marginBottom: 24 }} />
@@ -61,7 +61,7 @@ function SubNav({ sessionId, active }: { sessionId: string; active: string }) {
           key={tab.href}
           style={{
             ...A.subNavBtn,
-            color      : active === tab.label ? colors.accent.gold : colors.text.secondary,
+            color      : active === tab.label ? colors.accent.gold : colors.text.muted,
             borderBottom: `2px solid ${active === tab.label ? colors.accent.gold : 'transparent'}`,
           }}
           onClick={() => router.push(tab.href as never)}
@@ -176,8 +176,8 @@ export default function AttendancePage() {
         <div style={A.kpiBar}>
           <div style={A.kpiGroup}>
             <span style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', color: colors.status.present }}>{presentCount}</span>
-            <span style={{ fontSize: 13, color: colors.text.secondary }}>/ {children.length} présents</span>
-            <span style={{ fontSize: 13, color: colors.text.secondary }}>·</span>
+            <span style={{ fontSize: 13, color: colors.text.muted }}>/ {children.length} présents</span>
+            <span style={{ fontSize: 13, color: colors.text.muted }}>·</span>
             <span style={{ fontSize: 13, color: colors.accent.gold, fontWeight: 600 }}>
               {children.length > 0 ? Math.round((presentCount / children.length) * 100) : 0}%
             </span>
@@ -212,8 +212,8 @@ export default function AttendancePage() {
                         className="a-sbtn"
                         style={{
                           ...A.statusBtn,
-                          color          : isSelected ? opt.color : colors.text.secondary,
-                          borderColor    : isSelected ? opt.color : colors.accent.zinc,
+                          color          : isSelected ? opt.color : colors.text.muted,
+                          borderColor    : isSelected ? opt.color : colors.border.light,
                           backgroundColor: isSelected ? opt.bg : 'transparent',
                           fontWeight     : isSelected ? 700 : 500,
                           opacity        : isSaving ? 0.5 : 1,
@@ -236,18 +236,18 @@ export default function AttendancePage() {
 }
 
 const A: Record<string, React.CSSProperties> = {
-  page       : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 780 },
-  back       : { fontSize: 13, color: colors.text.secondary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
+  page       : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
+  back       : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: transitions.fast },
   title      : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 4px' },
-  subtitle   : { fontSize: 13, color: colors.text.secondary },
-  subNav     : { display: 'flex', gap: 0, borderBottom: `1px solid ${colors.accent.zinc}`, marginBottom: 20 },
-  subNavBtn  : { padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: 'color 0.15s', paddingBottom: 10 },
-  kpiBar     : { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, marginBottom: 16 },
+  subtitle   : { fontSize: 13, color: colors.text.muted },
+  subNav     : { display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.light}`, marginBottom: 20 },
+  subNavBtn  : { padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: transitions.fast, paddingBottom: 10 },
+  kpiBar     : { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, marginBottom: 16, boxShadow: shadows.sm },
   kpiGroup   : { display: 'flex', alignItems: 'center', gap: 8 },
-  btnAllPresent: { padding: '8px 18px', borderRadius: 7, border: 'none', backgroundColor: colors.status.present, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'opacity 0.15s' },
-  childCard  : { backgroundColor: colors.background.surface, borderRadius: 10, padding: '12px 16px', border: `1px solid ${colors.accent.zinc}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+  btnAllPresent: { padding: '8px 18px', borderRadius: 7, border: 'none', backgroundColor: colors.status.present, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: transitions.fast },
+  childCard  : { backgroundColor: colors.light.surface, borderRadius: 10, padding: '12px 16px', border: `1px solid ${colors.border.light}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, boxShadow: shadows.sm },
   childName  : { fontSize: 14, fontWeight: 600, minWidth: 120, flexShrink: 0 },
   statusBtns : { display: 'flex', gap: 6, flexWrap: 'wrap' },
-  statusBtn  : { padding: '5px 12px', borderRadius: 6, border: '1px solid', fontSize: 12, cursor: 'pointer', transition: 'all 0.12s' },
-  empty      : { color: colors.text.secondary, fontSize: 14, padding: '40px 0', textAlign: 'center' },
+  statusBtn  : { padding: '5px 12px', borderRadius: radius.xs, border: '1px solid', fontSize: 12, cursor: 'pointer', transition: transitions.fast },
+  empty      : { color: colors.text.muted, fontSize: 14, padding: '40px 0', textAlign: 'center' },
 }

@@ -5,10 +5,10 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native
 import { useRouter } from 'expo-router'
 import { listMethodologySessions } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS, METHODOLOGY_CONTEXT_TYPES,
-  METHODOLOGY_METHOD_COLOR, METHODOLOGY_CONTEXT_LABELS, METHODOLOGY_LEVEL_LABELS,
+  METHODOLOGY_CONTEXT_LABELS, METHODOLOGY_LEVEL_LABELS,
   type MethodologyMethod, type MethodologyContextType, type MethodologyLevel,
 } from '@aureak/types'
 import type { MethodologySession } from '@aureak/types'
@@ -18,7 +18,7 @@ type FilterContext = MethodologyContextType | 'all'
 
 function MethodBadge({ method }: { method: string | null }) {
   if (!method) return null
-  const color = METHODOLOGY_METHOD_COLOR[method as MethodologyMethod] ?? colors.accent.zinc
+  const color = methodologyMethodColors[method as MethodologyMethod] ?? colors.border.light
   return (
     <View style={{ backgroundColor: color + '18', borderColor: color, borderWidth: 1, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
       <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 10 }}>{method}</AureakText>
@@ -30,8 +30,8 @@ function ContextBadge({ contextType }: { contextType: string | null }) {
   if (!contextType) return null
   const label = METHODOLOGY_CONTEXT_LABELS[contextType as MethodologyContextType] ?? contextType
   return (
-    <View style={{ backgroundColor: colors.background.elevated, borderColor: colors.accent.zinc, borderWidth: 1, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>{label}</AureakText>
+    <View style={{ backgroundColor: colors.light.muted, borderColor: colors.border.light, borderWidth: 1, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{label}</AureakText>
     </View>
   )
 }
@@ -80,9 +80,9 @@ export default function SeancesPage() {
         </Pressable>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <AureakText variant="h2">Entraînements pédagogiques</AureakText>
+            <AureakText variant="h2" color={colors.accent.gold}>Entraînements pédagogiques</AureakText>
             {!loading && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
                 {filtered.length} entraînement{filtered.length !== 1 ? 's' : ''}
               </AureakText>
             )}
@@ -99,7 +99,7 @@ export default function SeancesPage() {
         value={search}
         onChangeText={setSearch}
         placeholder="Rechercher par titre…"
-        placeholderTextColor={colors.text.secondary}
+        placeholderTextColor={colors.text.muted}
       />
 
       {/* ── Filters ── */}
@@ -109,14 +109,13 @@ export default function SeancesPage() {
             {/* Method filter */}
             {(['all', ...METHODOLOGY_METHODS] as (FilterMethod)[]).map(m => {
               const active = methodFilter === m
-              const color  = m === 'all' ? colors.accent.gold : METHODOLOGY_METHOD_COLOR[m as MethodologyMethod]
               return (
                 <Pressable
                   key={m}
                   onPress={() => setMethodFilter(m)}
-                  style={[s.chip, { borderColor: active ? color : colors.accent.zinc, backgroundColor: active ? color + '20' : 'transparent' }]}
+                  style={[s.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
                 >
-                  <AureakText variant="caption" style={{ color: active ? color : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+                  <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                     {m === 'all' ? 'Toutes méthodes' : m}
                   </AureakText>
                 </Pressable>
@@ -135,9 +134,9 @@ export default function SeancesPage() {
                 <Pressable
                   key={c}
                   onPress={() => setContextFilter(c)}
-                  style={[s.chip, { borderColor: active ? colors.accent.gold : colors.accent.zinc, backgroundColor: active ? colors.accent.gold + '20' : 'transparent' }]}
+                  style={[s.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
                 >
-                  <AureakText variant="caption" style={{ color: active ? colors.accent.gold : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+                  <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                     {c === 'all' ? 'Tous contextes' : METHODOLOGY_CONTEXT_LABELS[c as MethodologyContextType]}
                   </AureakText>
                 </Pressable>
@@ -149,10 +148,10 @@ export default function SeancesPage() {
 
       {/* ── List ── */}
       {loading ? (
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       ) : filtered.length === 0 ? (
         <View style={s.empty}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
             {sessions.length === 0 ? 'Aucun entraînement pédagogique. Créez le premier.' : 'Aucun résultat pour ces filtres.'}
           </AureakText>
         </View>
@@ -161,11 +160,11 @@ export default function SeancesPage() {
           {filtered.map(session => (
             <Pressable
               key={session.id}
-              style={({ pressed }) => [s.row, pressed && { backgroundColor: colors.background.elevated }]}
+              style={({ pressed }) => [s.row, pressed && { backgroundColor: colors.light.muted }]}
               onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}
             >
               {/* Active indicator */}
-              <View style={[s.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.accent.zinc }]} />
+              <View style={[s.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.border.light }]} />
 
               <View style={{ flex: 1, gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -176,7 +175,7 @@ export default function SeancesPage() {
                     </View>
                   )}
                   {!session.isActive && (
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
                   )}
                 </View>
 
@@ -184,12 +183,12 @@ export default function SeancesPage() {
                   <MethodBadge method={session.method} />
                   <ContextBadge contextType={session.contextType} />
                   {session.moduleName && (
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>{session.moduleName}</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{session.moduleName}</AureakText>
                   )}
                 </View>
 
                 {session.description && (
-                  <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }} numberOfLines={1}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }} numberOfLines={1}>
                     {session.description}
                   </AureakText>
                 )}
@@ -214,7 +213,7 @@ export default function SeancesPage() {
                 )}
               </View>
 
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 16 }}>›</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 16 }}>›</AureakText>
             </Pressable>
           ))}
         </View>
@@ -225,18 +224,18 @@ export default function SeancesPage() {
 }
 
 const s = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
   header     : { gap: 4 },
   newBtn     : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   searchInput: {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 8,
     paddingHorizontal: space.md,
     paddingVertical  : 10,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
   filterRow: { flexDirection: 'row' },
@@ -246,10 +245,10 @@ const s = StyleSheet.create({
     flexDirection  : 'row',
     alignItems     : 'center',
     gap            : 12,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
   },
   activeDot: { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },

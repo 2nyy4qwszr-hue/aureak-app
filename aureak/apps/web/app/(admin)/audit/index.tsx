@@ -97,14 +97,14 @@ export default function AuditPage() {
                     </span>
                   )}
                 </td>
-                <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '11px', color: colors.text.secondary }}>
+                <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '11px', color: colors.text.muted }}>
                   {log.user_id ? log.user_id.slice(0, 8) + '…' : '—'}
                 </td>
               </tr>
             ))}
             {logs.length === 0 && (
               <tr>
-                <td colSpan={4} style={{ ...styles.td, textAlign: 'center', color: colors.text.secondary }}>
+                <td colSpan={4} style={{ ...styles.td, textAlign: 'center', color: colors.text.muted }}>
                   Aucune entrée pour ces filtres.
                 </td>
               </tr>
@@ -117,16 +117,16 @@ export default function AuditPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container  : { padding: '24px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary },
-  loading    : { padding: '48px', textAlign: 'center', color: colors.text.secondary },
+  container  : { padding: '24px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark },
+  loading    : { padding: '48px', textAlign: 'center', color: colors.text.muted },
   title      : { fontSize: '28px', fontWeight: 700, marginBottom: '24px' },
   filterRow  : { display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' },
-  input      : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.background.surface, color: colors.text.primary, fontSize: '13px' },
-  searchBtn  : { padding: '8px 14px', borderRadius: '6px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.primary, cursor: 'pointer', fontWeight: 600 },
-  exportBtn  : { padding: '8px 14px', borderRadius: '6px', border: 'none', backgroundColor: colors.accent.zinc, color: colors.text.primary, cursor: 'pointer', fontWeight: 600 },
-  table      : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.background.surface, borderRadius: '12px', overflow: 'hidden' },
-  th         : { padding: '10px 14px', textAlign: 'left', fontSize: '12px', color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #334155' },
+  input      : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '13px' },
+  searchBtn  : { padding: '8px 14px', borderRadius: '6px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 600 },
+  exportBtn  : { padding: '8px 14px', borderRadius: '6px', border: 'none', backgroundColor: colors.border.light, color: colors.text.dark, cursor: 'pointer', fontWeight: 600 },
+  table      : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.light.surface, borderRadius: '12px', overflow: 'hidden' },
+  th         : { padding: '10px 14px', textAlign: 'left', fontSize: '12px', color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #334155' },
   tr         : { borderBottom: '1px solid #1E293B' },
   td         : { padding: '10px 14px', fontSize: '13px' },
-  entity     : { backgroundColor: colors.accent.zinc, padding: '2px 6px', borderRadius: '4px', fontSize: '12px' },
+  entity     : { backgroundColor: colors.border.light, padding: '2px 6px', borderRadius: '4px', fontSize: '12px' },
 }

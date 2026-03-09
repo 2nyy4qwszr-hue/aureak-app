@@ -36,9 +36,9 @@ export default function ChildLayout() {
       {/* ── Sidebar ── */}
       <YStack
         width={200}
-        backgroundColor={colors.background.surface}
+        backgroundColor={colors.light.surface}
         borderRightWidth={1}
-        borderRightColor={colors.accent.zinc}
+        borderRightColor={colors.border.light}
         paddingTop={32}
         paddingBottom={24}
         paddingHorizontal={12}
@@ -58,7 +58,7 @@ export default function ChildLayout() {
         <Text
           fontFamily="$body"
           fontSize={11}
-          color={colors.text.secondary}
+          color={colors.text.muted}
           paddingHorizontal={12}
           marginBottom={32}
           letterSpacing={1}
@@ -79,9 +79,9 @@ export default function ChildLayout() {
                     borderRadius={8}
                     backgroundColor={
                       isActive
-                        ? colors.background.elevated
+                        ? colors.light.muted
                         : pressed
-                          ? colors.background.elevated
+                          ? colors.light.muted
                           : 'transparent'
                     }
                   >
@@ -89,7 +89,7 @@ export default function ChildLayout() {
                       fontFamily="$body"
                       fontSize={14}
                       fontWeight={isActive ? '600' : '400'}
-                      color={isActive ? colors.text.primary : colors.text.secondary}
+                      color={isActive ? colors.text.dark : colors.text.muted}
                     >
                       {label}
                     </Text>
@@ -101,10 +101,10 @@ export default function ChildLayout() {
         </YStack>
 
         <YStack>
-          <Separator borderColor={colors.accent.zinc} marginBottom={12} />
+          <Separator borderColor={colors.border.light} marginBottom={12} />
           <Pressable onPress={handleSignOut}>
             <YStack paddingVertical={9} paddingHorizontal={12} borderRadius={8}>
-              <Text fontFamily="$body" fontSize={14} color={colors.text.secondary}>
+              <Text fontFamily="$body" fontSize={14} color={colors.text.muted}>
                 Déconnexion
               </Text>
             </YStack>
@@ -115,7 +115,7 @@ export default function ChildLayout() {
       {/* ── Main content ── */}
       <YStack
         flex={1}
-        backgroundColor={colors.background.primary}
+        backgroundColor={colors.light.primary}
         style={{ overflowY: 'auto' as never }}
       >
         <Slot />

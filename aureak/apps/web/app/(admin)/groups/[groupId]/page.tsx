@@ -30,7 +30,7 @@ const START_MINUTES = [0, 15, 30, 45]
 const STAFF_ROLES: { key: GroupStaffRole; label: string; color: string }[] = [
   { key: 'principal',  label: 'Coach principal',  color: colors.accent.gold       },
   { key: 'assistant',  label: 'Coach assistant',  color: '#4FC3F7'                },
-  { key: 'remplacant', label: 'Coach remplaçant', color: colors.text.secondary    },
+  { key: 'remplacant', label: 'Coach remplaçant', color: colors.text.muted    },
 ]
 
 const SESSION_STATUS_LABEL: Record<string, string> = {
@@ -71,7 +71,7 @@ function ChipRow<T extends string | number>({
             key={String(opt)}
             style={{
               borderWidth      : 1,
-              borderColor      : active ? c : colors.accent.zinc,
+              borderColor      : active ? c : colors.border.light,
               borderRadius     : 20,
               paddingHorizontal: 11,
               paddingVertical  : 4,
@@ -79,7 +79,7 @@ function ChipRow<T extends string | number>({
             }}
             onPress={() => onSelect(opt)}
           >
-            <AureakText variant="caption" style={{ color: active ? c : colors.text.secondary, fontWeight: active ? '700' : '400' }}>
+            <AureakText variant="caption" style={{ color: active ? c : colors.text.muted, fontWeight: active ? '700' : '400' }}>
               {label ? label(opt) : String(opt)}
             </AureakText>
           </Pressable>
@@ -91,7 +91,7 @@ function ChipRow<T extends string | number>({
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, marginTop: space.sm, textTransform: 'uppercase' as never }}>
+    <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, marginTop: space.sm, textTransform: 'uppercase' as never }}>
       {children}
     </AureakText>
   )
@@ -106,10 +106,10 @@ function SectionCard({ children, style }: { children: React.ReactNode; style?: o
 }
 const sc = StyleSheet.create({
   card: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     gap            : 2,
   },
@@ -168,7 +168,7 @@ function InfosTab({
     return (
       <SectionCard>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
-          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+          <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
             PARAMÈTRES DU GROUPE
           </AureakText>
           <Pressable
@@ -274,13 +274,13 @@ function InfosTab({
 
       {/* Name preview */}
       <View style={info.preview}>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, marginBottom: 2 }}>Nouveau nom généré</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 2 }}>Nouveau nom généré</AureakText>
         <AureakText variant="body" style={{ color: colors.accent.gold, fontWeight: '700' }}>{previewName}</AureakText>
       </View>
 
       <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
         <Pressable style={info.cancelBtn} onPress={handleCancel}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
         </Pressable>
         <Pressable style={info.saveBtn} onPress={handleSave} disabled={saving}>
           <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
@@ -293,8 +293,8 @@ function InfosTab({
 }
 
 const info = StyleSheet.create({
-  row     : { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '40' },
-  label   : { width: 140, color: colors.text.secondary, fontSize: 12 },
+  row     : { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border.divider + '40' },
+  label   : { width: 140, color: colors.text.muted, fontSize: 12 },
   value   : { flex: 1, fontSize: 13 },
   editBtn : {
     paddingHorizontal: space.sm,
@@ -304,7 +304,7 @@ const info = StyleSheet.create({
     borderColor      : colors.accent.gold + '60',
   },
   preview : {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 6,
     borderWidth    : 1,
     borderColor    : colors.accent.gold + '40',
@@ -313,7 +313,7 @@ const info = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1, paddingVertical: space.xs + 2,
-    borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc,
+    borderRadius: 6, borderWidth: 1, borderColor: colors.border.light,
     alignItems: 'center',
   },
   saveBtn: {
@@ -370,7 +370,7 @@ function StaffTab({
 
   return (
     <SectionCard>
-      <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: space.sm }}>
+      <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: space.sm }}>
         STAFF DU GROUPE
       </AureakText>
 
@@ -398,7 +398,7 @@ function StaffTab({
             </View>
 
             {assigned.length === 0 && !isAdding ? (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never, fontSize: 12, paddingLeft: 16 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never, fontSize: 12, paddingLeft: 16 }}>
                 Non assigné
               </AureakText>
             ) : (
@@ -430,11 +430,11 @@ function StaffTab({
                   value={search}
                   onChangeText={setSearch}
                   placeholder="Rechercher un coach…"
-                  placeholderTextColor={colors.text.secondary}
+                  placeholderTextColor={colors.text.muted}
                 />
                 <View style={stf.coachList}>
                   {filteredCoaches.length === 0 ? (
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, padding: space.xs }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, padding: space.xs }}>
                       Aucun coach disponible.
                     </AureakText>
                   ) : (
@@ -444,7 +444,7 @@ function StaffTab({
                         style={[stf.coachOption, selectedId === c.id && stf.coachOptionActive]}
                         onPress={() => setSelectedId(c.id)}
                       >
-                        <AureakText variant="caption" style={{ color: selectedId === c.id ? colors.accent.gold : colors.text.primary, fontSize: 12 }}>
+                        <AureakText variant="caption" style={{ color: selectedId === c.id ? colors.accent.gold : colors.text.dark, fontSize: 12 }}>
                           {c.name}
                         </AureakText>
                       </Pressable>
@@ -453,7 +453,7 @@ function StaffTab({
                 </View>
                 <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <Pressable style={stf.cancelBtn} onPress={() => { setAddingRole(null); setSelectedId(''); setSearch('') }}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
                   </Pressable>
                   <Pressable
                     style={[stf.confirmBtn, (!selectedId || saving) && { opacity: 0.4 }]}
@@ -477,7 +477,7 @@ function StaffTab({
 const stf = StyleSheet.create({
   roleBlock : {
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc + '40',
+    borderBottomColor: colors.border.divider + '40',
     paddingVertical  : space.sm,
   },
   roleDot   : { width: 8, height: 8, borderRadius: 4 },
@@ -491,19 +491,19 @@ const stf = StyleSheet.create({
   removeBtn : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.status.attention + '40', alignItems: 'center', justifyContent: 'center' },
   addForm   : { gap: space.sm, paddingLeft: 14, paddingTop: 8, paddingBottom: 4 },
   searchInput: {
-    backgroundColor: colors.background.elevated,
-    borderWidth    : 1, borderColor: colors.accent.zinc,
+    backgroundColor: colors.light.muted,
+    borderWidth    : 1, borderColor: colors.border.light,
     borderRadius   : 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2,
-    color          : colors.text.primary, fontSize: 12,
+    color          : colors.text.dark, fontSize: 12,
   },
   coachList : {
-    backgroundColor: colors.background.elevated,
-    borderRadius   : 6, borderWidth: 1, borderColor: colors.accent.zinc,
+    backgroundColor: colors.light.muted,
+    borderRadius   : 6, borderWidth: 1, borderColor: colors.border.light,
     maxHeight      : 160, overflow: 'hidden' as never,
   },
-  coachOption: { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '30' },
-  coachOptionActive: { backgroundColor: colors.background.primary },
-  cancelBtn  : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center' },
+  coachOption: { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border.divider + '30' },
+  coachOptionActive: { backgroundColor: colors.light.primary },
+  cancelBtn  : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center' },
   confirmBtn : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
 })
 
@@ -556,10 +556,10 @@ function JoueursTab({
     <SectionCard>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
         <View>
-          <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+          <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
             JOUEURS DU GROUPE
           </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: 2 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 2 }}>
             {members.length} joueur{members.length !== 1 ? 's' : ''}
           </AureakText>
         </View>
@@ -571,19 +571,19 @@ function JoueursTab({
       </View>
 
       {members.length === 0 && !adding ? (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
           Aucun joueur dans ce groupe. Ajoutez le premier joueur.
         </AureakText>
       ) : (
         members.map((m, idx) => (
-          <View key={m.childId} style={[jou.memberRow, idx % 2 === 1 && { backgroundColor: colors.background.elevated }]}>
+          <View key={m.childId} style={[jou.memberRow, idx % 2 === 1 && { backgroundColor: colors.light.muted }]}>
             <View style={jou.memberAvatar}>
               <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
                 {m.displayName.charAt(0).toUpperCase()}
               </AureakText>
             </View>
             <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{m.displayName}</AureakText>
-            <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginRight: space.sm }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginRight: space.sm }}>
               {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
             </AureakText>
             <Pressable
@@ -606,11 +606,11 @@ function JoueursTab({
             value={search}
             onChangeText={setSearch}
             placeholder="Rechercher un joueur…"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
           />
           <View style={jou.childList}>
             {availableChildren.length === 0 ? (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, padding: space.sm }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, padding: space.sm }}>
                 Aucun joueur disponible (tous déjà inscrits, ou aucun compte enfant).
               </AureakText>
             ) : (
@@ -620,7 +620,7 @@ function JoueursTab({
                   style={[jou.childOption, selectedId === c.id && jou.childOptionActive]}
                   onPress={() => setSelectedId(c.id)}
                 >
-                  <AureakText variant="caption" style={{ color: selectedId === c.id ? colors.accent.gold : colors.text.primary, fontSize: 12 }}>
+                  <AureakText variant="caption" style={{ color: selectedId === c.id ? colors.accent.gold : colors.text.dark, fontSize: 12 }}>
                     {c.name}
                   </AureakText>
                 </Pressable>
@@ -629,7 +629,7 @@ function JoueursTab({
           </View>
           <View style={{ flexDirection: 'row', gap: space.sm }}>
             <Pressable style={jou.cancelBtn} onPress={() => { setAdding(false); setSelectedId(''); setSearch('') }}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
             </Pressable>
             <Pressable
               style={[jou.confirmBtn, (!selectedId || saving) && { opacity: 0.4 }]}
@@ -650,14 +650,14 @@ function JoueursTab({
 const jou = StyleSheet.create({
   addBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.sm + 2, paddingVertical: 4, borderRadius: 6 },
   memberRow    : { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, paddingHorizontal: 6, borderRadius: 6 },
-  memberAvatar : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center' },
+  memberAvatar : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' },
   removeBtn    : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.status.attention + '40', alignItems: 'center', justifyContent: 'center' },
-  addForm      : { gap: space.sm, marginTop: space.sm, padding: space.sm, backgroundColor: colors.background.elevated, borderRadius: 8, borderWidth: 1, borderColor: colors.accent.zinc },
-  searchInput  : { backgroundColor: colors.background.primary, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 12 },
-  childList    : { backgroundColor: colors.background.primary, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, maxHeight: 180, overflow: 'hidden' as never },
-  childOption  : { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '30' },
-  childOptionActive: { backgroundColor: colors.background.elevated },
-  cancelBtn    : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center' },
+  addForm      : { gap: space.sm, marginTop: space.sm, padding: space.sm, backgroundColor: colors.light.muted, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light },
+  searchInput  : { backgroundColor: colors.light.primary, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.dark, fontSize: 12 },
+  childList    : { backgroundColor: colors.light.primary, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, maxHeight: 180, overflow: 'hidden' as never },
+  childOption  : { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border.divider + '30' },
+  childOptionActive: { backgroundColor: colors.light.muted },
+  cancelBtn    : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center' },
   confirmBtn   : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
 })
 
@@ -675,7 +675,7 @@ function SeancesTab({
   return (
     <SectionCard>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
-        <AureakText variant="label" style={{ color: colors.text.secondary, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+        <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
           SÉANCES DU GROUPE
         </AureakText>
         <Pressable style={sea.newBtn} onPress={onNewSession}>
@@ -686,13 +686,13 @@ function SeancesTab({
       </View>
 
       {sessions.length === 0 ? (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' as never }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
           Aucune séance. Créez la première séance de ce groupe.
         </AureakText>
       ) : (
         sessions.map(session => {
           const d     = new Date(session.scheduledAt)
-          const color = SESSION_STATUS_COLOR[session.status] ?? colors.text.secondary
+          const color = SESSION_STATUS_COLOR[session.status] ?? colors.text.muted
           return (
             <View key={session.id} style={sea.sessionRow}>
               {/* Date column */}
@@ -700,7 +700,7 @@ function SeancesTab({
                 <AureakText variant="body" style={{ fontWeight: '700', fontSize: 16, color: colors.accent.gold }}>
                   {String(d.getDate()).padStart(2,'0')}
                 </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
                   {d.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase()}
                 </AureakText>
               </View>
@@ -711,7 +711,7 @@ function SeancesTab({
                   {d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   {session.durationMinutes ? ` · ${session.durationMinutes} min` : ''}
                 </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                   {d.toLocaleDateString('fr-FR', { weekday: 'long' })}
                 </AureakText>
               </View>
@@ -738,7 +738,7 @@ const sea = StyleSheet.create({
     gap            : space.md,
     paddingVertical: space.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc + '40',
+    borderBottomColor: colors.border.divider + '40',
   },
   dateBlock: {
     width          : 40,
@@ -823,7 +823,7 @@ export default function GroupDetailPage() {
   if (loading) {
     return (
       <View style={s.center}>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       </View>
     )
   }
@@ -831,7 +831,7 @@ export default function GroupDetailPage() {
   if (!group) {
     return (
       <View style={s.center}>
-        <AureakText variant="h3" style={{ color: colors.text.secondary }}>Groupe introuvable</AureakText>
+        <AureakText variant="h3" style={{ color: colors.text.muted }}>Groupe introuvable</AureakText>
         <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
           <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
         </Pressable>
@@ -839,7 +839,7 @@ export default function GroupDetailPage() {
     )
   }
 
-  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.accent.zinc
+  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.border.light
 
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
@@ -856,7 +856,7 @@ export default function GroupDetailPage() {
           <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap', alignItems: 'center' }}>
             {/* Implantation chip */}
             <View style={s.chip}>
-              <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+              <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
                 {group.implantationName}
               </AureakText>
             </View>
@@ -870,7 +870,7 @@ export default function GroupDetailPage() {
             )}
             {/* Schedule */}
             {group.dayOfWeek && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>
                 {group.dayOfWeek}
                 {group.startHour !== null ? ` · ${String(group.startHour).padStart(2,'0')}h${String(group.startMinute ?? 0).padStart(2,'0')}` : ''}
                 {group.durationMinutes ? ` · ${group.durationMinutes} min` : ''}
@@ -885,7 +885,7 @@ export default function GroupDetailPage() {
             return (
               <View key={r.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <View style={[s.roleDot, { backgroundColor: r.color }]} />
-                <AureakText variant="caption" style={{ fontSize: 11, color: assigned ? colors.text.primary : colors.text.secondary }}>
+                <AureakText variant="caption" style={{ fontSize: 11, color: assigned ? colors.text.dark : colors.text.muted }}>
                   {assigned ? assigned.coachName : 'Non assigné'}
                 </AureakText>
               </View>
@@ -905,14 +905,14 @@ export default function GroupDetailPage() {
             <AureakText
               variant="caption"
               style={{
-                color     : tab === t.key ? colors.accent.gold : colors.text.secondary,
+                color     : tab === t.key ? colors.accent.gold : colors.text.muted,
                 fontWeight: tab === t.key ? '700' : '400',
                 fontSize  : 13,
               }}
             >
               {t.label}
               {t.count !== undefined && t.count > 0 && (
-                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
                   {' '}({t.count})
                 </AureakText>
               )}
@@ -963,16 +963,16 @@ export default function GroupDetailPage() {
 }
 
 const s = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md, maxWidth: 860 },
   center     : { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   hero       : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
     borderTopWidth : 3,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     flexDirection  : 'row',
     alignItems     : 'flex-start',
@@ -983,8 +983,8 @@ const s = StyleSheet.create({
     paddingVertical  : 3,
     borderRadius     : 12,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
-    backgroundColor  : colors.background.elevated,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.muted,
   },
   staffSummary: {
     gap     : 4,
@@ -996,7 +996,7 @@ const s = StyleSheet.create({
   tabBar     : {
     flexDirection  : 'row',
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.divider,
     gap            : 0,
   },
   tabBtn     : {

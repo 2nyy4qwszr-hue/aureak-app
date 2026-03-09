@@ -18,31 +18,31 @@ import { colors, space } from '@aureak/theme'
 import type { Situation, SituationCriterion, SituationThemeLink, Theme } from '@aureak/types'
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content: { padding: space.xl, gap: space.lg },
   section: { gap: space.md },
   metaRow: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
   metaItem: { gap: space.xs },
   card: {
-    backgroundColor: colors.background.surface, borderRadius: 8,
-    padding: space.md, borderWidth: 1, borderColor: colors.accent.zinc,
+    backgroundColor: colors.light.surface, borderRadius: 8,
+    padding: space.md, borderWidth: 1, borderColor: colors.border.light,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   addRow: { flexDirection: 'row', gap: space.sm, alignItems: 'flex-end' },
   errorBanner: {
-    backgroundColor: colors.background.elevated, borderLeftWidth: 3,
+    backgroundColor: colors.light.muted, borderLeftWidth: 3,
     borderLeftColor: colors.status.absent, borderRadius: 4, padding: space.md,
   },
   successBanner: {
-    backgroundColor: colors.background.elevated, borderLeftWidth: 3,
+    backgroundColor: colors.light.muted, borderLeftWidth: 3,
     borderLeftColor: colors.status.present, borderRadius: 4, padding: space.md,
   },
   themeChip: {
     paddingHorizontal: space.sm, paddingVertical: space.xs,
-    borderRadius: 16, borderWidth: 1, borderColor: colors.accent.zinc,
+    borderRadius: 16, borderWidth: 1, borderColor: colors.border.light,
     cursor: 'pointer' as never,
   },
-  themeChipLinked: { borderColor: colors.accent.gold, backgroundColor: colors.background.elevated },
+  themeChipLinked: { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
   chipsRow: { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' },
 })
 
@@ -121,7 +121,7 @@ export default function SituationDetailPage() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       </View>
     )
   }
@@ -155,16 +155,16 @@ export default function SituationDetailPage() {
       <View style={styles.section}>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Clé</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Clé</AureakText>
             <AureakText variant="body">{situation.situationKey}</AureakText>
           </View>
           <View style={styles.metaItem}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Version</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Version</AureakText>
             <AureakText variant="body">v{situation.version}</AureakText>
           </View>
         </View>
         {situation.description && (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
             {situation.description}
           </AureakText>
         )}
@@ -190,7 +190,7 @@ export default function SituationDetailPage() {
           </View>
         ))}
         {criteria.length === 0 && (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>Aucun critère.</AureakText>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>Aucun critère.</AureakText>
         )}
       </View>
 
@@ -198,7 +198,7 @@ export default function SituationDetailPage() {
       {allThemes.length > 0 && (
         <View style={styles.section}>
           <AureakText variant="label">Thèmes liés</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
             Toucher pour lier / délier
           </AureakText>
           <View style={styles.chipsRow}>
@@ -210,7 +210,7 @@ export default function SituationDetailPage() {
               >
                 <AureakText
                   variant="caption"
-                  style={{ color: linkedThemeIds.has(theme.id) ? colors.accent.gold : colors.text.secondary }}
+                  style={{ color: linkedThemeIds.has(theme.id) ? colors.accent.gold : colors.text.muted }}
                 >
                   {theme.name}
                 </AureakText>

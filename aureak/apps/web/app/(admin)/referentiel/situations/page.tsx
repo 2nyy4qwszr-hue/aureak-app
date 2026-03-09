@@ -8,16 +8,16 @@ import { colors, space } from '@aureak/theme'
 import type { Situation, SituationGroup } from '@aureak/types'
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content: { padding: space.xl, gap: space.lg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   groupSection: { gap: space.md },
   situationCard: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -57,18 +57,18 @@ export default function SituationsPage() {
       </View>
 
       {loading && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
       {groupedSituations.map(({ group, situations: groupSit }) =>
         groupSit.length > 0 ? (
           <View key={group.id} style={styles.groupSection}>
-            <AureakText variant="label" style={{ color: colors.text.secondary }}>{group.name}</AureakText>
+            <AureakText variant="label" style={{ color: colors.text.muted }}>{group.name}</AureakText>
             {groupSit.map((sit) => (
               <View key={sit.id} style={styles.situationCard}>
                 <View style={{ flex: 1, gap: space.xs }}>
                   <AureakText variant="label">{sit.name}</AureakText>
-                  <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
                     {sit.situationKey} · v{sit.version}
                   </AureakText>
                 </View>
@@ -85,12 +85,12 @@ export default function SituationsPage() {
 
       {ungrouped.length > 0 && (
         <View style={styles.groupSection}>
-          <AureakText variant="label" style={{ color: colors.text.secondary }}>Sans groupe</AureakText>
+          <AureakText variant="label" style={{ color: colors.text.muted }}>Sans groupe</AureakText>
           {ungrouped.map((sit) => (
             <View key={sit.id} style={styles.situationCard}>
               <View style={{ flex: 1, gap: space.xs }}>
                 <AureakText variant="label">{sit.name}</AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {sit.situationKey} · v{sit.version}
                 </AureakText>
               </View>
@@ -105,7 +105,7 @@ export default function SituationsPage() {
       )}
 
       {!loading && situations.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune situation configurée.
         </AureakText>
       )}

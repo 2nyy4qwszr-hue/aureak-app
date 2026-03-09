@@ -5,9 +5,9 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native
 import { useRouter } from 'expo-router'
 import { listMethodologyThemes } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
 import {
-  METHODOLOGY_METHODS, METHODOLOGY_METHOD_COLOR,
+  METHODOLOGY_METHODS,
   type MethodologyMethod,
 } from '@aureak/types'
 import type { MethodologyTheme } from '@aureak/types'
@@ -47,9 +47,9 @@ export default function ThemesPage() {
         </Pressable>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <AureakText variant="h2">Thèmes</AureakText>
+            <AureakText variant="h2" color={colors.accent.gold}>Thèmes</AureakText>
             {!loading && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
                 {filtered.length} thème{filtered.length !== 1 ? 's' : ''}
               </AureakText>
             )}
@@ -66,7 +66,7 @@ export default function ThemesPage() {
         value={search}
         onChangeText={setSearch}
         placeholder="Rechercher par titre…"
-        placeholderTextColor={colors.text.secondary}
+        placeholderTextColor={colors.text.muted}
       />
 
       {/* ── Method filter ── */}
@@ -74,14 +74,13 @@ export default function ThemesPage() {
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => {
             const active = methodFilter === m
-            const color  = m === 'all' ? '#4FC3F7' : METHODOLOGY_METHOD_COLOR[m as MethodologyMethod]
             return (
               <Pressable
                 key={m}
                 onPress={() => setMethodFilter(m)}
-                style={[s.chip, { borderColor: active ? color : colors.accent.zinc, backgroundColor: active ? color + '20' : 'transparent' }]}
+                style={[s.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
               >
-                <AureakText variant="caption" style={{ color: active ? color : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+                <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                   {m === 'all' ? 'Toutes méthodes' : m}
                 </AureakText>
               </Pressable>
@@ -92,17 +91,17 @@ export default function ThemesPage() {
 
       {/* ── List ── */}
       {loading ? (
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       ) : filtered.length === 0 ? (
         <View style={s.empty}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
             {themes.length === 0 ? 'Aucun thème. Créez le premier.' : 'Aucun résultat pour ces filtres.'}
           </AureakText>
         </View>
       ) : (
         <View style={{ gap: space.sm }}>
           {filtered.map(theme => {
-            const methodColor = theme.method ? (METHODOLOGY_METHOD_COLOR[theme.method as MethodologyMethod] ?? colors.accent.zinc) : colors.accent.zinc
+            const methodColor = theme.method ? (methodologyMethodColors[theme.method as MethodologyMethod] ?? colors.border.light) : colors.border.light
             return (
               <View key={theme.id} style={[s.card, { borderLeftColor: methodColor }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -113,20 +112,20 @@ export default function ThemesPage() {
                         <AureakText variant="caption" style={{ color: methodColor, fontSize: 11, fontWeight: '600' }}>{theme.method}</AureakText>
                       )}
                       {theme.bloc && (
-                        <View style={{ backgroundColor: colors.background.elevated, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-                          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>Bloc : {theme.bloc}</AureakText>
+                        <View style={{ backgroundColor: colors.light.muted, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>Bloc : {theme.bloc}</AureakText>
                         </View>
                       )}
                     </View>
                     {theme.description && (
-                      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, lineHeight: 18 }} numberOfLines={2}>
+                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, lineHeight: 18 }} numberOfLines={2}>
                         {theme.description}
                       </AureakText>
                     )}
                   </View>
                   <View style={{ gap: 4, alignItems: 'flex-end' }}>
                     {!theme.isActive && (
-                      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
+                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
                     )}
                   </View>
                 </View>
@@ -141,27 +140,27 @@ export default function ThemesPage() {
 }
 
 const s = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
   header     : { gap: 4 },
   newBtn     : { backgroundColor: '#4FC3F7', paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   searchInput: {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 8,
     paddingHorizontal: space.md,
     paddingVertical  : 10,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
   chip : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   empty: { padding: space.lg, alignItems: 'center' },
   card : {
-    backgroundColor : colors.background.surface,
+    backgroundColor : colors.light.surface,
     borderRadius    : 10,
     borderWidth     : 1,
-    borderColor     : colors.accent.zinc,
+    borderColor     : colors.border.light,
     borderLeftWidth : 3,
     padding         : space.md,
     gap             : 4,

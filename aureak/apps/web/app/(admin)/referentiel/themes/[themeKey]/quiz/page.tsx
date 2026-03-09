@@ -17,7 +17,7 @@ import type { QuizQuestion, QuizOption, Theme } from '@aureak/types'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -29,20 +29,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     gap: space.sm,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     borderRadius: 6,
     padding: space.sm,
-    color: colors.text.primary,
-    backgroundColor: colors.background.primary,
+    color: colors.text.dark,
+    backgroundColor: colors.light.primary,
   },
   row: {
     flexDirection: 'row',
@@ -177,7 +177,7 @@ export default function QuizPage() {
         <TextInput
           style={styles.input}
           placeholder="Question..."
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           value={questionText}
           onChangeText={setQuestionText}
           multiline
@@ -185,13 +185,13 @@ export default function QuizPage() {
         <TextInput
           style={styles.input}
           placeholder="Explication (optionnel)"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           value={explanation}
           onChangeText={setExplanation}
           multiline
         />
 
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
           Options (3-4 obligatoires, cocher la bonne réponse)
         </AureakText>
 
@@ -204,7 +204,7 @@ export default function QuizPage() {
             <TextInput
               style={[styles.input, { flex: 1 }]}
               placeholder={`Option ${i + 1}`}
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
               value={opt.text}
               onChangeText={(val) => handleOptionChange(i, 'text', val)}
             />
@@ -224,7 +224,7 @@ export default function QuizPage() {
       </View>
 
       {loading && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
       {questions.map((question) => (
@@ -237,7 +237,7 @@ export default function QuizPage() {
       ))}
 
       {!loading && questions.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune question pour ce thème.
         </AureakText>
       )}
@@ -271,7 +271,7 @@ function QuestionCard({
       </View>
 
       {question.explanation && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
           {question.explanation}
         </AureakText>
       )}
@@ -280,14 +280,14 @@ function QuestionCard({
         <View key={opt.id} style={styles.optionRow}>
           <AureakText
             variant="body"
-            style={{ color: opt.isCorrect ? colors.accent.gold : colors.text.primary }}
+            style={{ color: opt.isCorrect ? colors.accent.gold : colors.text.dark }}
           >
             {opt.isCorrect ? '✓ ' : '○ '}{opt.optionText}
           </AureakText>
         </View>
       ))}
 
-      <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted }}>
         {options.length} option(s)
       </AureakText>
 

@@ -54,13 +54,13 @@ const STATUS_COLOR: Record<string, string> = {
 }
 const SIGNAL_ICON : Record<EvaluationSignal, string> = { positive: '✓', attention: '!', none: '–' }
 const SIGNAL_COLOR: Record<EvaluationSignal, string> = {
-  positive: colors.status.present, attention: colors.status.attention, none: colors.text.secondary,
+  positive: colors.status.present, attention: colors.status.attention, none: colors.text.muted,
 }
 const SIGNAL_BG: Record<EvaluationSignal, string> = {
-  positive: 'rgba(76,175,80,0.16)', attention: 'rgba(255,193,7,0.16)', none: colors.background.elevated,
+  positive: 'rgba(76,175,80,0.16)', attention: 'rgba(255,193,7,0.16)', none: colors.light.muted,
 }
 const TEAM_LEVEL_COLOR: Record<FootballTeamLevel, string> = {
-  'Provinciaux'      : colors.text.secondary,
+  'Provinciaux'      : colors.text.muted,
   'Interprovinciaux' : colors.status.attention,
   'Régionaux'        : '#7C8CF8',
   'Nationaux'        : colors.accent.gold,
@@ -68,7 +68,7 @@ const TEAM_LEVEL_COLOR: Record<FootballTeamLevel, string> = {
 }
 
 const MASTERY_COLOR: Record<MasteryStatus, string> = {
-  not_started: colors.text.secondary,
+  not_started: colors.text.muted,
   in_progress: colors.status.attention,
   acquired   : colors.status.present,
   revalidated: colors.accent.gold,
@@ -95,7 +95,7 @@ function daysAgo(d: Date) {
   return `Il y a ${Math.floor(diff / 30)} mois`
 }
 function rateColor(rate: number | null): string {
-  if (rate === null) return colors.text.secondary
+  if (rate === null) return colors.text.muted
   if (rate >= 80) return colors.status.present
   if (rate >= 60) return colors.status.attention
   return colors.status.absent
@@ -116,7 +116,7 @@ function SignalDot({ signal, label }: { signal: EvaluationSignal; label: string 
       }}>
         {SIGNAL_ICON[signal]}
       </div>
-      <div style={{ fontSize: 9, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+      <div style={{ fontSize: 9, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
     </div>
   )
 }
@@ -129,7 +129,7 @@ function AttendanceSparkline({ attendances }: { attendances: DetailAtt[] }) {
     <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', flexWrap: 'wrap' }}>
       {last20.map((a, i) => {
         const ok    = PRESENT_STATUSES.has(a.status)
-        const color = STATUS_COLOR[a.status] ?? colors.text.secondary
+        const color = STATUS_COLOR[a.status] ?? colors.text.muted
         const date  = a.sessions?.scheduled_at ? fmtDateShort(new Date(a.sessions.scheduled_at)) : ''
         return (
           <div
@@ -151,7 +151,7 @@ function AttendanceSparkline({ attendances }: { attendances: DetailAtt[] }) {
 function Skeleton() {
   return (
     <div style={G.page}>
-      <style>{`@keyframes gk-p{0%,100%{opacity:.12}50%{opacity:.35}} .gk-sk{background:${colors.background.elevated};border-radius:6px;animation:gk-p 1.9s ease-in-out infinite}`}</style>
+      <style>{`@keyframes gk-p{0%,100%{opacity:.12}50%{opacity:.35}} .gk-sk{background:${colors.light.muted};border-radius:6px;animation:gk-p 1.9s ease-in-out infinite}`}</style>
       <div className="gk-sk" style={{ height: 13, width: 110, marginBottom: 20 }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
         <div className="gk-sk" style={{ width: 56, height: 56, borderRadius: '50%' }} />
@@ -309,7 +309,7 @@ export default function GoalkeeperDetailPage() {
                   </span>
                 )}
                 {lastSession && (
-                  <span style={{ fontSize: 12, color: colors.text.secondary }}>
+                  <span style={{ fontSize: 12, color: colors.text.muted }}>
                     Dernière séance : {daysAgo(lastSession)}
                   </span>
                 )}
@@ -328,7 +328,7 @@ export default function GoalkeeperDetailPage() {
 
           {/* Sparkline */}
           <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 10, color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+            <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
               20 dernières séances
             </div>
             <AttendanceSparkline attendances={attendances} />
@@ -346,7 +346,7 @@ export default function GoalkeeperDetailPage() {
         ].map((k, i) => (
           <div key={i} style={G.kpi}>
             <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: k.color, lineHeight: 1 }}>{k.value}</div>
-            <div style={{ fontSize: 10, color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>{k.label}</div>
+            <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>{k.label}</div>
           </div>
         ))}
       </div>
@@ -357,7 +357,7 @@ export default function GoalkeeperDetailPage() {
           {alertsList.map((a, i) => {
             const color = a.type === 'error' ? colors.status.absent
               : a.type === 'warning' ? colors.status.attention
-              : colors.text.secondary
+              : colors.text.muted
             return (
               <div key={i} style={{
                 padding: '9px 13px', borderRadius: 7, display: 'flex', alignItems: 'center', gap: 8,
@@ -385,26 +385,26 @@ export default function GoalkeeperDetailPage() {
             {attendances.length === 0 ? (
               <div style={G.emptyCard}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>📋</div>
-                <div style={{ fontSize: 13, color: colors.text.secondary }}>Aucune présence enregistrée.</div>
+                <div style={{ fontSize: 13, color: colors.text.muted }}>Aucune présence enregistrée.</div>
               </div>
             ) : (
               <div style={G.card}>
                 {attendances.slice(0, 15).map((a, i) => {
                   const session  = a.sessions
-                  const sColor   = STATUS_COLOR[a.status] ?? colors.text.secondary
+                  const sColor   = STATUS_COLOR[a.status] ?? colors.text.muted
                   const ev       = session ? evalMap.get(session.id) : undefined
                   const implName = (session?.implantations as { name: string } | null)?.name
                   return (
                     <div key={a.id ?? i} className="gk-att" style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px',
-                      borderBottom: i < Math.min(attendances.length - 1, 14) ? `1px solid ${colors.accent.zinc}` : 'none',
+                      borderBottom: i < Math.min(attendances.length - 1, 14) ? `1px solid ${colors.border.light}` : 'none',
                       borderLeft: `3px solid ${sColor}`, transition: 'background 0.1s',
                     }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
                           {session?.scheduled_at ? fmtDate(new Date(session.scheduled_at)) : '—'}
                         </div>
-                        <div style={{ fontSize: 11, color: colors.text.secondary }}>
+                        <div style={{ fontSize: 11, color: colors.text.muted }}>
                           {session?.duration_minutes ? `${session.duration_minutes} min` : ''}
                           {implName ? ` · ${implName}` : ''}
                           {session?.location ? ` · ${session.location}` : ''}
@@ -437,7 +437,7 @@ export default function GoalkeeperDetailPage() {
                   )
                 })}
                 {attendances.length > 15 && (
-                  <div style={{ padding: '10px 14px', fontSize: 12, color: colors.text.secondary, textAlign: 'center' }}>
+                  <div style={{ padding: '10px 14px', fontSize: 12, color: colors.text.muted, textAlign: 'center' }}>
                     + {attendances.length - 15} séances plus anciennes
                   </div>
                 )}
@@ -451,13 +451,13 @@ export default function GoalkeeperDetailPage() {
             {evaluations.length === 0 ? (
               <div style={G.emptyCard}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>📊</div>
-                <div style={{ fontSize: 13, color: colors.text.secondary }}>Aucune évaluation enregistrée.</div>
+                <div style={{ fontSize: 13, color: colors.text.muted }}>Aucune évaluation enregistrée.</div>
               </div>
             ) : (
               <div style={G.card}>
                 {/* Aggregated signals */}
-                <div style={{ padding: '14px 16px', borderBottom: `1px solid ${colors.accent.zinc}` }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+                <div style={{ padding: '14px 16px', borderBottom: `1px solid ${colors.border.light}` }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
                     Distribution sur {evaluations.length} éval{evaluations.length > 1 ? 's' : ''}
                   </div>
                   <div style={{ display: 'flex', gap: 24 }}>
@@ -470,23 +470,23 @@ export default function GoalkeeperDetailPage() {
                       const posRate  = Math.round((posCount / total) * 100)
                       return (
                         <div key={key} style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11, fontWeight: 600, color: colors.text.secondary, marginBottom: 8 }}>{label}</div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: colors.text.muted, marginBottom: 8 }}>{label}</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             {[
                               { label: '✓', count: posCount, color: colors.status.present },
                               { label: '!', count: attCount, color: colors.status.attention },
-                              { label: '–', count: noneCount, color: colors.text.secondary },
+                              { label: '–', count: noneCount, color: colors.text.muted },
                             ].map((seg, si) => (
                               <div key={si} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <span style={{ fontSize: 11, width: 12, textAlign: 'center', color: seg.color, fontWeight: 700 }}>{seg.label}</span>
-                                <div style={{ flex: 1, height: 6, backgroundColor: colors.background.elevated, borderRadius: 3, overflow: 'hidden' }}>
+                                <div style={{ flex: 1, height: 6, backgroundColor: colors.light.muted, borderRadius: 3, overflow: 'hidden' }}>
                                   <div style={{ height: '100%', width: `${total > 0 ? Math.round((seg.count / total) * 100) : 0}%`, backgroundColor: seg.color, borderRadius: 3 }} />
                                 </div>
                                 <span style={{ fontSize: 11, color: seg.color, fontWeight: 600, width: 20, textAlign: 'right' }}>{seg.count}</span>
                               </div>
                             ))}
                           </div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: posRate >= 70 ? colors.status.present : posRate >= 40 ? colors.status.attention : colors.text.secondary, marginTop: 6 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: posRate >= 70 ? colors.status.present : posRate >= 40 ? colors.status.attention : colors.text.muted, marginTop: 6 }}>
                             {posRate}% positif
                           </div>
                         </div>
@@ -499,11 +499,11 @@ export default function GoalkeeperDetailPage() {
                 {evaluations.slice(0, 6).map((ev, i) => (
                   <div key={i} className="gk-eval" style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '10px 16px',
-                    borderBottom: i < Math.min(evaluations.length - 1, 5) ? `1px solid ${colors.accent.zinc}` : 'none',
+                    borderBottom: i < Math.min(evaluations.length - 1, 5) ? `1px solid ${colors.border.light}` : 'none',
                     transition: 'background 0.1s',
                   }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: colors.text.secondary }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: colors.text.muted }}>
                         {new Date(ev.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </div>
                     </div>
@@ -529,7 +529,7 @@ export default function GoalkeeperDetailPage() {
             {upcoming.length === 0 ? (
               <div style={{ ...G.sideCard, padding: '18px 14px', textAlign: 'center' }}>
                 <div style={{ fontSize: 18, marginBottom: 6 }}>📅</div>
-                <div style={{ fontSize: 12, color: colors.text.secondary }}>Aucune séance à venir</div>
+                <div style={{ fontSize: 12, color: colors.text.muted }}>Aucune séance à venir</div>
               </div>
             ) : (
               <div style={G.sideCard}>
@@ -539,20 +539,20 @@ export default function GoalkeeperDetailPage() {
                   return (
                     <div key={s.id} style={{
                       padding: '10px 12px',
-                      borderBottom: i < upcoming.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                      borderBottom: i < upcoming.length - 1 ? `1px solid ${colors.border.light}` : 'none',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                         <div>
                           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{fmtDate(d)}</div>
-                          <div style={{ fontSize: 11, color: colors.text.secondary }}>
+                          <div style={{ fontSize: 11, color: colors.text.muted }}>
                             {fmtTime(d)} · {s.duration_minutes} min{s.location ? ` · ${s.location}` : ''}
                           </div>
                         </div>
                         <span style={{
                           fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, flexShrink: 0,
-                          backgroundColor: days <= 3 ? 'rgba(193,172,92,0.10)' : colors.background.elevated,
-                          color: days <= 3 ? colors.accent.gold : colors.text.secondary,
-                          border: `1px solid ${days <= 3 ? colors.accent.gold + '40' : colors.accent.zinc}`,
+                          backgroundColor: days <= 3 ? 'rgba(193,172,92,0.10)' : colors.light.muted,
+                          color: days <= 3 ? colors.accent.gold : colors.text.muted,
+                          border: `1px solid ${days <= 3 ? colors.accent.gold + '40' : colors.border.light}`,
                         }}>
                           {days === 0 ? "Auj." : days === 1 ? 'Dem.' : `J-${days}`}
                         </span>
@@ -575,7 +575,7 @@ export default function GoalkeeperDetailPage() {
                     {[
                       { count: acquiredThemes.length,   color: colors.status.present   },
                       { count: inProgressThemes.length, color: colors.status.attention },
-                      { count: themes.filter(t => t.masteryStatus === 'not_started').length, color: colors.background.elevated },
+                      { count: themes.filter(t => t.masteryStatus === 'not_started').length, color: colors.light.muted },
                     ].map((seg, i) => seg.count > 0 && (
                       <div key={i} style={{ flex: seg.count, backgroundColor: seg.color, borderRadius: 2 }} />
                     ))}
@@ -583,12 +583,12 @@ export default function GoalkeeperDetailPage() {
                   <div style={{ display: 'flex', gap: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: colors.status.present }} />
-                      <span style={{ fontSize: 11, color: colors.text.secondary }}>Acquis</span>
+                      <span style={{ fontSize: 11, color: colors.text.muted }}>Acquis</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: colors.status.present }}>{acquiredThemes.length}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: colors.status.attention }} />
-                      <span style={{ fontSize: 11, color: colors.text.secondary }}>En cours</span>
+                      <span style={{ fontSize: 11, color: colors.text.muted }}>En cours</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: colors.status.attention }}>{inProgressThemes.length}</span>
                     </div>
                   </div>
@@ -599,9 +599,9 @@ export default function GoalkeeperDetailPage() {
                   return (
                     <div key={t.id} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '8px 12px', borderTop: `1px solid ${colors.accent.zinc}`,
+                      padding: '8px 12px', borderTop: `1px solid ${colors.border.light}`,
                     }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, flex: 1, marginRight: 8, color: colors.text.primary }}>{t.name}</div>
+                      <div style={{ fontSize: 12, fontWeight: 500, flex: 1, marginRight: 8, color: colors.text.dark }}>{t.name}</div>
                       <span style={{
                         fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
                         border: `1px solid ${c}40`, backgroundColor: c + '10', color: c,
@@ -613,7 +613,7 @@ export default function GoalkeeperDetailPage() {
                   )
                 })}
                 {themes.filter(t => t.masteryStatus !== 'not_started').length === 0 && (
-                  <div style={{ padding: '10px 12px', fontSize: 12, color: colors.text.secondary, borderTop: `1px solid ${colors.accent.zinc}` }}>
+                  <div style={{ padding: '10px 12px', fontSize: 12, color: colors.text.muted, borderTop: `1px solid ${colors.border.light}` }}>
                     Aucun thème commencé
                   </div>
                 )}
@@ -629,14 +629,14 @@ export default function GoalkeeperDetailPage() {
                 {notes.map((n, i) => (
                   <div key={i} style={{
                     padding: '11px 12px',
-                    borderBottom: i < notes.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                    borderBottom: i < notes.length - 1 ? `1px solid ${colors.border.light}` : 'none',
                   }}>
                     {n.sessions?.scheduled_at && (
-                      <div style={{ fontSize: 10, color: colors.text.secondary, fontWeight: 600, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                      <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                         {fmtDate(new Date(n.sessions.scheduled_at))}
                       </div>
                     )}
-                    <div style={{ fontSize: 13, color: colors.text.primary, lineHeight: 1.5, fontStyle: 'italic' }}>
+                    <div style={{ fontSize: 13, color: colors.text.dark, lineHeight: 1.5, fontStyle: 'italic' }}>
                       "{n.note}"
                     </div>
                   </div>
@@ -651,9 +651,9 @@ export default function GoalkeeperDetailPage() {
               <div style={G.sectionLabel}>Parcours football</div>
               <div style={G.sideCard}>
                 {/* Affiliation summary */}
-                <div style={{ padding: '10px 12px 8px', borderBottom: `1px solid ${colors.accent.zinc}` }}>
+                <div style={{ padding: '10px 12px 8px', borderBottom: `1px solid ${colors.border.light}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, color: colors.text.secondary }}>
+                    <span style={{ fontSize: 11, color: colors.text.muted }}>
                       {footballHistory.length} saison{footballHistory.length > 1 ? 's' : ''}
                     </span>
                     <span style={{
@@ -668,11 +668,11 @@ export default function GoalkeeperDetailPage() {
                 </div>
 
                 {footballHistory.map((entry, i) => {
-                  const lvlColor = entry.teamLevel ? TEAM_LEVEL_COLOR[entry.teamLevel] : colors.text.secondary
+                  const lvlColor = entry.teamLevel ? TEAM_LEVEL_COLOR[entry.teamLevel] : colors.text.muted
                   return (
                     <div key={entry.id} style={{
                       padding: '10px 12px',
-                      borderBottom: i < footballHistory.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+                      borderBottom: i < footballHistory.length - 1 ? `1px solid ${colors.border.light}` : 'none',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
                         <span style={{
@@ -686,9 +686,9 @@ export default function GoalkeeperDetailPage() {
                         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                           <span style={{
                             fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 3,
-                            backgroundColor: colors.background.elevated,
-                            border: `1px solid ${colors.accent.zinc}`,
-                            color: colors.text.secondary,
+                            backgroundColor: colors.light.muted,
+                            border: `1px solid ${colors.border.light}`,
+                            color: colors.text.muted,
                           }}>
                             {entry.ageCategory}
                           </span>
@@ -702,7 +702,7 @@ export default function GoalkeeperDetailPage() {
                           )}
                         </div>
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.primary, marginBottom: 2 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginBottom: 2 }}>
                         {entry.clubName}
                       </div>
                       {entry.teamLevel && (
@@ -711,7 +711,7 @@ export default function GoalkeeperDetailPage() {
                         </div>
                       )}
                       {entry.notes && (
-                        <div style={{ fontSize: 11, color: colors.text.secondary, fontStyle: 'italic', marginTop: 4, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 11, color: colors.text.muted, fontStyle: 'italic', marginTop: 4, lineHeight: 1.4 }}>
                           {entry.notes}
                         </div>
                       )}
@@ -729,17 +729,17 @@ export default function GoalkeeperDetailPage() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const G: Record<string, React.CSSProperties> = {
-  page       : { padding: '24px 30px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 1050 },
-  back       : { fontSize: 13, color: colors.text.secondary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 18, transition: 'color 0.15s', display: 'block' },
-  hero       : { display: 'flex', alignItems: 'flex-start', gap: 18, padding: '20px 20px', backgroundColor: colors.background.surface, borderRadius: 12, border: `1px solid ${colors.accent.zinc}`, marginBottom: 16 },
+  page       : { padding: '24px 30px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 1050 },
+  back       : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 18, transition: 'color 0.15s', display: 'block' },
+  hero       : { display: 'flex', alignItems: 'flex-start', gap: 18, padding: '20px 20px', backgroundColor: colors.light.surface, borderRadius: 12, border: `1px solid ${colors.border.light}`, marginBottom: 16 },
   avatar     : { width: 56, height: 56, borderRadius: '50%', backgroundColor: colors.accent.gold, color: colors.text.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, flexShrink: 0 },
   name       : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0 },
-  kpiRow     : { display: 'flex', backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden', marginBottom: 16 },
-  kpi        : { flex: 1, padding: '14px 0', textAlign: 'center', borderRight: `1px solid ${colors.accent.zinc}` },
+  kpiRow     : { display: 'flex', backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden', marginBottom: 16 },
+  kpi        : { flex: 1, padding: '14px 0', textAlign: 'center', borderRight: `1px solid ${colors.border.light}` },
   twoCol     : { display: 'flex', gap: 20, alignItems: 'flex-start' },
   rightCol   : { width: 272, flexShrink: 0 },
-  sectionLabel: { fontSize: 10, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 },
-  card       : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden' },
-  sideCard   : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden' },
-  emptyCard  : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, padding: '28px 16px', textAlign: 'center', color: colors.text.primary },
+  sectionLabel: { fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 },
+  card       : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden' },
+  sideCard   : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden' },
+  emptyCard  : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, padding: '28px 16px', textAlign: 'center', color: colors.text.dark },
 }

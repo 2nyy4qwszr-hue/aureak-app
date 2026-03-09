@@ -1,4 +1,4 @@
-// @aureak/theme — Configuration Tamagui avec tokens AUREAK Dark Manga Premium
+// @aureak/theme — Configuration Tamagui avec tokens AUREAK
 // Les tokens $ (ex: $backgroundPrimary, $gold) sont utilisables dans tous les styled components
 
 import { createFont, createTamagui, createTokens } from 'tamagui'
@@ -10,19 +10,40 @@ import { colors, space, radius } from './tokens'
 
 const tamaguiTokens = createTokens({
   color: {
+    // Dark backgrounds
     backgroundPrimary : colors.background.primary,
     backgroundSurface : colors.background.surface,
     backgroundElevated: colors.background.elevated,
+    // Light backgrounds
+    lightPrimary      : colors.light.primary,
+    lightSurface      : colors.light.surface,
+    lightElevated     : colors.light.elevated,
+    lightHover        : colors.light.hover,
+    lightMuted        : colors.light.muted,
+    // Accent
     gold              : colors.accent.gold,
+    goldLight         : colors.accent.goldLight,
     beige             : colors.accent.beige,
     zinc              : colors.accent.zinc,
     ivory             : colors.accent.ivory,
+    red               : colors.accent.red,
+    // Status
     statusPresent     : colors.status.present,
     statusAttention   : colors.status.attention,
     statusAbsent      : colors.status.absent,
+    statusSuccess     : colors.status.success,
+    // Text
     textPrimary       : colors.text.primary,
     textSecondary     : colors.text.secondary,
     textDark          : colors.text.dark,
+    textMuted         : colors.text.muted,
+    textSubtle        : colors.text.subtle,
+    // Borders
+    borderLight       : colors.border.light,
+    borderGold        : colors.border.gold,
+    borderGoldSolid   : colors.border.goldSolid,
+    borderDark        : colors.border.dark,
+    borderDivider     : colors.border.divider,
   },
   space: {
     $xs   : space.xs,
@@ -43,7 +64,9 @@ const tamaguiTokens = createTokens({
     true: space.md,
   },
   radius: {
+    xs    : radius.xs,
     card  : radius.card,
+    cardLg: radius.cardLg,
     button: radius.button,
     badge : radius.badge,
     0: 0, 1: 4, 2: 8,
@@ -65,15 +88,15 @@ const tamaguiTokens = createTokens({
 const rajdhaniFont = createFont({
   family: 'Rajdhani',
   size: {
-    1: 14, 2: 16, 3: 18, 4: 22, 5: 28, 6: 36,
+    1: 14, 2: 16, 3: 18, 4: 22, 5: 28, 6: 36, 7: 48,
     true: 16,
   },
   lineHeight: {
-    1: 20, 2: 24, 3: 26, 4: 30, 5: 36, 6: 44,
+    1: 20, 2: 24, 3: 26, 4: 30, 5: 36, 6: 44, 7: 52,
     true: 24,
   },
   weight: {
-    4: '400', 6: '600', 7: '700',
+    4: '400', 6: '600', 7: '700', 9: '900',
     true: '400',
   },
   letterSpacing: {
@@ -93,7 +116,7 @@ const geistFont = createFont({
     true: 22,
   },
   weight: {
-    4: '400', 5: '500', 6: '600',
+    4: '400', 5: '500', 6: '600', 7: '700',
     true: '400',
   },
   letterSpacing: {
@@ -109,6 +132,7 @@ const geistFont = createFont({
 export const tamaguiConfig = createTamagui({
   tokens: tamaguiTokens,
   themes: {
+    // ── Dark theme — mobile, sidebar ──────────────────────────────────────
     dark: {
       background       : colors.background.primary,
       backgroundHover  : colors.background.surface,
@@ -127,24 +151,24 @@ export const tamaguiConfig = createTamagui({
       borderColorPress : colors.accent.gold,
       placeholderColor : colors.text.secondary,
     },
-    // Tamagui requires a "light" theme to exist internally (used as fallback in useThemeState)
+    // ── Light theme — admin web (inspiré aureak.be) ──────────────────────
     light: {
-      background       : colors.background.primary,
-      backgroundHover  : colors.background.surface,
-      backgroundFocus  : colors.background.elevated,
-      backgroundPress  : colors.background.elevated,
-      backgroundStrong : colors.background.elevated,
+      background       : colors.light.primary,
+      backgroundHover  : colors.light.hover,
+      backgroundFocus  : colors.light.surface,
+      backgroundPress  : colors.light.hover,
+      backgroundStrong : colors.light.muted,
       backgroundTransparent: 'transparent',
-      color            : colors.text.primary,
+      color            : colors.text.dark,
       colorHover       : colors.accent.gold,
       colorPress       : colors.accent.gold,
       colorFocus       : colors.accent.gold,
       colorTransparent : 'transparent',
-      borderColor      : colors.accent.zinc,
+      borderColor      : colors.border.light,
       borderColorHover : colors.accent.gold,
       borderColorFocus : colors.accent.gold,
       borderColorPress : colors.accent.gold,
-      placeholderColor : colors.text.secondary,
+      placeholderColor : colors.text.subtle,
     },
   },
   defaultTheme: 'dark',

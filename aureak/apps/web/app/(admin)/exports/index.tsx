@@ -15,11 +15,11 @@ const EXPORT_TYPES: { value: ExportType; label: string }[] = [
 ]
 
 const STATUS_COLORS: Record<string, string> = {
-  queued    : colors.text.secondary,
+  queued    : colors.text.muted,
   processing: colors.accent.gold,
   ready     : colors.status.present,
   failed    : colors.status.absent,
-  expired   : colors.accent.zinc,
+  expired   : colors.border.light,
 }
 
 export default function ExportsPage() {
@@ -116,7 +116,7 @@ export default function ExportsPage() {
               </span>
               <span style={styles.jobFormat}>{job.file_format.toUpperCase()}</span>
             </div>
-            <span style={{ ...styles.statusBadge, color: STATUS_COLORS[job.status] ?? colors.text.secondary }}>
+            <span style={{ ...styles.statusBadge, color: STATUS_COLORS[job.status] ?? colors.text.muted }}>
               {job.status}
             </span>
             <span style={styles.jobDate}>{new Date(job.created_at).toLocaleDateString('fr-FR')}</span>
@@ -133,22 +133,22 @@ export default function ExportsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container  : { padding: '24px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary },
-  loading    : { padding: '48px', textAlign: 'center', color: colors.text.secondary },
+  container  : { padding: '24px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark },
+  loading    : { padding: '48px', textAlign: 'center', color: colors.text.muted },
   title      : { fontSize: '28px', fontWeight: 700, marginBottom: '24px' },
-  card       : { backgroundColor: colors.background.surface, borderRadius: '12px', padding: '20px', marginBottom: '32px' },
+  card       : { backgroundColor: colors.light.surface, borderRadius: '12px', padding: '20px', marginBottom: '32px' },
   sectionTitle: { fontSize: '18px', fontWeight: 600, marginBottom: '16px', color: colors.accent.gold },
   formRow    : { display: 'flex', gap: '12px', marginBottom: '12px', alignItems: 'center', flexWrap: 'wrap' },
-  select     : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.background.primary, color: colors.text.primary, fontSize: '14px' },
-  input      : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.background.primary, color: colors.text.primary, fontSize: '14px' },
-  sep        : { color: colors.text.secondary },
-  createBtn  : { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.primary, cursor: 'pointer', fontWeight: 600 },
-  empty      : { color: colors.text.secondary, fontSize: '14px' },
-  jobRow     : { display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: colors.background.surface, borderRadius: '8px', padding: '12px 16px', marginBottom: '8px' },
+  select     : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.light.primary, color: colors.text.dark, fontSize: '14px' },
+  input      : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.light.primary, color: colors.text.dark, fontSize: '14px' },
+  sep        : { color: colors.text.muted },
+  createBtn  : { padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 600 },
+  empty      : { color: colors.text.muted, fontSize: '14px' },
+  jobRow     : { display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: colors.light.surface, borderRadius: '8px', padding: '12px 16px', marginBottom: '8px' },
   jobLeft    : { display: 'flex', gap: '8px', alignItems: 'center', flex: 1 },
   jobType    : { fontSize: '14px', fontWeight: 500 },
-  jobFormat  : { fontSize: '11px', padding: '2px 6px', borderRadius: '4px', backgroundColor: colors.accent.zinc, color: colors.text.secondary },
+  jobFormat  : { fontSize: '11px', padding: '2px 6px', borderRadius: '4px', backgroundColor: colors.border.light, color: colors.text.muted },
   statusBadge: { fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' },
-  jobDate    : { fontSize: '12px', color: colors.text.secondary },
+  jobDate    : { fontSize: '12px', color: colors.text.muted },
   dlLink     : { color: colors.accent.gold, fontSize: '13px', fontWeight: 600 },
 }

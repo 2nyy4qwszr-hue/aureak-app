@@ -3,7 +3,7 @@ import { TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import { colors, radius } from '@aureak/theme'
 import { AureakText } from '../Text/Text'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 export type ButtonProps = {
   label: string
@@ -12,6 +12,13 @@ export type ButtonProps = {
   disabled?: boolean
   loading?: boolean
   fullWidth?: boolean
+}
+
+const variantConfig: Record<ButtonVariant, { bg: string; border?: string; textColor: string; loadingColor: string }> = {
+  primary:   { bg: colors.accent.gold, textColor: colors.text.dark, loadingColor: colors.text.dark },
+  secondary: { bg: 'transparent', border: colors.accent.gold, textColor: colors.accent.gold, loadingColor: colors.accent.gold },
+  ghost:     { bg: 'transparent', textColor: colors.accent.gold, loadingColor: colors.accent.gold },
+  danger:    { bg: colors.accent.red, textColor: '#FFFFFF', loadingColor: '#FFFFFF' },
 }
 
 const styles = StyleSheet.create({
@@ -24,17 +31,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-  },
-  primary: {
-    backgroundColor: colors.accent.gold,
-  },
-  secondary: {
-    backgroundColor: colors.background.surface,
-    borderWidth: 1,
-    borderColor: colors.accent.gold,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
   },
   disabled: {
     opacity: 0.4,
@@ -53,6 +49,7 @@ export function AureakButton({
   fullWidth = false,
 }: ButtonProps) {
   const isDisabled = disabled || loading
+  const config = variantConfig[variant]
 
   return (
     <TouchableOpacity
@@ -63,22 +60,21 @@ export function AureakButton({
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={[
         styles.base,
-        styles[variant],
+        {
+          backgroundColor: config.bg,
+          borderWidth: config.border ? 1 : 0,
+          borderColor: config.border,
+        },
         isDisabled && styles.disabled,
         fullWidth && styles.fullWidth,
       ]}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'primary' ? colors.text.dark : colors.accent.gold}
-          size="small"
-        />
+        <ActivityIndicator color={config.loadingColor} size="small" />
       ) : (
         <AureakText
           variant="label"
-          style={{
-            color: variant === 'primary' ? colors.text.dark : colors.accent.gold,
-          }}
+          style={{ color: config.textColor }}
         >
           {label}
         </AureakText>

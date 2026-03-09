@@ -108,11 +108,5 @@ export const METHODOLOGY_CONTEXT_LABELS: Record<MethodologyContextType, string> 
   stage   : 'Stage',
 }
 
-export const METHODOLOGY_METHOD_COLOR: Record<MethodologyMethod, string> = {
-  'Goal and Player' : '#FFB800',
-  'Technique'       : '#4FC3F7',
-  'Situationnel'    : '#66BB6A',
-  'Décisionnel'     : '#CE93D8',
-  'Intégration'     : '#F97316',
-  'Perfectionnement': '#EC4899',
-}
+// METHODOLOGY_METHOD_COLOR déplacé vers @aureak/theme/tokens.ts (ARCH-10)
+// Importer depuis : import { methodologyMethodColors } from '@aureak/theme'

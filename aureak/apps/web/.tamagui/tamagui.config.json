@@ -25411,6 +25411,7 @@
           "4": 22,
           "5": 28,
           "6": 36,
+          "7": 48,
           "true": 16
         },
         "lineHeight": {
@@ -25420,6 +25421,7 @@
           "4": 30,
           "5": 36,
           "6": 44,
+          "7": 52,
           "true": 24
         },
         "weight": {
@@ -25430,6 +25432,7 @@
           "5": "400",
           "6": "600",
           "7": "700",
+          "9": "900",
           "true": "400"
         },
         "letterSpacing": {
@@ -25439,6 +25442,7 @@
           "4": 0.5,
           "5": 0.5,
           "6": 0.5,
+          "7": 0.5,
           "true": 0
         }
       },
@@ -25469,6 +25473,7 @@
           "4": "400",
           "5": "500",
           "6": "600",
+          "7": "700",
           "true": "400"
         },
         "letterSpacing": {
@@ -25523,11 +25528,53 @@
           "val": "#242424",
           "variable": ""
         },
+        "lightPrimary": {
+          "isVar": true,
+          "key": "$lightPrimary",
+          "name": "c-lightPrimary",
+          "val": "#F3EFE7",
+          "variable": ""
+        },
+        "lightSurface": {
+          "isVar": true,
+          "key": "$lightSurface",
+          "name": "c-lightSurface",
+          "val": "#FFFFFF",
+          "variable": ""
+        },
+        "lightElevated": {
+          "isVar": true,
+          "key": "$lightElevated",
+          "name": "c-lightElevated",
+          "val": "#FFFFFF",
+          "variable": ""
+        },
+        "lightHover": {
+          "isVar": true,
+          "key": "$lightHover",
+          "name": "c-lightHover",
+          "val": "#EDE9DF",
+          "variable": ""
+        },
+        "lightMuted": {
+          "isVar": true,
+          "key": "$lightMuted",
+          "name": "c-lightMuted",
+          "val": "#F8F6F1",
+          "variable": ""
+        },
         "gold": {
           "isVar": true,
           "key": "$gold",
           "name": "c-gold",
           "val": "#C1AC5C",
+          "variable": ""
+        },
+        "goldLight": {
+          "isVar": true,
+          "key": "$goldLight",
+          "name": "c-goldLight",
+          "val": "#D6C98E",
           "variable": ""
         },
         "beige": {
@@ -25551,6 +25598,13 @@
           "val": "#F0EDE0",
           "variable": ""
         },
+        "red": {
+          "isVar": true,
+          "key": "$red",
+          "name": "c-red",
+          "val": "#E05252",
+          "variable": ""
+        },
         "statusPresent": {
           "isVar": true,
           "key": "$statusPresent",
@@ -25572,6 +25626,13 @@
           "val": "#F44336",
           "variable": ""
         },
+        "statusSuccess": {
+          "isVar": true,
+          "key": "$statusSuccess",
+          "name": "c-statusSuccess",
+          "val": "#10B981",
+          "variable": ""
+        },
         "textPrimary": {
           "isVar": true,
           "key": "$textPrimary",
@@ -25590,7 +25651,56 @@
           "isVar": true,
           "key": "$textDark",
           "name": "c-textDark",
-          "val": "#171717",
+          "val": "#18181B",
+          "variable": ""
+        },
+        "textMuted": {
+          "isVar": true,
+          "key": "$textMuted",
+          "name": "c-textMuted",
+          "val": "#71717A",
+          "variable": ""
+        },
+        "textSubtle": {
+          "isVar": true,
+          "key": "$textSubtle",
+          "name": "c-textSubtle",
+          "val": "#A1A1AA",
+          "variable": ""
+        },
+        "borderLight": {
+          "isVar": true,
+          "key": "$borderLight",
+          "name": "c-borderLight",
+          "val": "#E5E7EB",
+          "variable": ""
+        },
+        "borderGold": {
+          "isVar": true,
+          "key": "$borderGold",
+          "name": "c-borderGold",
+          "val": "rgba(193,172,92,0.25)",
+          "variable": ""
+        },
+        "borderGoldSolid": {
+          "isVar": true,
+          "key": "$borderGoldSolid",
+          "name": "c-borderGoldSolid",
+          "val": "rgba(193,172,92,0.5)",
+          "variable": ""
+        },
+        "borderDark": {
+          "isVar": true,
+          "key": "$borderDark",
+          "name": "c-borderDark",
+          "val": "#424242",
+          "variable": ""
+        },
+        "borderDivider": {
+          "isVar": true,
+          "key": "$borderDivider",
+          "name": "c-borderDivider",
+          "val": "#E8E4DC",
           "variable": ""
         }
       },
@@ -25809,11 +25919,25 @@
           "val": 8,
           "variable": ""
         },
+        "xs": {
+          "isVar": true,
+          "key": "$xs",
+          "name": "t-radius-xs",
+          "val": 6,
+          "variable": ""
+        },
         "card": {
           "isVar": true,
           "key": "$card",
           "name": "t-radius-card",
           "val": 16,
+          "variable": ""
+        },
+        "cardLg": {
+          "isVar": true,
+          "key": "$cardLg",
+          "name": "t-radius-cardLg",
+          "val": 24,
           "variable": ""
         },
         "button": {
@@ -25895,16 +26019,31 @@
         "backgroundPrimary": "#1A1A1A",
         "backgroundSurface": "#171717",
         "backgroundElevated": "#242424",
+        "lightPrimary": "#F3EFE7",
+        "lightSurface": "#FFFFFF",
+        "lightElevated": "#FFFFFF",
+        "lightHover": "#EDE9DF",
+        "lightMuted": "#F8F6F1",
         "gold": "#C1AC5C",
+        "goldLight": "#D6C98E",
         "beige": "#F3EFE7",
         "zinc": "#424242",
         "ivory": "#F0EDE0",
+        "red": "#E05252",
         "statusPresent": "#4CAF50",
         "statusAttention": "#FFC107",
         "statusAbsent": "#F44336",
+        "statusSuccess": "#10B981",
         "textPrimary": "#FFFFFF",
         "textSecondary": "#A0A0A0",
-        "textDark": "#171717",
+        "textDark": "#18181B",
+        "textMuted": "#71717A",
+        "textSubtle": "#A1A1AA",
+        "borderLight": "#E5E7EB",
+        "borderGold": "rgba(193,172,92,0.25)",
+        "borderGoldSolid": "rgba(193,172,92,0.5)",
+        "borderDark": "#424242",
+        "borderDivider": "#E8E4DC",
         "background": "#1A1A1A",
         "backgroundHover": "#171717",
         "backgroundFocus": "#242424",
@@ -25927,32 +26066,47 @@
         "backgroundPrimary": "#1A1A1A",
         "backgroundSurface": "#171717",
         "backgroundElevated": "#242424",
+        "lightPrimary": "#F3EFE7",
+        "lightSurface": "#FFFFFF",
+        "lightElevated": "#FFFFFF",
+        "lightHover": "#EDE9DF",
+        "lightMuted": "#F8F6F1",
         "gold": "#C1AC5C",
+        "goldLight": "#D6C98E",
         "beige": "#F3EFE7",
         "zinc": "#424242",
         "ivory": "#F0EDE0",
+        "red": "#E05252",
         "statusPresent": "#4CAF50",
         "statusAttention": "#FFC107",
         "statusAbsent": "#F44336",
+        "statusSuccess": "#10B981",
         "textPrimary": "#FFFFFF",
         "textSecondary": "#A0A0A0",
-        "textDark": "#171717",
-        "background": "#1A1A1A",
-        "backgroundHover": "#171717",
-        "backgroundFocus": "#242424",
-        "backgroundPress": "#242424",
-        "backgroundStrong": "#242424",
+        "textDark": "#18181B",
+        "textMuted": "#71717A",
+        "textSubtle": "#A1A1AA",
+        "borderLight": "#E5E7EB",
+        "borderGold": "rgba(193,172,92,0.25)",
+        "borderGoldSolid": "rgba(193,172,92,0.5)",
+        "borderDark": "#424242",
+        "borderDivider": "#E8E4DC",
+        "background": "#F3EFE7",
+        "backgroundHover": "#EDE9DF",
+        "backgroundFocus": "#FFFFFF",
+        "backgroundPress": "#EDE9DF",
+        "backgroundStrong": "#F8F6F1",
         "backgroundTransparent": "transparent",
-        "color": "#FFFFFF",
+        "color": "#18181B",
         "colorHover": "#C1AC5C",
         "colorPress": "#C1AC5C",
         "colorFocus": "#C1AC5C",
         "colorTransparent": "transparent",
-        "borderColor": "#424242",
+        "borderColor": "#E5E7EB",
         "borderColorHover": "#C1AC5C",
         "borderColorFocus": "#C1AC5C",
         "borderColorPress": "#C1AC5C",
-        "placeholderColor": "#A0A0A0",
+        "placeholderColor": "#A1A1AA",
         "id": "light"
       }
     },
@@ -26038,6 +26192,41 @@
         "val": "#F3EFE7",
         "variable": ""
       },
+      "$color.borderDark": {
+        "isVar": true,
+        "key": "$borderDark",
+        "name": "c-borderDark",
+        "val": "#424242",
+        "variable": ""
+      },
+      "$color.borderDivider": {
+        "isVar": true,
+        "key": "$borderDivider",
+        "name": "c-borderDivider",
+        "val": "#E8E4DC",
+        "variable": ""
+      },
+      "$color.borderGold": {
+        "isVar": true,
+        "key": "$borderGold",
+        "name": "c-borderGold",
+        "val": "rgba(193,172,92,0.25)",
+        "variable": ""
+      },
+      "$color.borderGoldSolid": {
+        "isVar": true,
+        "key": "$borderGoldSolid",
+        "name": "c-borderGoldSolid",
+        "val": "rgba(193,172,92,0.5)",
+        "variable": ""
+      },
+      "$color.borderLight": {
+        "isVar": true,
+        "key": "$borderLight",
+        "name": "c-borderLight",
+        "val": "#E5E7EB",
+        "variable": ""
+      },
       "$color.gold": {
         "isVar": true,
         "key": "$gold",
@@ -26045,11 +26234,60 @@
         "val": "#C1AC5C",
         "variable": ""
       },
+      "$color.goldLight": {
+        "isVar": true,
+        "key": "$goldLight",
+        "name": "c-goldLight",
+        "val": "#D6C98E",
+        "variable": ""
+      },
       "$color.ivory": {
         "isVar": true,
         "key": "$ivory",
         "name": "c-ivory",
         "val": "#F0EDE0",
+        "variable": ""
+      },
+      "$color.lightElevated": {
+        "isVar": true,
+        "key": "$lightElevated",
+        "name": "c-lightElevated",
+        "val": "#FFFFFF",
+        "variable": ""
+      },
+      "$color.lightHover": {
+        "isVar": true,
+        "key": "$lightHover",
+        "name": "c-lightHover",
+        "val": "#EDE9DF",
+        "variable": ""
+      },
+      "$color.lightMuted": {
+        "isVar": true,
+        "key": "$lightMuted",
+        "name": "c-lightMuted",
+        "val": "#F8F6F1",
+        "variable": ""
+      },
+      "$color.lightPrimary": {
+        "isVar": true,
+        "key": "$lightPrimary",
+        "name": "c-lightPrimary",
+        "val": "#F3EFE7",
+        "variable": ""
+      },
+      "$color.lightSurface": {
+        "isVar": true,
+        "key": "$lightSurface",
+        "name": "c-lightSurface",
+        "val": "#FFFFFF",
+        "variable": ""
+      },
+      "$color.red": {
+        "isVar": true,
+        "key": "$red",
+        "name": "c-red",
+        "val": "#E05252",
         "variable": ""
       },
       "$color.statusAbsent": {
@@ -26073,11 +26311,25 @@
         "val": "#4CAF50",
         "variable": ""
       },
+      "$color.statusSuccess": {
+        "isVar": true,
+        "key": "$statusSuccess",
+        "name": "c-statusSuccess",
+        "val": "#10B981",
+        "variable": ""
+      },
       "$color.textDark": {
         "isVar": true,
         "key": "$textDark",
         "name": "c-textDark",
-        "val": "#171717",
+        "val": "#18181B",
+        "variable": ""
+      },
+      "$color.textMuted": {
+        "isVar": true,
+        "key": "$textMuted",
+        "name": "c-textMuted",
+        "val": "#71717A",
         "variable": ""
       },
       "$color.textPrimary": {
@@ -26092,6 +26344,13 @@
         "key": "$textSecondary",
         "name": "c-textSecondary",
         "val": "#A0A0A0",
+        "variable": ""
+      },
+      "$color.textSubtle": {
+        "isVar": true,
+        "key": "$textSubtle",
+        "name": "c-textSubtle",
+        "val": "#A1A1AA",
         "variable": ""
       },
       "$color.zinc": {
@@ -26143,11 +26402,25 @@
         "val": 16,
         "variable": ""
       },
+      "$radius.cardLg": {
+        "isVar": true,
+        "key": "$cardLg",
+        "name": "t-radius-cardLg",
+        "val": 24,
+        "variable": ""
+      },
       "$radius.true": {
         "isVar": true,
         "key": "$true",
         "name": "t-radius-true",
         "val": 16,
+        "variable": ""
+      },
+      "$radius.xs": {
+        "isVar": true,
+        "key": "$xs",
+        "name": "t-radius-xs",
+        "val": 6,
         "variable": ""
       },
       "$size.0": {

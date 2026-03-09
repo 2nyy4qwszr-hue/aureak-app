@@ -10,7 +10,7 @@ import type { Taxonomy, TaxonomyNode } from '@aureak/types'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -22,11 +22,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     gap: space.sm,
   },
   cardHeader: {
@@ -43,11 +43,11 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     borderRadius: 6,
     padding: space.sm,
-    color: colors.text.primary,
-    backgroundColor: colors.background.primary,
+    color: colors.text.dark,
+    backgroundColor: colors.light.primary,
     flex: 1,
   },
   row: {
@@ -96,14 +96,14 @@ export default function TaxonomiesPage() {
           <TextInput
             style={styles.input}
             placeholder="Nom (ex: Méthode GK)"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             value={newName}
             onChangeText={setNewName}
           />
           <TextInput
             style={styles.input}
             placeholder="Slug (ex: gk-methode)"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             value={newSlug}
             onChangeText={setNewSlug}
             autoCapitalize="none"
@@ -113,7 +113,7 @@ export default function TaxonomiesPage() {
       </View>
 
       {loading && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
       {taxonomies.map((taxonomy) => (
@@ -121,7 +121,7 @@ export default function TaxonomiesPage() {
       ))}
 
       {!loading && taxonomies.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune taxonomie configurée.
         </AureakText>
       )}
@@ -169,7 +169,7 @@ function TaxonomyCard({
       <View style={styles.cardHeader}>
         <View>
           <AureakText variant="label">{taxonomy.name}</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
             {taxonomy.slug}
           </AureakText>
         </View>
@@ -193,7 +193,7 @@ function TaxonomyCard({
             <View key={node.id} style={styles.nodeItem}>
               <View>
                 <AureakText variant="body">{node.name}</AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {node.slug}{node.parentId ? ' (enfant)' : ' (racine)'}
                 </AureakText>
               </View>
@@ -201,21 +201,21 @@ function TaxonomyCard({
           ))}
 
           <View style={{ gap: space.xs }}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
               Ajouter un nœud racine
             </AureakText>
             <View style={styles.row}>
               <TextInput
                 style={styles.input}
                 placeholder="Nom"
-                placeholderTextColor={colors.text.secondary}
+                placeholderTextColor={colors.text.muted}
                 value={newNodeName}
                 onChangeText={setNewNodeName}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Slug"
-                placeholderTextColor={colors.text.secondary}
+                placeholderTextColor={colors.text.muted}
                 value={newNodeSlug}
                 onChangeText={setNewNodeSlug}
                 autoCapitalize="none"

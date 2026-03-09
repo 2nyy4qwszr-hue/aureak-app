@@ -31,7 +31,7 @@ function FormField({
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={colors.text.secondary}
+        placeholderTextColor={colors.text.muted}
         keyboardType={keyboardType ?? 'default'}
         multiline={multiline}
         autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'sentences'}
@@ -41,15 +41,15 @@ function FormField({
 }
 const ff = StyleSheet.create({
   wrapper : { gap: 4 },
-  label   : { color: colors.text.secondary, fontSize: 11, fontWeight: '600' },
+  label   : { color: colors.text.muted, fontSize: 11, fontWeight: '600' },
   input   : {
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
     fontFamily       : 'System',
   },
@@ -61,14 +61,14 @@ const ff = StyleSheet.create({
 function ProvinceSelector({ value, onChange }: { value: BelgianProvince | null; onChange: (v: BelgianProvince | null) => void }) {
   return (
     <View style={{ gap: 6 }}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, fontWeight: '600' }}>Province</AureakText>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, fontWeight: '600' }}>Province</AureakText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         <Pressable style={[chip.base, value === null && chip.active]} onPress={() => onChange(null)}>
-          <AureakText variant="caption" style={{ color: value === null ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>—</AureakText>
+          <AureakText variant="caption" style={{ color: value === null ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>—</AureakText>
         </Pressable>
         {BELGIAN_PROVINCES.map(p => (
           <Pressable key={p} style={[chip.base, value === p && chip.active]} onPress={() => onChange(p)}>
-            <AureakText variant="caption" style={{ color: value === p ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}>{p}</AureakText>
+            <AureakText variant="caption" style={{ color: value === p ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>{p}</AureakText>
           </Pressable>
         ))}
       </View>
@@ -76,8 +76,8 @@ function ProvinceSelector({ value, onChange }: { value: BelgianProvince | null; 
   )
 }
 const chip = StyleSheet.create({
-  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
-  active: { borderColor: colors.accent.gold, backgroundColor: colors.background.surface },
+  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
+  active: { borderColor: colors.accent.gold, backgroundColor: colors.light.surface },
 })
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
@@ -87,14 +87,14 @@ function SectionTitle({ title }: { title: string }) {
     <AureakText
       variant="caption"
       style={{
-        color        : colors.text.secondary,
+        color        : colors.text.muted,
         fontSize     : 10,
         fontWeight   : '700',
         letterSpacing: 1.2,
         textTransform: 'uppercase' as never,
         paddingTop   : space.sm,
         borderTopWidth: 1,
-        borderTopColor: colors.accent.zinc,
+        borderTopColor: colors.border.divider,
       }}
     >
       {title}
@@ -107,7 +107,7 @@ function SectionTitle({ title }: { title: string }) {
 function ToggleChip({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <Pressable style={[chip.base, value && chip.active]} onPress={() => onChange(!value)}>
-      <AureakText variant="caption" style={{ color: value ? colors.accent.gold : colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: value ? colors.accent.gold : colors.text.muted }}>
         {label}
       </AureakText>
     </Pressable>
@@ -226,10 +226,10 @@ export default function NewClubScreen() {
         {/* Header */}
         <View style={styles.cardHeader}>
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
           </Pressable>
-          <AureakText variant="h2">Nouveau club</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+          <AureakText variant="h2" color={colors.accent.gold}>Nouveau club</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
             Ajoutez un club à l'annuaire. Les champs marqués * sont obligatoires.
           </AureakText>
         </View>
@@ -287,7 +287,7 @@ export default function NewClubScreen() {
         {/* ── Actions ── */}
         <View style={styles.actions}>
           <Pressable style={styles.cancelBtn} onPress={() => router.back()}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
           </Pressable>
           <Pressable style={[styles.submitBtn, submitting && styles.submitBtnDisabled]} onPress={handleSubmit} disabled={submitting}>
             <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
@@ -302,15 +302,15 @@ export default function NewClubScreen() {
 }
 
 const styles = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { alignItems: 'center', paddingVertical: space.xl, paddingHorizontal: space.md },
   card       : {
     width           : '100%',
     maxWidth        : 640,
-    backgroundColor : colors.background.surface,
+    backgroundColor : colors.light.surface,
     borderRadius    : 12,
     borderWidth     : 1,
-    borderColor     : colors.accent.zinc,
+    borderColor     : colors.border.light,
     padding         : space.xl,
     gap             : space.md,
   },
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   twoCol     : { flexDirection: 'row', gap: space.sm },
 
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: '#f87171',
     borderRadius   : 4,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     paddingVertical  : space.xs + 2,
     borderRadius     : 7,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
   },
   submitBtn  : {
     paddingHorizontal: space.xl,

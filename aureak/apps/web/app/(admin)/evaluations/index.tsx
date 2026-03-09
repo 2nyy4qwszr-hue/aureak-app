@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import { supabase } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 
 type EvalRow = {
   id          : string
@@ -93,9 +93,9 @@ export default function EvaluationsPage() {
       {/* ── Page header ── */}
       <View style={styles.pageHeader}>
         <View>
-          <AureakText variant="h2">Évaluations</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Évaluations</AureakText>
           {!loading && evals.length > 0 && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {evals.length} évaluation{evals.length > 1 ? 's' : ''} · {topCount} top séance{topCount > 1 ? 's' : ''}
             </AureakText>
           )}
@@ -125,9 +125,9 @@ export default function EvaluationsPage() {
 
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : evals.length === 0 ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune évaluation sur cette période.
         </AureakText>
       ) : (
@@ -139,7 +139,7 @@ export default function EvaluationsPage() {
                   {ev.childName ?? ev.childId.slice(0, 8)}
                   {ev.topSeance ? ' ⭐' : ''}
                 </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {new Date(ev.evalAt).toLocaleString('fr-FR', {
                     day: '2-digit', month: '2-digit', year: '2-digit',
                     hour: '2-digit', minute: '2-digit',
@@ -171,35 +171,37 @@ export default function EvaluationsPage() {
 const webInputStyle = {
   padding        : '6px 10px',
   borderRadius   : '6px',
-  border         : `1px solid ${colors.accent.zinc}`,
-  backgroundColor: colors.background.surface,
-  color          : colors.text.primary,
+  border         : `1px solid ${colors.border.light}`,
+  backgroundColor: colors.light.surface,
+  color          : colors.text.dark,
   fontSize       : '13px',
 } as React.CSSProperties
 
 const styles = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
   pageHeader : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as never, gap: space.md },
   filterRow  : { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' as never },
-  filterLabel: { color: colors.text.secondary, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
+  filterLabel: { color: colors.text.muted, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
   kpiRow    : {
     flexDirection    : 'row',
     gap              : space.md,
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
     borderRadius     : 10,
     padding          : space.md,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
+    ...shadows.sm,
   },
   kpi       : { flex: 1, alignItems: 'center', gap: 2 },
   card      : {
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
     borderRadius     : 8,
     padding          : space.md,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     gap              : space.xs,
+    ...shadows.sm,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   signals   : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' as never },

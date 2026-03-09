@@ -40,7 +40,11 @@ CREATE TABLE audit_logs (
 
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
--- RLS minimal — étendu en Story 10.4 (lecture admin, no_update, no_delete, indexes, rétention)
+-- ⚠️  SÉCURITÉ TEMPORAIRE : policies minimales — table NON protégée contre UPDATE/DELETE
+-- La policy "tenant_isolation" FOR ALL ci-dessous autorise SELECT + UPDATE + DELETE
+-- pour tout utilisateur authentifié du tenant.
+-- L'immuabilité réelle (no_update, no_delete, lecture admin uniquement) est enforced en Story 10.4.
+-- EN PRODUCTION : ne pas exposer audit_logs avant Story 10.4.
 CREATE POLICY "tenant_isolation" ON audit_logs
   FOR ALL USING (tenant_id = current_tenant_id());
 

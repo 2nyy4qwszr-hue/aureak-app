@@ -49,7 +49,7 @@ export default function ChildBadgesPage() {
       <AureakText variant="h2">Badges & Points</AureakText>
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : (
         <>
           {/* Points KPIs */}
@@ -58,19 +58,19 @@ export default function ChildBadgesPage() {
               <AureakText variant="h2" style={{ color: colors.accent.gold }}>
                 {progress?.totalPoints ?? 0}
               </AureakText>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Points totaux</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Points totaux</AureakText>
             </View>
             <View style={styles.kpi}>
               <AureakText variant="h2" style={{ color: colors.status.present }}>
                 {progress?.currentStreak ?? 0}
               </AureakText>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Série en cours</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Série en cours</AureakText>
             </View>
             <View style={styles.kpi}>
               <AureakText variant="h2" style={{ color: colors.accent.gold }}>
                 {completed.length}
               </AureakText>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Quêtes terminées</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Quêtes terminées</AureakText>
             </View>
           </View>
 
@@ -78,7 +78,7 @@ export default function ChildBadgesPage() {
           <AureakText variant="h3" style={{ marginTop: space.sm }}>Quêtes en cours</AureakText>
 
           {active.length === 0 ? (
-            <AureakText variant="body" style={{ color: colors.text.secondary }}>
+            <AureakText variant="body" style={{ color: colors.text.muted }}>
               Aucune quête active.
             </AureakText>
           ) : (
@@ -100,7 +100,7 @@ export default function ChildBadgesPage() {
                     )}
                   </View>
                   {def?.description && (
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
                       {def.description}
                     </AureakText>
                   )}
@@ -108,10 +108,10 @@ export default function ChildBadgesPage() {
                     <View style={[styles.progressFill, { width: `${pct}%` as never }]} />
                   </View>
                   <View style={styles.questFooter}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
                       {q.current_value} / {q.target_value}
                     </AureakText>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
                       {pct}%
                     </AureakText>
                   </View>
@@ -132,7 +132,7 @@ export default function ChildBadgesPage() {
                       <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 16 }}>
                         ✓
                       </AureakText>
-                      <AureakText variant="body" style={{ fontWeight: '600', flex: 1, color: colors.text.secondary }}>
+                      <AureakText variant="body" style={{ fontWeight: '600', flex: 1, color: colors.text.muted }}>
                         {def?.name ?? 'Quête'}
                       </AureakText>
                       {def?.reward_points && (
@@ -155,10 +155,10 @@ export default function ChildBadgesPage() {
                 const def = q.quest_definitions as { name?: string } | null
                 return (
                   <View key={q.id} style={[styles.questCard, styles.questFailed]}>
-                    <AureakText variant="body" style={{ color: colors.text.secondary }}>
+                    <AureakText variant="body" style={{ color: colors.text.muted }}>
                       {def?.name ?? 'Quête'}
                     </AureakText>
-                    <AureakText variant="caption" style={{ color: QUEST_STATUS_COLOR[q.status] ?? colors.text.secondary }}>
+                    <AureakText variant="caption" style={{ color: QUEST_STATUS_COLOR[q.status] ?? colors.text.muted }}>
                       {QUEST_STATUS_LABEL[q.status] ?? q.status}
                     </AureakText>
                   </View>
@@ -173,29 +173,29 @@ export default function ChildBadgesPage() {
 }
 
 const styles = StyleSheet.create({
-  container    : { flex: 1, backgroundColor: colors.background.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
   content      : { padding: space.xl, gap: space.md },
   kpiRow       : {
     flexDirection  : 'row',
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
   kpi          : { flex: 1, alignItems: 'center', gap: 4 },
   questCard    : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     gap            : 6,
   },
   questDone    : { opacity: 0.7 },
   questFailed  : { opacity: 0.5 },
   questHeader  : { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   questFooter  : { flexDirection: 'row', justifyContent: 'space-between' },
-  progressTrack: { height: 6, backgroundColor: colors.background.elevated, borderRadius: 3, overflow: 'hidden' },
+  progressTrack: { height: 6, backgroundColor: colors.light.muted, borderRadius: 3, overflow: 'hidden' },
   progressFill : { height: 6, backgroundColor: colors.accent.gold, borderRadius: 3 },
 })

@@ -6,15 +6,15 @@ import { useRouter } from 'expo-router'
 import { createMethodologyTheme } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
 import {
-  METHODOLOGY_METHODS, METHODOLOGY_METHOD_COLOR,
+  METHODOLOGY_METHODS,
   type MethodologyMethod,
 } from '@aureak/types'
 
 function Label({ children }: { children: string }) {
   return (
-    <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, textTransform: 'uppercase' as never }}>
+    <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, textTransform: 'uppercase' as never }}>
       {children}
     </AureakText>
   )
@@ -68,7 +68,7 @@ export default function NewThemePage() {
           value={title}
           onChangeText={setTitle}
           placeholder="Ex : Prise de balle, Relance, Centres…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
         />
 
         <Label>Bloc pédagogique</Label>
@@ -77,9 +77,9 @@ export default function NewThemePage() {
           value={bloc}
           onChangeText={setBloc}
           placeholder="Ex : Tir au but, 1vs1, Relance, Profondeur…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
         />
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: -4 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: -4 }}>
           Regroupe les thèmes par bloc dans le sélecteur de séance. Laisser vide si non applicable.
         </AureakText>
 
@@ -87,19 +87,19 @@ export default function NewThemePage() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {METHODOLOGY_METHODS.map(m => {
             const active = method === m
-            const color  = METHODOLOGY_METHOD_COLOR[m]
+            const color  = methodologyMethodColors[m]
             return (
               <Pressable
                 key={m}
                 onPress={() => setMethod(active ? null : m)}
-                style={{ borderWidth: 1, borderColor: active ? color : colors.accent.zinc, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? color + '20' : 'transparent' }}
+                style={{ borderWidth: 1, borderColor: active ? color : colors.border.light, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? color + '20' : 'transparent' }}
               >
-                <AureakText variant="caption" style={{ color: active ? color : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>{m}</AureakText>
+                <AureakText variant="caption" style={{ color: active ? color : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>{m}</AureakText>
               </Pressable>
             )
           })}
         </View>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: -4 }}>Laisser vide = applicable à toutes les méthodes</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: -4 }}>Laisser vide = applicable à toutes les méthodes</AureakText>
 
         <Label>Description</Label>
         <TextInput
@@ -107,7 +107,7 @@ export default function NewThemePage() {
           value={description}
           onChangeText={setDescription}
           placeholder="Description du thème, contexte pédagogique…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           multiline
           numberOfLines={4}
         />
@@ -118,7 +118,7 @@ export default function NewThemePage() {
           value={corrections}
           onChangeText={setCorrections}
           placeholder="Ex : Regarder dans la direction de relance avant la réception…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           multiline
           numberOfLines={4}
         />
@@ -129,7 +129,7 @@ export default function NewThemePage() {
           value={coachingPoints}
           onChangeText={setCoachingPoints}
           placeholder="Ex : Observer la posture du gardien au moment du contact…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           multiline
           numberOfLines={3}
         />
@@ -141,7 +141,7 @@ export default function NewThemePage() {
 
       <View style={s.actions}>
         <Pressable style={s.cancelBtn} onPress={() => router.back()}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
         </Pressable>
         <Pressable
           style={[s.saveBtn, { backgroundColor: '#4FC3F7' }, (!title.trim() || saving) && { opacity: 0.4 }]}
@@ -159,13 +159,13 @@ export default function NewThemePage() {
 }
 
 const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.background.primary },
+  container : { flex: 1, backgroundColor: colors.light.primary },
   content   : { padding: space.lg, gap: space.md, maxWidth: 700, alignSelf: 'center', width: '100%' },
-  section   : { backgroundColor: colors.background.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.accent.zinc, padding: space.lg, gap: space.sm },
-  input     : { backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: 10, color: colors.text.primary, fontSize: 13 },
+  section   : { backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, padding: space.lg, gap: space.sm },
+  input     : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: 10, color: colors.text.dark, fontSize: 13 },
   inputError: { borderColor: colors.status.attention },
   textarea  : { minHeight: 90, textAlignVertical: 'top' as never, paddingTop: 10 },
   actions   : { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
-  cancelBtn : { paddingHorizontal: space.md, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.accent.zinc },
+  cancelBtn : { paddingHorizontal: space.md, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light },
   saveBtn   : { paddingHorizontal: space.lg, paddingVertical: 10, borderRadius: 8 },
 })

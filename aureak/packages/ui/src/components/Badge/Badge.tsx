@@ -3,18 +3,21 @@ import { View, StyleSheet } from 'react-native'
 import { colors, radius, space } from '@aureak/theme'
 import { AureakText } from '../Text/Text'
 
-export type BadgeVariant = 'gold' | 'present' | 'attention' | 'zinc'
+export type BadgeVariant = 'gold' | 'present' | 'attention' | 'zinc' | 'danger' | 'goldOutline' | 'light'
 
 export type BadgeProps = {
   label: string
   variant?: BadgeVariant
 }
 
-const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
-  gold      : { bg: colors.accent.gold,       text: colors.text.dark },
-  present   : { bg: colors.status.present,    text: colors.text.dark },
-  attention : { bg: colors.status.attention,  text: colors.text.dark },
-  zinc      : { bg: colors.accent.zinc,       text: colors.text.primary },
+const variantColors: Record<BadgeVariant, { bg: string; text: string; border?: string }> = {
+  gold        : { bg: colors.accent.gold,      text: colors.text.dark },
+  present     : { bg: colors.status.present,   text: colors.text.dark },
+  attention   : { bg: colors.status.attention,  text: colors.text.dark },
+  zinc        : { bg: colors.accent.zinc,       text: colors.text.primary },
+  danger      : { bg: colors.accent.red,        text: '#FFFFFF' },
+  goldOutline : { bg: 'transparent',            text: colors.accent.gold, border: colors.border.goldSolid },
+  light       : { bg: colors.light.muted,       text: colors.text.dark,   border: colors.border.light },
 }
 
 const styles = StyleSheet.create({
@@ -27,9 +30,13 @@ const styles = StyleSheet.create({
 })
 
 export function Badge({ label, variant = 'zinc' }: BadgeProps) {
-  const { bg, text } = variantColors[variant]
+  const { bg, text, border } = variantColors[variant]
   return (
-    <View style={[styles.badge, { backgroundColor: bg }]}>
+    <View style={[
+      styles.badge,
+      { backgroundColor: bg },
+      border ? { borderWidth: 1, borderColor: border } : null,
+    ]}>
       <AureakText variant="caption" color={text}>
         {label}
       </AureakText>

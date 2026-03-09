@@ -3,7 +3,7 @@ import { Pressable, useWindowDimensions } from 'react-native'
 import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
-import { colors } from '@aureak/theme'
+import { colors, shadows, transitions, radius } from '@aureak/theme'
 
 type NavGroup = {
   label : string
@@ -61,7 +61,6 @@ export default function AdminLayout() {
 
   const isMobile = width < 768
 
-  // Close sidebar when navigating on mobile
   useEffect(() => {
     if (isMobile) setMobileOpen(false)
   }, [pathname, isMobile])
@@ -90,35 +89,36 @@ export default function AdminLayout() {
           onPress={() => setMobileOpen(false)}
           style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            zIndex: 40, backgroundColor: 'rgba(0,0,0,0.55)',
+            zIndex: 40, backgroundColor: 'rgba(0,0,0,0.35)',
           } as never}
         />
       )}
 
-      {/* ── Sidebar ── */}
+      {/* ── Sidebar — Light Premium ── */}
       <YStack
         width={220}
-        backgroundColor={colors.background.surface}
+        backgroundColor={colors.light.surface}
         borderRightWidth={1}
-        borderRightColor={colors.accent.zinc}
+        borderRightColor={colors.border.divider}
         paddingBottom={16}
         style={{
           flexShrink     : 0,
           overflowY      : 'auto',
+          boxShadow      : shadows.sm,
           ...(isMobile ? {
             position   : 'fixed',
             top        : 0,
             left       : mobileOpen ? 0 : -220,
             height     : '100vh',
-            transition : 'left 0.25s cubic-bezier(0.4,0,0.2,1)',
+            transition : `left ${transitions.normal}`,
             zIndex     : 50,
-            boxShadow  : mobileOpen ? '4px 0 32px rgba(0,0,0,0.5)' : 'none',
+            boxShadow  : mobileOpen ? shadows.lg : 'none',
           } : {}),
         } as never}
       >
         {/* Gold top accent stripe */}
         <YStack
-          height={2}
+          height={3}
           backgroundColor={colors.accent.gold}
           style={{ flexShrink: 0 } as never}
         />
@@ -129,7 +129,7 @@ export default function AdminLayout() {
           paddingBottom={18}
           paddingHorizontal={20}
           borderBottomWidth={1}
-          borderBottomColor={colors.accent.zinc}
+          borderBottomColor={colors.border.divider}
           marginBottom={8}
         >
           <Text
@@ -144,7 +144,7 @@ export default function AdminLayout() {
           <Text
             fontFamily="$body"
             fontSize={10}
-            color={colors.text.secondary}
+            color={colors.text.muted}
             letterSpacing={1.8}
             marginTop={2}
             style={{ textTransform: 'uppercase' as never }}
@@ -161,12 +161,12 @@ export default function AdminLayout() {
                 fontFamily="$body"
                 fontSize={9}
                 fontWeight="700"
-                color={colors.text.secondary}
+                color={colors.text.subtle}
                 letterSpacing={1.5}
                 paddingHorizontal={20}
                 paddingBottom={4}
                 paddingTop={gi === 0 ? 4 : 12}
-                style={{ textTransform: 'uppercase' as never, opacity: 0.55 }}
+                style={{ textTransform: 'uppercase' as never }}
               >
                 {group.label}
               </Text>
@@ -181,22 +181,25 @@ export default function AdminLayout() {
                           paddingVertical={8}
                           paddingLeft={12}
                           paddingRight={12}
-                          borderRadius={6}
+                          borderRadius={radius.xs}
                           borderLeftWidth={2}
                           borderLeftColor={isActive ? colors.accent.gold : 'transparent' as never}
                           backgroundColor={
                             isActive
-                              ? colors.background.elevated
+                              ? colors.accent.gold + '12'
                               : pressed
-                                ? colors.background.elevated
+                                ? colors.light.hover
                                 : 'transparent'
                           }
+                          style={{
+                            transition: `all ${transitions.fast}`,
+                          } as never}
                         >
                           <Text
                             fontFamily="$body"
                             fontSize={13}
                             fontWeight={isActive ? '600' : '400'}
-                            color={isActive ? colors.accent.gold : colors.text.secondary}
+                            color={isActive ? colors.accent.gold : colors.text.muted}
                           >
                             {label}
                           </Text>
@@ -209,10 +212,10 @@ export default function AdminLayout() {
 
               {gi < NAV_GROUPS.length - 1 && (
                 <Separator
-                  borderColor={colors.accent.zinc}
+                  borderColor={colors.border.divider}
                   marginTop={10}
                   marginHorizontal={20}
-                  opacity={0.4}
+                  opacity={0.6}
                 />
               )}
             </YStack>
@@ -221,7 +224,7 @@ export default function AdminLayout() {
 
         {/* ── Admin info + sign out ── */}
         <YStack paddingHorizontal={12} paddingTop={8}>
-          <Separator borderColor={colors.accent.zinc} opacity={0.4} marginBottom={10} />
+          <Separator borderColor={colors.border.divider} opacity={0.6} marginBottom={10} />
 
           {/* Admin user pill */}
           {user && (
@@ -232,7 +235,7 @@ export default function AdminLayout() {
               paddingVertical={8}
               marginBottom={4}
               borderRadius={8}
-              backgroundColor={colors.background.elevated}
+              backgroundColor={colors.light.muted}
             >
               {/* Avatar initial */}
               <YStack
@@ -259,7 +262,7 @@ export default function AdminLayout() {
                   fontFamily="$body"
                   fontSize={11}
                   fontWeight="600"
-                  color={colors.text.primary}
+                  color={colors.text.dark}
                   numberOfLines={1}
                   style={{
                     overflow    : 'hidden',
@@ -272,7 +275,7 @@ export default function AdminLayout() {
                 <Text
                   fontFamily="$body"
                   fontSize={9}
-                  color={colors.text.secondary}
+                  color={colors.text.subtle}
                   style={{ textTransform: 'uppercase' as never, letterSpacing: 1 }}
                 >
                   Admin
@@ -287,10 +290,10 @@ export default function AdminLayout() {
               <YStack
                 paddingVertical={7}
                 paddingHorizontal={12}
-                borderRadius={6}
-                backgroundColor={pressed ? colors.background.elevated : 'transparent'}
+                borderRadius={radius.xs}
+                backgroundColor={pressed ? colors.light.hover : 'transparent'}
               >
-                <Text fontFamily="$body" fontSize={13} color={colors.text.secondary}>
+                <Text fontFamily="$body" fontSize={13} color={colors.text.muted}>
                   Déconnexion
                 </Text>
               </YStack>
@@ -299,19 +302,19 @@ export default function AdminLayout() {
         </YStack>
       </YStack>
 
-      {/* ── Main content area ── */}
+      {/* ── Main content area — LIGHT BEIGE background ── */}
       <YStack
         flex={1}
-        backgroundColor={colors.background.primary}
+        backgroundColor={colors.light.primary}
         style={{ overflowY: 'auto' } as never}
       >
         {/* Mobile top bar */}
         {isMobile && (
           <XStack
             height={52}
-            backgroundColor={colors.background.surface}
+            backgroundColor={colors.light.surface}
             borderBottomWidth={1}
-            borderBottomColor={colors.accent.zinc}
+            borderBottomColor={colors.border.divider}
             alignItems="center"
             paddingHorizontal={16}
             gap={12}
@@ -323,9 +326,9 @@ export default function AdminLayout() {
                   width={36}
                   height={36}
                   borderRadius={7}
-                  backgroundColor={pressed ? colors.background.primary : colors.background.elevated}
+                  backgroundColor={pressed ? colors.light.hover : colors.light.muted}
                   borderWidth={1}
-                  borderColor={colors.accent.zinc}
+                  borderColor={colors.border.light}
                   alignItems="center"
                   justifyContent="center"
                 >

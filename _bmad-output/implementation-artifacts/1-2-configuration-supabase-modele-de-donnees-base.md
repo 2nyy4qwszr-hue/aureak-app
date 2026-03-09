@@ -1,6 +1,6 @@
 # Story 1.2 : Configuration Supabase & Modèle de Données Base
 
-Status: review
+Status: done
 
 ## Story
 
@@ -337,7 +337,7 @@ Fichiers créés par cette story :
 supabase/
 ├── config.toml                         # généré par `supabase init`
 ├── CONVENTIONS.md                      # règles de dev DB
-├── seed.ts                             # stub vide (données de dev ajoutées plus tard)
+├── seed.sql                            # stub vide (données de dev ajoutées plus tard)
 └── migrations/
     ├── 00001_initial_schema.sql        # tenants + extensions + helpers JWT
     ├── 00002_create_enums.sql          # tous les enums PostgreSQL

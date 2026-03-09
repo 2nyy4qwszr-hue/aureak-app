@@ -32,9 +32,9 @@ export default function ClubLayout() {
       {/* ── Sidebar ── */}
       <YStack
         width={200}
-        backgroundColor={colors.background.surface}
+        backgroundColor={colors.light.surface}
         borderRightWidth={1}
-        borderRightColor={colors.accent.zinc}
+        borderRightColor={colors.border.divider}
         paddingTop={32}
         paddingBottom={24}
         paddingHorizontal={12}
@@ -54,7 +54,7 @@ export default function ClubLayout() {
         <Text
           fontFamily="$body"
           fontSize={11}
-          color={colors.text.secondary}
+          color={colors.text.muted}
           paddingHorizontal={12}
           marginBottom={32}
           letterSpacing={1}
@@ -75,9 +75,9 @@ export default function ClubLayout() {
                     borderRadius={8}
                     backgroundColor={
                       isActive
-                        ? colors.background.elevated
+                        ? colors.accent.gold + '12'
                         : pressed
-                          ? colors.background.elevated
+                          ? colors.light.hover
                           : 'transparent'
                     }
                   >
@@ -85,7 +85,7 @@ export default function ClubLayout() {
                       fontFamily="$body"
                       fontSize={14}
                       fontWeight={isActive ? '600' : '400'}
-                      color={isActive ? colors.text.primary : colors.text.secondary}
+                      color={isActive ? colors.text.dark : colors.text.muted}
                     >
                       {label}
                     </Text>
@@ -97,10 +97,10 @@ export default function ClubLayout() {
         </YStack>
 
         <YStack>
-          <Separator borderColor={colors.accent.zinc} marginBottom={12} />
+          <Separator borderColor={colors.border.divider} marginBottom={12} />
           <Pressable onPress={handleSignOut}>
             <YStack paddingVertical={9} paddingHorizontal={12} borderRadius={8}>
-              <Text fontFamily="$body" fontSize={14} color={colors.text.secondary}>
+              <Text fontFamily="$body" fontSize={14} color={colors.text.muted}>
                 Déconnexion
               </Text>
             </YStack>
@@ -111,7 +111,7 @@ export default function ClubLayout() {
       {/* ── Main content ── */}
       <YStack
         flex={1}
-        backgroundColor={colors.background.primary}
+        backgroundColor={colors.light.primary}
         style={{ overflowY: 'auto' as never }}
       >
         <Slot />

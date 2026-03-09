@@ -18,13 +18,21 @@ const supabaseAnonKey =
   ''
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
+  const msg =
     '[api-client] EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY ne sont pas définis. ' +
-    'Vérifiez votre fichier .env.'
-  )
+    'Vérifiez votre fichier .env (copiez .env.example et renseignez les valeurs).'
+  // En développement : erreur explicite pour détecter immédiatement le problème
+  // En production : warning pour éviter un crash dur (valeurs manquantes = app dégradée)
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    console.error(msg)
+  } else {
+    console.warn(msg)
+  }
 }
 
+// Fallback localhost uniquement pour le dev local — jamais en production sans .env
 export const supabase = createClient(
   supabaseUrl || 'http://localhost:54321',
-  supabaseAnonKey || 'placeholder'
+  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7b9PG0CkZjb0bV0eMRUkqMDY5QSmN7nIkZs'
+  // ↑ anon key locale standard Supabase CLI (supabase start) — valide pour dev uniquement
 )

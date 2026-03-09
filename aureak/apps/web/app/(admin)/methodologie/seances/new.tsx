@@ -14,10 +14,10 @@ import {
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS, METHODOLOGY_CONTEXT_TYPES,
-  METHODOLOGY_METHOD_COLOR, METHODOLOGY_CONTEXT_LABELS,
+  METHODOLOGY_CONTEXT_LABELS,
   type MethodologyMethod, type MethodologyContextType,
   type MethodologyTheme, type MethodologySituation,
 } from '@aureak/types'
@@ -42,11 +42,11 @@ function buildAutoTitle(
 function Label({ children, optional }: { children: string; optional?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', marginBottom: 6 }}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
         {children}
       </AureakText>
       {optional && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 9, opacity: 0.6 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 9, opacity: 0.6 }}>
           (optionnel)
         </AureakText>
       )}
@@ -58,7 +58,7 @@ function SectionCard({ children, title }: { children: React.ReactNode; title?: s
   return (
     <View style={s.section}>
       {title && (
-        <AureakText variant="h4" style={{ color: colors.text.primary, marginBottom: space.sm }}>
+        <AureakText variant="h4" style={{ color: colors.text.dark, marginBottom: space.sm }}>
           {title}
         </AureakText>
       )}
@@ -88,14 +88,14 @@ function ChipSelect<T extends string>({
             onPress={() => onSelect(active ? null : opt)}
             style={{
               borderWidth      : 1,
-              borderColor      : active ? c : colors.accent.zinc,
+              borderColor      : active ? c : colors.border.light,
               borderRadius     : 20,
               paddingHorizontal: 12,
               paddingVertical  : 5,
               backgroundColor  : active ? c + '20' : 'transparent',
             }}
           >
-            <AureakText variant="caption" style={{ color: active ? c : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+            <AureakText variant="caption" style={{ color: active ? c : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
               {label ? label(opt) : opt}
             </AureakText>
           </Pressable>
@@ -163,14 +163,14 @@ function ThemeSelector({
           paddingHorizontal: 10,
           borderRadius   : 8,
           borderWidth    : 1,
-          borderColor    : sel ? (isPrimary ? colors.accent.gold : '#4FC3F7') : colors.accent.zinc,
+          borderColor    : sel ? (isPrimary ? colors.accent.gold : '#4FC3F7') : colors.border.light,
           backgroundColor: sel ? (isPrimary ? colors.accent.gold + '18' : '#4FC3F7' + '18') : 'transparent',
           marginBottom   : 4,
         }}
       >
         <View style={{
           width: 20, height: 20, borderRadius: 10,
-          backgroundColor: sel ? (isPrimary ? colors.accent.gold : '#4FC3F7') : colors.accent.zinc + '40',
+          backgroundColor: sel ? (isPrimary ? colors.accent.gold : '#4FC3F7') : colors.border.light + '40',
           alignItems: 'center', justifyContent: 'center',
         }}>
           {sel && (
@@ -179,7 +179,7 @@ function ThemeSelector({
             </AureakText>
           )}
         </View>
-        <AureakText variant="caption" style={{ color: sel ? colors.text.primary : colors.text.secondary, fontSize: 13, flex: 1 }}>
+        <AureakText variant="caption" style={{ color: sel ? colors.text.dark : colors.text.muted, fontSize: 13, flex: 1 }}>
           {t.title}
         </AureakText>
         {r === 0 && (
@@ -193,12 +193,12 @@ function ThemeSelector({
 
   return (
     <View style={{ gap: 12 }}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
         Sélectionne 1 thème principal + jusqu'à 7 thèmes secondaires (max 8). Le premier sélectionné est le principal.
       </AureakText>
       {Object.entries(byBloc).map(([bloc, bThemes]) => (
         <View key={bloc}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, marginBottom: 6 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, marginBottom: 6 }}>
             Bloc — {bloc}
           </AureakText>
           {bThemes.map(renderTheme)}
@@ -207,7 +207,7 @@ function ThemeSelector({
       {noBloc.length > 0 && (
         <View>
           {byBloc && Object.keys(byBloc).length > 0 && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '700', fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, marginBottom: 6 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, marginBottom: 6 }}>
               Sans bloc
             </AureakText>
           )}
@@ -215,7 +215,7 @@ function ThemeSelector({
         </View>
       )}
       {themes.length === 0 && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>
           Aucun thème actif pour cette méthode.
         </AureakText>
       )}
@@ -245,7 +245,7 @@ function SituationSelector({
 
   return (
     <View style={{ gap: 4 }}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginBottom: 4 }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginBottom: 4 }}>
         Les situations sont optionnelles. Elles complètent la séance.
       </AureakText>
       {situations.map(sit => {
@@ -262,7 +262,7 @@ function SituationSelector({
               paddingHorizontal: 10,
               borderRadius   : 8,
               borderWidth    : 1,
-              borderColor    : sel ? colors.accent.gold : colors.accent.zinc,
+              borderColor    : sel ? colors.accent.gold : colors.border.light,
               backgroundColor: sel ? colors.accent.gold + '15' : 'transparent',
               marginBottom   : 3,
             }}
@@ -270,20 +270,20 @@ function SituationSelector({
             <View style={{
               width: 16, height: 16, borderRadius: 4,
               borderWidth: 1.5,
-              borderColor: sel ? colors.accent.gold : colors.accent.zinc + '80',
+              borderColor: sel ? colors.accent.gold : colors.border.light + '80',
               backgroundColor: sel ? colors.accent.gold : 'transparent',
               alignItems: 'center', justifyContent: 'center',
             }}>
               {sel && <AureakText variant="caption" style={{ color: '#000', fontSize: 10, fontWeight: '900' }}>✓</AureakText>}
             </View>
-            <AureakText variant="caption" style={{ color: sel ? colors.text.primary : colors.text.secondary, fontSize: 13, flex: 1 }}>
+            <AureakText variant="caption" style={{ color: sel ? colors.text.dark : colors.text.muted, fontSize: 13, flex: 1 }}>
               {sit.title}
             </AureakText>
           </Pressable>
         )
       })}
       {situations.length === 0 && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>
           Aucune situation active pour cette méthode.
         </AureakText>
       )}
@@ -398,7 +398,7 @@ export default function NewSeancePage() {
           options={METHODOLOGY_METHODS}
           value={method}
           onSelect={v => { setMethod(v); setSelectedThemes([]); setSelectedSituations([]) }}
-          color={m => METHODOLOGY_METHOD_COLOR[m]}
+          color={m => methodologyMethodColors[m]}
           wrap
         />
       </SectionCard>
@@ -421,9 +421,9 @@ export default function NewSeancePage() {
           value={moduleName}
           onChangeText={setModuleName}
           placeholder="Ex : Module Tir au but, Module 1vs1…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
         />
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
           Hiérarchie : Méthode → Module → Entraînement
         </AureakText>
       </SectionCard>
@@ -436,7 +436,7 @@ export default function NewSeancePage() {
           value={trainingRef}
           onChangeText={setTrainingRef}
           placeholder="Ex : 22, 1, 3…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           keyboardType="numeric"
         />
       </SectionCard>
@@ -445,17 +445,17 @@ export default function NewSeancePage() {
       <SectionCard title="5. Titre de la séance">
         {/* Auto-generated preview */}
         <View style={{
-          backgroundColor: colors.background.elevated,
+          backgroundColor: colors.light.muted,
           borderRadius: 8,
           padding: space.md,
           borderWidth: 1,
-          borderColor: useAutoTitle ? colors.accent.gold + '60' : colors.accent.zinc,
+          borderColor: useAutoTitle ? colors.accent.gold + '60' : colors.border.light,
           marginBottom: space.sm,
         }}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10, marginBottom: 4 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, marginBottom: 4 }}>
             TITRE AUTO-GÉNÉRÉ
           </AureakText>
-          <AureakText variant="body" style={{ color: autoTitle ? colors.text.primary : colors.text.secondary, fontWeight: '600' }}>
+          <AureakText variant="body" style={{ color: autoTitle ? colors.text.dark : colors.text.muted, fontWeight: '600' }}>
             {autoTitle || '(complétez méthode, contexte et référence)'}
           </AureakText>
         </View>
@@ -467,13 +467,13 @@ export default function NewSeancePage() {
           <View style={{
             width: 16, height: 16, borderRadius: 4,
             borderWidth: 1.5,
-            borderColor: !useAutoTitle ? colors.accent.gold : colors.accent.zinc,
+            borderColor: !useAutoTitle ? colors.accent.gold : colors.border.light,
             backgroundColor: !useAutoTitle ? colors.accent.gold + '30' : 'transparent',
             alignItems: 'center', justifyContent: 'center',
           }}>
             {!useAutoTitle && <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10 }}>✓</AureakText>}
           </View>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>
             Personnaliser le titre
           </AureakText>
         </Pressable>
@@ -486,7 +486,7 @@ export default function NewSeancePage() {
               value={titleOverride}
               onChangeText={setTitleOverride}
               placeholder="Titre personnalisé…"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
             />
           </>
         )}
@@ -495,7 +495,7 @@ export default function NewSeancePage() {
       {/* ── 6. Thèmes ── */}
       <SectionCard title="6. Thèmes pédagogiques">
         {!method ? (
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>
             Sélectionnez d'abord une méthode pour voir les thèmes disponibles.
           </AureakText>
         ) : (
@@ -532,7 +532,7 @@ export default function NewSeancePage() {
       {/* ── 7. Situations ── */}
       <SectionCard title="7. Situations">
         {!method ? (
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>
             Sélectionnez d'abord une méthode.
           </AureakText>
         ) : (
@@ -553,7 +553,7 @@ export default function NewSeancePage() {
           value={description}
           onChangeText={setDescription}
           placeholder="Décrivez le déroulé, les exercices, les consignes…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           multiline
           numberOfLines={5}
         />
@@ -567,7 +567,7 @@ export default function NewSeancePage() {
           value={pdfUrl}
           onChangeText={setPdfUrl}
           placeholder="https://…/séance.pdf"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           autoCapitalize="none"
           keyboardType="url"
         />
@@ -578,7 +578,7 @@ export default function NewSeancePage() {
           value={videoUrl}
           onChangeText={setVideoUrl}
           placeholder="https://…/séance.mp4 ou lien YouTube"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           autoCapitalize="none"
           keyboardType="url"
         />
@@ -589,12 +589,12 @@ export default function NewSeancePage() {
           value={audioUrl}
           onChangeText={setAudioUrl}
           placeholder="https://…/séance.mp3"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           autoCapitalize="none"
           keyboardType="url"
         />
 
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
           Collez des URLs hébergées (Supabase Storage, Drive, YouTube, etc.)
         </AureakText>
       </SectionCard>
@@ -607,7 +607,7 @@ export default function NewSeancePage() {
       {/* ── Actions ── */}
       <View style={s.actions}>
         <Pressable style={s.cancelBtn} onPress={() => router.back()}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
         </Pressable>
         <Pressable
           style={[s.saveBtn, (!finalTitle.trim() || saving) && { opacity: 0.4 }]}
@@ -625,24 +625,24 @@ export default function NewSeancePage() {
 }
 
 const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.background.primary },
+  container : { flex: 1, backgroundColor: colors.light.primary },
   content   : { padding: space.lg, gap: space.md, maxWidth: 740, alignSelf: 'center', width: '100%' },
   section   : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.lg,
     gap            : space.sm,
   },
   input: {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 8,
     paddingHorizontal: space.md,
     paddingVertical  : 10,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
   inputError: { borderColor: colors.status.attention },
@@ -653,7 +653,7 @@ const s = StyleSheet.create({
     paddingVertical  : 10,
     borderRadius     : 8,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
   },
   saveBtn: {
     backgroundColor  : colors.accent.gold,

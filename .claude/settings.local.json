@@ -81,7 +81,15 @@
       "mcp__supabase__list_migrations",
       "Bash(PGPASSWORD=\"\" psql:*)",
       "Bash(npm run:*)",
-      "Bash(EXPO_NO_DOCTOR=1 EXPO_OFFLINE=1 npx expo:*)"
+      "Bash(EXPO_NO_DOCTOR=1 EXPO_OFFLINE=1 npx expo:*)",
+      "mcp__playwright__browser_take_screenshot",
+      "WebFetch(domain:www.aureak.be)",
+      "mcp__chrome-devtools__take_screenshot",
+      "Bash(for file in apps/web/app/\\\\\\(admin\\\\\\)/coaches/index.tsx apps/web/app/\\\\\\(admin\\\\\\)/children/index.tsx apps/web/app/\\\\\\(admin\\\\\\)/users/new.tsx apps/web/app/\\\\\\(admin\\\\\\)/coaches/[coachId]/grade.tsx)",
+      "Bash(do)",
+      "Read(//Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/**)",
+      "Bash(done)",
+      "Bash(yarn dev:*)"
     ]
   }
 }

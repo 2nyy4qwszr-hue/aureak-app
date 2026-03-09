@@ -5,25 +5,26 @@ import {
   getSessionById, listSessionCoaches, listAttendancesBySession, cancelSessionRpc,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Session, SessionCoach, Attendance } from '@aureak/types'
 
 const styles = StyleSheet.create({
-  container       : { flex: 1, backgroundColor: colors.background.primary },
+  container       : { flex: 1, backgroundColor: colors.light.primary },
   content         : { padding: space.xl, gap: space.lg },
   breadcrumb      : { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.xs },
   breadcrumbLink  : { color: colors.accent.gold, fontWeight: '600' },
-  breadcrumbSep   : { color: colors.text.secondary },
-  breadcrumbCurrent: { color: colors.text.secondary },
+  breadcrumbSep   : { color: colors.text.muted },
+  breadcrumbCurrent: { color: colors.text.muted },
   card     : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8, padding: space.md,
-    borderWidth: 1, borderColor: colors.accent.zinc, gap: space.sm,
+    borderWidth: 1, borderColor: colors.border.light, gap: space.sm,
+    ...shadows.sm,
   },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   input: {
-    borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6,
-    padding: space.sm, color: colors.text.primary, backgroundColor: colors.background.primary,
+    borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs,
+    padding: space.sm, color: colors.text.dark, backgroundColor: colors.light.primary,
     flex: 1,
   },
 })
@@ -122,7 +123,7 @@ export default function SessionDetailPage() {
           </AureakText>
         ))}
         {coaches.length === 0 && (
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
             Aucun coach assigné
           </AureakText>
         )}
@@ -137,7 +138,7 @@ export default function SessionDetailPage() {
           </AureakText>
         ))}
         {attendances.length === 0 && (
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
             Aucune présence enregistrée
           </AureakText>
         )}
@@ -160,7 +161,7 @@ export default function SessionDetailPage() {
         }}>
           <View style={[styles.card, { width: '100%', maxWidth: 400 }]}>
             <AureakText variant="h3">Annuler la séance</AureakText>
-            <AureakText variant="body" style={{ color: colors.text.secondary }}>
+            <AureakText variant="body" style={{ color: colors.text.muted }}>
               Le motif est obligatoire et sera communiqué aux parents.
             </AureakText>
             <View style={styles.row}>

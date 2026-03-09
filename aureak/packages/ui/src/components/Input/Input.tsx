@@ -3,6 +3,8 @@ import { TextInput, StyleSheet, View, TextStyle, ViewStyle } from 'react-native'
 import { colors, radius, space, typography } from '@aureak/theme'
 import { AureakText } from '../Text/Text'
 
+export type InputVariant = 'dark' | 'light'
+
 export type InputProps = {
   value: string
   onChangeText: (text: string) => void
@@ -11,42 +13,12 @@ export type InputProps = {
   secureTextEntry?: boolean
   disabled?: boolean
   error?: string
+  variant?: InputVariant
   style?: ViewStyle
   inputStyle?: TextStyle
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad'
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: space.xs,
-  },
-  inputWrapper: {
-    backgroundColor: colors.background.elevated,
-    borderRadius: radius.button,
-    borderWidth: 1,
-    borderColor: colors.accent.zinc,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  inputWrapperFocused: {
-    borderColor: colors.accent.gold,
-  },
-  inputWrapperError: {
-    borderColor: colors.status.absent,
-  },
-  input: {
-    fontFamily: 'Geist-Regular',
-    fontSize: typography.body.size,
-    color: colors.text.primary,
-    padding: 0,
-  },
-  errorText: {
-    color: colors.status.absent,
-  },
-})
 
 export function Input({
   value,
@@ -56,6 +28,7 @@ export function Input({
   secureTextEntry = false,
   disabled = false,
   error,
+  variant = 'dark',
   style,
   inputStyle,
   autoCapitalize = 'none',
@@ -63,32 +36,59 @@ export function Input({
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false)
 
+  const isLight = variant === 'light'
+
+  const wrapperStyle: ViewStyle = {
+    backgroundColor: isLight ? colors.light.surface : colors.background.elevated,
+    borderRadius: radius.xs,
+    borderWidth: 1,
+    borderColor: error
+      ? colors.status.absent
+      : isFocused
+        ? colors.accent.gold
+        : isLight
+          ? colors.border.light
+          : colors.accent.zinc,
+    paddingHorizontal: space.md,
+    paddingVertical: 10,
+    minHeight: 44,
+    justifyContent: 'center' as const,
+  }
+
+  const inputTextStyle: TextStyle = {
+    fontFamily: 'Geist-Regular',
+    fontSize: typography.body.size,
+    color: isLight ? colors.text.dark : colors.text.primary,
+    padding: 0,
+  }
+
   return (
-    <View style={[styles.container, style]}>
-      {label && <AureakText variant="label">{label}</AureakText>}
-      <View
-        style={[
-          styles.inputWrapper,
-          isFocused && styles.inputWrapperFocused,
-          error ? styles.inputWrapperError : null,
-        ]}
-      >
+    <View style={[{ gap: space.xs }, style]}>
+      {label && (
+        <AureakText
+          variant="label"
+          color={isLight ? colors.text.muted : colors.text.secondary}
+        >
+          {label}
+        </AureakText>
+      )}
+      <View style={wrapperStyle}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={isLight ? colors.text.subtle : colors.text.secondary}
           secureTextEntry={secureTextEntry}
           editable={!disabled}
           autoCapitalize={autoCapitalize}
           keyboardType={keyboardType}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          style={[styles.input, inputStyle]}
+          style={[inputTextStyle, inputStyle]}
         />
       </View>
       {error && (
-        <AureakText variant="caption" style={styles.errorText}>
+        <AureakText variant="caption" style={{ color: colors.status.absent }}>
           {error}
         </AureakText>
       )}

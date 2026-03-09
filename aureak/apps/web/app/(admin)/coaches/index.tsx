@@ -5,7 +5,7 @@ import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase, getCoachCurrentGrade } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import type { CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 
 const PAGE_SIZE = 25
@@ -38,18 +38,18 @@ function Pagination({
   const end   = Math.min((page + 1) * PAGE_SIZE, total)
   return (
     <View style={pag.row}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted }}>
         {total > 0 ? `${start}–${end} sur ${total}` : '0 résultat'}
       </AureakText>
       <View style={pag.btnRow}>
         <Pressable style={[pag.btn, page === 0 && pag.btnDisabled]} onPress={onPrev} disabled={page === 0}>
-          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.secondary : colors.text.primary }}>←</AureakText>
+          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.muted : colors.text.dark }}>←</AureakText>
         </Pressable>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, paddingHorizontal: space.sm }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.sm }}>
           {page + 1} / {totalPages}
         </AureakText>
         <Pressable style={[pag.btn, end >= total && pag.btnDisabled]} onPress={onNext} disabled={end >= total}>
-          <AureakText variant="caption" style={{ color: end >= total ? colors.text.secondary : colors.text.primary }}>→</AureakText>
+          <AureakText variant="caption" style={{ color: end >= total ? colors.text.muted : colors.text.dark }}>→</AureakText>
         </Pressable>
       </View>
     </View>
@@ -58,7 +58,7 @@ function Pagination({
 const pag = StyleSheet.create({
   row       : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
   btnRow    : { flexDirection: 'row', alignItems: 'center' },
-  btn       : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.surface },
+  btn       : { width: 30, height: 30, borderRadius: radius.xs, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.light.surface },
   btnDisabled: { opacity: 0.35 },
 })
 
@@ -111,9 +111,9 @@ export default function CoachesPage() {
       {/* ── Page header ── */}
       <View style={styles.pageHeader}>
         <View>
-          <AureakText variant="h2">Coachs</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Coachs</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {total} coach{total !== 1 ? 's' : ''}
               {gradeCounts['platinum'] ? ` · ${gradeCounts['platinum']} 💎` : ''}
               {gradeCounts['gold']     ? ` · ${gradeCounts['gold']} 🥇`     : ''}
@@ -137,8 +137,8 @@ export default function CoachesPage() {
         </View>
       ) : coaches.length === 0 ? (
         <View style={styles.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.secondary }}>Aucun coach</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4 }}>
+          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun coach</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
             Invitez le premier coach de l'académie.
           </AureakText>
         </View>
@@ -157,7 +157,7 @@ export default function CoachesPage() {
                 <AureakText variant="body" style={{ fontWeight: '600' }}>
                   {coach.displayName ?? coach.userId.slice(0, 8)}
                 </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10 }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
                   {coach.userId.slice(0, 8)}…
                 </AureakText>
               </View>
@@ -169,7 +169,7 @@ export default function CoachesPage() {
                     variant={GRADE_VARIANTS[coach.grade.grade_level]}
                   />
                 ) : (
-                  <AureakText variant="caption" style={{ color: colors.text.secondary }}>—</AureakText>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>—</AureakText>
                 )}
               </View>
 
@@ -186,7 +186,7 @@ export default function CoachesPage() {
                   style={styles.actionBtn}
                   onPress={() => router.push(`/(admin)/coaches/${coach.userId}/contact` as never)}
                 >
-                  <AureakText variant="caption" style={{ color: colors.text.secondary, fontWeight: '600', fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600', fontSize: 11 }}>
                     Contact
                   </AureakText>
                 </Pressable>
@@ -210,7 +210,7 @@ export default function CoachesPage() {
 }
 
 const styles = StyleSheet.create({
-  container       : { flex: 1, backgroundColor: colors.background.primary },
+  container       : { flex: 1, backgroundColor: colors.light.primary },
   content         : { padding: space.xl, gap: space.md },
   pageHeader      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   inviteBtn       : {
@@ -220,11 +220,12 @@ const styles = StyleSheet.create({
     borderRadius     : 7,
   },
   table           : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     overflow       : 'hidden',
+    ...shadows.sm,
   },
   tableHeader     : {
     flexDirection    : 'row',
@@ -232,11 +233,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
-    backgroundColor  : colors.background.elevated,
+    borderBottomColor: colors.border.divider,
+    backgroundColor  : colors.light.muted,
   },
   thLabel         : {
-    color          : colors.text.secondary,
+    color          : colors.text.muted,
     fontWeight     : '700',
     letterSpacing  : 0.8,
     textTransform  : 'uppercase',
@@ -248,16 +249,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical  : space.sm + 2,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.divider,
     gap              : space.sm,
   },
-  tableRowAlt     : { backgroundColor: colors.background.elevated },
+  tableRowAlt     : { backgroundColor: colors.light.muted },
   actionBtn       : {
     paddingHorizontal: space.sm,
     paddingVertical  : 4,
     borderRadius     : 5,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     backgroundColor  : 'transparent',
   },
   actionBtnGold   : {
@@ -271,18 +272,19 @@ const styles = StyleSheet.create({
   loadingRows     : { gap: space.xs },
   skeletonRow     : {
     height         : 52,
-    backgroundColor: colors.background.surface,
-    borderRadius   : 6,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.xs,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     opacity        : 0.5,
   },
   emptyState      : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.xxl,
     alignItems     : 'center',
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
+    ...shadows.sm,
   },
 })

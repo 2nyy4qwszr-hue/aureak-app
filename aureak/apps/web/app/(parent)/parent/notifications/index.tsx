@@ -106,7 +106,7 @@ export default function NotificationsPage() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <AureakText variant="h2">Notifications</AureakText>
-      <AureakText variant="body" style={{ color: colors.text.secondary }}>
+      <AureakText variant="body" style={{ color: colors.text.muted }}>
         Gérez comment vous souhaitez être informé(e) de l'activité de vos enfants.
       </AureakText>
 
@@ -115,13 +115,13 @@ export default function NotificationsPage() {
         <AureakText variant="h3" style={styles.sectionTitle}>Canaux de notification</AureakText>
 
         {loading ? (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
         ) : (
           <>
             <View style={styles.prefRow}>
               <View style={{ flex: 1 }}>
                 <AureakText variant="body" style={{ fontWeight: '600' }}>Notifications push</AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   Alertes immédiates sur votre appareil
                 </AureakText>
               </View>
@@ -129,15 +129,15 @@ export default function NotificationsPage() {
                 value={prefs.pushEnabled}
                 onValueChange={v => savePref({ pushEnabled: v })}
                 disabled={saving}
-                trackColor={{ false: colors.accent.zinc, true: colors.status.present }}
-                thumbColor={colors.text.primary}
+                trackColor={{ false: colors.border.light, true: colors.status.present }}
+                thumbColor={colors.text.dark}
               />
             </View>
 
             <View style={styles.prefRow}>
               <View style={{ flex: 1 }}>
                 <AureakText variant="body" style={{ fontWeight: '600' }}>Email</AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   Résumés hebdomadaires et alertes importantes
                 </AureakText>
               </View>
@@ -145,15 +145,15 @@ export default function NotificationsPage() {
                 value={prefs.emailEnabled}
                 onValueChange={v => savePref({ emailEnabled: v })}
                 disabled={saving}
-                trackColor={{ false: colors.accent.zinc, true: colors.status.present }}
-                thumbColor={colors.text.primary}
+                trackColor={{ false: colors.border.light, true: colors.status.present }}
+                thumbColor={colors.text.dark}
               />
             </View>
 
             <View style={styles.prefRow}>
               <View style={{ flex: 1 }}>
                 <AureakText variant="body" style={{ fontWeight: '600' }}>SMS</AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   Alertes urgentes uniquement (absences)
                 </AureakText>
               </View>
@@ -161,13 +161,13 @@ export default function NotificationsPage() {
                 value={prefs.smsEnabled}
                 onValueChange={v => savePref({ smsEnabled: v })}
                 disabled={saving}
-                trackColor={{ false: colors.accent.zinc, true: colors.status.present }}
-                thumbColor={colors.text.primary}
+                trackColor={{ false: colors.border.light, true: colors.status.present }}
+                thumbColor={colors.text.dark}
               />
             </View>
 
             {saving && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
                 Sauvegarde en cours…
               </AureakText>
             )}
@@ -180,7 +180,7 @@ export default function NotificationsPage() {
         <AureakText variant="h3" style={styles.sectionTitle}>Historique des notifications</AureakText>
 
         {!loading && logs.length === 0 ? (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
             Aucune notification reçue.
           </AureakText>
         ) : (
@@ -190,7 +190,7 @@ export default function NotificationsPage() {
                 <AureakText variant="body" style={{ fontWeight: '600' }}>
                   {EVENT_LABEL[log.eventType] ?? log.eventType}
                 </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {CHANNEL_LABEL[log.channel] ?? log.channel} ·{' '}
                   {new Date(log.sentAt).toLocaleString('fr-FR', {
                     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -212,14 +212,14 @@ export default function NotificationsPage() {
 }
 
 const styles = StyleSheet.create({
-  container   : { flex: 1, backgroundColor: colors.background.primary },
+  container   : { flex: 1, backgroundColor: colors.light.primary },
   content     : { padding: space.xl, gap: space.lg },
   section     : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 12,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     gap            : space.sm,
   },
   sectionTitle: { marginBottom: space.xs },
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     gap            : space.md,
     paddingVertical: space.sm,
     borderTopWidth : 1,
-    borderTopColor : colors.accent.zinc,
+    borderTopColor : colors.border.light,
   },
   logRow      : {
     flexDirection  : 'row',
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     gap            : space.sm,
     paddingVertical: space.sm,
     borderTopWidth : 1,
-    borderTopColor : colors.accent.zinc,
+    borderTopColor : colors.border.light,
   },
   logRowUrgent: { borderLeftWidth: 3, borderLeftColor: colors.status.absent, paddingLeft: space.sm },
   statusDot   : { width: 8, height: 8, borderRadius: 4 },

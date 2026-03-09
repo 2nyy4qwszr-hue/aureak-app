@@ -24,7 +24,7 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   planifiée: colors.accent.gold,
   en_cours : colors.status.present,
-  terminée : colors.text.secondary,
+  terminée : colors.text.muted,
   annulée  : colors.status.absent,
 }
 
@@ -32,7 +32,7 @@ const STATUS_COLOR: Record<string, string> = {
 function Skeleton() {
   return (
     <div style={S.page}>
-      <style>{`@keyframes sl-p{0%,100%{opacity:.15}50%{opacity:.4}} .sl{background:${colors.background.elevated};border-radius:6px;animation:sl-p 1.8s ease-in-out infinite}`}</style>
+      <style>{`@keyframes sl-p{0%,100%{opacity:.15}50%{opacity:.4}} .sl{background:${colors.light.muted};border-radius:6px;animation:sl-p 1.8s ease-in-out infinite}`}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div className="sl" style={{ height: 28, width: 160 }} />
         <div className="sl" style={{ height: 36, width: 140, borderRadius: 7 }} />
@@ -125,9 +125,10 @@ export default function CoachSessionsPage() {
             className="sl-tab"
             style={{
               ...S.filterBtn,
-              borderColor    : filter === f.key ? colors.accent.gold : colors.accent.zinc,
-              color          : filter === f.key ? colors.accent.gold : colors.text.secondary,
-              backgroundColor: filter === f.key ? 'rgba(193,172,92,0.08)' : colors.background.surface,
+              borderColor    : filter === f.key ? colors.accent.gold : colors.border.light,
+              color          : filter === f.key ? colors.text.dark : colors.text.muted,
+              fontWeight     : filter === f.key ? 700 : 400,
+              backgroundColor: filter === f.key ? colors.accent.gold + '18' : 'transparent',
             }}
             onClick={() => setFilter(f.key)}
           >
@@ -140,7 +141,7 @@ export default function CoachSessionsPage() {
       {filtered.length === 0 ? (
         <div style={S.empty}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
-          <div style={{ fontSize: 14, color: colors.text.secondary }}>Aucune séance dans ce filtre</div>
+          <div style={{ fontSize: 14, color: colors.text.muted }}>Aucune séance dans ce filtre</div>
           <button
             className="sl-btn"
             style={{ ...S.btnNew, marginTop: 16 }}
@@ -153,7 +154,7 @@ export default function CoachSessionsPage() {
         <div style={S.list}>
           {filtered.map(session => {
             const d      = new Date(session.scheduledAt)
-            const color  = STATUS_COLOR[session.status] ?? colors.text.secondary
+            const color  = STATUS_COLOR[session.status] ?? colors.text.muted
             const isOpen = cancelId === session.id
             return (
               <div
@@ -165,12 +166,12 @@ export default function CoachSessionsPage() {
                 <div style={S.cardBody}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: colors.text.primary }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: colors.text.dark }}>
                         {fmtDate(d)}
                       </span>
-                      <span style={{ fontSize: 13, color: colors.text.secondary }}>{fmtTime(d)}</span>
+                      <span style={{ fontSize: 13, color: colors.text.muted }}>{fmtTime(d)}</span>
                     </div>
-                    <div style={{ fontSize: 12, color: colors.text.secondary }}>
+                    <div style={{ fontSize: 12, color: colors.text.muted }}>
                       {session.durationMinutes} min
                       {session.location ? ` · ${session.location}` : ''}
                     </div>
@@ -271,22 +272,22 @@ export default function CoachSessionsPage() {
 }
 
 const S: Record<string, React.CSSProperties> = {
-  page          : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 860 },
+  page          : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 860 },
   header        : { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title         : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0 },
+  title         : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, color: colors.accent.gold },
   btnNew        : { padding: '9px 20px', borderRadius: 7, border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'opacity 0.15s' },
   filters       : { display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
   filterBtn     : { padding: '7px 16px', borderRadius: 20, border: '1px solid', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' },
   list          : { display: 'flex', flexDirection: 'column', gap: 8 },
-  card          : { backgroundColor: colors.background.surface, borderRadius: '0 10px 10px 0', border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden', transition: 'background 0.12s' },
+  card          : { backgroundColor: colors.light.surface, borderRadius: '0 10px 10px 0', border: `1px solid ${colors.border.light}`, overflow: 'hidden', transition: 'background 0.12s' },
   cardBody      : { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' },
   cardRight     : { display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 },
   statusBadge   : { fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 5, border: '1px solid', textTransform: 'uppercase', letterSpacing: '0.05em' },
   actionBtns    : { display: 'flex', gap: 6 },
-  actBtn        : { padding: '5px 10px', borderRadius: 5, border: `1px solid ${colors.accent.zinc}`, backgroundColor: 'transparent', color: colors.text.secondary, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.12s' },
-  cancelPanel   : { padding: '14px 16px', borderTop: `1px solid ${colors.accent.zinc}`, backgroundColor: 'rgba(244,67,54,0.04)' },
-  cancelInput   : { width: '100%', padding: '8px 12px', borderRadius: 6, border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.elevated, color: colors.text.primary, fontSize: 13, boxSizing: 'border-box', transition: 'border-color 0.15s' },
+  actBtn        : { padding: '5px 10px', borderRadius: 5, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.12s' },
+  cancelPanel   : { padding: '14px 16px', borderTop: `1px solid ${colors.border.light}`, backgroundColor: 'rgba(244,67,54,0.04)' },
+  cancelInput   : { width: '100%', padding: '8px 12px', borderRadius: 6, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.muted, color: colors.text.dark, fontSize: 13, boxSizing: 'border-box', transition: 'border-color 0.15s' },
   cancelBtnConfirm: { padding: '8px 16px', borderRadius: 6, border: 'none', backgroundColor: colors.status.absent, color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' },
-  cancelBtnAbort  : { padding: '8px 16px', borderRadius: 6, border: `1px solid ${colors.accent.zinc}`, backgroundColor: 'transparent', color: colors.text.secondary, fontWeight: 600, fontSize: 12, cursor: 'pointer' },
-  empty         : { textAlign: 'center', padding: '60px 0', color: colors.text.secondary },
+  cancelBtnAbort  : { padding: '8px 16px', borderRadius: 6, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontWeight: 600, fontSize: 12, cursor: 'pointer' },
+  empty         : { textAlign: 'center', padding: '60px 0', color: colors.text.muted },
 }

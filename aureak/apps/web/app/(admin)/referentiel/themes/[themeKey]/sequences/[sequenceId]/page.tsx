@@ -18,7 +18,7 @@ import type { Criterion, Fault, Cue } from '@aureak/types'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -28,28 +28,28 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   card: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     gap: space.sm,
   },
   nestedCard: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius: 6,
     padding: space.sm,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     gap: space.xs,
     marginLeft: space.md,
   },
   deepCard: {
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     borderRadius: 4,
     padding: space.sm,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     marginLeft: space.lg,
   },
   addRow: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
     borderRadius: 4,
@@ -164,7 +164,7 @@ export default function SequenceDetailPage() {
       </View>
 
       {loading && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
       {/* Arbre critères → fautes → cues */}
@@ -175,7 +175,7 @@ export default function SequenceDetailPage() {
           {/* Fautes du critère */}
           {criterion.faults.map((fault) => (
             <View key={fault.id} style={styles.nestedCard}>
-              <AureakText variant="body" style={{ color: colors.text.secondary }}>
+              <AureakText variant="body" style={{ color: colors.text.muted }}>
                 ⚠ {fault.label}
               </AureakText>
 
@@ -217,7 +217,7 @@ export default function SequenceDetailPage() {
       ))}
 
       {!loading && tree.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucun critère défini.
         </AureakText>
       )}

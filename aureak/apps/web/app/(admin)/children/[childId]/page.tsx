@@ -20,7 +20,7 @@ import {
 import { ACADEMY_STATUS_CONFIG, generateAcademyBadges } from '@aureak/business-logic'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import {
   FOOTBALL_AGE_CATEGORIES, FOOTBALL_TEAM_LEVELS,
 } from '@aureak/types'
@@ -41,7 +41,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <AureakText
       variant="caption"
       style={{
-        color        : colors.text.secondary,
+        color        : colors.text.muted,
         fontWeight   : '700',
         letterSpacing: 1.2,
         fontSize     : 10,
@@ -66,8 +66,8 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
   )
 }
 const row = StyleSheet.create({
-  wrap : { flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '40' },
-  label: { width: 160, color: colors.text.secondary, fontSize: 12 },
+  wrap : { flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
+  label: { width: 160, color: colors.text.muted, fontSize: 12 },
   value: { flex: 1, fontSize: 13 },
 })
 
@@ -89,7 +89,7 @@ function AcademyStatusHeader({ data }: { data: ChildAcademyStatusData }) {
         <View style={st.badgeRow}>
           {badges.map((b, i) => (
             <View key={i} style={st.badge}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                 {b}
               </AureakText>
             </View>
@@ -110,10 +110,10 @@ const st = StyleSheet.create({
   },
   badgeRow  : { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   badge     : {
-    backgroundColor : colors.background.elevated,
+    backgroundColor : colors.light.muted,
     borderRadius    : 12,
     borderWidth     : 1,
-    borderColor     : colors.accent.zinc,
+    borderColor     : colors.border.light,
     paddingHorizontal: 10,
     paddingVertical  : 3,
   },
@@ -235,7 +235,7 @@ function HistoriqueSection({
                       style={[h.pill, selSeason === s.id && h.pillActive]}
                       onPress={() => setSelSeason(s.id)}
                     >
-                      <AureakText variant="caption" style={{ fontSize: 11, color: selSeason === s.id ? colors.accent.gold : colors.text.secondary }}>
+                      <AureakText variant="caption" style={{ fontSize: 11, color: selSeason === s.id ? colors.accent.gold : colors.text.muted }}>
                         {s.label}
                       </AureakText>
                     </Pressable>
@@ -243,7 +243,7 @@ function HistoriqueSection({
                 </View>
                 <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <Pressable style={h.cancelBtn} onPress={() => { setAddingMem(false); setSelSeason('') }}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
                   </Pressable>
                   <Pressable style={[h.saveBtn, !selSeason && { opacity: 0.4 }]} onPress={handleAddMembership} disabled={!selSeason || saving}>
                     <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
@@ -278,7 +278,7 @@ function HistoriqueSection({
                       <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>
                         {p.stage?.name ?? p.stageId}
                         {p.stage?.startDate && (
-                          <AureakText style={{ color: colors.text.secondary, fontSize: 11 }}>
+                          <AureakText style={{ color: colors.text.muted, fontSize: 11 }}>
                             {' '}· {new Date(p.stage.startDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
                           </AureakText>
                         )}
@@ -300,7 +300,7 @@ function HistoriqueSection({
                       style={[h.pill, selStage === s.id && h.pillActive]}
                       onPress={() => setSelStage(s.id)}
                     >
-                      <AureakText variant="caption" style={{ fontSize: 11, color: selStage === s.id ? colors.accent.gold : colors.text.secondary }}>
+                      <AureakText variant="caption" style={{ fontSize: 11, color: selStage === s.id ? colors.accent.gold : colors.text.muted }}>
                         {s.name}
                       </AureakText>
                     </Pressable>
@@ -308,7 +308,7 @@ function HistoriqueSection({
                 </View>
                 <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <Pressable style={h.cancelBtn} onPress={() => { setAddingStage(false); setSelStage('') }}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
                   </Pressable>
                   <Pressable style={[h.saveBtn, !selStage && { opacity: 0.4 }]} onPress={handleAddStage} disabled={!selStage || saving}>
                     <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
@@ -327,7 +327,7 @@ function HistoriqueSection({
 
 const h = StyleSheet.create({
   card    : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
     borderColor    : colors.accent.gold + '40',
@@ -336,8 +336,8 @@ const h = StyleSheet.create({
   },
   toggle  : { paddingBottom: space.sm },
   subHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  subTitle : { color: colors.text.secondary, fontWeight: '700', fontSize: 10, letterSpacing: 0.8 },
-  empty    : { color: colors.text.secondary, fontStyle: 'italic' as never, fontSize: 12 },
+  subTitle : { color: colors.text.muted, fontWeight: '700', fontSize: 10, letterSpacing: 0.8 },
+  empty    : { color: colors.text.muted, fontStyle: 'italic' as never, fontSize: 12 },
   list    : { gap: 4 },
   item    : {
     flexDirection : 'row',
@@ -345,7 +345,7 @@ const h = StyleSheet.create({
     gap           : 10,
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc + '30',
+    borderBottomColor: colors.border.divider,
   },
   dot     : {
     width          : 6,
@@ -364,7 +364,7 @@ const h = StyleSheet.create({
     justifyContent : 'center',
   },
   addForm : {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 8,
     padding        : space.sm,
     gap            : space.sm,
@@ -375,13 +375,13 @@ const h = StyleSheet.create({
     paddingVertical  : 4,
     borderRadius     : 12,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
-    backgroundColor  : colors.background.primary,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.primary,
   },
-  pillActive : { borderColor: colors.accent.gold, backgroundColor: colors.background.elevated },
+  pillActive : { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
   cancelBtn  : {
     paddingHorizontal: space.md, paddingVertical: space.xs + 2,
-    borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc,
+    borderRadius: 6, borderWidth: 1, borderColor: colors.border.light,
   },
   saveBtn    : {
     paddingHorizontal: space.md, paddingVertical: space.xs + 2,
@@ -432,14 +432,14 @@ function AddHistoryModal({
         <AureakText variant="h3" style={{ marginBottom: space.md }}>Ajouter une saison</AureakText>
         {error && <View style={mst.errorBox}><AureakText variant="caption" style={{ color: colors.status.attention }}>{error}</AureakText></View>}
         <AureakText variant="caption" style={mst.fieldLabel}>Saison *</AureakText>
-        <TextInput style={mst.input} value={saison} onChangeText={setSaison} placeholder="ex: 2024-2025" placeholderTextColor={colors.text.secondary} />
+        <TextInput style={mst.input} value={saison} onChangeText={setSaison} placeholder="ex: 2024-2025" placeholderTextColor={colors.text.muted} />
         <AureakText variant="caption" style={mst.fieldLabel}>Club *</AureakText>
-        <TextInput style={mst.input} value={clubNom} onChangeText={setClubNom} placeholder="Nom du club" placeholderTextColor={colors.text.secondary} />
+        <TextInput style={mst.input} value={clubNom} onChangeText={setClubNom} placeholder="Nom du club" placeholderTextColor={colors.text.muted} />
         <AureakText variant="caption" style={mst.fieldLabel}>Catégorie</AureakText>
         <View style={mst.selectRow}>
           {CATEGORIES.map(c => (
             <Pressable key={c} style={[mst.pill, categorie === c && mst.pillActive]} onPress={() => setCategorie(prev => prev === c ? '' : c)}>
-              <AureakText variant="caption" style={{ fontSize: 10, color: categorie === c ? colors.accent.gold : colors.text.secondary }}>{c}</AureakText>
+              <AureakText variant="caption" style={{ fontSize: 10, color: categorie === c ? colors.accent.gold : colors.text.muted }}>{c}</AureakText>
             </Pressable>
           ))}
         </View>
@@ -447,7 +447,7 @@ function AddHistoryModal({
         <View style={mst.selectRow}>
           {NIVEAUX.map(n => (
             <Pressable key={n} style={[mst.pill, niveau === n && mst.pillActive]} onPress={() => setNiveau(prev => prev === n ? '' : n)}>
-              <AureakText variant="caption" style={{ fontSize: 10, color: niveau === n ? colors.accent.gold : colors.text.secondary }}>{n}</AureakText>
+              <AureakText variant="caption" style={{ fontSize: 10, color: niveau === n ? colors.accent.gold : colors.text.muted }}>{n}</AureakText>
             </Pressable>
           ))}
         </View>
@@ -456,10 +456,10 @@ function AddHistoryModal({
           <Switch value={affilie} onValueChange={setAffilie} />
         </View>
         <AureakText variant="caption" style={mst.fieldLabel}>Notes</AureakText>
-        <TextInput style={[mst.input, { height: 64, textAlignVertical: 'top' as never }]} value={notes} onChangeText={setNotes} multiline placeholder="Remarques optionnelles…" placeholderTextColor={colors.text.secondary} />
+        <TextInput style={[mst.input, { height: 64, textAlignVertical: 'top' as never }]} value={notes} onChangeText={setNotes} multiline placeholder="Remarques optionnelles…" placeholderTextColor={colors.text.muted} />
         <View style={mst.actions}>
           <Pressable style={mst.cancelBtn} onPress={onClose}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Annuler</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
           </Pressable>
           <Pressable style={mst.saveBtn} onPress={handleSave} disabled={saving}>
             <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>{saving ? '...' : 'Ajouter'}</AureakText>
@@ -472,15 +472,15 @@ function AddHistoryModal({
 
 const mst = StyleSheet.create({
   overlay   : { position: 'fixed' as never, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 100, justifyContent: 'center', alignItems: 'center' },
-  box       : { backgroundColor: colors.background.surface, borderRadius: 12, padding: space.xl, width: 560, maxHeight: '90vh' as never, overflowY: 'auto' as never, borderWidth: 1, borderColor: colors.accent.zinc },
-  fieldLabel: { color: colors.text.secondary, marginBottom: 4, marginTop: space.sm, fontSize: 11 },
-  input     : { backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.primary, fontSize: 13 },
+  box       : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xl, width: 560, maxHeight: '90vh' as never, overflowY: 'auto' as never, borderWidth: 1, borderColor: colors.border.light },
+  fieldLabel: { color: colors.text.muted, marginBottom: 4, marginTop: space.sm, fontSize: 11 },
+  input     : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs, paddingHorizontal: space.sm, paddingVertical: space.xs + 2, color: colors.text.dark, fontSize: 13 },
   selectRow : { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: space.xs },
-  pill      : { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
-  pillActive: { borderColor: colors.accent.gold, backgroundColor: colors.background.primary },
+  pill      : { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
+  pillActive: { borderColor: colors.accent.gold, backgroundColor: colors.light.primary },
   row       : { flexDirection: 'row', alignItems: 'center' },
   actions   : { flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, marginTop: space.md },
-  cancelBtn : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc },
+  cancelBtn : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light },
   saveBtn   : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold },
   errorBox  : { backgroundColor: colors.status.attention + '20', borderRadius: 6, padding: space.sm, marginBottom: space.sm, borderWidth: 1, borderColor: colors.status.attention },
   twoCol    : { flexDirection: 'row', gap: space.md },
@@ -537,7 +537,7 @@ export default function ChildDetailPage() {
   if (loading) {
     return (
       <View style={s.center}>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       </View>
     )
   }
@@ -545,7 +545,7 @@ export default function ChildDetailPage() {
   if (!child) {
     return (
       <View style={s.center}>
-        <AureakText variant="h3" style={{ color: colors.text.secondary }}>Joueur introuvable</AureakText>
+        <AureakText variant="h3" style={{ color: colors.text.muted }}>Joueur introuvable</AureakText>
         <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
           <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
         </Pressable>
@@ -568,9 +568,9 @@ export default function ChildDetailPage() {
         <View style={s.heroCard}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: space.sm }}>
             <View style={{ flex: 1 }}>
-              <AureakText variant="h2">{child.displayName}</AureakText>
+              <AureakText variant="h2" color={colors.accent.gold}>{child.displayName}</AureakText>
               {child.birthDate && (
-                <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
                   {new Date(child.birthDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
                 </AureakText>
               )}
@@ -584,7 +584,7 @@ export default function ChildDetailPage() {
           ) : (
             <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center' }}>
               {child.statut && <Badge label={child.statut} variant="zinc" />}
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                 (statut importé Notion — en attente de calcul)
               </AureakText>
             </View>
@@ -626,7 +626,7 @@ export default function ChildDetailPage() {
           ) : (
             <View style={row.wrap}>
               <AureakText variant="caption" style={row.label}>Annuaire</AureakText>
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12 }}>Club non trouvé dans l'annuaire</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>Club non trouvé dans l'annuaire</AureakText>
             </View>
           )}
         </View>
@@ -662,7 +662,7 @@ export default function ChildDetailPage() {
         {child.notesInternes && (
           <View style={s.card}>
             <SectionTitle>Notes internes</SectionTitle>
-            <AureakText variant="body" style={{ color: colors.text.secondary, fontSize: 13 }}>
+            <AureakText variant="body" style={{ color: colors.text.muted, fontSize: 13 }}>
               {child.notesInternes}
             </AureakText>
           </View>
@@ -680,7 +680,7 @@ export default function ChildDetailPage() {
           </View>
 
           {history.length === 0 ? (
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
               Aucune saison enregistrée.
             </AureakText>
           ) : (
@@ -692,10 +692,10 @@ export default function ChildDetailPage() {
                       <AureakText variant="body" style={{ fontWeight: '700', fontSize: 13 }}>{h.saison}</AureakText>
                       {h.affilie && <Badge label="Affilié" variant="present" />}
                     </View>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
                       {h.clubNom}{h.categorie ? ` · ${h.categorie}` : ''}{h.niveau ? ` · ${h.niveau}` : ''}
                     </AureakText>
-                    {h.notes && <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: 2 }}>{h.notes}</AureakText>}
+                    {h.notes && <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 2 }}>{h.notes}</AureakText>}
                   </View>
                   <Pressable onPress={() => handleDeleteHistory(h.id)} disabled={deletingId === h.id} style={s.deleteBtn}>
                     <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
@@ -730,28 +730,30 @@ export default function ChildDetailPage() {
 }
 
 const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.background.primary },
+  container : { flex: 1, backgroundColor: colors.light.primary },
   content   : { padding: space.xl, gap: space.sm, maxWidth: 820 },
   center    : { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pageHeader: { marginBottom: space.sm },
 
   heroCard  : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 12,
     borderWidth    : 1,
     borderColor    : colors.accent.gold + '30',
     padding        : space.md,
     marginBottom   : space.xs,
     gap            : space.sm,
+    ...shadows.sm,
   },
 
   card      : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     marginBottom   : space.xs,
+    ...shadows.sm,
   },
 
   addBtn    : {
@@ -766,7 +768,7 @@ const s = StyleSheet.create({
     alignItems       : 'flex-start',
     paddingVertical  : space.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc + '40',
+    borderBottomColor: colors.border.divider,
     gap              : space.sm,
   },
 

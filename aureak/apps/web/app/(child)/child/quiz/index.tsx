@@ -16,7 +16,7 @@ const MASTERY_LABEL: Record<string, string> = {
   review_due    : 'À réviser',
 }
 const MASTERY_COLOR: Record<string, string> = {
-  not_started: colors.text.secondary,
+  not_started: colors.text.muted,
   in_progress: colors.status.attention,
   acquired   : colors.status.present,
   review_due : colors.accent.gold,
@@ -40,14 +40,14 @@ export default function ChildQuizIndexPage() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <AureakText variant="h2">Quiz</AureakText>
-      <AureakText variant="body" style={{ color: colors.text.secondary }}>
+      <AureakText variant="body" style={{ color: colors.text.muted }}>
         Choisis un thème pour démarrer un quiz.
       </AureakText>
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : themes.length === 0 ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucun thème disponible pour le moment.
         </AureakText>
       ) : (
@@ -61,7 +61,7 @@ export default function ChildQuizIndexPage() {
                 <AureakText variant="body" style={{ fontWeight: '600' }}>{theme.name}</AureakText>
                 <AureakText
                   variant="caption"
-                  style={{ color: MASTERY_COLOR[theme.masteryStatus] ?? colors.text.secondary }}
+                  style={{ color: MASTERY_COLOR[theme.masteryStatus] ?? colors.text.muted }}
                 >
                   {MASTERY_LABEL[theme.masteryStatus] ?? theme.masteryStatus}
                   {theme.reviewDue ? ' · Révision recommandée' : ''}
@@ -79,16 +79,16 @@ export default function ChildQuizIndexPage() {
 }
 
 const styles = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.background.primary },
+  container : { flex: 1, backgroundColor: colors.light.primary },
   content   : { padding: space.xl, gap: space.sm },
   themeCard : {
     flexDirection  : 'row',
     alignItems     : 'center',
     gap            : space.sm,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
 })

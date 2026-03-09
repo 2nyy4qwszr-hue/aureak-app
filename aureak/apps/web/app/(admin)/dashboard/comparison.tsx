@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getComparisonReport } from '@aureak/api-client'
 import { computeRankings } from '@aureak/business-logic'
 import type { ImplantationStat } from '@aureak/business-logic'
-import { colors } from '@aureak/theme'
+import { colors, shadows } from '@aureak/theme'
 
 const METRICS: { key: keyof ImplantationStat; label: string; isPct: boolean }[] = [
   { key: 'attendance_rate_pct', label: 'Présence %',         isPct: true  },
@@ -25,7 +25,7 @@ function Skeleton() {
     <>
       <style>{`
         @keyframes cp-pulse { 0%,100%{opacity:.4} 50%{opacity:.9} }
-        .cp-skel { animation: cp-pulse 1.4s ease-in-out infinite; background: ${colors.background.elevated}; border-radius: 4px; }
+        .cp-skel { animation: cp-pulse 1.4s ease-in-out infinite; background: ${colors.light.muted}; border-radius: 4px; }
       `}</style>
       <div style={styles.container}>
         <div className="cp-skel" style={{ height: 32, width: 320, marginBottom: 24, borderRadius: 6 }} />
@@ -59,7 +59,7 @@ function BarChart({ ranked, metricKey }: {
     <div style={styles.chartCard}>
       <div style={styles.chartTitle}>{metric.label}</div>
       {ranked.length === 0 ? (
-        <div style={{ color: colors.text.secondary, fontSize: 14 }}>Aucune donnée pour cette période</div>
+        <div style={{ color: colors.text.muted, fontSize: 14 }}>Aucune donnée pour cette période</div>
       ) : (
         ranked.map((row, idx) => {
           const value   = (row[metricKey] as number) ?? 0
@@ -73,7 +73,7 @@ function BarChart({ ranked, metricKey }: {
                 <span style={{ fontSize: 12, marginRight: 4 }}>
                   {isFirst ? '🥇' : isLast ? '⚠️' : `#${row.rank}`}
                 </span>
-                <span style={{ fontWeight: isFirst ? 700 : 400, color: isFirst ? colors.text.primary : colors.text.secondary, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>
+                <span style={{ fontWeight: isFirst ? 700 : 400, color: isFirst ? colors.text.dark : colors.text.muted, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>
                   {row.implantation_name}
                 </span>
               </div>
@@ -226,7 +226,7 @@ export default function ComparisonPage() {
             ))}
             {ranked.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ ...styles.td, textAlign: 'center', color: colors.text.secondary }}>
+                <td colSpan={6} style={{ ...styles.td, textAlign: 'center', color: colors.text.muted }}>
                   Aucune donnée pour cette période
                 </td>
               </tr>
@@ -243,32 +243,32 @@ export default function ComparisonPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container    : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 960 },
+  container    : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 960 },
   title        : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Rajdhani, sans-serif' },
   filterRow    : { display: 'flex', alignItems: 'flex-end', gap: '16px', marginBottom: '28px', flexWrap: 'wrap' },
   filterGroup  : { display: 'flex', flexDirection: 'column', gap: '6px' },
-  filterLabel  : { fontSize: '10px', color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },
-  input        : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.surface, color: colors.text.primary, fontSize: '14px' },
-  sep          : { color: colors.text.secondary },
-  select       : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.surface, color: colors.text.primary, fontSize: '14px', cursor: 'pointer' },
+  filterLabel  : { fontSize: '10px', color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },
+  input        : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '14px' },
+  sep          : { color: colors.text.muted },
+  select       : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '14px', cursor: 'pointer' },
   exportBtn    : { padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 600, marginBottom: 1 },
   // ── Chart ──
-  chartCard    : { backgroundColor: colors.background.surface, borderRadius: '12px', border: `1px solid ${colors.accent.zinc}`, padding: '20px 24px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: 14 },
-  chartTitle   : { fontSize: '11px', fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 },
+  chartCard    : { backgroundColor: colors.light.surface, borderRadius: '12px', border: `1px solid ${colors.border.light}`, padding: '20px 24px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: 14, ...shadows.sm },
+  chartTitle   : { fontSize: '11px', fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 },
   barRow       : { display: 'flex', alignItems: 'center', gap: 12 },
   barLabel     : { display: 'flex', alignItems: 'center', gap: 4, width: 200, flexShrink: 0 },
-  barTrack     : { flex: 1, height: 20, backgroundColor: colors.background.elevated, borderRadius: 3, overflow: 'hidden' },
+  barTrack     : { flex: 1, height: 20, backgroundColor: colors.light.muted, borderRadius: 3, overflow: 'hidden' },
   barValue     : { width: 52, textAlign: 'right', fontSize: 13, fontWeight: 700, flexShrink: 0 },
   // ── Table ──
   tableSection : { marginBottom: 16 },
-  sectionLabel : { fontSize: '11px', fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 },
-  table        : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.background.surface, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.accent.zinc}` },
-  th           : { padding: '12px 16px', textAlign: 'left', fontSize: '12px', color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: `1px solid ${colors.accent.zinc}` },
+  sectionLabel : { fontSize: '11px', fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 },
+  table        : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.light.surface, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.border.light}`, ...shadows.sm },
+  th           : { padding: '12px 16px', textAlign: 'left', fontSize: '12px', color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: `1px solid ${colors.border.light}` },
   thActive     : { color: colors.accent.gold },
-  tr           : { borderBottom: `1px solid ${colors.accent.zinc}` },
+  tr           : { borderBottom: `1px solid ${colors.border.light}` },
   trFirst      : { backgroundColor: 'rgba(76,175,80,0.07)' },
   trLast       : { backgroundColor: 'rgba(244,67,54,0.07)' },
   td           : { padding: '12px 16px', fontSize: '14px' },
   tdActive     : { color: colors.accent.gold, fontWeight: 700 },
-  disclaimer   : { marginTop: '16px', fontSize: '12px', color: colors.text.secondary, fontStyle: 'italic' },
+  disclaimer   : { marginTop: '16px', fontSize: '12px', color: colors.text.muted, fontStyle: 'italic' },
 }

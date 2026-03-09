@@ -72,12 +72,12 @@ export default function ChildAvatarPage() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <AureakText variant="h2">Mon avatar</AureakText>
-      <AureakText variant="body" style={{ color: colors.text.secondary }}>
+      <AureakText variant="body" style={{ color: colors.text.muted }}>
         Personnalise ton profil avec les items que tu as débloqués.
       </AureakText>
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : (
         <>
           {/* Equipped summary */}
@@ -88,10 +88,10 @@ export default function ChildAvatarPage() {
               const equippedItem = equippedId ? items.find(i => i.id === equippedId) : null
               return (
                 <View key={slot} style={styles.equippedRow}>
-                  <AureakText variant="caption" style={{ color: colors.text.secondary, width: 90 }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, width: 90 }}>
                     {SLOT_LABEL[slot]}
                   </AureakText>
-                  <AureakText variant="caption" style={{ color: equippedItem ? colors.text.primary : colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ color: equippedItem ? colors.text.dark : colors.text.muted }}>
                     {equippedItem?.name ?? '—'}
                   </AureakText>
                 </View>
@@ -107,7 +107,7 @@ export default function ChildAvatarPage() {
                   <AureakText
                     variant="caption"
                     style={{
-                      color     : activeSlot === slot ? colors.accent.gold : colors.text.secondary,
+                      color     : activeSlot === slot ? colors.accent.gold : colors.text.muted,
                       fontWeight: '600',
                     }}
                   >
@@ -120,14 +120,14 @@ export default function ChildAvatarPage() {
 
           {/* Unlocked items for slot */}
           {unlockedSlotItems.length === 0 && lockedSlotItems.length === 0 ? (
-            <AureakText variant="body" style={{ color: colors.text.secondary }}>
+            <AureakText variant="body" style={{ color: colors.text.muted }}>
               Aucun item disponible dans cette catégorie.
             </AureakText>
           ) : (
             <>
               {unlockedSlotItems.length > 0 && (
                 <>
-                  <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
                     Débloqués ({unlockedSlotItems.length})
                   </AureakText>
                   <View style={styles.itemsGrid}>
@@ -150,7 +150,7 @@ export default function ChildAvatarPage() {
                               style={{
                                 textAlign : 'center',
                                 fontSize  : 11,
-                                color     : isEquipped ? colors.accent.gold : colors.text.primary,
+                                color     : isEquipped ? colors.accent.gold : colors.text.dark,
                                 fontWeight: isEquipped ? '700' : '400',
                               }}
                             >
@@ -171,7 +171,7 @@ export default function ChildAvatarPage() {
 
               {lockedSlotItems.length > 0 && (
                 <>
-                  <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: space.sm }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: space.sm }}>
                     Verrouillés ({lockedSlotItems.length})
                   </AureakText>
                   <View style={styles.itemsGrid}>
@@ -180,7 +180,7 @@ export default function ChildAvatarPage() {
                         <AureakText variant="caption" style={{ fontSize: 28, opacity: 0.3 }}>🔒</AureakText>
                         <AureakText
                           variant="caption"
-                          style={{ textAlign: 'center', fontSize: 11, color: colors.text.secondary }}
+                          style={{ textAlign: 'center', fontSize: 11, color: colors.text.muted }}
                         >
                           {item.name}
                         </AureakText>
@@ -193,7 +193,7 @@ export default function ChildAvatarPage() {
           )}
 
           {saving && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, textAlign: 'center' }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center' }}>
               Sauvegarde en cours…
             </AureakText>
           )}
@@ -204,14 +204,14 @@ export default function ChildAvatarPage() {
 }
 
 const styles = StyleSheet.create({
-  container      : { flex: 1, backgroundColor: colors.background.primary },
+  container      : { flex: 1, backgroundColor: colors.light.primary },
   content        : { padding: space.xl, gap: space.md },
   equippedCard   : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     gap            : 6,
   },
   equippedRow    : { flexDirection: 'row', alignItems: 'center', gap: space.sm },
@@ -220,18 +220,18 @@ const styles = StyleSheet.create({
     gap            : space.xs,
     flexWrap       : 'wrap',
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.light,
     paddingBottom  : space.sm,
   },
   slotTab        : { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6 },
-  slotTabActive  : { backgroundColor: colors.background.elevated },
+  slotTabActive  : { backgroundColor: colors.light.muted },
   itemsGrid      : { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   itemCard       : {
     width          : 80,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : 8,
     alignItems     : 'center',
     gap            : 4,
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   itemCardEquipped: {
     borderColor    : colors.accent.gold,
     borderWidth    : 2,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
   },
   itemCardLocked : { opacity: 0.4 },
 })

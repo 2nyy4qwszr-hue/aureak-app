@@ -10,7 +10,7 @@ import {
   listMethodologySituations,
 } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius, transitions } from '@aureak/theme'
 
 const SECTIONS = [
   {
@@ -58,15 +58,15 @@ export default function MethodologiePage() {
 
       {/* ── Header ── */}
       <View style={s.header}>
-        <AureakText variant="h2">Méthodologie</AureakText>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4, maxWidth: 500 }}>
+        <AureakText variant="h2" color={colors.accent.gold}>Méthodologie</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4, maxWidth: 500 }}>
           Contenu pédagogique réutilisable — séances, thèmes et situations. Distinct des sessions terrain opérationnelles.
         </AureakText>
       </View>
 
       {/* ── Distinction claire ── */}
       <View style={s.infoBox}>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, lineHeight: 18 }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, lineHeight: 18 }}>
           <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>Sessions terrain</AureakText>
           {'  →  séances datées, liées à un groupe, présences, évaluations\n'}
           <AureakText variant="caption" style={{ color: '#4FC3F7', fontWeight: '700' }}>Méthodologie</AureakText>
@@ -96,7 +96,7 @@ export default function MethodologiePage() {
             <AureakText variant="h3" style={{ fontSize: 16, marginTop: space.sm, marginBottom: 6 }}>
               {section.label}
             </AureakText>
-            <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 12, lineHeight: 18 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, lineHeight: 18 }}>
               {section.description}
             </AureakText>
 
@@ -114,14 +114,14 @@ export default function MethodologiePage() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.lg, gap: space.lg, maxWidth: 900, alignSelf: 'center', width: '100%' },
   header   : { gap: 4 },
   infoBox  : {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 8,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     borderLeftWidth: 3,
     borderLeftColor: colors.accent.gold + '60',
@@ -130,10 +130,10 @@ const s = StyleSheet.create({
   card    : {
     flex           : 1,
     minWidth       : 260,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     borderTopWidth : 3,
     padding        : space.md,
     gap            : 2,

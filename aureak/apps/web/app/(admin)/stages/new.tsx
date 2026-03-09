@@ -68,9 +68,9 @@ export default function NewStagePage() {
       {/* Header */}
       <View style={s.header}>
         <Pressable onPress={() => router.back()}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
         </Pressable>
-        <AureakText variant="h2">Nouveau stage</AureakText>
+        <AureakText variant="h2" color={colors.accent.gold}>Nouveau stage</AureakText>
       </View>
 
       <View style={s.form}>
@@ -83,7 +83,7 @@ export default function NewStagePage() {
             value={name}
             onChangeText={setName}
             placeholder="Stage Été 2026"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
           />
         </View>
 
@@ -99,7 +99,7 @@ export default function NewStagePage() {
               >
                 <AureakText
                   variant="caption"
-                  style={{ color: type === t.value ? colors.accent.gold : colors.text.secondary, fontWeight: type === t.value ? '700' : '400' }}
+                  style={{ color: type === t.value ? colors.accent.gold : colors.text.muted, fontWeight: type === t.value ? '700' : '400' }}
                 >
                   {t.label}
                 </AureakText>
@@ -117,7 +117,7 @@ export default function NewStagePage() {
               value={startDate}
               onChangeText={setStartDate}
               placeholder="AAAA-MM-JJ"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
             />
           </View>
           <View style={[s.field, { flex: 1 }]}>
@@ -127,7 +127,7 @@ export default function NewStagePage() {
               value={endDate}
               onChangeText={setEndDate}
               placeholder="AAAA-MM-JJ"
-              placeholderTextColor={colors.text.secondary}
+              placeholderTextColor={colors.text.muted}
             />
           </View>
         </View>
@@ -140,7 +140,7 @@ export default function NewStagePage() {
             value={seasonLabel}
             onChangeText={setSeasonLabel}
             placeholder="2025-2026"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
           />
         </View>
 
@@ -152,7 +152,7 @@ export default function NewStagePage() {
               style={[s.chip, implantationId === '' && s.chipActive]}
               onPress={() => setImplantationId('')}
             >
-              <AureakText variant="caption" style={{ color: implantationId === '' ? colors.accent.gold : colors.text.secondary }}>
+              <AureakText variant="caption" style={{ color: implantationId === '' ? colors.accent.gold : colors.text.muted }}>
                 Aucune
               </AureakText>
             </Pressable>
@@ -162,7 +162,7 @@ export default function NewStagePage() {
                 style={[s.chip, implantationId === i.id && s.chipActive]}
                 onPress={() => setImplantationId(prev => prev === i.id ? '' : i.id)}
               >
-                <AureakText variant="caption" style={{ color: implantationId === i.id ? colors.accent.gold : colors.text.secondary, fontWeight: implantationId === i.id ? '700' : '400' }}>
+                <AureakText variant="caption" style={{ color: implantationId === i.id ? colors.accent.gold : colors.text.muted, fontWeight: implantationId === i.id ? '700' : '400' }}>
                   {i.name}
                 </AureakText>
               </Pressable>
@@ -178,7 +178,7 @@ export default function NewStagePage() {
             value={location}
             onChangeText={setLocation}
             placeholder="Stade municipal, Hall A"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
           />
         </View>
 
@@ -190,7 +190,7 @@ export default function NewStagePage() {
             value={maxParticipants}
             onChangeText={setMaxParticipants}
             placeholder="Ex : 20"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             keyboardType="number-pad"
           />
         </View>
@@ -203,7 +203,7 @@ export default function NewStagePage() {
             value={notes}
             onChangeText={setNotes}
             placeholder="Informations complémentaires…"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             multiline
           />
         </View>
@@ -229,27 +229,27 @@ export default function NewStagePage() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.xl, gap: space.lg },
   header   : { gap: space.xs },
 
-  form  : { backgroundColor: colors.background.surface, borderRadius: 12, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: colors.accent.zinc },
+  form  : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: colors.border.light },
   field : { gap: 6 },
-  label : { color: colors.text.secondary, fontSize: 11, textTransform: 'uppercase' as never, letterSpacing: 0.8, fontWeight: '600' },
+  label : { color: colors.text.muted, fontSize: 11, textTransform: 'uppercase' as never, letterSpacing: 0.8, fontWeight: '600' },
 
   input: {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
   },
 
   chipRow  : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  chip     : { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
+  chip     : { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
   chipActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
 
   errorBox: { backgroundColor: '#f8717120', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: '#f87171' },

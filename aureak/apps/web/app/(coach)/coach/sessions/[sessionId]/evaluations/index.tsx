@@ -22,7 +22,7 @@ type ChildEval = {
 
 const SIGNAL_CONFIG: { value: EvaluationSignal; label: string; short: string; color: string; bg: string }[] = [
   { value: 'positive',  label: 'Positif',   short: '✓', color: colors.status.present,  bg: 'rgba(76,175,80,0.14)'  },
-  { value: 'none',      label: 'Neutre',    short: '–', color: colors.text.secondary,   bg: colors.background.elevated },
+  { value: 'none',      label: 'Neutre',    short: '–', color: colors.text.muted,   bg: colors.light.muted },
   { value: 'attention', label: 'Attention', short: '!', color: colors.status.attention, bg: 'rgba(255,193,7,0.14)'  },
 ]
 
@@ -31,7 +31,7 @@ function Skeleton({ sessionId }: { sessionId: string }) {
   const router = useRouter()
   return (
     <div style={E.page}>
-      <style>{`@keyframes ep{0%,100%{opacity:.15}50%{opacity:.42}} .es{background:${colors.background.elevated};border-radius:6px;animation:ep 1.8s ease-in-out infinite}`}</style>
+      <style>{`@keyframes ep{0%,100%{opacity:.15}50%{opacity:.42}} .es{background:${colors.light.muted};border-radius:6px;animation:ep 1.8s ease-in-out infinite}`}</style>
       <button style={E.back} onClick={() => router.push('/coach/sessions' as never)}>← Mes séances</button>
       <div className="es" style={{ height: 28, width: 300, marginBottom: 8 }} />
       <div className="es" style={{ height: 14, width: 200, marginBottom: 24 }} />
@@ -61,7 +61,7 @@ function SubNav({ sessionId, active }: { sessionId: string; active: string }) {
           key={tab.href}
           style={{
             ...E.subNavBtn,
-            color      : active === tab.label ? colors.accent.gold : colors.text.secondary,
+            color      : active === tab.label ? colors.accent.gold : colors.text.muted,
             borderBottom: `2px solid ${active === tab.label ? colors.accent.gold : 'transparent'}`,
           }}
           onClick={() => router.push(tab.href as never)}
@@ -79,7 +79,7 @@ function SignalButtons({
 }: { label: string; value: EvaluationSignal; onChange: (v: EvaluationSignal) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', minWidth: 90 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
         {label}
       </div>
       <div style={{ display: 'flex', gap: 4 }}>
@@ -93,9 +93,9 @@ function SignalButtons({
                 width          : 32,
                 height         : 32,
                 borderRadius   : '50%',
-                border         : `2px solid ${active ? sig.color : colors.accent.zinc}`,
+                border         : `2px solid ${active ? sig.color : colors.border.light}`,
                 backgroundColor: active ? sig.bg : 'transparent',
-                color          : active ? sig.color : colors.text.secondary,
+                color          : active ? sig.color : colors.text.muted,
                 fontSize       : 14,
                 fontWeight     : 700,
                 cursor         : 'pointer',
@@ -253,7 +253,7 @@ export default function EvaluationsPage() {
             <span style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', color: allSaved ? colors.status.present : colors.accent.gold }}>
               {savedCount}
             </span>
-            <span style={{ fontSize: 13, color: colors.text.secondary }}>
+            <span style={{ fontSize: 13, color: colors.text.muted }}>
               / {children.length} évalués
             </span>
             {topCount > 0 && (
@@ -278,7 +278,7 @@ export default function EvaluationsPage() {
         <div style={E.empty}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
           <div>Aucun enfant présent.</div>
-          <div style={{ fontSize: 13, color: colors.text.secondary, marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: colors.text.muted, marginTop: 4 }}>
             Remplissez d'abord la feuille de présence.
           </div>
           <button
@@ -302,7 +302,7 @@ export default function EvaluationsPage() {
                     ? colors.status.present
                     : child.dirty
                       ? colors.accent.gold
-                      : colors.accent.zinc,
+                      : colors.border.light,
                 }}
               >
                 {/* Header */}
@@ -370,9 +370,9 @@ export default function EvaluationsPage() {
                   style={{
                     ...E.btnSave,
                     opacity        : isSaving ? 0.5 : 1,
-                    backgroundColor: child.saved && !child.dirty ? colors.background.elevated : colors.accent.gold,
-                    color          : child.saved && !child.dirty ? colors.text.secondary : colors.text.dark,
-                    border         : child.saved && !child.dirty ? `1px solid ${colors.accent.zinc}` : 'none',
+                    backgroundColor: child.saved && !child.dirty ? colors.light.muted : colors.accent.gold,
+                    color          : child.saved && !child.dirty ? colors.text.muted : colors.text.dark,
+                    border         : child.saved && !child.dirty ? `1px solid ${colors.border.light}` : 'none',
                   }}
                   onClick={() => saveOne(child)}
                   disabled={isSaving}
@@ -389,19 +389,19 @@ export default function EvaluationsPage() {
 }
 
 const E: Record<string, React.CSSProperties> = {
-  page      : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 780 },
-  back      : { fontSize: 13, color: colors.text.secondary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
+  page      : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
+  back      : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
   title     : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 4px' },
-  subtitle  : { fontSize: 13, color: colors.text.secondary },
-  subNav    : { display: 'flex', gap: 0, borderBottom: `1px solid ${colors.accent.zinc}`, marginBottom: 20 },
+  subtitle  : { fontSize: 13, color: colors.text.muted },
+  subNav    : { display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.light}`, marginBottom: 20 },
   subNavBtn : { padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: 'color 0.15s', paddingBottom: 10 },
-  statusBar : { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, marginBottom: 16 },
+  statusBar : { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, marginBottom: 16 },
   statusInfo: { display: 'flex', alignItems: 'center', gap: 8 },
   btnSaveAll: { padding: '8px 18px', borderRadius: 7, border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' },
-  card      : { backgroundColor: colors.background.surface, borderRadius: 12, padding: '16px 18px', border: '1px solid', display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 0.2s' },
+  card      : { backgroundColor: colors.light.surface, borderRadius: 12, padding: '16px 18px', border: '1px solid', display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 0.2s' },
   cardHead  : { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   signals   : { display: 'flex', gap: 20, justifyContent: 'center', padding: '4px 0' },
-  note      : { padding: '8px 12px', borderRadius: 6, border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.elevated, color: colors.text.primary, fontSize: 13, resize: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' },
+  note      : { padding: '8px 12px', borderRadius: 6, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.muted, color: colors.text.dark, fontSize: 13, resize: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' },
   btnSave   : { padding: '10px', borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', textAlign: 'center' },
-  empty     : { textAlign: 'center', padding: '60px 0', color: colors.text.primary, fontSize: 14 },
+  empty     : { textAlign: 'center', padding: '60px 0', color: colors.text.dark, fontSize: 14 },
 }

@@ -38,7 +38,7 @@ type ThemeForm = z.infer<typeof themeSchema>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     alignItems: 'center',
   },
   card: {
@@ -58,22 +58,22 @@ const styles = StyleSheet.create({
     paddingVertical: space.xs,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     cursor: 'pointer' as never,
   },
   chipSelected: {
     borderColor: colors.accent.gold,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
   },
   successBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.present,
     borderRadius: 4,
     padding: space.md,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
     borderRadius: 4,
@@ -202,7 +202,7 @@ export default function NewThemeScreen() {
                   >
                     <AureakText
                       variant="label"
-                      style={{ color: value === l.value ? colors.accent.gold : colors.text.secondary }}
+                      style={{ color: value === l.value ? colors.accent.gold : colors.text.muted }}
                     >
                       {l.label}
                     </AureakText>
@@ -229,7 +229,7 @@ export default function NewThemeScreen() {
                   >
                     <AureakText
                       variant="label"
-                      style={{ color: value === ag.value ? colors.accent.gold : colors.text.secondary }}
+                      style={{ color: value === ag.value ? colors.accent.gold : colors.text.muted }}
                     >
                       {ag.label}
                     </AureakText>
@@ -257,7 +257,7 @@ export default function NewThemeScreen() {
                     >
                       <AureakText
                         variant="label"
-                        style={{ color: value === g.id ? colors.accent.gold : colors.text.secondary }}
+                        style={{ color: value === g.id ? colors.accent.gold : colors.text.muted }}
                       >
                         {g.name}
                       </AureakText>

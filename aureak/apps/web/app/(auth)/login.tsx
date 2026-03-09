@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { signIn, supabase } from '@aureak/api-client'
 import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, radius, shadows } from '@aureak/theme'
 import type { UserRole } from '@aureak/types'
 
 const loginSchema = z.object({
@@ -28,27 +28,38 @@ const ROLE_ROUTES: Record<UserRole, string> = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: '100vh' as never,
   },
   card: {
     width: '100%',
     maxWidth: 420,
     padding: space.xl,
-    backgroundColor: colors.background.surface,
-    borderRadius: 12,
+    backgroundColor: colors.light.surface,
+    borderRadius: radius.card,
     gap: space.md,
+    borderWidth: 1,
+    borderColor: colors.border.light,
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: space.md,
+  brandBlock: {
+    alignItems: 'center',
+    marginBottom: space.sm,
+    gap: 4,
+  },
+  goldStripe: {
+    width: 40,
+    height: 3,
+    backgroundColor: colors.accent.gold,
+    borderRadius: 2,
+    marginTop: space.sm,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: '#FEF2F2',
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
-    borderRadius: 4,
+    borderRadius: radius.xs,
     padding: space.md,
   },
 })
@@ -107,9 +118,22 @@ export default function LoginScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
-        <AureakText variant="h1" style={styles.title}>
-          AUREAK
-        </AureakText>
+        {/* Brand header */}
+        <View style={styles.brandBlock}>
+          <AureakText
+            variant="display"
+            style={{ color: colors.text.dark, letterSpacing: 6, textAlign: 'center' }}
+          >
+            AUREAK
+          </AureakText>
+          <AureakText
+            variant="caption"
+            style={{ color: colors.text.muted, letterSpacing: 2, textTransform: 'uppercase' as never, textAlign: 'center' }}
+          >
+            Académie · Espace sécurisé
+          </AureakText>
+          <View style={styles.goldStripe} />
+        </View>
 
         {authError && (
           <View style={styles.errorBanner}>
@@ -131,6 +155,7 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email?.message}
+              variant="light"
             />
           )}
         />
@@ -146,6 +171,7 @@ export default function LoginScreen() {
               placeholder="••••••••"
               secureTextEntry
               error={errors.password?.message}
+              variant="light"
             />
           )}
         />
@@ -156,6 +182,13 @@ export default function LoginScreen() {
           loading={isSubmitting}
           fullWidth
         />
+
+        <AureakText
+          variant="caption"
+          style={{ color: colors.text.subtle, textAlign: 'center', marginTop: 4 }}
+        >
+          © 2025 Aureak · Tous droits réservés
+        </AureakText>
       </View>
     </ScrollView>
   )

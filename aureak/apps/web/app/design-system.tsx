@@ -16,7 +16,7 @@ import type { IndicatorValue } from '@aureak/ui'
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   section: { gap: space.md },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, alignItems: 'center' },
-  divider: { height: 1, backgroundColor: colors.accent.zinc },
+  divider: { height: 1, backgroundColor: colors.border.light },
 })
 
 export default function DesignSystemWebPage() {
@@ -38,7 +38,7 @@ export default function DesignSystemWebPage() {
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <AureakText variant="display">Design System AUREAK</AureakText>
-      <AureakText variant="bodySm" color={colors.text.secondary}>
+      <AureakText variant="bodySm" color={colors.text.muted}>
         Dark Manga Premium — tokens, composants de base
       </AureakText>
 

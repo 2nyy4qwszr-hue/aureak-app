@@ -71,17 +71,17 @@ const AGE_CATEGORIES = [
 // ── Design tokens ──────────────────────────────────────────────────────────────
 
 const C = {
-  bg      : '#1A1A1A',
-  surface : '#171717',
-  elevated: '#242424',
-  border  : '#2E2E2E',
+  bg      : '#F3EFE7',
+  surface : '#FFFFFF',
+  elevated: '#F8F6F1',
+  border  : '#E5E7EB',
   gold    : '#C1AC5C',
   goldDim : 'rgba(193,172,92,0.15)',
-  white   : '#FFFFFF',
-  secondary: '#A0A0A0',
+  white   : '#18181B',
+  secondary: '#71717A',
   error   : '#E05252',
   success : '#4CAF50',
-  zinc    : '#424242',
+  zinc    : '#E5E7EB',
 }
 
 // ── Composant principal ────────────────────────────────────────────────────────
@@ -604,7 +604,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: '#1A1A1A',
+    background: '#F3EFE7',
     padding: '24px 16px 48px',
     display: 'flex',
     flexDirection: 'column',
@@ -621,7 +621,7 @@ const s: Record<string, React.CSSProperties> = {
   backBtn: {
     background: 'none',
     border: 'none',
-    color: '#A0A0A0',
+    color: '#71717A',
     fontSize: 13,
     cursor: 'pointer',
     padding: '4px 0',
@@ -631,7 +631,7 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: 'Rajdhani, sans-serif',
     fontWeight: 700,
     fontSize: 26,
-    color: '#FFFFFF',
+    color: '#18181B',
     margin: 0,
     flex: 1,
   },
@@ -644,9 +644,9 @@ const s: Record<string, React.CSSProperties> = {
     width: 28,
     height: 28,
     borderRadius: '50%',
-    border: '2px solid #424242',
-    background: '#171717',
-    color: '#A0A0A0',
+    border: '2px solid #E5E7EB',
+    background: '#FFFFFF',
+    color: '#71717A',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -661,7 +661,7 @@ const s: Record<string, React.CSSProperties> = {
   stepLine: {
     width: 32,
     height: 2,
-    background: '#2E2E2E',
+    background: '#E5E7EB',
   },
   stepLineActive: {
     background: '#C1AC5C',
@@ -669,9 +669,9 @@ const s: Record<string, React.CSSProperties> = {
   card: {
     width: '100%',
     maxWidth: 680,
-    background: '#171717',
+    background: '#FFFFFF',
     borderRadius: 16,
-    border: '1px solid #2E2E2E',
+    border: '1px solid #E5E7EB',
     padding: 32,
   },
   stepLabel: {
@@ -686,7 +686,7 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: 'Rajdhani, sans-serif',
     fontWeight: 700,
     fontSize: 22,
-    color: '#FFFFFF',
+    color: '#18181B',
     margin: '0 0 28px',
   },
   modeGrid: {
@@ -709,10 +709,10 @@ const s: Record<string, React.CSSProperties> = {
     gap: 12,
   },
   input: {
-    background: '#242424',
-    border: '1px solid #2E2E2E',
+    background: '#F8F6F1',
+    border: '1px solid #E5E7EB',
     borderRadius: 8,
-    color: '#FFFFFF',
+    color: '#18181B',
     fontSize: 14,
     padding: '10px 12px',
     outline: 'none',
@@ -724,10 +724,10 @@ const s: Record<string, React.CSSProperties> = {
     border: '1px solid #E05252',
   },
   select: {
-    background: '#242424',
-    border: '1px solid #2E2E2E',
+    background: '#F8F6F1',
+    border: '1px solid #E5E7EB',
     borderRadius: 8,
-    color: '#FFFFFF',
+    color: '#18181B',
     fontSize: 14,
     padding: '10px 12px',
     outline: 'none',
@@ -738,7 +738,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   label: {
     fontSize: 12,
-    color: '#A0A0A0',
+    color: '#71717A',
     fontWeight: 500,
     margin: 0,
   },
@@ -760,7 +760,7 @@ const s: Record<string, React.CSSProperties> = {
     gap: 12,
     marginTop: 8,
     paddingTop: 24,
-    borderTop: '1px solid #2E2E2E',
+    borderTop: '1px solid #E5E7EB',
   },
   btnPrimary: {
     background: '#C1AC5C',
@@ -777,8 +777,8 @@ const s: Record<string, React.CSSProperties> = {
   },
   btnSecondary: {
     background: 'transparent',
-    color: '#A0A0A0',
-    border: '1px solid #2E2E2E',
+    color: '#71717A',
+    border: '1px solid #E5E7EB',
     borderRadius: 8,
     padding: '10px 20px',
     fontSize: 14,
@@ -809,8 +809,8 @@ const s: Record<string, React.CSSProperties> = {
     margin: '0 auto 20px',
   },
   emptyClub: {
-    background: '#242424',
-    border: '1px solid #2E2E2E',
+    background: '#F8F6F1',
+    border: '1px solid #E5E7EB',
     borderRadius: 8,
     padding: '10px 12px',
     display: 'flex',
@@ -826,8 +826,8 @@ const css = `
     box-shadow: 0 0 0 3px rgba(193,172,92,0.12);
   }
   select option {
-    background: #242424;
-    color: #FFFFFF;
+    background: #FFFFFF;
+    color: #18181B;
   }
   select:disabled {
     opacity: 0.4;

@@ -36,12 +36,12 @@ const SIGNAL_ICON : Record<EvaluationSignal, string> = { positive: '✓', attent
 const SIGNAL_COLOR: Record<EvaluationSignal, string> = {
   positive : colors.status.present,
   attention: colors.status.attention,
-  none     : colors.text.secondary,
+  none     : colors.text.muted,
 }
 const SIGNAL_BG: Record<EvaluationSignal, string> = {
   positive : 'rgba(76,175,80,0.14)',
   attention: 'rgba(255,193,7,0.14)',
-  none     : colors.background.elevated,
+  none     : colors.light.muted,
 }
 
 // Colored square per session (mini attendance chart)
@@ -53,7 +53,7 @@ function AttMiniChart({ attendances }: { attendances: AttendanceRow[] }) {
       {last15.map((att, i) => {
         const isPresent = PRESENT_STATUSES.has(att.status)
         const isAbsent  = att.status === 'absent'
-        const color     = isPresent ? colors.status.present : isAbsent ? colors.status.absent : colors.text.secondary
+        const color     = isPresent ? colors.status.present : isAbsent ? colors.status.absent : colors.text.muted
         const date      = att.sessions?.scheduled_at
           ? new Date(att.sessions.scheduled_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
           : ''
@@ -98,7 +98,7 @@ function SubNav({ childId, active }: { childId: string; active: string }) {
     { label: 'Football',    href: `/parent/children/${childId}/football-history`  },
   ]
   return (
-    <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${colors.accent.zinc}`, marginBottom: 20 }}>
+    <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.light}`, marginBottom: 20 }}>
       {tabs.map(tab => (
         <button
           key={tab.href}
@@ -109,7 +109,7 @@ function SubNav({ childId, active }: { childId: string; active: string }) {
             cursor         : 'pointer',
             fontWeight     : 600,
             fontSize       : 13,
-            color          : active === tab.label ? colors.accent.gold : colors.text.secondary,
+            color          : active === tab.label ? colors.accent.gold : colors.text.muted,
             borderBottom   : `2px solid ${active === tab.label ? colors.accent.gold : 'transparent'}`,
             transition     : 'color 0.15s',
           }}
@@ -126,7 +126,7 @@ function SubNav({ childId, active }: { childId: string; active: string }) {
 function Skeleton() {
   return (
     <div style={P.page}>
-      <style>{`@keyframes cp{0%,100%{opacity:.15}50%{opacity:.42}} .cs{background:${colors.background.elevated};border-radius:6px;animation:cp 1.8s ease-in-out infinite}`}</style>
+      <style>{`@keyframes cp{0%,100%{opacity:.15}50%{opacity:.42}} .cs{background:${colors.light.muted};border-radius:6px;animation:cp 1.8s ease-in-out infinite}`}</style>
       <div className="cs" style={{ height: 14, width: 120, marginBottom: 20 }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
         <div className="cs" style={{ width: 52, height: 52, borderRadius: 26 }} />
@@ -172,7 +172,7 @@ export default function ChildFichePage() {
   // Build eval map by session id
   const evalMap = new Map(evaluations.map(e => [e.session_id, e]))
 
-  const rateColor = rate === null ? colors.text.secondary
+  const rateColor = rate === null ? colors.text.muted
     : rate >= 80 ? colors.status.present
     : rate >= 60 ? colors.status.attention
     : colors.status.absent
@@ -190,7 +190,7 @@ export default function ChildFichePage() {
         <div style={P.avatar}>{initial}</div>
         <div>
           <h1 style={P.name}>{displayName || '…'}</h1>
-          <div style={{ fontSize: 12, color: colors.text.secondary }}>3 derniers mois</div>
+          <div style={{ fontSize: 12, color: colors.text.muted }}>3 derniers mois</div>
         </div>
       </div>
 
@@ -217,7 +217,7 @@ export default function ChildFichePage() {
       {attendances.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Assiduité (15 dernières séances)
             </div>
             <div style={{ fontSize: 12, color: rateColor, fontWeight: 700 }}>
@@ -225,7 +225,7 @@ export default function ChildFichePage() {
             </div>
           </div>
           <AttMiniChart attendances={attendances} />
-          <div style={{ height: 4, backgroundColor: colors.background.elevated, borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: 4, backgroundColor: colors.light.muted, borderRadius: 2, overflow: 'hidden' }}>
             <div style={{
               height: '100%',
               width: `${rate ?? 0}%`,
@@ -238,19 +238,19 @@ export default function ChildFichePage() {
       )}
 
       {/* Recent attendances */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
         Présences récentes
       </div>
 
       {attendances.length === 0 ? (
-        <div style={{ color: colors.text.secondary, fontSize: 14 }}>Aucune présence enregistrée sur cette période.</div>
+        <div style={{ color: colors.text.muted, fontSize: 14 }}>Aucune présence enregistrée sur cette période.</div>
       ) : (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {attendances.slice(0, 10).map((att, idx) => {
               const ev      = evalMap.get(att.sessions?.scheduled_at ?? '')
               const session = att.sessions
-              const color   = STATUS_COLOR[att.status] ?? colors.text.secondary
+              const color   = STATUS_COLOR[att.status] ?? colors.text.muted
               return (
                 <div key={att.id ?? idx} style={{ ...P.attRow, borderLeft: `3px solid ${color}` }}>
                   <div style={{ flex: 1 }}>
@@ -260,7 +260,7 @@ export default function ChildFichePage() {
                         : '–'}
                     </div>
                     {session?.groups?.name && (
-                      <div style={{ fontSize: 12, color: colors.text.secondary }}>{session.groups.name}</div>
+                      <div style={{ fontSize: 12, color: colors.text.muted }}>{session.groups.name}</div>
                     )}
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 700, color, padding: '3px 8px', borderRadius: 5, border: `1px solid ${color + '40'}`, backgroundColor: color + '12' }}>
@@ -313,14 +313,14 @@ export default function ChildFichePage() {
 }
 
 const P: Record<string, React.CSSProperties> = {
-  page       : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 780 },
-  back       : { fontSize: 13, color: colors.text.secondary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
+  page       : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
+  back       : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
   childHeader: { display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 },
   avatar     : { width: 52, height: 52, borderRadius: '50%', backgroundColor: colors.accent.gold, color: colors.text.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, flexShrink: 0 },
   name       : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0 },
-  kpiRow     : { display: 'flex', backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden', marginBottom: 20 },
-  kpi        : { flex: 1, padding: '16px 0', textAlign: 'center', borderRight: `1px solid ${colors.accent.zinc}` },
-  kpiLabel   : { fontSize: 10, color: colors.text.secondary, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 },
-  attRow     : { display: 'flex', alignItems: 'center', gap: 12, backgroundColor: colors.background.surface, borderRadius: '0 10px 10px 0', padding: '12px 14px', border: `1px solid ${colors.accent.zinc}` },
+  kpiRow     : { display: 'flex', backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden', marginBottom: 20 },
+  kpi        : { flex: 1, padding: '16px 0', textAlign: 'center', borderRight: `1px solid ${colors.border.light}` },
+  kpiLabel   : { fontSize: 10, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 },
+  attRow     : { display: 'flex', alignItems: 'center', gap: 12, backgroundColor: colors.light.surface, borderRadius: '0 10px 10px 0', padding: '12px 14px', border: `1px solid ${colors.border.light}` },
   seeAll     : { display: 'block', width: '100%', padding: '12px', textAlign: 'center', color: colors.accent.gold, fontSize: 13, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', marginTop: 8 },
 }

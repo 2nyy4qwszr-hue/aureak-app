@@ -38,7 +38,7 @@ const SIGNAL_ICON: Record<EvaluationSignal, string> = { positive: '✓', attenti
 const SIGNAL_COLOR: Record<EvaluationSignal, string> = {
   positive : colors.status.present,
   attention: colors.status.attention,
-  none     : colors.text.secondary,
+  none     : colors.text.muted,
 }
 
 function ChildSubNav({ childId, active }: { childId: string; active: string }) {
@@ -55,7 +55,7 @@ function ChildSubNav({ childId, active }: { childId: string; active: string }) {
           <View style={[subNav.tab, active === tab.label && subNav.tabActive]}>
             <AureakText
               variant="caption"
-              style={{ color: active === tab.label ? colors.accent.gold : colors.text.secondary, fontWeight: '600' }}
+              style={{ color: active === tab.label ? colors.accent.gold : colors.text.muted, fontWeight: '600' }}
             >
               {tab.label}
             </AureakText>
@@ -66,7 +66,7 @@ function ChildSubNav({ childId, active }: { childId: string; active: string }) {
   )
 }
 const subNav = StyleSheet.create({
-  bar    : { flexDirection: 'row', gap: space.lg, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc, paddingBottom: space.sm },
+  bar    : { flexDirection: 'row', gap: space.lg, borderBottomWidth: 1, borderBottomColor: colors.border.light, paddingBottom: space.sm },
   tab    : { paddingBottom: 4 },
   tabActive: { borderBottomWidth: 2, borderBottomColor: colors.accent.gold },
 })
@@ -143,15 +143,15 @@ export default function ChildSessionsPage() {
       <ChildSubNav childId={childId} active="Séances" />
 
       {!loading && sessions.length > 0 && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
           {sessions.length} séances sur 12 mois · {presentCount} présences
         </AureakText>
       )}
 
       {loading ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       ) : sessions.length === 0 ? (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune séance enregistrée.
         </AureakText>
       ) : (
@@ -165,7 +165,7 @@ export default function ChildSessionsPage() {
                 })}
               </AureakText>
               {s.groupName && (
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {s.groupName}
                 </AureakText>
               )}
@@ -205,24 +205,24 @@ export default function ChildSessionsPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
+  container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.xl, gap: space.sm },
   row      : {
     flexDirection  : 'row',
     alignItems     : 'center',
     gap            : space.sm,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 8,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
   signals  : { flexDirection: 'row', gap: 3, alignItems: 'center' },
   signalDot: {
     width          : 20,
     height         : 20,
     borderRadius   : 10,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     alignItems     : 'center',
     justifyContent : 'center',
   },

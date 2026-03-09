@@ -19,7 +19,7 @@ function fmtTime(d: Date) {
 function Skeleton() {
   return (
     <div style={S.container}>
-      <style>{`@keyframes cdp{0%,100%{opacity:.18}50%{opacity:.45}} .cds{background:${colors.background.elevated};border-radius:6px;animation:cdp 1.8s ease-in-out infinite}`}</style>
+      <style>{`@keyframes cdp{0%,100%{opacity:.18}50%{opacity:.45}} .cds{background:${colors.light.muted};border-radius:6px;animation:cdp 1.8s ease-in-out infinite}`}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
           <div className="cds" style={{ height: 28, width: 220, marginBottom: 8 }} />
@@ -43,12 +43,12 @@ function KpiCard({ value, label, accent, dim = false }: {
     <div style={{ ...S.kpiCard, borderTop: `3px solid ${accent}` }}>
       <div style={{
         fontSize: 34, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif',
-        color: dim ? colors.text.secondary : colors.text.primary, lineHeight: 1,
+        color: dim ? colors.text.muted : colors.text.dark, lineHeight: 1,
       }}>
         {value}
       </div>
       <div style={{
-        fontSize: 11, color: colors.text.secondary, fontWeight: 700,
+        fontSize: 11, color: colors.text.muted, fontWeight: 700,
         textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 6,
       }}>
         {label}
@@ -119,7 +119,7 @@ export default function CoachDashboardPage() {
     <div style={S.container}>
       <style>{`
         @keyframes cdp{0%,100%{opacity:.18}50%{opacity:.45}}
-        .cds{background:${colors.background.elevated};border-radius:6px;animation:cdp 1.8s ease-in-out infinite}
+        .cds{background:${colors.light.muted};border-radius:6px;animation:cdp 1.8s ease-in-out infinite}
         .cd-btn:hover{opacity:.85}
         .cd-row:hover{background:rgba(255,255,255,0.03)}
       `}</style>
@@ -145,11 +145,11 @@ export default function CoachDashboardPage() {
       <div style={S.kpiGrid}>
         <KpiCard value={upcoming.length}        label="À venir"           accent={colors.accent.gold} />
         <KpiCard value={ongoing.length}         label="En cours"          accent={colors.status.present} />
-        <KpiCard value={completedMonth.length}  label="Terminées ce mois" accent={colors.text.secondary} dim />
+        <KpiCard value={completedMonth.length}  label="Terminées ce mois" accent={colors.text.muted} dim />
         <KpiCard
           value={missingEvals.length}
           label="Évals manquantes"
-          accent={missingEvals.length > 0 ? colors.status.attention : colors.accent.zinc}
+          accent={missingEvals.length > 0 ? colors.status.attention : colors.border.light}
         />
       </div>
 
@@ -182,7 +182,7 @@ export default function CoachDashboardPage() {
                   <div style={{ fontSize: 15, fontWeight: 600, color: colors.accent.gold }}>
                     {fmtDate(d, { weekday: 'long', day: '2-digit', month: 'long' })} · {fmtTime(d)}
                   </div>
-                  <div style={{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: colors.text.muted, marginTop: 2 }}>
                     {s.durationMinutes} min{s.location ? ` · ${s.location}` : ''}
                   </div>
                 </div>
@@ -216,7 +216,7 @@ export default function CoachDashboardPage() {
       {upcoming.length === 0 ? (
         <div style={S.emptyCard}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
-          <div style={{ fontSize: 14, color: colors.text.secondary }}>Aucune séance planifiée</div>
+          <div style={{ fontSize: 14, color: colors.text.muted }}>Aucune séance planifiée</div>
         </div>
       ) : (
         <div style={S.sessionTable}>
@@ -240,14 +240,14 @@ export default function CoachDashboardPage() {
                 }}
               >
                 <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: today ? colors.accent.gold : colors.text.primary }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: today ? colors.accent.gold : colors.text.dark }}>
                     {fmtDate(d, { weekday: 'short', day: '2-digit', month: 'short' })}
                   </span>
-                  <span style={{ fontSize: 13, color: colors.text.secondary }}>{fmtTime(d)}</span>
+                  <span style={{ fontSize: 13, color: colors.text.muted }}>{fmtTime(d)}</span>
                   {today && <span style={S.todayBadge}>Aujourd'hui</span>}
                 </div>
-                <span style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>{s.durationMinutes} min</span>
-                <span style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>{s.location ?? '—'}</span>
+                <span style={{ flex: 1, fontSize: 13, color: colors.text.muted }}>{s.durationMinutes} min</span>
+                <span style={{ flex: 1, fontSize: 13, color: colors.text.muted }}>{s.location ?? '—'}</span>
                 <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
                   <button
                     className="cd-btn"
@@ -274,26 +274,26 @@ export default function CoachDashboardPage() {
 }
 
 const S: Record<string, React.CSSProperties> = {
-  container    : { padding: '28px 32px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 960 },
+  container    : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 960 },
   header       : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
   title        : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, marginBottom: 4 },
-  subtitle     : { fontSize: 13, color: colors.text.secondary, margin: 0 },
+  subtitle     : { fontSize: 13, color: colors.text.muted, margin: 0 },
   kpiGrid      : { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 },
-  kpiCard      : { backgroundColor: colors.background.surface, borderRadius: 10, padding: '16px 18px', border: `1px solid ${colors.accent.zinc}` },
+  kpiCard      : { backgroundColor: colors.light.surface, borderRadius: 10, padding: '16px 18px', border: `1px solid ${colors.border.light}` },
   alertBand    : { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderRadius: 8, backgroundColor: 'rgba(255,193,7,0.06)', border: '1px solid rgba(255,193,7,0.2)', marginBottom: 24 },
   alertAction  : { fontSize: 12, color: colors.status.attention, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
-  sectionLabel : { fontSize: 11, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, marginTop: 4 },
+  sectionLabel : { fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, marginTop: 4 },
   liveCard     : { display: 'flex', alignItems: 'center', gap: 16, backgroundColor: 'rgba(193,172,92,0.05)', borderRadius: 10, padding: '16px 18px', border: `1px solid ${colors.accent.gold}`, marginBottom: 10 },
   liveDot      : { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.status.present, flexShrink: 0 },
-  sessionTable : { backgroundColor: colors.background.surface, borderRadius: 10, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden', marginBottom: 20 },
-  tableHead    : { display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.elevated },
-  th           : { fontSize: 11, color: colors.text.secondary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' },
-  tableRow     : { display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${colors.accent.zinc}`, gap: 8, transition: 'background 0.15s' },
-  tableRowAlt  : { backgroundColor: colors.background.elevated },
+  sessionTable : { backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden', marginBottom: 20 },
+  tableHead    : { display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${colors.border.light}`, backgroundColor: colors.light.muted },
+  th           : { fontSize: 11, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' },
+  tableRow     : { display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${colors.border.light}`, gap: 8, transition: 'background 0.15s' },
+  tableRowAlt  : { backgroundColor: colors.light.muted },
   todayBadge   : { fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, backgroundColor: 'rgba(193,172,92,0.15)', color: colors.accent.gold },
-  emptyCard    : { backgroundColor: colors.background.surface, borderRadius: 10, padding: '40px', textAlign: 'center', border: `1px solid ${colors.accent.zinc}`, marginBottom: 20 },
+  emptyCard    : { backgroundColor: colors.light.surface, borderRadius: 10, padding: '40px', textAlign: 'center', border: `1px solid ${colors.border.light}`, marginBottom: 20 },
   btnPrimary   : { padding: '8px 16px', borderRadius: 7, border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, fontWeight: 700, fontSize: 13, cursor: 'pointer' },
-  btnSecondary : { padding: '8px 16px', borderRadius: 7, border: `1px solid ${colors.accent.zinc}`, backgroundColor: 'transparent', color: colors.text.secondary, fontWeight: 600, fontSize: 13, cursor: 'pointer' },
-  actionBtn    : { padding: '5px 8px', borderRadius: 5, border: `1px solid ${colors.accent.zinc}`, backgroundColor: 'transparent', color: colors.text.secondary, fontSize: 11, fontWeight: 600, cursor: 'pointer' },
+  btnSecondary : { padding: '8px 16px', borderRadius: 7, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontWeight: 600, fontSize: 13, cursor: 'pointer' },
+  actionBtn    : { padding: '5px 8px', borderRadius: 5, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontSize: 11, fontWeight: 600, cursor: 'pointer' },
   linkBtn      : { fontSize: 12, color: colors.accent.gold, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
 }

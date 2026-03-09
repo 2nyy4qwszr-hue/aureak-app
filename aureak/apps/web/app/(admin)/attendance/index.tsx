@@ -1,5 +1,5 @@
 'use client'
-// Story 5.5 — Timeline admin : vue agrégée des présences par séance (redesign)
+// Story 5.5 — Timeline admin : vue agrégée des présences par séance (Light Premium DA)
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import {
@@ -8,7 +8,7 @@ import {
 import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { Implantation, GroupWithMeta } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, radius, shadows, transitions } from '@aureak/theme'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -20,13 +20,13 @@ function fmtDay(iso: string) {
 }
 
 const COMPLETION_CONFIG = {
-  complete   : { label: 'Complet',      color: '#66BB6A', bg: '#66BB6A18' },
-  partial    : { label: 'En cours',     color: '#4FC3F7', bg: '#4FC3F718' },
-  not_started: { label: 'Non démarré',  color: colors.text.secondary, bg: colors.background.elevated },
+  complete   : { label: 'Complet',      color: '#66BB6A', bg: '#66BB6A14' },
+  partial    : { label: 'En cours',     color: '#4FC3F7', bg: '#4FC3F714' },
+  not_started: { label: 'Non démarré',  color: colors.text.muted, bg: colors.light.muted },
 }
 
 const SESSION_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  planifiée: { label: 'Planifiée',  color: colors.text.secondary },
+  planifiée: { label: 'Planifiée',  color: colors.text.muted },
   en_cours : { label: 'En cours',   color: '#4FC3F7' },
   fermée   : { label: 'Fermée',     color: '#66BB6A' },
   annulée  : { label: 'Annulée',    color: '#EF5350' },
@@ -40,7 +40,7 @@ function KpiCard({ value, label, color }: { value: string | number; label: strin
       <AureakText variant="h2" style={{ color: color ?? colors.accent.gold, fontSize: 28, fontWeight: '800' }}>
         {value}
       </AureakText>
-      <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, textAlign: 'center' }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, textAlign: 'center' }}>
         {label}
       </AureakText>
     </View>
@@ -50,7 +50,7 @@ function KpiCard({ value, label, color }: { value: string | number; label: strin
 function AttendancePill({ count, label, color }: { count: number; label: string; color: string }) {
   if (count === 0) return null
   return (
-    <View style={[sc.pill, { backgroundColor: color + '18', borderColor: color + '40' }]}>
+    <View style={[sc.pill, { backgroundColor: color + '14', borderColor: color + '30' }]}>
       <AureakText variant="caption" style={{ color, fontSize: 11, fontWeight: '700' }}>
         {count} {label}
       </AureakText>
@@ -70,7 +70,7 @@ function ProgressBar({ present, total }: { present: number; total: number }) {
 
 function SessionCard({ s }: { s: SessionAttendanceSummary }) {
   const completion = COMPLETION_CONFIG[s.completionStatus]
-  const sessionStatus = SESSION_STATUS_CONFIG[s.status] ?? { label: s.status, color: colors.text.secondary }
+  const sessionStatus = SESSION_STATUS_CONFIG[s.status] ?? { label: s.status, color: colors.text.muted }
   const rate = s.totalAttendance > 0 ? Math.round((s.presentCount / s.totalAttendance) * 100) : null
 
   return (
@@ -82,10 +82,10 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
           <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 9, fontWeight: '700', letterSpacing: 1 }}>
             {fmtDay(s.scheduledAt)}
           </AureakText>
-          <AureakText variant="body" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 15 }}>
+          <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 15 }}>
             {new Date(s.scheduledAt).getDate().toString().padStart(2, '0')}
           </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 9 }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 9 }}>
             {new Date(s.scheduledAt).toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase()}
           </AureakText>
         </View>
@@ -94,7 +94,7 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
         <View style={{ flex: 1, gap: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             {s.groupName && (
-              <AureakText variant="body" style={{ fontWeight: '700', fontSize: 14, color: colors.text.primary }}>
+              <AureakText variant="body" style={{ fontWeight: '700', fontSize: 14, color: colors.text.dark }}>
                 {s.groupName}
               </AureakText>
             )}
@@ -108,11 +108,11 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
               {fmtTime(s.scheduledAt)} · {s.durationMinutes} min
             </AureakText>
             {s.location && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                 📍 {s.location}
               </AureakText>
             )}
@@ -122,14 +122,14 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
         {/* Badges right */}
         <View style={{ gap: 4, alignItems: 'flex-end' }}>
           {/* Completion */}
-          <View style={[sc.completionBadge, { backgroundColor: completion.bg, borderColor: completion.color + '50' }]}>
+          <View style={[sc.completionBadge, { backgroundColor: completion.bg, borderColor: completion.color + '40' }]}>
             <AureakText variant="caption" style={{ color: completion.color, fontSize: 10, fontWeight: '700' }}>
               {completion.label}
             </AureakText>
           </View>
           {/* Session status (only show if not planifiée) */}
           {s.status !== 'planifiée' && (
-            <View style={[sc.statusBadge, { borderColor: sessionStatus.color + '40' }]}>
+            <View style={[sc.statusBadge, { borderColor: sessionStatus.color + '30' }]}>
               <AureakText variant="caption" style={{ color: sessionStatus.color, fontSize: 10 }}>
                 {sessionStatus.label}
               </AureakText>
@@ -148,9 +148,9 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
             <AttendancePill count={s.lateCount}     label="retards"   color="#FFA726" />
             <AttendancePill count={s.injuredCount}  label="blessés"   color="#CE93D8" />
             <AttendancePill count={s.trialCount}    label="essai"     color="#4FC3F7" />
-            <AttendancePill count={s.excusedCount}  label="excusés"   color={colors.text.secondary} />
+            <AttendancePill count={s.excusedCount}  label="excusés"   color={colors.text.muted} />
             {rate !== null && (
-              <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 10, marginLeft: 'auto' as never }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, marginLeft: 'auto' as never }}>
                 {rate}% présence
               </AureakText>
             )}
@@ -161,7 +161,7 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
       )}
 
       {s.totalAttendance === 0 && s.status !== 'annulée' && (
-        <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: 6, fontStyle: 'italic' }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 6, fontStyle: 'italic' }}>
           Aucune présence enregistrée
         </AureakText>
       )}
@@ -224,9 +224,9 @@ export default function AttendancePage() {
       {/* ── Header ── */}
       <View style={sc.header}>
         <View>
-          <AureakText variant="h2">Présences</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Présences</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {totalSessions} séance{totalSessions !== 1 ? 's' : ''} sur la période
             </AureakText>
           )}
@@ -267,9 +267,9 @@ export default function AttendancePage() {
                   <Pressable
                     key={id}
                     onPress={() => { setImplantFilter(id); setGroupFilter('all') }}
-                    style={[sc.chip, { borderColor: active ? colors.accent.gold : colors.accent.zinc, backgroundColor: active ? colors.accent.gold + '20' : 'transparent' }]}
+                    style={[sc.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
                   >
-                    <AureakText variant="caption" style={{ color: active ? colors.accent.gold : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+                    <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                       {label}
                     </AureakText>
                   </Pressable>
@@ -290,9 +290,9 @@ export default function AttendancePage() {
                   <Pressable
                     key={id}
                     onPress={() => setGroupFilter(id)}
-                    style={[sc.chip, { borderColor: active ? '#4FC3F7' : colors.accent.zinc, backgroundColor: active ? '#4FC3F720' : 'transparent' }]}
+                    style={[sc.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
                   >
-                    <AureakText variant="caption" style={{ color: active ? '#4FC3F7' : colors.text.secondary, fontWeight: active ? '700' : '400', fontSize: 12 }}>
+                    <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                       {label}
                     </AureakText>
                   </Pressable>
@@ -316,10 +316,10 @@ export default function AttendancePage() {
 
       {/* ── List ── */}
       {loading ? (
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>Chargement…</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       ) : sessions.length === 0 ? (
         <View style={sc.empty}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, fontStyle: 'italic' }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
             Aucune séance trouvée sur cette période.
           </AureakText>
         </View>
@@ -333,32 +333,35 @@ export default function AttendancePage() {
   )
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Styles (Light Premium DA) ────────────────────────────────────────────────
 
 const webInputStyle = {
-  padding        : '6px 10px',
-  borderRadius   : '6px',
-  border         : `1px solid ${colors.accent.zinc}`,
-  backgroundColor: colors.background.surface,
-  color          : colors.text.primary,
+  padding        : '7px 11px',
+  borderRadius   : `${radius.xs}px`,
+  border         : `1px solid ${colors.border.light}`,
+  backgroundColor: colors.light.surface,
+  color          : colors.text.dark,
   fontSize       : '13px',
+  fontFamily     : 'Geist, sans-serif',
+  outline        : 'none',
+  transition     : `border-color ${transitions.fast}`,
 } as React.CSSProperties
 
 const sc = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
   header     : { gap: 4 },
   filterBlock: { gap: 10 },
-  filterLabel: { color: colors.text.secondary, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
+  filterLabel: { color: colors.text.muted, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
   chip       : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   kpiRow     : {
     flexDirection  : 'row',
     gap            : space.sm,
-    backgroundColor: colors.background.surface,
-    borderRadius   : 10,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     padding        : space.md,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     flexWrap       : 'wrap' as never,
   },
   kpiCard    : {
@@ -369,20 +372,20 @@ const sc = StyleSheet.create({
     paddingVertical: 4,
   },
   card       : {
-    backgroundColor: colors.background.surface,
-    borderRadius   : 10,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     padding        : space.md,
     gap            : 0,
   },
   dateBadge  : {
     alignItems     : 'center',
     justifyContent : 'center',
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderRadius   : 8,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     paddingVertical: 6,
     paddingHorizontal: 10,
     minWidth       : 46,
@@ -390,12 +393,12 @@ const sc = StyleSheet.create({
     flexShrink     : 0,
   },
   implantBadge: {
-    backgroundColor : colors.accent.gold + '15',
+    backgroundColor : colors.accent.gold + '12',
     borderRadius    : 6,
     paddingHorizontal: 6,
     paddingVertical : 2,
     borderWidth     : 1,
-    borderColor     : colors.accent.gold + '40',
+    borderColor     : colors.accent.gold + '30',
   },
   completionBadge: {
     borderWidth      : 1,
@@ -405,7 +408,7 @@ const sc = StyleSheet.create({
   },
   statusBadge: {
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 6,
     paddingHorizontal: 7,
     paddingVertical  : 3,
@@ -418,7 +421,7 @@ const sc = StyleSheet.create({
   },
   progressTrack: {
     height         : 4,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.border.divider,
     borderRadius   : 2,
     overflow       : 'hidden' as never,
   },

@@ -19,18 +19,18 @@ function Pagination({
   const end   = Math.min((page + 1) * PAGE_SIZE, total)
   return (
     <View style={pag.row}>
-      <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+      <AureakText variant="caption" style={{ color: colors.text.muted }}>
         {total > 0 ? `${start}–${end} sur ${total}` : '0 résultat'}
       </AureakText>
       <View style={pag.btnRow}>
         <Pressable style={[pag.btn, page === 0 && pag.btnDisabled]} onPress={onPrev} disabled={page === 0}>
-          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.secondary : colors.text.primary }}>←</AureakText>
+          <AureakText variant="caption" style={{ color: page === 0 ? colors.text.muted : colors.text.dark }}>←</AureakText>
         </Pressable>
-        <AureakText variant="caption" style={{ color: colors.text.secondary, paddingHorizontal: space.sm }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.sm }}>
           {page + 1} / {totalPages}
         </AureakText>
         <Pressable style={[pag.btn, end >= total && pag.btnDisabled]} onPress={onNext} disabled={end >= total}>
-          <AureakText variant="caption" style={{ color: end >= total ? colors.text.secondary : colors.text.primary }}>→</AureakText>
+          <AureakText variant="caption" style={{ color: end >= total ? colors.text.muted : colors.text.dark }}>→</AureakText>
         </Pressable>
       </View>
     </View>
@@ -39,7 +39,7 @@ function Pagination({
 const pag = StyleSheet.create({
   row       : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
   btnRow    : { flexDirection: 'row', alignItems: 'center' },
-  btn       : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background.surface },
+  btn       : { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.light.surface },
   btnDisabled: { opacity: 0.35 },
 })
 
@@ -101,9 +101,9 @@ export default function ClubsPage() {
       {/* ── Header ── */}
       <View style={styles.pageHeader}>
         <View>
-          <AureakText variant="h2">Clubs</AureakText>
+          <AureakText variant="h2" color={colors.accent.gold}>Clubs</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 2 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {total} club{total !== 1 ? 's' : ''}
             </AureakText>
           )}
@@ -123,7 +123,7 @@ export default function ClubsPage() {
           onChangeText={setSearchInput}
           onSubmitEditing={handleSearch}
           placeholder="Rechercher par nom, matricule, ville…"
-          placeholderTextColor={colors.text.secondary}
+          placeholderTextColor={colors.text.muted}
           returnKeyType="search"
         />
         <Pressable style={styles.searchBtn} onPress={handleSearch}>
@@ -136,7 +136,7 @@ export default function ClubsPage() {
             style={styles.clearBtn}
             onPress={() => { setSearch(''); setSearchInput('') }}
           >
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>✕</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
           </Pressable>
         )}
       </View>
@@ -154,7 +154,7 @@ export default function ClubsPage() {
               <AureakText
                 variant="caption"
                 style={{
-                  color     : partenaireFilter === t.key ? colors.accent.gold : colors.text.secondary,
+                  color     : partenaireFilter === t.key ? colors.accent.gold : colors.text.muted,
                   fontWeight: partenaireFilter === t.key ? '700' : '400',
                 }}
               >
@@ -175,7 +175,7 @@ export default function ClubsPage() {
               <AureakText
                 variant="caption"
                 style={{
-                  color     : actifFilter === t.key ? colors.accent.gold : colors.text.secondary,
+                  color     : actifFilter === t.key ? colors.accent.gold : colors.text.muted,
                   fontWeight: actifFilter === t.key ? '700' : '400',
                 }}
               >
@@ -194,7 +194,7 @@ export default function ClubsPage() {
         >
           <AureakText
             variant="caption"
-            style={{ color: provinceFilter === undefined ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}
+            style={{ color: provinceFilter === undefined ? colors.accent.gold : colors.text.muted, fontSize: 11 }}
           >
             Toutes provinces
           </AureakText>
@@ -207,7 +207,7 @@ export default function ClubsPage() {
           >
             <AureakText
               variant="caption"
-              style={{ color: provinceFilter === p ? colors.accent.gold : colors.text.secondary, fontSize: 11 }}
+              style={{ color: provinceFilter === p ? colors.accent.gold : colors.text.muted, fontSize: 11 }}
             >
               {p}
             </AureakText>
@@ -222,8 +222,8 @@ export default function ClubsPage() {
         </View>
       ) : clubs.length === 0 ? (
         <View style={styles.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.secondary }}>Aucun club</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.secondary, marginTop: 4 }}>
+          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun club</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
             Aucun club ne correspond aux critères sélectionnés.
           </AureakText>
         </View>
@@ -243,16 +243,16 @@ export default function ClubsPage() {
               <View style={[{ flex: 3 }, styles.td]}>
                 <AureakText variant="body" style={{ fontWeight: '600' }}>{club.nom}</AureakText>
                 {club.label && (
-                  <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
                     {club.label}
                   </AureakText>
                 )}
               </View>
-              <AureakText variant="caption" style={[styles.td, { width: 90, color: colors.text.secondary }]}>
+              <AureakText variant="caption" style={[styles.td, { width: 90, color: colors.text.muted }]}>
                 {club.matricule ?? '—'}
               </AureakText>
               <View style={[{ flex: 2 }, styles.td]}>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {[club.ville, club.province].filter(Boolean).join(' · ') || '—'}
                 </AureakText>
               </View>
@@ -292,7 +292,7 @@ export default function ClubsPage() {
 }
 
 const styles = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.background.primary },
+  container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
   pageHeader : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   newBtn     : {
@@ -306,20 +306,20 @@ const styles = StyleSheet.create({
   searchRow  : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   searchInput: {
     flex             : 1,
-    backgroundColor  : colors.background.surface,
+    backgroundColor  : colors.light.surface,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     borderRadius     : 7,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    color            : colors.text.primary,
+    color            : colors.text.dark,
     fontSize         : 13,
     fontFamily       : 'System',
   },
   searchBtn  : {
-    backgroundColor  : colors.background.elevated,
+    backgroundColor  : colors.light.muted,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
+    borderColor      : colors.border.light,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
     borderRadius     : 7,
@@ -331,8 +331,8 @@ const styles = StyleSheet.create({
     justifyContent  : 'center',
     borderRadius    : 6,
     borderWidth     : 1,
-    borderColor     : colors.accent.zinc,
-    backgroundColor : colors.background.surface,
+    borderColor     : colors.border.light,
+    backgroundColor : colors.light.surface,
   },
 
   // Filters
@@ -341,11 +341,11 @@ const styles = StyleSheet.create({
     flexDirection    : 'row',
     gap              : space.xs,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.divider,
     paddingBottom    : space.sm,
   },
   tab        : { paddingHorizontal: space.sm + 2, paddingVertical: 5, borderRadius: 5 },
-  tabActive  : { backgroundColor: colors.background.elevated },
+  tabActive  : { backgroundColor: colors.light.muted },
 
   // Province pills
   provinceRow: {
@@ -358,20 +358,20 @@ const styles = StyleSheet.create({
     paddingVertical  : 4,
     borderRadius     : 20,
     borderWidth      : 1,
-    borderColor      : colors.accent.zinc,
-    backgroundColor  : colors.background.surface,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.surface,
   },
   provincePillActive: {
     borderColor    : colors.accent.gold,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
   },
 
   // Table
   table      : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
     overflow       : 'hidden',
   },
   thead      : {
@@ -380,11 +380,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
-    backgroundColor  : colors.background.elevated,
+    borderBottomColor: colors.border.divider,
+    backgroundColor  : colors.light.muted,
   },
   th         : {
-    color        : colors.text.secondary,
+    color        : colors.text.muted,
     fontWeight   : '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -396,9 +396,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical  : space.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.accent.zinc,
+    borderBottomColor: colors.border.divider,
   },
-  trAlt      : { backgroundColor: colors.background.elevated },
+  trAlt      : { backgroundColor: colors.light.muted },
   td         : { paddingRight: space.sm },
   manageBtn  : {
     paddingHorizontal: space.sm,
@@ -412,18 +412,18 @@ const styles = StyleSheet.create({
   skeletonBox : { gap: space.xs },
   skeletonRow : {
     height         : 52,
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 6,
     opacity        : 0.5,
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
   emptyState  : {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius   : 10,
     padding        : space.xxl,
     alignItems     : 'center',
     borderWidth    : 1,
-    borderColor    : colors.accent.zinc,
+    borderColor    : colors.border.light,
   },
 })

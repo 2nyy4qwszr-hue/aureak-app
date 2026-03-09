@@ -19,7 +19,7 @@ type Grant = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -31,19 +31,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   grantCard: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     gap: space.sm,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
   },
   grantMeta: {
-    color: colors.text.secondary,
+    color: colors.text.muted,
   },
   empty: {
     textAlign: 'center',
-    color: colors.text.secondary,
+    color: colors.text.muted,
     marginTop: space.xl,
   },
 })

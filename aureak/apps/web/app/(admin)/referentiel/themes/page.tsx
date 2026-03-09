@@ -16,7 +16,7 @@ const LEVEL_LABEL: Record<string, string> = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -31,11 +31,11 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   themeCard: {
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -84,13 +84,13 @@ export default function ThemesPage() {
       </View>
 
       {loading && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
       {groupedThemes.map(({ group, themes: groupThemes }) => (
         groupThemes.length > 0 && (
           <View key={group.id} style={styles.groupSection}>
-            <AureakText variant="label" style={{ color: colors.text.secondary }}>
+            <AureakText variant="label" style={{ color: colors.text.muted }}>
               {group.name}
             </AureakText>
             {groupThemes.map((theme) => (
@@ -102,7 +102,7 @@ export default function ThemesPage() {
 
       {ungrouped.length > 0 && (
         <View style={styles.groupSection}>
-          <AureakText variant="label" style={{ color: colors.text.secondary }}>
+          <AureakText variant="label" style={{ color: colors.text.muted }}>
             Sans groupe
           </AureakText>
           {ungrouped.map((theme) => (
@@ -112,7 +112,7 @@ export default function ThemesPage() {
       )}
 
       {!loading && themes.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucun thème configuré.
         </AureakText>
       )}
@@ -122,10 +122,10 @@ export default function ThemesPage() {
 
 function ThemeCard({ theme, router }: { theme: Theme; router: ReturnType<typeof useRouter> }) {
   return (
-    <View style={StyleSheet.create({ c: { backgroundColor: colors.background.surface, borderRadius: 8, padding: space.md, borderWidth: 1, borderColor: colors.accent.zinc, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm } }).c}>
+    <View style={StyleSheet.create({ c: { backgroundColor: colors.light.surface, borderRadius: 8, padding: space.md, borderWidth: 1, borderColor: colors.border.light, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm } }).c}>
       <View style={{ flex: 1, gap: space.xs }}>
         <AureakText variant="label">{theme.name}</AureakText>
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
           {theme.themeKey} · v{theme.version}
         </AureakText>
         <View style={{ flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' }}>

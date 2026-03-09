@@ -25,7 +25,7 @@ type GrantForm = z.infer<typeof grantSchema>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     alignItems: 'center',
   },
   card: {
@@ -36,21 +36,21 @@ const styles = StyleSheet.create({
     marginTop: space.xl,
   },
   successBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.present,
     borderRadius: 4,
     padding: space.md,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
     borderRadius: 4,
     padding: space.md,
   },
   hint: {
-    color: colors.text.secondary,
+    color: colors.text.muted,
   },
 })
 

@@ -22,7 +22,7 @@ const LEVEL_LABEL: Record<string, string> = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
   },
   content: {
     padding: space.xl,
@@ -43,22 +43,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.background.surface,
+    backgroundColor: colors.light.surface,
     borderRadius: 8,
     padding: space.md,
     borderWidth: 1,
-    borderColor: colors.accent.zinc,
+    borderColor: colors.border.light,
     gap: space.sm,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
     borderRadius: 4,
     padding: space.md,
   },
   successBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.present,
     borderRadius: 4,
@@ -122,7 +122,7 @@ export default function ThemeDetailPage() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       </View>
     )
   }
@@ -157,28 +157,28 @@ export default function ThemeDetailPage() {
       <View style={styles.section}>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Clé</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Clé</AureakText>
             <AureakText variant="body">{theme.themeKey}</AureakText>
           </View>
           <View style={styles.metaItem}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>Version</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Version</AureakText>
             <AureakText variant="body">v{theme.version}</AureakText>
           </View>
           {theme.level && (
             <View style={styles.metaItem}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Niveau</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Niveau</AureakText>
               <AureakText variant="body">{LEVEL_LABEL[theme.level] ?? theme.level}</AureakText>
             </View>
           )}
           {theme.ageGroup && (
             <View style={styles.metaItem}>
-              <AureakText variant="caption" style={{ color: colors.text.secondary }}>Âge</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Âge</AureakText>
               <AureakText variant="body">{theme.ageGroup}</AureakText>
             </View>
           )}
         </View>
         {theme.description && (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
             {theme.description}
           </AureakText>
         )}
@@ -207,7 +207,7 @@ export default function ThemeDetailPage() {
             <View style={{ flex: 1, gap: space.xs }}>
               <AureakText variant="body">{seq.name}</AureakText>
               {seq.description && (
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
                   {seq.description}
                 </AureakText>
               )}
@@ -224,7 +224,7 @@ export default function ThemeDetailPage() {
           </View>
         ))}
         {sequences.length === 0 && (
-          <AureakText variant="body" style={{ color: colors.text.secondary }}>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
             Aucune séquence.
           </AureakText>
         )}

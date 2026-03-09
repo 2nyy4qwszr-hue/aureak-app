@@ -21,21 +21,21 @@ const situationSchema = z.object({
 type SituationForm = z.infer<typeof situationSchema>
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary, alignItems: 'center' },
+  container: { flex: 1, backgroundColor: colors.light.primary, alignItems: 'center' },
   card: { width: '100%', maxWidth: 560, padding: space.xl, gap: space.md, marginTop: space.xl },
   chipRow: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
   chip: {
     paddingHorizontal: space.md, paddingVertical: space.xs,
-    borderRadius: 20, borderWidth: 1, borderColor: colors.accent.zinc,
+    borderRadius: 20, borderWidth: 1, borderColor: colors.border.light,
     cursor: 'pointer' as never,
   },
-  chipSelected: { borderColor: colors.accent.gold, backgroundColor: colors.background.elevated },
+  chipSelected: { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
   successBanner: {
-    backgroundColor: colors.background.elevated, borderLeftWidth: 3,
+    backgroundColor: colors.light.muted, borderLeftWidth: 3,
     borderLeftColor: colors.status.present, borderRadius: 4, padding: space.md,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated, borderLeftWidth: 3,
+    backgroundColor: colors.light.muted, borderLeftWidth: 3,
     borderLeftColor: colors.status.absent, borderRadius: 4, padding: space.md,
   },
 })
@@ -159,7 +159,7 @@ export default function NewSituationScreen() {
                     >
                       <AureakText
                         variant="label"
-                        style={{ color: value === g.id ? colors.accent.gold : colors.text.secondary }}
+                        style={{ color: value === g.id ? colors.accent.gold : colors.text.muted }}
                       >
                         {g.name}
                       </AureakText>

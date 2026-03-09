@@ -13,7 +13,7 @@ import {
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Implantation, Group, GroupStaffWithName, Theme } from '@aureak/types'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -73,11 +73,11 @@ function SearchableSelect({
       >
         <AureakText
           variant="body"
-          style={{ flex: 1, color: selected ? colors.text.primary : colors.text.secondary, fontSize: 13 }}
+          style={{ flex: 1, color: selected ? colors.text.dark : colors.text.muted, fontSize: 13 }}
         >
           {selected?.label ?? placeholder}
         </AureakText>
-        <AureakText style={{ color: open ? colors.accent.gold : colors.text.secondary, fontSize: 11, marginLeft: space.xs }}>
+        <AureakText style={{ color: open ? colors.accent.gold : colors.text.muted, fontSize: 11, marginLeft: space.xs }}>
           {open ? '▴' : '▾'}
         </AureakText>
       </Pressable>
@@ -89,7 +89,7 @@ function SearchableSelect({
             value={q}
             onChangeText={setQ}
             placeholder="Rechercher…"
-            placeholderTextColor={colors.text.secondary}
+            placeholderTextColor={colors.text.muted}
             autoFocus
           />
           <ScrollView style={{ maxHeight: 220 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
@@ -99,14 +99,14 @@ function SearchableSelect({
                 style={[ss.option, o.id === value && ss.optionActive]}
                 onPress={() => { onSelect(o.id); setOpen(false); setQ('') }}
               >
-                <AureakText variant="body" style={{ color: o.id === value ? colors.accent.gold : colors.text.primary, fontSize: 13 }}>
+                <AureakText variant="body" style={{ color: o.id === value ? colors.accent.gold : colors.text.dark, fontSize: 13 }}>
                   {o.label}
                 </AureakText>
               </Pressable>
             ))}
             {filtered.length === 0 && (
               <View style={ss.option}>
-                <AureakText variant="caption" style={{ color: colors.text.secondary }}>Aucun résultat</AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun résultat</AureakText>
               </View>
             )}
           </ScrollView>
@@ -118,18 +118,18 @@ function SearchableSelect({
 
 const ss = StyleSheet.create({
   wrap         : { position: 'relative' as never },
-  trigger      : { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background.surface, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: space.sm + 2, minHeight: 44 },
+  trigger      : { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: space.sm + 2, minHeight: 44 },
   triggerDisabled: { opacity: 0.45 },
   dropdown     : {
     position: 'absolute' as never, top: '105%' as never, left: 0, right: 0,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderWidth: 1, borderColor: colors.accent.gold + '50',
     borderRadius: 8, marginTop: 2,
     ...(Platform.OS === 'web' ? { boxShadow: '0 8px 32px rgba(0,0,0,0.5)' } as never : {}),
   },
-  searchInput  : { borderBottomWidth: 1, borderBottomColor: colors.accent.zinc, paddingHorizontal: space.md, paddingVertical: space.sm, color: colors.text.primary, fontSize: 13 },
-  option       : { paddingHorizontal: space.md, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '25' },
-  optionActive : { backgroundColor: colors.background.surface },
+  searchInput  : { borderBottomWidth: 1, borderBottomColor: colors.border.light, paddingHorizontal: space.md, paddingVertical: space.sm, color: colors.text.dark, fontSize: 13 },
+  option       : { paddingHorizontal: space.md, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
+  optionActive : { backgroundColor: colors.light.surface },
 })
 
 // ── MiniCalendar ───────────────────────────────────────────────────────────────
@@ -168,13 +168,13 @@ function MiniCalendar({
       {/* Month nav */}
       <View style={mc.header}>
         <Pressable style={mc.navBtn} onPress={prevM}>
-          <AureakText style={{ color: colors.text.primary, fontSize: 20, lineHeight: 24 }}>‹</AureakText>
+          <AureakText style={{ color: colors.text.dark, fontSize: 20, lineHeight: 24 }}>‹</AureakText>
         </Pressable>
-        <AureakText variant="body" style={{ color: colors.text.primary, fontWeight: '700' as never }}>
+        <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
           {MONTHS_FR[viewMonth]} {viewYear}
         </AureakText>
         <Pressable style={mc.navBtn} onPress={nextM}>
-          <AureakText style={{ color: colors.text.primary, fontSize: 20, lineHeight: 24 }}>›</AureakText>
+          <AureakText style={{ color: colors.text.dark, fontSize: 20, lineHeight: 24 }}>›</AureakText>
         </Pressable>
       </View>
 
@@ -182,7 +182,7 @@ function MiniCalendar({
       <View style={mc.weekRow}>
         {DAYS_FR.map(d => (
           <View key={d} style={mc.dayLabel}>
-            <AureakText style={{ fontSize: 10, color: colors.text.secondary, fontWeight: '700' as never }}>{d}</AureakText>
+            <AureakText style={{ fontSize: 10, color: colors.text.muted, fontWeight: '700' as never }}>{d}</AureakText>
           </View>
         ))}
       </View>
@@ -222,7 +222,7 @@ function MiniCalendar({
             }
           </AureakText>
           <Pressable onPress={onClear} style={mc.clearBtn}>
-            <AureakText variant="caption" style={{ color: colors.text.secondary }}>✕ Effacer</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>✕ Effacer</AureakText>
           </Pressable>
         </View>
       )}
@@ -231,18 +231,18 @@ function MiniCalendar({
 }
 
 const mc = StyleSheet.create({
-  container: { backgroundColor: colors.background.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.accent.zinc, overflow: 'hidden' },
-  header   : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.md, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc, backgroundColor: colors.background.elevated },
+  container: { backgroundColor: colors.light.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, overflow: 'hidden' },
+  header   : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.md, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border.light, backgroundColor: colors.light.muted },
   navBtn   : { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 6 },
-  weekRow  : { flexDirection: 'row', backgroundColor: colors.background.elevated + 'AA', borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '40' },
+  weekRow  : { flexDirection: 'row', backgroundColor: colors.light.muted + 'AA', borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   dayLabel : { flex: 1, alignItems: 'center', paddingVertical: 6 },
   grid     : { flexDirection: 'row', flexWrap: 'wrap', padding: 4 },
   cell     : { width: `${100 / 7}%` as never, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
   cellSel  : { backgroundColor: colors.accent.gold },
   cellToday: { borderWidth: 1.5, borderColor: colors.accent.gold },
-  cellText : { fontSize: 13, color: colors.text.primary },
-  footer   : { flexDirection: 'row', alignItems: 'center', padding: space.sm, borderTopWidth: 1, borderTopColor: colors.accent.zinc, backgroundColor: colors.background.elevated + '70', gap: space.sm },
-  clearBtn : { paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: 5, borderWidth: 1, borderColor: colors.accent.zinc },
+  cellText : { fontSize: 13, color: colors.text.dark },
+  footer   : { flexDirection: 'row', alignItems: 'center', padding: space.sm, borderTopWidth: 1, borderTopColor: colors.border.light, backgroundColor: colors.light.muted + '70', gap: space.sm },
+  clearBtn : { paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: 5, borderWidth: 1, borderColor: colors.border.light },
 })
 
 // ── Step indicator ─────────────────────────────────────────────────────────────
@@ -265,11 +265,11 @@ function StepBar({ current }: { current: Step }) {
           <React.Fragment key={n}>
             <View style={sb.item}>
               <View style={[sb.dot, done && sb.dotDone, active && sb.dotActive]}>
-                <AureakText style={{ fontSize: 11, fontWeight: '700' as never, color: (done || active) ? colors.text.dark : colors.text.secondary }}>
+                <AureakText style={{ fontSize: 11, fontWeight: '700' as never, color: (done || active) ? colors.text.dark : colors.text.muted }}>
                   {done ? '✓' : n}
                 </AureakText>
               </View>
-              <AureakText style={{ fontSize: 10, color: active ? colors.accent.gold : done ? colors.text.primary : colors.text.secondary, marginTop: 3 }}>
+              <AureakText style={{ fontSize: 10, color: active ? colors.accent.gold : done ? colors.text.dark : colors.text.muted, marginTop: 3 }}>
                 {label}
               </AureakText>
             </View>
@@ -286,11 +286,11 @@ function StepBar({ current }: { current: Step }) {
 const sb = StyleSheet.create({
   row     : { flexDirection: 'row', alignItems: 'center', paddingVertical: space.md },
   item    : { alignItems: 'center', gap: 2 },
-  dot     : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.background.surface, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', justifyContent: 'center' },
+  dot     : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' },
   dotActive: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
-  dotDone  : { backgroundColor: colors.text.primary, borderColor: colors.text.primary },
-  line    : { flex: 1, height: 1, backgroundColor: colors.accent.zinc, marginBottom: 14 },
-  lineDone: { backgroundColor: colors.text.primary },
+  dotDone  : { backgroundColor: colors.text.dark, borderColor: colors.text.dark },
+  line    : { flex: 1, height: 1, backgroundColor: colors.border.light, marginBottom: 14 },
+  lineDone: { backgroundColor: colors.text.dark },
 })
 
 // ── Chip group ─────────────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ function ChipPicker({ options, value, onSelect }: { options: string[]; value: st
         const active = value === o
         return (
           <Pressable key={o} style={[cp.chip, active && cp.chipActive]} onPress={() => onSelect(o)}>
-            <AureakText style={{ fontSize: 12, color: active ? colors.text.dark : colors.text.secondary, fontWeight: active ? '600' as never : '400' as never }}>
+            <AureakText style={{ fontSize: 12, color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '600' as never : '400' as never }}>
               {o}
             </AureakText>
           </Pressable>
@@ -319,7 +319,7 @@ function NumChips({ values, selected, onSelect, fmt }: { values: number[]; selec
         const active = selected === v
         return (
           <Pressable key={v} style={[cp.chip, active && cp.chipActive]} onPress={() => onSelect(v)}>
-            <AureakText style={{ fontSize: 12, color: active ? colors.text.dark : colors.text.secondary, fontWeight: active ? '600' as never : '400' as never }}>
+            <AureakText style={{ fontSize: 12, color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '600' as never : '400' as never }}>
               {fmt(v)}
             </AureakText>
           </Pressable>
@@ -330,7 +330,7 @@ function NumChips({ values, selected, onSelect, fmt }: { values: number[]; selec
 }
 
 const cp = StyleSheet.create({
-  chip      : { paddingHorizontal: space.sm + 2, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.zinc, backgroundColor: colors.background.surface },
+  chip      : { paddingHorizontal: space.sm + 2, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.surface },
   chipActive: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 })
 
@@ -350,22 +350,22 @@ function GroupCard({
       <View style={gc.stripe} />
       <View style={gc.body}>
         <View style={gc.row}>
-          <AureakText variant="body" style={{ fontWeight: '700' as never, color: colors.text.primary, fontSize: 14 }}>{group.name}</AureakText>
+          <AureakText variant="body" style={{ fontWeight: '700' as never, color: colors.text.dark, fontSize: 14 }}>{group.name}</AureakText>
           {group.method && (
             <View style={gc.methodTag}>
               <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontWeight: '600' as never }}>{group.method}</AureakText>
             </View>
           )}
         </View>
-        <AureakText variant="caption" style={{ color: colors.text.secondary }}>{implantationName}</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>{implantationName}</AureakText>
         <View style={gc.row}>
-          {hour && <AureakText variant="caption" style={{ color: colors.text.secondary }}>⏱ {hour}</AureakText>}
-          {group.durationMinutes && <AureakText variant="caption" style={{ color: colors.text.secondary, marginLeft: space.sm }}>· {group.durationMinutes} min</AureakText>}
+          {hour && <AureakText variant="caption" style={{ color: colors.text.muted }}>⏱ {hour}</AureakText>}
+          {group.durationMinutes && <AureakText variant="caption" style={{ color: colors.text.muted, marginLeft: space.sm }}>· {group.durationMinutes} min</AureakText>}
         </View>
         {(lead || asst) && (
           <View style={gc.row}>
-            {lead && <AureakText variant="caption" style={{ color: colors.text.secondary }}>👤 {lead.coachName}</AureakText>}
-            {asst && <AureakText variant="caption" style={{ color: colors.text.secondary, marginLeft: space.sm }}>· Asst: {asst.coachName}</AureakText>}
+            {lead && <AureakText variant="caption" style={{ color: colors.text.muted }}>👤 {lead.coachName}</AureakText>}
+            {asst && <AureakText variant="caption" style={{ color: colors.text.muted, marginLeft: space.sm }}>· Asst: {asst.coachName}</AureakText>}
           </View>
         )}
       </View>
@@ -374,7 +374,7 @@ function GroupCard({
 }
 
 const gc = StyleSheet.create({
-  card     : { flexDirection: 'row', backgroundColor: colors.background.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.accent.zinc, overflow: 'hidden' },
+  card     : { flexDirection: 'row', backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, overflow: 'hidden' },
   stripe   : { width: 3, backgroundColor: colors.accent.gold },
   body     : { flex: 1, padding: space.md, gap: 4 },
   row      : { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.xs },
@@ -386,10 +386,10 @@ const gc = StyleSheet.create({
 function SectionLabel({ title, hint }: { title: string; hint?: string }) {
   return (
     <View style={{ marginBottom: space.xs }}>
-      <AureakText style={{ fontSize: 10, fontWeight: '700' as never, letterSpacing: 0.8, color: colors.text.secondary, textTransform: 'uppercase' as never }}>
+      <AureakText style={{ fontSize: 10, fontWeight: '700' as never, letterSpacing: 0.8, color: colors.text.muted, textTransform: 'uppercase' as never }}>
         {title}
       </AureakText>
-      {hint && <AureakText variant="caption" style={{ color: colors.text.secondary, fontSize: 11, marginTop: 2 }}>{hint}</AureakText>}
+      {hint && <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 2 }}>{hint}</AureakText>}
     </View>
   )
 }
@@ -406,9 +406,9 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   )
 }
 const sr = StyleSheet.create({
-  row  : { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.accent.zinc + '25' },
-  label: { width: 130, fontSize: 11, color: colors.text.secondary, paddingTop: 1 },
-  value: { flex: 1, fontSize: 13, color: colors.text.primary },
+  row  : { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
+  label: { width: 130, fontSize: 11, color: colors.text.muted, paddingTop: 1 },
+  value: { flex: 1, fontSize: 13, color: colors.text.dark },
 })
 
 // ── Main page ──────────────────────────────────────────────────────────────────
@@ -574,7 +574,7 @@ export default function NewSessionPage() {
           <AureakText style={{ fontSize: 44, textAlign: 'center' as never }}>
             {result.failed === 0 ? '✅' : result.created > 0 ? '⚠️' : '❌'}
           </AureakText>
-          <AureakText variant="h2" style={{ textAlign: 'center' as never, color: colors.text.primary, marginTop: space.md }}>
+          <AureakText variant="h2" style={{ textAlign: 'center' as never, color: colors.text.dark, marginTop: space.md }}>
             {result.created} session{result.created !== 1 ? 's' : ''} créée{result.created !== 1 ? 's' : ''}
           </AureakText>
           {result.failed > 0 && (
@@ -582,7 +582,7 @@ export default function NewSessionPage() {
               {result.failed} échec{result.failed !== 1 ? 's' : ''}
             </AureakText>
           )}
-          <AureakText variant="caption" style={{ color: colors.text.secondary, textAlign: 'center' as never, marginTop: space.sm }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center' as never, marginTop: space.sm }}>
             {selectedGroup?.name} · {selectedDates.length} date{selectedDates.length !== 1 ? 's' : ''}
           </AureakText>
           <View style={p.resultActions}>
@@ -590,7 +590,7 @@ export default function NewSessionPage() {
               style={[p.btn, p.btnSecondary]}
               onPress={() => { setResult(null); setStep(1); setGroupId(''); setImplantationId(''); setSelectedDates([]) }}
             >
-              <AureakText variant="body" style={{ color: colors.text.primary }}>Nouvelle séance</AureakText>
+              <AureakText variant="body" style={{ color: colors.text.dark }}>Nouvelle séance</AureakText>
             </Pressable>
             <Pressable style={[p.btn, p.btnPrimary]} onPress={() => router.push('/(admin)/sessions' as never)}>
               <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>Voir les sessions →</AureakText>
@@ -607,7 +607,7 @@ export default function NewSessionPage() {
       {/* Title bar */}
       <View style={p.titleRow}>
         <Pressable onPress={() => router.back()} style={p.backBtn}>
-          <AureakText variant="caption" style={{ color: colors.text.secondary }}>← Retour</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
         </Pressable>
         <AureakText variant="h2">Nouvelle séance</AureakText>
       </View>
@@ -651,7 +651,7 @@ export default function NewSessionPage() {
                 />
                 {!loadingImplantations && implantOpts.length === 0 && (
                   <View style={p.infoNote}>
-                    <AureakText variant="caption" style={{ color: colors.text.secondary }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
                       Aucune implantation configurée.{' '}
                       <AureakText
                         variant="caption"
@@ -729,7 +729,7 @@ export default function NewSessionPage() {
                     if (single && selectedDates.length > 1) setSelectedDates(d => [d[0]])
                   }}
                 >
-                  <AureakText style={{ textAlign: 'center' as never, fontSize: 13, color: singleMode === single ? colors.text.dark : colors.text.secondary, fontWeight: singleMode === single ? '700' as never : '400' as never }}>
+                  <AureakText style={{ textAlign: 'center' as never, fontSize: 13, color: singleMode === single ? colors.text.dark : colors.text.muted, fontWeight: singleMode === single ? '700' as never : '400' as never }}>
                     {single ? '📅  Séance unique' : '📆  Plusieurs dates'}
                   </AureakText>
                 </Pressable>
@@ -767,7 +767,7 @@ export default function NewSessionPage() {
 
           <View style={p.navRow}>
             <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(1)}>
-              <AureakText variant="body" style={{ color: colors.text.primary }}>← Retour</AureakText>
+              <AureakText variant="body" style={{ color: colors.text.dark }}>← Retour</AureakText>
             </Pressable>
             <Pressable
               style={[p.btn, p.btnPrimary, !step2Valid && p.btnDisabled]}
@@ -817,7 +817,7 @@ export default function NewSessionPage() {
 
             {/* Remplacement — future workflow anchor */}
             <View style={p.infoNote}>
-              <AureakText style={{ fontSize: 11, color: colors.text.secondary }}>
+              <AureakText style={{ fontSize: 11, color: colors.text.muted }}>
                 💡 <AureakText style={{ fontWeight: '600' as never }}>Remplacement coach</AureakText> — si un coach est indisponible, le déclenchement du remplacement sera accessible depuis la fiche session.
               </AureakText>
             </View>
@@ -833,7 +833,7 @@ export default function NewSessionPage() {
                 value={customTerrain}
                 onChangeText={setCustomTerrain}
                 placeholder="Nom du terrain ou lieu…"
-                placeholderTextColor={colors.text.secondary}
+                placeholderTextColor={colors.text.muted}
               />
             )}
           </View>
@@ -855,7 +855,7 @@ export default function NewSessionPage() {
 
           <View style={p.navRow}>
             <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(2)}>
-              <AureakText variant="body" style={{ color: colors.text.primary }}>← Retour</AureakText>
+              <AureakText variant="body" style={{ color: colors.text.dark }}>← Retour</AureakText>
             </Pressable>
             <Pressable style={[p.btn, p.btnPrimary]} onPress={() => setStep(4)}>
               <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
@@ -888,10 +888,10 @@ export default function NewSessionPage() {
           <View style={p.card}>
             <SectionLabel title="Dates planifiées" />
             {[...selectedDates].sort().map((d, i) => (
-              <View key={d} style={[p.dateRow, i % 2 === 1 && { backgroundColor: colors.background.elevated }]}>
-                <AureakText style={{ fontSize: 11, color: colors.text.secondary, width: 24 }}>{i + 1}.</AureakText>
-                <AureakText style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>{formatDateFull(d)}</AureakText>
-                <AureakText style={{ fontSize: 12, color: colors.text.secondary }}>
+              <View key={d} style={[p.dateRow, i % 2 === 1 && { backgroundColor: colors.light.muted }]}>
+                <AureakText style={{ fontSize: 11, color: colors.text.muted, width: 24 }}>{i + 1}.</AureakText>
+                <AureakText style={{ flex: 1, fontSize: 13, color: colors.text.dark }}>{formatDateFull(d)}</AureakText>
+                <AureakText style={{ fontSize: 12, color: colors.text.muted }}>
                   {String(startHour).padStart(2, '0')}h{String(startMinute).padStart(2, '0')}
                 </AureakText>
               </View>
@@ -900,7 +900,7 @@ export default function NewSessionPage() {
 
           <View style={p.navRow}>
             <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(3)}>
-              <AureakText variant="body" style={{ color: colors.text.primary }}>← Modifier</AureakText>
+              <AureakText variant="body" style={{ color: colors.text.dark }}>← Modifier</AureakText>
             </Pressable>
             <Pressable
               style={[p.btn, p.btnCreate, creating && p.btnDisabled]}
@@ -924,35 +924,35 @@ export default function NewSessionPage() {
 // ── Styles ─────────────────────────────────────────────────────────────────────
 
 const p = StyleSheet.create({
-  container   : { flex: 1, backgroundColor: colors.background.primary },
+  container   : { flex: 1, backgroundColor: colors.light.primary },
   content     : { padding: space.xl, gap: space.md, paddingBottom: space.xxxl },
 
   titleRow    : { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingBottom: space.xs },
   backBtn     : { paddingRight: space.xs },
 
   stepWrap    : { gap: space.md },
-  card        : { backgroundColor: colors.background.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.accent.zinc, padding: space.md, gap: space.sm },
+  card        : { backgroundColor: colors.light.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, padding: space.md, gap: space.sm },
   // Cards containing SearchableSelect dropdowns need overflow visible so the dropdown
   // is not clipped by the card's border-radius on React Native web
   cardWithDropdown: { overflow: 'visible' as never },
   errorBox    : { padding: space.sm, borderRadius: 6, backgroundColor: '#ef444420', borderWidth: 1, borderColor: '#ef444440' },
-  fieldLabel  : { fontSize: 10, fontWeight: '600' as never, letterSpacing: 0.5, color: colors.text.secondary, textTransform: 'uppercase' as never, marginBottom: 4 },
-  textInput   : { backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.accent.zinc, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: space.sm, color: colors.text.primary, fontSize: 13 },
-  infoNote    : { backgroundColor: colors.background.elevated, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.accent.zinc + '60', marginTop: space.xs },
+  fieldLabel  : { fontSize: 10, fontWeight: '600' as never, letterSpacing: 0.5, color: colors.text.muted, textTransform: 'uppercase' as never, marginBottom: 4 },
+  textInput   : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: space.sm, color: colors.text.dark, fontSize: 13 },
+  infoNote    : { backgroundColor: colors.light.muted, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.border.light, marginTop: space.xs },
 
   modeRow     : { flexDirection: 'row', gap: space.sm },
-  modeBtn     : { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.accent.zinc, alignItems: 'center', backgroundColor: colors.background.elevated },
+  modeBtn     : { flex: 1, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', backgroundColor: colors.light.muted },
   modeBtnActive: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 
   navRow      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.xs },
   btn         : { paddingHorizontal: space.lg, paddingVertical: space.sm + 4, borderRadius: 8, minWidth: 110, alignItems: 'center' },
   btnPrimary  : { backgroundColor: colors.accent.gold },
-  btnSecondary: { backgroundColor: colors.background.surface, borderWidth: 1, borderColor: colors.accent.zinc },
+  btnSecondary: { backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light },
   btnCreate   : { backgroundColor: colors.accent.gold, paddingHorizontal: space.xl },
   btnDisabled : { opacity: 0.4 },
 
   dateRow     : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.xs, paddingVertical: 9, borderRadius: 6, gap: space.xs },
 
-  resultCard   : { backgroundColor: colors.background.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.accent.zinc, padding: space.xxl, alignItems: 'center', marginTop: space.xl },
+  resultCard   : { backgroundColor: colors.light.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border.light, padding: space.xxl, alignItems: 'center', marginTop: space.xl },
   resultActions: { flexDirection: 'row', gap: space.md, marginTop: space.lg },
 })

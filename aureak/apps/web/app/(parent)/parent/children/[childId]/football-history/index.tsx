@@ -19,7 +19,7 @@ const AGE_CATEGORIES = FOOTBALL_AGE_CATEGORIES
 const TEAM_LEVELS    = FOOTBALL_TEAM_LEVELS
 
 const TEAM_LEVEL_COLOR: Record<FootballTeamLevel, string> = {
-  'Provinciaux'      : colors.text.secondary,
+  'Provinciaux'      : colors.text.muted,
   'Interprovinciaux' : colors.status.attention,
   'Régionaux'        : '#7C8CF8',
   'Nationaux'        : colors.accent.gold,
@@ -60,7 +60,7 @@ const EMPTY_FORM: FormState = {
 function Skeleton() {
   return (
     <div style={S.page}>
-      <style>{`@keyframes fh-p{0%,100%{opacity:.12}50%{opacity:.35}} .fh-sk{background:${colors.background.elevated};border-radius:6px;animation:fh-p 1.9s ease-in-out infinite}`}</style>
+      <style>{`@keyframes fh-p{0%,100%{opacity:.12}50%{opacity:.35}} .fh-sk{background:${colors.light.muted};border-radius:6px;animation:fh-p 1.9s ease-in-out infinite}`}</style>
       <div className="fh-sk" style={{ height: 13, width: 120, marginBottom: 20 }} />
       <div className="fh-sk" style={{ height: 28, width: 260, marginBottom: 24 }} />
       <div className="fh-sk" style={{ height: 120, marginBottom: 16 }} />
@@ -85,7 +85,7 @@ function SeasonBadge({ season }: { season: string }) {
 
 // ── LevelBadge ────────────────────────────────────────────────────────────────
 function LevelBadge({ level }: { level: FootballTeamLevel | null }) {
-  if (!level) return <span style={{ fontSize: 12, color: colors.text.secondary }}>–</span>
+  if (!level) return <span style={{ fontSize: 12, color: colors.text.muted }}>–</span>
   const c = TEAM_LEVEL_COLOR[level]
   return (
     <span style={{
@@ -111,9 +111,9 @@ function AffiliationBadge({ value }: { value: boolean }) {
   ) : (
     <span style={{
       fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
-      backgroundColor: colors.background.elevated,
-      border: `1px solid ${colors.accent.zinc}`,
-      color: colors.text.secondary,
+      backgroundColor: colors.light.muted,
+      border: `1px solid ${colors.border.light}`,
+      color: colors.text.muted,
     }}>
       Non affilié
     </span>
@@ -215,7 +215,7 @@ function HistoryModal({
 
           {/* Niveau d'équipe */}
           <div style={S.field}>
-            <label style={S.label}>Niveau d'équipe <span style={{ color: colors.text.secondary, fontWeight: 400 }}>(optionnel)</span></label>
+            <label style={S.label}>Niveau d'équipe <span style={{ color: colors.text.muted, fontWeight: 400 }}>(optionnel)</span></label>
             <select
               value={form.teamLevel}
               onChange={e => set('teamLevel', e.target.value as FootballTeamLevel | '')}
@@ -234,14 +234,14 @@ function HistoryModal({
           <label style={S.checkRow} onClick={() => set('isAffiliated', !form.isAffiliated)}>
             <div style={{
               ...S.checkbox,
-              backgroundColor : form.isAffiliated ? colors.status.present : colors.background.elevated,
-              borderColor     : form.isAffiliated ? colors.status.present : colors.accent.zinc,
+              backgroundColor : form.isAffiliated ? colors.status.present : colors.light.muted,
+              borderColor     : form.isAffiliated ? colors.status.present : colors.border.light,
             }}>
               {form.isAffiliated && <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}>✓</span>}
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: colors.text.primary }}>Affiliation officielle</div>
-              <div style={{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: colors.text.dark }}>Affiliation officielle</div>
+              <div style={{ fontSize: 12, color: colors.text.muted, marginTop: 2 }}>
                 Le joueur était officiellement affilié à ce club cette saison
               </div>
             </div>
@@ -250,7 +250,7 @@ function HistoryModal({
 
         {/* Notes */}
         <div style={{ ...S.field, marginTop: 16 }}>
-          <label style={S.label}>Notes <span style={{ color: colors.text.secondary, fontWeight: 400 }}>(optionnel)</span></label>
+          <label style={S.label}>Notes <span style={{ color: colors.text.muted, fontWeight: 400 }}>(optionnel)</span></label>
           <textarea
             value={form.notes}
             onChange={e => set('notes', e.target.value)}
@@ -377,9 +377,9 @@ export default function FootballHistoryPage() {
         <div style={{ fontSize: 13, color: colors.accent.gold, fontWeight: 700, marginBottom: 4 }}>
           Deux notions distinctes
         </div>
-        <div style={{ fontSize: 12, color: colors.text.secondary, lineHeight: 1.6 }}>
-          <strong style={{ color: colors.text.primary }}>Club lié dans l'app</strong> — le club partenaire qui suit le gardien dans AUREAK (accès opérationnel).<br/>
-          <strong style={{ color: colors.text.primary }}>Historique d'affiliation</strong> — les clubs auxquels le joueur était rattaché officiellement chaque saison (indépendant de l'app).
+        <div style={{ fontSize: 12, color: colors.text.muted, lineHeight: 1.6 }}>
+          <strong style={{ color: colors.text.dark }}>Club lié dans l'app</strong> — le club partenaire qui suit le gardien dans AUREAK (accès opérationnel).<br/>
+          <strong style={{ color: colors.text.dark }}>Historique d'affiliation</strong> — les clubs auxquels le joueur était rattaché officiellement chaque saison (indépendant de l'app).
         </div>
       </div>
 
@@ -388,7 +388,7 @@ export default function FootballHistoryPage() {
         <div style={S.empty}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>⚽</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Aucune saison enregistrée</div>
-          <div style={{ fontSize: 13, color: colors.text.secondary, marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: colors.text.muted, marginBottom: 20 }}>
             Documentez le parcours football de votre joueur saison par saison.
           </div>
           <button style={S.btnPrimary} onClick={() => setModal({ mode: 'create' })}>
@@ -400,14 +400,14 @@ export default function FootballHistoryPage() {
           {history.map((entry, i) => (
             <div key={entry.id} className="fh-row" style={{
               ...S.timelineRow,
-              borderBottom: i < history.length - 1 ? `1px solid ${colors.accent.zinc}` : 'none',
+              borderBottom: i < history.length - 1 ? `1px solid ${colors.border.light}` : 'none',
             }}>
               {/* Timeline dot */}
               <div style={S.dot}>
                 <div style={{
                   ...S.dotInner,
-                  backgroundColor: entry.isAffiliated ? colors.status.present : colors.background.elevated,
-                  borderColor    : entry.isAffiliated ? colors.status.present : colors.accent.zinc,
+                  backgroundColor: entry.isAffiliated ? colors.status.present : colors.light.muted,
+                  borderColor    : entry.isAffiliated ? colors.status.present : colors.border.light,
                 }} />
                 {i < history.length - 1 && <div style={S.dotLine} />}
               </div>
@@ -478,49 +478,49 @@ export default function FootballHistoryPage() {
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 const S: Record<string, React.CSSProperties> = {
-  page     : { padding: '24px 30px', backgroundColor: colors.background.primary, minHeight: '100vh', color: colors.text.primary, maxWidth: 760 },
-  back     : { fontSize: 13, color: colors.text.secondary, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 18, display: 'block', transition: 'color 0.15s' },
+  page     : { padding: '24px 30px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 760 },
+  back     : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 18, display: 'block', transition: 'color 0.15s' },
   header   : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   pageTitle: { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 4px', letterSpacing: '0.02em' },
-  pageSubtitle: { fontSize: 13, color: colors.text.secondary, margin: 0 },
+  pageSubtitle: { fontSize: 13, color: colors.text.muted, margin: 0 },
 
   infoBox  : { padding: '14px 16px', borderRadius: 10, marginBottom: 24, backgroundColor: 'rgba(193,172,92,0.04)', border: `1px solid ${colors.accent.gold}30` },
 
   // Timeline
-  timeline       : { display: 'flex', flexDirection: 'column' as const, backgroundColor: colors.background.surface, borderRadius: 12, border: `1px solid ${colors.accent.zinc}`, overflow: 'hidden' },
+  timeline       : { display: 'flex', flexDirection: 'column' as const, backgroundColor: colors.light.surface, borderRadius: 12, border: `1px solid ${colors.border.light}`, overflow: 'hidden' },
   timelineRow    : { display: 'flex', gap: 0, padding: '0 0', transition: 'background 0.12s' },
   dot            : { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', padding: '20px 0 0 20px', flexShrink: 0, width: 36 },
   dotInner       : { width: 12, height: 12, borderRadius: '50%', border: '2px solid', flexShrink: 0 },
-  dotLine        : { width: 2, flex: 1, backgroundColor: colors.accent.zinc, margin: '6px 0', minHeight: 24 },
+  dotLine        : { width: 2, flex: 1, backgroundColor: colors.border.light, margin: '6px 0', minHeight: 24 },
   timelineContent: { flex: 1, padding: '18px 20px 18px 12px', minWidth: 0 },
   timelineTop    : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   clubRow        : { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const, marginBottom: 6 },
-  clubName       : { fontSize: 16, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', color: colors.text.primary, letterSpacing: '0.01em' },
-  catBadge       : { fontSize: 12, fontWeight: 700, padding: '2px 7px', borderRadius: 4, backgroundColor: colors.background.elevated, border: `1px solid ${colors.accent.zinc}`, color: colors.text.secondary },
-  notes          : { fontSize: 13, color: colors.text.secondary, fontStyle: 'italic', lineHeight: 1.5, marginTop: 4 },
-  iconBtn        : { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: colors.text.secondary, padding: '2px 6px', borderRadius: 4, transition: 'color 0.12s', lineHeight: 1 },
+  clubName       : { fontSize: 16, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark, letterSpacing: '0.01em' },
+  catBadge       : { fontSize: 12, fontWeight: 700, padding: '2px 7px', borderRadius: 4, backgroundColor: colors.light.muted, border: `1px solid ${colors.border.light}`, color: colors.text.muted },
+  notes          : { fontSize: 13, color: colors.text.muted, fontStyle: 'italic', lineHeight: 1.5, marginTop: 4 },
+  iconBtn        : { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: colors.text.muted, padding: '2px 6px', borderRadius: 4, transition: 'color 0.12s', lineHeight: 1 },
 
-  empty  : { backgroundColor: colors.background.surface, borderRadius: 12, border: `1px solid ${colors.accent.zinc}`, padding: '48px 24px', textAlign: 'center' as const },
+  empty  : { backgroundColor: colors.light.surface, borderRadius: 12, border: `1px solid ${colors.border.light}`, padding: '48px 24px', textAlign: 'center' as const },
 
   // Modal
   backdrop    : { position: 'fixed' as const, inset: 0, backgroundColor: 'rgba(0,0,0,0.70)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' },
-  modal       : { backgroundColor: colors.background.elevated, borderRadius: 14, border: `1px solid ${colors.accent.zinc}`, padding: '28px 28px 24px', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' as const },
+  modal       : { backgroundColor: colors.light.muted, borderRadius: 14, border: `1px solid ${colors.border.light}`, padding: '28px 28px 24px', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' as const },
   modalHeader : { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   modalTitle  : { fontSize: 20, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, letterSpacing: '0.02em' },
-  closeBtn    : { background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: colors.text.secondary, padding: '4px', borderRadius: 4 },
+  closeBtn    : { background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: colors.text.muted, padding: '4px', borderRadius: 4 },
   modalActions: { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 },
   errorBanner : { padding: '10px 14px', borderRadius: 8, marginBottom: 16, backgroundColor: 'rgba(244,67,54,0.08)', border: `1px solid ${colors.status.absent}30`, fontSize: 13, color: colors.status.absent },
 
   // Form
   fieldGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 16px' },
   field    : { display: 'flex', flexDirection: 'column' as const, gap: 6 },
-  label    : { fontSize: 11, fontWeight: 700, color: colors.text.secondary, textTransform: 'uppercase' as const, letterSpacing: '0.08em' },
-  input    : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.surface, color: colors.text.primary, fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' as const, fontFamily: 'Geist, sans-serif' },
-  select   : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.accent.zinc}`, backgroundColor: colors.background.surface, color: colors.text.primary, fontSize: 14, outline: 'none', cursor: 'pointer' },
+  label    : { fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase' as const, letterSpacing: '0.08em' },
+  input    : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' as const, fontFamily: 'Geist, sans-serif' },
+  select   : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: 14, outline: 'none', cursor: 'pointer' },
   checkRow : { display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' as const },
   checkbox : { width: 20, height: 20, borderRadius: 5, border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1, transition: 'all 0.15s' },
 
   // Buttons
   btnPrimary: { padding: '10px 18px', borderRadius: 8, border: `1px solid ${colors.accent.gold}`, backgroundColor: 'rgba(193,172,92,0.12)', color: colors.accent.gold, fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.03em' },
-  btnGhost  : { padding: '10px 16px', borderRadius: 8, border: `1px solid ${colors.accent.zinc}`, backgroundColor: 'transparent', color: colors.text.secondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  btnGhost  : { padding: '10px 16px', borderRadius: 8, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 }

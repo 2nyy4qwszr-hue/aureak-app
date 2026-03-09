@@ -9,7 +9,7 @@ import { colors, space } from '@aureak/theme'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.light.primary,
     alignItems: 'center',
   },
   card: {
@@ -27,14 +27,14 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   errorBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.absent,
     borderRadius: 4,
     padding: space.md,
   },
   successBanner: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.present,
     borderRadius: 4,
@@ -91,7 +91,7 @@ export default function UserDetailScreen() {
         />
 
         <AureakText variant="h2">Gestion du compte</AureakText>
-        <AureakText variant="body" style={{ color: colors.text.secondary }}>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
           ID : {id}
         </AureakText>
 
