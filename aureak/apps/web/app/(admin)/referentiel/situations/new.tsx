@@ -4,18 +4,18 @@ import { useRouter } from 'expo-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createSituation, listSituationGroups } from '@aureak/api-client'
+import { createSituation, listThemeGroups } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { SituationGroup } from '@aureak/types'
+import type { ThemeGroup } from '@aureak/types'
 
 const situationSchema = z.object({
   situationKey: z.string().min(1, 'Requis').regex(/^[a-z0-9-]+$/, 'Slug : minuscules, chiffres et tirets uniquement'),
   name        : z.string().min(1, 'Requis'),
   description : z.string().optional(),
-  groupId     : z.string().uuid().optional().or(z.literal('')),
+  blocId      : z.string().uuid().optional().or(z.literal('')),
 })
 
 type SituationForm = z.infer<typeof situationSchema>
@@ -43,12 +43,12 @@ const styles = StyleSheet.create({
 export default function NewSituationScreen() {
   const router = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
-  const [groups, setGroups] = useState<SituationGroup[]>([])
+  const [blocs, setBlocs] = useState<ThemeGroup[]>([])
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    listSituationGroups().then(({ data }) => setGroups(data))
+    listThemeGroups().then(({ data }) => setBlocs(data))
   }, [])
 
   const {
@@ -58,10 +58,10 @@ export default function NewSituationScreen() {
     formState: { errors, isSubmitting },
   } = useForm<SituationForm>({
     resolver: zodResolver(situationSchema),
-    defaultValues: { situationKey: '', name: '', description: '', groupId: '' },
+    defaultValues: { situationKey: '', name: '', description: '', blocId: '' },
   })
 
-  const onSubmit = async ({ situationKey, name, description, groupId }: SituationForm) => {
+  const onSubmit = async ({ situationKey, name, description, blocId }: SituationForm) => {
     setError(null)
     setSuccess(false)
     if (!tenantId) { setError('Session invalide.'); return }
@@ -71,7 +71,7 @@ export default function NewSituationScreen() {
       situationKey,
       name,
       description: description || undefined,
-      groupId    : groupId || undefined,
+      blocId     : blocId || undefined,
     })
 
     if (err) { setError('Erreur lors de la création de la situation.'); return }
@@ -143,25 +143,25 @@ export default function NewSituationScreen() {
           )}
         />
 
-        {groups.length > 0 && (
+        {blocs.length > 0 && (
           <View>
-            <AureakText variant="label" style={{ marginBottom: space.sm }}>Groupe (optionnel)</AureakText>
+            <AureakText variant="label" style={{ marginBottom: space.sm }}>Bloc (optionnel)</AureakText>
             <Controller
               control={control}
-              name="groupId"
+              name="blocId"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.chipRow}>
-                  {groups.map((g) => (
+                  {blocs.map((b) => (
                     <View
-                      key={g.id}
-                      style={[styles.chip, value === g.id && styles.chipSelected]}
-                      onTouchEnd={() => onChange(value === g.id ? '' : g.id)}
+                      key={b.id}
+                      style={[styles.chip, value === b.id && styles.chipSelected]}
+                      onTouchEnd={() => onChange(value === b.id ? '' : b.id)}
                     >
                       <AureakText
                         variant="label"
-                        style={{ color: value === g.id ? colors.accent.gold : colors.text.muted }}
+                        style={{ color: value === b.id ? colors.accent.gold : colors.text.muted }}
                       >
-                        {g.name}
+                        {b.name}
                       </AureakText>
                     </View>
                   ))}

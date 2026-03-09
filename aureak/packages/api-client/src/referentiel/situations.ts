@@ -41,6 +41,7 @@ export async function listSituationGroups(): Promise<{ data: SituationGroup[]; e
 export type CreateSituationParams = {
   tenantId       : string
   groupId?       : string
+  blocId?        : string                    // FK → theme_groups (Blocs)
   situationKey   : string
   name           : string
   description?   : string
@@ -56,6 +57,7 @@ export async function createSituation(
     .insert({
       tenant_id      : params.tenantId,
       group_id       : params.groupId ?? null,
+      bloc_id        : params.blocId ?? null,
       situation_key  : params.situationKey,
       name           : params.name,
       description    : params.description ?? null,
@@ -69,7 +71,7 @@ export async function createSituation(
 }
 
 export async function listSituations(
-  params?: { groupId?: string }
+  params?: { groupId?: string; blocId?: string }
 ): Promise<{ data: Situation[]; error: unknown }> {
   let query = supabase
     .from('situations')
@@ -78,7 +80,9 @@ export async function listSituations(
     .is('deleted_at', null)
     .order('name', { ascending: true })
 
-  if (params?.groupId) {
+  if (params?.blocId) {
+    query = query.eq('bloc_id', params.blocId)
+  } else if (params?.groupId) {
     query = query.eq('group_id', params.groupId)
   }
 

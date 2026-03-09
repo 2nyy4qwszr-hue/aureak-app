@@ -1,18 +1,22 @@
 // Story 4.1 — CRUD sessions
+// Story 13.1 — Sessions v2 : sessionType, contentRef, guest management
 import { supabase } from '../supabase'
-import type { Session, SessionCoach, SessionTheme, SessionSituation, CoachRole } from '@aureak/types'
+import type { Session, SessionCoach, SessionTheme, SessionSituation, SessionAttendee, CoachRole, SessionType, SessionContentRef } from '@aureak/types'
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 
 export type CreateSessionParams = {
-  tenantId       : string
-  implantationId : string
-  groupId        : string
-  scheduledAt    : string
+  tenantId        : string
+  implantationId  : string
+  groupId         : string
+  scheduledAt     : string
   durationMinutes?: number
-  location?      : string
-  sessionBlockId?: string
-  recurrenceId?  : string
+  location?       : string
+  sessionBlockId? : string
+  recurrenceId?   : string
+  // Story 13.1
+  sessionType?    : SessionType
+  contentRef?     : SessionContentRef
 }
 
 export async function createSession(
@@ -29,6 +33,9 @@ export async function createSession(
       location        : params.location ?? null,
       session_block_id: params.sessionBlockId ?? null,
       recurrence_id   : params.recurrenceId ?? null,
+      // Story 13.1
+      session_type    : params.sessionType ?? null,
+      content_ref     : params.contentRef ?? {},
     })
     .select()
     .single()
@@ -90,6 +97,9 @@ export type UpdateSessionParams = {
   durationMinutes?: number
   location?       : string
   status?         : string
+  // Story 13.1
+  sessionType?    : SessionType | null
+  contentRef?     : SessionContentRef
 }
 
 export async function updateSession(
@@ -97,10 +107,13 @@ export async function updateSession(
   params   : UpdateSessionParams
 ): Promise<{ error: unknown }> {
   const updates: Record<string, unknown> = {}
-  if (params.scheduledAt)     updates['scheduled_at']     = params.scheduledAt
-  if (params.durationMinutes) updates['duration_minutes']  = params.durationMinutes
-  if (params.location !== undefined) updates['location']  = params.location
-  if (params.status)          updates['status']            = params.status
+  if (params.scheduledAt)                  updates['scheduled_at']     = params.scheduledAt
+  if (params.durationMinutes)              updates['duration_minutes']  = params.durationMinutes
+  if (params.location !== undefined)       updates['location']          = params.location
+  if (params.status)                       updates['status']            = params.status
+  // Story 13.1
+  if (params.sessionType !== undefined)    updates['session_type']      = params.sessionType
+  if (params.contentRef !== undefined)     updates['content_ref']       = params.contentRef
 
   const { error } = await supabase
     .from('sessions')
@@ -204,4 +217,61 @@ export async function listSessionSituations(
     .order('sort_order', { ascending: true, nullsFirst: false })
 
   return { data: (data as SessionSituation[]) ?? [], error }
+}
+
+// ─── Session attendees (Story 13.1) ──────────────────────────────────────────
+
+export async function listSessionAttendees(
+  sessionId: string
+): Promise<{ data: SessionAttendee[]; error: unknown }> {
+  const { data, error } = await supabase
+    .from('session_attendees')
+    .select('session_id, child_id, tenant_id, is_guest')
+    .eq('session_id', sessionId)
+
+  const mapped = (data ?? []).map((row: Record<string, unknown>) => ({
+    sessionId: row['session_id'] as string,
+    childId  : row['child_id']   as string,
+    tenantId : row['tenant_id']  as string,
+    isGuest  : (row['is_guest']  as boolean) ?? false,
+  })) as SessionAttendee[]
+
+  return { data: mapped, error }
+}
+
+/**
+ * Ajoute un joueur invité à une séance (is_guest = true, status = 'trial').
+ * Le joueur n'a pas besoin d'être membre du groupe.
+ */
+export async function addGuestToSession(
+  sessionId: string,
+  childId  : string,
+  tenantId : string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('session_attendees')
+    .upsert(
+      { session_id: sessionId, child_id: childId, tenant_id: tenantId, is_guest: true },
+      { onConflict: 'session_id,child_id', ignoreDuplicates: false }
+    )
+
+  return { error }
+}
+
+/**
+ * Retire un joueur invité d'une séance.
+ * Sécurisé : ne supprime que si is_guest = true (ne peut pas retirer un membre régulier).
+ */
+export async function removeGuestFromSession(
+  sessionId: string,
+  childId  : string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('session_attendees')
+    .delete()
+    .eq('session_id', sessionId)
+    .eq('child_id', childId)
+    .eq('is_guest', true)
+
+  return { error }
 }

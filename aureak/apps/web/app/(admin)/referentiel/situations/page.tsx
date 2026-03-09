@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listSituations, listSituationGroups } from '@aureak/api-client'
+import { listSituations, listThemeGroups } from '@aureak/api-client'
 import { AureakButton } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { Situation, SituationGroup } from '@aureak/types'
+import type { Situation, ThemeGroup } from '@aureak/types'
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
@@ -28,22 +28,22 @@ const styles = StyleSheet.create({
 export default function SituationsPage() {
   const router = useRouter()
   const [situations, setSituations] = useState<Situation[]>([])
-  const [groups, setGroups] = useState<SituationGroup[]>([])
+  const [blocs, setBlocs] = useState<ThemeGroup[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([listSituations(), listSituationGroups()]).then(([s, g]) => {
+    Promise.all([listSituations(), listThemeGroups()]).then(([s, g]) => {
       setSituations(s.data)
-      setGroups(g.data)
+      setBlocs(g.data)
       setLoading(false)
     })
   }, [])
 
-  const groupedSituations = groups.map((group) => ({
-    group,
-    situations: situations.filter((s) => s.groupId === group.id),
+  const groupedSituations = blocs.map((bloc) => ({
+    bloc,
+    situations: situations.filter((s) => s.blocId === bloc.id),
   }))
-  const ungrouped = situations.filter((s) => s.groupId === null)
+  const ungrouped = situations.filter((s) => s.blocId === null)
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -60,10 +60,10 @@ export default function SituationsPage() {
         <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       )}
 
-      {groupedSituations.map(({ group, situations: groupSit }) =>
+      {groupedSituations.map(({ bloc, situations: groupSit }) =>
         groupSit.length > 0 ? (
-          <View key={group.id} style={styles.groupSection}>
-            <AureakText variant="label" style={{ color: colors.text.muted }}>{group.name}</AureakText>
+          <View key={bloc.id} style={styles.groupSection}>
+            <AureakText variant="label" style={{ color: colors.text.muted }}>{bloc.name}</AureakText>
             {groupSit.map((sit) => (
               <View key={sit.id} style={styles.situationCard}>
                 <View style={{ flex: 1, gap: space.xs }}>

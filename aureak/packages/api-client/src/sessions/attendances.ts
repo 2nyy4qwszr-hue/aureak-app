@@ -273,6 +273,118 @@ export async function applyAttendanceEvent(
   return data as ApplyEventResult
 }
 
+// ─── listPlayersWithAttendance — Story 18.1 ───────────────────────────────────
+
+export type PlayerAttendanceSummary = {
+  childId         : string
+  displayName     : string
+  groupId         : string | null
+  groupName       : string | null
+  implantationName: string | null
+  totalSessions   : number
+  presentCount    : number
+  absentCount     : number
+  lateCount       : number
+  attendanceRate  : number   // 0-100
+  lastAttendanceAt: string | null
+  lastStatus      : AttendanceStatus | null
+}
+
+const PRESENT_STATUSES_SET = new Set(['present', 'late', 'trial'])
+
+export async function listPlayersWithAttendance(params: {
+  from           : string
+  to             : string
+  implantationId?: string
+  groupId?       : string
+}): Promise<PlayerAttendanceSummary[]> {
+  let sessionQuery = supabase
+    .from('sessions')
+    .select('id, group_id, implantation_id, groups ( name, implantations ( name ) )')
+    .gte('scheduled_at', params.from + 'T00:00:00')
+    .lte('scheduled_at', params.to + 'T23:59:59')
+    .is('deleted_at', null)
+
+  if (params.implantationId) sessionQuery = sessionQuery.eq('implantation_id', params.implantationId)
+  if (params.groupId)        sessionQuery = sessionQuery.eq('group_id', params.groupId)
+
+  const { data: sessions } = await sessionQuery
+  if (!sessions || sessions.length === 0) return []
+
+  type RawSession = {
+    id: string; group_id: string; implantation_id: string
+    groups: { name: string; implantations: { name: string } | null } | null
+  }
+  const sessionMap = new Map((sessions as unknown as RawSession[]).map(s => [s.id, s]))
+  const sessionIds = [...sessionMap.keys()]
+
+  const { data: attendances } = await supabase
+    .from('attendances')
+    .select('child_id, session_id, status, created_at, profiles ( display_name )')
+    .in('session_id', sessionIds)
+    .order('created_at', { ascending: false })
+
+  if (!attendances || attendances.length === 0) return []
+
+  type RawAtt = {
+    child_id: string; session_id: string; status: string; created_at: string
+    profiles: { display_name: string } | null
+  }
+
+  const childMap = new Map<string, {
+    displayName    : string
+    groupId        : string | null
+    groupName      : string | null
+    implantationName: string | null
+    statuses       : string[]
+    lastAt         : string | null
+  }>()
+
+  for (const rawAtt of (attendances as unknown as RawAtt[])) {
+    const sess = sessionMap.get(rawAtt.session_id)
+    if (!childMap.has(rawAtt.child_id)) {
+      const grp = sess?.groups ?? null
+      childMap.set(rawAtt.child_id, {
+        displayName    : (rawAtt.profiles as { display_name?: string } | null)?.display_name ?? rawAtt.child_id,
+        groupId        : sess?.group_id ?? null,
+        groupName      : grp?.name ?? null,
+        implantationName: grp?.implantations?.name ?? null,
+        statuses       : [],
+        lastAt         : null,
+      })
+    }
+    const entry = childMap.get(rawAtt.child_id)!
+    entry.statuses.push(rawAtt.status)
+    if (!entry.lastAt || rawAtt.created_at > entry.lastAt) {
+      entry.lastAt = rawAtt.created_at
+    }
+  }
+
+  return Array.from(childMap.entries())
+    .map(([childId, entry]) => {
+      const total   = entry.statuses.length
+      const present = entry.statuses.filter(s => PRESENT_STATUSES_SET.has(s)).length
+      const absent  = entry.statuses.filter(s => s === 'absent').length
+      const late    = entry.statuses.filter(s => s === 'late').length
+      const rate    = total > 0 ? Math.round((present / total) * 100) : 0
+      return {
+        childId,
+        displayName    : entry.displayName,
+        groupId        : entry.groupId,
+        groupName      : entry.groupName,
+        implantationName: entry.implantationName,
+        totalSessions  : total,
+        presentCount   : present,
+        absentCount    : absent,
+        lateCount      : late,
+        attendanceRate : rate,
+        lastAttendanceAt: entry.lastAt,
+        lastStatus     : (entry.statuses[0] ?? null) as AttendanceStatus | null,
+      }
+    })
+    .sort((a, b) => a.displayName.localeCompare(b.displayName, 'fr'))
+}
+
 export async function listSessionEvents(
   sessionId: string
 ): Promise<{ data: unknown[]; error: unknown }> {

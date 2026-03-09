@@ -130,3 +130,54 @@ export const THEME_RESOURCE_TYPE_LABELS: Record<'pdf_coach' | 'video_global' | '
 
 export const THEME_AGE_CATEGORIES = ['U6','U8','U10','U12','U14','U16','U21','Senior'] as const
 export type ThemeAgeCategory = typeof THEME_AGE_CATEGORIES[number]
+
+// ── Sessions v2 (migration 00058) ─────────────────────────────────────────────
+
+/** Type pédagogique d'une séance — miroir de l'enum PostgreSQL `session_type_v2` */
+export type SessionType =
+  | 'goal_and_player'
+  | 'technique'
+  | 'situationnel'
+  | 'decisionnel'
+  | 'perfectionnement'
+  | 'integration'
+  | 'equipe'
+
+export const SESSION_TYPES: SessionType[] = [
+  'goal_and_player', 'technique', 'situationnel', 'decisionnel',
+  'perfectionnement', 'integration', 'equipe',
+]
+
+export const SESSION_TYPE_LABELS: Record<SessionType, string> = {
+  goal_and_player : 'Goal & Player',
+  technique       : 'Technique',
+  situationnel    : 'Situationnel',
+  decisionnel     : 'Décisionnel',
+  perfectionnement: 'Perfectionnement',
+  integration     : 'Intégration',
+  equipe          : 'Équipe',
+}
+
+/** Codes des blocs situationnels — utilisés dans content_ref des séances situationnelles */
+export type SituationalBlocCode =
+  | 'TAB'      // Tir au but
+  | '1V1'      // Un contre un
+  | 'BAL_AER'  // Balles aériennes
+  | 'BAL_PROF' // Balles en profondeur
+  | 'REL'      // Relances
+  | 'PHA_ARR'  // Phases arrêtées
+  | 'COMM'     // Communication / Autre
+
+export const SITUATIONAL_BLOC_CODES: SituationalBlocCode[] = [
+  'TAB', '1V1', 'BAL_AER', 'BAL_PROF', 'REL', 'PHA_ARR', 'COMM',
+]
+
+export const SITUATIONAL_BLOC_LABELS: Record<SituationalBlocCode, string> = {
+  TAB     : 'Tir au but',
+  '1V1'   : 'Un contre un',
+  BAL_AER : 'Balles aériennes',
+  BAL_PROF: 'Balles en profondeur',
+  REL     : 'Relances',
+  PHA_ARR : 'Phases arrêtées',
+  COMM    : 'Communication / Autre',
+}

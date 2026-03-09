@@ -89,7 +89,13 @@
       "Bash(do)",
       "Read(//Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/**)",
       "Bash(done)",
-      "Bash(yarn dev:*)"
+      "Bash(yarn dev:*)",
+      "Bash(yarn workspace:*)",
+      "Bash(yarn typecheck:*)",
+      "Bash(npx:*)",
+      "Bash(curl:*)",
+      "Bash(open:*)",
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/supabase/migrations/00057_situations_link_bloc.sql\":*)"
     ]
   }
 }

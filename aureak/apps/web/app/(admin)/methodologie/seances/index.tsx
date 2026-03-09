@@ -75,9 +75,6 @@ export default function SeancesPage() {
 
       {/* ── Header ── */}
       <View style={s.header}>
-        <Pressable onPress={() => router.push('/methodologie' as never)} style={{ marginBottom: 4 }}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Méthodologie</AureakText>
-        </Pressable>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
             <AureakText variant="h2" color={colors.accent.gold}>Entraînements pédagogiques</AureakText>

@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -216,8 +216,9 @@ export type SituationGroup = {
 export type Situation = {
   id             : string
   tenantId       : string
-  groupId        : string | null
-  situationKey   : string                       // slug invariant
+  groupId        : string | null           // legacy situation_groups (kept for compatibility)
+  blocId         : string | null           // FK → theme_groups (= Blocs, migration 00057)
+  situationKey   : string                  // slug invariant
   name           : string
   description    : string | null
   variables      : Record<string, unknown> | null
@@ -319,6 +320,67 @@ export type TargetAudience = {
   age_groups?: string[]
   programs?  : string[]
 }
+
+// ============================================================
+// ============================================================
+// Story 13.1 — Sessions v2 : content_ref types (migration 00058)
+// ============================================================
+
+/** Référence contenu Goal & Player : 3 modules × 5 séances, répétés 2× par an */
+export type GPContentRef = {
+  method      : 'goal_and_player'
+  module      : number        // 1-3
+  sequence    : number        // 1-5
+  globalNumber: number        // (module-1)*5 + sequence, 1-15
+  half        : 'A' | 'B'    // demi-séquence (15A + 15B = 30 séances/an)
+  repeat      : 1 | 2        // 1ère ou 2ème répétition dans l'année
+}
+
+/** Référence contenu Technique — contexte académie : 8 modules × 4 séances = 32 */
+export type TechniqueAcademieContentRef = {
+  method      : 'technique'
+  context     : 'academie'
+  module      : number        // 1-8
+  sequence    : number        // 1-4
+  globalNumber: number        // (module-1)*4 + sequence, 1-32
+}
+
+/** Référence contenu Technique — contexte stage : concept libre × 8 séances */
+export type TechniqueStageContentRef = {
+  method  : 'technique'
+  context : 'stage'
+  concept : string            // ex: "Prise en main"
+  sequence: number            // 1-8
+}
+
+/** Référence contenu Situationnel : bloc code + séquence numérotée */
+export type SituationnelContentRef = {
+  method  : 'situationnel'
+  blocCode: SituationalBlocCode
+  sequence: number            // 1..N
+  label   : string            // ex: "TAB-01" = `${blocCode}-${seq.padStart(2,'0')}`
+  subtitle?: string           // ex: "Saut d'allègement"
+}
+
+/** Référence contenu Décisionnel : blocs libres créés par le coach */
+export type DecisionnelContentRef = {
+  method : 'decisionnel'
+  blocks : Array<{ title: string }>
+}
+
+/** Référence contenu vide — types sans contenu pré-construit */
+export type EmptyContentRef = {
+  method: 'perfectionnement' | 'integration' | 'equipe'
+}
+
+/** Union discriminée de toutes les variantes de content_ref */
+export type SessionContentRef =
+  | GPContentRef
+  | TechniqueAcademieContentRef
+  | TechniqueStageContentRef
+  | SituationnelContentRef
+  | DecisionnelContentRef
+  | EmptyContentRef
 
 // ============================================================
 // Story 4.1 — Modèle de Données : Sessions, Blocs & Récurrence
@@ -574,6 +636,9 @@ export type Session = {
   cancellationReason    : string | null
   deletedAt             : string | null
   createdAt             : string
+  // Story 13.1 — Sessions v2 (migration 00058)
+  sessionType           : SessionType | null    // null pour séances antérieures à la migration
+  contentRef            : SessionContentRef      // '{}' par défaut si non défini
 }
 
 /** SessionCoach — coach assigné à une séance */
@@ -612,6 +677,7 @@ export type SessionAttendee = {
   sessionId : string
   childId   : string
   tenantId  : string
+  isGuest   : boolean   // Story 13.1 — true si joueur invité ponctuel (non-membre du groupe)
 }
 
 /** Attendance — présence réelle enregistrée terrain */

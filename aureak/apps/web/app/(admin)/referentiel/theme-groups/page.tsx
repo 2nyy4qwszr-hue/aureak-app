@@ -89,7 +89,10 @@ export default function ThemeGroupsPage() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
-      <AureakText variant="h2">Groupes de thèmes</AureakText>
+      <AureakText variant="h2">Blocs</AureakText>
+      <AureakText variant="body" style={{ color: colors.text.muted, marginTop: -8, marginBottom: 8 }}>
+        Regroupement de haut niveau — Thèmes et Situations y font référence.
+      </AureakText>
 
       {error && (
         <View style={styles.errorBanner}>
@@ -101,7 +104,7 @@ export default function ThemeGroupsPage() {
         <Input
           value={newName}
           onChangeText={setNewName}
-          placeholder="Nom du groupe"
+          placeholder="Nom du bloc (ex: Tir au but)"
           autoCapitalize="words"
           style={{ flex: 1 }}
         />
@@ -127,7 +130,7 @@ export default function ThemeGroupsPage() {
 
       {!loading && groups.length === 0 && (
         <AureakText variant="body" style={{ color: colors.text.muted }}>
-          Aucun groupe configuré.
+          Aucun bloc configuré. Exemple : Tir au but, 1vs1, Relance...
         </AureakText>
       )}
     </ScrollView>

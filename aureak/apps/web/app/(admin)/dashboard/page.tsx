@@ -178,18 +178,40 @@ export default function DashboardPage() {
   const [loadingCounts, setLoadingCounts] = useState(false)
 
   // ── Date range ──
-  const [from, setFrom] = useState(() => {
-    const d = new Date()
-    d.setDate(d.getDate() - 30)
-    return d.toISOString().split('T')[0]
-  })
-  const [to, setTo] = useState(() => new Date().toISOString().split('T')[0])
+  type Preset = 'this-week' | 'last-week' | '4-weeks' | 'custom'
+
+  function getPresetDates(preset: Preset): { from: string; to: string } {
+    const today = new Date()
+    const iso   = (d: Date) => d.toISOString().split('T')[0]
+    const ago   = (days: number) => { const d = new Date(today); d.setDate(d.getDate() - days); return d }
+
+    // Monday of current week
+    const dayOfWeek = (today.getDay() + 6) % 7 // Mon=0
+    const monday    = new Date(today); monday.setDate(today.getDate() - dayOfWeek)
+    const sunday    = new Date(monday); sunday.setDate(monday.getDate() + 6)
+
+    const lastMonday = new Date(monday); lastMonday.setDate(monday.getDate() - 7)
+    const lastSunday = new Date(lastMonday); lastSunday.setDate(lastMonday.getDate() + 6)
+
+    switch (preset) {
+      case 'this-week': return { from: iso(monday),     to: iso(sunday)     }
+      case 'last-week': return { from: iso(lastMonday), to: iso(lastSunday) }
+      case '4-weeks':   return { from: iso(ago(28)),    to: iso(today)      }
+      case 'custom':    return { from: iso(ago(30)),    to: iso(today)      }
+    }
+  }
+
+  const [preset,  setPreset]  = useState<Preset>('4-weeks')
+  const [from,    setFrom]    = useState(() => getPresetDates('4-weeks').from)
+  const [to,      setTo]      = useState(() => getPresetDates('4-weeks').to)
+  const [customFrom, setCustomFrom] = useState(from)
+  const [customTo,   setCustomTo]   = useState(to)
 
   // ── Load stats + implantations list ──
-  const load = async () => {
+  const load = async (f = from, t = to) => {
     setLoading(true)
     const [statsResult, anomalyResult, implRes] = await Promise.all([
-      getImplantationStats(new Date(from).toISOString(), new Date(to).toISOString()),
+      getImplantationStats(new Date(f).toISOString(), new Date(t).toISOString()),
       listAnomalies(),
       listImplantations(),
     ])
@@ -199,7 +221,21 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [from, to])
+  const handlePresetChange = (p: Preset) => {
+    setPreset(p)
+    if (p !== 'custom') {
+      const { from: f, to: t } = getPresetDates(p)
+      setFrom(f); setTo(t)
+      load(f, t)
+    }
+  }
+
+  const handleApplyCustom = () => {
+    setFrom(customFrom); setTo(customTo)
+    load(customFrom, customTo)
+  }
+
+  useEffect(() => { load() }, [])
 
   // ── Load KPI counts filtered by implantation ──
   useEffect(() => {
@@ -329,28 +365,46 @@ export default function DashboardPage() {
             </select>
           </div>
 
+          {/* Preset selector */}
           <div style={{ ...S.dateGroup, marginLeft: 8 }}>
-            <label style={S.dateLabel}>Du</label>
-            <input
-              type="date"
-              value={from}
-              onChange={e => setFrom(e.target.value)}
-              style={S.dateInput}
-            />
+            <label style={S.dateLabel}>Période</label>
+            <select
+              value={preset}
+              onChange={e => handlePresetChange(e.target.value as Preset)}
+              style={S.implantSelect}
+            >
+              <option value="this-week">Semaine en cours</option>
+              <option value="last-week">Semaine passée</option>
+              <option value="4-weeks">4 dernières semaines</option>
+              <option value="custom">Personnalisé</option>
+            </select>
           </div>
-          <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
-          <div style={S.dateGroup}>
-            <label style={S.dateLabel}>Au</label>
-            <input
-              type="date"
-              value={to}
-              onChange={e => setTo(e.target.value)}
-              style={S.dateInput}
-            />
-          </div>
-          <button className="aureak-refresh-btn" style={S.refreshBtn} onClick={load}>
-            ↺ Actualiser
-          </button>
+
+          {/* Custom date pickers — only shown in custom mode */}
+          {preset === 'custom' && (<>
+            <div style={S.dateGroup}>
+              <label style={S.dateLabel}>Du</label>
+              <input
+                type="date"
+                value={customFrom}
+                onChange={e => setCustomFrom(e.target.value)}
+                style={S.dateInput}
+              />
+            </div>
+            <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
+            <div style={S.dateGroup}>
+              <label style={S.dateLabel}>Au</label>
+              <input
+                type="date"
+                value={customTo}
+                onChange={e => setCustomTo(e.target.value)}
+                style={S.dateInput}
+              />
+            </div>
+            <button style={S.applyBtn} onClick={handleApplyCustom}>
+              Appliquer
+            </button>
+          </>)}
         </div>
       </div>
 
@@ -622,6 +676,19 @@ const S: Record<string, React.CSSProperties> = {
     fontFamily     : 'Geist, sans-serif',
     transition     : `all ${transitions.fast}`,
     whiteSpace     : 'nowrap',
+  },
+  applyBtn        : {
+    padding        : '7px 16px',
+    borderRadius   : radius.xs,
+    border         : 'none',
+    backgroundColor: colors.accent.gold,
+    color          : colors.text.dark,
+    fontSize       : 13,
+    fontWeight     : 700,
+    cursor         : 'pointer',
+    fontFamily     : 'Geist, sans-serif',
+    whiteSpace     : 'nowrap',
+    alignSelf      : 'flex-end',
   },
 
   // KPI Strip

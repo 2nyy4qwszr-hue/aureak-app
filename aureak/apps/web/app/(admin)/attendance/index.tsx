@@ -1,11 +1,13 @@
 'use client'
 // Story 5.5 — Timeline admin : vue agrégée des présences par séance (Light Premium DA)
+// Story 18.1 — Toggle vue par joueur + navigation fiche 360°
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import {
-  listSessionsWithAttendance, listImplantations, listAllGroups,
+  listSessionsWithAttendance, listImplantations, listAllGroups, listPlayersWithAttendance,
 } from '@aureak/api-client'
-import type { SessionAttendanceSummary } from '@aureak/api-client'
+import type { SessionAttendanceSummary, PlayerAttendanceSummary } from '@aureak/api-client'
 import type { Implantation, GroupWithMeta } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows, transitions } from '@aureak/theme'
@@ -169,13 +171,83 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
   )
 }
 
+// ─── PlayerRow ────────────────────────────────────────────────────────────────
+
+function PlayerRow({ p, onPress }: { p: PlayerAttendanceSummary; onPress: () => void }) {
+  const rateColor = p.attendanceRate >= 80 ? '#66BB6A' : p.attendanceRate >= 50 ? '#FFA726' : '#EF5350'
+  const lastStatusColor: Record<string, string> = {
+    present: '#66BB6A', late: '#FFA726', trial: colors.accent.gold,
+    absent: '#EF5350', injured: '#CE93D8',
+  }
+  const lastStatusLabel: Record<string, string> = {
+    present: 'Présent', late: 'Retard', trial: 'Essai', absent: 'Absent', injured: 'Blessé',
+  }
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [sc.playerRow, pressed && { opacity: 0.75 }]}>
+      {/* Avatar initiales */}
+      <View style={sc.playerAvatar}>
+        <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 15 }}>
+          {p.displayName.charAt(0).toUpperCase()}
+        </AureakText>
+      </View>
+
+      {/* Info */}
+      <View style={{ flex: 1, gap: 2 }}>
+        <AureakText variant="body" style={{ fontWeight: '700', fontSize: 14, color: colors.text.dark }}>
+          {p.displayName}
+        </AureakText>
+        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' as never }}>
+          {p.groupName && (
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
+              {p.groupName}
+            </AureakText>
+          )}
+          {p.implantationName && (
+            <View style={sc.implantBadge}>
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10 }}>
+                {p.implantationName}
+              </AureakText>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Stats */}
+      <View style={{ alignItems: 'flex-end', gap: 4 }}>
+        <AureakText variant="body" style={{ fontWeight: '800', fontSize: 18, color: rateColor }}>
+          {p.attendanceRate}%
+        </AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
+          {p.presentCount}/{p.totalSessions} séances
+        </AureakText>
+        {p.lastStatus && (
+          <View style={[sc.pill, { backgroundColor: (lastStatusColor[p.lastStatus] ?? colors.text.muted) + '14', borderColor: (lastStatusColor[p.lastStatus] ?? colors.text.muted) + '30' }]}>
+            <AureakText variant="caption" style={{ color: lastStatusColor[p.lastStatus] ?? colors.text.muted, fontSize: 10, fontWeight: '700' }}>
+              {lastStatusLabel[p.lastStatus] ?? p.lastStatus}
+            </AureakText>
+          </View>
+        )}
+      </View>
+
+      {/* Arrow */}
+      <AureakText variant="body" style={{ color: colors.text.muted, fontSize: 16, marginLeft: 4 }}>›</AureakText>
+    </Pressable>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+type ViewMode = 'sessions' | 'players'
+
 export default function AttendancePage() {
+  const router = useRouter()
+
   const [sessions,       setSessions]       = useState<SessionAttendanceSummary[]>([])
+  const [players,        setPlayers]        = useState<PlayerAttendanceSummary[]>([])
   const [implantations,  setImplantations]  = useState<Implantation[]>([])
   const [groups,         setGroups]         = useState<GroupWithMeta[]>([])
   const [loading,        setLoading]        = useState(true)
+  const [viewMode,       setViewMode]       = useState<ViewMode>('sessions')
 
   const [from, setFrom] = useState(() => {
     const d = new Date(); d.setDate(d.getDate() - 30)
@@ -193,15 +265,21 @@ export default function AttendancePage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const data = await listSessionsWithAttendance({
+    const sharedParams = {
       from,
       to,
       implantationId: implantFilter !== 'all' ? implantFilter : undefined,
       groupId       : groupFilter   !== 'all' ? groupFilter   : undefined,
-    })
-    setSessions(data)
+    }
+    if (viewMode === 'sessions') {
+      const data = await listSessionsWithAttendance(sharedParams)
+      setSessions(data)
+    } else {
+      const data = await listPlayersWithAttendance(sharedParams)
+      setPlayers(data)
+    }
     setLoading(false)
-  }, [from, to, implantFilter, groupFilter])
+  }, [from, to, implantFilter, groupFilter, viewMode])
 
   useEffect(() => { load() }, [load])
 
@@ -223,13 +301,36 @@ export default function AttendancePage() {
 
       {/* ── Header ── */}
       <View style={sc.header}>
-        <View>
+        <View style={{ flex: 1 }}>
           <AureakText variant="h2" color={colors.accent.gold}>Présences</AureakText>
-          {!loading && (
+          {!loading && viewMode === 'sessions' && (
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {totalSessions} séance{totalSessions !== 1 ? 's' : ''} sur la période
             </AureakText>
           )}
+          {!loading && viewMode === 'players' && (
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
+              {players.length} joueur{players.length !== 1 ? 's' : ''} sur la période
+            </AureakText>
+          )}
+        </View>
+        {/* Toggle Par séance / Par joueur */}
+        <View style={sc.toggleRow}>
+          {(['sessions', 'players'] as ViewMode[]).map(mode => {
+            const active = viewMode === mode
+            const label  = mode === 'sessions' ? 'Par séance' : 'Par joueur'
+            return (
+              <Pressable
+                key={mode}
+                onPress={() => setViewMode(mode)}
+                style={[sc.toggleBtn, active && sc.toggleBtnActive]}
+              >
+                <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '500', fontSize: 12 }}>
+                  {label}
+                </AureakText>
+              </Pressable>
+            )
+          })}
         </View>
       </View>
 
@@ -303,8 +404,8 @@ export default function AttendancePage() {
         )}
       </View>
 
-      {/* ── KPIs ── */}
-      {!loading && totalSessions > 0 && (
+      {/* ── KPIs (sessions mode only) ── */}
+      {!loading && viewMode === 'sessions' && totalSessions > 0 && (
         <View style={sc.kpiRow}>
           <KpiCard value={totalSessions}  label="Séances"       color={colors.accent.gold} />
           <KpiCard value={`${avgRate}%`}  label="Taux présence" color={avgRate >= 75 ? '#66BB6A' : avgRate >= 50 ? '#FFA726' : '#EF5350'} />
@@ -317,16 +418,36 @@ export default function AttendancePage() {
       {/* ── List ── */}
       {loading ? (
         <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
-      ) : sessions.length === 0 ? (
-        <View style={sc.empty}>
-          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
-            Aucune séance trouvée sur cette période.
-          </AureakText>
-        </View>
+      ) : viewMode === 'sessions' ? (
+        sessions.length === 0 ? (
+          <View style={sc.empty}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
+              Aucune séance trouvée sur cette période.
+            </AureakText>
+          </View>
+        ) : (
+          <View style={{ gap: space.sm }}>
+            {sessions.map(s => <SessionCard key={s.sessionId} s={s} />)}
+          </View>
+        )
       ) : (
-        <View style={{ gap: space.sm }}>
-          {sessions.map(s => <SessionCard key={s.sessionId} s={s} />)}
-        </View>
+        players.length === 0 ? (
+          <View style={sc.empty}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
+              Aucun joueur trouvé sur cette période.
+            </AureakText>
+          </View>
+        ) : (
+          <View style={{ gap: 6 }}>
+            {players.map(p => (
+              <PlayerRow
+                key={p.childId}
+                p={p}
+                onPress={() => router.push(`/players/${p.childId}` as never)}
+              />
+            ))}
+          </View>
+        )
       )}
 
     </ScrollView>
@@ -350,7 +471,31 @@ const webInputStyle = {
 const sc = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
-  header     : { gap: 4 },
+  header     : { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  toggleRow  : { flexDirection: 'row', borderRadius: 8, borderWidth: 1, borderColor: colors.border.light, overflow: 'hidden' as never },
+  toggleBtn  : { paddingHorizontal: 14, paddingVertical: 7, backgroundColor: 'transparent' },
+  toggleBtnActive: { backgroundColor: colors.accent.gold + '22' },
+  playerRow  : {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    gap            : 12,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : space.md,
+  },
+  playerAvatar: {
+    width          : 40,
+    height         : 40,
+    borderRadius   : 20,
+    backgroundColor: colors.accent.gold + '22',
+    alignItems     : 'center',
+    justifyContent : 'center',
+    flexShrink     : 0,
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '40',
+  },
   filterBlock: { gap: 10 },
   filterLabel: { color: colors.text.muted, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
   chip       : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },

@@ -14,7 +14,8 @@ import {
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import type { Implantation, Group, GroupStaffWithName, Theme } from '@aureak/types'
+import type { Implantation, Group, GroupStaffWithName, Theme, SessionType, SessionContentRef, SituationalBlocCode } from '@aureak/types'
+import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_CODES, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -429,6 +430,25 @@ export default function NewSessionPage() {
   const [groupStaff,          setGroupStaff]          = useState<GroupStaffWithName[]>([])
   const [loadingGroups,       setLoadingGroups]       = useState(false)
 
+  // ── Session type & content ref (Story 13.1) ──────────────────
+  const [sessionType,   setSessionType]   = useState<SessionType | ''>('')
+  // Goal & Player
+  const [gpModule,      setGpModule]      = useState(1)
+  const [gpSequence,    setGpSequence]    = useState(1)
+  const [gpHalf,        setGpHalf]        = useState<'A' | 'B'>('A')
+  const [gpRepeat,      setGpRepeat]      = useState<1 | 2>(1)
+  // Technique
+  const [techContext,   setTechContext]   = useState<'academie' | 'stage'>('academie')
+  const [techModule,    setTechModule]    = useState(1)
+  const [techSeq,       setTechSeq]       = useState(1)
+  const [techConcept,   setTechConcept]   = useState('')
+  // Situationnel
+  const [situBloc,      setSituBloc]      = useState<SituationalBlocCode>('TAB')
+  const [situSeq,       setSituSeq]       = useState(1)
+  const [situSubtitle,  setSituSubtitle]  = useState('')
+  // Décisionnel
+  const [deciBlocks,    setDeciBlocks]    = useState<Array<{ title: string }>>([{ title: 'Échauffement' }])
+
   // ── Step 2 — Dates ───────────────────────────────────────────
   const [singleMode,      setSingleMode]      = useState(true)
   const [selectedDates,   setSelectedDates]   = useState<string[]>([])
@@ -530,7 +550,10 @@ export default function NewSessionPage() {
         groupId,
         scheduledAt,
         durationMinutes,
-        location: finalTerrain || undefined,
+        location       : finalTerrain || undefined,
+        // Story 13.1 — type pédagogique + référence de contenu
+        sessionType    : sessionType as SessionType || undefined,
+        contentRef     : sessionType ? contentRef : undefined,
       })
 
       if (error || !session) { failed++; continue }
@@ -563,7 +586,30 @@ export default function NewSessionPage() {
   const themeName      = themes.find(t => t.id === linkedThemeId)?.name ?? ''
   const finalTerrainLabel = terrain === 'Autre…' ? customTerrain : terrain
 
-  const step1Valid = !!implantationId && !!groupId
+  // ── contentRef calculé selon sessionType (Story 13.1) ────────────────────
+  const contentRef = useMemo((): SessionContentRef => {
+    switch (sessionType) {
+      case 'goal_and_player':
+        return { method: 'goal_and_player', module: gpModule, sequence: gpSequence, globalNumber: (gpModule - 1) * 5 + gpSequence, half: gpHalf, repeat: gpRepeat }
+      case 'technique':
+        if (techContext === 'academie')
+          return { method: 'technique', context: 'academie', module: techModule, sequence: techSeq, globalNumber: (techModule - 1) * 4 + techSeq }
+        return { method: 'technique', context: 'stage', concept: techConcept, sequence: techSeq }
+      case 'situationnel':
+        return { method: 'situationnel', blocCode: situBloc, sequence: situSeq, label: `${situBloc}-${String(situSeq).padStart(2, '0')}`, subtitle: situSubtitle || undefined }
+      case 'decisionnel':
+        return { method: 'decisionnel', blocks: deciBlocks }
+      case 'perfectionnement': return { method: 'perfectionnement' }
+      case 'integration':      return { method: 'integration' }
+      case 'equipe':           return { method: 'equipe' }
+      default:                 return { method: 'perfectionnement' }
+    }
+  }, [sessionType, gpModule, gpSequence, gpHalf, gpRepeat, techContext, techModule, techSeq, techConcept, situBloc, situSeq, situSubtitle, deciBlocks])
+
+  const contentRefValid = !sessionType ? false :
+    sessionType === 'technique' && techContext === 'stage' ? !!techConcept.trim() : true
+
+  const step1Valid = !!implantationId && !!groupId && !!sessionType && contentRefValid
   const step2Valid = selectedDates.length > 0
 
   // ── Result screen ──────────────────────────────────────────────────────────
@@ -691,6 +737,215 @@ export default function NewSessionPage() {
           {/* Inherited group preview */}
           {selectedGroup && (
             <GroupCard group={selectedGroup} implantationName={implantName} staff={groupStaff} />
+          )}
+
+          {/* ── Type pédagogique (Story 13.1) ───────────────────────────── */}
+          {!!groupId && (
+            <View style={p.card}>
+              <SectionLabel title="Type pédagogique" hint="Méthode de contenu de cette séance" />
+              <View style={{ flexDirection: 'row' as never, flexWrap: 'wrap' as never, gap: space.xs }}>
+                {SESSION_TYPES.map(t => (
+                  <Pressable
+                    key={t}
+                    style={[
+                      ss2.typeChip,
+                      sessionType === t && ss2.typeChipActive,
+                    ]}
+                    onPress={() => setSessionType(t)}
+                  >
+                    <AureakText
+                      variant="caption"
+                      style={{ color: sessionType === t ? colors.text.dark : colors.text.muted, fontWeight: sessionType === t ? '700' : '400' as never }}
+                    >
+                      {SESSION_TYPE_LABELS[t]}
+                    </AureakText>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* ── Sous-formulaire content_ref selon le type ─────────── */}
+              {sessionType === 'goal_and_player' && (
+                <View style={ss2.refBox}>
+                  <AureakText variant="caption" style={ss2.refLabel}>
+                    {`Numéro global : ${(gpModule - 1) * 5 + gpSequence} · Demi ${gpHalf} · Rep. ${gpRepeat}`}
+                  </AureakText>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Module (1-3)</AureakText>
+                    <View style={ss2.numRow}>
+                      {[1,2,3].map(n => (
+                        <Pressable key={n} style={[ss2.numBtn, gpModule === n && ss2.numBtnActive]} onPress={() => setGpModule(n)}>
+                          <AureakText variant="caption" style={{ color: gpModule === n ? colors.text.dark : colors.text.muted }}>{n}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Séquence (1-5)</AureakText>
+                    <View style={ss2.numRow}>
+                      {[1,2,3,4,5].map(n => (
+                        <Pressable key={n} style={[ss2.numBtn, gpSequence === n && ss2.numBtnActive]} onPress={() => setGpSequence(n)}>
+                          <AureakText variant="caption" style={{ color: gpSequence === n ? colors.text.dark : colors.text.muted }}>{n}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Demi</AureakText>
+                    <View style={ss2.numRow}>
+                      {(['A','B'] as const).map(h => (
+                        <Pressable key={h} style={[ss2.numBtn, gpHalf === h && ss2.numBtnActive]} onPress={() => setGpHalf(h)}>
+                          <AureakText variant="caption" style={{ color: gpHalf === h ? colors.text.dark : colors.text.muted }}>{h}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Répétition</AureakText>
+                    <View style={ss2.numRow}>
+                      {([1,2] as const).map(r => (
+                        <Pressable key={r} style={[ss2.numBtn, gpRepeat === r && ss2.numBtnActive]} onPress={() => setGpRepeat(r)}>
+                          <AureakText variant="caption" style={{ color: gpRepeat === r ? colors.text.dark : colors.text.muted }}>{r}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {sessionType === 'technique' && (
+                <View style={ss2.refBox}>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Contexte</AureakText>
+                    <View style={ss2.numRow}>
+                      {(['academie','stage'] as const).map(c => (
+                        <Pressable key={c} style={[ss2.numBtn, techContext === c && ss2.numBtnActive]} onPress={() => setTechContext(c)}>
+                          <AureakText variant="caption" style={{ color: techContext === c ? colors.text.dark : colors.text.muted, textTransform: 'capitalize' as never }}>{c}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  {techContext === 'academie' ? (
+                    <>
+                      <AureakText variant="caption" style={ss2.refLabel}>
+                        {`Entraînement #${(techModule - 1) * 4 + techSeq}`}
+                      </AureakText>
+                      <View style={ss2.refRow}>
+                        <AureakText variant="caption" style={ss2.refHint}>Module (1-8)</AureakText>
+                        <View style={ss2.numRow}>
+                          {[1,2,3,4,5,6,7,8].map(n => (
+                            <Pressable key={n} style={[ss2.numBtn, techModule === n && ss2.numBtnActive]} onPress={() => setTechModule(n)}>
+                              <AureakText variant="caption" style={{ color: techModule === n ? colors.text.dark : colors.text.muted }}>{n}</AureakText>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                      <View style={ss2.refRow}>
+                        <AureakText variant="caption" style={ss2.refHint}>Séquence (1-4)</AureakText>
+                        <View style={ss2.numRow}>
+                          {[1,2,3,4].map(n => (
+                            <Pressable key={n} style={[ss2.numBtn, techSeq === n && ss2.numBtnActive]} onPress={() => setTechSeq(n)}>
+                              <AureakText variant="caption" style={{ color: techSeq === n ? colors.text.dark : colors.text.muted }}>{n}</AureakText>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <View style={ss2.refRow}>
+                        <AureakText variant="caption" style={ss2.refHint}>Concept</AureakText>
+                        <TextInput
+                          style={[ss.searchInput, { flex: 1, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6 }]}
+                          value={techConcept}
+                          onChangeText={setTechConcept}
+                          placeholder="ex: Prise en main"
+                          placeholderTextColor={colors.text.muted}
+                        />
+                      </View>
+                      <View style={ss2.refRow}>
+                        <AureakText variant="caption" style={ss2.refHint}>Séquence (1-8)</AureakText>
+                        <View style={ss2.numRow}>
+                          {[1,2,3,4,5,6,7,8].map(n => (
+                            <Pressable key={n} style={[ss2.numBtn, techSeq === n && ss2.numBtnActive]} onPress={() => setTechSeq(n)}>
+                              <AureakText variant="caption" style={{ color: techSeq === n ? colors.text.dark : colors.text.muted }}>{n}</AureakText>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                    </>
+                  )}
+                </View>
+              )}
+
+              {sessionType === 'situationnel' && (
+                <View style={ss2.refBox}>
+                  <AureakText variant="caption" style={ss2.refLabel}>
+                    {`${situBloc}-${String(situSeq).padStart(2, '0')}${situSubtitle ? ` — ${situSubtitle}` : ''}`}
+                  </AureakText>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Bloc</AureakText>
+                    <View style={ss2.numRow}>
+                      {SITUATIONAL_BLOC_CODES.map(c => (
+                        <Pressable key={c} style={[ss2.numBtn, situBloc === c && ss2.numBtnActive]} onPress={() => setSituBloc(c)}>
+                          <AureakText variant="caption" style={{ color: situBloc === c ? colors.text.dark : colors.text.muted }}>{c}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Séquence</AureakText>
+                    <View style={ss2.numRow}>
+                      {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                        <Pressable key={n} style={[ss2.numBtn, situSeq === n && ss2.numBtnActive]} onPress={() => setSituSeq(n)}>
+                          <AureakText variant="caption" style={{ color: situSeq === n ? colors.text.dark : colors.text.muted }}>{n}</AureakText>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  <View style={ss2.refRow}>
+                    <AureakText variant="caption" style={ss2.refHint}>Sous-titre</AureakText>
+                    <TextInput
+                      style={[ss.searchInput, { flex: 1, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6 }]}
+                      value={situSubtitle}
+                      onChangeText={setSituSubtitle}
+                      placeholder="ex: Saut d'allègement (facultatif)"
+                      placeholderTextColor={colors.text.muted}
+                    />
+                  </View>
+                </View>
+              )}
+
+              {sessionType === 'decisionnel' && (
+                <View style={ss2.refBox}>
+                  <AureakText variant="caption" style={[ss2.refHint, { marginBottom: space.xs }]}>Blocs d'exercices</AureakText>
+                  {deciBlocks.map((block, idx) => (
+                    <View key={idx} style={[ss2.refRow, { marginBottom: space.xs }]}>
+                      <TextInput
+                        style={[ss.searchInput, { flex: 1, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6 }]}
+                        value={block.title}
+                        onChangeText={text => setDeciBlocks(prev => prev.map((b, i) => i === idx ? { title: text } : b))}
+                        placeholder={`Bloc ${idx + 1} (ex: Échauffement)`}
+                        placeholderTextColor={colors.text.muted}
+                      />
+                      {deciBlocks.length > 1 && (
+                        <Pressable
+                          style={{ marginLeft: space.sm, padding: space.xs }}
+                          onPress={() => setDeciBlocks(prev => prev.filter((_, i) => i !== idx))}
+                        >
+                          <AureakText style={{ color: colors.accent.red ?? '#E05252', fontSize: 16 }}>✕</AureakText>
+                        </Pressable>
+                      )}
+                    </View>
+                  ))}
+                  <Pressable
+                    style={ss2.addBlockBtn}
+                    onPress={() => setDeciBlocks(prev => [...prev, { title: '' }])}
+                  >
+                    <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un bloc</AureakText>
+                  </Pressable>
+                </View>
+              )}
+            </View>
           )}
 
           <View style={p.navRow}>
@@ -920,6 +1175,21 @@ export default function NewSessionPage() {
     </ScrollView>
   )
 }
+
+// ── Styles Story 13.1 ─────────────────────────────────────────────────────────
+
+const ss2 = StyleSheet.create({
+  typeChip    : { paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
+  typeChipActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '20' },
+  refBox      : { backgroundColor: colors.light.primary, borderRadius: 8, padding: space.sm, gap: space.xs, marginTop: space.xs, borderWidth: 1, borderColor: colors.border.divider },
+  refLabel    : { color: colors.accent.gold, fontWeight: '700' as never, fontSize: 13, marginBottom: space.xs },
+  refHint     : { color: colors.text.muted, fontSize: 11, width: 90 },
+  refRow      : { flexDirection: 'row' as never, alignItems: 'center' as never, gap: space.sm, flexWrap: 'wrap' as never },
+  numRow      : { flexDirection: 'row' as never, flexWrap: 'wrap' as never, gap: 4 },
+  numBtn      : { minWidth: 32, height: 32, justifyContent: 'center' as never, alignItems: 'center' as never, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted, paddingHorizontal: 6 },
+  numBtnActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '20' },
+  addBlockBtn : { marginTop: space.xs, paddingVertical: space.xs },
+})
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 

@@ -181,3 +181,19 @@ development_status:
   epic-17: backlog
   # Stories à définir (Phase 2)
   epic-17-retrospective: optional
+
+  # ============================================================
+  # PHASE 3 — ADMIN ADVANCED (Epics 18+)
+  # ============================================================
+
+  # Epic 18 : Supervision Joueur & Présences Avancées
+  epic-18: in-progress
+  18-1-fiche-joueur-360-admin: done
+  epic-18-retrospective: optional
+
+  # Epic 19 : Séances v2 — Types Pédagogiques, Auto-génération & Mode Terrain
+  epic-19: in-progress
+  13-1-sessions-modele-donnees-v2-types-contenu-statuts: in-progress
+  13-2-sessions-calendrier-auto-generation-gestion-exceptions: ready-for-dev
+  13-3-sessions-mode-seance-coach-mobile-cloture-remplacement: ready-for-dev
+  epic-19-retrospective: optional

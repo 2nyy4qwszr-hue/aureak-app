@@ -104,9 +104,9 @@ export {
   listSessionAttendees, prefillSessionAttendees,
   recordAttendance, listAttendancesBySession,
   confirmCoachPresence as confirmCoachPresenceDb, checkinBlock,
-  listSessionsWithAttendance,
+  listSessionsWithAttendance, listPlayersWithAttendance,
 } from './sessions/attendances'
-export type { RecordAttendanceParams, SessionAttendanceSummary } from './sessions/attendances'
+export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary } from './sessions/attendances'
 
 export {
   generateRecurrenceSessions, cancelRecurrenceSeries, cancelSessionRpc, modifySingleException,
@@ -183,6 +183,11 @@ export {
   createProfileFiche, inviteProfileUser,
 } from './admin/profiles'
 export type { CreateProfileFicheParams, InviteProfileUserParams, ProfileRole } from './admin/profiles'
+
+export {
+  getAdminPlayerProfile, getPlayerAttendanceHistory,
+} from './admin/playerProfile'
+export type { AdminPlayerProfile, PlayerAttendanceRecord } from './admin/playerProfile'
 
 export {
   listAvatarItems, getPlayerAvatar, listUnlockedItems, equipAvatarItem,
