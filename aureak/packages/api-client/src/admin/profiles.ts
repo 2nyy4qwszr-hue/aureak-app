@@ -43,6 +43,28 @@ export type InviteProfileUserParams   = BaseProfileParams & ChildParams & { emai
 
 type ProfileResult = { data: { userId: string } | null; error: unknown }
 
+// ── Helper : extract human-readable error from functions.invoke ──────────────
+//
+// supabase.functions.invoke returns:
+//   - FunctionsRelayError  (function not found / network failure)  → generic message
+//   - FunctionsHttpError   (function returned a non-2xx body)      → body has { error: string }
+//
+// We try to read the response body to surface the actual function error message.
+async function extractFunctionError(error: unknown): Promise<Error> {
+  const baseMsg = (error as { message?: string }).message ?? 'Erreur inconnue'
+  try {
+    // FunctionsHttpError exposes the raw Response under .context
+    const response: Response | undefined = (error as { context?: Response }).context
+    if (response && typeof response.json === 'function') {
+      const body = await response.json() as { error?: string }
+      if (body?.error) return new Error(body.error)
+    }
+  } catch {
+    // JSON parse failed or no context — fall back to SDK message
+  }
+  return new Error(baseMsg)
+}
+
 // ── Créer une fiche sans email ────────────────────────────────────────────────
 /**
  * Crée un profil local sans envoyer d'invitation.
@@ -55,7 +77,7 @@ export async function createProfileFiche(
     body: { mode: 'fiche', ...flattenParams(params) },
   })
 
-  if (error) return { data: null, error }
+  if (error) return { data: null, error: await extractFunctionError(error) }
   if (data?.error) return { data: null, error: new Error(data.error) }
   return { data: data?.data ?? null, error: null }
 }
@@ -72,7 +94,7 @@ export async function inviteProfileUser(
     body: { mode: 'invite', ...flattenParams(params) },
   })
 
-  if (error) return { data: null, error }
+  if (error) return { data: null, error: await extractFunctionError(error) }
   if (data?.error) return { data: null, error: new Error(data.error) }
   return { data: data?.data ?? null, error: null }
 }

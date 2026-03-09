@@ -195,7 +195,7 @@ export default function AttendancePage() {
 
       {/* Children list */}
       {children.length === 0 ? (
-        <div style={A.empty}>Aucun enfant inscrit à cette séance.</div>
+        <div style={A.empty}>Aucun joueur inscrit à cette séance.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {children.map(child => {

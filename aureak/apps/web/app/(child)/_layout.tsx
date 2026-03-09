@@ -64,7 +64,7 @@ export default function ChildLayout() {
           letterSpacing={1}
           style={{ textTransform: 'uppercase' as never }}
         >
-          Espace enfant
+          Espace joueur
         </Text>
 
         <YStack gap={2} flex={1}>

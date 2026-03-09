@@ -151,7 +151,7 @@ export default function ParentDashboardPage() {
       <div style={P.header}>
         <h1 style={P.title}>Bonjour {firstName} 👋</h1>
         <p style={P.subtitle}>
-          Suivez la progression de {children.length > 1 ? 'vos enfants' : 'votre enfant'}
+          Suivez la progression de {children.length > 1 ? 'vos joueurs' : 'votre joueur'}
         </p>
       </div>
 
@@ -159,9 +159,9 @@ export default function ParentDashboardPage() {
       {children.length === 0 ? (
         <div style={P.emptyCard}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Aucun enfant associé</div>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Aucun joueur associé</div>
           <div style={{ fontSize: 14, color: colors.text.secondary }}>
-            Contactez votre club pour lier un profil enfant à votre compte.
+            Contactez votre club pour lier un profil joueur à votre compte.
           </div>
         </div>
       ) : (

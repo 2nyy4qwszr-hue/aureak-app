@@ -104,8 +104,9 @@ export {
   listSessionAttendees, prefillSessionAttendees,
   recordAttendance, listAttendancesBySession,
   confirmCoachPresence as confirmCoachPresenceDb, checkinBlock,
+  listSessionsWithAttendance,
 } from './sessions/attendances'
-export type { RecordAttendanceParams } from './sessions/attendances'
+export type { RecordAttendanceParams, SessionAttendanceSummary } from './sessions/attendances'
 
 export {
   generateRecurrenceSessions, cancelRecurrenceSeries, cancelSessionRpc, modifySingleException,

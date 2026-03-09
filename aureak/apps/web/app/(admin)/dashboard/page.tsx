@@ -2,7 +2,9 @@
 // Admin Dashboard — vue de contrôle multi-implantations
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { getImplantationStats, listAnomalies, resolveAnomaly, supabase } from '@aureak/api-client'
+import {
+  getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, supabase,
+} from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
 
@@ -60,8 +62,8 @@ function DashboardSkeleton() {
       </div>
 
       {/* KPI strip skeleton */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
-        {[0,1,2,3,4].map(i => <SkeletonBlock key={i} h={92} r={10} />)}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 24 }}>
+        {[0,1,2,3,4,5].map(i => <SkeletonBlock key={i} h={92} r={10} />)}
       </div>
 
       {/* Implantation cards skeleton */}
@@ -157,13 +159,24 @@ const QUICK_ACTIONS = [
 
 export default function DashboardPage() {
   const router = useRouter()
+
+  // ── Stats & anomalies ──
   const [stats,         setStats]         = useState<ImplantationStats[]>([])
   const [anomalies,     setAnomalies]     = useState<AnomalyEvent[]>([])
-  const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
-  const [coachesTotal,  setCoachesTotal]  = useState<number | null>(null)
   const [loading,       setLoading]       = useState(true)
   const [resolving,     setResolving]     = useState<string | null>(null)
 
+  // ── Implantation selector ──
+  const [implantations,          setImplantations]          = useState<{ id: string; name: string }[]>([])
+  const [selectedImplantationId, setSelectedImplantationId] = useState<string | null>(null)
+
+  // ── KPI counts (vary with implantation selection) ──
+  const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
+  const [coachesTotal,  setCoachesTotal]  = useState<number | null>(null)
+  const [groupsTotal,   setGroupsTotal]   = useState<number | null>(null)
+  const [loadingCounts, setLoadingCounts] = useState(false)
+
+  // ── Date range ──
   const [from, setFrom] = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() - 30)
@@ -171,24 +184,76 @@ export default function DashboardPage() {
   })
   const [to, setTo] = useState(() => new Date().toISOString().split('T')[0])
 
+  // ── Load stats + implantations list ──
   const load = async () => {
     setLoading(true)
-    const [statsResult, anomalyResult, childrenRes, coachesRes] = await Promise.all([
+    const [statsResult, anomalyResult, implRes] = await Promise.all([
       getImplantationStats(new Date(from).toISOString(), new Date(to).toISOString()),
       listAnomalies(),
-      supabase.from('profiles').select('user_id', { count: 'exact', head: true })
-        .eq('user_role', 'child').is('deleted_at', null),
-      supabase.from('profiles').select('user_id', { count: 'exact', head: true })
-        .eq('user_role', 'coach').is('deleted_at', null),
+      listImplantations(),
     ])
     setStats(statsResult.data ?? [])
     setAnomalies(anomalyResult.data)
-    setChildrenTotal(childrenRes.count ?? 0)
-    setCoachesTotal(coachesRes.count ?? 0)
+    setImplantations((implRes.data ?? []).map(i => ({ id: i.id, name: i.name })))
     setLoading(false)
   }
 
   useEffect(() => { load() }, [from, to])
+
+  // ── Load KPI counts filtered by implantation ──
+  useEffect(() => {
+    setLoadingCounts(true)
+
+    if (!selectedImplantationId) {
+      // Global counts
+      Promise.all([
+        supabase.from('profiles').select('user_id', { count: 'exact', head: true })
+          .eq('user_role', 'child').is('deleted_at', null),
+        supabase.from('profiles').select('user_id', { count: 'exact', head: true })
+          .eq('user_role', 'coach').is('deleted_at', null),
+        supabase.from('groups').select('id', { count: 'exact', head: true })
+          .is('deleted_at', null),
+      ]).then(([childRes, coachRes, groupRes]) => {
+        setChildrenTotal(childRes.count ?? 0)
+        setCoachesTotal(coachRes.count ?? 0)
+        setGroupsTotal(groupRes.count ?? 0)
+        setLoadingCounts(false)
+      })
+    } else {
+      // Filtered counts for the selected implantation
+      const fetchFiltered = async () => {
+        // Joueurs: distinct children in groups of this implantation
+        const { data: groupsData } = await supabase
+          .from('groups')
+          .select('id')
+          .eq('implantation_id', selectedImplantationId)
+          .is('deleted_at', null)
+
+        const groupIds = (groupsData ?? []).map((g: Record<string, string>) => g.id)
+
+        const [childData, coachData, groupCountRes] = await Promise.all([
+          groupIds.length > 0
+            ? supabase.from('group_members').select('child_id').in('group_id', groupIds)
+            : Promise.resolve({ data: [] }),
+          supabase.from('coach_implantation_assignments')
+            .select('coach_id', { count: 'exact', head: true })
+            .eq('implantation_id', selectedImplantationId)
+            .is('unassigned_at', null),
+          Promise.resolve({ count: groupIds.length }),
+        ])
+
+        const distinctChildren = new Set(
+          ((childData as { data: { child_id: string }[] | null }).data ?? []).map(m => m.child_id)
+        )
+        setChildrenTotal(distinctChildren.size)
+        setCoachesTotal((coachData as { count: number | null }).count ?? 0)
+        setGroupsTotal(groupCountRes.count ?? 0)
+        setLoadingCounts(false)
+      }
+
+      fetchFiltered()
+    }
+  }, [selectedImplantationId])
 
   const handleResolve = async (id: string) => {
     setResolving(id)
@@ -199,14 +264,23 @@ export default function DashboardPage() {
 
   if (loading) return <DashboardSkeleton />
 
-  // ── Computed global KPIs ──
-  const totalSessions  = stats.reduce((s, i) => s + (i.sessions_total  ?? 0), 0)
-  const closedSessions = stats.reduce((s, i) => s + (i.sessions_closed ?? 0), 0)
-  const avgAttendance  = stats.length
-    ? Math.round(stats.reduce((s, i) => s + (i.attendance_rate_pct ?? 0), 0) / stats.length)
+  // ── Derived: filter stats to selected implantation ──
+  const visibleStats = selectedImplantationId
+    ? stats.filter(s => s.implantation_id === selectedImplantationId)
+    : stats
+
+  const selectedName = selectedImplantationId
+    ? implantations.find(i => i.id === selectedImplantationId)?.name ?? '—'
     : null
-  const avgMastery     = stats.length
-    ? Math.round(stats.reduce((s, i) => s + (i.mastery_rate_pct ?? 0), 0) / stats.length)
+
+  // ── Computed KPIs from visibleStats ──
+  const totalSessions  = visibleStats.reduce((s, i) => s + (i.sessions_total  ?? 0), 0)
+  const closedSessions = visibleStats.reduce((s, i) => s + (i.sessions_closed ?? 0), 0)
+  const avgAttendance  = visibleStats.length
+    ? Math.round(visibleStats.reduce((s, i) => s + (i.attendance_rate_pct ?? 0), 0) / visibleStats.length)
+    : null
+  const avgMastery     = visibleStats.length
+    ? Math.round(visibleStats.reduce((s, i) => s + (i.mastery_rate_pct ?? 0), 0) / visibleStats.length)
     : null
 
   const criticalCount = anomalies.filter(a => a.severity === 'critical').length
@@ -214,23 +288,47 @@ export default function DashboardPage() {
     (a, b) => (SEV_ORDER[a.severity] ?? 3) - (SEV_ORDER[b.severity] ?? 3)
   )
 
+  const countVal = (n: number | null) =>
+    loadingCounts ? '…' : n !== null ? n : '—'
+
   return (
     <div style={S.container}>
       <style>{`
         .aureak-resolve-btn:hover { opacity: 0.85; }
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
         .aureak-card:hover { border-color: ${colors.accent.zinc}; transform: translateY(-1px); }
+        .aureak-implant-opt { background: ${colors.background.surface}; color: ${colors.text.primary}; }
       `}</style>
 
       {/* ── Page Header ── */}
       <div style={S.pageHeader}>
         <div>
           <h1 style={S.pageTitle}>Tableau de bord</h1>
-          <div style={S.pageSubtitle}>Vue globale · {stats.length} implantation{stats.length !== 1 ? 's' : ''}</div>
+          <div style={S.pageSubtitle}>
+            {selectedName
+              ? <>Vue filtrée · <span style={{ color: colors.accent.gold }}>{selectedName}</span></>
+              : `Vue globale · ${stats.length} implantation${stats.length !== 1 ? 's' : ''}`
+            }
+          </div>
         </div>
 
         <div style={S.filterRow}>
+          {/* ── Implantation selector ── */}
           <div style={S.dateGroup}>
+            <label style={S.dateLabel}>Implantation</label>
+            <select
+              value={selectedImplantationId ?? ''}
+              onChange={e => setSelectedImplantationId(e.target.value || null)}
+              style={S.implantSelect}
+            >
+              <option value="">Toutes les implantations</option>
+              {implantations.map(i => (
+                <option key={i.id} value={i.id}>{i.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ ...S.dateGroup, marginLeft: 8 }}>
             <label style={S.dateLabel}>Du</label>
             <input
               type="date"
@@ -259,13 +357,21 @@ export default function DashboardPage() {
       <div style={S.kpiStrip}>
         <KpiCard
           label="Joueurs actifs"
-          value={childrenTotal ?? '—'}
+          value={countVal(childrenTotal)}
+          sub={selectedName ? `dans ${selectedName}` : undefined}
           accent={colors.accent.gold}
         />
         <KpiCard
           label="Coachs"
-          value={coachesTotal ?? '—'}
+          value={countVal(coachesTotal)}
+          sub={selectedName ? `assignés` : undefined}
           accent={colors.status.present}
+        />
+        <KpiCard
+          label="Groupes"
+          value={countVal(groupsTotal)}
+          sub={selectedName ? `dans ${selectedName}` : undefined}
+          accent={'#4FC3F7'}
         />
         <KpiCard
           label="Séances"
@@ -276,13 +382,13 @@ export default function DashboardPage() {
         <KpiCard
           label="Taux de présence"
           value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
-          sub="moyenne globale"
+          sub={selectedName ? 'implantation' : 'moyenne globale'}
           accent={rateColor(avgAttendance)}
         />
         <KpiCard
           label="Taux de maîtrise"
           value={avgMastery !== null ? `${avgMastery}%` : '—'}
-          sub="moyenne globale"
+          sub={selectedName ? 'implantation' : 'moyenne globale'}
           accent={rateColor(avgMastery)}
         />
       </div>
@@ -328,6 +434,11 @@ export default function DashboardPage() {
                 </span>
               )}
             </div>
+            {selectedName && (
+              <span style={{ fontSize: 11, color: colors.text.secondary, fontStyle: 'italic' }}>
+                Anomalies non filtrables par implantation
+              </span>
+            )}
           </div>
 
           {/* Anomaly rows */}
@@ -381,25 +492,30 @@ export default function DashboardPage() {
 
       {/* ── Implantations Section ── */}
       <div style={S.sectionHeader}>
-        <h2 style={S.sectionTitle}>Implantations</h2>
+        <h2 style={S.sectionTitle}>
+          {selectedName ? `Implantation : ${selectedName}` : 'Implantations'}
+        </h2>
         <span style={S.sectionCount}>
-          {stats.length} site{stats.length !== 1 ? 's' : ''}
+          {selectedName ? '1 site' : `${visibleStats.length} site${visibleStats.length !== 1 ? 's' : ''}`}
         </span>
       </div>
 
-      {stats.length === 0 ? (
+      {visibleStats.length === 0 ? (
         <div style={S.emptyState}>
           <div style={{ fontSize: 36, marginBottom: 14 }}>📊</div>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Rajdhani, sans-serif' }}>
             Aucune donnée disponible
           </div>
           <div style={{ fontSize: 13, color: colors.text.secondary, maxWidth: 320, textAlign: 'center', lineHeight: 1.5 }}>
-            Ajustez la période de filtrage ou vérifiez que des séances ont été enregistrées.
+            {selectedName
+              ? `Aucune séance enregistrée pour ${selectedName} sur cette période.`
+              : 'Ajustez la période de filtrage ou vérifiez que des séances ont été enregistrées.'
+            }
           </div>
         </div>
       ) : (
         <div style={S.implantGrid}>
-          {stats.map(s => (
+          {visibleStats.map(s => (
             <ImplantationCard key={s.implantation_id} stat={s} />
           ))}
         </div>
@@ -473,6 +589,22 @@ const S: Record<string, React.CSSProperties> = {
     cursor         : 'pointer',
     fontFamily     : 'Geist, sans-serif',
   },
+  implantSelect   : {
+    padding        : '7px 32px 7px 11px',
+    borderRadius   : 7,
+    border         : `1px solid ${colors.accent.zinc}`,
+    backgroundColor: colors.background.surface,
+    color          : colors.text.primary,
+    fontSize       : 13,
+    outline        : 'none',
+    cursor         : 'pointer',
+    fontFamily     : 'Geist, sans-serif',
+    minWidth       : 210,
+    appearance     : 'none',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+    backgroundRepeat  : 'no-repeat',
+    backgroundPosition: 'right 10px center',
+  },
   refreshBtn      : {
     padding        : '7px 16px',
     borderRadius   : 7,
@@ -489,7 +621,7 @@ const S: Record<string, React.CSSProperties> = {
   // KPI Strip
   kpiStrip        : {
     display               : 'grid',
-    gridTemplateColumns   : 'repeat(5, 1fr)',
+    gridTemplateColumns   : 'repeat(6, 1fr)',
     gap                   : 12,
     marginBottom          : 24,
   },

@@ -3,6 +3,111 @@
 import { supabase } from '../supabase'
 import type { Attendance, SessionAttendee, CoachPresenceConfirmation, BlockCheckin, AttendanceStatus } from '@aureak/types'
 
+// ─── Session Attendance Summary (vue agrégée par séance) ──────────────────────
+
+export type SessionAttendanceSummary = {
+  sessionId       : string
+  scheduledAt     : string
+  durationMinutes : number
+  location        : string | null
+  status          : string
+  groupId         : string
+  groupName       : string | null
+  implantationId  : string
+  implantationName: string | null
+  presentCount    : number
+  absentCount     : number
+  lateCount       : number
+  injuredCount    : number
+  trialCount      : number
+  excusedCount    : number
+  totalAttendance : number
+  completionStatus: 'complete' | 'partial' | 'not_started'
+}
+
+export async function listSessionsWithAttendance(params?: {
+  from?          : string
+  to?            : string
+  implantationId?: string
+  groupId?       : string
+}): Promise<SessionAttendanceSummary[]> {
+  let sessionQuery = supabase
+    .from('sessions')
+    .select(`
+      id, scheduled_at, duration_minutes, location, status, group_id, implantation_id,
+      groups!sessions_group_id_fkey ( name ),
+      implantations!sessions_implantation_id_fkey ( name )
+    `)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: false })
+    .limit(200)
+
+  if (params?.from)           sessionQuery = sessionQuery.gte('scheduled_at', params.from + 'T00:00:00')
+  if (params?.to)             sessionQuery = sessionQuery.lte('scheduled_at', params.to + 'T23:59:59')
+  if (params?.implantationId) sessionQuery = sessionQuery.eq('implantation_id', params.implantationId)
+  if (params?.groupId)        sessionQuery = sessionQuery.eq('group_id', params.groupId)
+
+  const { data: sessions } = await sessionQuery
+  if (!sessions || sessions.length === 0) return []
+
+  const sessionIds = sessions.map((s: { id: string }) => s.id)
+
+  const { data: attendances } = await supabase
+    .from('attendances')
+    .select('session_id, status')
+    .in('session_id', sessionIds)
+
+  const countMap: Record<string, Record<string, number>> = {}
+  for (const a of ((attendances ?? []) as { session_id: string; status: string }[])) {
+    if (!countMap[a.session_id]) countMap[a.session_id] = {}
+    countMap[a.session_id][a.status] = (countMap[a.session_id][a.status] ?? 0) + 1
+  }
+
+  return (sessions as unknown[]).map((raw) => {
+    const s = raw as {
+      id: string; scheduled_at: string; duration_minutes: number; location: string | null
+      status: string; group_id: string; implantation_id: string
+      groups: { name: string } | { name: string }[] | null
+      implantations: { name: string } | { name: string }[] | null
+    }
+    const counts  = countMap[s.id] ?? {}
+    const present = counts['present']  ?? 0
+    const absent  = counts['absent']   ?? 0
+    const late    = counts['late']     ?? 0
+    const injured = counts['injured']  ?? 0
+    const trial   = counts['trial']    ?? 0
+    const excused = counts['excused']  ?? 0
+    const total   = present + absent + late + injured + trial + excused
+
+    const grp  = Array.isArray(s.groups)        ? s.groups[0]        : s.groups
+    const impl = Array.isArray(s.implantations) ? s.implantations[0] : s.implantations
+
+    const completionStatus: 'complete' | 'partial' | 'not_started' =
+      total === 0           ? 'not_started' :
+      s.status === 'fermée' ? 'complete'    : 'partial'
+
+    return {
+      sessionId       : s.id,
+      scheduledAt     : s.scheduled_at,
+      durationMinutes : s.duration_minutes,
+      location        : s.location,
+      status          : s.status,
+      groupId         : s.group_id,
+      groupName       : (grp  as { name: string } | null)?.name ?? null,
+      implantationId  : s.implantation_id,
+      implantationName: (impl as { name: string } | null)?.name ?? null,
+      presentCount    : present,
+      absentCount     : absent,
+      lateCount       : late,
+      injuredCount    : injured,
+      trialCount      : trial,
+      excusedCount    : excused,
+      totalAttendance : total,
+      completionStatus,
+    }
+  })
+}
+
 // ─── SessionAttendees (roster attendu) ────────────────────────────────────────
 
 export async function listSessionAttendees(

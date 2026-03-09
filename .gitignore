@@ -1,0 +1,16 @@
+# Temp files
+supabase/.temp/
+
+# Playwright MCP
+.playwright-mcp/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
