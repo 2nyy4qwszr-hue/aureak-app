@@ -1,6 +1,6 @@
 # Story 13.1 : Sessions — Modèle de Données v2 (Types, Contenu & Statuts)
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -100,39 +100,40 @@ Un joueur non-membre du groupe peut être ajouté ponctuellement à une séance 
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration `00057_sessions_v2_type_content.sql` (AC: #1, #2, #3, #4)
-  - [ ] 1.1 Créer le type ENUM PostgreSQL `session_type_v2`
-  - [ ] 1.2 ALTER TABLE `sessions` ADD COLUMN `session_type` + `content_ref` + `cancellation_reason`
-  - [ ] 1.3 ALTER TABLE `session_attendees` ADD COLUMN `is_guest BOOLEAN NOT NULL DEFAULT false`
-  - [ ] 1.4 Backfill : `UPDATE sessions SET session_type = 'goal_and_player'` si colonnes existantes le permettent (ou laisser NULL temporairement si la table est vide en prod)
-  - [ ] 1.5 Vérifier RLS — aucune policy à modifier pour les nouvelles colonnes
+- [x] Task 1 — Migration `00058_sessions_v2_type_content.sql` (AC: #1, #2, #3, #4)
+  - [x] 1.1 Créer le type ENUM PostgreSQL `session_type_v2`
+  - [x] 1.2 ALTER TABLE `sessions` ADD COLUMN `session_type` + `content_ref` + `cancellation_reason` (IF NOT EXISTS)
+  - [x] 1.3 ALTER TABLE `session_attendees` ADD COLUMN `is_guest BOOLEAN NOT NULL DEFAULT false`
+  - [x] 1.4 Backfill : `session_type` nullable — backfill manuel via Supabase dashboard si nécessaire
+  - [x] 1.5 Vérifier RLS — aucune policy à modifier pour les nouvelles colonnes. COMMENT ON ajoutés.
 
-- [ ] Task 2 — Types TypeScript `@aureak/types` (AC: #5)
-  - [ ] 2.1 Ajouter `SessionType`, `SESSION_TYPES[]`, `SituationalBlocCode`, `SITUATIONAL_BLOC_CODES[]` dans `enums.ts`
-  - [ ] 2.2 Créer le type union discriminé `SessionContentRef` dans `entities.ts`
-  - [ ] 2.3 Étendre le type `Session` avec `sessionType: SessionType`, `contentRef: SessionContentRef`, `cancellationReason: string | null`
-  - [ ] 2.4 Étendre `SessionAttendee` avec `isGuest: boolean`
+- [x] Task 2 — Types TypeScript `@aureak/types` (AC: #5)
+  - [x] 2.1 Ajouter `SessionType`, `SESSION_TYPES[]`, `SESSION_TYPE_LABELS`, `SituationalBlocCode`, `SITUATIONAL_BLOC_CODES[]`, `SITUATIONAL_BLOC_LABELS` dans `enums.ts`
+  - [x] 2.2 Créer les types union discriminés `GPContentRef`, `TechniqueAcademieContentRef`, `TechniqueStageContentRef`, `SituationnelContentRef`, `DecisionnelContentRef`, `EmptyContentRef`, `SessionContentRef` dans `entities.ts`
+  - [x] 2.3 Étendre le type `Session` avec `sessionType: SessionType | null`, `contentRef: SessionContentRef`
+  - [x] 2.4 Étendre `SessionAttendee` avec `isGuest: boolean`
 
-- [ ] Task 3 — API `@aureak/api-client` (AC: #6)
-  - [ ] 3.1 Mettre à jour `createSession()` et `updateSession()` : mapper `sessionType` → `session_type`, `contentRef` → `content_ref`
-  - [ ] 3.2 Ajouter `addGuestToSession(sessionId: string, childId: string): Promise<void>`
-  - [ ] 3.3 Ajouter `removeGuestFromSession(sessionId: string, childId: string): Promise<void>`
-  - [ ] 3.4 Mettre à jour `listSessionAttendees()` : inclure `is_guest` dans le SELECT
+- [x] Task 3 — API `@aureak/api-client` (AC: #6)
+  - [x] 3.1 Mettre à jour `createSession()` et `updateSession()` : mapper `sessionType` → `session_type`, `contentRef` → `content_ref`
+  - [x] 3.2 Ajouter `addGuestToSession(sessionId, childId, tenantId)` avec upsert idempotent
+  - [x] 3.3 Ajouter `removeGuestFromSession(sessionId, childId)` — sécurisé : DELETE WHERE is_guest=true
+  - [x] 3.4 Mettre à jour `listSessionAttendees()` : inclure `is_guest` dans le SELECT + mapping camelCase
+  - [x] 3.5 Exporter `addGuestToSession`, `removeGuestFromSession` depuis `index.ts`
 
-- [ ] Task 4 — UI Admin : formulaire sessions/new.tsx (AC: #7)
-  - [ ] 4.1 Ajouter le sélecteur `session_type` (requis, avant les autres champs)
-  - [ ] 4.2 Composant `<ContentRefForm sessionType={type} />` avec rendu conditionnel par type
-  - [ ] 4.3 Pour GP : calculer et afficher `global_number` = `(module - 1) * 5 + sequence`
-  - [ ] 4.4 Pour Technique académie : calculer `global_number` = `(module - 1) * 4 + sequence`
-  - [ ] 4.5 Pour Situationnel : sélecteur `SITUATIONAL_BLOC_CODES` + input séquence → affiche label auto (ex: `TAB-01`)
-  - [ ] 4.6 Pour Décisionnel : liste de blocs `{ title: string }` avec bouton "+ Ajouter un bloc"
-  - [ ] 4.7 Validation Zod : `contentRef` obligatoire si type ∈ [GP, Technique, Situationnel]
+- [x] Task 4 — UI Admin : formulaire sessions/new.tsx (AC: #7)
+  - [x] 4.1 Ajouter le sélecteur `session_type` (chip buttons, visible dès qu'un groupe est sélectionné)
+  - [x] 4.2 Sous-formulaire conditionnel `contentRef` inline par type (ss2 styles)
+  - [x] 4.3 Pour GP : calculer et afficher numéro global + sélecteurs module/séquence/demi/répétition
+  - [x] 4.4 Pour Technique académie : module (1-8) + séquence (1-4) → numéro global calculé
+  - [x] 4.5 Pour Situationnel : sélecteur `SITUATIONAL_BLOC_CODES` + séquence → label auto TAB-01
+  - [x] 4.6 Pour Décisionnel : liste de blocs avec titre + bouton "+ Ajouter un bloc" + suppression
+  - [x] 4.7 Validation : `contentRefValid` = false si Technique/Stage sans concept ; step1Valid inclut contentRefValid
 
-- [ ] Task 5 — UI Admin : `sessions/[sessionId]/page.tsx` (AC: #7)
-  - [ ] 5.1 Afficher `session_type` + contenu décodé selon le type (ex: "TAB-01 — Saut d'allègement")
-  - [ ] 5.2 Section "Joueurs invités" : liste des `is_guest = true` + bouton "Ajouter un gardien"
-  - [ ] 5.3 PlayerPicker inline (recherche par nom dans `child_directory`, top 8, clic = ajout)
-  - [ ] 5.4 Afficher `cancellation_reason` si `status = 'annulée'`
+- [x] Task 5 — UI Admin : `sessions/[sessionId]/page.tsx` (AC: #7)
+  - [x] 5.1 Afficher `session_type` (Badge goldOutline) + contenu décodé via `contentRefLabel()`
+  - [x] 5.2 Section "Joueurs invités" : liste des `isGuest = true` + bouton "Ajouter un gardien"
+  - [x] 5.3 PlayerPicker inline : TextInput search → `listChildDirectory({search})` → top 8 résultats → clic = `addGuestToSession()`
+  - [x] 5.4 Afficher `cancellationReason` si `status = 'annulée'` avec fond rouge
 
 ## Dev Notes
 
@@ -284,18 +285,24 @@ export type SessionContentRef =
 ## File List
 
 ### New Files
-- `supabase/migrations/00057_sessions_v2_type_content.sql`
+- `supabase/migrations/00058_sessions_v2_type_content.sql`
 
 ### Modified Files
-- `aureak/packages/types/src/enums.ts` — SessionType, SituationalBlocCode + constantes
-- `aureak/packages/types/src/entities.ts` — SessionContentRef union type, Session étendu, SessionAttendee étendu
-- `aureak/packages/types/src/index.ts` — re-export nouveaux types
-- `aureak/packages/api-client/src/sessions/sessions.ts` — createSession, updateSession, addGuestToSession, removeGuestFromSession, listSessionAttendees
-- `aureak/apps/web/app/(admin)/sessions/new.tsx` — sélecteur session_type + ContentRefForm
-- `aureak/apps/web/app/(admin)/sessions/[sessionId]/page.tsx` — affichage type + content + section joueurs invités
+- `aureak/packages/types/src/enums.ts` — SessionType, SESSION_TYPES, SESSION_TYPE_LABELS, SituationalBlocCode, SITUATIONAL_BLOC_CODES, SITUATIONAL_BLOC_LABELS
+- `aureak/packages/types/src/entities.ts` — GPContentRef, TechniqueAcademieContentRef, TechniqueStageContentRef, SituationnelContentRef, DecisionnelContentRef, EmptyContentRef, SessionContentRef; Session étendu (sessionType, contentRef); SessionAttendee étendu (isGuest)
+- `aureak/packages/api-client/src/sessions/sessions.ts` — createSession, updateSession (sessionType+contentRef), listSessionAttendees (is_guest mapping), addGuestToSession, removeGuestFromSession
+- `aureak/packages/api-client/src/index.ts` — export addGuestToSession, removeGuestFromSession
+- `aureak/apps/web/app/(admin)/sessions/new.tsx` — import SESSION_TYPES/LABELS/SITUATIONAL_BLOC_CODES, nouveaux états sessionType+contentRef, sous-formulaire conditionnel, styles ss2, step1Valid mis à jour, handleCreate mis à jour
+- `aureak/apps/web/app/(admin)/sessions/[sessionId]/page.tsx` — import SESSION_TYPE_LABELS, listSessionAttendees/addGuestToSession/removeGuestFromSession/listChildDirectory, état attendees+guestSearch+guestResults, contentRefLabel(), affichage type+contenu, section joueurs invités avec PlayerPicker, annulation redesignée rouge
 
 ## Dev Agent Record
 
-- [ ] Story créée le 2026-03-09 suite à discovery complète du module Séances (6 batches de questions)
-- [ ] Précondition : migrations 00001–00056 appliquées, table `sessions` existante
-- [ ] Cette story est le fondement des Stories 13-2 (Calendrier & Auto-génération) et 13-3 (Mode Séance Coach)
+- [x] Implémenté le 2026-03-09 — story 13-1 complète
+- [x] Migration 00058 (numéro ajusté car 00057 déjà pris par situations_link_bloc)
+- [x] `cancellation_reason` était déjà présent dans la DB (API existante) → ADD COLUMN IF NOT EXISTS idempotent
+- [x] `index.ts` côté types ne nécessite pas de modification (export * from entities/enums suffit)
+- [x] Story est le fondement des Stories 13-2 (Calendrier & Auto-génération) et 13-3 (Mode Séance Coach)
+
+## Change Log
+
+- 2026-03-09 : Implémentation complète story 13-1 — migration 00058, types TS SessionType/SessionContentRef, API addGuestToSession/removeGuestFromSession, UI sessions/new.tsx (sélecteur type + sous-formulaire contentRef), UI sessions/[sessionId]/page.tsx (affichage type/contenu, section joueurs invités)

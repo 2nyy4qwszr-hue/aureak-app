@@ -3,10 +3,12 @@ import { View, StyleSheet, ScrollView, TextInput, Modal, Pressable } from 'react
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSessionById, listSessionCoaches, listAttendancesBySession, cancelSessionRpc,
+  listSessionAttendees, addGuestToSession, removeGuestFromSession, listChildDirectory,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import type { Session, SessionCoach, Attendance } from '@aureak/types'
+import { SESSION_TYPE_LABELS } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry } from '@aureak/types'
 
 const styles = StyleSheet.create({
   container       : { flex: 1, backgroundColor: colors.light.primary },
@@ -32,27 +34,82 @@ const styles = StyleSheet.create({
 export default function SessionDetailPage() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>()
   const router = useRouter()
-  const [session, setSession] = useState<Session | null>(null)
-  const [coaches, setCoaches] = useState<SessionCoach[]>([])
+  const [session,     setSession]     = useState<Session | null>(null)
+  const [coaches,     setCoaches]     = useState<SessionCoach[]>([])
   const [attendances, setAttendances] = useState<Attendance[]>([])
+  // Story 13.1 — Guest players
+  const [attendees,   setAttendees]   = useState<SessionAttendee[]>([])
+  const [guestSearch, setGuestSearch] = useState('')
+  const [guestResults,setGuestResults]= useState<ChildDirectoryEntry[]>([])
+  const [showGuestPicker, setShowGuestPicker] = useState(false)
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
-  const [cancelError, setCancelError] = useState('')
+  const [cancelError,  setCancelError]  = useState('')
 
   const load = async () => {
     if (!sessionId) return
-    const [s, c, a] = await Promise.all([
+    const [s, c, a, att] = await Promise.all([
       getSessionById(sessionId),
       listSessionCoaches(sessionId),
       listAttendancesBySession(sessionId),
+      listSessionAttendees(sessionId),
     ])
     setSession(s.data)
     setCoaches(c.data)
     setAttendances(a.data)
+    setAttendees(att.data)
   }
 
   useEffect(() => { load() }, [sessionId])
+
+  // Guest search
+  useEffect(() => {
+    if (!guestSearch.trim()) { setGuestResults([]); return }
+    listChildDirectory({ search: guestSearch.trim(), pageSize: 8 })
+      .then(({ data }) => setGuestResults(data))
+      .catch(() => {})
+  }, [guestSearch])
+
+  const handleAddGuest = async (child: ChildDirectoryEntry) => {
+    if (!sessionId || !session) return
+    await addGuestToSession(sessionId, child.id, session.tenantId)
+    setGuestSearch('')
+    setGuestResults([])
+    setShowGuestPicker(false)
+    load()
+  }
+
+  const handleRemoveGuest = async (childId: string) => {
+    if (!sessionId) return
+    await removeGuestFromSession(sessionId, childId)
+    load()
+  }
+
+  // Decode contentRef label for display
+  function contentRefLabel(session: Session): string {
+    const ref = session.contentRef
+    if (!ref || !('method' in ref)) return '—'
+    switch (ref.method) {
+      case 'goal_and_player':
+        return `GP #${(ref as {globalNumber:number}).globalNumber} · ${(ref as {half:string}).half} Rep.${(ref as {repeat:number}).repeat}`
+      case 'technique': {
+        const r = ref as {context:string; globalNumber?:number; concept?:string; sequence:number}
+        return r.context === 'academie'
+          ? `Technique #${r.globalNumber}`
+          : `Stage ${r.concept} · ${r.sequence}`
+      }
+      case 'situationnel': {
+        const r = ref as {label:string; subtitle?:string; blocCode:string}
+        return r.subtitle ? `${r.label} — ${r.subtitle}` : r.label
+      }
+      case 'decisionnel': {
+        const r = ref as {blocks:Array<{title:string}>}
+        return `Décisionnel · ${r.blocks.length} bloc${r.blocks.length !== 1 ? 's' : ''}`
+      }
+      default: return '—'
+    }
+  }
 
   const handleCancel = async () => {
     if (!cancelReason.trim()) {
@@ -100,17 +157,83 @@ export default function SessionDetailPage() {
         <View style={styles.row}>
           <AureakText variant="label">Statut :</AureakText>
           <Badge label={session.status} variant="zinc" />
+          {session.sessionType && (
+            <Badge
+              label={SESSION_TYPE_LABELS[session.sessionType]}
+              variant="goldOutline"
+            />
+          )}
         </View>
+        {session.sessionType && (
+          <AureakText variant="body" style={{ color: colors.accent.gold }}>
+            Contenu : {contentRefLabel(session)}
+          </AureakText>
+        )}
         <AureakText variant="body">
           Durée : {session.durationMinutes} min
         </AureakText>
         {session.location && (
           <AureakText variant="body">Lieu : {session.location}</AureakText>
         )}
-        {session.cancellationReason && (
-          <AureakText variant="body" style={{ color: colors.accent.gold }}>
-            Motif annulation : {session.cancellationReason}
-          </AureakText>
+        {session.status === 'annulée' && session.cancellationReason && (
+          <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm }}>
+            <AureakText variant="caption" style={{ color: '#DC2626', fontWeight: '700' as never }}>
+              Séance annulée
+            </AureakText>
+            <AureakText variant="caption" style={{ color: '#DC2626' }}>
+              Motif : {session.cancellationReason}
+            </AureakText>
+          </View>
+        )}
+      </View>
+
+      {/* Joueurs invités (Story 13.1) */}
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <AureakText variant="label">Joueurs invités</AureakText>
+          <Pressable
+            style={{ marginLeft: 'auto' as never, paddingHorizontal: space.sm, paddingVertical: space.xs, backgroundColor: colors.accent.gold + '20', borderRadius: 6, borderWidth: 1, borderColor: colors.accent.gold }}
+            onPress={() => setShowGuestPicker(v => !v)}
+          >
+            <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un gardien</AureakText>
+          </Pressable>
+        </View>
+        {attendees.filter(a => a.isGuest).map(a => (
+          <View key={a.childId} style={[styles.row, { justifyContent: 'space-between' as never }]}>
+            <AureakText variant="body">{a.childId.slice(0, 16)}… (invité)</AureakText>
+            <Pressable onPress={() => handleRemoveGuest(a.childId)}>
+              <AureakText variant="caption" style={{ color: '#DC2626' }}>Retirer</AureakText>
+            </Pressable>
+          </View>
+        ))}
+        {attendees.filter(a => a.isGuest).length === 0 && !showGuestPicker && (
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun joueur invité</AureakText>
+        )}
+        {showGuestPicker && (
+          <View style={{ gap: space.xs }}>
+            <TextInput
+              style={styles.input}
+              placeholder="Rechercher un joueur par nom…"
+              value={guestSearch}
+              onChangeText={setGuestSearch}
+              autoFocus
+            />
+            {guestResults.map(child => (
+              <Pressable
+                key={child.id}
+                style={{ paddingVertical: space.sm, paddingHorizontal: space.xs, borderBottomWidth: 1, borderBottomColor: colors.border.divider }}
+                onPress={() => handleAddGuest(child)}
+              >
+                <AureakText variant="body">{child.displayName}</AureakText>
+                {child.currentClub && (
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>{child.currentClub}</AureakText>
+                )}
+              </Pressable>
+            ))}
+            {guestSearch.trim().length > 0 && guestResults.length === 0 && (
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun joueur trouvé</AureakText>
+            )}
+          </View>
         )}
       </View>
 

@@ -51,6 +51,12 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Comparaison',   href: '/analytics'     },
     ],
   },
+  {
+    label: 'Administration',
+    items: [
+      { label: 'Utilisateurs', href: '/users' },
+    ],
+  },
 ]
 
 export default function AdminLayout() {
@@ -105,12 +111,12 @@ export default function AdminLayout() {
         style={{
           flexShrink     : 0,
           overflowY      : 'auto',
+          height         : '100vh',
           boxShadow      : shadows.sm,
           ...(isMobile ? {
             position   : 'fixed',
             top        : 0,
             left       : mobileOpen ? 0 : -220,
-            height     : '100vh',
             transition : `left ${transitions.normal}`,
             zIndex     : 50,
             boxShadow  : mobileOpen ? shadows.lg : 'none',

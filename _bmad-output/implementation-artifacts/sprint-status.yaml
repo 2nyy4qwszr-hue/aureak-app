@@ -193,7 +193,7 @@ development_status:
 
   # Epic 19 : Séances v2 — Types Pédagogiques, Auto-génération & Mode Terrain
   epic-19: in-progress
-  13-1-sessions-modele-donnees-v2-types-contenu-statuts: in-progress
+  13-1-sessions-modele-donnees-v2-types-contenu-statuts: review
   13-2-sessions-calendrier-auto-generation-gestion-exceptions: ready-for-dev
   13-3-sessions-mode-seance-coach-mobile-cloture-remplacement: ready-for-dev
   epic-19-retrospective: optional

@@ -30,7 +30,7 @@ const COMPLETION_CONFIG = {
 const SESSION_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   planifiée: { label: 'Planifiée',  color: colors.text.muted },
   en_cours : { label: 'En cours',   color: '#4FC3F7' },
-  fermée   : { label: 'Fermée',     color: '#66BB6A' },
+  terminée : { label: 'Terminée',   color: '#66BB6A' },
   annulée  : { label: 'Annulée',    color: '#EF5350' },
 }
 
