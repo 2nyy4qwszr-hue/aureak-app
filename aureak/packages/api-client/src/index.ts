@@ -85,6 +85,8 @@ export {
   updateSession, cancelSession,
   assignCoach, listSessionCoaches,
   addSessionTheme, addSessionSituation, listSessionThemes, listSessionSituations,
+  // Story 13.1 — guest management
+  addGuestToSession, removeGuestFromSession,
 } from './sessions/sessions'
 export type { CreateSessionParams, UpdateSessionParams } from './sessions/sessions'
 
