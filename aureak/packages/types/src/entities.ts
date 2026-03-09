@@ -134,13 +134,17 @@ export type Theme = {
 
 /** ThemeSequence — séquence pédagogique d'un thème (liée à une version immuable) */
 export type ThemeSequence = {
-  id          : string
-  themeId     : string
-  tenantId    : string
-  name        : string
-  description : string | null
-  sortOrder   : number | null
-  createdAt   : string
+  id            : string
+  themeId       : string
+  tenantId      : string
+  name          : string
+  description   : string | null
+  sortOrder     : number | null
+  createdAt     : string
+  // Champs terrain + critères ciblés (migration 00056)
+  shortCues     : string[]
+  coachVideoUrl : string | null
+  criteriaIds?  : string[]
 }
 
 // ============================================================
@@ -149,24 +153,38 @@ export type ThemeSequence = {
 
 /** Criterion — critère de réussite d'une séquence pédagogique */
 export type Criterion = {
-  id          : string
-  sequenceId  : string
-  tenantId    : string
-  label       : string
-  description : string | null
-  sortOrder   : number | null
-  createdAt   : string
+  id                      : string
+  sequenceId              : string
+  tenantId                : string
+  label                   : string
+  description             : string | null
+  sortOrder               : number | null
+  createdAt               : string
+  // Champs pédagogiques étendus (migration 00056)
+  whyImportant            : string | null
+  minLevel                : string | null
+  logicalOrder            : number
+  goodExecutionVideoUrl   : string | null
+  goodExecutionImageUrl   : string | null
 }
 
 /** Fault — faute associée à un critère */
 export type Fault = {
-  id          : string
-  criterionId : string
-  tenantId    : string
-  label       : string
-  description : string | null
-  sortOrder   : number | null
-  createdAt   : string
+  id                  : string
+  criterionId         : string
+  tenantId            : string
+  label               : string
+  description         : string | null
+  sortOrder           : number | null
+  createdAt           : string
+  // Diagnostic complet + correction (migration 00056)
+  visibleSign         : string | null
+  probableCause       : string | null
+  correctionWording   : string | null
+  coachingPhrase      : string | null
+  practicalAdjustment : string | null
+  correctiveVideoUrl  : string | null
+  correctiveImageUrl  : string | null
 }
 
 /** Cue — cue de correction coaching associé à une faute */
@@ -1015,4 +1033,136 @@ export type MethodologySession = {
   deletedAt   : string | null
   createdAt   : string
   updatedAt   : string
+}
+
+// ── Theme Dossier Pédagogique (Migration 00056) ───────────────────────────
+
+export type ThemeVision = {
+  id                    : string
+  tenantId              : string
+  themeId               : string
+  pourquoi              : string | null
+  quandEnMatch          : string | null
+  ceQueComprend         : string | null
+  ideeMaitresse         : string | null
+  criteresPrioritaires  : string | null
+  createdAt             : string
+  updatedAt             : string
+}
+
+export type ThemePageTerrain = {
+  id              : string
+  tenantId        : string
+  themeId         : string
+  sequencesCourt  : string | null
+  metaphorsCourt  : string | null
+  cues            : string[]
+  criteriaSummary : string | null
+  createdAt       : string
+  updatedAt       : string
+}
+
+export type ThemeMiniExercise = {
+  id          : string
+  tenantId    : string
+  themeId     : string
+  criterionId : string | null
+  title       : string
+  purpose     : string | null
+  situation   : string | null
+  cue         : string | null
+  videoUrl    : string | null
+  imageUrl    : string | null
+  sortOrder   : number
+  createdAt   : string
+  updatedAt   : string
+}
+
+export type ThemeHomeExercise = {
+  id                       : string
+  tenantId                 : string
+  themeId                  : string
+  title                    : string
+  objective                : string | null
+  material                 : string | null
+  installation             : string | null
+  parentChildInstructions  : string | null
+  distanceMeters           : number | null
+  intensity                : string | null
+  repetitions              : number | null
+  demoVideoUrl             : string | null
+  requiredLevel            : string | null
+  sortOrder                : number
+  createdAt                : string
+  updatedAt                : string
+  criteriaIds?             : string[]
+}
+
+export type ThemeVideoEvalTemplate = {
+  id           : string
+  tenantId     : string
+  themeId      : string
+  exerciseId   : string | null
+  title        : string
+  instructions : string | null
+  sortOrder    : number
+  createdAt    : string
+  updatedAt    : string
+  criteriaIds? : string[]
+}
+
+export type CriterionEvalResult = 'acquis' | 'en_cours' | 'a_corriger'
+
+export type ThemeVideoEvaluation = {
+  id              : string
+  tenantId        : string
+  templateId      : string
+  childId         : string
+  coachId         : string | null
+  videoUrl        : string | null
+  globalComment   : string | null
+  nextStep        : string | null
+  evaluatedAt     : string | null
+  createdAt       : string
+  updatedAt       : string
+  criterionResults?: { criterionId: string; result: CriterionEvalResult; comment: string | null }[]
+}
+
+export type BadgeStage = 'Bronze' | 'Argent' | 'Or' | 'Elite' | 'Master'
+
+export type ThemeBadgeLevel = {
+  id                    : string
+  tenantId              : string
+  themeId               : string
+  levelNumber           : number
+  stage                 : BadgeStage
+  badgeImageUrl         : string | null
+  progressionRule       : string | null
+  requiredCriteriaCount : number | null
+  sortOrder             : number
+  createdAt             : string
+}
+
+export type ThemeResourceType = 'pdf_coach' | 'video_global' | 'image_global' | 'audio' | 'reference_media'
+
+export type ThemeResource = {
+  id           : string
+  tenantId     : string
+  themeId      : string
+  resourceType : ThemeResourceType
+  label        : string | null
+  url          : string
+  sortOrder    : number
+  createdAt    : string
+}
+
+export type ThemeAgeDifferentiation = {
+  id                  : string
+  tenantId            : string
+  themeId             : string
+  ageCategory         : string
+  simplificationNotes : string | null
+  vocabularyAdapted   : string | null
+  createdAt           : string
+  updatedAt           : string
 }

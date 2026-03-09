@@ -234,6 +234,24 @@ export type {
   ListClubDirectoryOpts, ClubChildLinkRow,
 } from './admin/club-directory'
 
+// ── Theme Dossier Pédagogique (migration 00056) ───────────────────────────────
+export {
+  getThemeVision, upsertThemeVision,
+  getThemePageTerrain, upsertThemePageTerrain,
+  setSequenceCriteria, getSequenceCriteria,
+  listThemeMiniExercises, createThemeMiniExercise, updateThemeMiniExercise, deleteThemeMiniExercise,
+  listThemeHomeExercises, createThemeHomeExercise, updateThemeHomeExercise, deleteThemeHomeExercise,
+  setHomeExerciseCriteria,
+  listThemeVideoEvalTemplates, createThemeVideoEvalTemplate, updateThemeVideoEvalTemplate, deleteThemeVideoEvalTemplate,
+  setVideoEvalTemplateCriteria,
+  listThemeBadgeLevels, createThemeBadgeLevel, updateThemeBadgeLevel, deleteThemeBadgeLevel,
+  listThemeResources, createThemeResource, updateThemeResource, deleteThemeResource,
+  listThemeAgeDifferentiation, upsertThemeAgeDifferentiation,
+  updateCriterionExtended, updateFaultExtended,
+  deleteCriterionById, deleteFaultById,
+  listCriteriaByTheme, listFaultsByCriterionExtended,
+} from './referentiel/theme-dossier'
+
 // ── Méthodologie pédagogique (migration 00050) ────────────────────────────────
 export {
   listMethodologyThemes, getMethodologyTheme, createMethodologyTheme, updateMethodologyTheme, toggleMethodologyTheme,

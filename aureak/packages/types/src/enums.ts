@@ -110,3 +110,23 @@ export const METHODOLOGY_CONTEXT_LABELS: Record<MethodologyContextType, string> 
 
 // METHODOLOGY_METHOD_COLOR déplacé vers @aureak/theme/tokens.ts (ARCH-10)
 // Importer depuis : import { methodologyMethodColors } from '@aureak/theme'
+
+// ── Theme Dossier Pédagogique (migration 00056) ───────────────────────────────
+// Note : BadgeStage et ThemeResourceType sont définis dans entities.ts.
+// Les constantes ici n'importent pas ces types pour éviter les dépendances circulaires ;
+// les types sont inlinés directement.
+
+export const BADGE_STAGES: ('Bronze' | 'Argent' | 'Or' | 'Elite' | 'Master')[] = [
+  'Bronze', 'Argent', 'Or', 'Elite', 'Master',
+]
+
+export const THEME_RESOURCE_TYPE_LABELS: Record<'pdf_coach' | 'video_global' | 'image_global' | 'audio' | 'reference_media', string> = {
+  pdf_coach      : 'PDF Coach',
+  video_global   : 'Vidéo globale',
+  image_global   : 'Image globale',
+  audio          : 'Audio',
+  reference_media: 'Média de référence',
+}
+
+export const THEME_AGE_CATEGORIES = ['U6','U8','U10','U12','U14','U16','U21','Senior'] as const
+export type ThemeAgeCategory = typeof THEME_AGE_CATEGORIES[number]
