@@ -151,7 +151,7 @@ function ImplantationCard({ stat }: { stat: ImplantationStats }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
-  { label: '+ Nouvelle séance',    href: '/sessions/new', primary: true  },
+  { label: '+ Nouvelle séance',    href: '/seances/new', primary: true  },
   { label: '+ Inviter utilisateur', href: '/users/new',   primary: true  },
   { label: '→ Présences',          href: '/attendance',   primary: false },
   { label: '→ Évaluations',        href: '/evaluations',  primary: false },

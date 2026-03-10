@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSessionById, listSessionCoaches, listAttendancesBySession, cancelSessionRpc,
   listSessionAttendees, addGuestToSession, removeGuestFromSession, listChildDirectory,
+  postponeSession, cancelSessionWithShift,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
@@ -37,6 +38,8 @@ export default function SessionDetailPage() {
   const [session,     setSession]     = useState<Session | null>(null)
   const [coaches,     setCoaches]     = useState<SessionCoach[]>([])
   const [attendances, setAttendances] = useState<Attendance[]>([])
+  const [loading,     setLoading]     = useState(true)
+  const [loadError,   setLoadError]   = useState<string | null>(null)
   // Story 13.1 — Guest players
   const [attendees,   setAttendees]   = useState<SessionAttendee[]>([])
   const [guestSearch, setGuestSearch] = useState('')
@@ -46,19 +49,41 @@ export default function SessionDetailPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelError,  setCancelError]  = useState('')
+  // Postpone dialog (Story 13.2)
+  const [showPostponeDialog, setShowPostponeDialog] = useState(false)
+  const [postponeDate,       setPostponeDate      ] = useState('')
+  const [postponeError,      setPostponeError     ] = useState('')
 
   const load = async () => {
-    if (!sessionId) return
-    const [s, c, a, att] = await Promise.all([
-      getSessionById(sessionId),
-      listSessionCoaches(sessionId),
-      listAttendancesBySession(sessionId),
-      listSessionAttendees(sessionId),
-    ])
-    setSession(s.data)
-    setCoaches(c.data)
-    setAttendances(a.data)
-    setAttendees(att.data)
+    if (!sessionId) {
+      setLoadError('Identifiant de séance manquant.')
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setLoadError(null)
+    try {
+      const [s, c, a, att] = await Promise.all([
+        getSessionById(sessionId),
+        listSessionCoaches(sessionId),
+        listAttendancesBySession(sessionId),
+        listSessionAttendees(sessionId),
+      ])
+      if (s.error || !s.data) {
+        setLoadError('Séance introuvable ou accès refusé.')
+        setLoading(false)
+        return
+      }
+      setSession(s.data)
+      setCoaches(c.data)
+      setAttendances(a.data)
+      setAttendees(att.data)
+    } catch (err) {
+      setLoadError('Erreur lors du chargement de la séance.')
+      console.error('[SessionDetail] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [sessionId])
@@ -116,19 +141,59 @@ export default function SessionDetailPage() {
       setCancelError('Le motif est obligatoire.')
       return
     }
-    const { error } = await cancelSessionRpc(sessionId!, cancelReason.trim())
+    // Story 13.2 : utilise cancelSessionWithShift (log audit si contenu perdu)
+    const { error } = await cancelSessionWithShift(sessionId!, cancelReason.trim())
     if (error) {
-      setCancelError((error as Error).message)
+      setCancelError((error as Error).message ?? 'Erreur lors de l\'annulation.')
     } else {
       setShowCancelDialog(false)
       load()
     }
   }
 
-  if (!session) {
+  const handlePostpone = async () => {
+    if (!postponeDate.trim()) {
+      setPostponeError('La nouvelle date est obligatoire.')
+      return
+    }
+    // Construire ISO datetime avec l'heure existante si possible
+    const newDate = postponeDate.includes('T') ? postponeDate : `${postponeDate}T${session ? new Date(session.scheduledAt).toTimeString().slice(0,5) : '18:00'}:00`
+    const { error } = await postponeSession(sessionId!, newDate)
+    if (error) {
+      setPostponeError((error as Error).message ?? 'Erreur lors du report.')
+    } else {
+      setShowPostponeDialog(false)
+      setPostponeDate('')
+      setPostponeError('')
+      load()
+    }
+  }
+
+  if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <AureakText variant="body">Chargement...</AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
+      </View>
+    )
+  }
+
+  if (loadError || !session) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: space.xl }]}>
+        <AureakText variant="h3" style={{ color: colors.accent.red ?? '#E05252', marginBottom: space.sm }}>
+          Impossible d'afficher la séance
+        </AureakText>
+        <AureakText variant="body" style={{ color: colors.text.muted, textAlign: 'center' as never }}>
+          {loadError ?? 'Séance introuvable.'}
+        </AureakText>
+        <Pressable
+          style={{ marginTop: space.lg, paddingHorizontal: space.md, paddingVertical: space.sm, backgroundColor: colors.accent.gold, borderRadius: 8 }}
+          onPress={() => router.push('/seances' as never)}
+        >
+          <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
+            ← Retour aux séances
+          </AureakText>
+        </Pressable>
       </View>
     )
   }
@@ -141,7 +206,7 @@ export default function SessionDetailPage() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Breadcrumb */}
       <View style={styles.breadcrumb}>
-        <Pressable onPress={() => router.push('/sessions' as never)}>
+        <Pressable onPress={() => router.push('/seances' as never)}>
           <AureakText variant="caption" style={styles.breadcrumbLink}>Séances</AureakText>
         </Pressable>
         <AureakText variant="caption" style={styles.breadcrumbSep}>/</AureakText>
@@ -178,10 +243,20 @@ export default function SessionDetailPage() {
         {session.status === 'annulée' && session.cancellationReason && (
           <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm }}>
             <AureakText variant="caption" style={{ color: '#DC2626', fontWeight: '700' as never }}>
-              Séance annulée
+              Séance annulée — Contenu décalé (log audit créé)
             </AureakText>
             <AureakText variant="caption" style={{ color: '#DC2626' }}>
               Motif : {session.cancellationReason}
+            </AureakText>
+          </View>
+        )}
+        {session.status === 'reportée' && (
+          <View style={{ backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm }}>
+            <AureakText variant="caption" style={{ color: '#D97706', fontWeight: '700' as never }}>
+              → Séance reportée
+            </AureakText>
+            <AureakText variant="caption" style={{ color: '#D97706' }}>
+              Nouvelle date : {new Date(session.scheduledAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </AureakText>
           </View>
         )}
@@ -267,14 +342,70 @@ export default function SessionDetailPage() {
         )}
       </View>
 
-      {/* Actions */}
-      {session.status === 'planifiée' || session.status === 'en_cours' ? (
+      {/* Actions (Story 13.2) */}
+      {session.status === 'planifiée' && (
+        <View style={styles.row}>
+          <AureakButton
+            label="→ Reporter"
+            onPress={() => {
+              setPostponeDate(session.scheduledAt.split('T')[0])
+              setShowPostponeDialog(true)
+            }}
+            variant="secondary"
+          />
+          <AureakButton
+            label="✕ Annuler la séance"
+            onPress={() => setShowCancelDialog(true)}
+            variant="secondary"
+          />
+        </View>
+      )}
+      {session.status === 'en_cours' ? (
         <AureakButton
           label="Annuler la séance"
           onPress={() => setShowCancelDialog(true)}
           variant="secondary"
         />
       ) : null}
+
+      {/* Postpone dialog (Story 13.2) */}
+      <Modal visible={showPostponeDialog} transparent animationType="fade">
+        <View style={{
+          flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center', alignItems: 'center', padding: space.xl,
+        }}>
+          <View style={[styles.card, { width: '100%', maxWidth: 400 }]}>
+            <AureakText variant="h3">Reporter la séance</AureakText>
+            <AureakText variant="body" style={{ color: colors.text.muted }}>
+              Le contenu pédagogique reste inchangé — seule la date change.
+            </AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
+              Nouvelle date (YYYY-MM-DD) :
+            </AureakText>
+            <View style={styles.row}>
+              <TextInput
+                style={styles.input}
+                placeholder="2026-04-20"
+                value={postponeDate}
+                onChangeText={setPostponeDate}
+              />
+            </View>
+            {postponeError ? (
+              <AureakText variant="caption" style={{ color: '#DC2626' }}>
+                {postponeError}
+              </AureakText>
+            ) : null}
+            <View style={styles.row}>
+              <AureakButton label="Confirmer le report" onPress={handlePostpone} variant="primary" />
+              <AureakButton
+                label="Annuler"
+                onPress={() => { setShowPostponeDialog(false); setPostponeDate(''); setPostponeError('') }}
+                variant="secondary"
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Cancel dialog */}
       <Modal visible={showCancelDialog} transparent animationType="fade">
@@ -287,6 +418,16 @@ export default function SessionDetailPage() {
             <AureakText variant="body" style={{ color: colors.text.muted }}>
               Le motif est obligatoire et sera communiqué aux parents.
             </AureakText>
+            {session?.sessionType && ['goal_and_player','technique','situationnel'].includes(session.sessionType) && (
+              <View style={{ backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm }}>
+                <AureakText variant="caption" style={{ color: '#D97706', fontWeight: '700' as never }}>
+                  ⚠️ Séance avec contenu séquentiel
+                </AureakText>
+                <AureakText variant="caption" style={{ color: '#D97706' }}>
+                  Un log d'audit sera créé pour tracer la perte de contenu dans la séquence pédagogique.
+                </AureakText>
+              </View>
+            )}
             <View style={styles.row}>
               <TextInput
                 style={styles.input}

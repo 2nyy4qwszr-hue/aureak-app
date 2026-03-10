@@ -2,6 +2,55 @@
 import { supabase } from '../supabase'
 import type { ThemeGroup, Theme, ThemeSequence, ThemeLevel, AgeGroup } from '@aureak/types'
 
+// ─── Mappers snake_case → camelCase ──────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapGroup(r: any): ThemeGroup {
+  return {
+    id       : r.id,
+    tenantId : r.tenant_id,
+    name     : r.name,
+    sortOrder: r.sort_order ?? null,
+    deletedAt: r.deleted_at ?? null,
+    createdAt: r.created_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapTheme(r: any): Theme {
+  return {
+    id            : r.id,
+    tenantId      : r.tenant_id,
+    groupId       : r.group_id ?? null,
+    themeKey      : r.theme_key,
+    name          : r.name,
+    description   : r.description ?? null,
+    level         : (r.level as ThemeLevel) ?? null,
+    ageGroup      : (r.age_group as AgeGroup) ?? null,
+    targetAudience: r.target_audience ?? {},
+    version       : r.version,
+    isCurrent     : r.is_current,
+    deletedAt     : r.deleted_at ?? null,
+    createdAt     : r.created_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapSequence(r: any): ThemeSequence {
+  return {
+    id           : r.id,
+    themeId      : r.theme_id,
+    tenantId     : r.tenant_id,
+    name         : r.name,
+    description  : r.description ?? null,
+    sortOrder    : r.sort_order ?? null,
+    createdAt    : r.created_at,
+    shortCues    : r.short_cues ?? [],
+    coachVideoUrl: r.coach_video_url ?? null,
+    criteriaIds  : r.criteria_ids ?? undefined,
+  }
+}
+
 // ─── ThemeGroup ───────────────────────────────────────────────────────────────
 
 export type CreateThemeGroupParams = {
@@ -23,7 +72,7 @@ export async function createThemeGroup(
     .select()
     .single()
 
-  return { data: data as ThemeGroup | null, error }
+  return { data: data ? mapGroup(data) : null, error }
 }
 
 export async function listThemeGroups(): Promise<{ data: ThemeGroup[]; error: unknown }> {
@@ -33,7 +82,7 @@ export async function listThemeGroups(): Promise<{ data: ThemeGroup[]; error: un
     .is('deleted_at', null)
     .order('sort_order', { ascending: true, nullsFirst: false })
 
-  return { data: (data as ThemeGroup[]) ?? [], error }
+  return { data: data ? (data as unknown[]).map(mapGroup) : [], error }
 }
 
 export async function updateThemeGroupOrder(
@@ -79,7 +128,7 @@ export async function createTheme(
     .select()
     .single()
 
-  return { data: data as Theme | null, error }
+  return { data: data ? mapTheme(data) : null, error }
 }
 
 export async function listThemes(
@@ -97,7 +146,32 @@ export async function listThemes(
   }
 
   const { data, error } = await query
-  return { data: (data as Theme[]) ?? [], error }
+  return { data: data ? (data as unknown[]).map(mapTheme) : [], error }
+}
+
+export type UpdateThemeParams = {
+  id          : string
+  name?       : string
+  description?: string | null
+  groupId?    : string | null
+}
+
+export async function updateTheme(
+  params: UpdateThemeParams
+): Promise<{ data: Theme | null; error: unknown }> {
+  const payload: Record<string, unknown> = {}
+  if (params.name        !== undefined) payload.name        = params.name
+  if (params.description !== undefined) payload.description = params.description
+  if (params.groupId     !== undefined) payload.group_id    = params.groupId
+
+  const { data, error } = await supabase
+    .from('themes')
+    .update(payload)
+    .eq('id', params.id)
+    .select()
+    .single()
+
+  return { data: data ? mapTheme(data) : null, error }
 }
 
 export async function getThemeByKey(
@@ -110,7 +184,7 @@ export async function getThemeByKey(
     .eq('is_current', true)
     .single()
 
-  return { data: data as Theme | null, error }
+  return { data: data ? mapTheme(data) : null, error }
 }
 
 export type NewThemeVersionParams = {
@@ -136,18 +210,21 @@ export async function createNewThemeVersion(
 
   if (fetchError || !current) return { data: null, error: fetchError ?? new Error('Theme not found') }
 
+  // current is raw snake_case from Supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = current as any
   const { data, error } = await supabase.rpc('create_theme_version', {
     p_theme_key      : params.themeKey,
-    p_current_id     : (current as { id: string }).id,
-    p_name           : params.name ?? (current as { name: string }).name,
-    p_description    : params.description ?? (current as { description: string | null }).description,
-    p_level          : params.level ?? (current as { level: string | null }).level,
-    p_age_group      : params.ageGroup ?? (current as { age_group: string | null }).age_group,
-    p_target_audience: params.targetAudience ?? (current as { target_audience: Record<string, unknown> }).target_audience,
+    p_current_id     : raw.id,
+    p_name           : params.name ?? raw.name,
+    p_description    : params.description ?? raw.description,
+    p_level          : params.level ?? raw.level,
+    p_age_group      : params.ageGroup ?? raw.age_group,
+    p_target_audience: params.targetAudience ?? raw.target_audience,
     p_tenant_id      : params.tenantId,
   })
 
-  return { data: data as Theme | null, error }
+  return { data: data ? mapTheme(data) : null, error }
 }
 
 // ─── ThemeSequence ────────────────────────────────────────────────────────────
@@ -175,7 +252,7 @@ export async function createThemeSequence(
     .select()
     .single()
 
-  return { data: data as ThemeSequence | null, error }
+  return { data: data ? mapSequence(data) : null, error }
 }
 
 export async function listSequencesByTheme(
@@ -187,5 +264,5 @@ export async function listSequencesByTheme(
     .eq('theme_id', themeId)
     .order('sort_order', { ascending: true, nullsFirst: false })
 
-  return { data: (data as ThemeSequence[]) ?? [], error }
+  return { data: data ? (data as unknown[]).map(mapSequence) : [], error }
 }

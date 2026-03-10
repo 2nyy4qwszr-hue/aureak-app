@@ -295,6 +295,7 @@ export async function listChildDirectoryHistory(
 }
 
 export type AddChildHistoryParams = {
+  tenantId       : string
   childId        : string
   saison         : string
   clubNom        : string
@@ -311,6 +312,7 @@ export async function addChildHistoryEntry(
   const { data, error } = await supabase
     .from('child_directory_history')
     .insert({
+      tenant_id        : params.tenantId,
       child_id         : params.childId,
       saison           : params.saison,
       club_nom         : params.clubNom,

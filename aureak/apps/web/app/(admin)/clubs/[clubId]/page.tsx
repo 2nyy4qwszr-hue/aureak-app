@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, Platform } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,
@@ -209,6 +209,12 @@ function PlayerPicker({
         onChangeText={setSearch}
         placeholder="Rechercher un joueur par nom…"
         placeholderTextColor={colors.text.muted}
+        autoComplete={'off' as never}
+        autoCorrect={false}
+        autoCapitalize="none"
+        spellCheck={false}
+        enterKeyHint="search"
+        {...(Platform.OS === 'web' ? { type: 'search', 'data-form-type': 'other' } as never : {})}
       />
       {search.length > 0 && (
         <View style={pp.results}>

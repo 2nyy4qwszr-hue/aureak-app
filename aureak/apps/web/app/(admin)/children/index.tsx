@@ -99,14 +99,28 @@ const pag = StyleSheet.create({
 
 // ── Player row ─────────────────────────────────────────────────────────────────
 
+function formatBirthDate(iso: string | null): string | null {
+  if (!iso) return null
+  try {
+    const d = new Date(iso)
+    return d.toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  } catch { return null }
+}
+
 function JoueurRow({ item, onPress }: { item: JoueurListItem; onPress: () => void }) {
   const seasonColor = '#9E9E9E'
   const stageColor  = '#4FC3F7'
+  const dob = formatBirthDate(item.birthDate)
 
   return (
     <View style={row.container}>
       <View style={row.info}>
-        <AureakText variant="body" style={row.name}>{item.displayName}</AureakText>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
+          <AureakText variant="body" style={row.name}>{item.displayName}</AureakText>
+          {dob && (
+            <AureakText variant="caption" style={row.dob}>{dob}</AureakText>
+          )}
+        </View>
         <View style={row.meta}>
           {item.currentClub && (
             <AureakText variant="caption" style={row.metaText}>⚽ {item.currentClub}</AureakText>
@@ -150,6 +164,7 @@ const row = StyleSheet.create({
   },
   info   : { flex: 1, gap: 3 },
   name   : { fontWeight: '600' as never, fontSize: 14 },
+  dob    : { color: colors.text.muted, fontSize: 11 },
   meta   : { flexDirection: 'row', flexWrap: 'wrap' },
   metaText: { color: colors.text.dark, fontSize: 12 },
   badges : { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginTop: 2 },
@@ -283,6 +298,11 @@ export default function JoueursPage() {
           placeholder="Rechercher par nom…"
           placeholderTextColor={colors.text.muted}
           returnKeyType="search"
+          autoComplete="off"
+          autoCorrect={false}
+          autoCapitalize="none"
+          spellCheck={false}
+          inputMode="search"
         />
         <Pressable style={s.searchBtn} onPress={handleSearch}>
           <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>

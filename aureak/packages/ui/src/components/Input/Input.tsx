@@ -18,6 +18,10 @@ export type InputProps = {
   inputStyle?: TextStyle
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad'
+  // Contrôle autofill / Safari iCloud suggestions
+  autoComplete?: string
+  autoCorrect?: boolean
+  spellCheck?: boolean
 }
 
 export function Input({
@@ -33,6 +37,9 @@ export function Input({
   inputStyle,
   autoCapitalize = 'none',
   keyboardType = 'default',
+  autoComplete,
+  autoCorrect,
+  spellCheck,
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false)
 
@@ -82,6 +89,9 @@ export function Input({
           editable={!disabled}
           autoCapitalize={autoCapitalize}
           keyboardType={keyboardType}
+          autoComplete={autoComplete as never}
+          autoCorrect={autoCorrect}
+          spellCheck={spellCheck}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={[inputTextStyle, inputStyle]}

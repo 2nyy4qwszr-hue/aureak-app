@@ -99,6 +99,7 @@ function mapGroupRow(row: Record<string, unknown>): Group {
     startMinute    : (row.start_minute   as number  | null) ?? null,
     durationMinutes: (row.duration_minutes as number | null) ?? null,
     method         : (row.method         as GroupMethod | null) ?? null,
+    isTransient    : (row.is_transient   as boolean) ?? false,
     deletedAt      : (row.deleted_at     as string  | null) ?? null,
     createdAt      : row.created_at      as string,
   }
@@ -119,6 +120,30 @@ export async function createGroup(
       start_minute     : params.startMinute     ?? 0,
       duration_minutes : params.durationMinutes ?? null,
       method           : params.method          ?? null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { data: null, error }
+  return { data: mapGroupRow(data as Record<string, unknown>), error: null }
+}
+
+/** Crée un groupe transient (is_transient=true) pour une séance ponctuelle.
+ *  Ces groupes ne sont jamais exposés dans les sélecteurs UI. */
+export async function createTransientGroup(params: {
+  tenantId       : string
+  implantationId : string
+  name           : string
+  method?        : GroupMethod
+}): Promise<{ data: Group | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('groups')
+    .insert({
+      tenant_id      : params.tenantId,
+      implantation_id: params.implantationId,
+      name           : params.name,
+      is_transient   : true,
+      method         : params.method ?? null,
     })
     .select()
     .single()
@@ -158,6 +183,7 @@ export async function listGroupsByImplantation(
     .from('groups')
     .select('*')
     .eq('implantation_id', implantationId)
+    .eq('is_transient', false)
     .is('deleted_at', null)
     .order('name', { ascending: true })
 
@@ -230,6 +256,7 @@ export async function listAllGroups(): Promise<GroupWithMeta[]> {
   const { data: groupsData } = await supabase
     .from('groups')
     .select('*, implantations(name)')
+    .eq('is_transient', false)
     .is('deleted_at', null)
     .order('name', { ascending: true })
 

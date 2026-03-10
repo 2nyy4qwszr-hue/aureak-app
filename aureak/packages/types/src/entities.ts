@@ -386,7 +386,7 @@ export type SessionContentRef =
 // Story 4.1 — Modèle de Données : Sessions, Blocs & Récurrence
 // ============================================================
 
-export type SessionStatus  = 'planifiée' | 'en_cours' | 'terminée' | 'annulée'
+export type SessionStatus  = 'planifiée' | 'en_cours' | 'terminée' | 'annulée' | 'reportée'
 export type CoachRole      = 'lead' | 'assistant'
 export type GroupStaffRole = 'principal' | 'assistant' | 'remplacant'
 
@@ -448,6 +448,8 @@ export type Group = {
   startMinute     : number | null     // 0, 15, 30, 45
   durationMinutes : number | null     // ex : 60, 75, 90
   method          : GroupMethod | null
+  /** true = groupe technique auto-créé pour une séance ponctuelle (migration 00061) */
+  isTransient     : boolean
   deletedAt       : string | null
   createdAt       : string
 }
@@ -996,6 +998,21 @@ export type ChildDirectoryHistory = {
   updatedAt       : string
 }
 
+/** ChildDirectoryInjury — blessure enregistrée pour un joueur (migration 00060) */
+export type ChildDirectoryInjury = {
+  id         : string
+  tenantId   : string
+  childId    : string
+  /** 'blessure' = légère, 'grosse_blessure' = longue durée */
+  type       : 'blessure' | 'grosse_blessure'
+  zone       : string | null   // ex: 'cheville gauche', 'genou'
+  dateDebut  : string | null   // ISO date
+  dateFin    : string | null   // null = en cours
+  commentaire: string | null
+  createdAt  : string
+  updatedAt  : string
+}
+
 /** ClubDirectoryEntry — fiche club dans l'annuaire belge */
 export type ClubDirectoryEntry = {
   id                          : string
@@ -1231,4 +1248,18 @@ export type ThemeAgeDifferentiation = {
   vocabularyAdapted   : string | null
   createdAt           : string
   updatedAt           : string
+}
+
+// ============================================================
+// Story 13.2 — Calendrier scolaire & Auto-génération (migration 00059)
+// ============================================================
+
+/** Exception de calendrier scolaire — jours sans séance pour un tenant */
+export type SchoolCalendarException = {
+  id          : string
+  tenantId    : string
+  date        : string          // format ISO 'YYYY-MM-DD'
+  label       : string          // ex: 'Vacances Noël'
+  isNoSession : boolean         // true = pas de séance ce jour
+  createdAt   : string
 }

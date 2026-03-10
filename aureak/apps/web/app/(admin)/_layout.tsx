@@ -15,7 +15,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Opérations',
     items: [
       { label: 'Tableau de bord', href: '/dashboard'   },
-      { label: 'Séances',         href: '/sessions'    },
+      { label: 'Séances',         href: '/seances'     },
       { label: 'Présences',       href: '/attendance'  },
       { label: 'Évaluations',     href: '/evaluations' },
     ],
@@ -25,7 +25,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Entraînements', href: '/methodologie/seances'      },
       { label: 'Blocs',         href: '/referentiel/theme-groups'  },
-      { label: 'Thèmes',        href: '/referentiel/themes'        },
+      { label: 'Thèmes',        href: '/methodologie/themes'       },
       { label: 'Situations',    href: '/referentiel/situations'    },
     ],
   },
@@ -54,7 +54,8 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Administration',
     items: [
-      { label: 'Utilisateurs', href: '/users' },
+      { label: 'Utilisateurs',        href: '/users'                           },
+      { label: 'Calendrier scolaire', href: '/settings/school-calendar'        },
     ],
   },
 ]

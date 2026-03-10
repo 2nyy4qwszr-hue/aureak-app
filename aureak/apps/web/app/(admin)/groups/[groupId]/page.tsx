@@ -2,7 +2,7 @@
 // Fiche groupe — entité centrale : infos, joueurs, staff, séances
 // Hiérarchie : Implantation → Groupe → Séances → Présences / Évaluations
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, Modal } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getGroup, updateGroup,
@@ -10,6 +10,7 @@ import {
   listGroupStaff, addGroupStaff, removeGroupStaff,
   listAvailableCoaches, listAvailableChildren,
   listSessionsByGroup,
+  generateYearSessions, listSchoolCalendarExceptions,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import {
@@ -17,10 +18,12 @@ import {
   buildGroupBaseName,
 } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, radius, shadows } from '@aureak/theme'
+import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type {
-  Group, GroupMethod, GroupStaffRole, GroupStaffWithName, GroupMemberWithName,
+  Group, GroupMethod, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, SchoolCalendarException, SessionType,
 } from '@aureak/types'
+import type { GenerateYearSessionsResult } from '@aureak/api-client'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -665,29 +668,102 @@ const jou = StyleSheet.create({
 
 function SeancesTab({
   groupId,
+  group,
   sessions,
   onNewSession,
+  onRefresh,
 }: {
   groupId     : string
+  group       : Group
   sessions    : Array<{ id: string; scheduledAt: string; status: string; durationMinutes: number }>
   onNewSession: () => void
+  onRefresh   : () => void
 }) {
+  const currentYear = new Date().getFullYear()
+  const [showGenModal,  setShowGenModal ] = useState(false)
+  const [seasonStart,   setSeasonStart  ] = useState(`${currentYear}-09-01`)
+  const [seasonEnd,     setSeasonEnd    ] = useState(`${currentYear + 1}-06-30`)
+  const [sessionType,   setSessionType  ] = useState<SessionType>('goal_and_player')
+  const [exceptions,    setExceptions   ] = useState<SchoolCalendarException[]>([])
+  const [genLoading,    setGenLoading   ] = useState(false)
+  const [genError,      setGenError     ] = useState<string | null>(null)
+  const [genSuccess,    setGenSuccess   ] = useState<string | null>(null)
+
+  const loadExceptions = useCallback(async () => {
+    const { data } = await listSchoolCalendarExceptions()
+    setExceptions(data)
+  }, [])
+
+  useEffect(() => {
+    if (showGenModal) loadExceptions()
+  }, [showGenModal, loadExceptions])
+
+  const previewCount = (() => {
+    if (!seasonStart || !seasonEnd) return null
+    const start = new Date(seasonStart); const end = new Date(seasonEnd)
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start >= end) return null
+    const excSet = new Set(exceptions.filter(e => e.isNoSession).map(e => e.date))
+    let count = 0; const cur = new Date(start)
+    while (cur <= end) {
+      if (!excSet.has(cur.toISOString().split('T')[0])) count++
+      cur.setDate(cur.getDate() + 7)
+    }
+    return count
+  })()
+
+  const handleGenerate = async () => {
+    setGenLoading(true); setGenError(null)
+    const result: GenerateYearSessionsResult = await generateYearSessions(
+      groupId, group.implantationId, group.tenantId,
+      sessionType, seasonStart, seasonEnd
+    )
+    setGenLoading(false)
+    if (result.error) {
+      const err = result.error as { code?: string; existingCount?: number }
+      setGenError(err?.code === 'SESSIONS_ALREADY_EXIST'
+        ? `${err.existingCount} séances existent déjà pour cette période.`
+        : 'Erreur lors de la génération.')
+    } else {
+      setShowGenModal(false)
+      setGenSuccess(`✅ ${result.created} séances créées !`)
+      setTimeout(() => setGenSuccess(null), 4000)
+      onRefresh()
+    }
+  }
+
   return (
     <SectionCard>
+      {/* ── Header ── */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
         <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never }}>
           SÉANCES DU GROUPE
         </AureakText>
-        <Pressable style={sea.newBtn} onPress={onNewSession}>
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>
-            + Nouvelle séance
-          </AureakText>
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          <Pressable
+            style={[sea.newBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.accent.gold }]}
+            onPress={() => setShowGenModal(true)}
+          >
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
+              ⚡ Générer les séances
+            </AureakText>
+          </Pressable>
+          <Pressable style={sea.newBtn} onPress={onNewSession}>
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>
+              + Nouvelle séance
+            </AureakText>
+          </Pressable>
+        </View>
       </View>
+
+      {genSuccess && (
+        <View style={{ backgroundColor: '#D1FAE5', borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
+          <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' }}>{genSuccess}</AureakText>
+        </View>
+      )}
 
       {sessions.length === 0 ? (
         <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
-          Aucune séance. Créez la première séance de ce groupe.
+          Aucune séance. Créez la première séance de ce groupe ou générez une année complète.
         </AureakText>
       ) : (
         sessions.map(session => {
@@ -695,7 +771,6 @@ function SeancesTab({
           const color = SESSION_STATUS_COLOR[session.status] ?? colors.text.muted
           return (
             <View key={session.id} style={sea.sessionRow}>
-              {/* Date column */}
               <View style={sea.dateBlock}>
                 <AureakText variant="body" style={{ fontWeight: '700', fontSize: 16, color: colors.accent.gold }}>
                   {String(d.getDate()).padStart(2,'0')}
@@ -704,8 +779,6 @@ function SeancesTab({
                   {d.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase()}
                 </AureakText>
               </View>
-
-              {/* Main content */}
               <View style={{ flex: 1 }}>
                 <AureakText variant="body" style={{ fontWeight: '600', fontSize: 13 }}>
                   {d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -715,8 +788,6 @@ function SeancesTab({
                   {d.toLocaleDateString('fr-FR', { weekday: 'long' })}
                 </AureakText>
               </View>
-
-              {/* Status */}
               <View style={[sea.statusBadge, { borderColor: color + '60', backgroundColor: color + '15' }]}>
                 <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 10 }}>
                   {SESSION_STATUS_LABEL[session.status] ?? session.status}
@@ -726,6 +797,92 @@ function SeancesTab({
           )
         })
       )}
+
+      {/* ── Modal génération ── */}
+      <Modal visible={showGenModal} transparent animationType="fade">
+        <View style={sea.overlay}>
+          <View style={sea.modal}>
+            <AureakText variant="h3" style={{ marginBottom: 4 }}>Générer les séances</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.md }}>
+              Groupe : {group.name}
+            </AureakText>
+
+            {/* Type pédagogique */}
+            <AureakText variant="caption" style={sea.fieldLabel}>Type pédagogique</AureakText>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: space.md }}>
+              {(['goal_and_player','technique','situationnel','decisionnel','perfectionnement','integration','equipe'] as SessionType[]).map(t => (
+                <Pressable
+                  key={t}
+                  style={[sea.typeChip, sessionType === t && { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '20' }]}
+                  onPress={() => setSessionType(t)}
+                >
+                  <AureakText variant="caption" style={{ fontSize: 10, color: sessionType === t ? colors.accent.gold : colors.text.muted }}>
+                    {SESSION_TYPE_LABELS[t]}
+                  </AureakText>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Dates */}
+            <View style={{ flexDirection: 'row', gap: space.md, marginBottom: space.md }}>
+              <View style={{ flex: 1 }}>
+                <AureakText variant="caption" style={sea.fieldLabel}>Début</AureakText>
+                <TextInput
+                  style={sea.input}
+                  value={seasonStart}
+                  onChangeText={setSeasonStart}
+                  placeholder="YYYY-MM-DD"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AureakText variant="caption" style={sea.fieldLabel}>Fin</AureakText>
+                <TextInput
+                  style={sea.input}
+                  value={seasonEnd}
+                  onChangeText={setSeasonEnd}
+                  placeholder="YYYY-MM-DD"
+                />
+              </View>
+            </View>
+
+            {/* Preview */}
+            {previewCount !== null && (
+              <View style={sea.preview}>
+                <AureakText variant="body" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+                  ≈ {previewCount} séances seront créées
+                </AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                  {exceptions.filter(e => e.isNoSession).length} jours exclus (vacances scolaires)
+                </AureakText>
+              </View>
+            )}
+
+            {genError && (
+              <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
+                <AureakText variant="caption" style={{ color: '#DC2626' }}>{genError}</AureakText>
+              </View>
+            )}
+
+            <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' }}>
+              <Pressable
+                style={[sea.genBtn, genLoading && { opacity: 0.6 }]}
+                onPress={handleGenerate}
+                disabled={genLoading}
+              >
+                <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                  {genLoading ? 'Génération…' : 'Confirmer'}
+                </AureakText>
+              </Pressable>
+              <Pressable
+                style={[sea.genBtn, { backgroundColor: 'transparent', borderColor: colors.border.light }]}
+                onPress={() => { setShowGenModal(false); setGenError(null) }}
+              >
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SectionCard>
   )
 }
@@ -750,6 +907,34 @@ const sea = StyleSheet.create({
     paddingVertical  : 3,
     borderRadius     : 12,
     borderWidth      : 1,
+  },
+  overlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center', alignItems: 'center', padding: space.xl,
+  },
+  modal: {
+    backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xl,
+    width: '100%', maxWidth: 480, boxShadow: shadows.md as never,
+  },
+  fieldLabel: {
+    color: colors.text.muted, fontWeight: '700', fontSize: 10,
+    letterSpacing: 0.8, textTransform: 'uppercase' as never, marginBottom: 4,
+  },
+  typeChip: {
+    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 20, borderWidth: 1, borderColor: colors.border.light,
+  },
+  input: {
+    borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs,
+    padding: space.sm, color: colors.text.dark, backgroundColor: colors.light.primary,
+  },
+  preview: {
+    backgroundColor: colors.accent.gold + '12', borderRadius: 8, padding: space.sm,
+    marginBottom: space.sm, borderWidth: 1, borderColor: colors.accent.gold + '40',
+  },
+  genBtn: {
+    backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: space.sm,
+    borderRadius: 7, borderWidth: 1, borderColor: colors.accent.gold,
   },
 })
 
@@ -950,11 +1135,13 @@ export default function GroupDetailPage() {
         />
       )}
 
-      {tab === 'seances' && (
+      {tab === 'seances' && group && (
         <SeancesTab
           groupId={groupId!}
+          group={group}
           sessions={sessions}
-          onNewSession={() => router.push('/sessions' as never)}
+          onNewSession={() => router.push('/seances' as never)}
+          onRefresh={loadSessions}
         />
       )}
 

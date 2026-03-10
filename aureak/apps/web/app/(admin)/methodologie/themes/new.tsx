@@ -1,171 +1,218 @@
-'use client'
-// Nouveau thème pédagogique — formulaire de création
-import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { createMethodologyTheme } from '@aureak/api-client'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { createTheme, listThemeGroups, getThemeByKey } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
+import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
-import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
-import {
-  METHODOLOGY_METHODS,
-  type MethodologyMethod,
-} from '@aureak/types'
+import { colors, space } from '@aureak/theme'
+import type { ThemeGroup } from '@aureak/types'
 
-function Label({ children }: { children: string }) {
-  return (
-    <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, textTransform: 'uppercase' as never }}>
-      {children}
-    </AureakText>
-  )
-}
+const themeSchema = z.object({
+  themeKey   : z.string().min(1, 'Requis').regex(/^[a-z0-9-]+$/, 'Slug : minuscules, chiffres et tirets uniquement'),
+  name       : z.string().min(1, 'Requis'),
+  description: z.string().optional(),
+  groupId    : z.string().uuid().optional().or(z.literal('')),
+})
 
-export default function NewThemePage() {
+type ThemeForm = z.infer<typeof themeSchema>
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.light.primary,
+    alignItems: 'center',
+  },
+  card: {
+    width: '100%',
+    maxWidth: 560,
+    padding: space.xl,
+    gap: space.md,
+    marginTop: space.xl,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: space.sm,
+    flexWrap: 'wrap',
+  },
+  chip: {
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    cursor: 'pointer' as never,
+  },
+  chipSelected: {
+    borderColor: colors.accent.gold,
+    backgroundColor: colors.light.muted,
+  },
+  errorBanner: {
+    backgroundColor: colors.light.muted,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.status.absent,
+    borderRadius: 4,
+    padding: space.md,
+  },
+})
+
+export default function NewThemeScreen() {
   const router   = useRouter()
-  const tenantId = useAuthStore(s => s.tenantId) ?? ''
+  const tenantId = useAuthStore((s) => s.tenantId)
+  const [groups, setGroups] = useState<ThemeGroup[]>([])
+  const [error,  setError]  = useState<string | null>(null)
 
-  const [title,          setTitle]          = useState('')
-  const [bloc,           setBloc]           = useState('')
-  const [method,         setMethod]         = useState<MethodologyMethod | null>(null)
-  const [description,    setDescription]    = useState('')
-  const [corrections,    setCorrections]    = useState('')
-  const [coachingPoints, setCoachingPoints] = useState('')
-  const [saving,         setSaving]         = useState(false)
-  const [error,          setError]          = useState<string | null>(null)
+  useEffect(() => {
+    listThemeGroups().then(({ data }) => setGroups(data))
+  }, [])
 
-  const handleSave = async () => {
-    if (!title.trim()) { setError('Le titre est obligatoire.'); return }
-    setSaving(true)
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ThemeForm>({
+    resolver: zodResolver(themeSchema),
+    defaultValues: { themeKey: '', name: '', description: '', groupId: '' },
+  })
+
+  const onSubmit = async ({ themeKey, name, description, groupId }: ThemeForm) => {
     setError(null)
-    const { data, error: err } = await createMethodologyTheme({
+    if (!tenantId) { setError('Session invalide — rechargez la page.'); return }
+
+    const { data: existing } = await getThemeByKey(themeKey)
+    if (existing) {
+      setError('Cette clé de thème existe déjà. Merci de choisir une autre clé.')
+      return
+    }
+
+    const { data, error: supabaseError } = await createTheme({
       tenantId,
-      title         : title.trim(),
-      bloc          : bloc.trim()           || null,
-      method        : method ?? null,
-      description   : description.trim()    || null,
-      corrections   : corrections.trim()    || null,
-      coachingPoints: coachingPoints.trim() || null,
+      themeKey,
+      name,
+      description: description || undefined,
+      groupId    : groupId || undefined,
     })
-    setSaving(false)
-    if (err || !data) { setError('Erreur lors de la création.'); return }
-    router.replace('/methodologie/themes' as never)
+
+    if (supabaseError || !data) {
+      console.error('[createTheme] Supabase error:', supabaseError)
+      const msg = supabaseError instanceof Error
+        ? supabaseError.message
+        : (supabaseError as { message?: string })?.message ?? 'Erreur inconnue'
+      setError(`Erreur lors de la création : ${msg}`)
+      return
+    }
+
+    router.replace(`/methodologie/themes/${data.themeKey}` as never)
   }
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.card}>
+        <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
+        <AureakText variant="h2">Nouveau thème</AureakText>
 
-      <Pressable onPress={() => router.back()}>
-        <AureakText variant="caption" style={{ color: '#4FC3F7' }}>← Thèmes</AureakText>
-      </Pressable>
+        {error && (
+          <View style={styles.errorBanner}>
+            <AureakText variant="body" style={{ color: colors.status.absent }}>{error}</AureakText>
+          </View>
+        )}
 
-      <AureakText variant="h2">Nouveau thème</AureakText>
-
-      <View style={s.section}>
-
-        <Label>Titre *</Label>
-        <TextInput
-          style={[s.input, !title && error ? s.inputError : null]}
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Ex : Prise de balle, Relance, Centres…"
-          placeholderTextColor={colors.text.muted}
+        {/* Clé slug */}
+        <Controller
+          control={control}
+          name="themeKey"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Clé du thème (slug)"
+              value={value}
+              onChangeText={onChange}
+              placeholder="sortie-au-sol"
+              autoCapitalize="none"
+              error={errors.themeKey?.message}
+            />
+          )}
         />
 
-        <Label>Bloc pédagogique</Label>
-        <TextInput
-          style={s.input}
-          value={bloc}
-          onChangeText={setBloc}
-          placeholder="Ex : Tir au but, 1vs1, Relance, Profondeur…"
-          placeholderTextColor={colors.text.muted}
-        />
-        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: -4 }}>
-          Regroupe les thèmes par bloc dans le sélecteur de séance. Laisser vide si non applicable.
-        </AureakText>
-
-        <Label>Méthode associée</Label>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {METHODOLOGY_METHODS.map(m => {
-            const active = method === m
-            const color  = methodologyMethodColors[m]
-            return (
-              <Pressable
-                key={m}
-                onPress={() => setMethod(active ? null : m)}
-                style={{ borderWidth: 1, borderColor: active ? color : colors.border.light, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? color + '20' : 'transparent' }}
-              >
-                <AureakText variant="caption" style={{ color: active ? color : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>{m}</AureakText>
-              </Pressable>
-            )
-          })}
-        </View>
-        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: -4 }}>Laisser vide = applicable à toutes les méthodes</AureakText>
-
-        <Label>Description</Label>
-        <TextInput
-          style={[s.input, s.textarea]}
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Description du thème, contexte pédagogique…"
-          placeholderTextColor={colors.text.muted}
-          multiline
-          numberOfLines={4}
+        {/* Nom */}
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Nom affiché"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Sortie au sol"
+              autoCapitalize="words"
+              error={errors.name?.message}
+            />
+          )}
         />
 
-        <Label>Points de correction clés</Label>
-        <TextInput
-          style={[s.input, s.textarea]}
-          value={corrections}
-          onChangeText={setCorrections}
-          placeholder="Ex : Regarder dans la direction de relance avant la réception…"
-          placeholderTextColor={colors.text.muted}
-          multiline
-          numberOfLines={4}
+        {/* Description */}
+        <Controller
+          control={control}
+          name="description"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Description (optionnelle)"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Description pédagogique..."
+              autoCapitalize="sentences"
+            />
+          )}
         />
 
-        <Label>Points d'attention coach</Label>
-        <TextInput
-          style={[s.input, s.textarea]}
-          value={coachingPoints}
-          onChangeText={setCoachingPoints}
-          placeholder="Ex : Observer la posture du gardien au moment du contact…"
-          placeholderTextColor={colors.text.muted}
-          multiline
-          numberOfLines={3}
-        />
-      </View>
-
-      {error && (
-        <AureakText variant="caption" style={{ color: colors.status.attention }}>{error}</AureakText>
-      )}
-
-      <View style={s.actions}>
-        <Pressable style={s.cancelBtn} onPress={() => router.back()}>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
-        </Pressable>
-        <Pressable
-          style={[s.saveBtn, { backgroundColor: '#4FC3F7' }, (!title.trim() || saving) && { opacity: 0.4 }]}
-          onPress={handleSave}
-          disabled={!title.trim() || saving}
-        >
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            {saving ? 'Création…' : 'Créer le thème'}
+        {/* Bloc de thème */}
+        <View>
+          <AureakText variant="label" style={{ marginBottom: space.sm }}>
+            Bloc de thème (optionnel)
           </AureakText>
-        </Pressable>
-      </View>
+          {groups.length === 0 ? (
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+              Aucun bloc défini — créez-en d'abord dans Méthodologie › Blocs.
+            </AureakText>
+          ) : (
+            <Controller
+              control={control}
+              name="groupId"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.chipRow}>
+                  {groups.map((g) => (
+                    <Pressable
+                      key={g.id}
+                      style={[styles.chip, value === g.id && styles.chipSelected]}
+                      onPress={() => onChange(value === g.id ? '' : g.id)}
+                    >
+                      <AureakText
+                        variant="label"
+                        style={{ color: value === g.id ? colors.accent.gold : colors.text.muted }}
+                      >
+                        {g.name}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            />
+          )}
+        </View>
 
+        {/* Actions */}
+        <View style={{ flexDirection: 'row', gap: space.sm }}>
+          <AureakButton label="Annuler" onPress={() => router.back()} variant="secondary" />
+          <AureakButton
+            label={isSubmitting ? 'Création...' : 'Créer le thème'}
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
+            fullWidth
+          />
+        </View>
+      </View>
     </ScrollView>
   )
 }
-
-const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.light.primary },
-  content   : { padding: space.lg, gap: space.md, maxWidth: 700, alignSelf: 'center', width: '100%' },
-  section   : { backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, padding: space.lg, gap: space.sm },
-  input     : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: 10, color: colors.text.dark, fontSize: 13 },
-  inputError: { borderColor: colors.status.attention },
-  textarea  : { minHeight: 90, textAlignVertical: 'top' as never, paddingTop: 10 },
-  actions   : { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
-  cancelBtn : { paddingHorizontal: space.md, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light },
-  saveBtn   : { paddingHorizontal: space.lg, paddingVertical: 10, borderRadius: 8 },
-})

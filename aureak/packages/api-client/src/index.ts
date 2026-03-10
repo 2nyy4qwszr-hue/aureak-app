@@ -40,11 +40,11 @@ export type { CreateClubParams, UpdateClubAccessLevelParams } from './clubs'
 
 export {
   createThemeGroup, listThemeGroups, updateThemeGroupOrder,
-  createTheme, listThemes, getThemeByKey, createNewThemeVersion,
+  createTheme, updateTheme, listThemes, getThemeByKey, createNewThemeVersion,
   createThemeSequence, listSequencesByTheme,
 } from './referentiel/themes'
 export type {
-  CreateThemeGroupParams, CreateThemeParams, NewThemeVersionParams, CreateThemeSequenceParams,
+  CreateThemeGroupParams, CreateThemeParams, UpdateThemeParams, NewThemeVersionParams, CreateThemeSequenceParams,
 } from './referentiel/themes'
 
 export {
@@ -87,12 +87,18 @@ export {
   addSessionTheme, addSessionSituation, listSessionThemes, listSessionSituations,
   // Story 13.1 — guest management
   addGuestToSession, removeGuestFromSession,
+  // Story 13.2 — calendrier & auto-génération
+  listSchoolCalendarExceptions, addSchoolCalendarException, removeSchoolCalendarException,
+  computeContentRef, buildSessionSequence,
+  generateYearSessions,
+  postponeSession, cancelSessionWithShift,
+  listSessionsCalendar,
 } from './sessions/sessions'
-export type { CreateSessionParams, UpdateSessionParams } from './sessions/sessions'
+export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow } from './sessions/sessions'
 
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,
-  createGroup, updateGroup, deleteGroup, listGroupsByImplantation,
+  createGroup, createTransientGroup, updateGroup, deleteGroup, listGroupsByImplantation,
   getGroup, listAllGroups,
   addGroupMember, removeGroupMember, listGroupMembers, listGroupMembersWithProfiles,
   listGroupStaff, addGroupStaff, updateGroupStaffRole, removeGroupStaff,
@@ -228,6 +234,11 @@ export type {
   AddChildHistoryParams, UpdateChildHistoryParams,
   JoueurListItem, ListJoueursOpts,
 } from './admin/child-directory'
+
+export {
+  listChildInjuries, addChildInjury, deleteChildInjury,
+} from './admin/injuries'
+export type { AddInjuryParams } from './admin/injuries'
 
 export {
   listClubDirectory, getClubDirectoryEntry,
