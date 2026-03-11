@@ -30,6 +30,7 @@ function mapTheme(r: any): Theme {
     targetAudience: r.target_audience ?? {},
     version       : r.version,
     isCurrent     : r.is_current,
+    imageUrl      : r.image_url ?? null,
     deletedAt     : r.deleted_at ?? null,
     createdAt     : r.created_at,
   }
@@ -97,6 +98,49 @@ export async function updateThemeGroupOrder(
   return { error }
 }
 
+export async function updateThemeGroup(
+  id: string,
+  params: { name: string },
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('theme_groups')
+    .update({ name: params.name })
+    .eq('id', id)
+
+  return { error: error ?? null }
+}
+
+export async function deleteThemeGroup(
+  id: string,
+): Promise<{ error: null | { type: 'IN_USE'; count: number } | unknown }> {
+  // 1. Vérifier les thèmes qui utilisent ce bloc
+  const { count: themeCount } = await supabase
+    .from('themes')
+    .select('id', { count: 'exact', head: true })
+    .eq('group_id', id)
+    .is('deleted_at', null)
+
+  // 2. Vérifier les situations qui utilisent ce bloc
+  const { count: sitCount } = await supabase
+    .from('situations')
+    .select('id', { count: 'exact', head: true })
+    .eq('bloc_id', id)
+    .is('deleted_at', null)
+
+  const total = (themeCount ?? 0) + (sitCount ?? 0)
+  if (total > 0) {
+    return { error: { type: 'IN_USE' as const, count: total } }
+  }
+
+  // 3. Soft-delete
+  const { error } = await supabase
+    .from('theme_groups')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+
+  return { error: error ?? null }
+}
+
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
 export type CreateThemeParams = {
@@ -108,6 +152,7 @@ export type CreateThemeParams = {
   level?         : ThemeLevel
   ageGroup?      : AgeGroup
   targetAudience?: Record<string, unknown>
+  imageUrl?      : string | null
 }
 
 export async function createTheme(
@@ -124,6 +169,7 @@ export async function createTheme(
       level          : params.level ?? null,
       age_group      : params.ageGroup ?? null,
       target_audience: params.targetAudience ?? {},
+      image_url      : params.imageUrl ?? null,
     })
     .select()
     .single()
@@ -154,6 +200,7 @@ export type UpdateThemeParams = {
   name?       : string
   description?: string | null
   groupId?    : string | null
+  imageUrl?   : string | null
 }
 
 export async function updateTheme(
@@ -163,6 +210,7 @@ export async function updateTheme(
   if (params.name        !== undefined) payload.name        = params.name
   if (params.description !== undefined) payload.description = params.description
   if (params.groupId     !== undefined) payload.group_id    = params.groupId
+  if (params.imageUrl    !== undefined) payload.image_url   = params.imageUrl
 
   const { data, error } = await supabase
     .from('themes')
@@ -253,6 +301,32 @@ export async function createThemeSequence(
     .single()
 
   return { data: data ? mapSequence(data) : null, error }
+}
+
+export type UpdateThemeSequenceParams = Partial<{
+  name         : string
+  description  : string | null
+  shortCues    : string[]
+  coachVideoUrl: string | null
+  sortOrder    : number
+}>
+
+export async function updateThemeSequence(
+  id    : string,
+  params: UpdateThemeSequenceParams,
+): Promise<void> {
+  const payload: Record<string, unknown> = {}
+  if (params.name          !== undefined) payload.name            = params.name
+  if (params.description   !== undefined) payload.description     = params.description
+  if (params.shortCues     !== undefined) payload.short_cues      = params.shortCues
+  if (params.coachVideoUrl !== undefined) payload.coach_video_url = params.coachVideoUrl
+  if (params.sortOrder     !== undefined) payload.sort_order      = params.sortOrder
+
+  const { error } = await supabase
+    .from('theme_sequences')
+    .update(payload)
+    .eq('id', id)
+  if (error) throw error
 }
 
 export async function listSequencesByTheme(

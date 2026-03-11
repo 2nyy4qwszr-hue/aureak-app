@@ -19,12 +19,14 @@ const STATUS_LABEL: Record<string, string> = {
   planifiée: 'Planifiée',
   en_cours : 'En cours',
   terminée : 'Terminée',
+  réalisée : 'Réalisée',  // Story 13.3 — clôture coach explicite
   annulée  : 'Annulée',
 }
 const STATUS_COLOR: Record<string, string> = {
   planifiée: colors.accent.gold,
   en_cours : colors.status.present,
   terminée : colors.text.muted,
+  réalisée : colors.status.present,  // même couleur que "présent" (succès)
   annulée  : colors.status.absent,
 }
 

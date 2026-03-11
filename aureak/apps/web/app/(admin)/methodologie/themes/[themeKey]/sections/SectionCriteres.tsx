@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import {
-  createCriterion, listFaultsByCriterionExtended, listCriteriaByTheme,
+  createCriterion, listFaultsByCriteriaIds, listCriteriaByTheme,
   updateCriterionExtended, deleteCriterionById,
   createFault, updateFaultExtended, deleteFaultById,
 } from '@aureak/api-client'
@@ -69,12 +69,19 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
   const loadTree = async () => {
     setLoading(true)
     const crits = await listCriteriaByTheme(themeId)
-    const withFaults: CriterionWithFaults[] = await Promise.all(
-      crits.map(async c => {
-        const faults = await listFaultsByCriterionExtended(c.id)
-        return { ...c, faults, _open: false, _editing: false }
-      })
-    )
+    const allFaults = await listFaultsByCriteriaIds(crits.map(c => c.id))
+    const faultsByCrit = new Map<string, typeof allFaults>()
+    for (const f of allFaults) {
+      const arr = faultsByCrit.get(f.criterionId) ?? []
+      arr.push(f)
+      faultsByCrit.set(f.criterionId, arr)
+    }
+    const withFaults: CriterionWithFaults[] = crits.map(c => ({
+      ...c,
+      faults  : faultsByCrit.get(c.id) ?? [],
+      _open   : false,
+      _editing: false,
+    }))
     setTree(withFaults)
     onCriteriaChange(crits)
     setLoading(false)

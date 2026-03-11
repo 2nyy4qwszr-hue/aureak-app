@@ -118,6 +118,19 @@ export async function listOptionsByQuestion(
   return { data: (data as QuizOption[]) ?? [], error }
 }
 
+/** Charge toutes les options pour plusieurs questions en une seule requête */
+export async function listOptionsByQuestionIds(
+  questionIds: string[],
+): Promise<QuizOption[]> {
+  if (questionIds.length === 0) return []
+  const { data } = await supabase
+    .from('quiz_options')
+    .select('*')
+    .in('question_id', questionIds)
+    .order('sort_order', { ascending: true, nullsFirst: false })
+  return (data as QuizOption[]) ?? []
+}
+
 export async function deleteOption(id: string): Promise<{ error: unknown }> {
   const { error } = await supabase
     .from('quiz_options')

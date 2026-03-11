@@ -23,10 +23,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Méthodologie',
     items: [
-      { label: 'Entraînements', href: '/methodologie/seances'      },
-      { label: 'Blocs',         href: '/referentiel/theme-groups'  },
-      { label: 'Thèmes',        href: '/methodologie/themes'       },
-      { label: 'Situations',    href: '/referentiel/situations'    },
+      { label: 'Entraînements', href: '/methodologie/seances'    },
+      { label: 'Thèmes',        href: '/methodologie/themes'     },
+      { label: 'Situations',    href: '/methodologie/situations' },
     ],
   },
   {
@@ -108,10 +107,10 @@ export default function AdminLayout() {
         backgroundColor={colors.light.surface}
         borderRightWidth={1}
         borderRightColor={colors.border.divider}
-        paddingBottom={16}
         style={{
           flexShrink     : 0,
-          overflowY      : 'auto',
+          display        : 'flex',
+          flexDirection  : 'column',
           height         : '100vh',
           boxShadow      : shadows.sm,
           ...(isMobile ? {
@@ -161,8 +160,8 @@ export default function AdminLayout() {
           </Text>
         </YStack>
 
-        {/* ── Nav groups ── */}
-        <YStack flex={1} paddingTop={8}>
+        {/* ── Nav groups — seule zone scrollable ── */}
+        <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
           {NAV_GROUPS.map((group, gi) => (
             <YStack key={group.label} marginBottom={4}>
               <Text

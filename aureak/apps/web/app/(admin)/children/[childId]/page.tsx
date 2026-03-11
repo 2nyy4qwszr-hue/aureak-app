@@ -19,8 +19,11 @@ import {
   addChildStageParticipation,
   removeChildStageParticipation,
   listChildInjuries, addChildInjury, deleteChildInjury,
+  // Story 18.2 — photos joueurs
+  listChildPhotos, addChildPhoto, setCurrentPhoto, deleteChildPhoto,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
+  type AddChildPhotoParams,
 } from '@aureak/api-client'
 
 // ── Niveaux de compétition ───────────────────────────────────────────────────
@@ -42,6 +45,7 @@ import type {
   ChildDirectoryEntry,
   ChildDirectoryHistory,
   ChildDirectoryInjury,
+  ChildDirectoryPhoto,
   ChildAcademyStatusData,
   ChildAcademyMembership,
   ChildStageParticipation,
@@ -348,23 +352,43 @@ function HistoriqueSection({
   const handleAddMembership = async () => {
     if (!selSeason) return
     setSaving(true)
-    await addChildAcademyMembership({ tenantId, childId, seasonId: selSeason })
-    setAddingMem(false); setSelSeason(''); setSaving(false); onRefresh()
+    try {
+      await addChildAcademyMembership({ tenantId, childId, seasonId: selSeason })
+      setAddingMem(false); setSelSeason('')
+      await onRefresh()
+    } catch {
+      // erreur silencieuse — l'état saving se remet à false via finally
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleRemoveMembership = async (id: string) => {
-    await removeChildAcademyMembership(id); onRefresh()
+    try {
+      await removeChildAcademyMembership(id)
+      await onRefresh()
+    } catch { /* silencieux */ }
   }
 
   const handleAddStage = async () => {
     if (!selStage) return
     setSaving(true)
-    await addChildStageParticipation({ tenantId, childId, stageId: selStage })
-    setAddingStage(false); setSelStage(''); setSaving(false); onRefresh()
+    try {
+      await addChildStageParticipation({ tenantId, childId, stageId: selStage })
+      setAddingStage(false); setSelStage('')
+      await onRefresh()
+    } catch {
+      // erreur silencieuse — l'état saving se remet à false via finally
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleRemoveStage = async (id: string) => {
-    await removeChildStageParticipation(id); onRefresh()
+    try {
+      await removeChildStageParticipation(id)
+      await onRefresh()
+    } catch { /* silencieux */ }
   }
 
   return (
@@ -803,6 +827,250 @@ const mst = StyleSheet.create({
   errorBox  : { backgroundColor: colors.status.attention + '20', borderRadius: 6, padding: space.sm, marginBottom: space.sm, borderWidth: 1, borderColor: colors.status.attention },
 })
 
+// ── Photos section ────────────────────────────────────────────────────────────
+
+function ChildPhotosSection({
+  childId, tenantId, photos, onRefresh,
+}: {
+  childId  : string
+  tenantId : string
+  photos   : ChildDirectoryPhoto[]
+  onRefresh: () => void
+}) {
+  const [uploading,    setUploading]    = useState(false)
+  const [uploadError,  setUploadError]  = useState<string | null>(null)
+  const [settingId,    setSettingId]    = useState<string | null>(null)
+  const [deletingPhId, setDeletingPhId] = useState<string | null>(null)
+  const [caption,      setCaption]      = useState('')
+  const [season,       setSeason]       = useState('')
+
+  const currentPhoto = photos.find(p => p.isCurrent && !p.deletedAt) ?? null
+  const gallery      = photos.filter(p => !p.isCurrent && !p.deletedAt)
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !childId || !tenantId) return
+    setUploading(true)
+    setUploadError(null)
+    try {
+      await addChildPhoto({
+        childId,
+        tenantId,
+        file,
+        caption   : caption.trim() || null,
+        season    : season.trim()  || null,
+        setCurrent: photos.length === 0, // première photo = actuelle par défaut
+      })
+      setCaption('')
+      setSeason('')
+      // reset input
+      e.target.value = ''
+      onRefresh()
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : 'Erreur lors de l\'upload.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleSetCurrent = async (photoId: string) => {
+    setSettingId(photoId)
+    try {
+      await setCurrentPhoto(photoId, childId)
+      onRefresh()
+    } catch { /* ignore */ }
+    setSettingId(null)
+  }
+
+  const handleDelete = async (photoId: string) => {
+    setDeletingPhId(photoId)
+    try {
+      await deleteChildPhoto(photoId)
+      onRefresh()
+    } catch { /* ignore */ }
+    setDeletingPhId(null)
+  }
+
+  return (
+    <View style={ph.card}>
+      <SectionTitle>Photos</SectionTitle>
+
+      {/* Photo actuelle */}
+      <View style={ph.currentWrap}>
+        {currentPhoto?.photoUrl ? (
+          <View style={ph.currentImgWrap}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={currentPhoto.photoUrl}
+              alt="Photo actuelle"
+              style={{ width: 120, height: 120, borderRadius: 60, objectFit: 'cover', border: '3px solid #B8A06A' }}
+            />
+            <View style={ph.currentBadge}>
+              <AureakText variant="caption" style={{ color: '#fff', fontSize: 9, fontWeight: '700' }}>ACTUELLE</AureakText>
+            </View>
+          </View>
+        ) : (
+          /* Fallback structuré : même ratio 120px, même border-radius, dashed border doré */
+          <View style={ph.avatarFallback}>
+            <AureakText style={{ fontSize: 32, color: colors.border.goldSolid }}>📷</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 9, marginTop: 4, textAlign: 'center' as never }}>
+              Aucune{'\n'}photo
+            </AureakText>
+          </View>
+        )}
+        <View style={{ flex: 1, gap: 6 }}>
+          {currentPhoto ? (
+            <>
+              {currentPhoto.season && (
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>Saison : {currentPhoto.season}</AureakText>
+              )}
+              {currentPhoto.caption && (
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>{currentPhoto.caption}</AureakText>
+              )}
+              <Pressable onPress={() => handleDelete(currentPhoto.id)} disabled={deletingPhId === currentPhoto.id} style={ph.deleteBtn}>
+                <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
+                  {deletingPhId === currentPhoto.id ? '...' : 'Supprimer'}
+                </AureakText>
+              </Pressable>
+            </>
+          ) : (
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+              Aucune photo actuelle.
+            </AureakText>
+          )}
+        </View>
+      </View>
+
+      {/* Galerie */}
+      {gallery.length > 0 && (
+        <View style={ph.galleryWrap}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontWeight: '700', marginBottom: 6 }}>
+            HISTORIQUE ({gallery.length})
+          </AureakText>
+          <View style={ph.galleryRow}>
+            {gallery.map(p => (
+              <View key={p.id} style={ph.thumbWrap}>
+                {p.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.photoUrl}
+                    alt={p.caption ?? 'Photo'}
+                    style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <View style={ph.thumbFallback}>
+                    <AureakText style={{ fontSize: 20, color: colors.border.goldSolid }}>📷</AureakText>
+                  </View>
+                )}
+                {p.season && (
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 9, textAlign: 'center' as never, marginTop: 2 }}>
+                    {p.season}
+                  </AureakText>
+                )}
+                <View style={{ flexDirection: 'row', gap: 4, marginTop: 4 }}>
+                  <Pressable
+                    onPress={() => handleSetCurrent(p.id)}
+                    disabled={settingId === p.id}
+                    style={ph.setCurrentBtn}
+                  >
+                    <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 9 }}>
+                      {settingId === p.id ? '...' : 'Actuelle'}
+                    </AureakText>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleDelete(p.id)}
+                    disabled={deletingPhId === p.id}
+                    style={ph.thumbDeleteBtn}
+                  >
+                    <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 9 }}>
+                      {deletingPhId === p.id ? '...' : '×'}
+                    </AureakText>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Upload */}
+      <View style={ph.uploadWrap}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontWeight: '700', marginBottom: 8 }}>
+          AJOUTER UNE PHOTO
+        </AureakText>
+        <View style={ph.uploadFields}>
+          <TextInput
+            style={ph.uploadInput}
+            value={season}
+            onChangeText={setSeason}
+            placeholder="Saison (ex: 2024-2025)"
+            placeholderTextColor={colors.text.muted}
+          />
+          <TextInput
+            style={ph.uploadInput}
+            value={caption}
+            onChangeText={setCaption}
+            placeholder="Description (optionnel)"
+            placeholderTextColor={colors.text.muted}
+          />
+        </View>
+        {uploadError && (
+          <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11, marginBottom: 6 }}>
+            {uploadError}
+          </AureakText>
+        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/* input[type=file] natif HTML — uniquement web */}
+          {/* @ts-expect-error — élément HTML natif dans RN web */}
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={handleUpload}
+            style={{
+              fontSize   : 12,
+              color      : uploading ? '#9E9E9E' : '#3D3420',
+              cursor     : uploading ? 'not-allowed' : 'pointer',
+            }}
+          />
+          {uploading && (
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
+              Upload en cours…
+            </AureakText>
+          )}
+        </View>
+      </View>
+    </View>
+  )
+}
+
+const ph = StyleSheet.create({
+  card        : { backgroundColor: colors.light.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, padding: 16, marginBottom: 8, gap: 12 },
+  currentWrap : { flexDirection: 'row', alignItems: 'flex-start', gap: 16, marginTop: 8 },
+  currentImgWrap: { position: 'relative' as never },
+  currentBadge: { position: 'absolute' as never, bottom: 4, left: '50%' as never, transform: [{ translateX: -22 }], backgroundColor: colors.accent.gold, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
+  avatarFallback: {
+    width: 120, height: 120, borderRadius: 60,
+    backgroundColor: colors.light.muted,
+    borderWidth: 2,
+    borderColor    : colors.accent.gold + '50',
+    borderStyle    : 'dashed' as never,
+    alignItems     : 'center',
+    justifyContent : 'center',
+    gap            : 0,
+  },
+  deleteBtn   : { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.status.attention + '40', backgroundColor: colors.status.attention + '10' },
+  galleryWrap : { paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border.divider },
+  galleryRow  : { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  thumbWrap   : { alignItems: 'center', width: 70 },
+  thumbFallback: { width: 60, height: 60, borderRadius: 8, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.accent.gold + '30', alignItems: 'center', justifyContent: 'center' },
+  setCurrentBtn: { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' },
+  thumbDeleteBtn: { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: colors.status.attention + '40', backgroundColor: colors.status.attention + '10' },
+  uploadWrap  : { paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border.divider },
+  uploadFields: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  uploadInput : { flex: 1, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5, color: colors.text.dark, fontSize: 12 },
+})
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function ChildDetailPage() {
@@ -818,6 +1086,7 @@ export default function ChildDetailPage() {
   const [allSeasons,   setAllSeasons]   = useState<AcademySeason[]>([])
   const [allStages,    setAllStages]    = useState<Stage[]>([])
   const [injuries,     setInjuries]     = useState<ChildDirectoryInjury[]>([])
+  const [photos,       setPhotos]       = useState<ChildDirectoryPhoto[]>([])
   const [loading,      setLoading]      = useState(true)
   const [showAddHist,  setShowAddHist]  = useState(false)
   const [deletingId,   setDeletingId]   = useState<string | null>(null)
@@ -833,15 +1102,16 @@ export default function ChildDetailPage() {
     if (!childId) return
     setLoading(true)
     try {
-      const [entryR, histR, acStatusR, memsR, stPartsR, seasonsR, stageListR, injuriesR] = await Promise.allSettled([
+      const [entryR, histR, acStatusR, memsR, stPartsR, seasonsR, stageListR, injuriesR, photosR] = await Promise.allSettled([
         getChildDirectoryEntry(childId),
         listChildDirectoryHistory(childId),
         getChildAcademyStatus(childId),
         listChildAcademyMemberships(childId),
         listChildStageParticipations(childId),
         listAcademySeasons(),
-        listStages(),
+        listStages({ status: 'planifié' }),
         listChildInjuries(childId),
+        listChildPhotos(childId),
       ])
 
       const entry     = entryR.status     === 'fulfilled' ? entryR.value     : null
@@ -852,6 +1122,7 @@ export default function ChildDetailPage() {
       const seasons   = seasonsR.status   === 'fulfilled' ? seasonsR.value   : { data: [], error: null }
       const stageList = stageListR.status === 'fulfilled' ? stageListR.value : []
       const injList   = injuriesR.status  === 'fulfilled' ? injuriesR.value  : []
+      const photoList = photosR.status    === 'fulfilled' ? photosR.value    : []
 
       setChild(entry)
       setHistory(hist)
@@ -861,6 +1132,7 @@ export default function ChildDetailPage() {
       setAllSeasons(seasons.data)
       setAllStages(stageList as Stage[])
       setInjuries(injList)
+      setPhotos(photoList)
     } catch (e) {
       console.error('[ChildDetailPage] loadChild error', e)
     } finally {
@@ -1061,6 +1333,16 @@ export default function ChildDetailPage() {
             </>
           )}
         </View>
+
+        {/* ── Photos ── */}
+        {tenantId && (
+          <ChildPhotosSection
+            childId={childId!}
+            tenantId={tenantId}
+            photos={photos}
+            onRefresh={loadChild}
+          />
+        )}
 
         {/* ── Club actuel ── */}
         <View style={s.card}>

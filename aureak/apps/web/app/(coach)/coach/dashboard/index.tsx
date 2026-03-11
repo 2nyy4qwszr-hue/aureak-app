@@ -1,8 +1,9 @@
 'use client'
 // Coach Dashboard — centre de contrôle premium
+// Story 13.3 : bannière "Séance en cours" auto-surface (AC1)
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { listSessionsByCoach, supabase } from '@aureak/api-client'
+import { listSessionsByCoach, supabase, getActiveSessionsForCoach } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import type { Session } from '@aureak/types'
@@ -104,13 +105,16 @@ export default function CoachDashboardPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const firstName  = user?.email?.split('@')[0] ?? ''
 
+  // Story 13.3 — séances dans la fenêtre active [start-30min .. start+duration+15min]
+  const activeSessions = getActiveSessionsForCoach(sessions, now)
+
   const upcoming = sessions
     .filter(s => s.status === 'planifiée' && new Date(s.scheduledAt) >= now)
     .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt))
 
   const ongoing        = sessions.filter(s => s.status === 'en_cours')
   const completedMonth = sessions.filter(s =>
-    s.status === 'terminée' && new Date(s.scheduledAt) >= monthStart
+    (s.status === 'terminée' || s.status === 'réalisée') && new Date(s.scheduledAt) >= monthStart
   )
 
   const isToday = (d: Date) => d >= todayStart && d < todayEnd
@@ -152,6 +156,50 @@ export default function CoachDashboardPage() {
           accent={missingEvals.length > 0 ? colors.status.attention : colors.border.light}
         />
       </div>
+
+      {/* ── Story 13.3 : Bannière séance(s) en cours / à venir dans 30 min ── */}
+      {activeSessions.length === 1 && (
+        <div style={S.activeBanner}>
+          <div style={S.activeDot} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
+              Séance en cours — {fmtTime(new Date(activeSessions[0].scheduledAt))}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+              {activeSessions[0].durationMinutes} min{activeSessions[0].location ? ` · ${activeSessions[0].location}` : ''}
+            </div>
+          </div>
+          <button
+            className="cd-btn"
+            style={S.btnAnimer}
+            onClick={() => router.push(`/coach/sessions/${activeSessions[0].id}` as never)}
+          >
+            Animer →
+          </button>
+        </div>
+      )}
+      {activeSessions.length > 1 && (
+        <div style={{ ...S.activeBanner, flexDirection: 'column', gap: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+            {activeSessions.length} séances simultanées
+          </div>
+          {activeSessions.map(s => (
+            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={S.activeDot} />
+              <div style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+                {fmtTime(new Date(s.scheduledAt))} · {s.durationMinutes} min
+              </div>
+              <button
+                className="cd-btn"
+                style={{ ...S.btnAnimer, fontSize: 12, padding: '6px 12px' }}
+                onClick={() => router.push(`/coach/sessions/${s.id}` as never)}
+              >
+                Animer →
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Alert: missing evaluations ── */}
       {missingEvals.length > 0 && (
@@ -296,4 +344,8 @@ const S: Record<string, React.CSSProperties> = {
   btnSecondary : { padding: '8px 16px', borderRadius: 7, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontWeight: 600, fontSize: 13, cursor: 'pointer' },
   actionBtn    : { padding: '5px 8px', borderRadius: 5, border: `1px solid ${colors.border.light}`, backgroundColor: 'transparent', color: colors.text.muted, fontSize: 11, fontWeight: 600, cursor: 'pointer' },
   linkBtn      : { fontSize: 12, color: colors.accent.gold, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
+  // Story 13.3 — bannière séance active
+  activeBanner : { display: 'flex', alignItems: 'center', gap: 16, backgroundColor: colors.status.present, borderRadius: 12, padding: '16px 20px', marginBottom: 20, boxShadow: '0 4px 12px rgba(76,175,80,0.25)' },
+  activeDot    : { width: 10, height: 10, borderRadius: 5, backgroundColor: '#fff', flexShrink: 0, boxShadow: '0 0 0 3px rgba(255,255,255,0.35)' },
+  btnAnimer    : { padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: '#fff', color: colors.status.present, fontWeight: 800, fontSize: 14, cursor: 'pointer', flexShrink: 0 },
 }

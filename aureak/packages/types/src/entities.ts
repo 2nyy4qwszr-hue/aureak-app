@@ -128,6 +128,7 @@ export type Theme = {
   targetAudience : Record<string, unknown>      // enrichi en Story 3.6
   version        : number
   isCurrent      : boolean
+  imageUrl       : string | null               // bannière visuelle (Story 20-2)
   deletedAt      : string | null
   createdAt      : string
 }
@@ -386,7 +387,7 @@ export type SessionContentRef =
 // Story 4.1 — Modèle de Données : Sessions, Blocs & Récurrence
 // ============================================================
 
-export type SessionStatus  = 'planifiée' | 'en_cours' | 'terminée' | 'annulée' | 'reportée'
+export type SessionStatus  = 'planifiée' | 'en_cours' | 'terminée' | 'annulée' | 'reportée' | 'réalisée'
 export type CoachRole      = 'lead' | 'assistant'
 export type GroupStaffRole = 'principal' | 'assistant' | 'remplacant'
 
@@ -641,6 +642,12 @@ export type Session = {
   // Story 13.1 — Sessions v2 (migration 00058)
   sessionType           : SessionType | null    // null pour séances antérieures à la migration
   contentRef            : SessionContentRef      // '{}' par défaut si non défini
+  // Story 13.3 — Clôture coach (migration 00062)
+  closedAt              : string | null          // null = non clôturée via close_session_coach
+  // Story 13.3 — Lien séance pédagogique (migration 00050)
+  methodologySessionId  : string | null
+  // Story 19.5 — Notes admin libres (migration 00066)
+  notes                 : string | null
 }
 
 /** SessionCoach — coach assigné à une séance */
@@ -676,10 +683,13 @@ export type SessionSituation = {
 
 /** SessionAttendee — roster attendu de la séance */
 export type SessionAttendee = {
-  sessionId : string
-  childId   : string
-  tenantId  : string
-  isGuest   : boolean   // Story 13.1 — true si joueur invité ponctuel (non-membre du groupe)
+  sessionId       : string
+  childId         : string
+  tenantId        : string
+  isGuest         : boolean   // Story 13.1 — true si joueur invité ponctuel (non-membre du groupe)
+  // Story 13.3 — champs clôture coach (migration 00062)
+  coachNotes      : string | null  // note rapide 140 chars, visible admin/coach uniquement
+  contactDeclined : boolean        // true = parent a refusé de donner ses coordonnées
 }
 
 /** Attendance — présence réelle enregistrée terrain */
@@ -969,6 +979,7 @@ export type ChildDirectoryEntry = {
   // Statuts
   actif           : boolean
   notesInternes   : string | null
+  contactDeclined : boolean          // Story 13.3 — parent a refusé de donner ses coordonnées
 
   // Notion sync
   notionPageId    : string | null
@@ -1009,6 +1020,27 @@ export type ChildDirectoryInjury = {
   dateDebut  : string | null   // ISO date
   dateFin    : string | null   // null = en cours
   commentaire: string | null
+  createdAt  : string
+  updatedAt  : string
+}
+
+/** ChildDirectoryPhoto — photo d'un joueur, stockée dans Supabase Storage (migration 00065)
+ * Bucket: child-photos (privé) — accès via Signed URLs uniquement, expiration 1h
+ * Un joueur peut avoir plusieurs photos ; une seule photo is_current par joueur
+ * (unicité garantie par trigger DB fn_ensure_single_current_photo)
+ */
+export type ChildDirectoryPhoto = {
+  id         : string
+  tenantId   : string
+  childId    : string
+  photoPath  : string          // chemin relatif dans bucket child-photos
+  photoUrl   : string | null   // Signed URL générée à la volée, jamais persistée en DB
+  takenAt    : string | null   // ISO date (saisie manuelle, approximative)
+  season     : string | null   // ex: '2024-2025' (saison académie)
+  caption    : string | null   // légende optionnelle
+  uploadedBy : string | null   // UUID auth.users (admin qui a uploadé)
+  isCurrent  : boolean
+  deletedAt  : string | null
   createdAt  : string
   updatedAt  : string
 }
@@ -1106,6 +1138,7 @@ export type MethodologySession = {
   trainingRef : string | null                 // référence/numéro de séance (ex: '22', '08')
   description : string | null
   pdfUrl      : string | null
+  plateauUrl  : string | null                   // Story 13.3 — image/PDF plateau (migration 00062)
   videoUrl    : string | null
   audioUrl    : string | null
   // Champs conservés en DB mais non exposés dans le nouveau formulaire

@@ -1,58 +1,44 @@
 'use client'
-// Page pilotage séances — vue par période + filtres implantation/groupe
-// Vue en cartes organisées par buckets temporels (pas un calendrier classique)
+// Page pilotage séances — vues Jour / Semaine / Mois / Année
+// Story 19.4 — Refonte UI/UX : cards visuelles, coaches sans N+1, calendrier mensuel
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, Modal, TextInput } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
-  supabase,
   listImplantations,
   listAllGroups,
   generateYearSessions,
   listSchoolCalendarExceptions,
+  listSessionsAdminView,
+  batchResolveCoachNames,
 } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Implantation, SessionType, SchoolCalendarException } from '@aureak/types'
-import type { GenerateYearSessionsResult } from '@aureak/api-client'
+import type { GenerateYearSessionsResult, SessionRowAdmin } from '@aureak/api-client'
+
+import DayView   from './_components/DayView'
+import WeekView  from './_components/WeekView'
+import MonthView from './_components/MonthView'
+import YearView  from './_components/YearView'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type PeriodType = 'week' | '4weeks' | 'month' | 'year'
+type PeriodType = 'day' | 'week' | 'month' | 'year'
 
 const PERIOD_OPTIONS: { key: PeriodType; label: string }[] = [
-  { key: 'week',   label: 'Semaine'    },
-  { key: '4weeks', label: '4 semaines' },
-  { key: 'month',  label: 'Mois'       },
-  { key: 'year',   label: 'Année'      },
+  { key: 'day',   label: 'Jour'    },
+  { key: 'week',  label: 'Semaine' },
+  { key: 'month', label: 'Mois'    },
+  { key: 'year',  label: 'Année'   },
 ]
 
 const MONTHS_FR    = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
 
-type SessionRow = {
-  id                : string
-  scheduledAt       : string
-  durationMinutes   : number
-  status            : string
-  location          : string | null
-  groupId           : string
-  implantationId    : string
-  sessionType       : SessionType | null
-  cancellationReason: string | null
-}
-
 type GroupRef = { id: string; name: string; implantationId: string; tenantId: string }
 
-type Bucket = { key: string; label: string; sessions: SessionRow[] }
-
-const STATUS_LABEL: Record<string, string> = {
-  planifiée: 'Planifiée', en_cours: 'En cours', terminée: 'Terminée', annulée: 'Annulée',
-}
-const STATUS_VARIANT: Record<string, 'gold' | 'present' | 'zinc' | 'attention'> = {
-  planifiée: 'gold', en_cours: 'present', terminée: 'zinc', annulée: 'attention',
-}
 const TYPE_COLOR: Record<string, string> = {
   goal_and_player : methodologyMethodColors['Goal and Player'],
   technique       : methodologyMethodColors['Technique'],
@@ -81,15 +67,16 @@ type DateRange = { start: Date; end: Date; label: string }
 
 function computeRange(period: PeriodType, ref: Date): DateRange {
   switch (period) {
+    case 'day': {
+      const start = new Date(ref); start.setHours(0, 0, 0, 0)
+      const end   = new Date(ref); end.setHours(23, 59, 59, 999)
+      const raw   = ref.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      return { start, end, label: raw.charAt(0).toUpperCase() + raw.slice(1) }
+    }
     case 'week': {
       const start = getWeekStart(ref)
       const end   = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23, 59, 59, 999)
       return { start, end, label: `Sem. du ${fmtDayMonth(start)} au ${fmtDayMonth(end)} ${start.getFullYear()}` }
-    }
-    case '4weeks': {
-      const start = new Date(ref); start.setHours(0, 0, 0, 0)
-      const end   = new Date(start); end.setDate(start.getDate() + 27); end.setHours(23, 59, 59, 999)
-      return { start, end, label: `${fmtDayMonth(start)} – ${fmtDayMonth(end)} ${start.getFullYear()}` }
     }
     case 'month': {
       const start = new Date(ref); start.setDate(1); start.setHours(0, 0, 0, 0)
@@ -107,64 +94,12 @@ function computeRange(period: PeriodType, ref: Date): DateRange {
 function navigatePeriod(ref: Date, period: PeriodType, dir: -1 | 1): Date {
   const d = new Date(ref)
   switch (period) {
-    case 'week':   d.setDate(d.getDate() + dir * 7);     break
-    case '4weeks': d.setDate(d.getDate() + dir * 28);    break
-    case 'month':  d.setMonth(d.getMonth() + dir);       break
-    case 'year':   d.setFullYear(d.getFullYear() + dir); break
+    case 'day':   d.setDate(d.getDate() + dir);           break
+    case 'week':  d.setDate(d.getDate() + dir * 7);       break
+    case 'month': d.setMonth(d.getMonth() + dir);         break
+    case 'year':  d.setFullYear(d.getFullYear() + dir);   break
   }
   return d
-}
-
-function bucketize(sessions: SessionRow[], period: PeriodType, rangeStart: Date): Bucket[] {
-  if (!sessions.length) return []
-  switch (period) {
-    case 'week': {
-      const result: Bucket[] = []
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(rangeStart); d.setDate(rangeStart.getDate() + i)
-        const key = toDateStr(d)
-        const sl  = sessions.filter(s => s.scheduledAt.startsWith(key))
-        if (!sl.length) continue
-        const raw = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
-        result.push({ key, label: raw.charAt(0).toUpperCase() + raw.slice(1), sessions: sl })
-      }
-      return result
-    }
-    case '4weeks': {
-      const result: Bucket[] = []
-      for (let i = 0; i < 4; i++) {
-        const ws = new Date(rangeStart); ws.setDate(rangeStart.getDate() + i * 7)
-        const we = new Date(ws); we.setDate(ws.getDate() + 6); we.setHours(23, 59, 59, 999)
-        const sl = sessions.filter(s => { const d = new Date(s.scheduledAt); return d >= ws && d <= we })
-        if (!sl.length) continue
-        result.push({ key: `w${i}`, label: `Semaine du ${fmtDayMonth(ws)} au ${fmtDayMonth(we)}`, sessions: sl })
-      }
-      return result
-    }
-    case 'month': {
-      const weekMap = new Map<string, Bucket>()
-      for (const s of sessions) {
-        const ws  = getWeekStart(new Date(s.scheduledAt))
-        const key = toDateStr(ws)
-        if (!weekMap.has(key)) {
-          const we = new Date(ws); we.setDate(ws.getDate() + 6)
-          weekMap.set(key, { key, label: `Sem. du ${fmtDayMonth(ws)} au ${fmtDayMonth(we)}`, sessions: [] })
-        }
-        weekMap.get(key)!.sessions.push(s)
-      }
-      return [...weekMap.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, b]) => b)
-    }
-    case 'year': {
-      const mm = new Map<string, Bucket>()
-      for (const s of sessions) {
-        const d = new Date(s.scheduledAt)
-        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        if (!mm.has(k)) mm.set(k, { key: k, label: `${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`, sessions: [] })
-        mm.get(k)!.sessions.push(s)
-      }
-      return [...mm.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, b]) => b)
-    }
-  }
 }
 
 // ── Modal génération annuelle ──────────────────────────────────────────────────
@@ -195,7 +130,7 @@ function GenerateModal({
     const excSet = new Set(exceptions.filter(e => e.isNoSession).map(e => e.date))
     let count = 0; const cur = new Date(start)
     while (cur <= end) {
-      if (!excSet.has(cur.toISOString().split('T')[0])) count++
+      if (!excSet.has(toDateStr(cur))) count++
       cur.setDate(cur.getDate() + 7)
     }
     return count
@@ -293,16 +228,16 @@ function GenerateModal({
 }
 
 const gn = StyleSheet.create({
-  overlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: space.xl },
-  modal    : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xl, width: '100%', maxWidth: 480 },
+  overlay   : { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: space.xl },
+  modal     : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xl, width: '100%', maxWidth: 480 },
   fieldLabel: { fontSize: 10, fontWeight: '700', color: colors.text.muted, letterSpacing: 0.8, textTransform: 'uppercase' as never, marginBottom: 4 },
-  typeRow  : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginBottom: space.md },
-  typeChip : { paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light },
-  dateRow  : { flexDirection: 'row', gap: space.md, marginBottom: space.md },
-  input    : { borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs, padding: space.sm, color: colors.text.dark, backgroundColor: colors.light.primary },
-  preview  : { backgroundColor: colors.accent.gold + '12', borderRadius: 8, padding: space.sm, marginBottom: space.sm, borderWidth: 1, borderColor: colors.accent.gold + '40' },
-  btnRow   : { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
-  btn      : { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },
+  typeRow   : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginBottom: space.md },
+  typeChip  : { paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light },
+  dateRow   : { flexDirection: 'row', gap: space.md, marginBottom: space.md },
+  input     : { borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs, padding: space.sm, color: colors.text.dark, backgroundColor: colors.light.primary },
+  preview   : { backgroundColor: colors.accent.gold + '12', borderRadius: 8, padding: space.sm, marginBottom: space.sm, borderWidth: 1, borderColor: colors.accent.gold + '40' },
+  btnRow    : { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
+  btn       : { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },
   btnPrimary: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 })
 
@@ -322,15 +257,15 @@ export default function SeancesPage() {
   const [filterGroupId,   setFilterGroupId]   = useState('')
 
   // ── Data ────────────────────────────────────────────────────────────────────
-  const [sessions, setSessions] = useState<SessionRow[]>([])
-  const [loading,  setLoading]  = useState(true)
-  const [toast,    setToast]    = useState<string | null>(null)
-  const [genGroup, setGenGroup] = useState<GroupRef | null>(null)
+  const [sessions,     setSessions]     = useState<SessionRowAdmin[]>([])
+  const [coachNameMap, setCoachNameMap] = useState<Map<string, string>>(new Map())
+  const [loading,      setLoading]      = useState(true)
+  const [toast,        setToast]        = useState<string | null>(null)
+  const [genGroup,     setGenGroup]     = useState<GroupRef | null>(null)
 
   // ── Bootstrap ────────────────────────────────────────────────────────────────
   useEffect(() => {
     listImplantations().then(({ data }) => setImplantations(data ?? []))
-    // listAllGroups returns GroupWithMeta[] directly (no wrapping object)
     listAllGroups().then(groups =>
       setAllGroups((groups ?? []).map(g => ({
         id            : g.id,
@@ -353,34 +288,36 @@ export default function SeancesPage() {
   // ── Date range ───────────────────────────────────────────────────────────────
   const range = useMemo(() => computeRange(period, refDate), [period, refDate])
 
-  // ── Fetch sessions ───────────────────────────────────────────────────────────
+  // ── Fetch sessions (sans N+1) ─────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true)
-    let query = supabase
-      .from('sessions')
-      .select('id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason')
-      .gte('scheduled_at', range.start.toISOString())
-      .lte('scheduled_at', range.end.toISOString())
-      .is('deleted_at', null)
-      .order('scheduled_at', { ascending: true })
+    const withCoaches = period === 'day' || period === 'week'
 
-    if (filterImplantId) query = query.eq('implantation_id', filterImplantId)
-    if (filterGroupId)   query = query.eq('group_id', filterGroupId)
+    const { data } = await listSessionsAdminView({
+      start          : range.start.toISOString(),
+      end            : range.end.toISOString(),
+      implantationId : filterImplantId || undefined,
+      groupId        : filterGroupId   || undefined,
+      withCoaches,
+    })
 
-    const { data } = await query
-    setSessions(((data ?? []) as Record<string, unknown>[]).map(r => ({
-      id                : r['id']                  as string,
-      scheduledAt       : r['scheduled_at']        as string,
-      durationMinutes   : r['duration_minutes']    as number,
-      status            : r['status']              as string,
-      location          : r['location']            as string | null,
-      groupId           : r['group_id']            as string,
-      implantationId    : r['implantation_id']     as string,
-      sessionType       : r['session_type']        as SessionType | null,
-      cancellationReason: r['cancellation_reason'] as string | null,
-    })))
+    setSessions(data)
+
+    // Résolution des noms de coaches en une seule requête batch
+    if (withCoaches && data.length > 0) {
+      const allCoachIds = [...new Set(data.flatMap(s => s.coaches.map(c => c.coachId)))]
+      if (allCoachIds.length > 0) {
+        const map = await batchResolveCoachNames(allCoachIds)
+        setCoachNameMap(map)
+      } else {
+        setCoachNameMap(new Map())
+      }
+    } else {
+      setCoachNameMap(new Map())
+    }
+
     setLoading(false)
-  }, [range.start, range.end, filterImplantId, filterGroupId])
+  }, [range.start, range.end, filterImplantId, filterGroupId, period])
 
   useEffect(() => { load() }, [load])
 
@@ -388,17 +325,25 @@ export default function SeancesPage() {
   const implantMap = useMemo(() => new Map(implantations.map(i => [i.id, i.name])), [implantations])
   const groupMap   = useMemo(() => new Map(allGroups.map(g => [g.id, g.name])), [allGroups])
 
-  // ── Buckets ──────────────────────────────────────────────────────────────────
-  const buckets = useMemo(() => bucketize(sessions, period, range.start), [sessions, period, range.start])
-
   // ── Nav helpers ──────────────────────────────────────────────────────────────
   const goPrev      = () => setRefDate(d => navigatePeriod(d, period, -1))
   const goNext      = () => setRefDate(d => navigatePeriod(d, period,  1))
   const goToday     = () => setRefDate(new Date())
-  const changePeriod = (p: PeriodType) => { setPeriod(p); setRefDate(new Date()) }
+
+  const changePeriod = (p: PeriodType) => {
+    setPeriod(p)
+    setRefDate(new Date())
+  }
 
   const showToast = (msg: string) => {
     setToast(msg); setTimeout(() => setToast(null), 4000)
+  }
+
+  // YearView → MonthView
+  const handleMonthClick = (monthIndex: number) => {
+    const d = new Date(refDate.getFullYear(), monthIndex, 1)
+    setPeriod('month')
+    setRefDate(d)
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -418,7 +363,7 @@ export default function SeancesPage() {
           <AureakText variant="h2" color={colors.accent.gold}>Séances</AureakText>
           {!loading && (
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {sessions.length} séance{sessions.length !== 1 ? 's' : ''} sur la période
+              {sessions.length} séance{sessions.length !== 1 ? 's' : null} sur la période
             </AureakText>
           )}
         </View>
@@ -452,7 +397,6 @@ export default function SeancesPage() {
 
       {/* ── Filters ── */}
       <View style={st.filtersWrap}>
-
         {/* Implantation */}
         <View style={st.filterSection}>
           <AureakText style={st.filterLabel}>Implantation</AureakText>
@@ -475,7 +419,7 @@ export default function SeancesPage() {
           </View>
         </View>
 
-        {/* Groupe (cascade — visible uniquement si implantation sélectionnée) */}
+        {/* Groupe cascade */}
         {filterImplantId && filterGroups.length > 0 && (
           <View style={st.filterSection}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
@@ -535,7 +479,7 @@ export default function SeancesPage() {
           {[0,1,2,3].map(i => <View key={i} style={st.skeletonCard} />)}
         </View>
 
-      ) : sessions.length === 0 ? (
+      ) : sessions.length === 0 && period !== 'month' && period !== 'year' ? (
         <View style={st.emptyState}>
           <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucune séance</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4, textAlign: 'center' as never }}>
@@ -553,83 +497,42 @@ export default function SeancesPage() {
           </Pressable>
         </View>
 
+      ) : period === 'day' ? (
+        <DayView
+          sessions    ={sessions}
+          coachNameMap={coachNameMap}
+          groupMap    ={groupMap}
+          implantMap  ={implantMap}
+          onPress     ={(id) => router.push(`/seances/${id}` as never)}
+          onEdit      ={(id) => router.push(`/seances/${id}/edit` as never)}
+        />
+
+      ) : period === 'week' ? (
+        <WeekView
+          sessions    ={sessions}
+          weekStart   ={range.start}
+          coachNameMap={coachNameMap}
+          groupMap    ={groupMap}
+          implantMap  ={implantMap}
+          onPress     ={(id) => router.push(`/seances/${id}` as never)}
+          onEdit      ={(id) => router.push(`/seances/${id}/edit` as never)}
+        />
+
+      ) : period === 'month' ? (
+        <MonthView
+          sessions  ={sessions}
+          year      ={refDate.getFullYear()}
+          month     ={refDate.getMonth()}
+          groupMap  ={groupMap}
+          onNavigate={(id) => router.push(`/seances/${id}` as never)}
+        />
+
       ) : (
-        <View style={st.bucketsWrap}>
-          {buckets.map(bucket => (
-            <View key={bucket.key} style={st.bucket}>
-
-              {/* Bucket header */}
-              <View style={st.bucketHeader}>
-                <AureakText style={st.bucketLabel}>{bucket.label}</AureakText>
-                <View style={st.bucketBadge}>
-                  <AureakText style={st.bucketCount}>
-                    {bucket.sessions.length} séance{bucket.sessions.length > 1 ? 's' : ''}
-                  </AureakText>
-                </View>
-              </View>
-
-              {/* Session cards */}
-              {bucket.sessions.map(s => {
-                const d           = new Date(s.scheduledAt)
-                const time        = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-                const groupName   = groupMap.get(s.groupId)          ?? '—'
-                const implantName = implantMap.get(s.implantationId) ?? '—'
-                const isCancelled = s.status === 'annulée'
-                const typeColor   = s.sessionType ? (TYPE_COLOR[s.sessionType] ?? colors.accent.gold) : colors.border.light
-
-                return (
-                  <Pressable
-                    key={s.id}
-                    style={[st.card, isCancelled && st.cardCancelled, { borderLeftColor: typeColor }]}
-                    onPress={() => router.push(`/seances/${s.id}` as never)}
-                  >
-                    {/* Date block */}
-                    <View style={[st.dateBlock, isCancelled && st.dateBlockMuted]}>
-                      <AureakText style={[st.dateDay, isCancelled && { color: colors.text.muted }]}>
-                        {String(d.getDate()).padStart(2, '0')}
-                      </AureakText>
-                      <AureakText style={st.dateMonth}>
-                        {MONTHS_SHORT[d.getMonth()].toUpperCase()}
-                      </AureakText>
-                    </View>
-
-                    {/* Main info */}
-                    <View style={st.cardBody}>
-                      <View style={st.cardRow}>
-                        <AureakText style={st.timeText}>{time}</AureakText>
-                        <AureakText style={st.durationText}>· {s.durationMinutes} min</AureakText>
-                        {s.sessionType && (
-                          <View style={[st.typeTag, { borderColor: typeColor + '80', backgroundColor: typeColor + '18' }]}>
-                            <AureakText style={[st.typeTagText, { color: typeColor }]}>
-                              {SESSION_TYPE_LABELS[s.sessionType]}
-                            </AureakText>
-                          </View>
-                        )}
-                      </View>
-                      <AureakText style={st.groupText} numberOfLines={1}>{groupName}</AureakText>
-                      <AureakText style={st.implantText} numberOfLines={1}>
-                        {implantName}{s.location ? ` · ${s.location}` : ''}
-                      </AureakText>
-                      {isCancelled && s.cancellationReason && (
-                        <AureakText style={st.cancelText} numberOfLines={1}>
-                          Motif : {s.cancellationReason}
-                        </AureakText>
-                      )}
-                    </View>
-
-                    {/* Status */}
-                    <View style={st.cardRight}>
-                      <Badge
-                        label={STATUS_LABEL[s.status] ?? s.status}
-                        variant={STATUS_VARIANT[s.status] ?? 'zinc'}
-                      />
-                    </View>
-                  </Pressable>
-                )
-              })}
-            </View>
-          ))}
-        </View>
+        <YearView
+          sessions    ={sessions}
+          year        ={refDate.getFullYear()}
+          onMonthClick={handleMonthClick}
+        />
       )}
 
       {/* ── Modal génération année ── */}
@@ -686,31 +589,4 @@ const st = StyleSheet.create({
   skeletonCard: { height: 80, backgroundColor: colors.light.surface, borderRadius: 10, opacity: 0.5, borderWidth: 1, borderColor: colors.border.light },
 
   emptyState : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xxl, alignItems: 'center', borderWidth: 1, borderColor: colors.border.light, ...shadows.sm },
-
-  bucketsWrap  : { gap: space.lg },
-  bucket       : { gap: space.sm },
-  bucketHeader : { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, gap: space.sm },
-  bucketLabel  : { flex: 1, fontSize: 11, fontWeight: '700', color: colors.text.muted, letterSpacing: 0.4, textTransform: 'uppercase' as never },
-  bucketBadge  : { paddingHorizontal: 8, paddingVertical: 2, backgroundColor: colors.light.surface, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light },
-  bucketCount  : { fontSize: 10, color: colors.text.muted },
-
-  card         : { flexDirection: 'row', backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, borderLeftWidth: 4, overflow: 'hidden', ...shadows.sm },
-  cardCancelled: { opacity: 0.65, borderColor: colors.border.divider },
-
-  dateBlock    : { width: 54, alignItems: 'center', justifyContent: 'center', paddingVertical: space.md, backgroundColor: colors.light.muted, gap: 2, borderRightWidth: 1, borderRightColor: colors.border.divider },
-  dateBlockMuted: { backgroundColor: colors.light.primary },
-  dateDay      : { fontSize: 22, fontWeight: '800' as never, color: colors.accent.gold, lineHeight: 24 },
-  dateMonth    : { fontSize: 10, color: colors.text.muted, letterSpacing: 0.5 },
-
-  cardBody     : { flex: 1, padding: space.sm, gap: 3 },
-  cardRow      : { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
-  timeText     : { fontSize: 13, fontWeight: '700' as never, color: colors.text.dark },
-  durationText : { fontSize: 11, color: colors.text.muted },
-  typeTag      : { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4, borderWidth: 1 },
-  typeTagText  : { fontSize: 9, fontWeight: '700' as never, letterSpacing: 0.3 },
-  groupText    : { fontSize: 13, color: colors.text.dark, fontWeight: '600' as never },
-  implantText  : { fontSize: 11, color: colors.text.muted },
-  cancelText   : { fontSize: 10, color: '#DC2626', fontStyle: 'italic' as never, marginTop: 2 },
-
-  cardRight    : { paddingHorizontal: space.sm, paddingVertical: space.sm, alignItems: 'flex-end', justifyContent: 'center' },
 })

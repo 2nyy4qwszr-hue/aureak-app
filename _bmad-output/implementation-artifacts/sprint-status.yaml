@@ -189,11 +189,20 @@ development_status:
   # Epic 18 : Supervision Joueur & Présences Avancées
   epic-18: in-progress
   18-1-fiche-joueur-360-admin: done
+  18-2-joueurs-refonte-ui-photos: done
   epic-18-retrospective: optional
 
   # Epic 19 : Séances v2 — Types Pédagogiques, Auto-génération & Mode Terrain
   epic-19: in-progress
-  13-1-sessions-modele-donnees-v2-types-contenu-statuts: review
+  13-1-sessions-modele-donnees-v2-types-contenu-statuts: done
   13-2-sessions-calendrier-auto-generation-gestion-exceptions: done
-  13-3-sessions-mode-seance-coach-mobile-cloture-remplacement: in-progress
+  13-3-sessions-mode-seance-coach-mobile-cloture-remplacement: done
+  19-4-seances-admin-ui-refonte-vues: review
+  19-5-seances-edit-page-complete: review
   epic-19-retrospective: optional
+
+  # Epic 20 : UX Méthodologie & Référentiel — Améliorations navigatoires
+  epic-20: in-progress
+  20-1-methodologie-ux-simplification-blocs-taxonomie: done
+  20-2-methodologie-themes-cards-visual-upgrade: review
+  epic-20-retrospective: optional

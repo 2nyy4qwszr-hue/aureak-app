@@ -95,7 +95,21 @@
       "Bash(npx:*)",
       "Bash(curl:*)",
       "Bash(open:*)",
-      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/supabase/migrations/00057_situations_link_bloc.sql\":*)"
+      "Bash(\"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/supabase/migrations/00057_situations_link_bloc.sql\":*)",
+      "Bash(__NEW_LINE_821fab87cdc55964__ curl:*)",
+      "Bash(__NEW_LINE_b6dc8a58b4a7bb00__ curl:*)",
+      "Bash(__NEW_LINE_9ecd5133bf8cc7f3__ curl:*)",
+      "Bash(cp -r \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/apps/web/app/\\(admin\\)/referentiel/themes/[themeKey]/sections/.\" \\\\\n      \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/apps/web/app/\\(admin\\)/methodologie/themes/[themeKey]/sections/\")",
+      "mcp__playwright__browser_console_messages",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__get_console_message",
+      "Bash(wc -l \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/apps/web/app/\\(admin\\)/children/[childId]/page.tsx\")",
+      "mcp__playwright__browser_click",
+      "Bash(cd \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak\" && wc -l \"aureak/apps/web/app/\\(admin\\)/children/index.tsx\")",
+      "Bash(cd \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak\" && head -200 \"aureak/apps/web/app/\\(admin\\)/children/\\\\[childId\\\\]/page.tsx\")",
+      "Bash(cd \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak\" && ls -la \"aureak/apps/web/app/\\(admin\\)/children/\")",
+      "Bash(cd \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak\" && ls -la \"aureak/apps/web/app/\\(admin\\)/children/[childId]/\")",
+      "Bash(cd \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak\" && head -400 \"aureak/apps/web/app/\\(admin\\)/children/[childId]/page.tsx\")"
     ]
   }
 }

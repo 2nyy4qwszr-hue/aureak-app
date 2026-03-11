@@ -55,6 +55,9 @@ export default function SectionSavoirFaire({ themeId, tenantId, criteria }: Prop
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [adding, setAdding] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM)
+  const [saving, setSaving] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -68,8 +71,19 @@ export default function SectionSavoirFaire({ themeId, tenantId, criteria }: Prop
   const setField = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [key]: e.target.value }))
 
+  const setEditField = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setEditForm(prev => ({ ...prev, [key]: e.target.value }))
+
   const toggleCriterion = (id: string) =>
     setForm(prev => ({
+      ...prev,
+      selectedCriteriaIds: prev.selectedCriteriaIds.includes(id)
+        ? prev.selectedCriteriaIds.filter(c => c !== id)
+        : [...prev.selectedCriteriaIds, id],
+    }))
+
+  const toggleEditCriterion = (id: string) =>
+    setEditForm(prev => ({
       ...prev,
       selectedCriteriaIds: prev.selectedCriteriaIds.includes(id)
         ? prev.selectedCriteriaIds.filter(c => c !== id)
@@ -101,6 +115,49 @@ export default function SectionSavoirFaire({ themeId, tenantId, criteria }: Prop
       await load()
     } finally {
       setAdding(false)
+    }
+  }
+
+  const handleStartEdit = (ex: ThemeHomeExercise) => {
+    setEditingId(ex.id)
+    setEditForm({
+      title                 : ex.title,
+      objective             : ex.objective ?? '',
+      material              : ex.material ?? '',
+      installation          : ex.installation ?? '',
+      parentChildInstructions: ex.parentChildInstructions ?? '',
+      distanceMeters        : ex.distanceMeters != null ? String(ex.distanceMeters) : '',
+      intensity             : ex.intensity ?? '',
+      repetitions           : ex.repetitions != null ? String(ex.repetitions) : '',
+      demoVideoUrl          : ex.demoVideoUrl ?? '',
+      requiredLevel         : ex.requiredLevel ?? '',
+      selectedCriteriaIds   : ex.criteriaIds ? [...ex.criteriaIds] : [],
+    })
+    setExpandedId(null)
+  }
+
+  const handleSaveEdit = async (id: string) => {
+    setSaving(true)
+    try {
+      await updateThemeHomeExercise(id, {
+        title                  : editForm.title,
+        objective              : editForm.objective || null,
+        material               : editForm.material || null,
+        installation           : editForm.installation || null,
+        parentChildInstructions: editForm.parentChildInstructions || null,
+        distanceMeters         : editForm.distanceMeters ? parseFloat(editForm.distanceMeters) : null,
+        intensity              : editForm.intensity || null,
+        repetitions            : editForm.repetitions ? parseInt(editForm.repetitions) : null,
+        demoVideoUrl           : editForm.demoVideoUrl || null,
+        requiredLevel          : editForm.requiredLevel || null,
+      })
+      if (editForm.selectedCriteriaIds.length > 0) {
+        await setHomeExerciseCriteria(id, editForm.selectedCriteriaIds)
+      }
+      setEditingId(null)
+      await load()
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -216,52 +273,136 @@ export default function SectionSavoirFaire({ themeId, tenantId, criteria }: Prop
 
       {exercises.map(ex => (
         <div key={ex.id} style={{ ...CARD_STYLE, marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div
-              style={{ flex: 1, cursor: 'pointer', userSelect: 'none' }}
-              onClick={() => setExpandedId(expandedId === ex.id ? null : ex.id)}
-            >
-              <div style={{ fontWeight: 600, fontSize: 14, color: colors.text.dark, marginBottom: 4 }}>
-                🏠 {ex.title}
+          {editingId === ex.id ? (
+            // Mode édition inline
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={LABEL_STYLE}>Titre *</label>
+                  <input type="text" value={editForm.title} onChange={setEditField('title')} style={INPUT_STYLE} autoFocus />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={LABEL_STYLE}>Objectif</label>
+                  <textarea value={editForm.objective} onChange={setEditField('objective')} rows={2} style={TEXTAREA_STYLE} />
+                </div>
+                <div>
+                  <label style={LABEL_STYLE}>Matériel</label>
+                  <input type="text" value={editForm.material} onChange={setEditField('material')} style={INPUT_STYLE} />
+                </div>
+                <div>
+                  <label style={LABEL_STYLE}>Niveau requis</label>
+                  <input type="text" value={editForm.requiredLevel} onChange={setEditField('requiredLevel')} style={INPUT_STYLE} />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={LABEL_STYLE}>Installation</label>
+                  <textarea value={editForm.installation} onChange={setEditField('installation')} rows={2} style={TEXTAREA_STYLE} />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={LABEL_STYLE}>Instructions parent + enfant</label>
+                  <textarea value={editForm.parentChildInstructions} onChange={setEditField('parentChildInstructions')} rows={3} style={TEXTAREA_STYLE} />
+                </div>
+                <div>
+                  <label style={LABEL_STYLE}>Distance (mètres)</label>
+                  <input type="number" value={editForm.distanceMeters} onChange={setEditField('distanceMeters')} style={INPUT_STYLE} />
+                </div>
+                <div>
+                  <label style={LABEL_STYLE}>Intensité</label>
+                  <input type="text" value={editForm.intensity} onChange={setEditField('intensity')} style={INPUT_STYLE} />
+                </div>
+                <div>
+                  <label style={LABEL_STYLE}>Répétitions</label>
+                  <input type="number" value={editForm.repetitions} onChange={setEditField('repetitions')} style={INPUT_STYLE} />
+                </div>
+                <div>
+                  <label style={LABEL_STYLE}>Vidéo démo (URL)</label>
+                  <input type="text" value={editForm.demoVideoUrl} onChange={setEditField('demoVideoUrl')} style={INPUT_STYLE} />
+                </div>
               </div>
-              {ex.criteriaIds && ex.criteriaIds.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {ex.criteriaIds.map(cid => {
-                    const crit = criteria.find(c => c.id === cid)
-                    return crit ? (
-                      <span key={cid} style={{ fontSize: 11, backgroundColor: colors.accent.gold + '15', color: colors.accent.gold, padding: '2px 8px', borderRadius: 999, border: `1px solid ${colors.border.gold}` }}>
-                        {crit.label}
-                      </span>
-                    ) : null
+              <div style={{ marginTop: 12 }}>
+                <label style={LABEL_STYLE}>Critères évalués</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {criteria.map(c => {
+                    const sel = editForm.selectedCriteriaIds.includes(c.id)
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => toggleEditCriterion(c.id)}
+                        style={{
+                          padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                          cursor: 'pointer', fontFamily: 'Geist, sans-serif',
+                          border: `1px solid ${sel ? colors.accent.gold : colors.border.light}`,
+                          backgroundColor: sel ? colors.accent.gold + '20' : 'transparent',
+                          color: sel ? colors.accent.gold : colors.text.muted,
+                          transition: `all ${transitions.fast}`,
+                        }}
+                      >
+                        {c.label}
+                      </button>
+                    )
                   })}
                 </div>
-              )}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <button style={BTN_GOLD} onClick={() => handleSaveEdit(ex.id)} disabled={saving}>
+                  {saving ? '...' : 'Sauvegarder'}
+                </button>
+                <button style={BTN_GHOST} onClick={() => setEditingId(null)}>Annuler</button>
+              </div>
             </div>
-            <button
-              style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40', marginLeft: 8 }}
-              onClick={() => handleDelete(ex.id)}
-            >
-              🗑
-            </button>
-          </div>
+          ) : (
+            // Mode lecture
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div
+                  style={{ flex: 1, cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => setExpandedId(expandedId === ex.id ? null : ex.id)}
+                >
+                  <div style={{ fontWeight: 600, fontSize: 14, color: colors.text.dark, marginBottom: 4 }}>
+                    🏠 {ex.title}
+                  </div>
+                  {ex.criteriaIds && ex.criteriaIds.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {ex.criteriaIds.map(cid => {
+                        const crit = criteria.find(c => c.id === cid)
+                        return crit ? (
+                          <span key={cid} style={{ fontSize: 11, backgroundColor: colors.accent.gold + '15', color: colors.accent.gold, padding: '2px 8px', borderRadius: 999, border: `1px solid ${colors.border.gold}` }}>
+                            {crit.label}
+                          </span>
+                        ) : null
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 6, marginLeft: 8 }}>
+                  <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }} onClick={() => handleStartEdit(ex)}>✎</button>
+                  <button
+                    style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }}
+                    onClick={() => handleDelete(ex.id)}
+                  >
+                    🗑
+                  </button>
+                </div>
+              </div>
 
-          {expandedId === ex.id && (
-            <div style={{ marginTop: 12, borderTop: `1px solid ${colors.border.divider}`, paddingTop: 12 }}>
-              {ex.objective && <InfoRow label="Objectif" value={ex.objective} />}
-              {ex.material && <InfoRow label="Matériel" value={ex.material} />}
-              {ex.installation && <InfoRow label="Installation" value={ex.installation} />}
-              {ex.parentChildInstructions && <InfoRow label="Instructions" value={ex.parentChildInstructions} />}
-              {ex.intensity && <InfoRow label="Intensité" value={ex.intensity} />}
-              {ex.distanceMeters != null && <InfoRow label="Distance" value={`${ex.distanceMeters} m`} />}
-              {ex.repetitions != null && <InfoRow label="Répétitions" value={String(ex.repetitions)} />}
-              {ex.demoVideoUrl && (
-                <div style={{ marginBottom: 6 }}>
-                  <a href={ex.demoVideoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: colors.accent.gold }}>
-                    📹 Voir la vidéo démo
-                  </a>
+              {expandedId === ex.id && (
+                <div style={{ marginTop: 12, borderTop: `1px solid ${colors.border.divider}`, paddingTop: 12 }}>
+                  {ex.objective && <InfoRow label="Objectif" value={ex.objective} />}
+                  {ex.material && <InfoRow label="Matériel" value={ex.material} />}
+                  {ex.installation && <InfoRow label="Installation" value={ex.installation} />}
+                  {ex.parentChildInstructions && <InfoRow label="Instructions" value={ex.parentChildInstructions} />}
+                  {ex.intensity && <InfoRow label="Intensité" value={ex.intensity} />}
+                  {ex.distanceMeters != null && <InfoRow label="Distance" value={`${ex.distanceMeters} m`} />}
+                  {ex.repetitions != null && <InfoRow label="Répétitions" value={String(ex.repetitions)} />}
+                  {ex.demoVideoUrl && (
+                    <div style={{ marginBottom: 6 }}>
+                      <a href={ex.demoVideoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: colors.accent.gold }}>
+                        📹 Voir la vidéo démo
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       ))}

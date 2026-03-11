@@ -18,6 +18,7 @@ type ChildEval = {
   note       : string
   saved      : boolean
   dirty      : boolean
+  ignored    : boolean
 }
 
 const SIGNAL_CONFIG: { value: EvaluationSignal; label: string; short: string; color: string; bg: string }[] = [
@@ -163,6 +164,7 @@ export default function EvaluationsPage() {
         note       : '',
         saved      : !!ev,
         dirty      : false,
+        ignored    : false,
       }
     }))
     setLoading(false)
@@ -170,9 +172,12 @@ export default function EvaluationsPage() {
 
   useEffect(() => { load() }, [sessionId])
 
-  const update = (childId: string, patch: Partial<ChildEval>) => {
+  const update = (childId: string, patch: Partial<ChildEval>, meta?: { markDirty?: boolean }) => {
+    const markDirty = meta?.markDirty ?? !('ignored' in patch)
     setChildren(prev => prev.map(c =>
-      c.childId === childId ? { ...c, ...patch, dirty: true, saved: false } : c
+      c.childId === childId
+        ? { ...c, ...patch, ...(markDirty ? { dirty: true, saved: false } : {}) }
+        : c
     ))
   }
 
@@ -214,9 +219,10 @@ export default function EvaluationsPage() {
 
   if (loading) return <Skeleton sessionId={sessionId} />
 
-  const savedCount  = children.filter(c => c.saved).length
-  const topCount    = children.filter(c => c.topSeance === 'star').length
-  const allSaved    = savedCount === children.length && children.length > 0
+  const savedCount   = children.filter(c => c.saved || c.ignored).length
+  const topCount     = children.filter(c => c.topSeance === 'star').length
+  const allSaved     = savedCount === children.length && children.length > 0
+  const pendingCount = children.filter(c => !c.saved && !c.ignored).length
 
   return (
     <div style={E.page}>
@@ -245,6 +251,22 @@ export default function EvaluationsPage() {
       )}
 
       <SubNav sessionId={sessionId} active="Évaluations" />
+
+      {/* Warning : joueurs non évalués */}
+      {pendingCount > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 14px', borderRadius: 8, marginBottom: 12,
+          backgroundColor: 'rgba(255,193,7,0.12)',
+          border: `1px solid ${colors.status.attention}`,
+          fontSize: 13, color: colors.text.dark,
+        }}>
+          <span style={{ fontSize: 16 }}>⚠</span>
+          <span>
+            <strong>{pendingCount} joueur{pendingCount > 1 ? 's' : ''}</strong> non évalué{pendingCount > 1 ? 's' : ''} — validez ou ignorez avant de clôturer.
+          </span>
+        </div>
+      )}
 
       {/* Status bar + Tout valider */}
       {children.length > 0 && (
@@ -298,11 +320,15 @@ export default function EvaluationsPage() {
                 key={child.childId}
                 style={{
                   ...E.card,
-                  borderColor: child.saved
-                    ? colors.status.present
-                    : child.dirty
-                      ? colors.accent.gold
-                      : colors.border.light,
+                  borderColor: child.ignored
+                    ? colors.border.light
+                    : child.saved
+                      ? colors.status.present
+                      : child.dirty
+                        ? colors.accent.gold
+                        : colors.border.light,
+                  opacity: child.ignored ? 0.45 : 1,
+                  transition: 'opacity 0.2s, border-color 0.2s',
                 }}
               >
                 {/* Header */}
@@ -378,6 +404,20 @@ export default function EvaluationsPage() {
                   disabled={isSaving}
                 >
                   {isSaving ? '…' : child.saved && !child.dirty ? 'Enregistré ✓' : 'Valider'}
+                </button>
+                {/* Ignorer */}
+                <button
+                  className="e-btn"
+                  style={{
+                    ...E.btnSave,
+                    backgroundColor: child.ignored ? colors.light.muted : 'transparent',
+                    color          : child.ignored ? colors.text.muted : colors.text.muted,
+                    border         : `1px solid ${colors.border.light}`,
+                    fontSize       : 13,
+                  }}
+                  onClick={() => update(child.childId, { ignored: !child.ignored })}
+                >
+                  {child.ignored ? 'Rétablir' : 'Ignorer'}
                 </button>
               </div>
             )

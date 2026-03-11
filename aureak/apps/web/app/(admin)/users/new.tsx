@@ -10,7 +10,7 @@ import {
   inviteProfileUser,
   listImplantations,
   listGroupsByImplantation,
-  listClubs,
+  listClubDirectory,
 } from '@aureak/api-client'
 import type { ProfileRole } from '@aureak/api-client'
 import type { Implantation, Group } from '@aureak/types'
@@ -19,8 +19,8 @@ import type { Implantation, Group } from '@aureak/types'
 
 type Mode = 'fiche' | 'invite'
 
-// Type minimal pour les rows brutes retournées par listClubs()
-type ClubRow = { user_id: string; name: string; club_access_level: string }
+// Type minimal pour les entrées d'annuaire club retournées par listClubDirectory()
+type ClubRow = { id: string; nom: string }
 
 interface FormValues {
   // Identité
@@ -103,11 +103,11 @@ export default function NewUserScreen() {
   const [clubs,         setClubs]         = useState<ClubRow[]>([])
   const [clubsLoading,  setClubsLoading]  = useState(true)
 
-  // Charger implantations et clubs au montage
+  // Charger implantations et clubs annuaire au montage
   useEffect(() => {
     listImplantations().then(({ data }) => setImplantations(data ?? []))
-    listClubs().then(({ data }) => {
-      setClubs((data ?? []) as unknown as ClubRow[])
+    listClubDirectory({ actif: true, pageSize: 200 }).then(({ data }) => {
+      setClubs((data ?? []).map(c => ({ id: c.id, nom: c.nom })))
       setClubsLoading(false)
     })
   }, [])
@@ -145,7 +145,7 @@ export default function NewUserScreen() {
     setResult(null)
 
     // Résoudre le nom du club sélectionné (currentClub stocké en TEXT dans la DB)
-    const selectedClub = clubs.find(c => c.user_id === form.currentClubId)
+    const selectedClub = clubs.find(c => c.id === form.currentClubId)
 
     const baseParams = {
       tenantId,
@@ -159,7 +159,7 @@ export default function NewUserScreen() {
       gender           : (form.gender        as 'male' | 'female' | 'other') || undefined,
       strongFoot       : (form.strongFoot    as 'right' | 'left' | 'both')   || undefined,
       ageCategory      : (form.ageCategory   as 'Foot à 5' | 'Foot à 8' | 'Foot à 11' | 'Senior') || undefined,
-      currentClub      : selectedClub?.name  || undefined,
+      currentClub      : selectedClub?.nom   || undefined,
       implantationId   : form.implantationId || undefined,
       groupId          : form.groupId        || undefined,
       parentFirstName  : form.parentFirstName  || undefined,
@@ -206,7 +206,7 @@ export default function NewUserScreen() {
             <button style={s.btnSecondary} onClick={() => { setResult(null); setStep(1); setForm(EMPTY_FORM) }}>
               Créer un autre profil
             </button>
-            <button style={s.btnPrimary} onClick={() => router.push('/admin/users' as never)}>
+            <button style={s.btnPrimary} onClick={() => router.push('/users' as never)}>
               Voir la liste
             </button>
           </div>
@@ -384,7 +384,7 @@ export default function NewUserScreen() {
                         <select style={s.select} value={form.currentClubId} onChange={e => set('currentClubId')(e.target.value)}>
                           <option value="">— Aucun club —</option>
                           {clubs.map(c => (
-                            <option key={c.user_id} value={c.user_id}>{c.name}</option>
+                            <option key={c.id} value={c.id}>{c.nom}</option>
                           ))}
                         </select>
                       )}

@@ -1,185 +1,214 @@
-'use client'
-// Nouvelle situation pédagogique — formulaire de création
-import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { createMethodologySituation, listMethodologyThemes } from '@aureak/api-client'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { createSituation, listThemeGroups, listSituationGroups } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakText } from '@aureak/ui'
-import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
-import {
-  METHODOLOGY_METHODS,
-  type MethodologyMethod,
-} from '@aureak/types'
-import type { MethodologyTheme } from '@aureak/types'
+import { AureakButton, Input, AureakText } from '@aureak/ui'
+import { colors, space } from '@aureak/theme'
+import type { ThemeGroup, SituationGroup } from '@aureak/types'
 
-function Label({ children }: { children: string }) {
-  return (
-    <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.8, fontSize: 10, marginBottom: 6, textTransform: 'uppercase' as never }}>
-      {children}
-    </AureakText>
-  )
-}
+const situationSchema = z.object({
+  situationKey: z.string().min(1, 'Requis').regex(/^[a-z0-9-]+$/, 'Slug : minuscules, chiffres et tirets uniquement'),
+  name        : z.string().min(1, 'Requis'),
+  description : z.string().optional(),
+  blocId      : z.string().uuid().optional().or(z.literal('')),
+  groupId     : z.string().uuid().optional().or(z.literal('')),
+})
 
-export default function NewSituationPage() {
+type SituationForm = z.infer<typeof situationSchema>
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.light.primary, alignItems: 'center' },
+  card: { width: '100%', maxWidth: 560, padding: space.xl, gap: space.md, marginTop: space.xl },
+  chipRow: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
+  chip: {
+    paddingHorizontal: space.md, paddingVertical: space.xs,
+    borderRadius: 20, borderWidth: 1, borderColor: colors.border.light,
+  },
+  chipSelected: { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
+  errorBanner: {
+    backgroundColor: colors.light.muted, borderLeftWidth: 3,
+    borderLeftColor: colors.status.absent, borderRadius: 4, padding: space.md,
+  },
+})
+
+export default function NewSituationScreen() {
   const router   = useRouter()
-  const tenantId = useAuthStore(s => s.tenantId) ?? ''
-
-  const [title,          setTitle]          = useState('')
-  const [method,         setMethod]         = useState<MethodologyMethod | null>(null)
-  const [description,    setDescription]    = useState('')
-  const [corrections,    setCorrections]    = useState('')
-  const [commonMistakes, setCommonMistakes] = useState('')
-  const [themeId,        setThemeId]        = useState<string | null>(null)
-  const [themes,         setThemes]         = useState<MethodologyTheme[]>([])
-  const [saving,         setSaving]         = useState(false)
-  const [error,          setError]          = useState<string | null>(null)
+  const tenantId = useAuthStore((s) => s.tenantId)
+  const [blocs,  setBlocs]  = useState<ThemeGroup[]>([])
+  const [groups, setGroups] = useState<SituationGroup[]>([])
+  const [error,  setError]  = useState<string | null>(null)
 
   useEffect(() => {
-    listMethodologyThemes({ activeOnly: false }).then(setThemes)
+    Promise.all([listThemeGroups(), listSituationGroups()]).then(([b, g]) => {
+      // listThemeGroups ne garantit pas l'ordre — tri explicite par sortOrder
+      setBlocs([...b.data].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
+      setGroups(g.data) // listSituationGroups est déjà trié côté DB
+    })
   }, [])
 
-  const handleSave = async () => {
-    if (!title.trim()) { setError('Le titre est obligatoire.'); return }
-    setSaving(true)
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SituationForm>({
+    resolver: zodResolver(situationSchema),
+    defaultValues: { situationKey: '', name: '', description: '', blocId: '', groupId: '' },
+  })
+
+  const onSubmit = async ({ situationKey, name, description, blocId, groupId }: SituationForm) => {
     setError(null)
-    const { data, error: err } = await createMethodologySituation({
+    if (!tenantId) { setError('Session invalide.'); return }
+
+    const { error: err } = await createSituation({
       tenantId,
-      title         : title.trim(),
-      method        : method ?? null,
-      description   : description.trim()    || null,
-      corrections   : corrections.trim()    || null,
-      commonMistakes: commonMistakes.trim() || null,
-      themeId       : themeId ?? null,
+      situationKey,
+      name,
+      description: description || undefined,
+      blocId     : blocId  || undefined,
+      groupId    : groupId || undefined,
     })
-    setSaving(false)
-    if (err || !data) { setError('Erreur lors de la création.'); return }
-    router.replace('/methodologie/situations' as never)
+
+    if (err) {
+      const pgErr = err as { code?: string }
+      if (pgErr?.code === '23505') {
+        setError(`La clé "${situationKey}" existe déjà. Choisissez un slug différent.`)
+      } else {
+        setError('Erreur lors de la création de la situation.')
+      }
+      return
+    }
+
+    router.push(`/(admin)/methodologie/situations/${situationKey}` as never)
   }
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.card}>
+        <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
+        <AureakText variant="h2">Nouvelle situation</AureakText>
 
-      <Pressable onPress={() => router.back()}>
-        <AureakText variant="caption" style={{ color: '#66BB6A' }}>← Situations</AureakText>
-      </Pressable>
-
-      <AureakText variant="h2">Nouvelle situation</AureakText>
-
-      <View style={s.section}>
-
-        <Label>Titre *</Label>
-        <TextInput
-          style={[s.input, !title && error ? s.inputError : null]}
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Ex : 1 contre 1, Centre 2e poteau, Relance sous pression…"
-          placeholderTextColor={colors.text.muted}
-        />
-
-        <Label>Méthode associée</Label>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {METHODOLOGY_METHODS.map(m => {
-            const active = method === m
-            const color  = methodologyMethodColors[m]
-            return (
-              <Pressable
-                key={m}
-                onPress={() => setMethod(active ? null : m)}
-                style={{ borderWidth: 1, borderColor: active ? color : colors.border.light, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? color + '20' : 'transparent' }}
-              >
-                <AureakText variant="caption" style={{ color: active ? color : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>{m}</AureakText>
-              </Pressable>
-            )
-          })}
-        </View>
-
-        {/* Thème lié (optionnel) */}
-        {themes.length > 0 && (
-          <>
-            <Label>Thème associé (optionnel)</Label>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-              {themes.map(t => {
-                const active = themeId === t.id
-                return (
-                  <Pressable
-                    key={t.id}
-                    onPress={() => setThemeId(active ? null : t.id)}
-                    style={{ borderWidth: 1, borderColor: active ? '#4FC3F7' : colors.border.light, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: active ? '#4FC3F7' + '20' : 'transparent' }}
-                  >
-                    <AureakText variant="caption" style={{ color: active ? '#4FC3F7' : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>{t.title}</AureakText>
-                  </Pressable>
-                )
-              })}
-            </View>
-          </>
+        {error && (
+          <View style={styles.errorBanner}>
+            <AureakText variant="body" style={{ color: colors.status.absent }}>{error}</AureakText>
+          </View>
         )}
 
-        <Label>Description</Label>
-        <TextInput
-          style={[s.input, s.textarea]}
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Description de la situation de jeu…"
-          placeholderTextColor={colors.text.muted}
-          multiline
-          numberOfLines={4}
+        <Controller
+          control={control}
+          name="situationKey"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Clé de la situation (slug)"
+              value={value}
+              onChangeText={onChange}
+              placeholder="phase-defensive-4-3-3"
+              autoCapitalize="none"
+              error={errors.situationKey?.message}
+            />
+          )}
         />
 
-        <Label>Points de correction</Label>
-        <TextInput
-          style={[s.input, s.textarea]}
-          value={corrections}
-          onChangeText={setCorrections}
-          placeholder="Ex : Sortie rapide des appuis, orientation du corps…"
-          placeholderTextColor={colors.text.muted}
-          multiline
-          numberOfLines={4}
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Nom affiché"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Phase défensive 4-3-3"
+              autoCapitalize="words"
+              error={errors.name?.message}
+            />
+          )}
         />
 
-        <Label>Erreurs fréquentes</Label>
-        <TextInput
-          style={[s.input, s.textarea]}
-          value={commonMistakes}
-          onChangeText={setCommonMistakes}
-          placeholder="Ex : Trop de poids sur le pied arrière, mauvaise lecture…"
-          placeholderTextColor={colors.text.muted}
-          multiline
-          numberOfLines={3}
+        <Controller
+          control={control}
+          name="description"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Description (optionnelle)"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Description de la situation..."
+              autoCapitalize="sentences"
+              multiline
+              numberOfLines={3}
+            />
+          )}
         />
+
+        {blocs.length > 0 && (
+          <View>
+            <AureakText variant="label" style={{ marginBottom: space.sm }}>Bloc (optionnel)</AureakText>
+            <Controller
+              control={control}
+              name="blocId"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.chipRow}>
+                  {blocs.map((b) => (
+                    <Pressable
+                      key={b.id}
+                      style={[styles.chip, value === b.id && styles.chipSelected]}
+                      onPress={() => onChange(value === b.id ? '' : b.id)}
+                    >
+                      <AureakText
+                        variant="label"
+                        style={{ color: value === b.id ? colors.accent.gold : colors.text.muted }}
+                      >
+                        {b.name}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            />
+          </View>
+        )}
+
+        {groups.length > 0 && (
+          <View>
+            <AureakText variant="label" style={{ marginBottom: space.sm }}>Groupe de situation (optionnel)</AureakText>
+            <Controller
+              control={control}
+              name="groupId"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.chipRow}>
+                  {groups.map((g) => (
+                    <Pressable
+                      key={g.id}
+                      style={[styles.chip, value === g.id && styles.chipSelected]}
+                      onPress={() => onChange(value === g.id ? '' : g.id)}
+                    >
+                      <AureakText
+                        variant="label"
+                        style={{ color: value === g.id ? colors.accent.gold : colors.text.muted }}
+                      >
+                        {g.name}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            />
+          </View>
+        )}
+
+        <View style={{ flexDirection: 'row', gap: space.sm }}>
+          <AureakButton label="Annuler" onPress={() => router.back()} variant="secondary" />
+          <AureakButton
+            label={isSubmitting ? 'Création...' : 'Créer la situation'}
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
+            fullWidth
+          />
+        </View>
       </View>
-
-      {error && (
-        <AureakText variant="caption" style={{ color: colors.status.attention }}>{error}</AureakText>
-      )}
-
-      <View style={s.actions}>
-        <Pressable style={s.cancelBtn} onPress={() => router.back()}>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
-        </Pressable>
-        <Pressable
-          style={[s.saveBtn, { backgroundColor: '#66BB6A' }, (!title.trim() || saving) && { opacity: 0.4 }]}
-          onPress={handleSave}
-          disabled={!title.trim() || saving}
-        >
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            {saving ? 'Création…' : 'Créer la situation'}
-          </AureakText>
-        </Pressable>
-      </View>
-
     </ScrollView>
   )
 }
-
-const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.light.primary },
-  content   : { padding: space.lg, gap: space.md, maxWidth: 700, alignSelf: 'center', width: '100%' },
-  section   : { backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, padding: space.lg, gap: space.sm },
-  input     : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: 10, color: colors.text.dark, fontSize: 13 },
-  inputError: { borderColor: colors.status.attention },
-  textarea  : { minHeight: 90, textAlignVertical: 'top' as never, paddingTop: 10 },
-  actions   : { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' },
-  cancelBtn : { paddingHorizontal: space.md, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light },
-  saveBtn   : { paddingHorizontal: space.lg, paddingVertical: 10, borderRadius: 8 },
-})

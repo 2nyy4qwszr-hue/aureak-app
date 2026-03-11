@@ -3,21 +3,10 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { supabase } from '@aureak/api-client'
+import { listUsers } from '@aureak/api-client'
+import type { UserRow } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-type UserRow = {
-  userId      : string
-  displayName : string
-  email       : string | null
-  userRole    : string
-  status      : string
-  inviteStatus: string
-  createdAt   : string
-}
 
 type RoleFilter = 'all' | 'admin' | 'coach' | 'parent' | 'child' | 'club'
 
@@ -111,38 +100,16 @@ export default function UsersPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-
-    let query = supabase
-      .from('profiles')
-      .select('user_id, display_name, email, user_role, status, invite_status, created_at', { count: 'exact' })
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
-
-    if (roleFilter !== 'all') {
-      query = query.eq('user_role', roleFilter)
+    const { data, total: count, error } = await listUsers({
+      search  : search || undefined,
+      role    : roleFilter,
+      page,
+      pageSize: PAGE_SIZE,
+    })
+    if (!error) {
+      setUsers(data)
+      setTotal(count)
     }
-    if (search.trim()) {
-      query = query.or(`display_name.ilike.%${search.trim()}%,email.ilike.%${search.trim()}%`)
-    }
-
-    const { data, count } = await query
-
-    const rows: UserRow[] = ((data ?? []) as {
-      user_id: string; display_name: string; email: string | null
-      user_role: string; status: string; invite_status: string; created_at: string
-    }[]).map(r => ({
-      userId      : r.user_id,
-      displayName : r.display_name,
-      email       : r.email,
-      userRole    : r.user_role,
-      status      : r.status,
-      inviteStatus: r.invite_status,
-      createdAt   : r.created_at,
-    }))
-
-    setUsers(rows)
-    setTotal(count ?? 0)
     setLoading(false)
   }, [page, roleFilter, search])
 

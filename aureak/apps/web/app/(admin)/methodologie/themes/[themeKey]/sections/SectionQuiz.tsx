@@ -9,7 +9,7 @@ import {
   publishQuestion,
   unpublishQuestion,
   addOption,
-  listOptionsByQuestion,
+  listOptionsByQuestionIds,
 } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 import type { QuizQuestion, QuizOption, Theme } from '@aureak/types'
@@ -22,6 +22,7 @@ type Props = {
 export default function SectionQuiz({ themeKey, themeId }: Props) {
   const [theme, setTheme] = useState<Theme | null>(null)
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
+  const [optionsMap, setOptionsMap] = useState<Record<string, QuizOption[]>>({})
   const [loading, setLoading] = useState(true)
 
   // New question form
@@ -45,7 +46,18 @@ export default function SectionQuiz({ themeKey, themeId }: Props) {
       listAllByTheme(themeId),
     ])
     if (themeResult.data) setTheme(themeResult.data)
-    setQuestions(qResult.data ?? [])
+    const qs = qResult.data ?? []
+    setQuestions(qs)
+    const allOptions = await listOptionsByQuestionIds(qs.map(q => q.id))
+    const map: Record<string, QuizOption[]> = {}
+    for (const opt of allOptions) {
+      // PostgREST retourne question_id (snake_case) — fallback sur questionId si mapping présent
+      const key = (opt as Record<string, unknown>).question_id as string ?? opt.questionId
+      const arr = map[key] ?? []
+      arr.push(opt)
+      map[key] = arr
+    }
+    setOptionsMap(map)
     setLoading(false)
   }
 
@@ -232,6 +244,7 @@ export default function SectionQuiz({ themeKey, themeId }: Props) {
         <QuestionCard
           key={q.id}
           question={q}
+          options={optionsMap[q.id] ?? []}
           onPublish={handlePublish}
           onUnpublish={handleUnpublish}
         />
@@ -242,19 +255,15 @@ export default function SectionQuiz({ themeKey, themeId }: Props) {
 
 function QuestionCard({
   question,
+  options,
   onPublish,
   onUnpublish,
 }: {
   question: QuizQuestion
+  options: QuizOption[]
   onPublish: (id: string) => void
   onUnpublish: (id: string) => void
 }) {
-  const [options, setOptions] = useState<QuizOption[]>([])
-
-  useEffect(() => {
-    listOptionsByQuestion(question.id).then(({ data }) => setOptions(data))
-  }, [question.id])
-
   const isPublished = question.status === 'published'
 
   return (

@@ -713,3 +713,51 @@ export async function listFaultsByCriterionExtended(criterionId: string): Promis
     correctiveImageUrl : r.corrective_image_url as string | null,
   }))
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapFaultRow(r: Record<string, unknown>): import('@aureak/types').Fault {
+  return {
+    id                 : r.id as string,
+    criterionId        : r.criterion_id as string,
+    tenantId           : r.tenant_id as string,
+    label              : r.label as string,
+    description        : r.description as string | null,
+    sortOrder          : r.sort_order as number | null,
+    createdAt          : r.created_at as string,
+    visibleSign        : r.visible_sign as string | null,
+    probableCause      : r.probable_cause as string | null,
+    correctionWording  : r.correction_wording as string | null,
+    coachingPhrase     : r.coaching_phrase as string | null,
+    practicalAdjustment: r.practical_adjustment as string | null,
+    correctiveVideoUrl : r.corrective_video_url as string | null,
+    correctiveImageUrl : r.corrective_image_url as string | null,
+  }
+}
+
+/** Charge toutes les fautes pour plusieurs critères en une seule requête */
+export async function listFaultsByCriteriaIds(
+  criteriaIds: string[],
+): Promise<import('@aureak/types').Fault[]> {
+  if (criteriaIds.length === 0) return []
+  const { data } = await supabase
+    .from('faults')
+    .select('*')
+    .in('criterion_id', criteriaIds)
+    .order('sort_order', { ascending: true, nullsFirst: false })
+  return (data ?? []).map((r: Record<string, unknown>) => mapFaultRow(r))
+}
+
+/** Charge les liens séquence↔critère pour plusieurs séquences en une seule requête */
+export async function listCriteriaLinksBySequenceIds(
+  sequenceIds: string[],
+): Promise<{ sequenceId: string; criterionId: string }[]> {
+  if (sequenceIds.length === 0) return []
+  const { data } = await supabase
+    .from('sequence_criteria')
+    .select('sequence_id, criterion_id')
+    .in('sequence_id', sequenceIds)
+  return (data ?? []).map((r: { sequence_id: string; criterion_id: string }) => ({
+    sequenceId : r.sequence_id,
+    criterionId: r.criterion_id,
+  }))
+}

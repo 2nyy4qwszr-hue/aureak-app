@@ -3,7 +3,7 @@
 // Terminologie : joueur = enfant = child (cf. MEMORY)
 
 import { supabase } from '../supabase'
-import type { ChildDirectoryEntry, ChildDirectoryHistory } from '@aureak/types'
+import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto } from '@aureak/types'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -27,9 +27,10 @@ function toEntry(row: any): ChildDirectoryEntry {
     parent2Nom     : row.parent2_nom    ?? null,
     parent2Tel     : row.parent2_tel    ?? null,
     parent2Email   : row.parent2_email  ?? null,
-    actif          : row.actif,
-    notesInternes  : row.notes_internes ?? null,
-    notionPageId   : row.notion_page_id ?? null,
+    actif           : row.actif,
+    notesInternes   : row.notes_internes   ?? null,
+    contactDeclined : row.contact_declined ?? false,
+    notionPageId    : row.notion_page_id   ?? null,
     notionSyncedAt : row.notion_synced_at ?? null,
     deletedAt      : row.deleted_at     ?? null,
     createdAt      : row.created_at,
@@ -55,6 +56,146 @@ function toHistory(row: any): ChildDirectoryHistory {
     createdAt      : row.created_at,
     updatedAt      : row.updated_at,
   }
+}
+
+// ── Photos — Signed URL helpers ───────────────────────────────────────────────
+
+/** Génère une Signed URL pour un chemin Storage (expiration 1h = 3600s) */
+async function getSignedPhotoUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from('child-photos')
+    .createSignedUrl(path, 3600)
+  if (error || !data) return null
+  return data.signedUrl
+}
+
+/** Génère des Signed URLs en batch — 1 seul appel Storage (évite N+1) */
+async function getSignedPhotoUrls(paths: string[]): Promise<Record<string, string>> {
+  if (paths.length === 0) return {}
+  const { data, error } = await supabase.storage
+    .from('child-photos')
+    .createSignedUrls(paths, 3600)
+  if (error || !data) return {}
+  const result: Record<string, string> = {}
+  for (const item of data) {
+    if (item.signedUrl) result[item.path] = item.signedUrl
+  }
+  return result
+}
+
+/** Mapper DB row → ChildDirectoryPhoto TS */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toPhoto(row: any, signedUrl: string | null): ChildDirectoryPhoto {
+  return {
+    id         : row.id,
+    tenantId   : row.tenant_id,
+    childId    : row.child_id,
+    photoPath  : row.photo_path,
+    photoUrl   : signedUrl,
+    takenAt    : row.taken_at    ?? null,
+    season     : row.season      ?? null,
+    caption    : row.caption     ?? null,
+    uploadedBy : row.uploaded_by ?? null,
+    isCurrent  : row.is_current,
+    deletedAt  : row.deleted_at  ?? null,
+    createdAt  : row.created_at,
+    updatedAt  : row.updated_at,
+  }
+}
+
+// ── Photos — CRUD ─────────────────────────────────────────────────────────────
+
+/** Historique des photos d'un joueur (ordre antéchronologique) */
+export async function listChildPhotos(childId: string): Promise<ChildDirectoryPhoto[]> {
+  const { data, error } = await supabase
+    .from('child_directory_photos')
+    .select('*')
+    .eq('child_id', childId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  const rows = (data ?? []) as Record<string, unknown>[]
+  const paths = rows.map(r => r.photo_path as string)
+  const signedMap = await getSignedPhotoUrls(paths)
+  return rows.map(r => toPhoto(r, signedMap[r.photo_path as string] ?? null))
+}
+
+export type AddChildPhotoParams = {
+  tenantId    : string
+  childId     : string
+  file        : File           // HTML File object — web admin uniquement
+  takenAt?    : string | null  // ISO date optionnelle
+  season?     : string | null  // ex: '2024-2025'
+  caption?    : string | null
+  setCurrent? : boolean        // true = définit immédiatement comme photo actuelle
+}
+
+/**
+ * Upload d'une photo vers Supabase Storage puis insertion du record en DB.
+ * Rollback automatique du Storage si l'insertion DB échoue.
+ */
+export async function addChildPhoto(params: AddChildPhotoParams): Promise<ChildDirectoryPhoto> {
+  const { tenantId, childId, file, takenAt, season, caption, setCurrent = false } = params
+
+  // Sanitize filename : lowercase + remplacement caractères spéciaux + collapse tirets
+  const ts = Date.now()
+  const safeName = file.name
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, '-')
+    .replace(/-+/g, '-')
+  const photoPath = `${tenantId}/${childId}/${ts}_${safeName}`
+
+  // 1. Upload vers Supabase Storage (bucket privé child-photos)
+  const { error: uploadError } = await supabase.storage
+    .from('child-photos')
+    .upload(photoPath, file, { upsert: false })
+  if (uploadError) throw uploadError
+
+  // 2. Insert record en DB
+  const { data, error: dbError } = await supabase
+    .from('child_directory_photos')
+    .insert({
+      tenant_id  : tenantId,
+      child_id   : childId,
+      photo_path : photoPath,
+      taken_at   : takenAt  ?? null,
+      season     : season   ?? null,
+      caption    : caption  ?? null,
+      is_current : setCurrent,
+    })
+    .select()
+    .single()
+
+  if (dbError) {
+    // Rollback Storage pour éviter les orphelins
+    await supabase.storage.from('child-photos').remove([photoPath])
+    throw dbError
+  }
+
+  const signedUrl = await getSignedPhotoUrl(photoPath)
+  return toPhoto(data as Record<string, unknown>, signedUrl)
+}
+
+/**
+ * Définit une photo comme photo actuelle du joueur.
+ * Le trigger DB fn_ensure_single_current_photo assure l'unicité automatiquement.
+ */
+export async function setCurrentPhoto(photoId: string, childId: string): Promise<void> {
+  const { error } = await supabase
+    .from('child_directory_photos')
+    .update({ is_current: true, updated_at: new Date().toISOString() })
+    .eq('id', photoId)
+    .eq('child_id', childId)
+  if (error) throw error
+}
+
+/** Soft-delete d'une photo (deleted_at + is_current = false) */
+export async function deleteChildPhoto(photoId: string): Promise<void> {
+  const { error } = await supabase
+    .from('child_directory_photos')
+    .update({ deleted_at: new Date().toISOString(), is_current: false, updated_at: new Date().toISOString() })
+    .eq('id', photoId)
+  if (error) throw error
 }
 
 // ── List ───────────────────────────────────────────────────────────────────────
@@ -180,6 +321,8 @@ export type JoueurListItem = {
   inCurrentSeason : boolean
   currentSeasonLabel: string | null
   totalStages     : number
+  /** Signed URL de la photo actuelle (null si aucune photo, expiration 1h) */
+  currentPhotoUrl : string | null
 }
 
 export type ListJoueursOpts = {
@@ -189,6 +332,8 @@ export type ListJoueursOpts = {
   totalStagesCmp?  : 'eq0' | 'eq1' | 'eq2' | 'gte3'
   currentClub?     : string
   niveauClub?      : string
+  /** Filtre par année de naissance ex: '2010' → birth_date BETWEEN 2010-01-01 AND 2010-12-31 */
+  birthYear?       : string
   page?            : number
   pageSize?        : number
 }
@@ -198,7 +343,7 @@ export async function listJoueurs(
 ): Promise<{ data: JoueurListItem[]; count: number }> {
   const {
     search, computedStatus, totalSeasonsCmp, totalStagesCmp,
-    currentClub, niveauClub, page = 0, pageSize = 50,
+    currentClub, niveauClub, birthYear, page = 0, pageSize = 50,
   } = opts
 
   const hasStatusFilter = !!(computedStatus || totalSeasonsCmp !== undefined || totalStagesCmp !== undefined)
@@ -230,6 +375,7 @@ export async function listJoueurs(
   if (search)      q = q.ilike('display_name', `%${search}%`)
   if (currentClub) q = q.ilike('current_club', `%${currentClub}%`)
   if (niveauClub)  q = q.eq('niveau_club', niveauClub)
+  if (birthYear)   q = q.gte('birth_date', `${birthYear}-01-01`).lte('birth_date', `${birthYear}-12-31`)
   if (filteredIds) q = q.in('id', filteredIds)
   q = q.range(page * pageSize, (page + 1) * pageSize - 1)
 
@@ -260,8 +406,26 @@ export async function listJoueurs(
     }
   }
 
+  // Phase 4 : batch fetch des photos courantes + signed URLs (évite N+1)
+  const photoPathMap: Record<string, string> = {}
+  if (pageIds.length > 0) {
+    const { data: photoRows } = await supabase
+      .from('child_directory_photos')
+      .select('child_id, photo_path')
+      .in('child_id', pageIds)
+      .eq('is_current', true)
+      .is('deleted_at', null)
+    for (const r of (photoRows ?? []) as Record<string, unknown>[]) {
+      photoPathMap[r.child_id as string] = r.photo_path as string
+    }
+  }
+  // 1 seul appel Storage pour signer toutes les photos de la page
+  const photoPaths = Object.values(photoPathMap)
+  const signedMap = photoPaths.length > 0 ? await getSignedPhotoUrls(photoPaths) : {}
+
   const data: JoueurListItem[] = ((childRows ?? []) as Record<string, unknown>[]).map(r => {
     const st = statusMap[r.id as string] ?? null
+    const photoPath = photoPathMap[r.id as string] ?? null
     return {
       id              : r.id              as string,
       displayName     : r.display_name    as string,
@@ -274,6 +438,7 @@ export async function listJoueurs(
       inCurrentSeason    : st?.inCurrentSeason     ?? false,
       currentSeasonLabel : st?.currentSeasonLabel  ?? null,
       totalStages        : st?.totalStages         ?? 0,
+      currentPhotoUrl    : photoPath ? (signedMap[photoPath] ?? null) : null,
     }
   })
 

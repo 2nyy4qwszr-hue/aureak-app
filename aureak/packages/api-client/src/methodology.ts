@@ -56,6 +56,7 @@ function mapSession(row: Record<string, unknown>): MethodologySession {
     trainingRef : str(row.training_ref),
     description : str(row.description),
     pdfUrl      : str(row.pdf_url),
+    plateauUrl  : str(row.plateau_url),
     videoUrl    : str(row.video_url),
     audioUrl    : str(row.audio_url),
     objective   : str(row.objective),

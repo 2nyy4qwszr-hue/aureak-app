@@ -39,12 +39,12 @@ export { createClub, listClubs, linkChildToClub, unlinkChildFromClub, updateClub
 export type { CreateClubParams, UpdateClubAccessLevelParams } from './clubs'
 
 export {
-  createThemeGroup, listThemeGroups, updateThemeGroupOrder,
+  createThemeGroup, listThemeGroups, updateThemeGroupOrder, updateThemeGroup, deleteThemeGroup,
   createTheme, updateTheme, listThemes, getThemeByKey, createNewThemeVersion,
-  createThemeSequence, listSequencesByTheme,
+  createThemeSequence, listSequencesByTheme, updateThemeSequence,
 } from './referentiel/themes'
 export type {
-  CreateThemeGroupParams, CreateThemeParams, UpdateThemeParams, NewThemeVersionParams, CreateThemeSequenceParams,
+  CreateThemeGroupParams, CreateThemeParams, UpdateThemeParams, NewThemeVersionParams, CreateThemeSequenceParams, UpdateThemeSequenceParams,
 } from './referentiel/themes'
 
 export {
@@ -74,7 +74,7 @@ export type { CreateTaxonomyParams, CreateTaxonomyNodeParams, CreateUnitClassifi
 export {
   createQuestion, publishQuestion, unpublishQuestion,
   listPublishedByTheme, listAllByTheme,
-  addOption, listOptionsByQuestion, deleteOption,
+  addOption, listOptionsByQuestion, listOptionsByQuestionIds, deleteOption,
 } from './referentiel/quiz'
 export type { CreateQuestionParams, AddOptionParams } from './referentiel/quiz'
 
@@ -83,18 +83,26 @@ export {
   getSession as getSessionById,
   listSessionsByCoach, listUpcomingSessions,
   updateSession, cancelSession,
-  assignCoach, listSessionCoaches,
+  assignCoach, listSessionCoaches, removeCoach,
   addSessionTheme, addSessionSituation, listSessionThemes, listSessionSituations,
-  // Story 13.1 — guest management
+  // Story 13.1 — guest management + attendees (camelCase mapping)
   addGuestToSession, removeGuestFromSession,
+  listSessionAttendees,
   // Story 13.2 — calendrier & auto-génération
   listSchoolCalendarExceptions, addSchoolCalendarException, removeSchoolCalendarException,
   computeContentRef, buildSessionSequence,
   generateYearSessions,
   postponeSession, cancelSessionWithShift,
   listSessionsCalendar,
+  // Story 13.3 — clôture coach, notes par joueur, remplacements
+  closeSessionCoach,
+  captureNewChildDuringSession, saveCoachNote,
+  reportCoachAbsence, acceptReplacement,
+  getActiveSessionsForCoach,
+  // Story 19.4 — vues admin enrichies
+  listSessionsAdminView, batchResolveCoachNames,
 } from './sessions/sessions'
-export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow } from './sessions/sessions'
+export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin } from './sessions/sessions'
 
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,
@@ -109,7 +117,7 @@ export type {
   CreateImplantationParams, CreateGroupParams, AddGroupStaffParams,
 } from './sessions/implantations'
 export {
-  listSessionAttendees, prefillSessionAttendees,
+  prefillSessionAttendees,
   recordAttendance, listAttendancesBySession,
   confirmCoachPresence as confirmCoachPresenceDb, checkinBlock,
   listSessionsWithAttendance, listPlayersWithAttendance,
@@ -193,6 +201,11 @@ export {
 export type { CreateProfileFicheParams, InviteProfileUserParams, ProfileRole } from './admin/profiles'
 
 export {
+  listUsers, getUserProfile,
+} from './admin/users'
+export type { UserRow, ListUsersOpts } from './admin/users'
+
+export {
   getAdminPlayerProfile, getPlayerAttendanceHistory,
 } from './admin/playerProfile'
 export type { AdminPlayerProfile, PlayerAttendanceRecord } from './admin/playerProfile'
@@ -228,11 +241,15 @@ export {
   updateChildDirectoryEntry, softDeleteChildDirectoryEntry,
   listChildDirectoryHistory, addChildHistoryEntry, updateChildHistoryEntry, deleteChildHistoryEntry,
   listJoueurs,
+  // Story 18.2 — gestion photos joueurs
+  listChildPhotos, addChildPhoto, setCurrentPhoto, deleteChildPhoto,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,
   AddChildHistoryParams, UpdateChildHistoryParams,
   JoueurListItem, ListJoueursOpts,
+  // Story 18.2
+  AddChildPhotoParams,
 } from './admin/child-directory'
 
 export {
@@ -268,6 +285,7 @@ export {
   updateCriterionExtended, updateFaultExtended,
   deleteCriterionById, deleteFaultById,
   listCriteriaByTheme, listFaultsByCriterionExtended,
+  listFaultsByCriteriaIds, listCriteriaLinksBySequenceIds,
 } from './referentiel/theme-dossier'
 
 // ── Méthodologie pédagogique (migration 00050) ────────────────────────────────

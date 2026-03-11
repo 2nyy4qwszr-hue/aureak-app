@@ -1,6 +1,7 @@
 // Story 4.1 — CRUD sessions
 // Story 13.1 — Sessions v2 : sessionType, contentRef, guest management
 // Story 13.2 — Calendrier, auto-génération & gestion des exceptions
+// Story 13.3 — Mode séance coach, clôture, notes, absence
 import { supabase } from '../supabase'
 import type {
   Session, SessionCoach, SessionTheme, SessionSituation, SessionAttendee,
@@ -33,6 +34,9 @@ function mapSession(row: Record<string, unknown>): Session {
     createdAt             : row['created_at']             as string,
     sessionType           : (row['session_type']          as SessionType | null) ?? null,
     contentRef            : (row['content_ref'] ?? {}) as SessionContentRef,
+    closedAt              : (row['closed_at']             as string | null) ?? null,
+    methodologySessionId  : (row['methodology_session_id'] as string | null) ?? null,
+    notes                 : (row['notes']                 as string | null) ?? null,
   }
 }
 
@@ -107,7 +111,7 @@ export async function listSessionsByCoach(
     .is('deleted_at', null)
     .order('scheduled_at', { ascending: true })
 
-  return { data: (data as Session[]) ?? [], error }
+  return { data: ((data ?? []) as Record<string, unknown>[]).map(mapSession), error }
 }
 
 export async function listUpcomingSessions(params?: {
@@ -131,13 +135,16 @@ export async function listUpcomingSessions(params?: {
 }
 
 export type UpdateSessionParams = {
-  scheduledAt?    : string
-  durationMinutes?: number
-  location?       : string
-  status?         : string
+  scheduledAt?        : string
+  durationMinutes?    : number
+  location?           : string | null
+  status?             : string
   // Story 13.1
-  sessionType?    : SessionType | null
-  contentRef?     : SessionContentRef
+  sessionType?        : SessionType | null
+  contentRef?         : SessionContentRef
+  // Story 19.5
+  notes?              : string | null
+  cancellationReason? : string | null
 }
 
 export async function updateSession(
@@ -145,13 +152,16 @@ export async function updateSession(
   params   : UpdateSessionParams
 ): Promise<{ error: unknown }> {
   const updates: Record<string, unknown> = {}
-  if (params.scheduledAt)                  updates['scheduled_at']     = params.scheduledAt
-  if (params.durationMinutes)              updates['duration_minutes']  = params.durationMinutes
-  if (params.location !== undefined)       updates['location']          = params.location
-  if (params.status)                       updates['status']            = params.status
+  if (params.scheduledAt)                      updates['scheduled_at']       = params.scheduledAt
+  if (params.durationMinutes)                  updates['duration_minutes']    = params.durationMinutes
+  if (params.location !== undefined)           updates['location']            = params.location
+  if (params.status)                           updates['status']              = params.status
   // Story 13.1
-  if (params.sessionType !== undefined)    updates['session_type']      = params.sessionType
-  if (params.contentRef !== undefined)     updates['content_ref']       = params.contentRef
+  if (params.sessionType !== undefined)        updates['session_type']        = params.sessionType
+  if (params.contentRef !== undefined)         updates['content_ref']         = params.contentRef
+  // Story 19.5
+  if (params.notes !== undefined)              updates['notes']               = params.notes
+  if (params.cancellationReason !== undefined) updates['cancellation_reason'] = params.cancellationReason
 
   const { error } = await supabase
     .from('sessions')
@@ -202,7 +212,28 @@ export async function listSessionCoaches(
     .select('*')
     .eq('session_id', sessionId)
 
-  return { data: (data as SessionCoach[]) ?? [], error }
+  const mapped: SessionCoach[] = (data ?? []).map((row: Record<string, unknown>) => ({
+    sessionId : row['session_id']  as string,
+    coachId   : row['coach_id']    as string,
+    tenantId  : row['tenant_id']   as string,
+    role      : row['role']        as SessionCoach['role'],
+    createdAt : row['created_at']  as string,
+  }))
+  return { data: mapped, error }
+}
+
+// Story 19.5 — Supprimer un coach d'une séance
+export async function removeCoach(
+  sessionId: string,
+  coachId  : string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('session_coaches')
+    .delete()
+    .eq('session_id', sessionId)
+    .eq('coach_id', coachId)
+
+  return { error }
 }
 
 // ─── Session themes & situations ─────────────────────────────────────────────
@@ -264,14 +295,16 @@ export async function listSessionAttendees(
 ): Promise<{ data: SessionAttendee[]; error: unknown }> {
   const { data, error } = await supabase
     .from('session_attendees')
-    .select('session_id, child_id, tenant_id, is_guest')
+    .select('session_id, child_id, tenant_id, is_guest, coach_notes, contact_declined')
     .eq('session_id', sessionId)
 
   const mapped = (data ?? []).map((row: Record<string, unknown>) => ({
-    sessionId: row['session_id'] as string,
-    childId  : row['child_id']   as string,
-    tenantId : row['tenant_id']  as string,
-    isGuest  : (row['is_guest']  as boolean) ?? false,
+    sessionId      : row['session_id']       as string,
+    childId        : row['child_id']         as string,
+    tenantId       : row['tenant_id']        as string,
+    isGuest        : (row['is_guest']        as boolean) ?? false,
+    coachNotes     : (row['coach_notes']     as string | null) ?? null,
+    contactDeclined: (row['contact_declined'] as boolean) ?? false,
   })) as SessionAttendee[]
 
   return { data: mapped, error }
@@ -760,4 +793,224 @@ export async function listSessionsCalendar(params: {
   })) as SessionCalendarRow[]
 
   return { data: rows, error: null }
+}
+
+// ─── Story 13.3 — Clôture coach + notes par joueur + remplacements ────────────
+
+/**
+ * Clôture une séance via la RPC `close_session_coach`.
+ * Vérifie que toutes les présences sont statués avant de marquer status = 'réalisée'.
+ * Idempotent.
+ */
+export async function closeSessionCoach(
+  sessionId: string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase.rpc('close_session_coach', {
+    p_session_id: sessionId,
+  })
+  return { error }
+}
+
+export type CaptureNewChildParams = {
+  firstName       : string
+  lastName        : string
+  parentEmail?    : string
+  parentPhone?    : string
+  birthDate?      : string   // 'YYYY-MM-DD'
+  contactDeclined?: boolean
+}
+
+/**
+ * Crée un nouveau joueur dans child_directory (mode essai terrain)
+ * et l'ajoute immédiatement à session_attendees comme guest.
+ * Retourne l'ID du joueur créé.
+ */
+export async function captureNewChildDuringSession(
+  sessionId   : string,
+  tenantId    : string,
+  childData   : CaptureNewChildParams
+): Promise<{ data: string | null; error: unknown }> {
+  // 1. Créer dans child_directory
+  const displayName = `${childData.firstName} ${childData.lastName}`.trim()
+  const insertRow: Record<string, unknown> = {
+    display_name     : displayName,
+    tenant_id        : tenantId,
+    birth_date       : childData.birthDate ?? null,
+    statut           : 'Nouveau',
+    contact_declined : childData.contactDeclined ?? false,
+    actif            : true,
+  }
+  if (childData.parentEmail) insertRow['parent1_email'] = childData.parentEmail
+  if (childData.parentPhone) insertRow['parent1_tel']   = childData.parentPhone
+
+  const { data: dirRow, error: dirErr } = await supabase
+    .from('child_directory')
+    .insert(insertRow)
+    .select('id')
+    .single()
+
+  if (dirErr || !dirRow) return { data: null, error: dirErr }
+  const childId = (dirRow as Record<string, unknown>)['id'] as string
+
+  // 2. Ajouter à session_attendees comme guest
+  const { error: guestErr } = await supabase
+    .from('session_attendees')
+    .upsert(
+      { session_id: sessionId, child_id: childId, tenant_id: tenantId, is_guest: true },
+      { onConflict: 'session_id,child_id', ignoreDuplicates: false }
+    )
+
+  if (guestErr) return { data: null, error: guestErr }
+  return { data: childId, error: null }
+}
+
+/**
+ * Sauvegarde une note rapide du coach sur un joueur pour la séance.
+ * Mise à jour de session_attendees.coach_notes (max 140 chars).
+ */
+export async function saveCoachNote(
+  sessionId: string,
+  childId  : string,
+  note     : string
+): Promise<{ error: unknown }> {
+  const trimmed = note.slice(0, 140)
+  const { error } = await supabase
+    .from('session_attendees')
+    .update({ coach_notes: trimmed })
+    .eq('session_id', sessionId)
+    .eq('child_id', childId)
+
+  return { error }
+}
+
+/**
+ * Signale l'absence d'un coach et déclenche le workflow de remplacement
+ * via l'Edge Function `coach-absence-handler`.
+ */
+export async function reportCoachAbsence(
+  sessionId: string,
+  coachId  : string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase.functions.invoke('coach-absence-handler', {
+    body: { action: 'report_absence', sessionId, coachId },
+  })
+  return { error }
+}
+
+/**
+ * Accepte un remplacement de coach pour une séance.
+ * Appelle l'Edge Function coach-absence-handler avec action accept_replacement.
+ */
+export async function acceptReplacement(
+  sessionId: string,
+  coachId  : string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase.functions.invoke('coach-absence-handler', {
+    body: { action: 'accept_replacement', sessionId, coachId },
+  })
+  return { error }
+}
+
+// ─── Story 19.4 — Vue admin enrichie (Jour/Semaine/Mois/Année) ───────────────
+
+export type SessionRowAdmin = {
+  id                : string
+  scheduledAt       : string
+  durationMinutes   : number
+  status            : string
+  location          : string | null
+  groupId           : string
+  implantationId    : string
+  sessionType       : SessionType | null
+  cancellationReason: string | null
+  coaches           : { coachId: string; role: string }[]
+}
+
+/**
+ * Charge les séances sur une plage de dates pour les vues admin.
+ * Si withCoaches = true, inclut les coaches via JOIN (vues Jour et Semaine).
+ * Aucun appel N+1 — le JOIN est fait en une seule requête Supabase.
+ */
+export async function listSessionsAdminView(params: {
+  start          : string
+  end            : string
+  implantationId?: string
+  groupId?       : string
+  withCoaches    : boolean
+}): Promise<{ data: SessionRowAdmin[]; error: unknown }> {
+  const selectFields = params.withCoaches
+    ? 'id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason, session_coaches(coach_id, role)'
+    : 'id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason'
+
+  let query = supabase
+    .from('sessions')
+    .select(selectFields)
+    .gte('scheduled_at', params.start)
+    .lte('scheduled_at', params.end)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: true })
+
+  if (params.implantationId) query = query.eq('implantation_id', params.implantationId)
+  if (params.groupId)        query = query.eq('group_id', params.groupId)
+
+  const { data, error } = await query
+  if (error) return { data: [], error }
+
+  return {
+    data : ((data ?? []) as Record<string, unknown>[]).map(r => ({
+      id                : r['id']                  as string,
+      scheduledAt       : r['scheduled_at']        as string,
+      durationMinutes   : r['duration_minutes']    as number,
+      status            : r['status']              as string,
+      location          : r['location']            as string | null,
+      groupId           : r['group_id']            as string,
+      implantationId    : r['implantation_id']     as string,
+      sessionType       : r['session_type']        as SessionType | null,
+      cancellationReason: r['cancellation_reason'] as string | null,
+      coaches           : params.withCoaches
+        ? ((r['session_coaches'] ?? []) as Record<string, string>[]).map(c => ({
+            coachId: c['coach_id'],
+            role   : c['role'],
+          }))
+        : [],
+    })),
+    error: null,
+  }
+}
+
+/**
+ * Résout les noms d'affichage de plusieurs coaches en une seule requête batch.
+ * Retourne un Map<coachId, displayName>.
+ * Utiliser après listSessionsAdminView pour éviter le pattern N+1.
+ */
+export async function batchResolveCoachNames(coachIds: string[]): Promise<Map<string, string>> {
+  if (coachIds.length === 0) return new Map()
+  const { data } = await supabase
+    .from('profiles')
+    .select('user_id, display_name')
+    .in('user_id', coachIds)
+  const map = new Map<string, string>()
+  ;((data ?? []) as { user_id: string; display_name: string }[]).forEach(p => {
+    map.set(p.user_id, p.display_name)
+  })
+  return map
+}
+
+/**
+ * Liste les séances d'un coach qui sont actuellement dans la fenêtre active
+ * [scheduled_at - 30min .. scheduled_at + duration + 15min]
+ * Retourne les séances 'planifiée' dans cette fenêtre.
+ */
+export function getActiveSessionsForCoach(
+  sessions    : Session[],
+  nowOverride?: Date
+): Session[] {
+  const now = nowOverride ?? new Date()
+  return sessions.filter(s => {
+    if (s.status !== 'planifiée') return false
+    const start      = new Date(s.scheduledAt)
+    const preWindow  = new Date(start.getTime() - 30 * 60 * 1000)
+    const endWindow  = new Date(start.getTime() + (s.durationMinutes + 15) * 60 * 1000)
+    return now >= preWindow && now <= endWindow
+  })
 }

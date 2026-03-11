@@ -1,173 +1,181 @@
-'use client'
-// Situations pédagogiques — situations de jeu/entraînement concrètes
-import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listMethodologySituations, listMethodologyThemes } from '@aureak/api-client'
+import { listSituations, listThemeGroups } from '@aureak/api-client'
+import { AureakButton } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
-import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
-import {
-  METHODOLOGY_METHODS,
-  type MethodologyMethod,
-} from '@aureak/types'
-import type { MethodologySituation, MethodologyTheme } from '@aureak/types'
+import { colors, space, shadows } from '@aureak/theme'
+import type { Situation, ThemeGroup } from '@aureak/types'
+import BlocsManagerModal from '../_components/BlocsManagerModal'
 
-type FilterMethod = MethodologyMethod | 'all'
+const styles = StyleSheet.create({
+  container      : { flex: 1, backgroundColor: colors.light.primary },
+  content        : { padding: space.xl, gap: space.lg },
+  header         : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerLeft     : { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  manageBtn      : { paddingHorizontal: space.sm, paddingVertical: 4 },
+  filterRow      : { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  filterChip     : { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: 'transparent' },
+  filterChipActive: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
+  groupSection   : { gap: space.md },
+  blocBadge      : { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.accent.gold + '20', borderWidth: 1, borderColor: colors.accent.gold + '60', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 },
+})
 
 export default function SituationsPage() {
   const router = useRouter()
+  const [situations,      setSituations]      = useState<Situation[]>([])
+  const [groups,          setGroups]          = useState<ThemeGroup[]>([])
+  const [loading,         setLoading]         = useState(true)
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+  const [modalVisible,    setModalVisible]    = useState(false)
 
-  const [situations,   setSituations]   = useState<MethodologySituation[]>([])
-  const [themes,       setThemes]       = useState<MethodologyTheme[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [search,       setSearch]       = useState('')
-  const [methodFilter, setMethodFilter] = useState<FilterMethod>('all')
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    const [sits, thms] = await Promise.all([
-      listMethodologySituations({ activeOnly: false }),
-      listMethodologyThemes({ activeOnly: false }),
-    ])
-    setSituations(sits)
-    setThemes(thms)
+  const loadData = async () => {
+    const [s, g] = await Promise.all([listSituations(), listThemeGroups()])
+    setSituations(s.data)
+    setGroups(g.data)
     setLoading(false)
-  }, [])
+  }
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { loadData() }, [])
 
-  const themeMap = Object.fromEntries(themes.map(t => [t.id, t.title]))
+  const visibleSituations = selectedGroupId
+    ? situations.filter(s => s.blocId === selectedGroupId)
+    : situations
 
-  const filtered = situations.filter(s => {
-    if (search && !s.title.toLowerCase().includes(search.toLowerCase())) return false
-    if (methodFilter !== 'all' && s.method !== methodFilter) return false
-    return true
-  })
+  const groupMap = Object.fromEntries(groups.map(g => [g.id, g.name]))
+
+  const groupedSituations = groups.map(group => ({
+    group,
+    situations: visibleSituations.filter(s => s.blocId === group.id),
+  }))
+  const ungrouped = visibleSituations.filter(s => s.blocId === null)
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-
-      {/* ── Header ── */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.push('/methodologie' as never)} style={{ marginBottom: 4 }}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Méthodologie</AureakText>
-        </Pressable>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <View>
-            <AureakText variant="h2" color={colors.accent.gold}>Situations</AureakText>
-            {!loading && (
-              <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-                {filtered.length} situation{filtered.length !== 1 ? 's' : ''}
-              </AureakText>
-            )}
-          </View>
-          <Pressable style={s.newBtn} onPress={() => router.push('/methodologie/situations/new' as never)}>
-            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>+ Nouvelle situation</AureakText>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <AureakText variant="h2">Situations</AureakText>
+          <Pressable
+            style={styles.manageBtn}
+            onPress={() => setModalVisible(true)}
+          >
+            <AureakText style={{ fontSize: 12, color: colors.text.muted }}>⚙ Gérer les blocs</AureakText>
           </Pressable>
         </View>
+        <AureakButton
+          label="Nouvelle situation"
+          onPress={() => router.push('/methodologie/situations/new' as never)}
+          variant="primary"
+        />
       </View>
 
-      {/* ── Search ── */}
-      <TextInput
-        style={s.searchInput}
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Rechercher par titre…"
-        placeholderTextColor={colors.text.muted}
-      />
-
-      {/* ── Method filter ── */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => {
-            const active = methodFilter === m
-            return (
-              <Pressable
-                key={m}
-                onPress={() => setMethodFilter(m)}
-                style={[s.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
-              >
-                <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
-                  {m === 'all' ? 'Toutes méthodes' : m}
-                </AureakText>
-              </Pressable>
-            )
-          })}
-        </View>
-      </ScrollView>
-
-      {/* ── List ── */}
-      {loading ? (
-        <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
-      ) : filtered.length === 0 ? (
-        <View style={s.empty}>
-          <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
-            {situations.length === 0 ? 'Aucune situation. Créez la première.' : 'Aucun résultat pour ces filtres.'}
-          </AureakText>
-        </View>
-      ) : (
-        <View style={{ gap: space.sm }}>
-          {filtered.map(sit => {
-            const methodColor = sit.method ? (methodologyMethodColors[sit.method as MethodologyMethod] ?? methodologyMethodColors['Situationnel']) : methodologyMethodColors['Situationnel']
-            return (
-              <View key={sit.id} style={[s.card, { borderLeftColor: methodColor }]}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <AureakText variant="body" style={{ fontWeight: '600', fontSize: 14 }}>{sit.title}</AureakText>
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {sit.method && (
-                        <AureakText variant="caption" style={{ color: methodColor, fontSize: 11, fontWeight: '600' }}>{sit.method}</AureakText>
-                      )}
-                      {sit.themeId && themeMap[sit.themeId] && (
-                        <AureakText variant="caption" style={{ color: '#4FC3F7', fontSize: 10 }}>
-                          🎯 {themeMap[sit.themeId]}
-                        </AureakText>
-                      )}
-                    </View>
-                    {sit.description && (
-                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, lineHeight: 18 }} numberOfLines={2}>
-                        {sit.description}
-                      </AureakText>
-                    )}
-                  </View>
-                  {!sit.isActive && (
-                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
-                  )}
-                </View>
-              </View>
-            )
-          })}
+      {/* Filtre par Bloc */}
+      {groups.length > 0 && (
+        <View style={styles.filterRow}>
+          <Pressable
+            style={[styles.filterChip, !selectedGroupId && styles.filterChipActive]}
+            onPress={() => setSelectedGroupId(null)}
+          >
+            <AureakText style={{ fontSize: 12, color: !selectedGroupId ? colors.text.dark : colors.text.muted, fontWeight: !selectedGroupId ? '700' : '400' }}>
+              Tous
+            </AureakText>
+          </Pressable>
+          {groups.map(g => (
+            <Pressable
+              key={g.id}
+              style={[styles.filterChip, selectedGroupId === g.id && styles.filterChipActive]}
+              onPress={() => setSelectedGroupId(g.id)}
+            >
+              <AureakText style={{ fontSize: 12, color: selectedGroupId === g.id ? colors.text.dark : colors.text.muted, fontWeight: selectedGroupId === g.id ? '700' : '400' }}>
+                {g.name}
+              </AureakText>
+            </Pressable>
+          ))}
         </View>
       )}
 
+      {loading && (
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
+      )}
+
+      {groupedSituations.map(({ group, situations: groupSits }) => (
+        groupSits.length > 0 && (
+          <View key={group.id} style={styles.groupSection}>
+            <AureakText variant="label" style={{ color: colors.text.muted }}>
+              {group.name}
+            </AureakText>
+            {groupSits.map(sit => (
+              <SituationCard key={sit.id} situation={sit} groupName={groupMap[sit.blocId ?? ''] ?? null} router={router} />
+            ))}
+          </View>
+        )
+      ))}
+
+      {ungrouped.length > 0 && (
+        <View style={styles.groupSection}>
+          <AureakText variant="label" style={{ color: colors.text.muted }}>Sans groupe</AureakText>
+          {ungrouped.map(sit => (
+            <SituationCard key={sit.id} situation={sit} groupName={null} router={router} />
+          ))}
+        </View>
+      )}
+
+      {!loading && situations.length === 0 && (
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
+          Aucune situation configurée.
+        </AureakText>
+      )}
+
+      <BlocsManagerModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onBlocChanged={() => {
+          setLoading(true)
+          loadData()
+        }}
+      />
     </ScrollView>
   )
 }
 
-const s = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
-  header     : { gap: 4 },
-  newBtn     : { backgroundColor: '#66BB6A', paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  searchInput: {
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    borderRadius     : 8,
-    paddingHorizontal: space.md,
-    paddingVertical  : 10,
-    color            : colors.text.dark,
-    fontSize         : 13,
-  },
-  chip : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
-  empty: { padding: space.lg, alignItems: 'center' },
-  card : {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 10,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    borderLeftWidth: 3,
-    padding        : space.md,
-    gap            : 4,
-  },
-})
+function SituationCard({
+  situation, groupName, router,
+}: {
+  situation: Situation
+  groupName: string | null
+  router: ReturnType<typeof useRouter>
+}) {
+  return (
+    <View style={{
+      backgroundColor: colors.light.surface,
+      borderRadius   : 8,
+      padding        : space.md,
+      borderWidth    : 1,
+      borderColor    : colors.border.light,
+      flexDirection  : 'row',
+      justifyContent : 'space-between',
+      alignItems     : 'center',
+      gap            : space.sm,
+      boxShadow      : shadows.sm,
+    }}>
+      <View style={{ flex: 1, gap: space.xs }}>
+        {groupName && (
+          <View style={styles.blocBadge as never}>
+            <AureakText style={{ fontSize: 10, color: colors.text.dark, fontWeight: '600' }}>
+              Bloc : {groupName}
+            </AureakText>
+          </View>
+        )}
+        <AureakText variant="label">{situation.name}</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
+          {situation.situationKey} · v{situation.version}
+        </AureakText>
+      </View>
+      <AureakButton
+        label="Gérer"
+        onPress={() => router.push(`/methodologie/situations/${situation.situationKey}` as never)}
+        variant="secondary"
+      />
+    </View>
+  )
+}

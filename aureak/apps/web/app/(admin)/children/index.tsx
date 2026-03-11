@@ -1,10 +1,12 @@
 'use client'
 // Annuaire joueurs — child_directory (import Notion)
 // Terminologie officielle : joueur = enfant = child
+// Story 18.2 : refonte UI cards + grille responsive + photos + filtres améliorés
+// UI v2 : infos gauche · avatar droite · filtres avancés repliables
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listJoueurs, listAcademySeasons, type JoueurListItem } from '@aureak/api-client'
+import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
@@ -18,7 +20,6 @@ type AcadStatusFilter = 'all' | AcademyStatus
 type SeasonFilter     = 'all' | 'eq1' | 'eq2' | 'gte3'
 type StageFilter      = 'all' | 'eq0' | 'eq1' | 'eq2' | 'gte3'
 
-// Built dynamically in the component using currentSeasonLabel
 const SEASON_TABS: { key: SeasonFilter; label: string }[] = [
   { key: 'all',  label: 'Toutes'    },
   { key: 'eq1',  label: '1 saison'  },
@@ -34,7 +35,65 @@ const STAGE_TABS: { key: StageFilter; label: string }[] = [
   { key: 'gte3', label: '3+'         },
 ]
 
-// ── Status badge chip ──────────────────────────────────────────────────────────
+// Années de naissance dynamiques : 2004 → 2018
+const BIRTH_YEAR_TABS: { key: string; label: string }[] = [
+  { key: 'all', label: 'Toutes' },
+  ...Array.from({ length: 15 }, (_, i) => {
+    const y = (2018 - i).toString()
+    return { key: y, label: y }
+  }),
+]
+
+// ── PhotoAvatar — cercle photo ou initiales en fallback ────────────────────────
+
+function getInitials(displayName: string): string {
+  const parts = displayName.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
+
+function avatarBgColor(id: string): string {
+  const COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4']
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
+  return COLORS[Math.abs(hash) % COLORS.length]
+}
+
+function PhotoAvatar({ photoUrl, displayName, id, size = 52 }: {
+  photoUrl   : string | null
+  displayName: string
+  id         : string
+  size?      : number
+}) {
+  const [imgError, setImgError] = useState(false)
+  const showPhoto = photoUrl && !imgError
+  const bg = avatarBgColor(id)
+  const initials = getInitials(displayName)
+
+  return (
+    <View style={[av.circle, { width: size, height: size, borderRadius: size / 2, backgroundColor: showPhoto ? 'transparent' : bg }]}>
+      {showPhoto ? (
+        <Image
+          source={{ uri: photoUrl }}
+          style={{ width: size, height: size, borderRadius: size / 2 }}
+          onError={() => setImgError(true)}
+          resizeMode="cover"
+        />
+      ) : (
+        <AureakText style={[av.initials, { fontSize: size * 0.32 }] as never}>
+          {initials}
+        </AureakText>
+      )}
+    </View>
+  )
+}
+
+const av = StyleSheet.create({
+  circle  : { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  initials: { color: '#fff', fontWeight: '700' as never, letterSpacing: 0.5 },
+})
+
+// ── Chips ──────────────────────────────────────────────────────────────────────
 
 function StatusChip({ status }: { status: string }) {
   const cfg = ACADEMY_STATUS_CONFIG[status as AcademyStatus]
@@ -55,11 +114,7 @@ function InfoChip({ label, color }: { label: string; color: string }) {
 }
 
 const chip = StyleSheet.create({
-  base : {
-    paddingHorizontal: 6, paddingVertical: 2,
-    borderRadius: 4, borderWidth: 1,
-    alignSelf: 'flex-start',
-  },
+  base : { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 4, borderWidth: 1, alignSelf: 'flex-start' },
   label: { fontSize: 10, fontWeight: '600' as never, letterSpacing: 0.3 },
 })
 
@@ -91,13 +146,13 @@ function Pagination({
   )
 }
 const pag = StyleSheet.create({
-  row    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: space.sm },
+  row    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: space.sm },
   btnRow : { flexDirection: 'row', alignItems: 'center' },
   btn    : { width: 30, height: 30, borderRadius: radius.xs, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.light.surface },
   disabled: { opacity: 0.35 },
 })
 
-// ── Player row ─────────────────────────────────────────────────────────────────
+// ── JoueurCard — infos gauche · avatar droite ─────────────────────────────────
 
 function formatBirthDate(iso: string | null): string | null {
   if (!iso) return null
@@ -107,83 +162,147 @@ function formatBirthDate(iso: string | null): string | null {
   } catch { return null }
 }
 
-function JoueurRow({ item, onPress }: { item: JoueurListItem; onPress: () => void }) {
-  const seasonColor = '#9E9E9E'
-  const stageColor  = '#4FC3F7'
-  const dob = formatBirthDate(item.birthDate)
+function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => void }) {
+  const dob     = formatBirthDate(item.birthDate)
+  const metaParts = [dob, item.currentClub, item.niveauClub].filter(Boolean)
 
   return (
-    <View style={row.container}>
-      <View style={row.info}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
-          <AureakText variant="body" style={row.name}>{item.displayName}</AureakText>
-          {dob && (
-            <AureakText variant="caption" style={row.dob}>{dob}</AureakText>
-          )}
-        </View>
-        <View style={row.meta}>
-          {item.currentClub && (
-            <AureakText variant="caption" style={row.metaText}>⚽ {item.currentClub}</AureakText>
-          )}
-          {item.niveauClub && (
-            <AureakText variant="caption" style={[row.metaText, { color: colors.text.muted }] as never}>
-              {item.currentClub ? ' · ' : ''}{item.niveauClub}
-            </AureakText>
-          )}
-        </View>
-        <View style={row.badges}>
+    <Pressable style={({ pressed }) => [card.container, pressed && card.pressed]} onPress={onPress}>
+
+      {/* ── Gauche : toutes les infos joueur ── */}
+      <View style={card.info}>
+        <AureakText variant="body" style={card.name} numberOfLines={1}>
+          {item.displayName}
+        </AureakText>
+
+        {metaParts.length > 0 && (
+          <AureakText variant="caption" style={card.meta} numberOfLines={2}>
+            {metaParts.join('  ·  ')}
+          </AureakText>
+        )}
+
+        <View style={card.chips}>
           {item.computedStatus && <StatusChip status={item.computedStatus} />}
           {item.totalAcademySeasons > 0 && (
             <InfoChip
               label={`${item.totalAcademySeasons} saison${item.totalAcademySeasons > 1 ? 's' : ''}`}
-              color={seasonColor}
+              color="#9E9E9E"
             />
           )}
           {item.totalStages > 0 && (
             <InfoChip
               label={`${item.totalStages} stage${item.totalStages > 1 ? 's' : ''}`}
-              color={stageColor}
+              color="#4FC3F7"
             />
           )}
         </View>
       </View>
-      <Pressable style={row.btn} onPress={onPress}>
-        <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
-          Voir
-        </AureakText>
-      </Pressable>
+
+      {/* ── Droite : avatar + label ── */}
+      <View style={card.aside}>
+        <PhotoAvatar
+          photoUrl={item.currentPhotoUrl}
+          displayName={item.displayName}
+          id={item.id}
+          size={52}
+        />
+        <AureakText style={card.voirLabel}>Voir →</AureakText>
+      </View>
+
+    </Pressable>
+  )
+}
+
+const card = StyleSheet.create({
+  container: {
+    flexDirection  : 'row',
+    backgroundColor: colors.light.surface,
+    borderRadius   : 10,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : 14,
+    gap            : 14,
+    alignItems     : 'center',
+    ...shadows.sm,
+  },
+  pressed: {
+    backgroundColor: colors.light.hover ?? colors.light.muted,
+    transform      : [{ scale: 0.99 }],
+  },
+  info: {
+    flex: 1,
+    gap : 5,
+  },
+  name: {
+    fontWeight   : '700' as never,
+    fontSize     : 14,
+    color        : colors.text.dark,
+    letterSpacing: 0.1,
+  },
+  meta: {
+    color     : colors.text.muted,
+    fontSize  : 11,
+    lineHeight: 17,
+  },
+  chips: {
+    flexDirection: 'row',
+    gap          : 4,
+    flexWrap     : 'wrap',
+    marginTop    : 2,
+  },
+  aside: {
+    alignItems: 'center',
+    gap       : 7,
+    width     : 68,
+  },
+  voirLabel: {
+    color     : colors.accent.gold,
+    fontSize  : 10,
+    fontWeight: '700' as never,
+  },
+})
+
+// ── Skeleton card — miroir de la nouvelle structure ────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <View style={[card.container, sk.root]}>
+      {/* Info gauche */}
+      <View style={card.info}>
+        <View style={[sk.line, { width: '65%', height: 14 }]} />
+        <View style={[sk.line, { width: '85%', height: 11, marginTop: 2 }]} />
+        <View style={sk.chipsRow}>
+          <View style={sk.chipSm} />
+          <View style={sk.chipSm} />
+        </View>
+      </View>
+      {/* Avatar droite */}
+      <View style={card.aside}>
+        <View style={sk.circle} />
+        <View style={sk.voirPh} />
+      </View>
     </View>
   )
 }
 
-const row = StyleSheet.create({
-  container: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: space.md, paddingVertical: space.sm + 2,
-    borderBottomWidth: 1, borderBottomColor: colors.border.divider,
-  },
-  info   : { flex: 1, gap: 3 },
-  name   : { fontWeight: '600' as never, fontSize: 14 },
-  dob    : { color: colors.text.muted, fontSize: 11 },
-  meta   : { flexDirection: 'row', flexWrap: 'wrap' },
-  metaText: { color: colors.text.dark, fontSize: 12 },
-  badges : { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginTop: 2 },
-  btn    : {
-    paddingHorizontal: space.sm, paddingVertical: 4,
-    borderRadius: 5, borderWidth: 1, borderColor: colors.accent.gold,
-    marginLeft: space.sm,
-  },
+const sk = StyleSheet.create({
+  root    : { opacity: 0.55 },
+  circle  : { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.border.divider },
+  voirPh  : { width: 36, height: 10, borderRadius: 4, backgroundColor: colors.border.divider },
+  line    : { backgroundColor: colors.border.divider, borderRadius: 4 },
+  chipsRow: { flexDirection: 'row', gap: 4, marginTop: 4 },
+  chipSm  : { width: 52, height: 17, borderRadius: 4, backgroundColor: colors.border.divider },
 })
 
-// ── Filter tab row ─────────────────────────────────────────────────────────────
+// ── FilterRow ─────────────────────────────────────────────────────────────────
 
 function FilterRow<K extends string>({
   label, tabs, active, onSelect,
 }: {
-  label    : string
-  tabs     : { key: K; label: string }[]
-  active   : K
-  onSelect : (key: K) => void
+  label   : string
+  tabs    : { key: K; label: string }[]
+  active  : K
+  onSelect: (key: K) => void
 }) {
   return (
     <View style={fr.wrap}>
@@ -192,10 +311,14 @@ function FilterRow<K extends string>({
         {tabs.map(t => {
           const isActive = active === t.key
           return (
-            <Pressable key={t.key} style={[fr.tab, isActive ? { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' } : { borderColor: colors.border.light, backgroundColor: 'transparent' }]} onPress={() => onSelect(t.key)}>
+            <Pressable
+              key={t.key}
+              style={[fr.tab, isActive && fr.tabActive]}
+              onPress={() => onSelect(t.key)}
+            >
               <AureakText
                 variant="caption"
-                style={{ color: isActive ? colors.text.dark : colors.text.muted, fontWeight: isActive ? '700' : '400' }}
+                style={{ color: isActive ? colors.text.dark : colors.text.muted, fontWeight: isActive ? '700' : '400' } as never}
               >
                 {t.label}
               </AureakText>
@@ -208,10 +331,11 @@ function FilterRow<K extends string>({
 }
 
 const fr = StyleSheet.create({
-  wrap  : { gap: 4 },
-  label : { color: colors.text.muted, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, fontWeight: '700' as never },
-  row   : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' },
-  tab   : { paddingHorizontal: space.sm + 2, paddingVertical: 5, borderRadius: 5, borderWidth: 1, borderColor: colors.border.light },
+  wrap    : { gap: 5 },
+  label   : { color: colors.text.muted, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, fontWeight: '700' as never },
+  row     : { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+  tab     : { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5, borderWidth: 1, borderColor: colors.border.light, backgroundColor: 'transparent' },
+  tabActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
 })
 
 // ── Main ───────────────────────────────────────────────────────────────────────
@@ -223,30 +347,49 @@ export default function JoueursPage() {
   const [total,              setTotal]              = useState(0)
   const [page,               setPage]               = useState(0)
   const [loading,            setLoading]            = useState(true)
-  const [currentSeasonLabel, setCurrentSeasonLabel] = useState<string | null>(null)
+  const [showAdvFilters,     setShowAdvFilters]     = useState(false)
 
-  const [searchInput,   setSearchInput]   = useState('')
-  const [search,        setSearch]        = useState('')
-  const [acadStatus,    setAcadStatus]    = useState<AcadStatusFilter>('all')
-  const [seasonFilter,  setSeasonFilter]  = useState<SeasonFilter>('all')
-  const [stageFilter,   setStageFilter]   = useState<StageFilter>('all')
+  const [searchInput,  setSearchInput]  = useState('')
+  const [search,       setSearch]       = useState('')
+  const [acadStatus,   setAcadStatus]   = useState<AcadStatusFilter>('all')
+  const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>('all')
+  const [stageFilter,  setStageFilter]  = useState<StageFilter>('all')
+  const [birthYear,    setBirthYear]    = useState<string>('all')
 
-  // Load current season label once (for the filter tab label)
-  useEffect(() => {
-    listAcademySeasons().then(({ data }) => {
-      const current = data.find(s => s.isCurrent)
-      setCurrentSeasonLabel(current?.label ?? null)
-    }).catch(() => {/* non-critical */})
-  }, [])
+  // Nombre total de filtres actifs (hors recherche)
+  const activeFilterCount = useMemo(() => {
+    let n = 0
+    if (acadStatus   !== 'all') n++
+    if (seasonFilter !== 'all') n++
+    if (stageFilter  !== 'all') n++
+    if (birthYear    !== 'all') n++
+    return n
+  }, [acadStatus, seasonFilter, stageFilter, birthYear])
 
-  // Dynamic tab list — "Académicien 2025-2026" uses real season label
-  const acadStatusTabs = useMemo<{ key: AcadStatusFilter; label: string; color: string }[]>(() => [
-    { key: 'all',               label: 'Tous',                                                       color: colors.text.muted },
-    { key: 'ACADÉMICIEN',       label: currentSeasonLabel ? `Acad. ${currentSeasonLabel}` : 'Académicien (saison actuelle)', color: ACADEMY_STATUS_CONFIG['ACADÉMICIEN'].color },
-    { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau académicien',                                      color: ACADEMY_STATUS_CONFIG['NOUVEAU_ACADÉMICIEN'].color },
-    { key: 'ANCIEN',            label: 'Ancien académicien',                                         color: ACADEMY_STATUS_CONFIG['ANCIEN'].color },
-    { key: 'STAGE_UNIQUEMENT',  label: 'Stage uniquement',                                           color: ACADEMY_STATUS_CONFIG['STAGE_UNIQUEMENT'].color },
-    { key: 'PROSPECT',          label: 'Non affilié',                                                color: ACADEMY_STATUS_CONFIG['PROSPECT'].color },
+  // Filtres avancés actifs uniquement (pour le badge sur le toggle)
+  const advFilterCount = useMemo(() => {
+    let n = 0
+    if (seasonFilter !== 'all') n++
+    if (stageFilter  !== 'all') n++
+    if (birthYear    !== 'all') n++
+    return n
+  }, [seasonFilter, stageFilter, birthYear])
+
+  // Saison effective — lue directement depuis les données déjà chargées (v_child_academy_status).
+  // Tous les joueurs du même tenant partagent le même current_season_label calculé par la vue SQL.
+  // Zéro appel supplémentaire, zéro logique de priorité côté JS.
+  const currentSeasonLabel = useMemo(
+    () => joueurs.find(j => j.currentSeasonLabel != null)?.currentSeasonLabel ?? null,
+    [joueurs]
+  )
+
+  const acadStatusTabs = useMemo<{ key: AcadStatusFilter; label: string }[]>(() => [
+    { key: 'all',               label: 'Tous'                                                        },
+    { key: 'ACADÉMICIEN',       label: currentSeasonLabel ? `Acad. ${currentSeasonLabel}` : 'Académicien' },
+    { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau'                                                   },
+    { key: 'ANCIEN',            label: 'Ancien'                                                      },
+    { key: 'STAGE_UNIQUEMENT',  label: 'Stage seul'                                                  },
+    { key: 'PROSPECT',          label: 'Non affilié'                                                 },
   ], [currentSeasonLabel])
 
   const load = useCallback(async () => {
@@ -257,6 +400,7 @@ export default function JoueursPage() {
         computedStatus : acadStatus !== 'all' ? acadStatus : undefined,
         totalSeasonsCmp: seasonFilter !== 'all' ? seasonFilter : undefined,
         totalStagesCmp : stageFilter  !== 'all' ? stageFilter  : undefined,
+        birthYear      : birthYear !== 'all' ? birthYear : undefined,
         page,
         pageSize: PAGE_SIZE,
       })
@@ -266,29 +410,49 @@ export default function JoueursPage() {
       console.error('[JoueursPage] load error', e)
     }
     setLoading(false)
-  }, [search, acadStatus, seasonFilter, stageFilter, page])
+  }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter])
+  useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter, birthYear])
 
   const handleSearch = () => setSearch(searchInput.trim())
+
+  const handleResetFilters = () => {
+    setAcadStatus('all')
+    setSeasonFilter('all')
+    setStageFilter('all')
+    setBirthYear('all')
+  }
+
+  // CSS grid natif web — minmax élargi pour meilleure densité
+  const gridStyle = Platform.OS === 'web'
+    ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 10 }
+    : s.gridFallback
 
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
-      {/* Header */}
+      {/* ── En-tête ── */}
       <View style={s.header}>
         <View>
           <AureakText variant="h2" color={colors.accent.gold}>Joueurs</AureakText>
           {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {total} joueur{total !== 1 ? 's' : ''} · annuaire Notion
+            <AureakText variant="caption" style={s.headerSub}>
+              {total} joueur{total !== 1 ? 's' : ''}
+              {activeFilterCount > 0 && `  ·  ${activeFilterCount} filtre${activeFilterCount > 1 ? 's' : ''} actif${activeFilterCount > 1 ? 's' : ''}`}
             </AureakText>
           )}
         </View>
+        {activeFilterCount > 0 && (
+          <Pressable style={s.resetBtn} onPress={handleResetFilters}>
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' as never }}>
+              Réinitialiser
+            </AureakText>
+          </Pressable>
+        )}
       </View>
 
-      {/* Search */}
+      {/* ── Barre de recherche ── */}
       <View style={s.searchRow}>
         <TextInput
           style={s.searchInput}
@@ -305,7 +469,7 @@ export default function JoueursPage() {
           inputMode="search"
         />
         <Pressable style={s.searchBtn} onPress={handleSearch}>
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
             Chercher
           </AureakText>
         </Pressable>
@@ -316,38 +480,65 @@ export default function JoueursPage() {
         )}
       </View>
 
-      {/* Filters */}
-      <View style={s.filters}>
+      {/* ── Filtres ── */}
+      <View style={s.filtersBlock}>
+
+        {/* Statut — toujours visible */}
         <FilterRow
-          label="Statut académie"
+          label="Statut"
           tabs={acadStatusTabs}
           active={acadStatus}
           onSelect={setAcadStatus}
         />
-        <View style={s.filtersRow2}>
-          <View style={s.filterHalf}>
+
+        {/* Toggle filtres avancés */}
+        <Pressable
+          style={[s.advToggle, showAdvFilters && s.advToggleOpen]}
+          onPress={() => setShowAdvFilters(v => !v)}
+        >
+          <AureakText
+            variant="caption"
+            style={[s.advToggleLabel, advFilterCount > 0 && s.advToggleLabelActive] as never}
+          >
+            {advFilterCount > 0
+              ? `Filtres avancés  ·  ${advFilterCount} actif${advFilterCount > 1 ? 's' : ''}`
+              : 'Filtres avancés'
+            }
+          </AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
+            {showAdvFilters ? '▲' : '▼'}
+          </AureakText>
+        </Pressable>
+
+        {/* Filtres avancés repliables */}
+        {showAdvFilters && (
+          <View style={s.advFilters}>
             <FilterRow
               label="Expérience académie"
               tabs={SEASON_TABS}
               active={seasonFilter}
               onSelect={setSeasonFilter}
             />
-          </View>
-          <View style={s.filterHalf}>
             <FilterRow
               label="Expérience stage"
               tabs={STAGE_TABS}
               active={stageFilter}
               onSelect={setStageFilter}
             />
+            <FilterRow
+              label="Année de naissance"
+              tabs={BIRTH_YEAR_TABS}
+              active={birthYear}
+              onSelect={setBirthYear}
+            />
           </View>
-        </View>
+        )}
       </View>
 
-      {/* List */}
+      {/* ── Grille joueurs ── */}
       {loading ? (
-        <View style={s.skeletonBox}>
-          {[0,1,2,3,4,5].map(i => <View key={i} style={s.skeletonRow} />)}
+        <View style={gridStyle as never}>
+          {[0,1,2,3,4,5].map(i => <SkeletonCard key={i} />)}
         </View>
       ) : joueurs.length === 0 ? (
         <View style={s.emptyState}>
@@ -357,9 +548,9 @@ export default function JoueursPage() {
           </AureakText>
         </View>
       ) : (
-        <View style={s.list}>
+        <View style={gridStyle as never}>
           {joueurs.map(item => (
-            <JoueurRow
+            <JoueurCard
               key={item.id}
               item={item}
               onPress={() => router.push(`/children/${item.id}` as never)}
@@ -368,7 +559,7 @@ export default function JoueursPage() {
         </View>
       )}
 
-      {/* Pagination */}
+      {/* ── Pagination ── */}
       {!loading && total > PAGE_SIZE && (
         <Pagination
           page={page}
@@ -382,19 +573,23 @@ export default function JoueursPage() {
 }
 
 const s = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.light.primary },
-  content   : { padding: space.xl, gap: space.md },
-  header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  container: { flex: 1, backgroundColor: colors.light.primary },
+  content  : { padding: space.xl, gap: space.md },
 
+  // En-tête
+  header   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerSub: { color: colors.text.muted, marginTop: 3, fontSize: 12 },
+
+  // Recherche
   searchRow : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   searchInput: {
     flex             : 1,
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
     borderColor      : colors.border.light,
-    borderRadius     : 7,
+    borderRadius     : 8,
     paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
+    paddingVertical  : 9,
     color            : colors.text.dark,
     fontSize         : 13,
   },
@@ -403,38 +598,74 @@ const s = StyleSheet.create({
     borderWidth      : 1,
     borderColor      : colors.border.light,
     paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    borderRadius     : 7,
+    paddingVertical  : 9,
+    borderRadius     : 8,
   },
   clearBtn: {
-    width: 32, height: 32,
-    alignItems: 'center', justifyContent: 'center',
-    borderRadius: radius.xs, borderWidth: 1,
-    borderColor: colors.border.light,
+    width          : 34,
+    height         : 34,
+    alignItems     : 'center',
+    justifyContent : 'center',
+    borderRadius   : 8,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
     backgroundColor: colors.light.surface,
   },
-
-  filters    : { gap: space.sm },
-  filtersRow2: { flexDirection: 'row', gap: space.lg, flexWrap: 'wrap' },
-  filterHalf : { flex: 1, minWidth: 200 },
-
-  list : {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 10, borderWidth: 1,
-    borderColor    : colors.border.light, overflow: 'hidden',
-    ...shadows.sm,
+  resetBtn: {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 5,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold + '60',
+    backgroundColor  : colors.accent.gold + '08',
   },
 
-  skeletonBox: { gap: space.xs },
-  skeletonRow: {
-    height: 68, backgroundColor: colors.light.surface,
-    borderRadius: radius.xs, opacity: 0.5,
-    borderWidth: 1, borderColor: colors.border.light,
+  // Bloc filtres
+  filtersBlock: { gap: space.sm },
+
+  advToggle: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    justifyContent   : 'space-between',
+    paddingVertical  : 8,
+    paddingHorizontal: 12,
+    borderRadius     : 7,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.surface,
   },
+  advToggleOpen: {
+    borderColor    : colors.accent.gold + '50',
+    backgroundColor: colors.accent.gold + '08',
+  },
+  advToggleLabel: {
+    color     : colors.text.muted,
+    fontSize  : 11,
+    fontWeight: '600' as never,
+  },
+  advToggleLabelActive: {
+    color: colors.text.dark,
+  },
+  advFilters: {
+    backgroundColor: colors.light.muted,
+    borderRadius   : 8,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    padding        : 12,
+    gap            : 12,
+  },
+
+  // Grille
+  gridFallback: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+
+  // État vide
   emptyState: {
     backgroundColor: colors.light.surface,
-    borderRadius: 10, padding: space.xxl,
-    alignItems: 'center', borderWidth: 1, borderColor: colors.border.light,
+    borderRadius   : 10,
+    padding        : space.xxl,
+    alignItems     : 'center',
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
     ...shadows.sm,
   },
 })

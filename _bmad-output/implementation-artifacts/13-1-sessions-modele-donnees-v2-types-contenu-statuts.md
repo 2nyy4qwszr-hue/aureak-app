@@ -1,6 +1,6 @@
 # Story 13.1 : Sessions — Modèle de Données v2 (Types, Contenu & Statuts)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -292,8 +292,8 @@ export type SessionContentRef =
 - `aureak/packages/types/src/entities.ts` — GPContentRef, TechniqueAcademieContentRef, TechniqueStageContentRef, SituationnelContentRef, DecisionnelContentRef, EmptyContentRef, SessionContentRef; Session étendu (sessionType, contentRef); SessionAttendee étendu (isGuest)
 - `aureak/packages/api-client/src/sessions/sessions.ts` — createSession, updateSession (sessionType+contentRef), listSessionAttendees (is_guest mapping), addGuestToSession, removeGuestFromSession
 - `aureak/packages/api-client/src/index.ts` — export addGuestToSession, removeGuestFromSession
-- `aureak/apps/web/app/(admin)/sessions/new.tsx` — import SESSION_TYPES/LABELS/SITUATIONAL_BLOC_CODES, nouveaux états sessionType+contentRef, sous-formulaire conditionnel, styles ss2, step1Valid mis à jour, handleCreate mis à jour
-- `aureak/apps/web/app/(admin)/sessions/[sessionId]/page.tsx` — import SESSION_TYPE_LABELS, listSessionAttendees/addGuestToSession/removeGuestFromSession/listChildDirectory, état attendees+guestSearch+guestResults, contentRefLabel(), affichage type+contenu, section joueurs invités avec PlayerPicker, annulation redesignée rouge
+- `aureak/apps/web/app/(admin)/seances/new.tsx` — import SESSION_TYPES/LABELS/SITUATIONAL_BLOC_CODES/computeContentRef, nouveaux états sessionType+contentRef+techniqueCtx+techConcept+deciBlocks, sous-formulaire conditionnel par type (4 branches), contentRefValid, step2Valid mis à jour, handleCreate mis à jour avec per-type contentRef correct
+- `aureak/apps/web/app/(admin)/seances/[sessionId]/page.tsx` — import SESSION_TYPE_LABELS/getChildDirectoryEntry, listSessionAttendees/addGuestToSession/removeGuestFromSession/listChildDirectory, état attendees+guestNameMap+guestSearch+guestResults, contentRefLabel(), affichage type+contenu, section joueurs invités avec PlayerPicker, erreur annulation rouge
 
 ## Dev Agent Record
 
@@ -305,4 +305,5 @@ export type SessionContentRef =
 
 ## Change Log
 
-- 2026-03-09 : Implémentation complète story 13-1 — migration 00058, types TS SessionType/SessionContentRef, API addGuestToSession/removeGuestFromSession, UI sessions/new.tsx (sélecteur type + sous-formulaire contentRef), UI sessions/[sessionId]/page.tsx (affichage type/contenu, section joueurs invités)
+- 2026-03-09 : Implémentation complète story 13-1 — migration 00058, types TS SessionType/SessionContentRef, API addGuestToSession/removeGuestFromSession, UI seances/new.tsx (sélecteur type + sous-formulaire contentRef), UI seances/[sessionId]/page.tsx (affichage type/contenu, section joueurs invités)
+- 2026-03-10 : Code review adversariale — corrections C1 (malformed contentRef cast → per-type switch), C2 (sous-formulaires manquants → 4 branches UI), H1 (step2Valid always-true → contentRefValid), M2 (UUID guests → guestNameMap + getChildDirectoryEntry), L1 (erreur cancel gold → rouge). Déviation documentée : H2 (session_type nullable — migration déjà appliquée), H3 (status='trial' AC spec incorrecte — colonne absente du schéma). Chemin réel : seances/ (pas sessions/).

@@ -1,8 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import {
-  listSequencesByTheme, createThemeSequence,
-  setSequenceCriteria, getSequenceCriteria,
+  listSequencesByTheme, createThemeSequence, updateThemeSequence,
+  setSequenceCriteria, listCriteriaLinksBySequenceIds,
 } from '@aureak/api-client'
 import type { ThemeSequence, Criterion } from '@aureak/types'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
@@ -53,24 +53,26 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
   const [showAdd, setShowAdd] = useState(false)
   const [newName, setNewName] = useState('')
   const [adding, setAdding] = useState(false)
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   const loadSequences = async () => {
     setLoading(true)
     const { data: seqs } = await listSequencesByTheme(themeId)
-    const withMeta: SeqWithMeta[] = await Promise.all(
-      seqs.map(async s => {
-        const criteriaIds = await getSequenceCriteria(s.id)
-        const shortCues = (s as ThemeSequence).shortCues ?? []
-        return {
-          ...s,
-          criteriaIds,
-          _open: false,
-          _editing: false,
-          _cues: shortCues,
-          _newCue: '',
-        }
-      })
-    )
+    const allLinks = await listCriteriaLinksBySequenceIds(seqs.map(s => s.id))
+    const linksBySeq = new Map<string, string[]>()
+    for (const l of allLinks) {
+      const arr = linksBySeq.get(l.sequenceId) ?? []
+      arr.push(l.criterionId)
+      linksBySeq.set(l.sequenceId, arr)
+    }
+    const withMeta: SeqWithMeta[] = seqs.map(s => ({
+      ...s,
+      criteriaIds: linksBySeq.get(s.id) ?? [],
+      _open      : false,
+      _editing   : false,
+      _cues      : (s as ThemeSequence).shortCues ?? [],
+      _newCue    : '',
+    }))
     setSequences(withMeta)
     setLoading(false)
   }
@@ -96,6 +98,21 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
   const toggleEdit = (id: string) =>
     setSequences(prev => prev.map(s => s.id === id ? { ...s, _editing: !s._editing } : s))
 
+  const handleSaveEdit = async (seqId: string) => {
+    const seq = sequences.find(s => s.id === seqId)
+    if (!seq) return
+    setSavingId(seqId)
+    try {
+      await updateThemeSequence(seqId, {
+        description  : seq.description ?? null,
+        coachVideoUrl: (seq as SeqWithMeta & { coachVideoUrl?: string }).coachVideoUrl ?? null,
+      })
+      updateLocal(seqId, { _editing: false })
+    } finally {
+      setSavingId(null)
+    }
+  }
+
   const updateLocal = (id: string, data: Partial<SeqWithMeta>) =>
     setSequences(prev => prev.map(s => s.id === id ? { ...s, ...data } : s))
 
@@ -109,16 +126,20 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
     updateLocal(seqId, { criteriaIds: newIds })
   }
 
-  const handleAddCue = (seqId: string) => {
+  const handleAddCue = async (seqId: string) => {
     const seq = sequences.find(s => s.id === seqId)
     if (!seq || !seq._newCue.trim()) return
-    updateLocal(seqId, { _cues: [...seq._cues, seq._newCue.trim()], _newCue: '' })
+    const newCues = [...seq._cues, seq._newCue.trim()]
+    updateLocal(seqId, { _cues: newCues, _newCue: '' })
+    await updateThemeSequence(seqId, { shortCues: newCues })
   }
 
-  const handleRemoveCue = (seqId: string, idx: number) => {
+  const handleRemoveCue = async (seqId: string, idx: number) => {
     const seq = sequences.find(s => s.id === seqId)
     if (!seq) return
-    updateLocal(seqId, { _cues: seq._cues.filter((_, i) => i !== idx) })
+    const newCues = seq._cues.filter((_, i) => i !== idx)
+    updateLocal(seqId, { _cues: newCues })
+    await updateThemeSequence(seqId, { shortCues: newCues })
   }
 
   if (loading) return (
@@ -257,7 +278,16 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
               </Field>
 
               {seq._editing && (
-                <button style={BTN_GHOST} onClick={() => toggleEdit(seq.id)}>Fermer</button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    style={BTN_GOLD}
+                    onClick={() => handleSaveEdit(seq.id)}
+                    disabled={savingId === seq.id}
+                  >
+                    {savingId === seq.id ? 'Sauvegarde...' : 'Sauvegarder'}
+                  </button>
+                  <button style={BTN_GHOST} onClick={() => toggleEdit(seq.id)}>Annuler</button>
+                </div>
               )}
             </div>
           )}

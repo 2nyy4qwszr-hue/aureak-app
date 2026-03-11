@@ -8,13 +8,13 @@ import { useRouter } from 'expo-router'
 import {
   listImplantations, listGroupsByImplantation, listGroupStaff,
   listAvailableCoaches, createSession, assignCoach,
-  prefillSessionAttendees, createTransientGroup,
+  prefillSessionAttendees, createTransientGroup, computeContentRef,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod } from '@aureak/types'
-import { SESSION_TYPES, SESSION_TYPE_LABELS } from '@aureak/types'
+import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode } from '@aureak/types'
+import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
 
 // SessionType → GroupMethod DB label (pour createTransientGroup)
 const SESSION_TYPE_TO_GROUP_METHOD: Partial<Record<SessionType, GroupMethod>> = {
@@ -30,7 +30,7 @@ const TERRAINS   = ['Terrain A', 'Terrain B', 'Terrain C', 'Terrain D', 'Extéri
 const HOURS      = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 const MINUTES    = [0, 15, 30, 45]
 const DURATIONS  = [45, 60, 75, 90, 105, 120]
-const DAYS_FR    = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+const DAYS_FR    = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const DAYS_LONG  = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
 const MONTHS_FR  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 
@@ -271,7 +271,7 @@ function MiniCalendar({
   const todayStr = toDateStr(today)
   const first    = new Date(viewYear, viewMonth, 1)
   const last     = new Date(viewYear, viewMonth + 1, 0)
-  const offset   = first.getDay()
+  const offset   = (first.getDay() + 6) % 7  // Lundi = 0 (convention française ISO)
   const cells    : (Date | null)[] = []
   for (let i = 0; i < offset; i++) cells.push(null)
   for (let d = 1; d <= last.getDate(); d++) cells.push(new Date(viewYear, viewMonth, d))
@@ -604,6 +604,11 @@ export default function NewSessionPage() {
   const [terrain,           setTerrain]           = useState('')
   const [customTerrain,     setCustomTerrain]     = useState('')
   const [trainingNumber,    setTrainingNumber]    = useState(1)
+  // ── ContentRef specific states (Story 13.1 — AC7) ────────────
+  const [techniqueCtx,  setTechniqueCtx]  = useState<'academie' | 'stage'>('academie')
+  const [techConcept,   setTechConcept]   = useState('')
+  const [techStageSeq,  setTechStageSeq]  = useState(1)
+  const [deciBlocks,    setDeciBlocks]    = useState<Array<{ id: string; title: string }>>([{ id: crypto.randomUUID(), title: '' }])
 
   // ── Result ───────────────────────────────────────────────────
   const [creating,  setCreating]  = useState(false)
@@ -638,7 +643,7 @@ export default function NewSessionPage() {
     setGroups([])
     listGroupsByImplantation(implantationId).then(({ data, error }) => {
       if (error) console.error('[NewSession] listGroupsByImplantation error:', error)
-      setGroups(data)
+      setGroups(data ?? [])
       setLoadingGroups(false)
     })
   }, [implantationId])
@@ -672,6 +677,14 @@ export default function NewSessionPage() {
     })
   }, [groupId, groups])
 
+  // ── Reset contentRef states when session type changes ──────────────────────
+  useEffect(() => {
+    setTechniqueCtx('academie')
+    setTechConcept('')
+    setTechStageSeq(1)
+    setDeciBlocks([{ title: '' }])
+  }, [sessionType])
+
   // ── Date toggle ────────────────────────────────────────────────────────────
   const toggleDate = useCallback((dateStr: string) => {
     if (singleMode) {
@@ -693,6 +706,7 @@ export default function NewSessionPage() {
       return
     }
     setCreating(true)
+    try {
 
     // Mode ponctuel : créer un groupe transient partagé par toutes les dates du batch
     let effectiveGroupId = groupId
@@ -723,13 +737,21 @@ export default function NewSessionPage() {
     const sortedDates = [...selectedDates].sort()
     for (let i = 0; i < sortedDates.length; i++) {
       const dateStr     = sortedDates[i]
-      const scheduledAt = `${dateStr}T${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`
-      // Numérotation séquentielle : séance 1 = trainingNumber, séance 2 = trainingNumber+1, ...
-      const seqNumber = trainingNumber + i
-      const sessionContentRef: SessionContentRef = {
-        method      : (sessionType as 'perfectionnement') || 'perfectionnement',
-        globalNumber: seqNumber,
-      } as SessionContentRef
+      const [sy, sm, sd] = dateStr.split('-').map(Number)
+      const scheduledAt = new Date(sy, sm - 1, sd, startHour, startMinute, 0).toISOString()
+      // Build contentRef per session type (AC7 — structure correcte selon la méthode)
+      const st = sessionType as SessionType
+      let sessionContentRef: SessionContentRef
+      if (st === 'decisionnel') {
+        sessionContentRef = { method: 'decisionnel', blocks: deciBlocks.filter(b => b.title.trim() !== '').map(b => ({ title: b.title })) }
+      } else if (st === 'technique' && techniqueCtx === 'stage') {
+        sessionContentRef = { method: 'technique', context: 'stage', concept: techConcept.trim(), sequence: techStageSeq + i }
+      } else if (st === 'goal_and_player' || st === 'technique' || st === 'situationnel') {
+        sessionContentRef = computeContentRef(st, trainingNumber - 1 + i)
+      } else {
+        // perfectionnement | integration | equipe (ou vide si type non défini)
+        sessionContentRef = { method: (st || 'perfectionnement') as 'perfectionnement' | 'integration' | 'equipe' }
+      }
 
       const { data: session, error } = await createSession({
         tenantId,
@@ -758,7 +780,12 @@ export default function NewSessionPage() {
     }
 
     setResult({ created, failed })
-    setCreating(false)
+    } catch (err) {
+      console.error('[NewSession] handleCreate unexpected error:', err)
+      setResult({ created: 0, failed: selectedDates.length })
+    } finally {
+      setCreating(false)
+    }
   }
 
   // ── Derived values ─────────────────────────────────────────────────────────
@@ -798,11 +825,29 @@ export default function NewSessionPage() {
   const step1Valid = !!implantationId && (
     contextMode === 'existing' ? !!groupId : !!sessionLabel.trim()
   )
-  // Step 2 (Détails) : uniquement bloqué pour technique/stage sans concept renseigné
-  // Les coaches, terrain et thèmes sont tous optionnels → navigation toujours autorisée sinon
-  const step2Valid = true  // Tous les champs de l'étape 2 sont optionnels
-  // Step 3 (Date) : au moins une date sélectionnée
-  const step3Valid = selectedDates.length > 0
+  // contentRefValid : bloque si le sous-formulaire obligatoire n'est pas rempli (AC7)
+  const contentRefValid = (() => {
+    const st = sessionType as SessionType
+    if (st === 'decisionnel') return deciBlocks.some(b => b.title.trim() !== '')
+    if (st === 'technique' && techniqueCtx === 'stage') return techConcept.trim() !== ''
+    return true // GP, Technique académie, Situationnel, types vides — toujours valide
+  })()
+  // Step 2 (Détails) : bloqué si contentRef invalide ou coach principal manquant
+  const step2Valid = contentRefValid && coachLeads.length > 0
+  // Step 3 (Date) : au moins une date + séquence multi-date dans les bornes
+  const step3Valid = (() => {
+    if (selectedDates.length === 0) return false
+    if (!singleMode && selectedDates.length > 1) {
+      const st = sessionType as SessionType
+      if (st === 'technique' && techniqueCtx === 'stage') {
+        if (techStageSeq + selectedDates.length - 1 > 8) return false
+      } else if (st === 'goal_and_player' || st === 'situationnel' || st === 'technique') {
+        const max = TRAINING_MAX[st] ?? 20
+        if (trainingNumber + selectedDates.length - 1 > max) return false
+      }
+    }
+    return true
+  })()
 
   // ── Result screen ──────────────────────────────────────────────────────────
   if (result) {
@@ -837,6 +882,8 @@ export default function NewSessionPage() {
                 setCoachLeads([]); setCoachAssistants([]); setCoachReplacements([])
                 setTerrain(''); setCustomTerrain('')
                 setTrainingNumber(1)
+                setTechniqueCtx('academie'); setTechConcept(''); setTechStageSeq(1)
+                setDeciBlocks([{ id: crypto.randomUUID(), title: '' }])
               }}
             >
               <AureakText variant="body" style={{ color: colors.text.dark }}>Nouvelle séance</AureakText>
@@ -881,7 +928,7 @@ export default function NewSessionPage() {
                   setLoadingImplantations(true)
                   listImplantations().then(({ data, error }) => {
                     if (error) setImplantationsError('Impossible de charger les implantations.')
-                    else setImplantations(data)
+                    else setImplantations(data ?? [])
                     setLoadingImplantations(false)
                   })
                 }}>
@@ -1066,44 +1113,185 @@ export default function NewSessionPage() {
             )}
           </View>
 
-          {/* ── Entraînement N° ── */}
-          <View style={p.card}>
-            <SectionLabel
-              title="Entraînement"
-              hint={sessionType
-                ? `${SESSION_TYPE_LABELS[sessionType as SessionType]} — ${TRAINING_MAX[sessionType] ?? 20} entraînements dans le cycle`
-                : 'Sélectionnez une méthodologie pour voir les entraînements disponibles'
-              }
-            />
-            {/* Grille de chips numérotés */}
-            <View style={ss2.trainingGrid}>
-              {Array.from({ length: TRAINING_MAX[sessionType] ?? 20 }, (_, i) => i + 1).map(n => (
-                <Pressable
-                  key={n}
-                  style={[ss2.trainingChip, trainingNumber === n && ss2.trainingChipActive]}
-                  onPress={() => setTrainingNumber(n)}
-                >
-                  <AureakText style={{
-                    fontSize: 12,
-                    fontWeight: trainingNumber === n ? '700' as never : '400' as never,
-                    color: trainingNumber === n ? colors.text.dark : colors.text.muted,
-                  }}>
-                    {n}
-                  </AureakText>
-                </Pressable>
-              ))}
-            </View>
-            {!singleMode && (
-              <View style={[p.infoNote, { marginTop: space.xs }]}>
-                <AureakText variant="caption" style={{ color: colors.accent.gold }}>
-                  {selectedDates.length > 1
-                    ? `Séquence : Entraînement ${trainingNumber} → ${trainingNumber + selectedDates.length - 1}`
-                    : `Mode multi-dates : séances numérotées à partir de ${trainingNumber}`
-                  }
-                </AureakText>
+          {/* ── Entraînement N° (types séquentiels uniquement) ── */}
+          {(sessionType === 'goal_and_player' || sessionType === 'situationnel' ||
+            (sessionType === 'technique' && techniqueCtx === 'academie')) && (
+            <View style={p.card}>
+              <SectionLabel
+                title="Entraînement"
+                hint={sessionType
+                  ? `${SESSION_TYPE_LABELS[sessionType as SessionType]} — ${TRAINING_MAX[sessionType] ?? 20} entraînements dans le cycle`
+                  : 'Sélectionnez une méthodologie pour voir les entraînements disponibles'
+                }
+              />
+              {/* Grille de chips numérotés */}
+              <View style={ss2.trainingGrid}>
+                {Array.from({ length: TRAINING_MAX[sessionType] ?? 20 }, (_, i) => i + 1).map(n => (
+                  <Pressable
+                    key={n}
+                    style={[ss2.trainingChip, trainingNumber === n && ss2.trainingChipActive]}
+                    onPress={() => setTrainingNumber(n)}
+                  >
+                    <AureakText style={{
+                      fontSize: 12,
+                      fontWeight: trainingNumber === n ? '700' as never : '400' as never,
+                      color: trainingNumber === n ? colors.text.dark : colors.text.muted,
+                    }}>
+                      {n}
+                    </AureakText>
+                  </Pressable>
+                ))}
               </View>
-            )}
-          </View>
+              {!singleMode && (() => {
+                const last = trainingNumber + selectedDates.length - 1
+                const max  = TRAINING_MAX[sessionType] ?? 20
+                const over = selectedDates.length > 1 && last > max
+                return (
+                  <View style={[p.infoNote, { marginTop: space.xs, borderColor: over ? colors.accent.red + '60' : undefined, backgroundColor: over ? colors.accent.red + '10' : undefined }]}>
+                    <AureakText variant="caption" style={{ color: over ? colors.accent.red : colors.accent.gold }}>
+                      {selectedDates.length > 1
+                        ? over
+                          ? `⚠ Séquence ${trainingNumber} → ${last} dépasse le maximum (${max}) — choisissez un numéro de départ ≤ ${max - selectedDates.length + 1}`
+                          : `Séquence : Entraînement ${trainingNumber} → ${last}`
+                        : `Mode multi-dates : séances numérotées à partir de ${trainingNumber}`
+                      }
+                    </AureakText>
+                  </View>
+                )
+              })()}
+            </View>
+          )}
+
+          {/* ── Contenu pédagogique (sous-formulaire par type — AC7) ── */}
+          {sessionType && !['perfectionnement', 'integration', 'equipe'].includes(sessionType) && (
+            <View style={p.card}>
+              <SectionLabel title="Contenu pédagogique" hint="Référence précise dans le cycle pédagogique" />
+
+              {/* Technique : choix académie / stage */}
+              {sessionType === 'technique' && (
+                <View style={{ gap: space.sm }}>
+                  <View style={{ flexDirection: 'row' as never, gap: space.sm }}>
+                    {(['academie', 'stage'] as const).map(ctx => (
+                      <Pressable
+                        key={ctx}
+                        style={[cp.chip, techniqueCtx === ctx && cp.chipActive]}
+                        onPress={() => { setTechniqueCtx(ctx); setTechConcept(''); setTechStageSeq(1) }}
+                      >
+                        <AureakText style={{ fontSize: 12, color: techniqueCtx === ctx ? colors.text.dark : colors.text.muted, fontWeight: techniqueCtx === ctx ? '700' as never : '400' as never }}>
+                          {ctx === 'academie' ? 'Académie' : 'Stage'}
+                        </AureakText>
+                      </Pressable>
+                    ))}
+                  </View>
+                  {techniqueCtx === 'stage' && (
+                    <View style={{ gap: space.sm }}>
+                      <SectionLabel title="Concept" hint="Requis — ex: Prise en main, Relance courte…" />
+                      <TextInput
+                        style={[p.textInput, !techConcept.trim() && { borderColor: colors.accent.red }]}
+                        value={techConcept}
+                        onChangeText={setTechConcept}
+                        placeholder="Concept du stage…"
+                        placeholderTextColor={colors.text.muted}
+                        autoComplete={'off' as never}
+                        autoCorrect={false}
+                      />
+                      {!techConcept.trim() && (
+                        <AureakText variant="caption" style={{ color: colors.accent.red }}>Le concept est requis pour les séances stage</AureakText>
+                      )}
+                      <SectionLabel title="Séquence dans ce concept" hint="1-8" />
+                      <NumChips values={[1,2,3,4,5,6,7,8]} selected={techStageSeq} onSelect={setTechStageSeq} fmt={v => `Séq. ${v}`} />
+                    </View>
+                  )}
+                  {techniqueCtx === 'academie' && (
+                    <View style={[p.infoNote, { borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' }]}>
+                      {(() => {
+                        const ref = computeContentRef('technique', trainingNumber - 1)
+                        const r = ref as { module: number; sequence: number; globalNumber: number }
+                        return (
+                          <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+                            Module <AureakText style={{ fontWeight: '700' as never }}>{r.module}</AureakText>
+                            {' · '}Séq. <AureakText style={{ fontWeight: '700' as never }}>{r.sequence}</AureakText>
+                            {' · '}Technique #<AureakText style={{ fontWeight: '700' as never }}>{r.globalNumber}</AureakText>
+                          </AureakText>
+                        )
+                      })()}
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Décisionnel : liste de blocs libres */}
+              {sessionType === 'decisionnel' && (
+                <View style={{ gap: space.sm }}>
+                  {deciBlocks.map((b, i) => (
+                    <View key={b.id} style={{ flexDirection: 'row' as never, alignItems: 'center' as never, gap: space.xs }}>
+                      <TextInput
+                        style={[p.textInput, { flex: 1 }]}
+                        value={b.title}
+                        onChangeText={t => setDeciBlocks(prev => prev.map(x => x.id === b.id ? { ...x, title: t } : x))}
+                        placeholder={`Bloc ${i + 1} — titre…`}
+                        placeholderTextColor={colors.text.muted}
+                        autoComplete={'off' as never}
+                        autoCorrect={false}
+                      />
+                      {deciBlocks.length > 1 && (
+                        <Pressable
+                          style={{ padding: space.xs, borderRadius: 4, backgroundColor: colors.accent.red + '18' }}
+                          onPress={() => setDeciBlocks(prev => prev.filter(x => x.id !== b.id))}
+                        >
+                          <AureakText style={{ fontSize: 12, color: colors.accent.red }}>✕</AureakText>
+                        </Pressable>
+                      )}
+                    </View>
+                  ))}
+                  <Pressable
+                    style={{ flexDirection: 'row' as never, alignItems: 'center' as never, gap: space.xs, paddingVertical: space.xs }}
+                    onPress={() => setDeciBlocks(prev => [...prev, { id: crypto.randomUUID(), title: '' }])}
+                  >
+                    <AureakText style={{ fontSize: 12, color: colors.accent.gold }}>+ Ajouter un bloc</AureakText>
+                  </Pressable>
+                  {!deciBlocks.some(b => b.title.trim()) && (
+                    <AureakText variant="caption" style={{ color: colors.accent.red }}>Au moins un bloc avec un titre est requis</AureakText>
+                  )}
+                </View>
+              )}
+
+              {/* Situationnel : aperçu du bloc code calculé depuis trainingNumber */}
+              {sessionType === 'situationnel' && (
+                <View style={[p.infoNote, { borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' }]}>
+                  {(() => {
+                    const ref = computeContentRef('situationnel', trainingNumber - 1)
+                    const r = ref as { blocCode: SituationalBlocCode; sequence: number; label: string }
+                    return (
+                      <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+                        Bloc <AureakText style={{ fontWeight: '700' as never }}>{SITUATIONAL_BLOC_LABELS[r.blocCode] ?? r.blocCode}</AureakText>
+                        {' · '}Séquence <AureakText style={{ fontWeight: '700' as never }}>{r.label}</AureakText>
+                      </AureakText>
+                    )
+                  })()}
+                </View>
+              )}
+
+              {/* Goal & Player : aperçu module/séquence/half/repeat calculés */}
+              {sessionType === 'goal_and_player' && (
+                <View style={[p.infoNote, { borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' }]}>
+                  {(() => {
+                    const ref = computeContentRef('goal_and_player', trainingNumber - 1)
+                    const r = ref as { module: number; sequence: number; globalNumber: number; half: string; repeat: number }
+                    return (
+                      <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+                        Module <AureakText style={{ fontWeight: '700' as never }}>{r.module}</AureakText>
+                        {' · '}Séq. <AureakText style={{ fontWeight: '700' as never }}>{r.sequence}</AureakText>
+                        {' · '}GP #<AureakText style={{ fontWeight: '700' as never }}>{r.globalNumber}</AureakText>
+                        {' · '}Demi <AureakText style={{ fontWeight: '700' as never }}>{r.half}</AureakText>
+                        {' · '}Rép. <AureakText style={{ fontWeight: '700' as never }}>{r.repeat}</AureakText>
+                      </AureakText>
+                    )
+                  })()}
+                </View>
+              )}
+            </View>
+          )}
 
           {/* ── Coaches ─────────────────────────────────────────────── */}
           <View style={[p.card, p.cardWithDropdown, { zIndex: 15 }]}>
@@ -1291,11 +1479,17 @@ export default function NewSessionPage() {
             }
             <SummaryRow label="Implantation"    value={implantName} />
             <SummaryRow label="Méthode"           value={sessionType ? SESSION_TYPE_LABELS[sessionType as SessionType] : ''} />
-            <SummaryRow label="Entraînement n°"   value={selectedDates.length > 1 ? `${trainingNumber} → ${trainingNumber + selectedDates.length - 1}` : String(trainingNumber)} />
+            {sessionType === 'decisionnel' ? (
+              <SummaryRow label="Contenu" value={`Décisionnel · ${deciBlocks.filter(b => b.title.trim()).length} bloc(s)`} />
+            ) : sessionType === 'technique' && techniqueCtx === 'stage' ? (
+              <SummaryRow label="Contenu" value={`Stage — ${techConcept} · Séq. ${techStageSeq}`} />
+            ) : (
+              <SummaryRow label="Entraînement n°" value={selectedDates.length > 1 ? `${trainingNumber} → ${trainingNumber + selectedDates.length - 1}` : String(trainingNumber)} />
+            )}
             <SummaryRow label="Horaire"           value={`${String(startHour).padStart(2, '0')}h${String(startMinute).padStart(2, '0')} · ${durationMinutes} min`} />
             <SummaryRow label="Coach principal"   value={coachLeadNames} />
             <SummaryRow label="Coachs assistants" value={coachAssistantNames} />
-            <SummaryRow label="Remplaçants"       value={coachReplacementNames} />
+            {coachReplacementNames ? <SummaryRow label="Remplaçants (mémo)" value={`${coachReplacementNames} · non enregistré`} /> : null}
             <SummaryRow label="Terrain"           value={finalTerrainLabel} />
           </View>
 

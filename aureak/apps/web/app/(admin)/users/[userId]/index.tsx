@@ -2,22 +2,12 @@
 // Fiche compte utilisateur — Story 10.1 + accès admin
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { supabase, suspendUser, reactivateUser, requestUserDeletion, listLifecycleEvents } from '@aureak/api-client'
+import { getUserProfile, suspendUser, reactivateUser, requestUserDeletion, listLifecycleEvents } from '@aureak/api-client'
+import type { UserRow } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-type UserProfile = {
-  userId      : string
-  displayName : string
-  email       : string | null
-  phone       : string | null
-  userRole    : string
-  status      : string
-  inviteStatus: string
-  createdAt   : string
-  lastSignInAt: string | null
-}
+// UserProfile = alias local de UserRow (même shape)
+type UserProfile = UserRow
 
 type LifecycleEvent = {
   id        : string
@@ -88,45 +78,27 @@ export default function UserFichePage() {
   const [loading,    setLoading]    = useState(true)
 
   const [reason,   setReason]   = useState('')
-  const [confirm,  setConfirm]  = useState<'suspend' | 'delete' | null>(null)
+  const [confirm,  setConfirm]  = useState<'suspend' | 'reactivate' | 'delete' | null>(null)
   const [working,  setWorking]  = useState(false)
   const [feedback, setFeedback] = useState('')
 
   const load = async () => {
     if (!userId) return
     setLoading(true)
+    setFeedback('')
 
     const [profileRes, eventsRes] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('user_id, display_name, email, phone, user_role, status, invite_status, created_at, last_sign_in_at')
-        .eq('user_id', userId)
-        .single(),
+      getUserProfile(userId),
       listLifecycleEvents(userId),
     ])
 
     if (profileRes.error || !profileRes.data) {
       setProfileErr(true)
     } else {
-      const r = profileRes.data as {
-        user_id: string; display_name: string; email: string | null; phone: string | null
-        user_role: string; status: string; invite_status: string
-        created_at: string; last_sign_in_at: string | null
-      }
-      setProfile({
-        userId      : r.user_id,
-        displayName : r.display_name,
-        email       : r.email,
-        phone       : r.phone,
-        userRole    : r.user_role,
-        status      : r.status,
-        inviteStatus: r.invite_status,
-        createdAt   : r.created_at,
-        lastSignInAt: r.last_sign_in_at,
-      })
+      setProfile(profileRes.data)
     }
 
-    setEvents(eventsRes.data as LifecycleEvent[])
+    setEvents((eventsRes.data ?? []) as LifecycleEvent[])
     setLoading(false)
   }
 
@@ -282,9 +254,24 @@ export default function UserFichePage() {
 
         {confirm === null && (
           <div style={P.btnRow}>
-            <button style={P.btnWarn}    onClick={() => setConfirm('suspend')}>Suspendre</button>
-            <button style={P.btnOk}      onClick={() => handle('reactivate')}>Réactiver</button>
-            <button style={P.btnDanger}  onClick={() => setConfirm('delete')}>Demander suppression</button>
+            {/* Suspendre : seulement si actif ou en attente */}
+            {(profile.status === 'active' || profile.status === 'pending') && (
+              <button style={P.btnWarn} onClick={() => setConfirm('suspend')}>
+                Suspendre
+              </button>
+            )}
+            {/* Réactiver : seulement si suspendu */}
+            {profile.status === 'suspended' && (
+              <button style={P.btnOk} onClick={() => setConfirm('reactivate')}>
+                Réactiver
+              </button>
+            )}
+            {/* Suppression : seulement si pas déjà supprimé */}
+            {profile.status !== 'deleted' && (
+              <button style={P.btnDanger} onClick={() => setConfirm('delete')}>
+                Demander suppression
+              </button>
+            )}
           </div>
         )}
 
@@ -300,6 +287,20 @@ export default function UserFichePage() {
             <div style={P.btnRow}>
               <button style={P.btnWarn} onClick={() => handle('suspend')} disabled={working}>
                 {working ? '…' : 'Confirmer suspension'}
+              </button>
+              <button style={P.btnSecondary} onClick={() => setConfirm(null)}>Annuler</button>
+            </div>
+          </div>
+        )}
+
+        {confirm === 'reactivate' && (
+          <div style={P.confirmBox}>
+            <p style={P.confirmText}>
+              Réactiver le compte de {profile.displayName} ?
+            </p>
+            <div style={P.btnRow}>
+              <button style={P.btnOk} onClick={() => handle('reactivate')} disabled={working}>
+                {working ? '…' : 'Confirmer réactivation'}
               </button>
               <button style={P.btnSecondary} onClick={() => setConfirm(null)}>Annuler</button>
             </div>
