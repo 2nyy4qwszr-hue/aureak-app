@@ -190,6 +190,7 @@ development_status:
   epic-18: in-progress
   18-1-fiche-joueur-360-admin: done
   18-2-joueurs-refonte-ui-photos: done
+  18-3-statut-academie-dynamique: done
   epic-18-retrospective: optional
 
   # Epic 19 : Séances v2 — Types Pédagogiques, Auto-génération & Mode Terrain
