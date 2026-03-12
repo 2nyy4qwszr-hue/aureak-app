@@ -53,11 +53,14 @@ export default function ThemeCard({ theme, groupName, onPress, onManage }: Props
         </AureakText>
 
         <View style={s.footer}>
-          <AureakButton
-            label="Gérer"
-            onPress={onManage}
-            variant="secondary"
-          />
+          {/* Pressable wrapper isolé pour stopper la propagation vers la card */}
+          <Pressable onPress={e => { e.stopPropagation(); onManage() }}>
+            <AureakButton
+              label="Gérer"
+              onPress={() => {}}
+              variant="secondary"
+            />
+          </Pressable>
         </View>
       </View>
     </Pressable>
@@ -105,14 +108,16 @@ const s = StyleSheet.create({
     position       : 'absolute',
     top            : space.sm,
     left           : space.sm,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius   : 8,
+    backgroundColor: colors.accent.gold + '20',
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '60',
+    borderRadius   : 10,
     paddingHorizontal: 8,
     paddingVertical  : 3,
   } as never,
   blocBadgeText: {
     fontSize  : 10,
-    color     : '#FFFFFF',
+    color     : colors.accent.gold,
     fontWeight: '600',
   } as never,
 

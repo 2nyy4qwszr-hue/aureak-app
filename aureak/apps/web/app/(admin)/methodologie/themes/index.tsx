@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listThemes, listThemeGroups } from '@aureak/api-client'
-import { AureakButton } from '@aureak/ui'
-import { AureakText } from '@aureak/ui'
+import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Theme, ThemeGroup } from '@aureak/types'
 import BlocsManagerModal from '../_components/BlocsManagerModal'
@@ -22,6 +21,8 @@ const styles = StyleSheet.create({
 
 export default function ThemesPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const gridColumns = width < 640 ? 1 : width < 1024 ? 2 : 3
   const [themes,          setThemes]          = useState<Theme[]>([])
   const [groups,          setGroups]          = useState<ThemeGroup[]>([])
   const [loading,         setLoading]         = useState(true)
@@ -29,10 +30,13 @@ export default function ThemesPage() {
   const [modalVisible,    setModalVisible]    = useState(false)
 
   const loadData = async () => {
-    const [t, g] = await Promise.all([listThemes(), listThemeGroups()])
-    setThemes(t.data)
-    setGroups(g.data)
-    setLoading(false)
+    try {
+      const [t, g] = await Promise.all([listThemes(), listThemeGroups()])
+      setThemes(t.data)
+      setGroups(g.data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { loadData() }, [])
@@ -94,7 +98,7 @@ export default function ThemesPage() {
       {!loading && visibleThemes.length > 0 && (
         <View style={{
           display             : 'grid',
-          gridTemplateColumns : 'repeat(auto-fill, minmax(280px, 1fr))',
+          gridTemplateColumns : `repeat(${gridColumns}, 1fr)`,
           gap                 : space.lg,
         } as never}>
           {visibleThemes.map(theme => (
@@ -112,6 +116,12 @@ export default function ThemesPage() {
       {!loading && themes.length === 0 && (
         <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucun thème configuré.
+        </AureakText>
+      )}
+
+      {!loading && themes.length > 0 && visibleThemes.length === 0 && (
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
+          Aucun thème dans ce bloc.
         </AureakText>
       )}
 

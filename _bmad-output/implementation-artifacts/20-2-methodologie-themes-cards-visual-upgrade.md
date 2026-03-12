@@ -1,6 +1,6 @@
 # Story 20.2 : Méthodologie — Themes Cards Visual Upgrade
 
-Status: review
+Status: done
 
 ## Story
 
@@ -257,16 +257,16 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
-- T1: migration 00065 créée, `imageUrl` ajouté au type `Theme`, mapper et params API mis à jour dans `referentiel/themes.ts`
-- T2: `ThemeCard.tsx` créé dans `_components/` avec bannière 16:9, placeholder gold `◈`, badge Bloc absolute, hover via `onHoverIn/onHoverOut`, `boxShadow: shadows.sm/md` (jamais spread)
-- T3: `themes/index.tsx` réécrit — inline `ThemeCard` supprimée, CSS grid `repeat(auto-fill, minmax(280px, 1fr))`, filtre Bloc 20-1 conservé, `Badge`/`LEVEL_LABEL` supprimés (dans ThemeCard désormais)
-- Note: layout plat (toutes cards en une grille) plutôt que par section de groupe — le filtre chip par Bloc est suffisant pour naviguer
+- T1: migration renommée 00069 (conflit de numéro avec 00065_child_directory_photos), `imageUrl` ajouté au type `Theme`, mapper et params API mis à jour dans `referentiel/themes.ts`
+- T2: `ThemeCard.tsx` créé dans `_components/` avec bannière 16:9, placeholder gold `◈`, badge Bloc absolute (tokens gold corrigés), hover via `onHoverIn/onHoverOut`, `boxShadow: shadows.sm/md` (jamais spread)
+- T3: `themes/index.tsx` réécrit — inline `ThemeCard` supprimée, CSS grid responsive via `useWindowDimensions` (1 col < 640px, 2 cols < 1024px, 3 cols desktop), filtre Bloc 20-1 conservé, état vide filtré ajouté
+- Code Review fixes: event propagation ThemeCard buton Gérer corrigé, double import fusionné, try/finally dans loadData(), badge tokens design system
 
 ### File List
 
 | Fichier | Statut |
 |---------|--------|
-| `supabase/migrations/00065_themes_image_url.sql` | Créé |
+| `supabase/migrations/00069_themes_image_url.sql` | Créé (renommé 00069 — conflit avec 00065_child_directory_photos) |
 | `aureak/packages/types/src/entities.ts` | Modifié — `imageUrl` ajouté à `Theme` |
 | `aureak/packages/api-client/src/referentiel/themes.ts` | Modifié — mapper + params imageUrl |
 | `aureak/apps/web/app/(admin)/methodologie/_components/ThemeCard.tsx` | Créé |

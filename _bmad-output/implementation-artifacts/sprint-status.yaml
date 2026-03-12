@@ -198,12 +198,12 @@ development_status:
   13-1-sessions-modele-donnees-v2-types-contenu-statuts: done
   13-2-sessions-calendrier-auto-generation-gestion-exceptions: done
   13-3-sessions-mode-seance-coach-mobile-cloture-remplacement: done
-  19-4-seances-admin-ui-refonte-vues: review
+  19-4-seances-admin-ui-refonte-vues: done
   19-5-seances-edit-page-complete: review
   epic-19-retrospective: optional
 
   # Epic 20 : UX Méthodologie & Référentiel — Améliorations navigatoires
   epic-20: in-progress
   20-1-methodologie-ux-simplification-blocs-taxonomie: done
-  20-2-methodologie-themes-cards-visual-upgrade: review
+  20-2-methodologie-themes-cards-visual-upgrade: done
   epic-20-retrospective: optional
