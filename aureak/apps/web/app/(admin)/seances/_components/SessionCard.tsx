@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
+import type { TextStyle, ViewStyle } from 'react-native'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
@@ -78,7 +79,7 @@ export default function SessionCard({
         <AureakText style={st.duration}>· {fmtDuration(session.durationMinutes)}</AureakText>
         {session.sessionType && (
           <View style={[st.typeTag, { borderColor: typeColor + '80', backgroundColor: typeColor + '18' }]}>
-            <AureakText style={[st.typeTagText, { color: typeColor }]}>
+            <AureakText style={StyleSheet.flatten([st.typeTagText, { color: typeColor }]) as TextStyle}>
               {SESSION_TYPE_LABELS[session.sessionType as SessionType] ?? session.sessionType}
             </AureakText>
           </View>
@@ -90,8 +91,15 @@ export default function SessionCard({
         />
       </View>
 
-      {/* ── Groupe ── */}
-      <AureakText style={st.groupName} numberOfLines={1}>{groupName}</AureakText>
+      {/* ── Titre (Story 21.1) ou Groupe ── */}
+      {session.label ? (
+        <>
+          <AureakText style={st.groupName} numberOfLines={1}>{session.label}</AureakText>
+          <AureakText style={StyleSheet.flatten([st.location, { marginTop: -2 }]) as TextStyle} numberOfLines={1}>{groupName}</AureakText>
+        </>
+      ) : (
+        <AureakText style={st.groupName} numberOfLines={1}>{groupName}</AureakText>
+      )}
 
       {/* ── Implantation + terrain ── */}
       <AureakText style={st.location} numberOfLines={1}>{locationLine}</AureakText>
@@ -145,8 +153,8 @@ const st = StyleSheet.create({
     borderLeftWidth: 4,
     padding        : space.sm,
     gap            : 4,
-    ...shadows.sm,
-  },
+    boxShadow      : shadows.sm,
+  } as ViewStyle,
   cardCancelled: {
     opacity    : 0.65,
     borderColor: colors.border.divider,

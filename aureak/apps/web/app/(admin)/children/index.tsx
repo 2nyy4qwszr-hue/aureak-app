@@ -7,9 +7,10 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
+import { AureakText, Button } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
+import { formatNomPrenom } from '@aureak/types'
 import type { AcademyStatus } from '@aureak/types'
 
 const PAGE_SIZE = 50
@@ -46,7 +47,9 @@ const BIRTH_YEAR_TABS: { key: string; label: string }[] = [
 
 // ── PhotoAvatar — cercle photo ou initiales en fallback ────────────────────────
 
-function getInitials(displayName: string): string {
+function getInitials(displayName: string, nom?: string | null, prenom?: string | null): string {
+  if (nom && prenom) return (nom.charAt(0) + prenom.charAt(0)).toUpperCase()
+  if (nom)           return nom.charAt(0).toUpperCase()
   const parts = displayName.trim().split(/\s+/)
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
@@ -59,16 +62,18 @@ function avatarBgColor(id: string): string {
   return COLORS[Math.abs(hash) % COLORS.length]
 }
 
-function PhotoAvatar({ photoUrl, displayName, id, size = 52 }: {
+function PhotoAvatar({ photoUrl, displayName, id, size = 52, nom, prenom }: {
   photoUrl   : string | null
   displayName: string
   id         : string
   size?      : number
+  nom?       : string | null
+  prenom?    : string | null
 }) {
   const [imgError, setImgError] = useState(false)
   const showPhoto = photoUrl && !imgError
   const bg = avatarBgColor(id)
-  const initials = getInitials(displayName)
+  const initials = getInitials(displayName, nom, prenom)
 
   return (
     <View style={[av.circle, { width: size, height: size, borderRadius: size / 2, backgroundColor: showPhoto ? 'transparent' : bg }]}>
@@ -152,7 +157,7 @@ const pag = StyleSheet.create({
   disabled: { opacity: 0.35 },
 })
 
-// ── JoueurCard — infos gauche · avatar droite ─────────────────────────────────
+// ── JoueurCard — layout vertical : photo en haut · infos en dessous ──────────
 
 function formatBirthDate(iso: string | null): string | null {
   if (!iso) return null
@@ -163,50 +168,62 @@ function formatBirthDate(iso: string | null): string | null {
 }
 
 function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => void }) {
-  const dob     = formatBirthDate(item.birthDate)
-  const metaParts = [dob, item.currentClub, item.niveauClub].filter(Boolean)
+  const dob      = formatBirthDate(item.birthDate)
+  const nomComplet = formatNomPrenom(item.nom, item.prenom, item.displayName)
 
   return (
-    <Pressable style={({ pressed }) => [card.container, pressed && card.pressed]} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [card.container, pressed && card.pressed]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Voir la fiche de ${nomComplet}`}
+    >
+      {/* Photo centrée en haut */}
+      <PhotoAvatar
+        photoUrl={item.currentPhotoUrl}
+        displayName={item.displayName}
+        nom={item.nom}
+        prenom={item.prenom}
+        id={item.id}
+        size={80}
+      />
 
-      {/* ── Gauche : toutes les infos joueur ── */}
-      <View style={card.info}>
-        <AureakText variant="body" style={card.name} numberOfLines={1}>
-          {item.displayName}
+      {/* Infos en dessous */}
+      <View style={card.infoBlock}>
+        <AureakText style={card.name} numberOfLines={1}>
+          {nomComplet}
         </AureakText>
 
-        {metaParts.length > 0 && (
-          <AureakText variant="caption" style={card.meta} numberOfLines={2}>
-            {metaParts.join('  ·  ')}
-          </AureakText>
+        {dob && (
+          <AureakText variant="caption" style={card.metaLine}>{dob}</AureakText>
         )}
+        {item.currentClub ? (
+          <AureakText variant="caption" style={card.metaLine} numberOfLines={1}>{item.currentClub}</AureakText>
+        ) : null}
+        {item.niveauClub ? (
+          <AureakText variant="caption" style={card.metaLine} numberOfLines={1}>{item.niveauClub}</AureakText>
+        ) : null}
 
-        <View style={card.chips}>
-          {item.computedStatus && <StatusChip status={item.computedStatus} />}
-          {item.totalAcademySeasons > 0 && (
-            <InfoChip
-              label={`${item.totalAcademySeasons} saison${item.totalAcademySeasons > 1 ? 's' : ''}`}
-              color="#9E9E9E"
-            />
-          )}
-          {item.totalStages > 0 && (
-            <InfoChip
-              label={`${item.totalStages} stage${item.totalStages > 1 ? 's' : ''}`}
-              color="#4FC3F7"
-            />
-          )}
-        </View>
-      </View>
-
-      {/* ── Droite : avatar + label ── */}
-      <View style={card.aside}>
-        <PhotoAvatar
-          photoUrl={item.currentPhotoUrl}
-          displayName={item.displayName}
-          id={item.id}
-          size={52}
-        />
-        <AureakText style={card.voirLabel}>Voir →</AureakText>
+        {(item.computedStatus || item.totalAcademySeasons > 0 || item.totalStages > 0 || item.isClubPartner) && (
+          <View style={card.chips}>
+            {item.computedStatus && <StatusChip status={item.computedStatus} />}
+            {item.totalAcademySeasons > 0 && (
+              <InfoChip
+                label={`${item.totalAcademySeasons} saison${item.totalAcademySeasons > 1 ? 's' : ''}`}
+                color="#9E9E9E"
+              />
+            )}
+            {item.totalStages > 0 && (
+              <InfoChip
+                label={`${item.totalStages} stage${item.totalStages > 1 ? 's' : ''}`}
+                color="#4FC3F7"
+              />
+            )}
+            {item.isClubPartner && (
+              <InfoChip label="Club partenaire" color={colors.accent.gold} />
+            )}
+          </View>
+        )}
       </View>
 
     </Pressable>
@@ -215,31 +232,33 @@ function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => vo
 
 const card = StyleSheet.create({
   container: {
-    flexDirection  : 'row',
+    flexDirection  : 'column',
+    alignItems     : 'center',
     backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    padding        : 14,
-    gap            : 14,
-    alignItems     : 'center',
+    padding        : 12,
+    minHeight      : 210,
     ...shadows.sm,
   },
   pressed: {
     backgroundColor: colors.light.hover ?? colors.light.muted,
     transform      : [{ scale: 0.99 }],
   },
-  info: {
-    flex: 1,
-    gap : 5,
+  infoBlock: {
+    width     : '100%',
+    gap       : 3,
+    marginTop : 10,
+    alignItems: 'flex-start',
   },
   name: {
     fontWeight   : '700' as never,
-    fontSize     : 14,
+    fontSize     : 13,
     color        : colors.text.dark,
     letterSpacing: 0.1,
   },
-  meta: {
+  metaLine: {
     color     : colors.text.muted,
     fontSize  : 11,
     lineHeight: 17,
@@ -248,17 +267,7 @@ const card = StyleSheet.create({
     flexDirection: 'row',
     gap          : 4,
     flexWrap     : 'wrap',
-    marginTop    : 2,
-  },
-  aside: {
-    alignItems: 'center',
-    gap       : 7,
-    width     : 68,
-  },
-  voirLabel: {
-    color     : colors.accent.gold,
-    fontSize  : 10,
-    fontWeight: '700' as never,
+    marginTop    : 4,
   },
 })
 
@@ -267,19 +276,17 @@ const card = StyleSheet.create({
 function SkeletonCard() {
   return (
     <View style={[card.container, sk.root]}>
-      {/* Info gauche */}
-      <View style={card.info}>
-        <View style={[sk.line, { width: '65%', height: 14 }]} />
-        <View style={[sk.line, { width: '85%', height: 11, marginTop: 2 }]} />
+      {/* Cercle placeholder centré en haut */}
+      <View style={sk.circle} />
+      {/* Lignes placeholder */}
+      <View style={sk.infoBlock}>
+        <View style={[sk.line, { width: '65%', height: 13 }]} />
+        <View style={[sk.line, { width: '80%', height: 11, marginTop: 3 }]} />
+        <View style={[sk.line, { width: '60%', height: 11, marginTop: 2 }]} />
         <View style={sk.chipsRow}>
           <View style={sk.chipSm} />
           <View style={sk.chipSm} />
         </View>
-      </View>
-      {/* Avatar droite */}
-      <View style={card.aside}>
-        <View style={sk.circle} />
-        <View style={sk.voirPh} />
       </View>
     </View>
   )
@@ -287,8 +294,8 @@ function SkeletonCard() {
 
 const sk = StyleSheet.create({
   root    : { opacity: 0.55 },
-  circle  : { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.border.divider },
-  voirPh  : { width: 36, height: 10, borderRadius: 4, backgroundColor: colors.border.divider },
+  circle  : { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.border.divider },
+  infoBlock: { width: '100%', marginTop: 10, gap: 3, alignItems: 'flex-start' },
   line    : { backgroundColor: colors.border.divider, borderRadius: 4 },
   chipsRow: { flexDirection: 'row', gap: 4, marginTop: 4 },
   chipSm  : { width: 52, height: 17, borderRadius: 4, backgroundColor: colors.border.divider },
@@ -389,7 +396,7 @@ export default function JoueursPage() {
     { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau'                                                   },
     { key: 'ANCIEN',            label: 'Ancien'                                                      },
     { key: 'STAGE_UNIQUEMENT',  label: 'Stage seul'                                                  },
-    { key: 'PROSPECT',          label: 'Non affilié'                                                 },
+    { key: 'PROSPECT',          label: 'Prospect'                                                    },
   ], [currentSeasonLabel])
 
   const load = useCallback(async () => {
@@ -424,9 +431,9 @@ export default function JoueursPage() {
     setBirthYear('all')
   }
 
-  // CSS grid natif web — minmax élargi pour meilleure densité
+  // CSS grid natif web — minmax 200px pour 4-5 colonnes (Story 18.6)
   const gridStyle = Platform.OS === 'web'
-    ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 10 }
+    ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }
     : s.gridFallback
 
   return (
@@ -443,13 +450,20 @@ export default function JoueursPage() {
             </AureakText>
           )}
         </View>
-        {activeFilterCount > 0 && (
-          <Pressable style={s.resetBtn} onPress={handleResetFilters}>
-            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' as never }}>
-              Réinitialiser
-            </AureakText>
-          </Pressable>
-        )}
+        <View style={s.headerActions}>
+          {activeFilterCount > 0 && (
+            <Pressable style={s.resetBtn} onPress={handleResetFilters}>
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' as never }}>
+                Réinitialiser
+              </AureakText>
+            </Pressable>
+          )}
+          <Button
+            label="Ajouter un joueur"
+            variant="primary"
+            onPress={() => router.push('/children/new' as never)}
+          />
+        </View>
       </View>
 
       {/* ── Barre de recherche ── */}
@@ -577,8 +591,9 @@ const s = StyleSheet.create({
   content  : { padding: space.xl, gap: space.md },
 
   // En-tête
-  header   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerSub: { color: colors.text.muted, marginTop: 3, fontSize: 12 },
+  header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerSub   : { color: colors.text.muted, marginTop: 3, fontSize: 12 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 
   // Recherche
   searchRow : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },

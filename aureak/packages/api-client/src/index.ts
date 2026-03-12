@@ -40,7 +40,7 @@ export type { CreateClubParams, UpdateClubAccessLevelParams } from './clubs'
 
 export {
   createThemeGroup, listThemeGroups, updateThemeGroupOrder, updateThemeGroup, deleteThemeGroup,
-  createTheme, updateTheme, listThemes, getThemeByKey, createNewThemeVersion,
+  createTheme, updateTheme, updateThemeOrder, updateThemePositionIndex, listThemes, getThemeByKey, createNewThemeVersion,
   createThemeSequence, listSequencesByTheme, updateThemeSequence,
 } from './referentiel/themes'
 export type {
@@ -138,6 +138,19 @@ export {
   submitContentFeedback, listFeedback, updateFeedbackStatus,
 } from './sessions/notes'
 export type { SubmitFeedbackParams } from './sessions/notes'
+
+// Story 21.2 — Session Theme Blocks
+export {
+  listSessionThemeBlocks, addSessionThemeBlock, updateSessionThemeBlock, removeSessionThemeBlock,
+} from './sessions/session-theme-blocks'
+export type { AddSessionThemeBlockParams } from './sessions/session-theme-blocks'
+
+// Story 21.3 — Session Workshops (Ateliers)
+export {
+  listSessionWorkshops, addSessionWorkshop, updateSessionWorkshop, removeSessionWorkshop,
+  uploadWorkshopPdf, uploadWorkshopCard,
+} from './sessions/session-workshops'
+export type { AddSessionWorkshopParams, UpdateSessionWorkshopPatch } from './sessions/session-workshops'
 
 export {
   applyAttendanceEvent, listSessionEvents,
@@ -238,6 +251,7 @@ export type { AddHistoryEntryParams, UpdateHistoryEntryParams } from './child-cl
 
 export {
   listChildDirectory, getChildDirectoryEntry,
+  createChildDirectoryEntry,
   updateChildDirectoryEntry, softDeleteChildDirectoryEntry,
   listChildDirectoryHistory, addChildHistoryEntry, updateChildHistoryEntry, deleteChildHistoryEntry,
   listJoueurs,
@@ -246,6 +260,7 @@ export {
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,
+  CreateChildDirectoryParams,
   AddChildHistoryParams, UpdateChildHistoryParams,
   JoueurListItem, ListJoueursOpts,
   // Story 18.2

@@ -19,27 +19,28 @@ import SectionPageTerrain from './sections/SectionPageTerrain'
 import SectionQuiz from './sections/SectionQuiz'
 
 type TabId =
-  | 'terrain' | 'identite' | 'vision' | 'criteres' | 'sequences'
-  | 'mini-ex' | 'quiz' | 'savoir-faire' | 'eval-video' | 'badge' | 'ressources'
+  | 'terrain'
+  | 'identite-pedagogique'
+  | 'sequences-pedagogiques'
+  | 'quiz-connaissances'
+  | 'savoir-faire-eval'
+  | 'badges-progression'
+  | 'ressources'
 
-const TABS: { id: TabId; label: string; icon: string; isCore?: boolean }[] = [
-  { id: 'terrain',       label: 'Page Terrain',        icon: '🖨️' },
-  { id: 'identite',      label: 'Identité',             icon: '📋' },
-  { id: 'vision',        label: 'Vision pédagogique',   icon: '🎯' },
-  { id: 'criteres',      label: 'Critères de réussite', icon: '⭐', isCore: true },
-  { id: 'sequences',     label: 'Séquences',            icon: '📖' },
-  { id: 'mini-ex',       label: 'Mini-exercices',       icon: '⚡' },
-  { id: 'quiz',          label: 'Quiz connaissance',    icon: '🧠' },
-  { id: 'savoir-faire',  label: 'Savoir-faire',         icon: '🏠' },
-  { id: 'eval-video',    label: 'Évaluation vidéo',     icon: '🎥' },
-  { id: 'badge',         label: 'Badge & progression',  icon: '🏅' },
-  { id: 'ressources',    label: 'Ressources',           icon: '📁' },
+const TABS: { id: TabId; label: string; icon: string }[] = [
+  { id: 'terrain',                label: 'Terrain',                   icon: '🖨️' },
+  { id: 'identite-pedagogique',   label: 'Identité pédagogique',      icon: '📋' },
+  { id: 'sequences-pedagogiques', label: 'Séquences pédagogiques',    icon: '📖' },
+  { id: 'quiz-connaissances',     label: 'Quiz & Connaissances',      icon: '🧠' },
+  { id: 'savoir-faire-eval',      label: 'Savoir-faire & Évaluation', icon: '🏠' },
+  { id: 'badges-progression',     label: 'Badges & Progression',      icon: '🏅' },
+  { id: 'ressources',             label: 'Ressources',                icon: '📁' },
 ]
 
 export default function ThemeDossierPage() {
   const { themeKey } = useLocalSearchParams<{ themeKey: string }>()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<TabId>('identite')
+  const [activeTab, setActiveTab] = useState<TabId>('terrain')
   const [theme, setTheme] = useState<Theme | null>(null)
   const [groups, setGroups] = useState<ThemeGroup[]>([])
   const [criteria, setCriteria] = useState<Criterion[]>([])
@@ -71,18 +72,45 @@ export default function ThemeDossierPage() {
 
   const renderSection = () => {
     switch (activeTab) {
-      case 'terrain':      return <SectionPageTerrain theme={theme} criteria={criteria} tenantId={tenantId} />
-      case 'identite':     return <SectionIdentite theme={theme} groups={groups} onUpdate={t => setTheme(t)} />
-      case 'vision':       return <SectionVisionPedagogique themeId={theme.id} tenantId={tenantId} />
-      case 'criteres':     return <SectionCriteres themeId={theme.id} tenantId={tenantId} criteria={criteria} onCriteriaChange={setCriteria} />
-      case 'sequences':    return <SectionSequences themeId={theme.id} tenantId={tenantId} criteria={criteria} />
-      case 'mini-ex':      return <SectionMiniExercices themeId={theme.id} tenantId={tenantId} criteria={criteria} />
-      case 'quiz':         return <SectionQuiz themeKey={themeKey ?? ''} themeId={theme.id} />
-      case 'savoir-faire': return <SectionSavoirFaire themeId={theme.id} tenantId={tenantId} criteria={criteria} />
-      case 'eval-video':   return <SectionEvalVideo themeId={theme.id} tenantId={tenantId} criteria={criteria} />
-      case 'badge':        return <SectionBadge themeId={theme.id} tenantId={tenantId} />
-      case 'ressources':   return <SectionRessources themeId={theme.id} tenantId={tenantId} />
-      default:             return null
+      case 'terrain':
+        return <SectionPageTerrain theme={theme} criteria={criteria} tenantId={tenantId} />
+
+      case 'identite-pedagogique':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <SectionIdentite theme={theme} groups={groups} onUpdate={t => setTheme(t)} />
+            <SectionVisionPedagogique themeId={theme.id} tenantId={tenantId} />
+          </div>
+        )
+
+      case 'sequences-pedagogiques':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <SectionSequences themeId={theme.id} tenantId={tenantId} criteria={criteria} />
+            <SectionCriteres themeId={theme.id} tenantId={tenantId} criteria={criteria} onCriteriaChange={setCriteria} />
+            <SectionMiniExercices themeId={theme.id} tenantId={tenantId} criteria={criteria} />
+          </div>
+        )
+
+      case 'quiz-connaissances':
+        return <SectionQuiz themeKey={themeKey ?? ''} themeId={theme.id} />
+
+      case 'savoir-faire-eval':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <SectionSavoirFaire themeId={theme.id} tenantId={tenantId} criteria={criteria} />
+            <SectionEvalVideo themeId={theme.id} tenantId={tenantId} criteria={criteria} />
+          </div>
+        )
+
+      case 'badges-progression':
+        return <SectionBadge themeId={theme.id} tenantId={tenantId} />
+
+      case 'ressources':
+        return <SectionRessources themeId={theme.id} tenantId={tenantId} />
+
+      default:
+        return null
     }
   }
 
@@ -107,25 +135,21 @@ export default function ThemeDossierPage() {
       <div style={S.body}>
         {/* Sidebar */}
         <nav style={S.sidebar}>
-          {TABS.map((tab, idx) => {
+          {TABS.map(tab => {
             const isActive = tab.id === activeTab
-            const showSep = idx === 1
             return (
-              <div key={tab.id}>
-                {showSep && <div style={S.sidebarSep} />}
-                <button
-                  onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    ...S.sidebarTab,
-                    ...(isActive ? S.sidebarTabActive : {}),
-                    ...(tab.isCore ? S.sidebarTabCore : {}),
-                  }}
-                >
-                  <span style={S.tabIcon}>{tab.icon}</span>
-                  <span style={S.tabLabel}>{tab.label}</span>
-                  {isActive && <div style={S.activeBar} />}
-                </button>
-              </div>
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  ...S.sidebarTab,
+                  ...(isActive ? S.sidebarTabActive : {}),
+                }}
+              >
+                <span style={S.tabIcon}>{tab.icon}</span>
+                <span style={S.tabLabel}>{tab.label}</span>
+                {isActive && <div style={S.activeBar} />}
+              </button>
             )
           })}
         </nav>
@@ -227,11 +251,6 @@ const S: Record<string, React.CSSProperties> = {
     overflowY: 'auto' as const,
     padding: '12px 0',
   },
-  sidebarSep: {
-    height: 1,
-    backgroundColor: colors.border.divider,
-    margin: '8px 16px',
-  },
   sidebarTab: {
     display: 'flex',
     alignItems: 'center',
@@ -252,10 +271,6 @@ const S: Record<string, React.CSSProperties> = {
     backgroundColor: colors.accent.gold + '15',
     color: colors.accent.gold,
     fontWeight: 600,
-  },
-  sidebarTabCore: {
-    fontSize: 13,
-    fontWeight: 700,
   },
   tabIcon: {
     fontSize: 14,

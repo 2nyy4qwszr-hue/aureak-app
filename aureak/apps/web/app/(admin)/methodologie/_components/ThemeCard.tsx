@@ -7,11 +7,12 @@ import type { Theme } from '@aureak/types'
 type Props = {
   theme    : Theme
   groupName: string | null
+  category?: string | null
   onPress  : () => void
   onManage : () => void
 }
 
-export default function ThemeCard({ theme, groupName, onPress, onManage }: Props) {
+export default function ThemeCard({ theme, groupName, category, onPress, onManage }: Props) {
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -35,10 +36,19 @@ export default function ThemeCard({ theme, groupName, onPress, onManage }: Props
           </View>
         )}
 
-        {/* Badge Bloc flottant sur la bannière */}
+        {/* Badge Bloc flottant sur la bannière — coin supérieur gauche */}
         {groupName && (
           <View style={s.blocBadge}>
             <AureakText style={s.blocBadgeText}>Bloc : {groupName}</AureakText>
+          </View>
+        )}
+
+        {/* Badge position [#XX] — coin supérieur droit */}
+        {theme.positionIndex != null && (
+          <View style={s.positionBadge}>
+            <AureakText style={s.positionBadgeText}>
+              #{String(theme.positionIndex).padStart(2, '0')}
+            </AureakText>
           </View>
         )}
       </View>
@@ -48,6 +58,14 @@ export default function ThemeCard({ theme, groupName, onPress, onManage }: Props
         <AureakText variant="label" style={s.name} numberOfLines={2}>
           {theme.name}
         </AureakText>
+
+        {/* Badge Catégorie (distinct du badge Bloc) */}
+        {category && (
+          <View style={s.categoryBadge}>
+            <AureakText style={s.categoryBadgeText}>{category}</AureakText>
+          </View>
+        )}
+
         <AureakText variant="caption" style={s.meta}>
           {theme.themeKey} · v{theme.version}
         </AureakText>
@@ -101,7 +119,7 @@ const s = StyleSheet.create({
     opacity : 0.5,
   } as never,
 
-  // Badge Bloc
+  // Badge Bloc (sur la bannière)
   blocBadge: {
     position       : 'absolute',
     top            : space.sm,
@@ -119,6 +137,24 @@ const s = StyleSheet.create({
     fontWeight: '600',
   } as never,
 
+  // Badge Position (sur la bannière, coin droit)
+  positionBadge: {
+    position         : 'absolute',
+    top              : space.sm,
+    right            : space.sm,
+    backgroundColor  : 'rgba(255,255,255,0.85)',
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : 10,
+    paddingHorizontal: 7,
+    paddingVertical  : 3,
+  } as never,
+  positionBadgeText: {
+    fontSize  : 10,
+    color     : colors.text.dark,
+    fontWeight: '600',
+  } as never,
+
   // Corps
   body: {
     padding: space.md,
@@ -129,6 +165,24 @@ const s = StyleSheet.create({
     fontSize  : 14,
     fontWeight: '600',
   } as never,
+
+  // Badge Catégorie (dans le body, discret)
+  categoryBadge: {
+    alignSelf        : 'flex-start',
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : 6,
+    paddingHorizontal: 6,
+    paddingVertical  : 2,
+    marginTop        : 2,
+  },
+  categoryBadgeText: {
+    fontSize  : 10,
+    color     : colors.text.subtle,
+    fontWeight: '500',
+  } as never,
+
   meta: {
     color   : colors.text.muted,
     fontSize: 11,

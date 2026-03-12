@@ -13,7 +13,11 @@ function toEntry(row: any): ChildDirectoryEntry {
     id             : row.id,
     tenantId       : row.tenant_id,
     displayName    : row.display_name,
+    nom            : row.nom            ?? null,
+    prenom         : row.prenom         ?? null,
     birthDate      : row.birth_date     ?? null,
+    email          : row.email          ?? null,
+    tel            : row.tel            ?? null,
     statut         : row.statut         ?? null,
     currentClub    : row.current_club   ?? null,
     niveauClub     : row.niveau_club    ?? null,
@@ -198,6 +202,42 @@ export async function deleteChildPhoto(photoId: string): Promise<void> {
   if (error) throw error
 }
 
+// ── Create ─────────────────────────────────────────────────────────────────────
+
+export type CreateChildDirectoryParams = {
+  tenantId    : string
+  displayName : string
+  nom?        : string | null
+  prenom?     : string | null
+  birthDate?  : string | null
+  statut?     : string | null
+  currentClub?: string | null
+  niveauClub? : string | null
+  actif?      : boolean
+}
+
+export async function createChildDirectoryEntry(
+  params: CreateChildDirectoryParams,
+): Promise<ChildDirectoryEntry> {
+  const { data, error } = await supabase
+    .from('child_directory')
+    .insert({
+      tenant_id   : params.tenantId,
+      display_name: params.displayName,
+      nom         : params.nom         ?? null,
+      prenom      : params.prenom      ?? null,
+      birth_date  : params.birthDate   ?? null,
+      statut      : params.statut      ?? null,
+      current_club: params.currentClub ?? null,
+      niveau_club : params.niveauClub  ?? null,
+      actif       : params.actif       ?? true,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return toEntry(data)
+}
+
 // ── List ───────────────────────────────────────────────────────────────────────
 
 export type ListChildDirectoryOpts = {
@@ -249,7 +289,11 @@ export async function getChildDirectoryEntry(
 
 export type UpdateChildDirectoryParams = Partial<{
   displayName    : string
+  nom            : string | null
+  prenom         : string | null
   birthDate      : string | null
+  email          : string | null
+  tel            : string | null
   statut         : string | null
   currentClub    : string | null
   niveauClub     : string | null
@@ -273,7 +317,11 @@ export async function updateChildDirectoryEntry(
 ): Promise<void> {
   const payload: Record<string, unknown> = {}
   if (fields.displayName     !== undefined) payload.display_name     = fields.displayName
+  if (fields.nom             !== undefined) payload.nom              = fields.nom
+  if (fields.prenom          !== undefined) payload.prenom           = fields.prenom
   if (fields.birthDate       !== undefined) payload.birth_date       = fields.birthDate
+  if (fields.email           !== undefined) payload.email            = fields.email
+  if (fields.tel             !== undefined) payload.tel              = fields.tel
   if (fields.statut          !== undefined) payload.statut           = fields.statut
   if (fields.currentClub     !== undefined) payload.current_club     = fields.currentClub
   if (fields.niveauClub      !== undefined) payload.niveau_club      = fields.niveauClub
@@ -312,10 +360,14 @@ export async function softDeleteChildDirectoryEntry(id: string): Promise<void> {
 export type JoueurListItem = {
   id              : string
   displayName     : string
+  nom             : string | null
+  prenom          : string | null
   birthDate       : string | null
   currentClub     : string | null
   niveauClub      : string | null
   clubDirectoryId : string | null
+  /** true si clubDirectoryId est renseigné ET club_directory.partenaire = true (Story 18.5) */
+  isClubPartner   : boolean
   computedStatus  : string | null
   totalAcademySeasons: number
   inCurrentSeason : boolean
@@ -366,10 +418,14 @@ export async function listJoueurs(
     if (filteredIds.length === 0) return { data: [], count: 0 }
   }
 
-  // Phase 2: paginate child_directory
+  // Phase 2: paginate child_directory + join club_directory pour partenaire (Story 18.5)
   let q = supabase
     .from('child_directory')
-    .select('id, display_name, birth_date, current_club, niveau_club, club_directory_id', { count: 'exact' })
+    .select(
+      'id, display_name, nom, prenom, birth_date, current_club, niveau_club, club_directory_id, ' +
+      'club_directory!club_directory_id(partenaire)',
+      { count: 'exact' },
+    )
     .is('deleted_at', null)
     .order('display_name', { ascending: true })
   if (search)      q = q.ilike('display_name', `%${search}%`)
@@ -426,13 +482,17 @@ export async function listJoueurs(
   const data: JoueurListItem[] = ((childRows ?? []) as Record<string, unknown>[]).map(r => {
     const st = statusMap[r.id as string] ?? null
     const photoPath = photoPathMap[r.id as string] ?? null
+    const clubDir = r.club_directory as { partenaire: boolean } | null
     return {
       id              : r.id              as string,
       displayName     : r.display_name    as string,
+      nom             : (r.nom            as string | null) ?? null,
+      prenom          : (r.prenom         as string | null) ?? null,
       birthDate       : (r.birth_date     as string | null) ?? null,
       currentClub     : (r.current_club   as string | null) ?? null,
       niveauClub      : (r.niveau_club    as string | null) ?? null,
       clubDirectoryId : (r.club_directory_id as string | null) ?? null,
+      isClubPartner   : !!(clubDir?.partenaire),
       computedStatus     : st?.computedStatus      ?? null,
       totalAcademySeasons: st?.totalAcademySeasons ?? 0,
       inCurrentSeason    : st?.inCurrentSeason     ?? false,

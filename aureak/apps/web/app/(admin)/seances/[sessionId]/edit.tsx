@@ -6,12 +6,14 @@ import {
   getSessionById, listSessionCoaches, listAvailableCoaches,
   updateSession, assignCoach, removeCoach,
   getGroup, listImplantations,
+  listSessionWorkshops, addSessionWorkshop, updateSessionWorkshop, removeSessionWorkshop,
 } from '@aureak/api-client'
 import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPES, SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, CoachRole, SessionType } from '@aureak/types'
+import type { Session, SessionCoach, CoachRole, SessionType, SessionWorkshop, SessionWorkshopDraft } from '@aureak/types'
 import { TERRAINS, HOURS, MINUTES, DURATIONS, contentRefLabel } from '../_utils'
+import WorkshopBlockEditor from '../_components/WorkshopBlockEditor'
 
 // ── Constants & shared utils — imported from _utils ───────────────────────────
 
@@ -88,6 +90,10 @@ export default function EditSessionPage() {
   const [selectedCoaches, setSelectedCoaches] = useState<CoachEntry[]>([])
   const [allCoaches,      setAllCoaches]      = useState<{ id: string; name: string }[]>([])
 
+  // Workshop state (Story 21.3)
+  const [initialWorkshops, setInitialWorkshops] = useState<SessionWorkshop[]>([])
+  const [workshops,        setWorkshops]        = useState<SessionWorkshopDraft[]>([])
+
   const [errors,     setErrors]     = useState<Record<string, string>>({})
   const [coachError, setCoachError] = useState<string | null>(null)
 
@@ -101,10 +107,11 @@ export default function EditSessionPage() {
     setLoading(true)
     try {
 
-    const [s, c, coaches] = await Promise.all([
+    const [s, c, coaches, ws] = await Promise.all([
       getSessionById(sessionId),
       listSessionCoaches(sessionId),
       listAvailableCoaches(),
+      listSessionWorkshops(sessionId),
     ])
 
     if (!s.data) {
@@ -144,6 +151,18 @@ export default function EditSessionPage() {
     }))
     setInitialCoaches([...entries])
     setSelectedCoaches([...entries])
+
+    setInitialWorkshops(ws)
+    setWorkshops(ws.map(w => ({
+      id          : w.id,
+      title       : w.title,
+      pdfUrl      : w.pdfUrl,
+      pdfUploading: false,
+      cardLabel   : w.cardLabel,
+      cardUrl     : w.cardUrl,
+      cardUploading: false,
+      notes       : w.notes ?? '',
+    })))
 
     } catch {
       setLoadError('Erreur lors du chargement de la séance.')
@@ -226,6 +245,56 @@ export default function EditSessionPage() {
       return
     }
 
+    // ── Ateliers — diff et sync (Story 21.3) ────────────────────────────────
+    const initialIds = new Set(initialWorkshops.map(w => w.id))
+    const currentIds = new Set(workshops.filter(w => w.id).map(w => w.id!))
+    let workshopErrors = 0
+
+    // Supprimer les ateliers supprimés
+    for (const w of initialWorkshops) {
+      if (!currentIds.has(w.id)) {
+        const { error } = await removeSessionWorkshop(w.id)
+        if (error) { console.warn('[EditSession] removeSessionWorkshop error:', error); workshopErrors++ }
+      }
+    }
+    // Mettre à jour ou créer
+    for (let k = 0; k < workshops.length; k++) {
+      const w = workshops[k]
+      if (w.pdfUploading || w.cardUploading) continue
+      const pdfUrl  = w.pdfUrl?.startsWith('blob:')  ? undefined : (w.pdfUrl  ?? undefined)
+      const cardUrl = w.cardUrl?.startsWith('blob:') ? undefined : (w.cardUrl ?? undefined)
+      if (w.id && initialIds.has(w.id)) {
+        // Mise à jour
+        const { error } = await updateSessionWorkshop(w.id, {
+          title    : w.title.trim() || `Atelier ${k + 1}`,
+          pdfUrl   : pdfUrl ?? null,
+          cardLabel: w.cardLabel,
+          cardUrl  : cardUrl ?? null,
+          notes    : w.notes.trim() || undefined,
+          sortOrder: k,
+        })
+        if (error) { console.warn('[EditSession] updateSessionWorkshop error:', error); workshopErrors++ }
+      } else if (!w.id) {
+        // Nouveau
+        const { error } = await addSessionWorkshop({
+          sessionId : sessionId!,
+          tenantId  : session.tenantId,
+          title     : w.title.trim() || `Atelier ${k + 1}`,
+          sortOrder : k,
+          pdfUrl,
+          cardLabel : w.cardLabel ?? undefined,
+          cardUrl,
+          notes     : w.notes.trim() || undefined,
+        })
+        if (error) { console.warn('[EditSession] addSessionWorkshop error:', error); workshopErrors++ }
+      }
+    }
+
+    setSaving(false)
+    if (workshopErrors > 0) {
+      setSaveError(`Séance enregistrée, mais ${workshopErrors} atelier(s) n'ont pas pu être sauvegardé(s). Vérifiez et réessayez.`)
+      return
+    }
     router.replace(`/seances/${sessionId}?updated=true` as never)
   }
 
@@ -539,6 +608,31 @@ export default function EditSessionPage() {
             multiline
           />
         </View>
+
+        <View style={st.separator} />
+
+        {/* ── Ateliers (Story 21.3) ── */}
+        <AureakText style={st.sectionLabel}>ATELIERS</AureakText>
+        <WorkshopBlockEditor
+          workshops={workshops}
+          onAdd={() => setWorkshops(prev => [...prev, {
+            title: '', pdfUrl: null, pdfUploading: false,
+            cardLabel: null, cardUrl: null, cardUploading: false, notes: '',
+          }])}
+          onRemove={i => setWorkshops(prev => prev.filter((_, idx) => idx !== i))}
+          onUpdate={(i, patch) => setWorkshops(prev => prev.map((w, idx) => idx === i ? { ...w, ...patch } : w))}
+          onReorder={(i, dir) => {
+            setWorkshops(prev => {
+              const next = [...prev]
+              const j = dir === 'up' ? i - 1 : i + 1
+              if (j < 0 || j >= next.length) return prev
+              ;[next[i], next[j]] = [next[j], next[i]]
+              return next
+            })
+          }}
+          tenantId={session.tenantId}
+          sessionId={sessionId!}
+        />
 
         <View style={st.separator} />
 

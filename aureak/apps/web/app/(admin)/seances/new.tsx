@@ -9,12 +9,28 @@ import {
   listImplantations, listGroupsByImplantation, listGroupStaff,
   listAvailableCoaches, createSession, assignCoach,
   prefillSessionAttendees, createTransientGroup, computeContentRef,
+  addSessionThemeBlock, addSessionWorkshop, uploadWorkshopPdf, uploadWorkshopCard,
 } from '@aureak/api-client'
+import ThemeBlockPicker from './_components/ThemeBlockPicker'
+import type { ThemeBlockDraft } from './_components/ThemeBlockPicker'
+import WorkshopBlockEditor from './_components/WorkshopBlockEditor'
+import type { SessionWorkshopDraft } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode } from '@aureak/types'
 import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
+import { generateSessionLabel } from './_utils'
+
+// SessionType → category filter pour listThemes (Story 21.2)
+const SESSION_TYPE_TO_METHOD: Partial<Record<SessionType, string>> = {
+  goal_and_player : 'goal_and_player',
+  technique       : 'technique',
+  situationnel    : 'situationnel',
+  decisionnel     : 'decisionnel',
+  perfectionnement: 'perfectionnement',
+  integration     : 'integration',
+}
 
 // SessionType → GroupMethod DB label (pour createTransientGroup)
 const SESSION_TYPE_TO_GROUP_METHOD: Partial<Record<SessionType, GroupMethod>> = {
@@ -34,7 +50,8 @@ const DAYS_FR    = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const DAYS_LONG  = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
 const MONTHS_FR  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 
-type Step = 1 | 2 | 3 | 4
+// Story 21.3 : 6 steps (ajout Step 4 Ateliers)
+type Step = 1 | 2 | 3 | 4 | 5 | 6
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -389,8 +406,9 @@ const GROUP_METHOD_TO_SESSION_TYPE: Record<string, SessionType> = {
 }
 
 // Nombre d'entraînements par méthodologie (bornes affichées dans le sélecteur)
+// Story 21.1 : GP passe à 15 ENT par module (3 modules indépendants = 45 au total)
 const TRAINING_MAX: Record<string, number> = {
-  goal_and_player : 15,  // 15 entraînements par cycle (× 2 demi-saisons = 30/an)
+  goal_and_player : 15,  // 15 ENT par module (sélecteur Module + ENT indépendants)
   technique       : 32,  // 8 modules × 4 séances
   situationnel    : 30,
   decisionnel     : 20,
@@ -401,11 +419,14 @@ const TRAINING_MAX: Record<string, number> = {
 
 // ── Step indicator ─────────────────────────────────────────────────────────────
 
+// Story 21.3 : 6 steps
 const STEP_LABELS: [string, string][] = [
   ['1', 'Contexte'],
   ['2', 'Détails'],
-  ['3', 'Date'],
-  ['4', 'Résumé'],
+  ['3', 'Thèmes'],
+  ['4', 'Ateliers'],
+  ['5', 'Date'],
+  ['6', 'Résumé'],
 ]
 
 function StepBar({ current }: { current: Step }) {
@@ -565,6 +586,82 @@ const sr = StyleSheet.create({
   value: { flex: 1, fontSize: 13, color: colors.text.dark },
 })
 
+// ── TitleField — Story 21.1 ────────────────────────────────────────────────────
+// Composant auto-générant le titre de la séance à partir de la méthode + contexte + référence.
+// Pré-rempli et éditable.
+
+function TitleField({
+  sessionType, contextType, gpModule, gpEntNumber,
+  trainingNumber, techConcept, techStageSeq, deciBlocks,
+  value, onChange,
+}: {
+  sessionType    : SessionType
+  contextType    : 'academie' | 'stage'
+  gpModule       : 1 | 2 | 3
+  gpEntNumber    : number
+  trainingNumber : number
+  techConcept    : string
+  techStageSeq   : number
+  deciBlocks     : Array<{ id: string; title: string }>
+  value          : string
+  onChange       : (v: string) => void
+}) {
+  // Construire un contentRef partiel pour generateSessionLabel
+  const draftRef = useMemo((): SessionContentRef | null => {
+    switch (sessionType) {
+      case 'goal_and_player':
+        return { method: 'goal_and_player', module: gpModule, entNumber: gpEntNumber, globalNumber: (gpModule - 1) * 15 + gpEntNumber }
+      case 'technique':
+        if (contextType === 'stage') return { method: 'technique', context: 'stage', concept: techConcept, sequence: techStageSeq }
+        return computeContentRef('technique', trainingNumber - 1) as SessionContentRef
+      case 'situationnel':
+        return computeContentRef('situationnel', trainingNumber - 1) as SessionContentRef
+      case 'decisionnel':
+        return { method: 'decisionnel', blocks: deciBlocks.map(b => ({ title: b.title })) }
+      default:
+        return null
+    }
+  }, [sessionType, contextType, gpModule, gpEntNumber, trainingNumber, techConcept, techStageSeq, deciBlocks])
+
+  const autoLabel = useMemo(
+    () => generateSessionLabel(sessionType, draftRef, contextType, trainingNumber),
+    [sessionType, draftRef, contextType, trainingNumber]
+  )
+
+  // Pré-remplir quand le label auto change et que le champ est vide (ou correspond encore à l'ancien auto)
+  const prevAutoRef = React.useRef('')
+  const onChangeRef = React.useRef(onChange)
+  useEffect(() => { onChangeRef.current = onChange })
+  useEffect(() => {
+    if (!value || value === prevAutoRef.current) {
+      onChangeRef.current(autoLabel)
+    }
+    prevAutoRef.current = autoLabel
+  }, [autoLabel, value])
+
+  return (
+    <View style={p.card}>
+      <SectionLabel title="Titre de la séance" hint="Auto-généré · modifiable avant création" />
+      <TextInput
+        style={p.textInput}
+        value={value}
+        onChangeText={onChange}
+        placeholder="Titre de la séance…"
+        placeholderTextColor={colors.text.muted}
+        autoComplete={'off' as never}
+        autoCorrect={false}
+      />
+      {autoLabel && value !== autoLabel && (
+        <Pressable onPress={() => onChange(autoLabel)}>
+          <AureakText variant="caption" style={{ color: colors.accent.gold, marginTop: 4 }}>
+            ↺ Restaurer : «{autoLabel}»
+          </AureakText>
+        </Pressable>
+      )}
+    </View>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function NewSessionPage() {
@@ -579,6 +676,8 @@ export default function NewSessionPage() {
   const [implantationId,      setImplantationId]      = useState('')
   // contextMode : 'existing' = groupe réel hebdomadaire / 'ponctuel' = séance ad-hoc
   const [contextMode,         setContextMode]         = useState<'existing' | 'ponctuel'>('existing')
+  // Story 21.1 — contexte pédagogique global (Académie | Stage)
+  const [contextType,         setContextType]         = useState<'academie' | 'stage'>('academie')
   const [sessionLabel,        setSessionLabel]        = useState('')  // nom libre (mode ponctuel)
   const [groups,              setGroups]              = useState<Group[]>([])
   const [groupId,             setGroupId]             = useState('')
@@ -605,14 +704,23 @@ export default function NewSessionPage() {
   const [customTerrain,     setCustomTerrain]     = useState('')
   const [trainingNumber,    setTrainingNumber]    = useState(1)
   // ── ContentRef specific states (Story 13.1 — AC7) ────────────
-  const [techniqueCtx,  setTechniqueCtx]  = useState<'academie' | 'stage'>('academie')
+  // Story 21.1 : techniqueCtx supprimé — remplacé par contextType global du Step 1
   const [techConcept,   setTechConcept]   = useState('')
   const [techStageSeq,  setTechStageSeq]  = useState(1)
   const [deciBlocks,    setDeciBlocks]    = useState<Array<{ id: string; title: string }>>([{ id: crypto.randomUUID(), title: '' }])
+  // Story 21.1 — Goal & Player : sélecteurs Module (1-3) + ENT (1-15)
+  const [gpModule,      setGpModule]      = useState<1 | 2 | 3>(1)
+  const [gpEntNumber,   setGpEntNumber]   = useState(1)
+  // Story 21.1 — Titre de la séance auto-généré + éditable
+  const [sessionTitle,  setSessionTitle]  = useState('')
+  // Story 21.2 — Blocs thème/séquence/ressource (Step 3)
+  const [themeBlocks,   setThemeBlocks]   = useState<ThemeBlockDraft[]>([])
+  // Story 21.3 — Ateliers (Step 4)
+  const [workshops,     setWorkshops]     = useState<SessionWorkshopDraft[]>([])
 
   // ── Result ───────────────────────────────────────────────────
   const [creating,  setCreating]  = useState(false)
-  const [result,    setResult]    = useState<{ created: number; failed: number } | null>(null)
+  const [result,    setResult]    = useState<{ created: number; failed: number; linkWarnings?: number } | null>(null)
 
   // ── Load on mount — le layout admin garantit que l'auth est résolue ───────
   // La Supabase client a déjà le JWT depuis le localStorage avant ce montage.
@@ -678,11 +786,14 @@ export default function NewSessionPage() {
   }, [groupId, groups])
 
   // ── Reset contentRef states when session type changes ──────────────────────
+  // Story 21.1 : techniqueCtx supprimé — le contexte vient de contextType global
   useEffect(() => {
-    setTechniqueCtx('academie')
     setTechConcept('')
     setTechStageSeq(1)
-    setDeciBlocks([{ title: '' }])
+    setDeciBlocks([{ id: crypto.randomUUID(), title: '' }])
+    setGpModule(1)
+    setGpEntNumber(1)
+    setSessionTitle('')
   }, [sessionType])
 
   // ── Date toggle ────────────────────────────────────────────────────────────
@@ -735,18 +846,28 @@ export default function NewSessionPage() {
     const leadCoachId = coachLeads[0] ?? null
 
     const sortedDates = [...selectedDates].sort()
+    let linkWarnings = 0
     for (let i = 0; i < sortedDates.length; i++) {
       const dateStr     = sortedDates[i]
       const [sy, sm, sd] = dateStr.split('-').map(Number)
       const scheduledAt = new Date(sy, sm - 1, sd, startHour, startMinute, 0).toISOString()
       // Build contentRef per session type (AC7 — structure correcte selon la méthode)
+      // Story 21.1 : techniqueCtx remplacé par contextType global ; GP utilise gpModule + gpEntNumber
       const st = sessionType as SessionType
       let sessionContentRef: SessionContentRef
       if (st === 'decisionnel') {
         sessionContentRef = { method: 'decisionnel', blocks: deciBlocks.filter(b => b.title.trim() !== '').map(b => ({ title: b.title })) }
-      } else if (st === 'technique' && techniqueCtx === 'stage') {
+      } else if (st === 'technique' && contextType === 'stage') {
         sessionContentRef = { method: 'technique', context: 'stage', concept: techConcept.trim(), sequence: techStageSeq + i }
-      } else if (st === 'goal_and_player' || st === 'technique' || st === 'situationnel') {
+      } else if (st === 'goal_and_player') {
+        // Nouveau format Story 21.1 : module + entNumber + globalNumber
+        // Rollover automatique si entNumber dépasse 15 (passage au module suivant)
+        const globalOffset = (gpModule - 1) * 15 + gpEntNumber - 1 + i  // 0-indexed global position
+        const mod = (Math.floor(globalOffset / 15) + 1) as 1 | 2 | 3
+        const ent = (globalOffset % 15) + 1
+        const globalNum = globalOffset + 1
+        sessionContentRef = { method: 'goal_and_player', module: mod, entNumber: ent, globalNumber: globalNum }
+      } else if (st === 'technique' || st === 'situationnel') {
         sessionContentRef = computeContentRef(st, trainingNumber - 1 + i)
       } else {
         // perfectionnement | integration | equipe (ou vide si type non défini)
@@ -762,6 +883,9 @@ export default function NewSessionPage() {
         location   : finalTerrain || undefined,
         sessionType: sessionType as SessionType || undefined,
         contentRef : sessionContentRef,
+        // Story 21.1 — contexte global + titre auto-généré
+        contextType,
+        label      : sessionTitle.trim() || undefined,
       })
 
       if (error || !session) { failed++; continue }
@@ -776,10 +900,61 @@ export default function NewSessionPage() {
       // Pre-fill attendance roster from group members (seulement pour groupes réels)
       if (!isPonctuel) await prefillSessionAttendees(session.id).catch(() => {})
 
+      // Story 21.2 — Lier les blocs thème (best-effort : erreurs loggées mais non-bloquantes)
+      for (let j = 0; j < themeBlocks.length; j++) {
+        const b = themeBlocks[j]
+        if (!b.themeId) continue
+        const { error: linkErr } = await addSessionThemeBlock({
+          sessionId : session.id,
+          tenantId  : session.tenantId,
+          themeId   : b.themeId,
+          sequenceId: b.sequenceId ?? undefined,
+          resourceId: b.resourceId ?? undefined,
+          sortOrder : j,
+        })
+        if (linkErr) { console.warn(`[NewSession] addSessionThemeBlock[${j}] error:`, linkErr); linkWarnings++ }
+      }
+
+      // Story 21.3 — Persister les ateliers (best-effort)
+      for (let k = 0; k < workshops.length; k++) {
+        const w = workshops[k]
+        if (w.pdfUploading || w.cardUploading) continue  // skip si upload en cours
+
+        // Mode création : les fichiers sont stockés localement avec une blob: URL.
+        // Maintenant que session.id est connu, on peut faire le vrai upload.
+        let pdfUrl: string | undefined
+        if (w.pdfUrl?.startsWith('blob:') && w.pdfFile) {
+          const { url } = await uploadWorkshopPdf(w.pdfFile, session.tenantId, session.id)
+          pdfUrl = url ?? undefined
+        } else if (w.pdfUrl && !w.pdfUrl.startsWith('blob:')) {
+          pdfUrl = w.pdfUrl
+        }
+
+        let cardUrl: string | undefined
+        if (w.cardUrl?.startsWith('blob:') && w.cardFile) {
+          const { url } = await uploadWorkshopCard(w.cardFile, session.tenantId, session.id)
+          cardUrl = url ?? undefined
+        } else if (w.cardUrl && !w.cardUrl.startsWith('blob:')) {
+          cardUrl = w.cardUrl
+        }
+
+        const { error: wErr } = await addSessionWorkshop({
+          sessionId : session.id,
+          tenantId  : session.tenantId,
+          title     : w.title.trim() || `Atelier ${k + 1}`,
+          sortOrder : k,
+          pdfUrl,
+          cardLabel : w.cardLabel ?? undefined,
+          cardUrl,
+          notes     : w.notes.trim() || undefined,
+        })
+        if (wErr) { console.warn(`[NewSession] addSessionWorkshop[${k}] error:`, wErr); linkWarnings++ }
+      }
+
       created++
     }
 
-    setResult({ created, failed })
+    setResult({ created, failed, linkWarnings: linkWarnings > 0 ? linkWarnings : undefined })
     } catch (err) {
       console.error('[NewSession] handleCreate unexpected error:', err)
       setResult({ created: 0, failed: selectedDates.length })
@@ -826,22 +1001,32 @@ export default function NewSessionPage() {
     contextMode === 'existing' ? !!groupId : !!sessionLabel.trim()
   )
   // contentRefValid : bloque si le sous-formulaire obligatoire n'est pas rempli (AC7)
+  // Story 21.1 : techniqueCtx → contextType global
   const contentRefValid = (() => {
     const st = sessionType as SessionType
     if (st === 'decisionnel') return deciBlocks.some(b => b.title.trim() !== '')
-    if (st === 'technique' && techniqueCtx === 'stage') return techConcept.trim() !== ''
+    if (st === 'technique' && contextType === 'stage') return techConcept.trim() !== ''
     return true // GP, Technique académie, Situationnel, types vides — toujours valide
   })()
   // Step 2 (Détails) : bloqué si contentRef invalide ou coach principal manquant
   const step2Valid = contentRefValid && coachLeads.length > 0
-  // Step 3 (Date) : au moins une date + séquence multi-date dans les bornes
-  const step3Valid = (() => {
+  // Step 3 (Thèmes) : toujours valide — 0 blocs autorisé (Story 21.2)
+  const step3Valid = true
+  // Step 4 (Ateliers) : toujours valide — 0 ateliers autorisé (Story 21.3)
+  const step4Valid = true
+  // Step 5 (Date) : au moins une date + séquence multi-date dans les bornes
+  // Story 21.1 : techniqueCtx → contextType global
+  const step5Valid = (() => {
     if (selectedDates.length === 0) return false
     if (!singleMode && selectedDates.length > 1) {
       const st = sessionType as SessionType
-      if (st === 'technique' && techniqueCtx === 'stage') {
+      if (st === 'technique' && contextType === 'stage') {
         if (techStageSeq + selectedDates.length - 1 > 8) return false
-      } else if (st === 'goal_and_player' || st === 'situationnel' || st === 'technique') {
+      } else if (st === 'goal_and_player') {
+        // Rollover inter-modules supporté — limite globale 45 ENTs (3 modules × 15)
+        const globalStart = (gpModule - 1) * 15 + gpEntNumber
+        if (globalStart + selectedDates.length - 1 > 45) return false
+      } else if (st === 'situationnel' || st === 'technique') {
         const max = TRAINING_MAX[st] ?? 20
         if (trainingNumber + selectedDates.length - 1 > max) return false
       }
@@ -865,6 +1050,11 @@ export default function NewSessionPage() {
               {result.failed} échec{result.failed !== 1 ? 's' : ''}
             </AureakText>
           )}
+          {result.linkWarnings && result.linkWarnings > 0 && (
+            <AureakText variant="caption" style={{ color: '#f59e0b', textAlign: 'center' as never, marginTop: space.xs }}>
+              ⚠️ {result.linkWarnings} bloc{result.linkWarnings !== 1 ? 's' : ''} thème non lié{result.linkWarnings !== 1 ? 's' : ''} (contenu dupliqué possible)
+            </AureakText>
+          )}
           <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center' as never, marginTop: space.sm }}>
             {contextMode === 'ponctuel' ? sessionLabel : selectedGroup?.name} · {selectedDates.length} date{selectedDates.length !== 1 ? 's' : ''}
           </AureakText>
@@ -875,6 +1065,7 @@ export default function NewSessionPage() {
                 // Reset complet de tous les champs du formulaire
                 setResult(null); setStep(1)
                 setImplantationId(''); setContextMode('existing'); setSessionLabel('')
+                setContextType('academie')
                 setGroupId(''); setSelectedGroup(null); setGroupStaff([])
                 setSessionType('')
                 setSingleMode(true); setSelectedDates([])
@@ -882,8 +1073,12 @@ export default function NewSessionPage() {
                 setCoachLeads([]); setCoachAssistants([]); setCoachReplacements([])
                 setTerrain(''); setCustomTerrain('')
                 setTrainingNumber(1)
-                setTechniqueCtx('academie'); setTechConcept(''); setTechStageSeq(1)
+                setTechConcept(''); setTechStageSeq(1)
                 setDeciBlocks([{ id: crypto.randomUUID(), title: '' }])
+                setGpModule(1); setGpEntNumber(1)
+                setSessionTitle('')
+                setThemeBlocks([])
+                setWorkshops([])
               }}
             >
               <AureakText variant="body" style={{ color: colors.text.dark }}>Nouvelle séance</AureakText>
@@ -961,7 +1156,25 @@ export default function NewSessionPage() {
             )}
           </View>
 
-          {/* Toggle contexte */}
+          {/* Toggle Contexte pédagogique — Story 21.1 */}
+          <View style={p.card}>
+            <SectionLabel title="Contexte pédagogique" hint="Académie = entraînement hebdomadaire · Stage = intensif ponctuel" />
+            <View style={p.modeRow}>
+              {(['academie', 'stage'] as const).map(ctx => (
+                <Pressable
+                  key={ctx}
+                  style={[p.modeBtn, contextType === ctx && p.modeBtnActive]}
+                  onPress={() => setContextType(ctx)}
+                >
+                  <AureakText style={{ textAlign: 'center' as never, fontSize: 13, color: contextType === ctx ? colors.text.dark : colors.text.muted, fontWeight: contextType === ctx ? '700' as never : '400' as never }}>
+                    {ctx === 'academie' ? '🏫  Académie' : '🏕️  Stage'}
+                  </AureakText>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Toggle type de séance (groupe existant / ponctuel) */}
           <View style={p.card}>
             <SectionLabel title="Type de séance" hint="Une séance ponctuelle ne crée pas de groupe permanent" />
             <View style={p.modeRow}>
@@ -1113,9 +1326,10 @@ export default function NewSessionPage() {
             )}
           </View>
 
-          {/* ── Entraînement N° (types séquentiels uniquement) ── */}
-          {(sessionType === 'goal_and_player' || sessionType === 'situationnel' ||
-            (sessionType === 'technique' && techniqueCtx === 'academie')) && (
+          {/* ── Entraînement N° (types séquentiels, hors GP qui a ses propres sélecteurs) ── */}
+          {/* Story 21.1 : goal_and_player géré via Module+ENT — exclure du sélecteur générique */}
+          {(sessionType === 'situationnel' ||
+            (sessionType === 'technique' && contextType === 'academie')) && (
             <View style={p.card}>
               <SectionLabel
                 title="Entraînement"
@@ -1167,23 +1381,19 @@ export default function NewSessionPage() {
             <View style={p.card}>
               <SectionLabel title="Contenu pédagogique" hint="Référence précise dans le cycle pédagogique" />
 
-              {/* Technique : choix académie / stage */}
+              {/* Technique : contexte dérivé du Step 1 (contextType global — Story 21.1) */}
               {sessionType === 'technique' && (
                 <View style={{ gap: space.sm }}>
-                  <View style={{ flexDirection: 'row' as never, gap: space.sm }}>
-                    {(['academie', 'stage'] as const).map(ctx => (
-                      <Pressable
-                        key={ctx}
-                        style={[cp.chip, techniqueCtx === ctx && cp.chipActive]}
-                        onPress={() => { setTechniqueCtx(ctx); setTechConcept(''); setTechStageSeq(1) }}
-                      >
-                        <AureakText style={{ fontSize: 12, color: techniqueCtx === ctx ? colors.text.dark : colors.text.muted, fontWeight: techniqueCtx === ctx ? '700' as never : '400' as never }}>
-                          {ctx === 'academie' ? 'Académie' : 'Stage'}
-                        </AureakText>
-                      </Pressable>
-                    ))}
+                  <View style={[p.infoNote, { borderColor: colors.accent.gold + '30', backgroundColor: colors.accent.gold + '08' }]}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                      Contexte :{' '}
+                      <AureakText style={{ fontWeight: '700' as never, color: colors.accent.gold }}>
+                        {contextType === 'academie' ? '🏫 Académie' : '🏕️ Stage'}
+                      </AureakText>
+                      {' · '}défini en Step 1
+                    </AureakText>
                   </View>
-                  {techniqueCtx === 'stage' && (
+                  {contextType === 'stage' && (
                     <View style={{ gap: space.sm }}>
                       <SectionLabel title="Concept" hint="Requis — ex: Prise en main, Relance courte…" />
                       <TextInput
@@ -1202,7 +1412,7 @@ export default function NewSessionPage() {
                       <NumChips values={[1,2,3,4,5,6,7,8]} selected={techStageSeq} onSelect={setTechStageSeq} fmt={v => `Séq. ${v}`} />
                     </View>
                   )}
-                  {techniqueCtx === 'academie' && (
+                  {contextType === 'academie' && (
                     <View style={[p.infoNote, { borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' }]}>
                       {(() => {
                         const ref = computeContentRef('technique', trainingNumber - 1)
@@ -1272,22 +1482,43 @@ export default function NewSessionPage() {
                 </View>
               )}
 
-              {/* Goal & Player : aperçu module/séquence/half/repeat calculés */}
+              {/* Goal & Player : sélecteurs Module (1-3) + ENT (1-15) — Story 21.1 */}
               {sessionType === 'goal_and_player' && (
-                <View style={[p.infoNote, { borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' }]}>
-                  {(() => {
-                    const ref = computeContentRef('goal_and_player', trainingNumber - 1)
-                    const r = ref as { module: number; sequence: number; globalNumber: number; half: string; repeat: number }
-                    return (
-                      <AureakText variant="caption" style={{ color: colors.accent.gold }}>
-                        Module <AureakText style={{ fontWeight: '700' as never }}>{r.module}</AureakText>
-                        {' · '}Séq. <AureakText style={{ fontWeight: '700' as never }}>{r.sequence}</AureakText>
-                        {' · '}GP #<AureakText style={{ fontWeight: '700' as never }}>{r.globalNumber}</AureakText>
-                        {' · '}Demi <AureakText style={{ fontWeight: '700' as never }}>{r.half}</AureakText>
-                        {' · '}Rép. <AureakText style={{ fontWeight: '700' as never }}>{r.repeat}</AureakText>
-                      </AureakText>
-                    )
-                  })()}
+                <View style={{ gap: space.sm }}>
+                  <SectionLabel title="Module" hint="Module 1, 2 ou 3" />
+                  <View style={{ flexDirection: 'row' as never, gap: space.xs }}>
+                    {([1, 2, 3] as const).map(mod => (
+                      <Pressable
+                        key={mod}
+                        style={[ss2.trainingChip, { minWidth: 80 }, gpModule === mod && ss2.trainingChipActive]}
+                        onPress={() => setGpModule(mod)}
+                      >
+                        <AureakText style={{ fontSize: 12, fontWeight: gpModule === mod ? '700' as never : '400' as never, color: gpModule === mod ? colors.text.dark : colors.text.muted }}>
+                          Module {mod}
+                        </AureakText>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <SectionLabel title="ENT" hint="Entraînement 1 à 15 dans ce module" />
+                  <View style={ss2.trainingGrid}>
+                    {Array.from({ length: 15 }, (_, i) => i + 1).map(n => (
+                      <Pressable
+                        key={n}
+                        style={[ss2.trainingChip, gpEntNumber === n && ss2.trainingChipActive]}
+                        onPress={() => setGpEntNumber(n)}
+                      >
+                        <AureakText style={{ fontSize: 12, fontWeight: gpEntNumber === n ? '700' as never : '400' as never, color: gpEntNumber === n ? colors.text.dark : colors.text.muted }}>
+                          {n}
+                        </AureakText>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <View style={[p.infoNote, { borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '10' }]}>
+                    <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+                      Référence : <AureakText style={{ fontWeight: '700' as never }}>Goal & Player – Module {gpModule} – ENT {gpEntNumber}</AureakText>
+                      {' · '}Global #<AureakText style={{ fontWeight: '700' as never }}>{(gpModule - 1) * 15 + gpEntNumber}</AureakText>
+                    </AureakText>
+                  </View>
                 </View>
               )}
             </View>
@@ -1372,6 +1603,21 @@ export default function NewSessionPage() {
             )}
           </View>
 
+          {/* ── Titre de la séance (Story 21.1) ─────────────────────── */}
+          {sessionType && (
+            <TitleField
+              sessionType={sessionType as SessionType}
+              contextType={contextType}
+              gpModule={gpModule}
+              gpEntNumber={gpEntNumber}
+              trainingNumber={trainingNumber}
+              techConcept={techConcept}
+              techStageSeq={techStageSeq}
+              deciBlocks={deciBlocks}
+              value={sessionTitle}
+              onChange={setSessionTitle}
+            />
+          )}
 
           <View style={p.navRow}>
             <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(1)}>
@@ -1383,7 +1629,7 @@ export default function NewSessionPage() {
               disabled={!step2Valid}
             >
               <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
-                Date →
+                Thèmes →
               </AureakText>
             </Pressable>
           </View>
@@ -1391,9 +1637,82 @@ export default function NewSessionPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          STEP 3 — Date & Horaire
+          STEP 3 — Thèmes pédagogiques
           ═══════════════════════════════════════════════════════════ */}
       {step === 3 && (
+        <View style={p.stepWrap}>
+          <View style={[p.card, p.cardWithDropdown]}>
+            <SectionLabel title="Thèmes pédagogiques" hint="Optionnel — 0 à N thèmes par séance" />
+            <ThemeBlockPicker
+              methodFilter={sessionType ? (SESSION_TYPE_TO_METHOD[sessionType as SessionType] ?? null) : null}
+              blocks={themeBlocks}
+              onAdd={() => setThemeBlocks(prev => [...prev, { themeId: '', themeName: '', sequenceId: null, sequenceName: null, resourceId: null, resourceLabel: null }])}
+              onRemove={i => setThemeBlocks(prev => prev.filter((_, idx) => idx !== i))}
+              onUpdate={(i, patch) => setThemeBlocks(prev => prev.map((b, idx) => idx === i ? { ...b, ...patch } : b))}
+              onReorder={(i, dir) => {
+                setThemeBlocks(prev => {
+                  const next = [...prev]
+                  const j = dir === 'up' ? i - 1 : i + 1
+                  if (j < 0 || j >= next.length) return prev
+                  ;[next[i], next[j]] = [next[j], next[i]]
+                  return next
+                })
+              }}
+            />
+          </View>
+          <View style={p.navRow}>
+            <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(2)}>
+              <AureakText variant="body" style={{ color: colors.text.dark }}>← Retour</AureakText>
+            </Pressable>
+            <Pressable style={[p.btn, p.btnPrimary]} onPress={() => setStep(4)}>
+              <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>Ateliers →</AureakText>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          STEP 4 — Ateliers
+          ═══════════════════════════════════════════════════════════ */}
+      {step === 4 && (
+        <View style={p.stepWrap}>
+          <View style={p.card}>
+            <SectionLabel title="Ateliers" hint="Optionnel — 0 à 4 ateliers par séance (PDF, carte, notes)" />
+            <WorkshopBlockEditor
+              workshops={workshops}
+              onAdd={() => setWorkshops(prev => [...prev, {
+                title: '', pdfUrl: null, pdfFile: null, pdfUploading: false,
+                cardLabel: null, cardUrl: null, cardFile: null, cardUploading: false, notes: '',
+              }])}
+              onRemove={i => setWorkshops(prev => prev.filter((_, idx) => idx !== i))}
+              onUpdate={(i, patch) => setWorkshops(prev => prev.map((w, idx) => idx === i ? { ...w, ...patch } : w))}
+              onReorder={(i, dir) => {
+                setWorkshops(prev => {
+                  const next = [...prev]
+                  const j = dir === 'up' ? i - 1 : i + 1
+                  if (j < 0 || j >= next.length) return prev
+                  ;[next[i], next[j]] = [next[j], next[i]]
+                  return next
+                })
+              }}
+              tenantId={tenantId}
+            />
+          </View>
+          <View style={p.navRow}>
+            <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(3)}>
+              <AureakText variant="body" style={{ color: colors.text.dark }}>← Retour</AureakText>
+            </Pressable>
+            <Pressable style={[p.btn, p.btnPrimary]} onPress={() => setStep(5)}>
+              <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>Date →</AureakText>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          STEP 5 — Date & Horaire
+          ═══════════════════════════════════════════════════════════ */}
+      {step === 5 && (
         <View style={p.stepWrap}>
 
           {selectedGroup && <GroupCard group={selectedGroup} implantationName={implantName} staff={groupStaff} />}
@@ -1448,13 +1767,13 @@ export default function NewSessionPage() {
           </View>
 
           <View style={p.navRow}>
-            <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(2)}>
+            <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(4)}>
               <AureakText variant="body" style={{ color: colors.text.dark }}>← Retour</AureakText>
             </Pressable>
             <Pressable
-              style={[p.btn, p.btnPrimary, !step3Valid && p.btnDisabled]}
-              onPress={() => step3Valid && setStep(4)}
-              disabled={!step3Valid}
+              style={[p.btn, p.btnPrimary, !step5Valid && p.btnDisabled]}
+              onPress={() => step5Valid && setStep(6)}
+              disabled={!step5Valid}
             >
               <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
                 Réviser →
@@ -1465,9 +1784,9 @@ export default function NewSessionPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          STEP 4 — Résumé & Création
+          STEP 6 — Résumé & Création
           ═══════════════════════════════════════════════════════════ */}
-      {step === 4 && (
+      {step === 6 && (
         <View style={p.stepWrap}>
 
           {/* Summary card */}
@@ -1478,10 +1797,12 @@ export default function NewSessionPage() {
               : <SummaryRow label="Groupe"            value={selectedGroup?.name ?? ''} />
             }
             <SummaryRow label="Implantation"    value={implantName} />
+            <SummaryRow label="Contexte"         value={contextType === 'academie' ? '🏫 Académie' : '🏕️ Stage'} />
             <SummaryRow label="Méthode"           value={sessionType ? SESSION_TYPE_LABELS[sessionType as SessionType] : ''} />
+            {sessionTitle ? <SummaryRow label="Titre" value={sessionTitle} /> : null}
             {sessionType === 'decisionnel' ? (
               <SummaryRow label="Contenu" value={`Décisionnel · ${deciBlocks.filter(b => b.title.trim()).length} bloc(s)`} />
-            ) : sessionType === 'technique' && techniqueCtx === 'stage' ? (
+            ) : sessionType === 'technique' && contextType === 'stage' ? (
               <SummaryRow label="Contenu" value={`Stage — ${techConcept} · Séq. ${techStageSeq}`} />
             ) : (
               <SummaryRow label="Entraînement n°" value={selectedDates.length > 1 ? `${trainingNumber} → ${trainingNumber + selectedDates.length - 1}` : String(trainingNumber)} />
@@ -1491,6 +1812,12 @@ export default function NewSessionPage() {
             <SummaryRow label="Coachs assistants" value={coachAssistantNames} />
             {coachReplacementNames ? <SummaryRow label="Remplaçants (mémo)" value={`${coachReplacementNames} · non enregistré`} /> : null}
             <SummaryRow label="Terrain"           value={finalTerrainLabel} />
+            {themeBlocks.filter(b => b.themeId).length > 0 && (
+              <SummaryRow label="Thèmes" value={`${themeBlocks.filter(b => b.themeId).length} thème(s) sélectionné(s)`} />
+            )}
+            {workshops.length > 0 && (
+              <SummaryRow label="Ateliers" value={`${workshops.length} atelier(s)`} />
+            )}
           </View>
 
           {/* Date list */}
@@ -1508,21 +1835,29 @@ export default function NewSessionPage() {
           </View>
 
           <View style={p.navRow}>
-            <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(3)}>
+            <Pressable style={[p.btn, p.btnSecondary]} onPress={() => setStep(5)}>
               <AureakText variant="body" style={{ color: colors.text.dark }}>← Modifier</AureakText>
             </Pressable>
-            <Pressable
-              style={[p.btn, p.btnCreate, creating && p.btnDisabled]}
-              onPress={handleCreate}
-              disabled={creating}
-            >
-              <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
-                {creating
-                  ? '⟳ Création en cours…'
-                  : `✦ Créer ${selectedDates.length} séance${selectedDates.length !== 1 ? 's' : ''}`
-                }
-              </AureakText>
-            </Pressable>
+            {(() => {
+              const uploading = workshops.some(w => w.pdfUploading || w.cardUploading)
+              const blocked   = creating || uploading
+              return (
+                <Pressable
+                  style={[p.btn, p.btnCreate, blocked && p.btnDisabled]}
+                  onPress={handleCreate}
+                  disabled={blocked}
+                >
+                  <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
+                    {uploading
+                      ? '⏳ Upload en cours…'
+                      : creating
+                        ? '⟳ Création en cours…'
+                        : `✦ Créer ${selectedDates.length} séance${selectedDates.length !== 1 ? 's' : ''}`
+                    }
+                  </AureakText>
+                </Pressable>
+              )
+            })()}
           </View>
         </View>
       )}

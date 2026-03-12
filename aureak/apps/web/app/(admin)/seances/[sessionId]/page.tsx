@@ -6,11 +6,12 @@ import {
   getSessionById, listSessionCoaches, listAttendancesBySession,
   listSessionAttendees, addGuestToSession, removeGuestFromSession, listChildDirectory,
   postponeSession, cancelSessionWithShift, getChildDirectoryEntry,
+  listSessionThemeBlocks, listSessionWorkshops,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -58,6 +59,10 @@ export default function SessionDetailPage() {
   const [guestNameMap,  setGuestNameMap] = useState<Record<string, string>>({})
   const [coachNameMap,  setCoachNameMap] = useState<Record<string, string>>({})
   const [childNameMap,  setChildNameMap] = useState<Record<string, string>>({})
+  // Story 21.2 — Theme blocks
+  const [themeBlocks,   setThemeBlocks]  = useState<SessionThemeBlock[]>([])
+  // Story 21.3 — Workshops
+  const [workshops,     setWorkshops]    = useState<SessionWorkshop[]>([])
   const [guestSearch,   setGuestSearch]  = useState('')
   const [guestResults, setGuestResults]= useState<ChildDirectoryEntry[]>([])
   const [showGuestPicker, setShowGuestPicker] = useState(false)
@@ -79,11 +84,13 @@ export default function SessionDetailPage() {
     setLoading(true)
     setLoadError(null)
     try {
-      const [s, c, a, att] = await Promise.all([
+      const [s, c, a, att, tb, ws] = await Promise.all([
         getSessionById(sessionId),
         listSessionCoaches(sessionId),
         listAttendancesBySession(sessionId),
         listSessionAttendees(sessionId),
+        listSessionThemeBlocks(sessionId),
+        listSessionWorkshops(sessionId),
       ])
       if (s.error || !s.data) {
         setLoadError('Séance introuvable ou accès refusé.')
@@ -94,6 +101,8 @@ export default function SessionDetailPage() {
       setCoaches(c.data)
       setAttendances(a.data)
       setAttendees(att.data)
+      setThemeBlocks(tb)
+      setWorkshops(ws)
 
       // Resolve coach names from profiles
       if (c.data.length > 0) {
@@ -271,7 +280,13 @@ export default function SessionDetailPage() {
         )}
       </View>
 
-      <AureakText variant="h2">{sessionDate}</AureakText>
+      {/* Story 21.1 — titre auto-généré s'il existe (AC8 : h1), sinon date */}
+      <AureakText variant="h1">{session.label ?? sessionDate}</AureakText>
+      {session.label && (
+        <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: -space.xs }}>
+          {sessionDate}
+        </AureakText>
+      )}
 
       {/* Infos session */}
       <View style={styles.card}>
@@ -291,6 +306,11 @@ export default function SessionDetailPage() {
         {session.sessionType && (
           <AureakText variant="body" style={{ color: colors.accent.gold }}>
             Contenu : {contentRefLabel(session)}
+          </AureakText>
+        )}
+        {session.contextType && (
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
+            Contexte : {session.contextType === 'academie' ? '🏫 Académie' : '🏕️ Stage'}
           </AureakText>
         )}
         <AureakText variant="body">
@@ -385,6 +405,63 @@ export default function SessionDetailPage() {
           </AureakText>
         )}
       </View>
+
+      {/* Thèmes pédagogiques (Story 21.2) */}
+      {!loading && (
+        <View style={styles.card}>
+          <AureakText variant="label">Thèmes pédagogiques</AureakText>
+          {themeBlocks.length > 0 ? themeBlocks.map((b, i) => (
+            <View key={b.id} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.xs, paddingVertical: 2 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, minWidth: 18 }}>{i + 1}.</AureakText>
+              <View style={{ flex: 1 }}>
+                <AureakText variant="body">{b.themeName ?? b.themeId}</AureakText>
+                {b.sequenceName && (
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                    Séquence : {b.sequenceName}
+                  </AureakText>
+                )}
+                {b.resourceLabel && (
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                    Ressource : {b.resourceLabel}
+                  </AureakText>
+                )}
+              </View>
+            </View>
+          )) : (
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+              Aucun thème associé
+            </AureakText>
+          )}
+        </View>
+      )}
+
+      {/* Ateliers (Story 21.3) */}
+      {!loading && workshops.length > 0 && (
+        <View style={styles.card}>
+          <AureakText variant="label">Ateliers ({workshops.length})</AureakText>
+          {workshops.map((w, i) => (
+            <View key={w.id} style={{ gap: 2, paddingVertical: 4, borderBottomWidth: i < workshops.length - 1 ? 1 : 0, borderBottomColor: colors.border.divider }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+                <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: colors.accent.gold + '20', borderWidth: 1, borderColor: colors.accent.gold + '50' }}>
+                  <AureakText style={{ fontSize: 10, fontWeight: '700' as never, color: colors.accent.gold }}>Atelier {i + 1}</AureakText>
+                </View>
+                <AureakText variant="body" style={{ fontWeight: '600' as never }}>{w.title}</AureakText>
+              </View>
+              {w.pdfUrl && (
+                <Pressable onPress={() => (window as never as Window & { open: (u: string, t: string) => void }).open(w.pdfUrl!, '_blank')}>
+                  <AureakText variant="caption" style={{ color: colors.accent.gold }}>📄 Voir PDF →</AureakText>
+                </Pressable>
+              )}
+              {w.cardLabel && (
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>🃏 {w.cardLabel}</AureakText>
+              )}
+              {w.notes && (
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>{w.notes}</AureakText>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Présences */}
       <View style={styles.card}>

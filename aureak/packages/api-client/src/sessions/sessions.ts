@@ -37,6 +37,9 @@ function mapSession(row: Record<string, unknown>): Session {
     closedAt              : (row['closed_at']             as string | null) ?? null,
     methodologySessionId  : (row['methodology_session_id'] as string | null) ?? null,
     notes                 : (row['notes']                 as string | null) ?? null,
+    // Story 21.1
+    contextType           : (row['context_type']          as 'academie' | 'stage' | null) ?? null,
+    label                 : (row['label']                 as string | null) ?? null,
   }
 }
 
@@ -54,6 +57,9 @@ export type CreateSessionParams = {
   // Story 13.1
   sessionType?    : SessionType
   contentRef?     : SessionContentRef
+  // Story 21.1
+  contextType?    : 'academie' | 'stage'
+  label?          : string
 }
 
 export async function createSession(
@@ -71,6 +77,9 @@ export async function createSession(
     // Story 13.1
     session_type    : params.sessionType ?? null,
     content_ref     : params.contentRef ?? {},
+    // Story 21.1
+    context_type    : params.contextType ?? 'academie',
+    label           : params.label ?? null,
   }
   if (params.tenantId) insertRow['tenant_id'] = params.tenantId
 
@@ -145,6 +154,9 @@ export type UpdateSessionParams = {
   // Story 19.5
   notes?              : string | null
   cancellationReason? : string | null
+  // Story 21.1
+  contextType?        : 'academie' | 'stage' | null
+  label?              : string | null
 }
 
 export async function updateSession(
@@ -164,6 +176,9 @@ export async function updateSession(
   // Story 19.5
   if (params.notes !== undefined)              updates['notes']               = params.notes
   if (params.cancellationReason !== undefined) updates['cancellation_reason'] = params.cancellationReason
+  // Story 21.1
+  if (params.contextType !== undefined)        updates['context_type']        = params.contextType
+  if (params.label !== undefined)              updates['label']               = params.label
 
   const { error } = await supabase
     .from('sessions')
@@ -429,14 +444,15 @@ export function computeContentRef(
       // index 0-14 = répétition 1 (A), index 15-29 = répétition 2 (B)
       const half   = index < 15 ? 'A' : 'B' as const
       const pos    = index % 15                        // 0-14
-      const mod    = Math.floor(pos / 5) + 1           // 1-3
-      const seq    = (pos % 5) + 1                     // 1-5
+      const mod    = (Math.floor(pos / 5) + 1) as 1 | 2 | 3  // 1-3
+      const seq    = (pos % 5) + 1                           // 1-5
       const repeat = (index < 15 ? 1 : 2) as 1 | 2
       return {
         method      : 'goal_and_player',
         module      : mod,
-        sequence    : seq,
+        entNumber   : seq,           // Story 21.1 : 1-5 mapped to entNumber (legacy auto-gen)
         globalNumber: pos + 1,
+        sequence    : seq,           // rétrocompat
         half,
         repeat,
       } satisfies GPContentRef
@@ -926,6 +942,9 @@ export type SessionRowAdmin = {
   sessionType       : SessionType | null
   cancellationReason: string | null
   coaches           : { coachId: string; role: string }[]
+  // Story 21.1
+  label             : string | null
+  contextType       : 'academie' | 'stage' | null
 }
 
 /**
@@ -940,9 +959,10 @@ export async function listSessionsAdminView(params: {
   groupId?       : string
   withCoaches    : boolean
 }): Promise<{ data: SessionRowAdmin[]; error: unknown }> {
+  // Story 21.1 : ajout de label + context_type dans le select
   const selectFields = params.withCoaches
-    ? 'id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason, session_coaches(coach_id, role)'
-    : 'id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason'
+    ? 'id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason, label, context_type, session_coaches(coach_id, role)'
+    : 'id, scheduled_at, duration_minutes, status, location, group_id, implantation_id, session_type, cancellation_reason, label, context_type'
 
   let query = supabase
     .from('sessions')
@@ -959,7 +979,7 @@ export async function listSessionsAdminView(params: {
   if (error) return { data: [], error }
 
   return {
-    data : ((data ?? []) as Record<string, unknown>[]).map(r => ({
+    data : ((data ?? []) as unknown as Record<string, unknown>[]).map(r => ({
       id                : r['id']                  as string,
       scheduledAt       : r['scheduled_at']        as string,
       durationMinutes   : r['duration_minutes']    as number,
@@ -969,6 +989,9 @@ export async function listSessionsAdminView(params: {
       implantationId    : r['implantation_id']     as string,
       sessionType       : r['session_type']        as SessionType | null,
       cancellationReason: r['cancellation_reason'] as string | null,
+      // Story 21.1
+      label             : (r['label']              as string | null) ?? null,
+      contextType       : (r['context_type']       as 'academie' | 'stage' | null) ?? null,
       coaches           : params.withCoaches
         ? ((r['session_coaches'] ?? []) as Record<string, string>[]).map(c => ({
             coachId: c['coach_id'],

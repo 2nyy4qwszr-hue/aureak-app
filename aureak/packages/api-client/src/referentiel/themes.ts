@@ -31,6 +31,9 @@ function mapTheme(r: any): Theme {
     version       : r.version,
     isCurrent     : r.is_current,
     imageUrl      : r.image_url ?? null,
+    orderIndex    : r.order_index ?? 0,
+    category      : r.category ?? null,
+    positionIndex : r.position_index ?? null,
     deletedAt     : r.deleted_at ?? null,
     createdAt     : r.created_at,
   }
@@ -153,6 +156,7 @@ export type CreateThemeParams = {
   ageGroup?      : AgeGroup
   targetAudience?: Record<string, unknown>
   imageUrl?      : string | null
+  category?      : string | null
 }
 
 export async function createTheme(
@@ -170,6 +174,7 @@ export async function createTheme(
       age_group      : params.ageGroup ?? null,
       target_audience: params.targetAudience ?? {},
       image_url      : params.imageUrl ?? null,
+      category       : params.category ?? null,
     })
     .select()
     .single()
@@ -178,29 +183,33 @@ export async function createTheme(
 }
 
 export async function listThemes(
-  params?: { groupId?: string }
+  params?: { groupId?: string; category?: string }
 ): Promise<{ data: Theme[]; error: unknown }> {
   let query = supabase
     .from('themes')
     .select('*')
     .eq('is_current', true)
     .is('deleted_at', null)
-    .order('name', { ascending: true })
+    .order('position_index', { ascending: true, nullsFirst: false })
+    .order('order_index',    { ascending: true, nullsFirst: false })
+    .order('name',           { ascending: true })
 
-  if (params?.groupId) {
-    query = query.eq('group_id', params.groupId)
-  }
+  if (params?.groupId)  query = query.eq('group_id', params.groupId)
+  if (params?.category) query = query.eq('category', params.category)
 
   const { data, error } = await query
   return { data: data ? (data as unknown[]).map(mapTheme) : [], error }
 }
 
 export type UpdateThemeParams = {
-  id          : string
-  name?       : string
-  description?: string | null
-  groupId?    : string | null
-  imageUrl?   : string | null
+  id             : string
+  name?          : string
+  description?   : string | null
+  groupId?       : string | null
+  imageUrl?      : string | null
+  orderIndex?    : number
+  category?      : string | null
+  positionIndex? : number | null
 }
 
 export async function updateTheme(
@@ -211,6 +220,9 @@ export async function updateTheme(
   if (params.description !== undefined) payload.description = params.description
   if (params.groupId     !== undefined) payload.group_id    = params.groupId
   if (params.imageUrl    !== undefined) payload.image_url   = params.imageUrl
+  if (params.orderIndex     !== undefined) payload.order_index    = params.orderIndex
+  if (params.category       !== undefined) payload.category       = params.category
+  if (params.positionIndex  !== undefined) payload.position_index = params.positionIndex
 
   const { data, error } = await supabase
     .from('themes')
@@ -220,6 +232,28 @@ export async function updateTheme(
     .single()
 
   return { data: data ? mapTheme(data) : null, error }
+}
+
+export async function updateThemeOrder(
+  id        : string,
+  orderIndex: number,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('themes')
+    .update({ order_index: orderIndex })
+    .eq('id', id)
+  return { error }
+}
+
+export async function updateThemePositionIndex(
+  id           : string,
+  positionIndex: number | null,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('themes')
+    .update({ position_index: positionIndex })
+    .eq('id', id)
+  return { error }
 }
 
 export async function getThemeByKey(
@@ -272,7 +306,22 @@ export async function createNewThemeVersion(
     p_tenant_id      : params.tenantId,
   })
 
-  return { data: data ? mapTheme(data) : null, error }
+  if (error || !data) return { data: null, error }
+
+  // Transférer position_index vers la nouvelle version.
+  // L'ancienne version est maintenant is_current = false, donc la contrainte
+  // uq_themes_group_position (WHERE is_current = true) ne bloque pas.
+  const newTheme = mapTheme(data)
+  if (raw.position_index != null) {
+    const { error: posError } = await updateThemePositionIndex(newTheme.id, raw.position_index as number)
+    if (posError) {
+      // La version est créée mais la position n'a pas été transférée — on remonte l'erreur.
+      return { data: newTheme, error: posError }
+    }
+    newTheme.positionIndex = raw.position_index as number
+  }
+
+  return { data: newTheme, error: null }
 }
 
 // ─── ThemeSequence ────────────────────────────────────────────────────────────

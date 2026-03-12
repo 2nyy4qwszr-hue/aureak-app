@@ -129,6 +129,9 @@ export type Theme = {
   version        : number
   isCurrent      : boolean
   imageUrl       : string | null               // bannière visuelle (Story 20-2)
+  orderIndex     : number                      // position drag&drop (Story 20-3)
+  category       : string | null               // catégorie pédagogique (Story 20-3)
+  positionIndex  : number | null               // slot fixe 1–25 dans la grille (Story 20-4)
   deletedAt      : string | null
   createdAt      : string
 }
@@ -327,14 +330,20 @@ export type TargetAudience = {
 // Story 13.1 — Sessions v2 : content_ref types (migration 00058)
 // ============================================================
 
-/** Référence contenu Goal & Player : 3 modules × 5 séances, répétés 2× par an */
+/** Référence contenu Goal & Player : 3 modules × 15 ENT = 45 entraînements distincts (Story 21.1)
+ *  Rétrocompatibilité : les anciennes séances portent `sequence`/`half`/`repeat` (ancien format).
+ *  Nouveau format : `entNumber` (1-15 par module) + `globalNumber` = (module-1)*15 + entNumber.
+ *  Pour distinguer : si `contentRef.entNumber` existe → nouveau format ; si `contentRef.sequence` existe → ancien format.
+ */
 export type GPContentRef = {
   method      : 'goal_and_player'
-  module      : number        // 1-3
-  sequence    : number        // 1-5
-  globalNumber: number        // (module-1)*5 + sequence, 1-15
-  half        : 'A' | 'B'    // demi-séquence (15A + 15B = 30 séances/an)
-  repeat      : 1 | 2        // 1ère ou 2ème répétition dans l'année
+  module      : 1 | 2 | 3    // Module 1, 2 ou 3
+  entNumber   : number        // 1-15 par module (nouveau champ — Story 21.1)
+  globalNumber: number        // (module-1)*15 + entNumber, 1-45
+  // Rétrocompatibilité — présents dans les anciennes séances uniquement
+  sequence?   : number        // 1-5 (ancien format — ne pas utiliser en création)
+  half?       : 'A' | 'B'    // ancien format
+  repeat?     : 1 | 2        // ancien format
 }
 
 /** Référence contenu Technique — contexte académie : 8 modules × 4 séances = 32 */
@@ -648,6 +657,9 @@ export type Session = {
   methodologySessionId  : string | null
   // Story 19.5 — Notes admin libres (migration 00066)
   notes                 : string | null
+  // Story 21.1 — Training Builder : contexte global + titre auto-généré (migration 00071)
+  contextType           : 'academie' | 'stage' | null   // contexte pédagogique global
+  label                 : string | null                  // titre lisible, ex: "Goal & Player – Module 2 – ENT 7"
 }
 
 /** SessionCoach — coach assigné à une séance */
@@ -665,6 +677,62 @@ export type SessionTheme = {
   themeId   : string
   tenantId  : string
   sortOrder : number | null
+}
+
+/**
+ * SessionThemeBlock — bloc thème/séquence/ressource lié à une séance opérationnelle (Story 21.2)
+ * Distinct de SessionTheme (migration 00050) et de methodology_session_themes.
+ * Stocké dans la table `session_theme_blocks` (migration 00072).
+ */
+export type SessionThemeBlock = {
+  id            : string
+  tenantId      : string
+  sessionId     : string
+  themeId       : string
+  sequenceId    : string | null
+  resourceId    : string | null
+  sortOrder     : number
+  createdAt     : string
+  // Données jointes pour l'affichage (optionnelles — absentes si pas de JOIN)
+  themeName?    : string
+  sequenceName? : string
+  resourceLabel?: string
+  resourceUrl?  : string
+}
+
+/**
+ * SessionWorkshop — atelier pratique lié à une séance opérationnelle (Story 21.3)
+ * Stocké dans la table `session_workshops` (migration 00076).
+ */
+export type SessionWorkshop = {
+  id        : string
+  tenantId  : string
+  sessionId : string
+  title     : string
+  sortOrder : number
+  pdfUrl    : string | null
+  cardLabel : string | null
+  cardUrl   : string | null
+  notes     : string | null
+  createdAt : string
+  updatedAt : string
+}
+
+/**
+ * SessionWorkshopDraft — état local d'un atelier dans les formulaires création/édition.
+ * `id` est présent uniquement en mode édition (atelier existant en DB).
+ */
+export type SessionWorkshopDraft = {
+  id?          : string   // présent si atelier existant (mode édition)
+  title        : string
+  pdfUrl       : string | null
+  pdfFile      : File | null  // fichier local en attente d'upload (mode création sans sessionId)
+  pdfUploading : boolean
+  cardLabel    : string | null
+  cardUrl      : string | null
+  cardFile     : File | null  // fichier local en attente d'upload (mode création sans sessionId)
+  cardUploading: boolean
+  notes        : string
 }
 
 /** SessionSituation — situation associée à une séance */
@@ -953,7 +1021,11 @@ export type ChildDirectoryEntry = {
 
   // Identité
   displayName     : string
+  nom             : string | null    // Nom de famille (distinct de displayName — migration 00073)
+  prenom          : string | null    // Prénom (distinct de displayName — migration 00073)
   birthDate       : string | null    // ISO date
+  email           : string | null    // Contact direct du joueur (migration 00075)
+  tel             : string | null    // Téléphone du joueur (migration 00075)
   statut          : string | null    // 'Académicien' | 'Ancien' | 'Nouveau' | 'Stagiaire'
 
   // Club actuel (texte import + FK annuaire)

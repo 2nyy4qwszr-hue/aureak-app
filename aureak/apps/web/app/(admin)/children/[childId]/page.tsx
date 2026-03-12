@@ -40,7 +40,7 @@ import { ACADEMY_STATUS_CONFIG, generateAcademyBadges } from '@aureak/business-l
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import { FOOTBALL_AGE_CATEGORIES, FOOTBALL_TEAM_LEVELS } from '@aureak/types'
+import { FOOTBALL_AGE_CATEGORIES, FOOTBALL_TEAM_LEVELS, formatNomPrenom } from '@aureak/types'
 import type {
   ChildDirectoryEntry,
   ChildDirectoryHistory,
@@ -1186,8 +1186,11 @@ export default function ChildDetailPage() {
   // ── Section saves ───────────────────────────────────────────────────────────
 
   const saveIdentite = () => saveEdit({
-    displayName: draft.displayName || child!.displayName,
-    birthDate  : draft.birthDate   ?? null,
+    nom      : draft.nom       ?? null,
+    prenom   : draft.prenom    ?? null,
+    birthDate: draft.birthDate ?? null,
+    email    : draft.email     ?? null,
+    tel      : draft.tel       ?? null,
   })
 
   const saveClub = () => saveEdit({
@@ -1250,6 +1253,8 @@ export default function ChildDetailPage() {
 
   const isEditing = (sec: EditSection) => editSection === sec
 
+  const currentPhoto = photos.find(p => p.isCurrent) ?? photos[0] ?? null
+
   return (
     <>
       <ScrollView style={s.container} contentContainerStyle={s.content}>
@@ -1261,18 +1266,47 @@ export default function ChildDetailPage() {
           </Pressable>
         </View>
 
-        {/* ── Hero : nom + statut calculé + toggle actif ── */}
+        {/* ── Hero : photo + NOM Prénom + statut + club + toggle actif ── */}
         <View style={s.heroCard}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: space.sm }}>
-            <View style={{ flex: 1 }}>
-              <AureakText variant="h2" color={colors.accent.gold}>{child.displayName}</AureakText>
-              {child.birthDate && (
-                <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-                  {new Date(child.birthDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+          <View style={{ flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
+
+            {/* Photo joueur 120px */}
+            {currentPhoto?.photoUrl ? (
+              // web-only — Expo Router admin (pas de rendu natif)
+              <img
+                src={currentPhoto.photoUrl}
+                alt={formatNomPrenom(child.nom, child.prenom, child.displayName)}
+                style={{ width: 120, height: 120, borderRadius: 60, objectFit: 'cover' }}
+              />
+            ) : (
+              <View style={s.heroPicFallback}>
+                <AureakText style={s.heroInitials}>
+                  {formatNomPrenom(child.nom, child.prenom, child.displayName)
+                    .split(' ')
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(w => w[0]?.toUpperCase() ?? '')
+                    .join('')}
                 </AureakText>
+              </View>
+            )}
+
+            {/* Infos joueur */}
+            <View style={{ flex: 1, gap: 6 }}>
+              <AureakText variant="h2" color={colors.accent.gold}>
+                {formatNomPrenom(child.nom, child.prenom, child.displayName)}
+              </AureakText>
+              {child.currentClub && (
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>{child.currentClub}</AureakText>
+              )}
+              {academyData ? (
+                <AcademyStatusHeader data={academyData} />
+              ) : (
+                child.statut && <Badge label={child.statut} variant="zinc" />
               )}
             </View>
-            {/* Toggle actif/inactif cliquable */}
+
+            {/* Toggle actif/inactif */}
             <Pressable onPress={handleToggleActif} disabled={togglingActif} style={s.actifToggle}>
               <View style={[s.actifDot, { backgroundColor: child.actif ? '#10B981' : '#9E9E9E' }]} />
               <AureakText variant="caption" style={{ color: child.actif ? '#10B981' : colors.text.muted, fontSize: 11, fontWeight: '600' }}>
@@ -1280,58 +1314,6 @@ export default function ChildDetailPage() {
               </AureakText>
             </Pressable>
           </View>
-
-          {/* Statut académie calculé */}
-          {academyData ? (
-            <AcademyStatusHeader data={academyData} />
-          ) : (
-            <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center' }}>
-              {child.statut && <Badge label={child.statut} variant="zinc" />}
-              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                (statut importé Notion — en attente de calcul)
-              </AureakText>
-            </View>
-          )}
-        </View>
-
-        {/* ── HISTORIQUE : académie + stages ── */}
-        {tenantId && (
-          <HistoriqueSection
-            childId={childId!}
-            tenantId={tenantId}
-            memberships={memberships}
-            stageParticipations={stages_}
-            seasons={allSeasons}
-            stages={allStages}
-            onRefresh={loadChild}
-          />
-        )}
-
-        {/* ── Identité ── */}
-        <View style={s.card}>
-          <SectionHeader title="Identité" onEdit={() => startEdit('identite')} isEditing={isEditing('identite')} />
-          {isEditing('identite') ? (
-            <>
-              <EditRow
-                label="Nom complet"
-                value={draft.displayName ?? ''}
-                onChange={v => setDraft(d => ({ ...d, displayName: v }))}
-                placeholder="Prénom Nom"
-              />
-              <EditRow
-                label="Date de naissance"
-                value={draft.birthDate ?? ''}
-                onChange={v => setDraft(d => ({ ...d, birthDate: v || null }))}
-                placeholder="YYYY-MM-DD"
-              />
-              <EditActions saving={savingEdit} onSave={saveIdentite} onCancel={cancelEdit} error={saveError} />
-            </>
-          ) : (
-            <>
-              <InfoRow label="Nom complet"       value={child.displayName} />
-              <InfoRow label="Date de naissance" value={child.birthDate ? new Date(child.birthDate).toLocaleDateString('fr-FR') : null} />
-            </>
-          )}
         </View>
 
         {/* ── Photos ── */}
@@ -1344,7 +1326,75 @@ export default function ChildDetailPage() {
           />
         )}
 
-        {/* ── Club actuel ── */}
+        {/* ── [A] Identité ── */}
+        <View style={s.card}>
+          <SectionHeader title="Identité" onEdit={() => startEdit('identite')} isEditing={isEditing('identite')} />
+          {isEditing('identite') ? (
+            <>
+              <EditRow
+                label="Nom"
+                value={draft.nom ?? ''}
+                onChange={v => setDraft(d => ({ ...d, nom: v || null }))}
+                placeholder="ex: DUPONT"
+              />
+              <EditRow
+                label="Prénom"
+                value={draft.prenom ?? ''}
+                onChange={v => setDraft(d => ({ ...d, prenom: v || null }))}
+                placeholder="ex: Marie"
+              />
+              <EditRow
+                label="Date de naissance"
+                value={draft.birthDate ?? ''}
+                onChange={v => setDraft(d => ({ ...d, birthDate: v || null }))}
+                placeholder="YYYY-MM-DD"
+              />
+              <EditRow
+                label="Email"
+                value={draft.email ?? ''}
+                onChange={v => setDraft(d => ({ ...d, email: v || null }))}
+                placeholder="email@exemple.be"
+              />
+              <EditRow
+                label="Téléphone"
+                value={draft.tel ?? ''}
+                onChange={v => setDraft(d => ({ ...d, tel: v || null }))}
+                placeholder="+32 xxx xx xx xx"
+              />
+              <View style={ir.wrap}>
+                <AureakText variant="caption" style={ir.label}>Nom complet (Notion)</AureakText>
+                <AureakText variant="caption" style={{ flex: 1, fontSize: 12, color: colors.text.muted, fontStyle: 'italic' as never }}>{child.displayName}</AureakText>
+              </View>
+              <EditActions saving={savingEdit} onSave={saveIdentite} onCancel={cancelEdit} error={saveError} />
+            </>
+          ) : (
+            <>
+              <InfoRow label="Nom"               value={child.nom} />
+              <InfoRow label="Prénom"            value={child.prenom} />
+              <InfoRow label="Date de naissance" value={child.birthDate ? new Date(child.birthDate).toLocaleDateString('fr-FR') : null} />
+              <InfoRow label="Email"             value={child.email} />
+              <InfoRow label="Téléphone"         value={child.tel} />
+              {(!child.nom || !child.prenom) && (
+                <InfoRow label="Nom complet (Notion)" value={child.displayName} />
+              )}
+            </>
+          )}
+        </View>
+
+        {/* ── [B] Historique : académie + stages ── */}
+        {tenantId && (
+          <HistoriqueSection
+            childId={childId!}
+            tenantId={tenantId}
+            memberships={memberships}
+            stageParticipations={stages_}
+            seasons={allSeasons}
+            stages={allStages}
+            onRefresh={loadChild}
+          />
+        )}
+
+        {/* ── [C] Club actuel ── */}
         <View style={s.card}>
           <SectionHeader title="Club actuel" onEdit={() => startEdit('club')} isEditing={isEditing('club')} />
           {isEditing('club') ? (
@@ -1386,136 +1436,7 @@ export default function ChildDetailPage() {
           )}
         </View>
 
-        {/* ── Adresse (toujours visible) ── */}
-        <View style={s.card}>
-          <SectionHeader title="Adresse" onEdit={() => startEdit('adresse')} isEditing={isEditing('adresse')} />
-          {isEditing('adresse') ? (
-            <>
-              <EditRow
-                label="Rue"
-                value={draft.adresseRue ?? ''}
-                onChange={v => setDraft(d => ({ ...d, adresseRue: v || null }))}
-                placeholder="Rue et numéro"
-              />
-              <EditRow
-                label="Code postal"
-                value={draft.codePostal ?? ''}
-                onChange={v => setDraft(d => ({ ...d, codePostal: v || null }))}
-                placeholder="ex: 1000"
-              />
-              <EditRow
-                label="Localité"
-                value={draft.localite ?? ''}
-                onChange={v => setDraft(d => ({ ...d, localite: v || null }))}
-                placeholder="Ville"
-              />
-              <EditActions saving={savingEdit} onSave={saveAdresse} onCancel={cancelEdit} error={saveError} />
-            </>
-          ) : (
-            <>
-              <InfoRow label="Rue"         value={child.adresseRue} />
-              <InfoRow label="Code postal" value={child.codePostal} />
-              <InfoRow label="Localité"    value={child.localite} />
-            </>
-          )}
-        </View>
-
-        {/* ── Parent 1 ── */}
-        <View style={s.card}>
-          <SectionHeader title="Parent 1" onEdit={() => startEdit('parent1')} isEditing={isEditing('parent1')} />
-          {isEditing('parent1') ? (
-            <>
-              <EditRow
-                label="Nom"
-                value={draft.parent1Nom ?? ''}
-                onChange={v => setDraft(d => ({ ...d, parent1Nom: v || null }))}
-                placeholder="Prénom Nom"
-              />
-              <EditRow
-                label="Téléphone"
-                value={draft.parent1Tel ?? ''}
-                onChange={v => setDraft(d => ({ ...d, parent1Tel: v || null }))}
-                placeholder="+32 xxx xx xx xx"
-              />
-              <EditRow
-                label="Email"
-                value={draft.parent1Email ?? ''}
-                onChange={v => setDraft(d => ({ ...d, parent1Email: v || null }))}
-                placeholder="email@exemple.be"
-              />
-              <EditActions saving={savingEdit} onSave={saveParent1} onCancel={cancelEdit} error={saveError} />
-            </>
-          ) : (
-            <>
-              <InfoRow label="Nom"       value={child.parent1Nom} />
-              <InfoRow label="Téléphone" value={child.parent1Tel} />
-              <InfoRow label="Email"     value={child.parent1Email} />
-            </>
-          )}
-        </View>
-
-        {/* ── Parent 2 ── */}
-        <View style={s.card}>
-          <SectionHeader title="Parent 2" onEdit={() => startEdit('parent2')} isEditing={isEditing('parent2')} />
-          {isEditing('parent2') ? (
-            <>
-              <EditRow
-                label="Nom"
-                value={draft.parent2Nom ?? ''}
-                onChange={v => setDraft(d => ({ ...d, parent2Nom: v || null }))}
-                placeholder="Prénom Nom"
-              />
-              <EditRow
-                label="Téléphone"
-                value={draft.parent2Tel ?? ''}
-                onChange={v => setDraft(d => ({ ...d, parent2Tel: v || null }))}
-                placeholder="+32 xxx xx xx xx"
-              />
-              <EditRow
-                label="Email"
-                value={draft.parent2Email ?? ''}
-                onChange={v => setDraft(d => ({ ...d, parent2Email: v || null }))}
-                placeholder="email@exemple.be"
-              />
-              <EditActions saving={savingEdit} onSave={saveParent2} onCancel={cancelEdit} error={saveError} />
-            </>
-          ) : (
-            <>
-              <InfoRow label="Nom"       value={child.parent2Nom} />
-              <InfoRow label="Téléphone" value={child.parent2Tel} />
-              <InfoRow label="Email"     value={child.parent2Email} />
-            </>
-          )}
-        </View>
-
-        {/* ── Notes internes (toujours visible) ── */}
-        <View style={s.card}>
-          <SectionHeader title="Notes internes" onEdit={() => startEdit('notes')} isEditing={isEditing('notes')} />
-          {isEditing('notes') ? (
-            <>
-              <EditRow
-                label="Notes"
-                value={draft.notesInternes ?? ''}
-                onChange={v => setDraft(d => ({ ...d, notesInternes: v || null }))}
-                placeholder="Remarques internes…"
-                multiline
-              />
-              <EditActions saving={savingEdit} onSave={saveNotes} onCancel={cancelEdit} error={saveError} />
-            </>
-          ) : (
-            child.notesInternes ? (
-              <AureakText variant="body" style={{ color: colors.text.muted, fontSize: 13, lineHeight: 20 }}>
-                {child.notesInternes}
-              </AureakText>
-            ) : (
-              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
-                Aucune note.
-              </AureakText>
-            )
-          )}
-        </View>
-
-        {/* ── Parcours football ── */}
+        {/* ── [D] Parcours football ── */}
         <View style={s.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
             <SectionTitle>Parcours football</SectionTitle>
@@ -1557,7 +1478,7 @@ export default function ChildDetailPage() {
           )}
         </View>
 
-        {/* ── Blessures ── */}
+        {/* ── [E] Blessures ── */}
         {tenantId && (
           <BlessuresSection
             childId={childId!}
@@ -1566,6 +1487,135 @@ export default function ChildDetailPage() {
             onRefresh={loadChild}
           />
         )}
+
+        {/* ── [F] Adresse ── */}
+        <View style={s.card}>
+          <SectionHeader title="Adresse" onEdit={() => startEdit('adresse')} isEditing={isEditing('adresse')} />
+          {isEditing('adresse') ? (
+            <>
+              <EditRow
+                label="Rue"
+                value={draft.adresseRue ?? ''}
+                onChange={v => setDraft(d => ({ ...d, adresseRue: v || null }))}
+                placeholder="Rue et numéro"
+              />
+              <EditRow
+                label="Code postal"
+                value={draft.codePostal ?? ''}
+                onChange={v => setDraft(d => ({ ...d, codePostal: v || null }))}
+                placeholder="ex: 1000"
+              />
+              <EditRow
+                label="Localité"
+                value={draft.localite ?? ''}
+                onChange={v => setDraft(d => ({ ...d, localite: v || null }))}
+                placeholder="Ville"
+              />
+              <EditActions saving={savingEdit} onSave={saveAdresse} onCancel={cancelEdit} error={saveError} />
+            </>
+          ) : (
+            <>
+              <InfoRow label="Rue"         value={child.adresseRue} />
+              <InfoRow label="Code postal" value={child.codePostal} />
+              <InfoRow label="Localité"    value={child.localite} />
+            </>
+          )}
+        </View>
+
+        {/* ── [G] Parent 1 ── */}
+        <View style={s.card}>
+          <SectionHeader title="Parent 1" onEdit={() => startEdit('parent1')} isEditing={isEditing('parent1')} />
+          {isEditing('parent1') ? (
+            <>
+              <EditRow
+                label="Nom"
+                value={draft.parent1Nom ?? ''}
+                onChange={v => setDraft(d => ({ ...d, parent1Nom: v || null }))}
+                placeholder="Prénom Nom"
+              />
+              <EditRow
+                label="Téléphone"
+                value={draft.parent1Tel ?? ''}
+                onChange={v => setDraft(d => ({ ...d, parent1Tel: v || null }))}
+                placeholder="+32 xxx xx xx xx"
+              />
+              <EditRow
+                label="Email"
+                value={draft.parent1Email ?? ''}
+                onChange={v => setDraft(d => ({ ...d, parent1Email: v || null }))}
+                placeholder="email@exemple.be"
+              />
+              <EditActions saving={savingEdit} onSave={saveParent1} onCancel={cancelEdit} error={saveError} />
+            </>
+          ) : (
+            <>
+              <InfoRow label="Nom"       value={child.parent1Nom} />
+              <InfoRow label="Téléphone" value={child.parent1Tel} />
+              <InfoRow label="Email"     value={child.parent1Email} />
+            </>
+          )}
+        </View>
+
+        {/* ── [H] Parent 2 ── */}
+        <View style={s.card}>
+          <SectionHeader title="Parent 2" onEdit={() => startEdit('parent2')} isEditing={isEditing('parent2')} />
+          {isEditing('parent2') ? (
+            <>
+              <EditRow
+                label="Nom"
+                value={draft.parent2Nom ?? ''}
+                onChange={v => setDraft(d => ({ ...d, parent2Nom: v || null }))}
+                placeholder="Prénom Nom"
+              />
+              <EditRow
+                label="Téléphone"
+                value={draft.parent2Tel ?? ''}
+                onChange={v => setDraft(d => ({ ...d, parent2Tel: v || null }))}
+                placeholder="+32 xxx xx xx xx"
+              />
+              <EditRow
+                label="Email"
+                value={draft.parent2Email ?? ''}
+                onChange={v => setDraft(d => ({ ...d, parent2Email: v || null }))}
+                placeholder="email@exemple.be"
+              />
+              <EditActions saving={savingEdit} onSave={saveParent2} onCancel={cancelEdit} error={saveError} />
+            </>
+          ) : (
+            <>
+              <InfoRow label="Nom"       value={child.parent2Nom} />
+              <InfoRow label="Téléphone" value={child.parent2Tel} />
+              <InfoRow label="Email"     value={child.parent2Email} />
+            </>
+          )}
+        </View>
+
+        {/* ── [I] Notes internes ── */}
+        <View style={s.card}>
+          <SectionHeader title="Notes internes" onEdit={() => startEdit('notes')} isEditing={isEditing('notes')} />
+          {isEditing('notes') ? (
+            <>
+              <EditRow
+                label="Notes"
+                value={draft.notesInternes ?? ''}
+                onChange={v => setDraft(d => ({ ...d, notesInternes: v || null }))}
+                placeholder="Remarques internes…"
+                multiline
+              />
+              <EditActions saving={savingEdit} onSave={saveNotes} onCancel={cancelEdit} error={saveError} />
+            </>
+          ) : (
+            child.notesInternes ? (
+              <AureakText variant="body" style={{ color: colors.text.muted, fontSize: 13, lineHeight: 20 }}>
+                {child.notesInternes}
+              </AureakText>
+            ) : (
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+                Aucune note.
+              </AureakText>
+            )
+          )}
+        </View>
 
         {/* ── Métadonnées ── */}
         <View style={s.card}>
@@ -1603,6 +1653,23 @@ const s = StyleSheet.create({
     marginBottom   : space.xs,
     gap            : space.sm,
     ...shadows.sm,
+  },
+
+  heroPicFallback: {
+    width          : 120,
+    height         : 120,
+    borderRadius   : 60,
+    backgroundColor: colors.accent.gold + '30',
+    borderWidth    : 2,
+    borderColor    : colors.accent.gold + '60',
+    alignItems     : 'center',
+    justifyContent : 'center',
+  },
+  heroInitials: {
+    color     : colors.accent.gold,
+    fontSize  : 40,
+    fontWeight: '700' as never,
+    lineHeight: 48,
   },
 
   actifToggle: {

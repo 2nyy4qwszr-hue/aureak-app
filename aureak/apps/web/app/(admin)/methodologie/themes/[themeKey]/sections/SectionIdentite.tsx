@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import type { Theme, ThemeGroup } from '@aureak/types'
-import { updateTheme } from '@aureak/api-client'
+import { updateTheme, updateThemePositionIndex } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 type Props = {
@@ -46,9 +46,12 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
   const [name,        setName]        = useState(theme.name)
   const [description, setDescription] = useState(theme.description ?? '')
   const [groupId,     setGroupId]     = useState<string | null>(theme.groupId)
-  const [saving,      setSaving]      = useState(false)
-  const [saved,       setSaved]       = useState(false)
-  const [error,       setError]       = useState<string | null>(null)
+  const [saving,         setSaving]         = useState(false)
+  const [saved,          setSaved]          = useState(false)
+  const [error,          setError]          = useState<string | null>(null)
+  const [positionValue,  setPositionValue]  = useState<string>(theme.positionIndex != null ? String(theme.positionIndex) : '')
+  const [positionError,  setPositionError]  = useState<string | null>(null)
+  const [positionSaving, setPositionSaving] = useState(false)
 
   const handleSave = async () => {
     setSaving(true)
@@ -68,6 +71,42 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
     onUpdate(data)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleSavePosition = async () => {
+    setPositionError(null)
+    const trimmed = positionValue.trim()
+    // Cas vide → null (retirer la position)
+    if (trimmed === '') {
+      setPositionSaving(true)
+      const { error: apiError } = await updateThemePositionIndex(theme.id, null)
+      setPositionSaving(false)
+      if (apiError) {
+        setPositionError('Erreur lors de la sauvegarde')
+      } else {
+        onUpdate({ ...theme, positionIndex: null })
+      }
+      return
+    }
+    const asFloat = parseFloat(trimmed)
+    const parsed  = parseInt(trimmed, 10)
+    if (isNaN(parsed) || !Number.isInteger(asFloat) || parsed < 1 || parsed > 25) {
+      setPositionError('La position doit être un entier entre 1 et 25')
+      return
+    }
+    setPositionSaving(true)
+    const { error: apiError } = await updateThemePositionIndex(theme.id, parsed)
+    setPositionSaving(false)
+    if (apiError) {
+      const msg = String((apiError as { message?: string })?.message ?? '')
+      if ((apiError as { code?: string })?.code === '23505' || msg.includes('uq_themes_group_position')) {
+        setPositionError('Cette position est déjà utilisée dans ce Bloc')
+      } else {
+        setPositionError('Erreur lors de la sauvegarde')
+      }
+    } else {
+      onUpdate({ ...theme, positionIndex: parsed })
+    }
   }
 
   return (
@@ -139,6 +178,46 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
             </div>
           </div>
         )}
+
+        {/* Position dans la grille */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={LABEL_STYLE}>Position dans la grille (1 – 25)</label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="number"
+              min={1}
+              max={25}
+              placeholder="Ex : 3"
+              value={positionValue}
+              onChange={e => { setPositionValue(e.target.value); setPositionError(null) }}
+              style={{ ...INPUT_STYLE, width: 90 }}
+            />
+            <button
+              onClick={handleSavePosition}
+              disabled={positionSaving}
+              style={{
+                padding        : '9px 16px',
+                borderRadius   : radius.xs,
+                border         : `1px solid ${colors.border.light}`,
+                backgroundColor: colors.light.muted,
+                color          : colors.text.dark,
+                fontFamily     : 'Geist, sans-serif',
+                fontSize       : 12,
+                fontWeight     : 500,
+                cursor         : positionSaving ? 'not-allowed' : 'pointer',
+                transition     : `all ${transitions.fast}`,
+              }}
+            >
+              {positionSaving ? '…' : 'Enregistrer'}
+            </button>
+          </div>
+          {positionError && (
+            <div style={{ color: colors.accent.red, fontSize: 11, marginTop: 4 }}>{positionError}</div>
+          )}
+          <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 4 }}>
+            Slot dans la grille 5×5 (1 = haut gauche, 25 = bas droite). Optionnel.
+          </div>
+        </div>
 
         {/* Métadonnées lecture seule */}
         <div style={{ display: 'flex', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
