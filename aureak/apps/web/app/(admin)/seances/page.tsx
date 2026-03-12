@@ -13,11 +13,12 @@ import {
   batchResolveCoachNames,
 } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Implantation, SessionType, SchoolCalendarException } from '@aureak/types'
 import type { GenerateYearSessionsResult, SessionRowAdmin } from '@aureak/api-client'
 
+import { TYPE_COLOR, MONTHS_FR } from './_components/constants'
 import DayView   from './_components/DayView'
 import WeekView  from './_components/WeekView'
 import MonthView from './_components/MonthView'
@@ -34,20 +35,9 @@ const PERIOD_OPTIONS: { key: PeriodType; label: string }[] = [
   { key: 'year',  label: 'Année'   },
 ]
 
-const MONTHS_FR    = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
 
 type GroupRef = { id: string; name: string; implantationId: string; tenantId: string }
-
-const TYPE_COLOR: Record<string, string> = {
-  goal_and_player : methodologyMethodColors['Goal and Player'],
-  technique       : methodologyMethodColors['Technique'],
-  situationnel    : methodologyMethodColors['Situationnel'],
-  decisionnel     : methodologyMethodColors['Décisionnel'],
-  perfectionnement: methodologyMethodColors['Perfectionnement'],
-  integration     : methodologyMethodColors['Intégration'],
-  equipe          : '#94A3B8',
-}
 
 // ── Date helpers ───────────────────────────────────────────────────────────────
 
@@ -291,32 +281,34 @@ export default function SeancesPage() {
   // ── Fetch sessions (sans N+1) ─────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true)
-    const withCoaches = period === 'day' || period === 'week'
+    try {
+      const withCoaches = period === 'day' || period === 'week'
 
-    const { data } = await listSessionsAdminView({
-      start          : range.start.toISOString(),
-      end            : range.end.toISOString(),
-      implantationId : filterImplantId || undefined,
-      groupId        : filterGroupId   || undefined,
-      withCoaches,
-    })
+      const { data } = await listSessionsAdminView({
+        start          : range.start.toISOString(),
+        end            : range.end.toISOString(),
+        implantationId : filterImplantId || undefined,
+        groupId        : filterGroupId   || undefined,
+        withCoaches,
+      })
 
-    setSessions(data)
+      setSessions(data)
 
-    // Résolution des noms de coaches en une seule requête batch
-    if (withCoaches && data.length > 0) {
-      const allCoachIds = [...new Set(data.flatMap(s => s.coaches.map(c => c.coachId)))]
-      if (allCoachIds.length > 0) {
-        const map = await batchResolveCoachNames(allCoachIds)
-        setCoachNameMap(map)
+      // Résolution des noms de coaches en une seule requête batch
+      if (withCoaches && data.length > 0) {
+        const allCoachIds = [...new Set(data.flatMap(s => s.coaches.map(c => c.coachId)))]
+        if (allCoachIds.length > 0) {
+          const map = await batchResolveCoachNames(allCoachIds)
+          setCoachNameMap(map)
+        } else {
+          setCoachNameMap(new Map())
+        }
       } else {
         setCoachNameMap(new Map())
       }
-    } else {
-      setCoachNameMap(new Map())
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }, [range.start, range.end, filterImplantId, filterGroupId, period])
 
   useEffect(() => { load() }, [load])
@@ -363,7 +355,7 @@ export default function SeancesPage() {
           <AureakText variant="h2" color={colors.accent.gold}>Séances</AureakText>
           {!loading && (
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {sessions.length} séance{sessions.length !== 1 ? 's' : null} sur la période
+              {sessions.length} séance{sessions.length !== 1 ? 's' : ''} sur la période
             </AureakText>
           )}
         </View>

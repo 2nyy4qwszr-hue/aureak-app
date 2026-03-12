@@ -1,6 +1,6 @@
 # Story 19.5 : Page d'édition complète d'une séance
 
-Status: review
+Status: done
 
 ## Story
 
@@ -476,12 +476,30 @@ claude-sonnet-4-6
 
 ### File List
 
-**À créer :**
-- `apps/web/app/(admin)/seances/[sessionId]/edit.tsx` (formulaire complet — remplace le placeholder story 19-4)
-- `supabase/migrations/00063_sessions_notes.sql` (si colonne `notes` absente — vérifier d'abord)
-- `apps/web/app/(admin)/seances/_utils.ts` (optionnel — pour extraire `contentRefLabel` si partagé)
+**Créés :**
+- `apps/web/app/(admin)/seances/[sessionId]/edit.tsx` (formulaire complet)
+- `supabase/migrations/00066_sessions_notes.sql`
+- `apps/web/app/(admin)/seances/_utils.ts` (contentRefLabel partagée + constantes TERRAINS/HOURS/MINUTES/DURATIONS)
 
-**À modifier :**
-- `packages/api-client/src/sessions/sessions.ts` (ajout `removeCoach`, extension `UpdateSessionParams` avec `notes?`)
-- `packages/api-client/src/index.ts` (export `removeCoach`)
-- `apps/web/app/(admin)/seances/[sessionId]/page.tsx` (ajout bouton "Modifier la séance" + lecture param `?updated=true` pour toast)
+**Modifiés :**
+- `packages/api-client/src/sessions/sessions.ts` (removeCoach, UpdateSessionParams notes, cancelled_at fix)
+- `packages/api-client/src/index.ts` (export removeCoach)
+- `apps/web/app/(admin)/seances/[sessionId]/page.tsx` (bouton Modifier, toast updated, import contentRefLabel depuis _utils)
+
+### Review Follow-ups résolus (code-review 2026-03-12)
+- [x] [AI-Review][HIGH] `cancelled_at` non alimenté lors d'annulation via edit → fixé dans `updateSession`
+- [x] [AI-Review][HIGH] Changements de rôle coach ignorés par le diff → fixé avec détection `roleChanged`
+- [x] [AI-Review][HIGH] Erreurs coach ops avalées silencieusement → fixé avec check results + setSaveError
+- [x] [AI-Review][MEDIUM] `null` au lieu de `''` dans contentRefLabel (bug "blocnull") → fixé via _utils.ts
+- [x] [AI-Review][MEDIUM] contentRefLabel dupliquée → extraite dans _utils.ts, page.tsx et edit.tsx importent
+- [x] [AI-Review][MEDIUM] Boutons footer Pressable bruts → remplacés par AureakButton variant=primary/secondary
+- [x] [AI-Review][MEDIUM] Aucun feedback quand lead coach bloqué → état coachError ajouté
+
+### Review Follow-ups résolus (code-review 2026-03-12 #2)
+- [x] [AI-Review][HIGH] Timezone bug extractHour/extractMinute (new Date().getHours() → heure locale) → parsing direct depuis string ISO substring(11,13)
+- [x] [AI-Review][HIGH] Rollback absent : updateSession committait avant les ops coaches → reordonné (coaches first, updateSession après)
+- [x] [AI-Review][MEDIUM] ...shadows.sm spread string dans page.tsx → boxShadow: shadows.sm
+- [x] [AI-Review][MEDIUM] UUIDs bruts en lecture seule → noms chargés via getGroup + listImplantations dans load()
+- [x] [AI-Review][MEDIUM] availableToAdd.slice(0,8) silencieux → message "X sur Y" ajouté si >8
+- [x] [AI-Review][MEDIUM] Spinner infini si Promise.all rejette → try/catch/finally dans load()
+- [x] [AI-Review][LOW] 'use client' directive inutile (Next.js, pas Expo) → supprimée

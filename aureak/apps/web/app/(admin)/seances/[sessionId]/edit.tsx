@@ -1,4 +1,3 @@
-'use client'
 // Story 19.5 — Page d'édition complète d'une séance existante
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
@@ -6,18 +5,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSessionById, listSessionCoaches, listAvailableCoaches,
   updateSession, assignCoach, removeCoach,
+  getGroup, listImplantations,
 } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
+import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPES, SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, CoachRole, SessionType } from '@aureak/types'
+import { TERRAINS, HOURS, MINUTES, DURATIONS, contentRefLabel } from '../_utils'
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const TERRAINS  = ['Terrain A', 'Terrain B', 'Terrain C', 'Terrain D', 'Extérieur', 'Salle', 'Autre…']
-const HOURS     = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-const MINUTES   = [0, 15, 30, 45]
-const DURATIONS = [45, 60, 75, 90, 105, 120]
+// ── Constants & shared utils — imported from _utils ───────────────────────────
 
 const STATUSES = [
   { key: 'planifiée',  label: 'Planifiée'  },
@@ -49,38 +45,18 @@ type CoachEntry = { coachId: string; role: CoachRole; name: string }
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function extractDate(scheduledAt: string): string {
+  // Prendre la date depuis la string ISO directement (évite décalage timezone)
   return scheduledAt.substring(0, 10)
 }
 
 function extractHour(scheduledAt: string): number {
-  return new Date(scheduledAt).getHours()
+  // Parser depuis la string ISO pour éviter la conversion en heure locale
+  return parseInt(scheduledAt.substring(11, 13), 10)
 }
 
 function extractMinute(scheduledAt: string): number {
-  const m = new Date(scheduledAt).getMinutes()
+  const m = parseInt(scheduledAt.substring(14, 16), 10)
   return MINUTES.includes(m) ? m : 0
-}
-
-function contentRefLabel(session: Session): string {
-  const ref = session.contentRef
-  if (!ref || !('method' in ref)) return '—'
-  switch (ref.method) {
-    case 'goal_and_player':
-      return `GP #${(ref as {globalNumber:number}).globalNumber} · ${(ref as {half:string}).half} Rep.${(ref as {repeat:number}).repeat}`
-    case 'technique': {
-      const r = ref as {context:string; globalNumber?:number; concept?:string; sequence:number}
-      return r.context === 'academie' ? `Technique #${r.globalNumber}` : `Stage ${r.concept} · ${r.sequence}`
-    }
-    case 'situationnel': {
-      const r = ref as {label:string; subtitle?:string}
-      return r.subtitle ? `${r.label} — ${r.subtitle}` : r.label
-    }
-    case 'decisionnel': {
-      const r = ref as {blocks:Array<{title:string}>}
-      return `Décisionnel · ${r.blocks.length} bloc${r.blocks.length !== 1 ? 's' : null}`
-    }
-    default: return '—'
-  }
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -112,13 +88,18 @@ export default function EditSessionPage() {
   const [selectedCoaches, setSelectedCoaches] = useState<CoachEntry[]>([])
   const [allCoaches,      setAllCoaches]      = useState<{ id: string; name: string }[]>([])
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors,     setErrors]     = useState<Record<string, string>>({})
+  const [coachError, setCoachError] = useState<string | null>(null)
+
+  const [implantationName, setImplantationName] = useState<string | null>(null)
+  const [groupName,        setGroupName]        = useState<string | null>(null)
 
   // ── Load ────────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     if (!sessionId) return
     setLoading(true)
+    try {
 
     const [s, c, coaches] = await Promise.all([
       getSessionById(sessionId),
@@ -135,6 +116,15 @@ export default function EditSessionPage() {
     const sess = s.data
     setSession(sess)
     setAllCoaches(coaches)
+
+    // Charger les noms d'implantation et de groupe en parallèle
+    const [implants, grp] = await Promise.all([
+      listImplantations(),
+      getGroup(sess.groupId),
+    ])
+    const implant = implants.data?.find((i: { id: string; name: string }) => i.id === sess.implantationId)
+    setImplantationName(implant?.name ?? null)
+    setGroupName(grp.data?.name ?? null)
 
     setDate(extractDate(sess.scheduledAt))
     setHour(extractHour(sess.scheduledAt))
@@ -154,7 +144,12 @@ export default function EditSessionPage() {
     }))
     setInitialCoaches([...entries])
     setSelectedCoaches([...entries])
-    setLoading(false)
+
+    } catch {
+      setLoadError('Erreur lors du chargement de la séance.')
+    } finally {
+      setLoading(false)
+    }
   }, [sessionId])
 
   useEffect(() => { load() }, [load])
@@ -180,8 +175,41 @@ export default function EditSessionPage() {
     setSaving(true)
     setSaveError(null)
 
-    const scheduledAt = `${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+    // Suffixe Z pour conserver la cohérence UTC (même format que le champ en base)
+    const scheduledAt = `${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
 
+    // ── Coaches en premier — si échec, la session n'est pas modifiée ──────────
+    const initialSet  = new Set(initialCoaches.map(c => c.coachId))
+    const selectedSet = new Set(selectedCoaches.map(c => c.coachId))
+    const toAdd    = selectedCoaches.filter(c => !initialSet.has(c.coachId))
+    const toRemove = initialCoaches.filter(c => !selectedSet.has(c.coachId))
+
+    const roleChanged = selectedCoaches.filter(c => {
+      const orig = initialCoaches.find(ic => ic.coachId === c.coachId)
+      return orig && orig.role !== c.role
+    })
+
+    const effectiveToRemove = [...toRemove, ...roleChanged]
+    const effectiveToAdd    = [...toAdd,    ...roleChanged]
+
+    if (effectiveToRemove.length > 0) {
+      const removeResults = await Promise.all(effectiveToRemove.map(c => removeCoach(sessionId!, c.coachId)))
+      if (removeResults.some(r => r.error)) {
+        setSaveError('Erreur lors de la suppression de coaches. Veuillez réessayer.')
+        setSaving(false)
+        return
+      }
+    }
+    if (effectiveToAdd.length > 0) {
+      const addResults = await Promise.all(effectiveToAdd.map(c => assignCoach(sessionId!, c.coachId, session.tenantId, c.role)))
+      if (addResults.some(r => r.error)) {
+        setSaveError("Erreur lors de l'assignation de coaches. Veuillez réessayer.")
+        setSaving(false)
+        return
+      }
+    }
+
+    // ── Mise à jour session — seulement si coaches OK ─────────────────────────
     const { error: updateError } = await updateSession(sessionId!, {
       scheduledAt,
       durationMinutes   : duration,
@@ -198,18 +226,6 @@ export default function EditSessionPage() {
       return
     }
 
-    // Coach diff
-    const initialSet  = new Set(initialCoaches.map(c => c.coachId))
-    const selectedSet = new Set(selectedCoaches.map(c => c.coachId))
-    const toAdd    = selectedCoaches.filter(c => !initialSet.has(c.coachId))
-    const toRemove = initialCoaches.filter(c => !selectedSet.has(c.coachId))
-
-    const ops = [
-      ...toAdd.map(c    => assignCoach(sessionId!, c.coachId, session.tenantId, c.role)),
-      ...toRemove.map(c => removeCoach(sessionId!, c.coachId)),
-    ]
-    if (ops.length > 0) await Promise.all(ops)
-
     router.replace(`/seances/${sessionId}?updated=true` as never)
   }
 
@@ -223,7 +239,11 @@ export default function EditSessionPage() {
     if (selectedCoaches.some(c => c.coachId === coachId)) return
     const coach = allCoaches.find(c => c.id === coachId)
     if (!coach) return
-    if (role === 'lead' && selectedCoaches.some(c => c.role === 'lead')) return
+    if (role === 'lead' && selectedCoaches.some(c => c.role === 'lead')) {
+      setCoachError('Un seul coach principal est autorisé par séance.')
+      return
+    }
+    setCoachError(null)
     setSelectedCoaches(p => [...p, { coachId, role, name: coach.name }])
   }
 
@@ -473,9 +493,18 @@ export default function EditSessionPage() {
           ))
         )}
 
+        {coachError && (
+          <AureakText style={st.errorText}>{coachError}</AureakText>
+        )}
+
         {availableToAdd.length > 0 && (
           <View style={st.addCoachWrap}>
             <AureakText style={st.fieldLabel}>Ajouter un coach</AureakText>
+            {availableToAdd.length > 8 && (
+              <AureakText style={{ fontSize: 10, color: colors.text.muted, fontStyle: 'italic' as never }}>
+                Affichage des 8 premiers sur {availableToAdd.length} disponibles
+              </AureakText>
+            )}
             {availableToAdd.slice(0, 8).map(c => (
               <View key={c.id} style={st.addCoachEntry}>
                 <AureakText style={{ flex: 1, fontSize: 12, color: colors.text.dark }}>{c.name}</AureakText>
@@ -517,11 +546,15 @@ export default function EditSessionPage() {
         <AureakText style={st.sectionLabel}>INFORMATIONS (LECTURE SEULE)</AureakText>
         <View style={st.readOnlyRow}>
           <AureakText style={st.fieldLabel}>Implantation :</AureakText>
-          <AureakText style={{ color: colors.text.muted, fontSize: 12 }}>{session.implantationId}</AureakText>
+          <AureakText style={{ color: colors.text.muted, fontSize: 12 }}>
+            {implantationName ?? session.implantationId.substring(0, 8) + '…'}
+          </AureakText>
         </View>
         <View style={st.readOnlyRow}>
           <AureakText style={st.fieldLabel}>Groupe :</AureakText>
-          <AureakText style={{ color: colors.text.muted, fontSize: 12 }}>{session.groupId}</AureakText>
+          <AureakText style={{ color: colors.text.muted, fontSize: 12 }}>
+            {groupName ?? session.groupId.substring(0, 8) + '…'}
+          </AureakText>
         </View>
 
         {saveError && (
@@ -532,22 +565,19 @@ export default function EditSessionPage() {
 
         {/* Footer */}
         <View style={st.footer}>
-          <Pressable
-            style={[st.btnSecondary, saving && { opacity: 0.6 }]}
+          <AureakButton
+            label="Annuler"
             onPress={() => router.back()}
+            variant="secondary"
             disabled={saving}
-          >
-            <AureakText style={st.btnSecondaryText}>Annuler</AureakText>
-          </Pressable>
-          <Pressable
-            style={[st.btnPrimary, saving && { opacity: 0.6 }]}
+          />
+          <AureakButton
+            label="Enregistrer les modifications"
             onPress={handleSave}
+            variant="primary"
+            loading={saving}
             disabled={saving}
-          >
-            <AureakText style={st.btnPrimaryText}>
-              {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
-            </AureakText>
-          </Pressable>
+          />
         </View>
 
       </View>

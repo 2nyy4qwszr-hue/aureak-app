@@ -1,10 +1,11 @@
 import React from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { SessionType } from '@aureak/types'
 import type { SessionRowAdmin } from '@aureak/api-client'
+import { TYPE_COLOR } from './constants'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -15,18 +16,6 @@ export type SessionCardProps = {
   implantMap  : Map<string, string>
   onPress     : (id: string) => void
   onEdit      : (id: string) => void
-}
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const TYPE_COLOR: Record<string, string> = {
-  goal_and_player : methodologyMethodColors['Goal and Player'],
-  technique       : methodologyMethodColors['Technique'],
-  situationnel    : methodologyMethodColors['Situationnel'],
-  decisionnel     : methodologyMethodColors['Décisionnel'],
-  perfectionnement: methodologyMethodColors['Perfectionnement'],
-  integration     : methodologyMethodColors['Intégration'],
-  equipe          : '#94A3B8',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -80,7 +69,7 @@ export default function SessionCard({
 
   return (
     <Pressable
-      style={[st.card, isCancelled && st.cardCancelled, { borderLeftColor: typeColor }]}
+      style={[st.card, isCancelled && st.cardCancelled, { borderLeftColor: isCancelled ? colors.border.divider : typeColor }]}
       onPress={() => onPress(session.id)}
     >
       {/* ── Top row : time + duration + type tag + status ── */}
@@ -110,7 +99,7 @@ export default function SessionCard({
       {/* ── Coaches ── */}
       {sortedCoaches.length > 0 && (
         <View style={st.coachesRow}>
-          {sortedCoaches.map((c, i) => {
+          {sortedCoaches.map((c) => {
             const name = coachNameMap.get(c.coachId) ?? '…'
             const roleLabel = COACH_ROLE_LABEL[c.role] ?? c.role
             return (

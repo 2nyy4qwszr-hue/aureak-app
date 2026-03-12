@@ -11,6 +11,7 @@ import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry } from '@aureak/types'
+import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
   planifiée: 'Planifiée', en_cours: 'En cours', réalisée: 'Réalisée',
@@ -32,8 +33,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.surface,
     borderRadius: 8, padding: space.md,
     borderWidth: 1, borderColor: colors.border.light, gap: space.sm,
-    ...shadows.sm,
-  },
+    boxShadow: shadows.sm,
+  } as never,
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   input: {
     borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs,
@@ -161,31 +162,6 @@ export default function SessionDetailPage() {
     if (!sessionId) return
     await removeGuestFromSession(sessionId, childId)
     load()
-  }
-
-  // Decode contentRef label for display
-  function contentRefLabel(session: Session): string {
-    const ref = session.contentRef
-    if (!ref || !('method' in ref)) return '—'
-    switch (ref.method) {
-      case 'goal_and_player':
-        return `GP #${(ref as {globalNumber:number}).globalNumber} · ${(ref as {half:string}).half} Rep.${(ref as {repeat:number}).repeat}`
-      case 'technique': {
-        const r = ref as {context:string; globalNumber?:number; concept?:string; sequence:number}
-        return r.context === 'academie'
-          ? `Technique #${r.globalNumber}`
-          : `Stage ${r.concept} · ${r.sequence}`
-      }
-      case 'situationnel': {
-        const r = ref as {label:string; subtitle?:string; blocCode:string}
-        return r.subtitle ? `${r.label} — ${r.subtitle}` : r.label
-      }
-      case 'decisionnel': {
-        const r = ref as {blocks:Array<{title:string}>}
-        return `Décisionnel · ${r.blocks.length} bloc${r.blocks.length !== 1 ? 's' : ''}`
-      }
-      default: return '—'
-    }
   }
 
   const handleCancel = async () => {

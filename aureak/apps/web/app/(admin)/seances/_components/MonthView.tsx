@@ -1,36 +1,17 @@
 import React from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, space, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { SessionType } from '@aureak/types'
 import type { SessionRowAdmin } from '@aureak/api-client'
+import { TYPE_COLOR, toDateStr, isToday } from './constants'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const DAY_HEADERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
-const TYPE_COLOR: Record<string, string> = {
-  goal_and_player : methodologyMethodColors['Goal and Player'],
-  technique       : methodologyMethodColors['Technique'],
-  situationnel    : methodologyMethodColors['Situationnel'],
-  decisionnel     : methodologyMethodColors['Décisionnel'],
-  perfectionnement: methodologyMethodColors['Perfectionnement'],
-  integration     : methodologyMethodColors['Intégration'],
-  equipe          : '#94A3B8',
-}
-
 const MAX_CHIPS = 3
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-function isToday(d: Date): boolean {
-  return toDateStr(d) === toDateStr(new Date())
-}
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Image, Pressable, StyleSheet } from 'react-native'
-import { AureakButton, AureakText } from '@aureak/ui'
+import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Theme } from '@aureak/types'
 
@@ -53,13 +53,11 @@ export default function ThemeCard({ theme, groupName, onPress, onManage }: Props
         </AureakText>
 
         <View style={s.footer}>
-          {/* Pressable wrapper isolé pour stopper la propagation vers la card */}
-          <Pressable onPress={e => { e.stopPropagation(); onManage() }}>
-            <AureakButton
-              label="Gérer"
-              onPress={() => {}}
-              variant="secondary"
-            />
+          <Pressable
+            style={s.manageBtn}
+            onPress={(e) => { e.stopPropagation?.(); onManage() }}
+          >
+            <AureakText style={s.manageBtnText}>Gérer</AureakText>
           </Pressable>
         </View>
       </View>
@@ -139,4 +137,17 @@ const s = StyleSheet.create({
     marginTop : space.sm,
     alignItems: 'flex-end',
   },
+  manageBtn: {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 4,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.muted,
+  },
+  manageBtnText: {
+    fontSize  : 11,
+    color     : colors.text.muted,
+    fontWeight: '500',
+  } as never,
 })

@@ -4,19 +4,11 @@ import { AureakText } from '@aureak/ui'
 import { colors, space, radius } from '@aureak/theme'
 import type { SessionRowAdmin } from '@aureak/api-client'
 import SessionCard from './SessionCard'
+import { toDateStr, isToday } from './constants'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const DAYS_SHORT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-function isToday(d: Date): boolean {
-  const now = new Date()
-  return toDateStr(d) === toDateStr(now)
-}
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 

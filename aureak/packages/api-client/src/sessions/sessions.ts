@@ -156,6 +156,8 @@ export async function updateSession(
   if (params.durationMinutes)                  updates['duration_minutes']    = params.durationMinutes
   if (params.location !== undefined)           updates['location']            = params.location
   if (params.status)                           updates['status']              = params.status
+  // Story 19.5 — alimenter cancelled_at quand on passe à 'annulée' via le formulaire d'édition
+  if (params.status === 'annulée')             updates['cancelled_at']        = new Date().toISOString()
   // Story 13.1
   if (params.sessionType !== undefined)        updates['session_type']        = params.sessionType
   if (params.contentRef !== undefined)         updates['content_ref']         = params.contentRef

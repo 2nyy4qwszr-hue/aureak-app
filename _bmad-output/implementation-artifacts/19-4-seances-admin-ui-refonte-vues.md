@@ -1,6 +1,6 @@
 # Story 19.4 : Refonte UI/UX — Vues Séances Admin (Jour / Semaine / Mois / Année)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -430,10 +430,13 @@ _Aucun log de débogage critique._
 6. **[Action item → story 19-5]** `seances/[sessionId]/page.tsx` importe `supabase` directement depuis `@aureak/api-client` (violation architecturale ARCH-rule). À corriger dans la story 19-5 qui refait cette page complètement.
 7. `e.stopPropagation?.()` dans `SessionCard.tsx` footer Pressable : pattern intentionnel pour web-only (DOM event propagation). L'opérateur `?.` protège contre l'absence de la méthode sur React Native natif. Acceptable pour une page admin web uniquement.
 8. **Code review fixes appliqués** : (a) `AureakButton` dead import retiré de `SessionCard.tsx`, (b) `''` → `null` dans ternaires pluriels de `page.tsx`, (c) `YearView.tsx` enrichi avec statuts `en_cours` et `reportée` pour que le breakdown couvre tous les statuts.
+9. **Code review #2 fixes appliqués** : (a) M1 — `borderLeftColor` conditionné sur `isCancelled` dans `SessionCard.tsx` — les séances annulées ont maintenant un bord gauche gris conforme à l'AC. (b) M2 — `TYPE_COLOR` extrait dans `_components/constants.ts` (source unique), imports mis à jour dans `SessionCard.tsx`, `MonthView.tsx`, `page.tsx`. (c) M3 — Cast fragile `(colors as Record<string, unknown>)['status']?.['success']` remplacé par `colors.status.success` dans `YearView.tsx`.
+10. **Code review #3 fixes appliqués** : (a) H1 — `load()` wrappé dans `try/finally` pour garantir `setLoading(false)` même si `batchResolveCoachNames` throw. (b) M1 — Pluriels `? 's' : null` corrigés en `? 's' : ''` dans `page.tsx:358` et `YearView.tsx` (5 occurrences) — dev record note 8 indiquait ces fixes mais ils n'avaient pas été appliqués. (c) M2+M3 — `toDateStr`, `isToday`, `MONTHS_FR` centralisés dans `_components/constants.ts`, imports mis à jour dans `WeekView.tsx`, `MonthView.tsx`, `YearView.tsx`, `page.tsx`. (d) L1 — paramètre `i` inutilisé supprimé dans `SessionCard.tsx:102`.
 
 ### File List
 
 **À créer :**
+- `apps/web/app/(admin)/seances/_components/constants.ts` (source unique TYPE_COLOR — code review #2)
 - `apps/web/app/(admin)/seances/_components/SessionCard.tsx`
 - `apps/web/app/(admin)/seances/_components/DayView.tsx`
 - `apps/web/app/(admin)/seances/_components/WeekView.tsx`

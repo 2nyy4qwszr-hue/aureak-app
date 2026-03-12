@@ -3,13 +3,7 @@ import { View, StyleSheet, Pressable, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { SessionRowAdmin } from '@aureak/api-client'
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const MONTHS_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-]
+import { MONTHS_FR } from './constants'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -51,7 +45,7 @@ export default function YearView({ sessions, year, onMonthClick }: Props) {
         const accentColor = !hasAny
           ? colors.border.light
           : allRealized
-            ? (colors as Record<string, unknown>)['status']?.['success'] as string ?? '#10B981'
+            ? colors.status.success
             : hasPlanned
               ? colors.accent.gold
               : colors.text.muted
@@ -75,13 +69,13 @@ export default function YearView({ sessions, year, onMonthClick }: Props) {
                 {hasAny ? (
                   <>
                     <AureakText style={[st.totalCount, { color: accentColor }]}>
-                      {total} séance{total > 1 ? 's' : null}
+                      {total} séance{total > 1 ? 's' : ''}
                     </AureakText>
                     <View style={st.breakdown}>
                       {planified > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: colors.accent.gold }]} />
-                          <AureakText style={st.breakdownText}>Planifiée{planified > 1 ? 's' : null} : {planified}</AureakText>
+                          <AureakText style={st.breakdownText}>Planifiée{planified > 1 ? 's' : ''} : {planified}</AureakText>
                         </View>
                       )}
                       {enCours > 0 && (
@@ -93,19 +87,19 @@ export default function YearView({ sessions, year, onMonthClick }: Props) {
                       {realized > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#10B981' }]} />
-                          <AureakText style={st.breakdownText}>Réalisée{realized > 1 ? 's' : null} : {realized}</AureakText>
+                          <AureakText style={st.breakdownText}>Réalisée{realized > 1 ? 's' : ''} : {realized}</AureakText>
                         </View>
                       )}
                       {reportee > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#F59E0B' }]} />
-                          <AureakText style={st.breakdownText}>Reportée{reportee > 1 ? 's' : null} : {reportee}</AureakText>
+                          <AureakText style={st.breakdownText}>Reportée{reportee > 1 ? 's' : ''} : {reportee}</AureakText>
                         </View>
                       )}
                       {cancelled > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#DC2626' }]} />
-                          <AureakText style={st.breakdownText}>Annulée{cancelled > 1 ? 's' : null} : {cancelled}</AureakText>
+                          <AureakText style={st.breakdownText}>Annulée{cancelled > 1 ? 's' : ''} : {cancelled}</AureakText>
                         </View>
                       )}
                     </View>
