@@ -187,7 +187,7 @@ development_status:
   # ============================================================
 
   # Epic 18 : Supervision Joueur & Présences Avancées
-  epic-18: in-progress
+  epic-18: done
   18-1-fiche-joueur-360-admin: done
   18-2-joueurs-refonte-ui-photos: done
   18-3-statut-academie-dynamique: done
@@ -198,7 +198,7 @@ development_status:
   epic-18-retrospective: optional
 
   # Epic 19 : Séances v2 — Types Pédagogiques, Auto-génération & Mode Terrain
-  epic-19: in-progress
+  epic-19: done
   13-1-sessions-modele-donnees-v2-types-contenu-statuts: done
   13-2-sessions-calendrier-auto-generation-gestion-exceptions: done
   13-3-sessions-mode-seance-coach-mobile-cloture-remplacement: done
@@ -207,7 +207,7 @@ development_status:
   epic-19-retrospective: optional
 
   # Epic 20 : UX Méthodologie & Référentiel — Améliorations navigatoires
-  epic-20: in-progress
+  epic-20: done
   20-1-methodologie-ux-simplification-blocs-taxonomie: done
   20-2-methodologie-themes-cards-visual-upgrade: done
   20-3-admin-theme-page-ux-refactor-tab-simplification: done
@@ -216,8 +216,62 @@ development_status:
   epic-20-retrospective: optional
 
   # Epic 21 : Dynamic Training Builder — Constructeur de séances guidé par la méthodologie
-  epic-21: in-progress
+  epic-21: done
   21-1-training-builder-contexte-methodologie: done
   21-2-training-builder-themes-sequences-ressources: done
   21-3-training-builder-ateliers: done
   epic-21-retrospective: optional
+
+  # Epic 22 : Admin Joueurs — Qualité de saisie & UX Cartes
+  epic-22: done
+  22-1a-creation-joueur-logique-academique: done
+  22-1b-creation-joueur-saisies-controlees: done
+  22-2a-cartes-joueurs-donnees-manquantes: done
+  22-2b-cartes-joueurs-centrage-harmonisation: done
+  22-3-cartes-joueurs-refonte-visuelle-future: done
+  epic-22-retrospective: optional
+
+  # Epic 23 : Admin Clubs — Refonte visuelle, logos, statuts, métriques gardiens
+  epic-23: done
+  23-3-statut-club: done
+  23-2-logo-club-upload: done
+  23-4-compteur-gardiens-par-club: done
+  23-5-recomposition-visuelle-cartes-clubs: done
+  23-1-grille-clubs-multi-colonnes: done
+  epic-23-retrospective: optional
+
+  # Epic 24 : Architecture Pédagogique des Thèmes — Séquences, Métaphores, Critères, Erreurs, Mini-exercices
+  epic-24: done
+  24-1-identite-vision-pedagogique-placeholder: done
+  24-2-sequences-pedagogiques: done
+  24-3-metaphores: done
+  24-4-criteres-de-reussite: done
+  24-5-erreurs-observees: done
+  24-6-mini-exercices-terrain: done
+  24-7-organisation-pedagogique: done
+  epic-24-retrospective: optional
+
+  # Epic 25 : Carte joueur premium — Refonte visuelle progressive
+  epic-25: done
+  25-0-classification-niveau-equipe-etoiles: done
+  25-1-carte-joueur-premium-structure-visuelle: done
+  25-2-carte-joueur-premium-donnees-dynamiques: done
+  25-3-carte-joueur-premium-photo: done
+  25-4-carte-joueur-premium-performance-assets: done
+  25-5-carte-joueur-premium-dimensions-background: done
+  25-6-carte-joueur-premium-alignement-layout: done
+  25-7-carte-joueur-premium-zones-fixes: done
+  25-8-carte-joueur-premium-ajustement-zones: done
+  epic-25-retrospective: optional
+
+  # Epic 26 : Carte Club Premium — Refonte visuelle
+  epic-26: done
+  26-1-carte-club-premium: done
+  26-2-carte-club-premium-ajustements-visuels: done
+  epic-26-retrospective: optional
+
+  # Epic 27 : Theme Card Premium Design
+  epic-27: done
+  27-1-theme-card-design-refactor: done
+  27-2-theme-card-premium-background-image: done
+  epic-27-retrospective: optional

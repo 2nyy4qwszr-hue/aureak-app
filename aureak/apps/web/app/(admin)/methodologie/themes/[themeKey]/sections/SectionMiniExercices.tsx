@@ -1,13 +1,14 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { listThemeMiniExercises, createThemeMiniExercise, updateThemeMiniExercise, deleteThemeMiniExercise } from '@aureak/api-client'
-import type { ThemeMiniExercise, Criterion } from '@aureak/types'
+import type { ThemeMiniExercise, Criterion, ThemeSequence } from '@aureak/types'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 type Props = {
-  themeId: string
-  tenantId: string
-  criteria: Criterion[]
+  themeId  : string
+  tenantId : string
+  criteria : Criterion[]
+  sequences: ThemeSequence[]
 }
 
 const LABEL_STYLE: React.CSSProperties = {
@@ -38,10 +39,10 @@ const BTN_GHOST: React.CSSProperties = {
 
 const EMPTY_FORM = {
   title: '', purpose: '', situation: '', cue: '',
-  videoUrl: '', imageUrl: '', criterionId: '', sortOrder: 0,
+  videoUrl: '', imageUrl: '', criterionId: '', sequenceId: '', sortOrder: 0,
 }
 
-export default function SectionMiniExercices({ themeId, tenantId, criteria }: Props) {
+export default function SectionMiniExercices({ themeId, tenantId, criteria, sequences }: Props) {
   const [exercises, setExercises] = useState<ThemeMiniExercise[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -52,9 +53,12 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria }: Pr
 
   const load = async () => {
     setLoading(true)
-    const data = await listThemeMiniExercises(themeId)
-    setExercises(data)
-    setLoading(false)
+    try {
+      const data = await listThemeMiniExercises(themeId)
+      setExercises(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [themeId])
@@ -77,6 +81,7 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria }: Pr
         videoUrl: form.videoUrl || null,
         imageUrl: form.imageUrl || null,
         criterionId: form.criterionId || null,
+        sequenceId: form.sequenceId || null,
         sortOrder: exercises.length,
       })
       setForm(EMPTY_FORM)
@@ -92,32 +97,44 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria }: Pr
     setEditForm({
       title: ex.title, purpose: ex.purpose ?? '', situation: ex.situation ?? '',
       cue: ex.cue ?? '', videoUrl: ex.videoUrl ?? '', imageUrl: ex.imageUrl ?? '',
-      criterionId: ex.criterionId ?? '', sortOrder: ex.sortOrder,
+      criterionId: ex.criterionId ?? '', sequenceId: ex.sequenceId ?? '', sortOrder: ex.sortOrder,
     })
   }
 
   const handleSaveEdit = async (id: string) => {
-    await updateThemeMiniExercise(id, {
-      title: editForm.title,
-      purpose: editForm.purpose || null,
-      situation: editForm.situation || null,
-      cue: editForm.cue || null,
-      videoUrl: editForm.videoUrl || null,
-      imageUrl: editForm.imageUrl || null,
-      criterionId: editForm.criterionId || null,
-    })
-    setEditingId(null)
-    await load()
+    try {
+      await updateThemeMiniExercise(id, {
+        title: editForm.title.trim(),
+        purpose: editForm.purpose || null,
+        situation: editForm.situation || null,
+        cue: editForm.cue || null,
+        videoUrl: editForm.videoUrl || null,
+        imageUrl: editForm.imageUrl || null,
+        criterionId: editForm.criterionId || null,
+        sequenceId: editForm.sequenceId || null,
+      })
+      setEditingId(null)
+      await load()
+    } catch {
+      // mode édition reste ouvert si erreur
+    }
   }
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Supprimer ce mini-exercice ?')) return
-    await deleteThemeMiniExercise(id)
-    await load()
+    try {
+      await deleteThemeMiniExercise(id)
+      await load()
+    } catch {
+      // silently ignore — l'exercice reste visible
+    }
   }
 
   const getCriterionLabel = (id: string | null) =>
     id ? (criteria.find(c => c.id === id)?.label ?? id) : null
+
+  const getSequenceLabel = (id: string | null) =>
+    id ? (sequences.find(s => s.id === id)?.name ?? id) : null
 
   if (loading) return (
     <div style={{ padding: 20 }}>
@@ -141,7 +158,7 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria }: Pr
 
       {showAdd && (
         <ExerciseForm
-          form={form} setField={set} criteria={criteria}
+          form={form} setField={set} criteria={criteria} sequences={sequences}
           onSubmit={handleAdd} onCancel={() => { setShowAdd(false); setForm(EMPTY_FORM) }}
           submitting={adding} submitLabel="Créer"
         />
@@ -157,7 +174,7 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria }: Pr
         <div key={ex.id} style={{ ...CARD_STYLE, marginBottom: 12 }}>
           {editingId === ex.id ? (
             <ExerciseForm
-              form={editForm} setField={setEdit} criteria={criteria}
+              form={editForm} setField={setEdit} criteria={criteria} sequences={sequences}
               onSubmit={() => handleSaveEdit(ex.id)} onCancel={() => setEditingId(null)}
               submitting={false} submitLabel="Sauvegarder"
             />
@@ -170,11 +187,18 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria }: Pr
                   <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }} onClick={() => handleDelete(ex.id)}>🗑</button>
                 </div>
               </div>
-              {ex.criterionId && (
-                <div style={{ marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, backgroundColor: colors.accent.gold + '15', color: colors.accent.gold, padding: '2px 8px', borderRadius: 999, border: `1px solid ${colors.border.gold}` }}>
-                    Critère : {getCriterionLabel(ex.criterionId)}
-                  </span>
+              {(ex.criterionId || ex.sequenceId) && (
+                <div style={{ marginBottom: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {ex.criterionId && (
+                    <span style={{ fontSize: 11, backgroundColor: colors.accent.gold + '15', color: colors.accent.gold, padding: '2px 8px', borderRadius: 999, border: `1px solid ${colors.border.gold}` }}>
+                      Critère : {getCriterionLabel(ex.criterionId)}
+                    </span>
+                  )}
+                  {ex.sequenceId && (
+                    <span style={{ fontSize: 11, backgroundColor: colors.accent.gold + '15', color: colors.accent.gold, padding: '2px 8px', borderRadius: 999, border: `1px solid ${colors.border.gold}` }}>
+                      Séquence : {getSequenceLabel(ex.sequenceId)}
+                    </span>
+                  )}
                 </div>
               )}
               {ex.purpose && <p style={{ fontSize: 12, color: colors.text.muted, margin: '4px 0' }}><strong>Objectif :</strong> {ex.purpose}</p>}
@@ -198,11 +222,12 @@ const CARD_STYLE: React.CSSProperties = {
 }
 
 function ExerciseForm({
-  form, setField, criteria, onSubmit, onCancel, submitting, submitLabel,
+  form, setField, criteria, sequences, onSubmit, onCancel, submitting, submitLabel,
 }: {
   form: Record<string, string | number>
   setField: (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
   criteria: Criterion[]
+  sequences: ThemeSequence[]
   onSubmit: () => void
   onCancel: () => void
   submitting: boolean
@@ -249,12 +274,21 @@ function ExerciseForm({
           <input type="text" value={form.imageUrl as string} onChange={setField('imageUrl')} style={INPUT_STYLE} />
         </div>
       </div>
-      <div style={{ marginBottom: 16 }}>
-        <label style={LABEL_STYLE}>Critère ciblé</label>
-        <select value={form.criterionId as string} onChange={setField('criterionId')} style={{ ...INPUT_STYLE, cursor: 'pointer' }}>
-          <option value="">— Aucun critère spécifique —</option>
-          {criteria.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-        </select>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+        <div>
+          <label style={LABEL_STYLE}>Critère ciblé</label>
+          <select value={form.criterionId as string} onChange={setField('criterionId')} style={{ ...INPUT_STYLE, cursor: 'pointer' }}>
+            <option value="">— Aucun critère —</option>
+            {criteria.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={LABEL_STYLE}>Séquence liée</label>
+          <select value={form.sequenceId as string} onChange={setField('sequenceId')} style={{ ...INPUT_STYLE, cursor: 'pointer' }}>
+            <option value="">— Aucune séquence —</option>
+            {sequences.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <button style={{ padding: '7px 14px', backgroundColor: colors.accent.gold, color: '#fff', border: 'none', borderRadius: radius.button, fontSize: 12, fontWeight: 600, cursor: 'pointer' }} onClick={onSubmit} disabled={submitting}>

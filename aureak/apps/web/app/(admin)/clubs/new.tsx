@@ -5,8 +5,9 @@ import { createClubDirectoryEntry } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { BelgianProvince } from '@aureak/types'
+import type { BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
+import { RelationTypeSelector } from './_components'
 
 // ── Field components ─────────────────────────────────────────────────────────
 
@@ -131,7 +132,7 @@ type Form = {
   responsableSportif          : string
   emailResponsableSportif     : string
   telephoneResponsableSportif : string
-  clubPartenaire              : boolean
+  clubRelationType            : ClubRelationType
   actif                       : boolean
   notesInternes               : string
 }
@@ -151,7 +152,7 @@ const EMPTY_FORM: Form = {
   responsableSportif          : '',
   emailResponsableSportif     : '',
   telephoneResponsableSportif : '',
-  clubPartenaire              : false,
+  clubRelationType            : 'normal',
   actif                       : true,
   notesInternes               : '',
 }
@@ -200,7 +201,7 @@ export default function NewClubScreen() {
       responsableSportif          : form.responsableSportif.trim() || null,
       emailResponsableSportif     : form.emailResponsableSportif.trim() || null,
       telephoneResponsableSportif : form.telephoneResponsableSportif.trim() || null,
-      clubPartenaire              : form.clubPartenaire,
+      clubRelationType            : form.clubRelationType,
       actif                       : form.actif,
       notesInternes               : form.notesInternes.trim() || null,
     })
@@ -275,9 +276,9 @@ export default function NewClubScreen() {
 
         {/* ── Statut ── */}
         <SectionTitle title="Statut" />
-        <View style={{ flexDirection: 'row', gap: space.md, flexWrap: 'wrap' }}>
-          <ToggleChip label="Club partenaire" value={form.clubPartenaire} onChange={v => setField('clubPartenaire', v)} />
-          <ToggleChip label="Actif"           value={form.actif}          onChange={v => setField('actif', v)} />
+        <RelationTypeSelector value={form.clubRelationType} onChange={v => setField('clubRelationType', v)} />
+        <View style={{ flexDirection: 'row', gap: space.md, flexWrap: 'wrap', marginTop: 4 }}>
+          <ToggleChip label="Actif" value={form.actif} onChange={v => setField('actif', v)} />
         </View>
 
         {/* ── Notes internes ── */}

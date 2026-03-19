@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listClubDirectory } from '@aureak/api-client'
-import { AureakText, Badge } from '@aureak/ui'
+import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { ClubDirectoryEntry, BelgianProvince } from '@aureak/types'
+import type { ClubDirectoryEntry, BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
+import { ClubCard, ClubCardSkeleton } from './_components'
 
 const PAGE_SIZE = 50
 
@@ -45,13 +46,14 @@ const pag = StyleSheet.create({
 
 // ── Main page ───────────────────────────────────────────────────────────────
 
-type FilterPartenaire = 'all' | 'partner' | 'common'
-type FilterActif      = 'all' | 'actif' | 'inactif'
+type FilterRelation = 'all' | ClubRelationType
+type FilterActif    = 'all' | 'actif' | 'inactif'
 
-const PARTENAIRE_TABS: { key: FilterPartenaire; label: string }[] = [
-  { key: 'all',     label: 'Tous'         },
-  { key: 'partner', label: 'Partenaires'  },
-  { key: 'common',  label: 'Non partenaires' },
+const RELATION_TABS: { key: FilterRelation; label: string }[] = [
+  { key: 'all',        label: 'Tous'         },
+  { key: 'partenaire', label: 'Partenaires'  },
+  { key: 'associe',    label: 'Associés'     },
+  { key: 'normal',     label: 'Normaux'      },
 ]
 const ACTIF_TABS: { key: FilterActif; label: string }[] = [
   { key: 'all',     label: 'Tous'    },
@@ -61,37 +63,39 @@ const ACTIF_TABS: { key: FilterActif; label: string }[] = [
 
 export default function ClubsPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const columns = width >= 1600 ? 5 : width >= 1280 ? 4 : width >= 900 ? 3 : width >= 600 ? 2 : 1
 
   const [clubs,            setClubs]            = useState<ClubDirectoryEntry[]>([])
   const [total,            setTotal]            = useState(0)
   const [page,             setPage]             = useState(0)
   const [loading,          setLoading]          = useState(true)
 
-  const [search,           setSearch]           = useState('')
-  const [searchInput,      setSearchInput]      = useState('')
-  const [provinceFilter,   setProvinceFilter]   = useState<BelgianProvince | undefined>()
-  const [partenaireFilter, setPartenaireFilter] = useState<FilterPartenaire>('all')
-  const [actifFilter,      setActifFilter]      = useState<FilterActif>('actif')
+  const [search,          setSearch]          = useState('')
+  const [searchInput,     setSearchInput]     = useState('')
+  const [provinceFilter,  setProvinceFilter]  = useState<BelgianProvince | undefined>()
+  const [relationFilter,  setRelationFilter]  = useState<FilterRelation>('all')
+  const [actifFilter,     setActifFilter]     = useState<FilterActif>('actif')
 
   const load = useCallback(async () => {
     setLoading(true)
     const { data, count } = await listClubDirectory({
-      search    : search || undefined,
-      province  : provinceFilter,
-      partenaire: partenaireFilter === 'all' ? undefined : partenaireFilter === 'partner',
-      actif     : actifFilter === 'all' ? undefined : actifFilter === 'actif',
+      search      : search || undefined,
+      province    : provinceFilter,
+      relationTypes: relationFilter === 'all' ? undefined : [relationFilter as ClubRelationType],
+      actif       : actifFilter === 'all' ? undefined : actifFilter === 'actif',
       page,
-      pageSize  : PAGE_SIZE,
+      pageSize    : PAGE_SIZE,
     })
     setClubs(data)
     setTotal(count)
     setLoading(false)
-  }, [search, provinceFilter, partenaireFilter, actifFilter, page])
+  }, [search, provinceFilter, relationFilter, actifFilter, page])
 
   useEffect(() => { load() }, [load])
 
   // Reset page on filter change
-  useEffect(() => { setPage(0) }, [search, provinceFilter, partenaireFilter, actifFilter])
+  useEffect(() => { setPage(0) }, [search, provinceFilter, relationFilter, actifFilter])
 
   const handleSearch = () => setSearch(searchInput.trim())
 
@@ -143,19 +147,19 @@ export default function ClubsPage() {
 
       {/* ── Filters ── */}
       <View style={styles.filterRow}>
-        {/* Partenaire filter */}
+        {/* Relation filter */}
         <View style={styles.filterGroup}>
-          {PARTENAIRE_TABS.map(t => (
+          {RELATION_TABS.map(t => (
             <Pressable
               key={t.key}
-              style={[styles.tab, partenaireFilter === t.key && styles.tabActive]}
-              onPress={() => setPartenaireFilter(t.key)}
+              style={[styles.tab, relationFilter === t.key && styles.tabActive]}
+              onPress={() => setRelationFilter(t.key)}
             >
               <AureakText
                 variant="caption"
                 style={{
-                  color     : partenaireFilter === t.key ? colors.accent.gold : colors.text.muted,
-                  fontWeight: partenaireFilter === t.key ? '700' : '400',
+                  color     : relationFilter === t.key ? colors.accent.gold : colors.text.muted,
+                  fontWeight: relationFilter === t.key ? '700' : '400',
                 }}
               >
                 {t.label}
@@ -215,10 +219,14 @@ export default function ClubsPage() {
         ))}
       </View>
 
-      {/* ── Table ── */}
+      {/* ── Grille ── */}
       {loading ? (
-        <View style={styles.skeletonBox}>
-          {[0,1,2,3,4,5].map(i => <View key={i} style={styles.skeletonRow} />)}
+        <View style={styles.grid}>
+          {Array.from({ length: Math.max(columns * 2, 6) }).map((_, i) => (
+            <View key={i} style={[styles.cell, { width: `${Math.floor(100 / columns)}%` as never }]}>
+              <ClubCardSkeleton />
+            </View>
+          ))}
         </View>
       ) : clubs.length === 0 ? (
         <View style={styles.emptyState}>
@@ -228,50 +236,13 @@ export default function ClubsPage() {
           </AureakText>
         </View>
       ) : (
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={styles.thead}>
-            <AureakText variant="caption" style={[styles.th, { flex: 3 }]}>Nom</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 90 }]}>Matricule</AureakText>
-            <AureakText variant="caption" style={[styles.th, { flex: 2 }]}>Ville / Province</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 100 }]}>Statut</AureakText>
-            <AureakText variant="caption" style={[styles.th, { width: 80, textAlign: 'right' }]}>Actions</AureakText>
-          </View>
-
-          {clubs.map((club, idx) => (
-            <View key={club.id} style={[styles.tr, idx % 2 === 1 && styles.trAlt]}>
-              <View style={[{ flex: 3 }, styles.td]}>
-                <AureakText variant="body" style={{ fontWeight: '600' }}>{club.nom}</AureakText>
-                {club.label && (
-                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                    {club.label}
-                  </AureakText>
-                )}
-              </View>
-              <AureakText variant="caption" style={[styles.td, { width: 90, color: colors.text.muted }]}>
-                {club.matricule ?? '—'}
-              </AureakText>
-              <View style={[{ flex: 2 }, styles.td]}>
-                <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                  {[club.ville, club.province].filter(Boolean).join(' · ') || '—'}
-                </AureakText>
-              </View>
-              <View style={[styles.td, { width: 100, gap: 4 }]}>
-                {club.clubPartenaire && (
-                  <Badge label="Partenaire" variant="gold" />
-                )}
-                <Badge label={club.actif ? 'Actif' : 'Inactif'} variant={club.actif ? 'present' : 'zinc'} />
-              </View>
-              <View style={[styles.td, { width: 80, alignItems: 'flex-end' }]}>
-                <Pressable
-                  style={styles.manageBtn}
-                  onPress={() => router.push(`/clubs/${club.id}` as never)}
-                >
-                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
-                    Gérer
-                  </AureakText>
-                </Pressable>
-              </View>
+        <View style={styles.grid}>
+          {clubs.map(club => (
+            <View key={club.id} style={[styles.cell, { width: `${Math.floor(100 / columns)}%` as never }]}>
+              <ClubCard
+                club={club}
+                onPress={() => router.push(`/clubs/${club.id}` as never)}
+              />
             </View>
           ))}
         </View>
@@ -366,58 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.muted,
   },
 
-  // Table
-  table      : {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 10,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    overflow       : 'hidden',
-  },
-  thead      : {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-    backgroundColor  : colors.light.muted,
-  },
-  th         : {
-    color        : colors.text.muted,
-    fontWeight   : '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    fontSize     : 10,
-  },
-  tr         : {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-  },
-  trAlt      : { backgroundColor: colors.light.muted },
-  td         : { paddingRight: space.sm },
-  manageBtn  : {
-    paddingHorizontal: space.sm,
-    paddingVertical  : 4,
-    borderRadius     : 5,
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold,
-  },
-
   // States
-  skeletonBox : { gap: space.xs },
-  skeletonRow : {
-    height         : 52,
-    backgroundColor: colors.light.surface,
-    borderRadius   : 6,
-    opacity        : 0.5,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-  },
   emptyState  : {
     backgroundColor: colors.light.surface,
     borderRadius   : 10,
@@ -425,5 +345,16 @@ const styles = StyleSheet.create({
     alignItems     : 'center',
     borderWidth    : 1,
     borderColor    : colors.border.light,
+  },
+
+  // Grid
+  grid: {
+    flexDirection   : 'row',
+    flexWrap        : 'wrap',
+    marginHorizontal: -space.xs,
+  },
+  cell: {
+    paddingHorizontal: space.xs,
+    paddingBottom    : space.sm,
   },
 })

@@ -41,11 +41,16 @@ export type { CreateClubParams, UpdateClubAccessLevelParams } from './clubs'
 export {
   createThemeGroup, listThemeGroups, updateThemeGroupOrder, updateThemeGroup, deleteThemeGroup,
   createTheme, updateTheme, updateThemeOrder, updateThemePositionIndex, listThemes, getThemeByKey, createNewThemeVersion,
-  createThemeSequence, listSequencesByTheme, updateThemeSequence,
+  createThemeSequence, listSequencesByTheme, updateThemeSequence, deleteThemeSequence,
 } from './referentiel/themes'
 export type {
   CreateThemeGroupParams, CreateThemeParams, UpdateThemeParams, NewThemeVersionParams, CreateThemeSequenceParams, UpdateThemeSequenceParams,
 } from './referentiel/themes'
+
+export {
+  listMetaphorsByTheme, createThemeMetaphor, updateThemeMetaphor, deleteThemeMetaphor, linkMetaphorToSequence,
+} from './referentiel/theme-metaphors'
+export type { CreateThemeMetaphorParams, UpdateThemeMetaphorParams } from './referentiel/theme-metaphors'
 
 export {
   createCriterion, listCriteriaBySequence,
@@ -278,6 +283,7 @@ export {
   listChildrenOfClub, listCurrentPlayersOfClub, listAffiliatedPlayersOfClub,
   linkChildToClubDirectory, unlinkChildFromClubDirectory,
   listCoachesOfClub, linkCoachToClubDirectory, unlinkCoachFromClubDirectory,
+  uploadClubLogo, deleteClubLogo, getClubLogoSignedUrl,
 } from './admin/club-directory'
 export type {
   ClubDirectoryFields, CreateClubDirectoryParams, UpdateClubDirectoryParams,
@@ -301,6 +307,7 @@ export {
   deleteCriterionById, deleteFaultById,
   listCriteriaByTheme, listFaultsByCriterionExtended,
   listFaultsByCriteriaIds, listCriteriaLinksBySequenceIds,
+  listFaultsByTheme,
 } from './referentiel/theme-dossier'
 
 // ── Méthodologie pédagogique (migration 00050) ────────────────────────────────

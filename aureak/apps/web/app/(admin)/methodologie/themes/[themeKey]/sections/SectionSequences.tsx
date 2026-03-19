@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import {
-  listSequencesByTheme, createThemeSequence, updateThemeSequence,
+  listSequencesByTheme, createThemeSequence, updateThemeSequence, deleteThemeSequence,
   setSequenceCriteria, listCriteriaLinksBySequenceIds,
 } from '@aureak/api-client'
 import type { ThemeSequence, Criterion } from '@aureak/types'
@@ -52,8 +52,11 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newDesc, setNewDesc] = useState('')
   const [adding, setAdding] = useState(false)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [movingId, setMovingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const loadSequences = async () => {
     setLoading(true)
@@ -83,12 +86,58 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
     if (!newName.trim()) return
     setAdding(true)
     try {
-      await createThemeSequence({ tenantId, themeId, name: newName.trim(), sortOrder: sequences.length })
+      await createThemeSequence({ tenantId, themeId, name: newName.trim(), description: newDesc.trim() || undefined, sortOrder: sequences.length })
       setNewName('')
+      setNewDesc('')
       setShowAdd(false)
       await loadSequences()
     } finally {
       setAdding(false)
+    }
+  }
+
+  const handleMoveUp = async (seqId: string) => {
+    const idx = sequences.findIndex(s => s.id === seqId)
+    if (idx <= 0 || movingId) return
+    setMovingId(seqId)
+    try {
+      const curr = sequences[idx]
+      const prev = sequences[idx - 1]
+      await Promise.all([
+        updateThemeSequence(curr.id, { sortOrder: prev.sortOrder ?? idx - 1 }),
+        updateThemeSequence(prev.id, { sortOrder: curr.sortOrder ?? idx }),
+      ])
+      await loadSequences()
+    } finally {
+      setMovingId(null)
+    }
+  }
+
+  const handleMoveDown = async (seqId: string) => {
+    const idx = sequences.findIndex(s => s.id === seqId)
+    if (idx < 0 || idx >= sequences.length - 1 || movingId) return
+    setMovingId(seqId)
+    try {
+      const curr = sequences[idx]
+      const next = sequences[idx + 1]
+      await Promise.all([
+        updateThemeSequence(curr.id, { sortOrder: next.sortOrder ?? idx + 1 }),
+        updateThemeSequence(next.id, { sortOrder: curr.sortOrder ?? idx }),
+      ])
+      await loadSequences()
+    } finally {
+      setMovingId(null)
+    }
+  }
+
+  const handleDelete = async (seqId: string) => {
+    if (!window.confirm('Supprimer cette séquence supprimera également tous ses critères et erreurs associées. Continuer ?')) return
+    setDeletingId(seqId)
+    try {
+      await deleteThemeSequence(seqId)
+      await loadSequences()
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -104,6 +153,7 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
     setSavingId(seqId)
     try {
       await updateThemeSequence(seqId, {
+        name         : seq.name,
         description  : seq.description ?? null,
         coachVideoUrl: (seq as SeqWithMeta & { coachVideoUrl?: string }).coachVideoUrl ?? null,
       })
@@ -166,11 +216,13 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
 
       {showAdd && (
         <div style={{ ...CARD_STYLE, marginBottom: 16, border: `2px solid ${colors.accent.gold}40` }}>
-          <label style={LABEL_STYLE}>Nom de la séquence</label>
+          <label style={LABEL_STYLE}>Nom de la séquence *</label>
           <input type="text" value={newName} onChange={e => setNewName(e.target.value)} style={INPUT_STYLE} placeholder="Ex: Phase d'annonce..." autoFocus onKeyDown={e => e.key === 'Enter' && handleAddSeq()} />
+          <label style={{ ...LABEL_STYLE, marginTop: 10 }}>Description (optionnelle)</label>
+          <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={2} style={TEXTAREA_STYLE} placeholder="Description de la séquence..." />
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
             <button style={BTN_GOLD} onClick={handleAddSeq} disabled={adding}>{adding ? 'Ajout...' : 'Créer'}</button>
-            <button style={BTN_GHOST} onClick={() => { setShowAdd(false); setNewName('') }}>Annuler</button>
+            <button style={BTN_GHOST} onClick={() => { setShowAdd(false); setNewName(''); setNewDesc('') }}>Annuler</button>
           </div>
         </div>
       )}
@@ -199,20 +251,48 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
             {seq.criteriaIds.length > 0 && (
               <span style={{ fontSize: 11, color: colors.text.muted }}>{seq.criteriaIds.length} critère{seq.criteriaIds.length > 1 ? 's' : ''}</span>
             )}
+            {idx > 0 && (
+              <button
+                style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }}
+                onClick={e => { e.stopPropagation(); handleMoveUp(seq.id) }}
+                disabled={!!movingId || !!deletingId}
+                title="Monter"
+              >↑</button>
+            )}
+            {idx < sequences.length - 1 && (
+              <button
+                style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }}
+                onClick={e => { e.stopPropagation(); handleMoveDown(seq.id) }}
+                disabled={!!movingId || !!deletingId}
+                title="Descendre"
+              >↓</button>
+            )}
             <button
               style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }}
               onClick={e => { e.stopPropagation(); toggleEdit(seq.id) }}
             >
               ✎ Éditer
             </button>
+            <button
+              style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }}
+              onClick={e => { e.stopPropagation(); handleDelete(seq.id) }}
+              disabled={deletingId === seq.id || !!movingId}
+              title="Supprimer"
+            >{deletingId === seq.id ? '...' : '🗑'}</button>
             <span style={{ color: colors.text.muted, fontSize: 12 }}>{seq._open ? '▲' : '▼'}</span>
           </div>
 
           {seq._open && (
             <div style={{ marginTop: 16, borderTop: `1px solid ${colors.border.divider}`, paddingTop: 16 }}>
+              {!seq._editing && seq.description && (
+                <p style={{ fontSize: 13, color: colors.text.muted, margin: '0 0 12px', lineHeight: 1.5 }}>{seq.description}</p>
+              )}
               {seq._editing && (
                 <div style={{ marginBottom: 16 }}>
-                  <Field label="Métaphore (court)">
+                  <Field label="Titre">
+                    <input type="text" value={seq.name} onChange={e => updateLocal(seq.id, { name: e.target.value })} style={INPUT_STYLE} />
+                  </Field>
+                  <Field label="Description">
                     <textarea value={seq.description ?? ''} onChange={e => updateLocal(seq.id, { description: e.target.value })} rows={2} style={TEXTAREA_STYLE} />
                   </Field>
                   <Field label="Texte coach (court)">

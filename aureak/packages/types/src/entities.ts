@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -136,6 +136,19 @@ export type Theme = {
   createdAt      : string
 }
 
+/** ThemeMetaphor — métaphore pédagogique d'un thème, liée optionnellement à une séquence (Story 24.3) */
+export type ThemeMetaphor = {
+  id          : string
+  tenantId    : string
+  themeId     : string
+  title       : string
+  description : string | null
+  sequenceId  : string | null
+  sortOrder   : number
+  createdAt   : string
+  updatedAt   : string
+}
+
 /** ThemeSequence — séquence pédagogique d'un thème (liée à une version immuable) */
 export type ThemeSequence = {
   id            : string
@@ -158,8 +171,10 @@ export type ThemeSequence = {
 /** Criterion — critère de réussite d'une séquence pédagogique */
 export type Criterion = {
   id                      : string
-  sequenceId              : string
+  sequenceId              : string | null   // nullable depuis migration 00080
   tenantId                : string
+  themeId                 : string          // source de vérité depuis migration 00080
+  metaphorId              : string | null   // liaison optionnelle à une métaphore (exclusif avec sequenceId)
   label                   : string
   description             : string | null
   sortOrder               : number | null
@@ -175,7 +190,8 @@ export type Criterion = {
 /** Fault — faute associée à un critère */
 export type Fault = {
   id                  : string
-  criterionId         : string
+  criterionId         : string | null   // nullable depuis migration 00081
+  themeId             : string          // source de vérité depuis migration 00081
   tenantId            : string
   label               : string
   description         : string | null
@@ -1048,6 +1064,13 @@ export type ChildDirectoryEntry = {
   parent2Tel      : string | null
   parent2Email    : string | null
 
+  // Classification niveau équipe (Story 25.0 — migration 00083)
+  ageCategory     : FootballAgeCategory | null  // football_age_category enum PostgreSQL
+  playerType      : 'youth' | 'senior' | null   // colonne générée, jamais saisie
+  youthLevel      : string | null               // 'Régional' | 'Provincial' | 'Inter' | 'Élite 2' | 'Élite 1'
+  seniorDivision  : string | null               // 'P4'..'D1A'
+  teamLevelStars  : number | null               // 1-5, calculé en DB (GENERATED ALWAYS AS)
+
   // Statuts
   actif           : boolean
   notesInternes   : string | null
@@ -1147,8 +1170,16 @@ export type ClubDirectoryEntry = {
   telephoneResponsableSportif : string | null
 
   // Statuts
-  clubPartenaire              : boolean
+  clubRelationType            : ClubRelationType
   actif                       : boolean
+
+  /** Nombre de gardiens réels liés au club (hors prospects, avec participation). 0 si aucun. */
+  gardienCount                : number
+
+  // Logo (Storage path + signed URL générée à la volée par l'api-client)
+  logoPath                    : string | null
+  /** Signed URL valide 1h — null si pas de logo ou bucket indisponible */
+  logoUrl                     : string | null
 
   // Notes admin
   notesInternes               : string | null
@@ -1255,6 +1286,7 @@ export type ThemeMiniExercise = {
   tenantId    : string
   themeId     : string
   criterionId : string | null
+  sequenceId  : string | null   // liaison optionnelle à une séquence (migration 00082)
   title       : string
   purpose     : string | null
   situation   : string | null

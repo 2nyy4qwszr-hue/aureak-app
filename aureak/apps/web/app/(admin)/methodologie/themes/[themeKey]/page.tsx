@@ -1,8 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { getThemeByKey, listCriteriaByTheme, listThemeGroups } from '@aureak/api-client'
-import type { Theme, Criterion, ThemeGroup } from '@aureak/types'
+import { getThemeByKey, listCriteriaByTheme, listThemeGroups, listSequencesByTheme, listMetaphorsByTheme } from '@aureak/api-client'
+import type { Theme, Criterion, ThemeGroup, ThemeSequence, ThemeMetaphor } from '@aureak/types'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 // Import des sections
@@ -10,7 +10,10 @@ import SectionIdentite from './sections/SectionIdentite'
 import SectionVisionPedagogique from './sections/SectionVisionPedagogique'
 import SectionCriteres from './sections/SectionCriteres'
 import SectionSequences from './sections/SectionSequences'
+import SectionMetaphores from './sections/SectionMetaphores'
 import SectionMiniExercices from './sections/SectionMiniExercices'
+import SectionOrganisation from './sections/SectionOrganisation'
+import SectionPedagogiePlaceholder from './sections/SectionPedagogiePlaceholder'
 import SectionSavoirFaire from './sections/SectionSavoirFaire'
 import SectionEvalVideo from './sections/SectionEvalVideo'
 import SectionBadge from './sections/SectionBadge'
@@ -22,6 +25,7 @@ type TabId =
   | 'terrain'
   | 'identite-pedagogique'
   | 'sequences-pedagogiques'
+  | 'organisation'
   | 'quiz-connaissances'
   | 'savoir-faire-eval'
   | 'badges-progression'
@@ -31,6 +35,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'terrain',                label: 'Terrain',                   icon: '🖨️' },
   { id: 'identite-pedagogique',   label: 'Identité pédagogique',      icon: '📋' },
   { id: 'sequences-pedagogiques', label: 'Séquences pédagogiques',    icon: '📖' },
+  { id: 'organisation',           label: 'Organisation',              icon: '🗂' },
   { id: 'quiz-connaissances',     label: 'Quiz & Connaissances',      icon: '🧠' },
   { id: 'savoir-faire-eval',      label: 'Savoir-faire & Évaluation', icon: '🏠' },
   { id: 'badges-progression',     label: 'Badges & Progression',      icon: '🏅' },
@@ -42,9 +47,12 @@ export default function ThemeDossierPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('terrain')
   const [theme, setTheme] = useState<Theme | null>(null)
-  const [groups, setGroups] = useState<ThemeGroup[]>([])
-  const [criteria, setCriteria] = useState<Criterion[]>([])
-  const [loading, setLoading] = useState(true)
+  const [groups, setGroups]       = useState<ThemeGroup[]>([])
+  const [criteria, setCriteria]   = useState<Criterion[]>([])
+  const [sequences, setSequences] = useState<ThemeSequence[]>([])
+  const [metaphors, setMetaphors] = useState<ThemeMetaphor[]>([])
+  const [freeCount, setFreeCount] = useState(0)
+  const [loading, setLoading]     = useState(true)
 
   useEffect(() => {
     async function load() {
@@ -57,13 +65,28 @@ export default function ThemeDossierPage() {
       setTheme(t ?? null)
       setGroups(g)
       if (t) {
-        const crits = await listCriteriaByTheme(t.id)
+        const [crits, { data: seqs }, metas] = await Promise.all([
+          listCriteriaByTheme(t.id),
+          listSequencesByTheme(t.id),
+          listMetaphorsByTheme(t.id),
+        ])
         setCriteria(crits ?? [])
+        setSequences(seqs ?? [])
+        setMetaphors(metas ?? [])
       }
       setLoading(false)
     }
     load()
   }, [themeKey])
+
+  // Preliminary freeCount from already-loaded data (before Organisation tab is visited).
+  // Counts free criteria + free metaphors. Mini-exercises and faults are not pre-loaded here;
+  // the exact count is updated by SectionOrganisation via onFreeCountChange once visited.
+  useEffect(() => {
+    const freeCrits = criteria.filter(c => !c.sequenceId && !c.metaphorId).length
+    const freeMetas = metaphors.filter(m => !m.sequenceId).length
+    setFreeCount(freeCrits + freeMetas)
+  }, [criteria, metaphors])
 
   if (loading) return <DossierSkeleton />
   if (!theme) return <div style={{ padding: 32, color: colors.text.muted }}>Thème introuvable.</div>
@@ -80,6 +103,7 @@ export default function ThemeDossierPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <SectionIdentite theme={theme} groups={groups} onUpdate={t => setTheme(t)} />
             <SectionVisionPedagogique themeId={theme.id} tenantId={tenantId} />
+            <SectionPedagogiePlaceholder />
           </div>
         )
 
@@ -87,10 +111,14 @@ export default function ThemeDossierPage() {
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <SectionSequences themeId={theme.id} tenantId={tenantId} criteria={criteria} />
-            <SectionCriteres themeId={theme.id} tenantId={tenantId} criteria={criteria} onCriteriaChange={setCriteria} />
-            <SectionMiniExercices themeId={theme.id} tenantId={tenantId} criteria={criteria} />
+            <SectionMetaphores themeId={theme.id} tenantId={tenantId} sequences={sequences} />
+            <SectionCriteres themeId={theme.id} tenantId={tenantId} criteria={criteria} onCriteriaChange={setCriteria} sequences={sequences} metaphors={metaphors} />
+            <SectionMiniExercices themeId={theme.id} tenantId={tenantId} criteria={criteria} sequences={sequences} />
           </div>
         )
+
+      case 'organisation':
+        return <SectionOrganisation themeId={theme.id} onFreeCountChange={setFreeCount} />
 
       case 'quiz-connaissances':
         return <SectionQuiz themeKey={themeKey ?? ''} themeId={theme.id} />
@@ -148,6 +176,11 @@ export default function ThemeDossierPage() {
               >
                 <span style={S.tabIcon}>{tab.icon}</span>
                 <span style={S.tabLabel}>{tab.label}</span>
+                {tab.id === 'organisation' && freeCount > 0 && (
+                  <span style={{ fontSize: 9, fontWeight: 700, backgroundColor: colors.accent.red, color: '#fff', borderRadius: 999, padding: '1px 5px', lineHeight: 1.4 }}>
+                    {freeCount}
+                  </span>
+                )}
                 {isActive && <div style={S.activeBar} />}
               </button>
             )

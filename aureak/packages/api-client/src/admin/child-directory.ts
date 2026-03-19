@@ -3,7 +3,8 @@
 // Terminologie : joueur = enfant = child (cf. MEMORY)
 
 import { supabase } from '../supabase'
-import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto } from '@aureak/types'
+import { getCachedUrl, setCachedUrl } from '../utils/signed-url-cache'
+import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory } from '@aureak/types'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,11 @@ function toEntry(row: any): ChildDirectoryEntry {
     actif           : row.actif,
     notesInternes   : row.notes_internes   ?? null,
     contactDeclined : row.contact_declined ?? false,
+    ageCategory     : row.age_category     ?? null,
+    playerType      : row.player_type      ?? null,
+    youthLevel      : row.youth_level      ?? null,
+    seniorDivision  : row.senior_division  ?? null,
+    teamLevelStars  : row.team_level_stars ?? null,
     notionPageId    : row.notion_page_id   ?? null,
     notionSyncedAt : row.notion_synced_at ?? null,
     deletedAt      : row.deleted_at     ?? null,
@@ -64,25 +70,40 @@ function toHistory(row: any): ChildDirectoryHistory {
 
 // ── Photos — Signed URL helpers ───────────────────────────────────────────────
 
-/** Génère une Signed URL pour un chemin Storage (expiration 1h = 3600s) */
+/** Génère une Signed URL pour un chemin Storage (expiration 1h = 3600s).
+ *  Cache mémoire 50 min — évite un double appel Storage lors du refresh post-upload. */
 async function getSignedPhotoUrl(path: string): Promise<string | null> {
+  const cached = getCachedUrl(path)
+  if (cached) return cached
   const { data, error } = await supabase.storage
     .from('child-photos')
     .createSignedUrl(path, 3600)
   if (error || !data) return null
+  setCachedUrl(path, data.signedUrl)
   return data.signedUrl
 }
 
-/** Génère des Signed URLs en batch — 1 seul appel Storage (évite N+1) */
+/** Génère des Signed URLs en batch — 1 seul appel Storage (évite N+1).
+ *  Cache mémoire 50 min : évite de re-générer des URLs encore valides (Story 25.4). */
 async function getSignedPhotoUrls(paths: string[]): Promise<Record<string, string>> {
   if (paths.length === 0) return {}
+  const result: Record<string, string> = {}
+  const uncached: string[] = []
+  for (const path of paths) {
+    const cached = getCachedUrl(path)
+    if (cached) result[path] = cached
+    else uncached.push(path)
+  }
+  if (uncached.length === 0) return result
   const { data, error } = await supabase.storage
     .from('child-photos')
-    .createSignedUrls(paths, 3600)
-  if (error || !data) return {}
-  const result: Record<string, string> = {}
+    .createSignedUrls(uncached, 3600)
+  if (error || !data) return result
   for (const item of data) {
-    if (item.signedUrl) result[item.path] = item.signedUrl
+    if (item.signedUrl && item.path) {
+      setCachedUrl(item.path, item.signedUrl)
+      result[item.path] = item.signedUrl
+    }
   }
   return result
 }
@@ -149,6 +170,11 @@ export async function addChildPhoto(params: AddChildPhotoParams): Promise<ChildD
     .replace(/-+/g, '-')
   const photoPath = `${tenantId}/${childId}/${ts}_${safeName}`
 
+  // Recommandation upload (Story 25.4 — AC #4) :
+  // Photos JPEG ≤ 150 Ko, dimensions ≤ 400×450px, quality 80%.
+  // Note : quand Story 25.3B (capture photo coach) sera implémentée,
+  // la compression sera effectuée côté client avant cet appel.
+
   // 1. Upload vers Supabase Storage (bucket privé child-photos)
   const { error: uploadError } = await supabase.storage
     .from('child-photos')
@@ -205,15 +231,16 @@ export async function deleteChildPhoto(photoId: string): Promise<void> {
 // ── Create ─────────────────────────────────────────────────────────────────────
 
 export type CreateChildDirectoryParams = {
-  tenantId    : string
-  displayName : string
-  nom?        : string | null
-  prenom?     : string | null
-  birthDate?  : string | null
-  statut?     : string | null
-  currentClub?: string | null
-  niveauClub? : string | null
-  actif?      : boolean
+  tenantId       : string
+  displayName    : string
+  nom?           : string | null
+  prenom?        : string | null
+  birthDate?     : string | null
+  statut?        : string | null
+  currentClub?   : string | null
+  niveauClub?    : string | null
+  clubDirectoryId?: string | null
+  actif?         : boolean
 }
 
 export async function createChildDirectoryEntry(
@@ -222,15 +249,16 @@ export async function createChildDirectoryEntry(
   const { data, error } = await supabase
     .from('child_directory')
     .insert({
-      tenant_id   : params.tenantId,
-      display_name: params.displayName,
-      nom         : params.nom         ?? null,
-      prenom      : params.prenom      ?? null,
-      birth_date  : params.birthDate   ?? null,
-      statut      : params.statut      ?? null,
-      current_club: params.currentClub ?? null,
-      niveau_club : params.niveauClub  ?? null,
-      actif       : params.actif       ?? true,
+      tenant_id        : params.tenantId,
+      display_name     : params.displayName,
+      nom              : params.nom            ?? null,
+      prenom           : params.prenom         ?? null,
+      birth_date       : params.birthDate      ?? null,
+      statut           : params.statut         ?? null,
+      current_club     : params.currentClub    ?? null,
+      niveau_club      : params.niveauClub     ?? null,
+      club_directory_id: params.clubDirectoryId ?? null,
+      actif            : params.actif          ?? true,
     })
     .select()
     .single()
@@ -309,6 +337,10 @@ export type UpdateChildDirectoryParams = Partial<{
   parent2Email   : string | null
   actif          : boolean
   notesInternes  : string | null
+  // Story 25.0 — classification niveau
+  ageCategory    : FootballAgeCategory | null
+  youthLevel     : string | null
+  seniorDivision : string | null
 }>
 
 export async function updateChildDirectoryEntry(
@@ -337,6 +369,9 @@ export async function updateChildDirectoryEntry(
   if (fields.parent2Email    !== undefined) payload.parent2_email    = fields.parent2Email
   if (fields.actif           !== undefined) payload.actif            = fields.actif
   if (fields.notesInternes   !== undefined) payload.notes_internes   = fields.notesInternes
+  if (fields.ageCategory     !== undefined) payload.age_category     = fields.ageCategory
+  if (fields.youthLevel      !== undefined) payload.youth_level      = fields.youthLevel
+  if (fields.seniorDivision  !== undefined) payload.senior_division  = fields.seniorDivision
 
   const { error } = await supabase
     .from('child_directory')
@@ -366,7 +401,7 @@ export type JoueurListItem = {
   currentClub     : string | null
   niveauClub      : string | null
   clubDirectoryId : string | null
-  /** true si clubDirectoryId est renseigné ET club_directory.partenaire = true (Story 18.5) */
+  /** true si clubDirectoryId est renseigné ET club_directory.club_relation_type = 'partenaire' (Story 18.5 / 23.3) */
   isClubPartner   : boolean
   computedStatus  : string | null
   totalAcademySeasons: number
@@ -375,6 +410,18 @@ export type JoueurListItem = {
   totalStages     : number
   /** Signed URL de la photo actuelle (null si aucune photo, expiration 1h) */
   currentPhotoUrl : string | null
+  /** Catégorie d'âge — football_age_category enum (Story 25.0) */
+  ageCategory     : FootballAgeCategory | null
+  /** Dérivé de ageCategory (colonne générée) : 'youth' | 'senior' | null */
+  playerType      : 'youth' | 'senior' | null
+  /** Niveau compétitif joueur jeune — 'Régional'|'Provincial'|'Inter'|'Élite 2'|'Élite 1' */
+  youthLevel      : string | null
+  /** Division compétitive joueur senior — 'P4'..'D1A' */
+  seniorDivision  : string | null
+  /** Étoiles calculées en DB (1-5) ou null si données manquantes */
+  teamLevelStars  : number | null
+  /** Signed URL du logo club (bucket club-logos) — null si aucun logo (Story 25.2) */
+  clubLogoUrl     : string | null
 }
 
 export type ListJoueursOpts = {
@@ -423,7 +470,8 @@ export async function listJoueurs(
     .from('child_directory')
     .select(
       'id, display_name, nom, prenom, birth_date, current_club, niveau_club, club_directory_id, ' +
-      'club_directory!club_directory_id(partenaire)',
+      'age_category, player_type, youth_level, senior_division, team_level_stars, ' +
+      'club_directory!club_directory_id(club_relation_type, logo_path)',
       { count: 'exact' },
     )
     .is('deleted_at', null)
@@ -479,10 +527,36 @@ export async function listJoueurs(
   const photoPaths = Object.values(photoPathMap)
   const signedMap = photoPaths.length > 0 ? await getSignedPhotoUrls(photoPaths) : {}
 
-  const data: JoueurListItem[] = ((childRows ?? []) as Record<string, unknown>[]).map(r => {
+  // Phase 4 bis : batch signed URLs pour les logos club (déduplication — 1 URL par logo_path distinct)
+  const logoPathMap: Record<string, string> = {}
+  const logoSignedMap: Record<string, string> = {}
+  if (pageIds.length > 0) {
+    for (const r of (childRows ?? []) as unknown as Record<string, unknown>[]) {
+      const clubDir = r.club_directory as { club_relation_type: string; logo_path: string | null } | null
+      if (clubDir?.logo_path) logoPathMap[r.id as string] = clubDir.logo_path
+    }
+    const logoPaths = [...new Set(Object.values(logoPathMap))]
+    const uncachedLogoPaths: string[] = []
+    for (const path of logoPaths) {
+      const cached = getCachedUrl(`club-logos:${path}`)
+      if (cached) logoSignedMap[path] = cached
+      else uncachedLogoPaths.push(path)
+    }
+    const { data: logoSigned } = uncachedLogoPaths.length > 0
+      ? await supabase.storage.from('club-logos').createSignedUrls(uncachedLogoPaths, 3600)
+      : { data: [] }
+    for (const item of logoSigned ?? []) {
+      if (item.signedUrl && item.path) {
+        setCachedUrl(`club-logos:${item.path}`, item.signedUrl)
+        logoSignedMap[item.path] = item.signedUrl
+      }
+    }
+  }
+
+  const data: JoueurListItem[] = ((childRows ?? []) as unknown as Record<string, unknown>[]).map(r => {
     const st = statusMap[r.id as string] ?? null
     const photoPath = photoPathMap[r.id as string] ?? null
-    const clubDir = r.club_directory as { partenaire: boolean } | null
+    const clubDir = r.club_directory as { club_relation_type: string; logo_path: string | null } | null
     return {
       id              : r.id              as string,
       displayName     : r.display_name    as string,
@@ -492,13 +566,21 @@ export async function listJoueurs(
       currentClub     : (r.current_club   as string | null) ?? null,
       niveauClub      : (r.niveau_club    as string | null) ?? null,
       clubDirectoryId : (r.club_directory_id as string | null) ?? null,
-      isClubPartner   : !!(clubDir?.partenaire),
+      isClubPartner   : clubDir?.club_relation_type === 'partenaire',
       computedStatus     : st?.computedStatus      ?? null,
       totalAcademySeasons: st?.totalAcademySeasons ?? 0,
       inCurrentSeason    : st?.inCurrentSeason     ?? false,
       currentSeasonLabel : st?.currentSeasonLabel  ?? null,
       totalStages        : st?.totalStages         ?? 0,
       currentPhotoUrl    : photoPath ? (signedMap[photoPath] ?? null) : null,
+      ageCategory        : (r.age_category     as FootballAgeCategory | null) ?? null,
+      playerType         : (r.player_type      as 'youth' | 'senior' | null) ?? null,
+      youthLevel         : (r.youth_level      as string | null) ?? null,
+      seniorDivision     : (r.senior_division  as string | null) ?? null,
+      teamLevelStars     : (r.team_level_stars as number | null) ?? null,
+      clubLogoUrl        : logoPathMap[r.id as string]
+        ? (logoSignedMap[logoPathMap[r.id as string]] ?? null)
+        : null,
     }
   })
 

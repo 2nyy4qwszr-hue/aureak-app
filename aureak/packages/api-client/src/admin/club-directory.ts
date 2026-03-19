@@ -2,7 +2,9 @@
 // Entité organisationnelle pure — distincte de la table `clubs` (portail auth)
 
 import { supabase } from '../supabase'
-import type { ClubDirectoryEntry, BelgianProvince } from '@aureak/types'
+import type { ClubDirectoryEntry, BelgianProvince, ClubRelationType } from '@aureak/types'
+
+const LOGO_BUCKET = 'club-logos'
 
 // ============================================================
 // Params
@@ -23,7 +25,7 @@ export type ClubDirectoryFields = {
   responsableSportif?         : string | null
   emailResponsableSportif?    : string | null
   telephoneResponsableSportif?: string | null
-  clubPartenaire?             : boolean
+  clubRelationType?           : ClubRelationType
   actif?                      : boolean
   notesInternes?              : string | null
 }
@@ -40,12 +42,12 @@ export type UpdateClubDirectoryParams = ClubDirectoryFields & {
 }
 
 export type ListClubDirectoryOpts = {
-  search?    : string
-  province?  : BelgianProvince
-  partenaire?: boolean
-  actif?     : boolean
-  page?      : number
-  pageSize?  : number
+  search?       : string
+  province?     : BelgianProvince
+  relationTypes?: ClubRelationType[]
+  actif?        : boolean
+  page?         : number
+  pageSize?     : number
 }
 
 // ============================================================
@@ -70,8 +72,11 @@ function mapRow(r: Record<string, unknown>): ClubDirectoryEntry {
     responsableSportif          : (r.responsable_sportif as string | null) ?? null,
     emailResponsableSportif     : (r.email_responsable_sportif as string | null) ?? null,
     telephoneResponsableSportif : (r.telephone_responsable_sportif as string | null) ?? null,
-    clubPartenaire              : r.club_partenaire as boolean,
+    clubRelationType            : (r.club_relation_type as ClubRelationType) ?? 'normal',
     actif                       : r.actif as boolean,
+    gardienCount                : 0, // injecté après fetch via v_club_gardien_stats
+    logoPath                    : (r.logo_path as string | null) ?? null,
+    logoUrl                     : null, // injecté après fetch via Storage signed URL
     notesInternes               : (r.notes_internes as string | null) ?? null,
     notionPageId                : (r.notion_page_id as string | null) ?? null,
     notionSyncedAt              : (r.notion_synced_at as string | null) ?? null,
@@ -97,7 +102,7 @@ function toDbPayload(fields: ClubDirectoryFields) {
     responsable_sportif          : fields.responsableSportif ?? null,
     email_responsable_sportif    : fields.emailResponsableSportif ?? null,
     telephone_responsable_sportif: fields.telephoneResponsableSportif ?? null,
-    club_partenaire              : fields.clubPartenaire ?? false,
+    club_relation_type           : fields.clubRelationType ?? 'normal',
     actif                        : fields.actif ?? true,
     notes_internes               : fields.notesInternes ?? null,
   }
@@ -132,8 +137,8 @@ export async function listClubDirectory(
   if (opts.province !== undefined) {
     query = query.eq('province', opts.province)
   }
-  if (opts.partenaire !== undefined) {
-    query = query.eq('club_partenaire', opts.partenaire)
+  if (opts.relationTypes !== undefined && opts.relationTypes.length > 0) {
+    query = query.in('club_relation_type', opts.relationTypes)
   }
   if (opts.actif !== undefined) {
     query = query.eq('actif', opts.actif)
@@ -142,8 +147,55 @@ export async function listClubDirectory(
   const { data, count, error } = await query
   if (error) return { data: [], count: 0, error }
 
+  const entries = (data as Record<string, unknown>[]).map(mapRow)
+
+  // Batch fetch des compteurs gardiens via v_club_gardien_stats
+  // Les clubIds proviennent de club_directory dont le RLS garantit l'isolation tenant.
+  // La vue inclut tenant_id dans GROUP BY pour un filtrage éventuel futur.
+  const clubIds = entries.map(e => e.id)
+  if (clubIds.length > 0) {
+    const { data: statsRows, error: statsError } = await supabase
+      .from('v_club_gardien_stats')
+      .select('club_id, gardien_count')
+      .in('club_id', clubIds)
+    if (statsError) {
+      // Dégradé gracieux : gardienCount reste à 0, pas de blocage de la liste
+      console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
+    } else if (statsRows) {
+      const statsMap: Record<string, number> = {}
+      for (const r of statsRows as { club_id: string; gardien_count: number }[]) {
+        statsMap[r.club_id] = r.gardien_count
+      }
+      for (const entry of entries) {
+        entry.gardienCount = statsMap[entry.id] ?? 0
+      }
+    }
+  }
+
+  // Batch generate signed URLs for clubs with logos (single Storage call)
+  const clubsWithLogo = entries.filter(e => e.logoPath !== null)
+  if (clubsWithLogo.length > 0) {
+    const paths = clubsWithLogo.map(e => e.logoPath!)
+    const { data: signedUrls, error: urlsError } = await supabase.storage
+      .from(LOGO_BUCKET)
+      .createSignedUrls(paths, 3600)
+    if (!urlsError && signedUrls) {
+      const urlMap: Record<string, string> = {}
+      for (const item of signedUrls as { path: string; signedUrl: string | null }[]) {
+        if (item.signedUrl) {
+          urlMap[item.path] = item.signedUrl
+        } else {
+          console.warn('[club-directory] signed URL null pour path:', item.path, '— fichier absent du bucket?')
+        }
+      }
+      for (const entry of clubsWithLogo) {
+        entry.logoUrl = urlMap[entry.logoPath!] ?? null
+      }
+    }
+  }
+
   return {
-    data : (data as Record<string, unknown>[]).map(mapRow),
+    data : entries,
     count: count ?? 0,
     error: null,
   }
@@ -163,11 +215,31 @@ export async function getClubDirectoryEntry(
     .single()
 
   if (error || !data) return { data: null, error: error ?? 'not_found' }
-  return { data: mapRow(data as Record<string, unknown>), error: null }
+  const entry = mapRow(data as Record<string, unknown>)
+
+  // Injecter le compteur gardiens (dégradé gracieux si vue absente)
+  const { data: statsRow, error: statsError } = await supabase
+    .from('v_club_gardien_stats')
+    .select('gardien_count')
+    .eq('club_id', clubId)
+    .maybeSingle()
+  if (statsError) {
+    console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
+  }
+  entry.gardienCount = (statsRow as { gardien_count: number } | null)?.gardien_count ?? 0
+
+  // Generate signed URL for logo if available
+  if (entry.logoPath) {
+    entry.logoUrl = await getClubLogoSignedUrl(entry.logoPath)
+  }
+
+  return { data: entry, error: null }
 }
 
 /**
  * Crée une fiche club dans l'annuaire.
+ * Note : `gardienCount` retourné = 0 (nouveau club sans liens). Appeler
+ * `getClubDirectoryEntry` si le compteur réel est nécessaire après création.
  */
 export async function createClubDirectoryEntry(
   params: CreateClubDirectoryParams,
@@ -415,4 +487,111 @@ export async function unlinkCoachFromClubDirectory(params: {
     .eq('club_id', params.clubId)
     .eq('coach_id', params.coachId)
   return { error: error ?? null }
+}
+
+// ============================================================
+// Logo club — Storage (bucket: club-logos)
+// ============================================================
+
+/**
+ * Génère une Signed URL pour le logo d'un club (expiration 1h).
+ * Retourne null si logoPath est null ou en cas d'erreur.
+ */
+export async function getClubLogoSignedUrl(logoPath: string): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from(LOGO_BUCKET)
+    .createSignedUrl(logoPath, 3600)
+  if (error || !data) return null
+  return data.signedUrl
+}
+
+/**
+ * Upload du logo d'un club vers Supabase Storage puis mise à jour de logo_path en DB.
+ * Valide le format (PNG/JPEG uniquement — AC7) et la taille (max 2 MB — AC8).
+ * Chemin déterministe : upsert écrase silencieusement le logo précédent.
+ * En cas d'erreur DB, rollback Storage automatique.
+ */
+export async function uploadClubLogo(params: {
+  clubId   : string
+  tenantId : string
+  file     : File
+  updatedBy: string
+}): Promise<{ logoPath: string; signedUrl: null; error: unknown }> {
+  const { clubId, tenantId, file, updatedBy } = params
+
+  // Validation format — AC7
+  const ALLOWED_TYPES = ['image/png', 'image/jpeg']
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return { logoPath: '', signedUrl: null, error: 'Format non supporté. PNG ou JPEG uniquement.' }
+  }
+
+  // Validation taille — AC8
+  if (file.size > 2 * 1024 * 1024) {
+    return { logoPath: '', signedUrl: null, error: 'Logo trop volumineux. Maximum 2 MB.' }
+  }
+
+  // Chemin déterministe depuis file.type (plus fiable que file.name)
+  const ext      = file.type === 'image/png' ? 'png' : 'jpg'
+  const logoPath = `${tenantId}/${clubId}/logo.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from(LOGO_BUCKET)
+    .upload(logoPath, file, { upsert: true, contentType: file.type })
+  if (uploadError) return { logoPath: '', signedUrl: null, error: uploadError }
+
+  const { error: dbError } = await supabase
+    .from('club_directory')
+    .update({ logo_path: logoPath })
+    .eq('id', clubId)
+
+  if (dbError) {
+    // Rollback Storage — supprimer le fichier qui vient d'être uploadé
+    await supabase.storage.from(LOGO_BUCKET).remove([logoPath])
+    return { logoPath: '', signedUrl: null, error: dbError }
+  }
+
+  await supabase.from('audit_logs').insert({
+    tenant_id  : tenantId,
+    user_id    : updatedBy,
+    entity_type: 'club_directory',
+    entity_id  : clubId,
+    action     : 'club_logo_uploaded',
+    metadata   : { logo_path: logoPath, file_size: file.size, file_type: file.type },
+  })
+
+  return { logoPath, signedUrl: null, error: null }
+}
+
+/**
+ * Supprime le logo d'un club.
+ * Ordre : DB d'abord (si échec, fichier Storage reste intact) puis Storage.
+ */
+export async function deleteClubLogo(params: {
+  clubId   : string
+  logoPath : string
+  tenantId : string
+  deletedBy: string
+}): Promise<{ error: unknown }> {
+  const { clubId, logoPath, tenantId, deletedBy } = params
+
+  // DB first — si échoue, le fichier Storage reste intact et récupérable
+  const { error } = await supabase
+    .from('club_directory')
+    .update({ logo_path: null })
+    .eq('id', clubId)
+  if (error) return { error }
+
+  // Storage second — erreur non bloquante (logo déjà déréférencé en DB)
+  await supabase.storage.from(LOGO_BUCKET).remove([logoPath])
+
+  await supabase.from('audit_logs').insert({
+    tenant_id  : tenantId,
+    user_id    : deletedBy,
+    entity_type: 'club_directory',
+    entity_id  : clubId,
+    action     : 'club_logo_deleted',
+    metadata   : { logo_path: logoPath },
+  })
+
+  return { error: null }
 }

@@ -184,6 +184,7 @@ export default function ImplantationsPage() {
   const [implantations, setImplantations] = useState<Implantation[]>([])
   const [groups, setGroups]               = useState<Record<string, Group[]>>({})
   const [loading, setLoading]             = useState(true)
+  const [loadError, setLoadError]         = useState<string | null>(null)
   const [expanded, setExpanded]           = useState<string | null>(null)
 
   // Create implantation
@@ -206,8 +207,14 @@ export default function ImplantationsPage() {
   // ── Data loading ───────────────────────────────────────────────────────────
 
   const load = async () => {
-    const { data } = await listImplantations()
-    setImplantations(data)
+    setLoadError(null)
+    const { data, error } = await listImplantations()
+    if (error) {
+      console.error('[Implantations] listImplantations error:', error)
+      setLoadError('Impossible de charger les implantations. Vérifiez votre connexion.')
+    } else {
+      setImplantations(data)
+    }
     setLoading(false)
   }
 
@@ -333,9 +340,13 @@ export default function ImplantationsPage() {
         </View>
       )}
 
+      {loadError && (
+        <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>
+      )}
+
       {loading ? (
         <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
-      ) : implantations.length === 0 ? (
+      ) : !loadError && implantations.length === 0 ? (
         <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune implantation. Créez la première.
         </AureakText>

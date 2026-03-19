@@ -7,12 +7,14 @@ import {
   listCoachesOfClub, linkCoachToClubDirectory, unlinkCoachFromClubDirectory,
   listChildDirectory,
   listAvailableCoaches,
+  uploadClubLogo, deleteClubLogo,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType } from '@aureak/types'
-import { BELGIAN_PROVINCES } from '@aureak/types'
+import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType, ClubRelationType } from '@aureak/types'
+import { BELGIAN_PROVINCES, CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
+import { RelationTypeSelector } from '../_components'
 import type { ClubChildLinkRow } from '@aureak/api-client'
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
@@ -119,6 +121,11 @@ const pill = StyleSheet.create({
 })
 
 // ── Statut badge ─────────────────────────────────────────────────────────────
+
+const RELATION_BADGE_VARIANTS: Record<Exclude<ClubRelationType, 'normal'>, 'gold' | 'light'> = {
+  partenaire: 'gold',
+  associe   : 'light',
+}
 
 const STATUT_COLORS: Record<string, string> = {
   'Académicien': colors.accent.gold,
@@ -284,7 +291,7 @@ type EditForm = {
   adresseRue: string; codePostal: string; ville: string; siteInternet: string
   correspondant: string; emailPrincipal: string; telephonePrincipal: string
   responsableSportif: string; emailResponsableSportif: string; telephoneResponsableSportif: string
-  clubPartenaire: boolean; actif: boolean; notesInternes: string
+  clubRelationType: ClubRelationType; actif: boolean; notesInternes: string
 }
 
 function entryToForm(e: ClubDirectoryEntry): EditForm {
@@ -293,7 +300,7 @@ function entryToForm(e: ClubDirectoryEntry): EditForm {
     adresseRue: e.adresseRue ?? '', codePostal: e.codePostal ?? '', ville: e.ville ?? '', siteInternet: e.siteInternet ?? '',
     correspondant: e.correspondant ?? '', emailPrincipal: e.emailPrincipal ?? '', telephonePrincipal: e.telephonePrincipal ?? '',
     responsableSportif: e.responsableSportif ?? '', emailResponsableSportif: e.emailResponsableSportif ?? '', telephoneResponsableSportif: e.telephoneResponsableSportif ?? '',
-    clubPartenaire: e.clubPartenaire, actif: e.actif, notesInternes: e.notesInternes ?? '',
+    clubRelationType: e.clubRelationType, actif: e.actif, notesInternes: e.notesInternes ?? '',
   }
 }
 
@@ -305,12 +312,15 @@ export default function ClubDetailPage() {
   const tenantId   = useAuthStore((s) => s.tenantId)
   const user       = useAuthStore((s) => s.user)
 
-  const [club,    setClub]    = useState<ClubDirectoryEntry | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saving,  setSaving]  = useState(false)
-  const [error,   setError]   = useState<string | null>(null)
-  const [form,    setForm]    = useState<EditForm | null>(null)
+  const [club,          setClub]          = useState<ClubDirectoryEntry | null>(null)
+  const [loading,       setLoading]       = useState(true)
+  const [editing,       setEditing]       = useState(false)
+  const [saving,        setSaving]        = useState(false)
+  const [error,         setError]         = useState<string | null>(null)
+  const [form,          setForm]          = useState<EditForm | null>(null)
+  const [logoFile,      setLogoFile]      = useState<File | null>(null)
+  const [logoPreview,   setLogoPreview]   = useState<string | null>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
 
   // Players split by type
   const [currentPlayers,    setCurrentPlayers]    = useState<ClubChildLinkRow[]>([])
@@ -346,7 +356,10 @@ export default function ClubDetailPage() {
       listChildDirectory({ page: 0, pageSize: 500, actif: true }),
       listAvailableCoaches(),
     ])
-    if (clubRes.data) { setClub(clubRes.data); setForm(entryToForm(clubRes.data)) }
+    if (clubRes.data) {
+      setClub(clubRes.data)
+      setForm(entryToForm(clubRes.data))
+    }
     setCurrentPlayers(linksRes.data.filter(r => r.linkType === 'current'))
     setAffiliatedPlayers(linksRes.data.filter(r => r.linkType === 'affiliated'))
     setCoaches(coachesRes.data)
@@ -367,13 +380,27 @@ export default function ClubDetailPage() {
   const handleSave = async () => {
     if (!club || !form || !clubId || !tenantId || !user?.id) return
     setSaving(true); setError(null)
+
+    // Upload logo en attente (sélectionné mais pas encore envoyé)
+    if (logoFile) {
+      setLogoUploading(true)
+      const { error: logoErr } = await uploadClubLogo({ clubId, tenantId, file: logoFile, updatedBy: user.id })
+      setLogoUploading(false)
+      if (logoErr) {
+        setError(typeof logoErr === 'string' ? logoErr : 'Erreur lors de l\'upload du logo.')
+        setSaving(false); return
+      }
+      setLogoFile(null)
+      setLogoPreview(null)
+    }
+
     const { error: err } = await updateClubDirectoryEntry({
       clubId, tenantId, updatedBy: user.id,
       nom: form.nom, matricule: form.matricule || null, label: form.label || null, province: form.province,
       adresseRue: form.adresseRue || null, codePostal: form.codePostal || null, ville: form.ville || null, siteInternet: form.siteInternet || null,
       correspondant: form.correspondant || null, emailPrincipal: form.emailPrincipal || null, telephonePrincipal: form.telephonePrincipal || null,
       responsableSportif: form.responsableSportif || null, emailResponsableSportif: form.emailResponsableSportif || null, telephoneResponsableSportif: form.telephoneResponsableSportif || null,
-      clubPartenaire: form.clubPartenaire, actif: form.actif, notesInternes: form.notesInternes || null,
+      clubRelationType: form.clubRelationType, actif: form.actif, notesInternes: form.notesInternes || null,
     })
     setSaving(false)
     if (err) { setError('Erreur lors de la sauvegarde.'); return }
@@ -386,6 +413,29 @@ export default function ClubDetailPage() {
     if (typeof window !== 'undefined' && !window.confirm('Supprimer ce club ?')) return
     await softDeleteClubDirectoryEntry({ clubId, tenantId, deletedBy: user.id })
     router.replace('/clubs' as never)
+  }
+
+  // Validation + preview local — l'upload réel se déclenche dans handleSave
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const allowed = ['image/png', 'image/jpeg']
+    if (!allowed.includes(file.type)) { setError('Format non supporté. PNG ou JPEG uniquement.'); return }
+    if (file.size > 2 * 1024 * 1024) { setError('Logo trop volumineux. Maximum 2 MB.'); return }
+    setError(null)
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
+  const handleLogoDelete = async () => {
+    if (!club?.logoPath || !clubId || !tenantId || !user?.id) return
+    if (typeof window !== 'undefined' && !window.confirm('Supprimer le logo de ce club ?')) return
+    setLogoUploading(true)
+    await deleteClubLogo({ clubId, logoPath: club.logoPath, tenantId, deletedBy: user.id })
+    const clubRes = await getClubDirectoryEntry(clubId)
+    if (clubRes.data) { setClub(clubRes.data); setForm(entryToForm(clubRes.data)) }
+    setLogoUploading(false)
   }
 
   // ── Link helpers ──────────────────────────────────────────────────────────
@@ -476,7 +526,7 @@ export default function ClubDetailPage() {
             </>
           ) : (
             <>
-              <Pressable style={s.cancelBtn} onPress={() => { setEditing(false); setForm(entryToForm(club)) }}>
+              <Pressable style={s.cancelBtn} onPress={() => { setEditing(false); setForm(entryToForm(club)); setLogoFile(null); setLogoPreview(null) }}>
                 <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
               </Pressable>
               <Pressable style={s.saveBtn} onPress={handleSave} disabled={saving}>
@@ -491,6 +541,19 @@ export default function ClubDetailPage() {
 
       {/* Title row */}
       <View style={s.titleRow}>
+        {/* Logo */}
+        <View style={s.logoBox}>
+          {club.logoUrl ? (
+            <img src={club.logoUrl} style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'contain', border: '1px solid #E8E3D9' }} alt="logo" />
+          ) : (
+            <View style={s.logoFallback}>
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 20 }}>
+                {club.nom.charAt(0).toUpperCase()}
+              </AureakText>
+            </View>
+          )}
+        </View>
+
         <View style={{ flex: 1 }}>
           <AureakText variant="h2">{club.nom}</AureakText>
           {club.matricule && (
@@ -499,8 +562,26 @@ export default function ClubDetailPage() {
             </AureakText>
           )}
         </View>
+
+        {/* Stat gardiens — affiché uniquement si au moins 1 gardien lié */}
+        {club.gardienCount > 0 && (
+          <View style={s.gardienStat}>
+            <AureakText variant="h3" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 22 }}>
+              {club.gardienCount}
+            </AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, textAlign: 'center' as never }}>
+              {club.gardienCount === 1 ? 'gardien' : 'gardiens'}{'\n'}à l'académie
+            </AureakText>
+          </View>
+        )}
+
         <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center', flexWrap: 'wrap' }}>
-          {club.clubPartenaire && <Badge label="Partenaire" variant="gold" />}
+          {club.clubRelationType !== 'normal' && (
+            <Badge
+              label={CLUB_RELATION_TYPE_LABELS[club.clubRelationType]}
+              variant={RELATION_BADGE_VARIANTS[club.clubRelationType as Exclude<ClubRelationType, 'normal'>]}
+            />
+          )}
           <Badge label={club.actif ? 'Actif' : 'Inactif'} variant={club.actif ? 'present' : 'zinc'} />
           {club.notionPageId && <Badge label="Notion" variant="zinc" />}
         </View>
@@ -579,13 +660,48 @@ export default function ClubDetailPage() {
             <EditField label="Téléphone" value={form.telephoneResponsableSportif} onChange={v => setField('telephoneResponsableSportif', v)} />
           </Section>
           <Section title="Statut">
-            <View style={{ flexDirection: 'row', gap: space.md }}>
-              <Pressable style={[pill.base, form.clubPartenaire && pill.active]} onPress={() => setField('clubPartenaire', !form.clubPartenaire)}>
-                <AureakText variant="caption" style={{ color: form.clubPartenaire ? colors.accent.gold : colors.text.muted }}>Club partenaire</AureakText>
-              </Pressable>
+            <RelationTypeSelector value={form.clubRelationType} onChange={v => setField('clubRelationType', v)} />
+            <View style={{ flexDirection: 'row', gap: space.md, marginTop: space.xs }}>
               <Pressable style={[pill.base, form.actif && pill.active]} onPress={() => setField('actif', !form.actif)}>
                 <AureakText variant="caption" style={{ color: form.actif ? colors.accent.gold : colors.text.muted }}>Actif</AureakText>
               </Pressable>
+            </View>
+          </Section>
+          <Section title="Logo du club">
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+              {/* Aperçu : preview local en priorité, sinon logo existant, sinon initiales */}
+              {(logoPreview || club.logoUrl) ? (
+                <img src={logoPreview ?? club.logoUrl!} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'contain', border: '1px solid #E8E3D9' }} alt="logo" />
+              ) : (
+                <View style={[s.logoFallback, { width: 64, height: 64 }]}>
+                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 22 }}>
+                    {club.nom.charAt(0).toUpperCase()}
+                  </AureakText>
+                </View>
+              )}
+              <View style={{ gap: 6 }}>
+                {/* input[type=file] natif HTML — uniquement web. Upload différé au Save. */}
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  disabled={logoUploading}
+                  onChange={handleLogoFileChange}
+                  style={{ fontSize: 12, color: logoUploading ? '#9E9E9E' : '#3D3420', cursor: logoUploading ? 'not-allowed' : 'pointer' }}
+                />
+                {logoFile && !logoUploading && (
+                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 11 }}>
+                    Prêt : {logoFile.name} — sera uploadé à la sauvegarde
+                  </AureakText>
+                )}
+                {logoUploading && (
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>Upload en cours…</AureakText>
+                )}
+                {club.logoPath && !logoUploading && !logoFile && (
+                  <Pressable onPress={handleLogoDelete}>
+                    <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>Supprimer le logo</AureakText>
+                  </Pressable>
+                )}
+              </View>
             </View>
           </Section>
           <Section title="Notes internes">
@@ -728,7 +844,10 @@ const s = StyleSheet.create({
   pageHeader   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerActions: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   backBtn      : { paddingVertical: space.xs, paddingRight: space.sm },
-  titleRow     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: space.sm },
+  titleRow     : { flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap', gap: space.sm },
+  logoBox      : { flexShrink: 0 },
+  logoFallback : { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' },
+  gardienStat  : { alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md, paddingVertical: space.xs, backgroundColor: colors.light.muted, borderRadius: 8, borderWidth: 1, borderColor: colors.border.gold, flexShrink: 0 },
 
   editBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.gold },
   deleteBtn: { paddingHorizontal: space.sm, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },

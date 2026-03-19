@@ -6,10 +6,12 @@ import type { Criterion, Fault, Cue } from '@aureak/types'
 
 export type CreateCriterionParams = {
   tenantId    : string
-  sequenceId  : string
+  themeId     : string
   label       : string
   description?: string
   sortOrder?  : number
+  sequenceId? : string | null
+  metaphorId? : string | null
 }
 
 export async function createCriterion(
@@ -19,7 +21,9 @@ export async function createCriterion(
     .from('criteria')
     .insert({
       tenant_id  : params.tenantId,
-      sequence_id: params.sequenceId,
+      theme_id   : params.themeId,
+      sequence_id: params.sequenceId ?? null,
+      metaphor_id: params.metaphorId ?? null,
       label      : params.label,
       description: params.description ?? null,
       sort_order : params.sortOrder ?? null,
@@ -46,7 +50,8 @@ export async function listCriteriaBySequence(
 
 export type CreateFaultParams = {
   tenantId    : string
-  criterionId : string
+  themeId     : string
+  criterionId?: string | null
   label       : string
   description?: string
   sortOrder?  : number
@@ -59,7 +64,8 @@ export async function createFault(
     .from('faults')
     .insert({
       tenant_id   : params.tenantId,
-      criterion_id: params.criterionId,
+      theme_id    : params.themeId,
+      criterion_id: params.criterionId ?? null,
       label       : params.label,
       description : params.description ?? null,
       sort_order  : params.sortOrder ?? null,

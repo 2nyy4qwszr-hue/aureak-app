@@ -378,6 +378,11 @@ export async function updateThemeSequence(
   if (error) throw error
 }
 
+export async function deleteThemeSequence(id: string): Promise<void> {
+  const { error } = await supabase.from('theme_sequences').delete().eq('id', id)
+  if (error) throw error
+}
+
 export async function listSequencesByTheme(
   themeId: string
 ): Promise<{ data: ThemeSequence[]; error: unknown }> {

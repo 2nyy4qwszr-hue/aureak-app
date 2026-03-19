@@ -181,3 +181,56 @@ export const SITUATIONAL_BLOC_LABELS: Record<SituationalBlocCode, string> = {
   PHA_ARR : 'Phases arrêtées',
   COMM    : 'Communication / Autre',
 }
+
+// ── Migration 00083 — Classification niveau équipe & étoiles (Story 25.0) ──────
+
+/** Type de joueur — dérivé de age_category (colonne générée, jamais saisie) */
+export type PlayerType = 'youth' | 'senior'
+
+/**
+ * Alias de FootballAgeCategory pour le domaine classification (child_directory.age_category).
+ * Identique à FootballAgeCategory — utilise le même enum PostgreSQL `football_age_category`.
+ */
+export type AgeCategory = FootballAgeCategory
+
+/** Toutes les catégories d'âge utilisables pour la classification niveau équipe */
+export const AGE_CATEGORIES: AgeCategory[] = FOOTBALL_AGE_CATEGORIES
+
+/**
+ * Niveau compétitif joueur jeune (youth) — valeurs saisies dans child_directory.youth_level
+ * Mapping étoiles : Régional=1, Provincial=2, Inter=3, Élite 2=4, Élite 1=5
+ */
+export type YouthLevel = 'Régional' | 'Provincial' | 'Inter' | 'Élite 2' | 'Élite 1'
+
+/**
+ * Division compétitive joueur senior — valeurs saisies dans child_directory.senior_division
+ * Mapping étoiles : P4/P3=1, P2/P1=2, D3/D2/D1 amateurs=3, D1B=4, D1A=5
+ */
+export type SeniorDivision =
+  | 'P4' | 'P3'
+  | 'P2' | 'P1'
+  | 'D3 amateurs' | 'D2 amateurs' | 'D1 amateurs'
+  | 'D1B' | 'D1A'
+
+export const YOUTH_LEVELS: YouthLevel[] = [
+  'Régional', 'Provincial', 'Inter', 'Élite 2', 'Élite 1',
+]
+
+export const SENIOR_DIVISIONS: SeniorDivision[] = [
+  'P4', 'P3', 'P2', 'P1',
+  'D3 amateurs', 'D2 amateurs', 'D1 amateurs',
+  'D1B', 'D1A',
+]
+
+// ── Migration 00078 — Type de relation club ────────────────────────────────────
+
+/** Type de relation d'un club avec l'académie Aureak — miroir de l'enum PostgreSQL `club_relation_type` */
+export type ClubRelationType = 'partenaire' | 'associe' | 'normal'
+
+export const CLUB_RELATION_TYPES: ClubRelationType[] = ['partenaire', 'associe', 'normal']
+
+export const CLUB_RELATION_TYPE_LABELS: Record<ClubRelationType, string> = {
+  partenaire: 'Partenaire',
+  associe   : 'Club associé',
+  normal    : 'Club normal',
+}

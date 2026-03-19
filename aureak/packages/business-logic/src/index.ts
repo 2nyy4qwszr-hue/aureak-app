@@ -16,6 +16,8 @@ export { useQuiz } from './learning/useQuiz'
 export { computeRankings } from './admin/computeRankings'
 export type { ImplantationStat, RankedStat } from './admin/computeRankings'
 
+export { computeTeamLevelStars } from './admin/teamLevelStars'
+
 export {
   generateGroupName,
   buildGroupBaseName,

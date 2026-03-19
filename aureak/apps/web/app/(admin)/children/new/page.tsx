@@ -1,17 +1,25 @@
 'use client'
 // Formulaire de création d'un joueur dans l'annuaire child_directory
 // Story 18.4 — bouton "Ajouter un joueur" + page de création
+// Story 22.1A — Historique académique dès la création (saisons académie + suggestion statut)
 // Terminologie : joueur = enfant = child
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  View, StyleSheet, ScrollView, Pressable, Switch, type TextStyle,
+  View, StyleSheet, ScrollView, Pressable, Switch, TextInput, type TextStyle,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { createChildDirectoryEntry } from '@aureak/api-client'
+import {
+  createChildDirectoryEntry,
+  listAcademySeasons,
+  addChildAcademyMembership,
+  listClubDirectory,
+} from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Input, Button } from '@aureak/ui'
-import { colors, space, shadows } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
+import { FOOTBALL_TEAM_LEVELS } from '@aureak/types'
+import type { AcademySeason } from '@aureak/types'
 
 // ── Statuts disponibles ────────────────────────────────────────────────────────
 // Valeurs string libres — ne pas confondre avec AcademyStatus (computed depuis la vue)
@@ -25,18 +33,133 @@ export default function NewJoueurPage() {
   const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
 
-  const [nom,         setNom]         = useState('')
-  const [prenom,      setPrenom]      = useState('')
-  const [birthDate,   setBirthDate]   = useState('')
-  const [statut,      setStatut]      = useState<StatutOption | ''>('')
-  const [currentClub, setCurrentClub] = useState('')
-  const [niveauClub,  setNiveauClub]  = useState('')
-  const [actif,       setActif]       = useState(true)
+  // ── Form state ────────────────────────────────────────────────────────────────
+  const [nom,       setNom]       = useState('')
+  const [prenom,    setPrenom]    = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [statut,    setStatut]    = useState<StatutOption | ''>('')
+  const [actif,     setActif]     = useState(true)
 
-  const [saving,       setSaving]       = useState(false)
-  const [error,        setError]        = useState<string | null>(null)
-  const [nomError,     setNomError]     = useState<string | null>(null)
-  const [dateError,    setDateError]    = useState<string | null>(null)
+  // ── Club autocomplete state (Story 22.1B) ─────────────────────────────────────
+  const [clubQuery,       setClubQuery]       = useState('')
+  const [currentClub,     setCurrentClub]     = useState<string | null>(null)
+  const [clubDirectoryId, setClubDirectoryId] = useState<string | null>(null)
+  const [clubResults,     setClubResults]     = useState<Array<{ id: string; nom: string; ville: string | null }>>([])
+  const [clubLoading,     setClubLoading]     = useState(false)
+  const clubDebounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Compteur de génération pour ignorer les résultats d'appels API périmés (M2)
+  const clubSearchGenRef = useRef(0)
+
+  // ── Niveau de compétition state (Story 22.1B) ─────────────────────────────────
+  const [niveauClub, setNiveauClub] = useState<string | null>(null)
+
+  // ── Académie state (Story 22.1A) ──────────────────────────────────────────────
+  const [seasons,           setSeasons]           = useState<AcademySeason[]>([])
+  const [seasonsLoading,    setSeasonsLoading]    = useState(true)
+  const [seasonsError,      setSeasonsError]      = useState(false)
+  const [selectedSeasonIds, setSelectedSeasonIds] = useState<string[]>([])
+  const [enrollWarning,     setEnrollWarning]     = useState<string | null>(null)
+
+  // Ref pour éviter que la suggestion écrase un statut choisi manuellement (AC: #4)
+  const statutManuallyOverridden = useRef(false)
+  // Ref pour annuler le setTimeout de navigation en cas de démontage ou annulation (M1)
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── UI state ──────────────────────────────────────────────────────────────────
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
+  const [nomError,  setNomError]  = useState<string | null>(null)
+  const [dateError, setDateError] = useState<string | null>(null)
+
+  // ── Chargement des saisons académie au montage ────────────────────────────────
+  useEffect(() => {
+    listAcademySeasons()
+      .then(({ data }) => { setSeasons(data); setSeasonsLoading(false) })
+      .catch(() => { setSeasonsError(true); setSeasonsLoading(false) })
+    // Nettoyage des timers au démontage (M1 — évite double navigation + fuite mémoire debounce)
+    return () => {
+      if (navTimerRef.current)    clearTimeout(navTimerRef.current)
+      if (clubDebounceRef.current) clearTimeout(clubDebounceRef.current)
+    }
+  }, [])
+
+  // ── Suggestion automatique du statut (AC: #3) ─────────────────────────────────
+  const suggestedStatut = useMemo<StatutOption | ''>(() => {
+    if (selectedSeasonIds.length === 0) return ''
+    const hasCurrent = seasons.some(s => s.isCurrent && selectedSeasonIds.includes(s.id))
+    const pastCount  = seasons.filter(s => !s.isCurrent && selectedSeasonIds.includes(s.id)).length
+    if (hasCurrent && pastCount >= 1) return 'Académicien'
+    if (hasCurrent && pastCount === 0) return 'Nouveau'
+    if (!hasCurrent && pastCount > 0) return 'Ancien'
+    return ''
+  }, [selectedSeasonIds, seasons])
+
+  // Applique la suggestion si l'admin n'a pas encore sélectionné manuellement (AC: #3, #4)
+  useEffect(() => {
+    if (!statutManuallyOverridden.current) {
+      setStatut(suggestedStatut)
+    }
+  }, [suggestedStatut])
+
+  // ── Handlers ──────────────────────────────────────────────────────────────────
+
+  /** Click sur un pill de statut — marque l'override manuel (AC: #4) */
+  const handleStatutClick = (opt: StatutOption) => {
+    statutManuallyOverridden.current = true
+    setStatut(prev => prev === opt ? '' : opt)
+  }
+
+  /** Frappe dans le champ club — debounce 300ms avant appel API (AC: #2, #3)
+   *  Note : currentClub n'est PAS mis à jour ici — uniquement via handleClubSelect
+   *  (AC #7 : texte tapé sans sélection → currentClub reste null en base) */
+  const handleClubChange = (text: string) => {
+    setClubQuery(text)
+    // M1 fix : ne pas persister le texte libre — seule la sélection dropdown compte
+    setClubDirectoryId(null)
+    if (clubDebounceRef.current) clearTimeout(clubDebounceRef.current)
+    if (text.length < 2) { setClubResults([]); return }
+    // M2 fix : compteur de génération pour ignorer les résultats périmés
+    const gen = ++clubSearchGenRef.current
+    clubDebounceRef.current = setTimeout(async () => {
+      setClubLoading(true)
+      try {
+        const { data } = await listClubDirectory({ search: text, actif: true, pageSize: 8 })
+        if (gen === clubSearchGenRef.current) {
+          setClubResults(data.map(c => ({ id: c.id, nom: c.nom, ville: c.ville })))
+        }
+      } catch { if (gen === clubSearchGenRef.current) setClubResults([]) }
+      if (gen === clubSearchGenRef.current) setClubLoading(false)
+    }, 300)
+  }
+
+  /** Sélection d'un club dans le dropdown — lie nom + UUID (AC: #5) */
+  const handleClubSelect = (club: { id: string; nom: string; ville: string | null }) => {
+    setClubQuery(club.nom)
+    setCurrentClub(club.nom)
+    setClubDirectoryId(club.id)
+    setClubResults([])
+    setClubLoading(false)
+  }
+
+  /** Efface la sélection de club (AC: #6) */
+  const clearClub = () => {
+    setClubQuery('')
+    setCurrentClub(null)
+    setClubDirectoryId(null)
+    setClubResults([])
+    setClubLoading(false)                                    // M3 fix : reset loading
+    clubSearchGenRef.current++                               // M2 fix : invalide in-flight
+    if (clubDebounceRef.current) clearTimeout(clubDebounceRef.current)
+  }
+
+  /** Toggle de sélection d'une saison académie */
+  const toggleSeason = (seasonId: string) => {
+    setSelectedSeasonIds(prev =>
+      prev.includes(seasonId)
+        ? prev.filter(id => id !== seasonId)
+        : [...prev, seasonId],
+    )
+  }
 
   const handleSave = async () => {
     // Validation
@@ -60,19 +183,47 @@ export default function NewJoueurPage() {
     setNomError(null)
     setDateError(null)
     setError(null)
+    setEnrollWarning(null)
     setSaving(true)
+
     try {
+      // 1. Création du joueur (AC: #5)
       const entry = await createChildDirectoryEntry({
         tenantId,
         displayName,
-        nom         : nom.trim()         || null,
-        prenom      : prenom.trim()      || null,
-        birthDate   : trimmedBirthDate   || null,
-        statut      : statut             || null,
-        currentClub : currentClub.trim() || null,
-        niveauClub  : niveauClub.trim()  || null,
+        nom            : nom.trim()       || null,
+        prenom         : prenom.trim()    || null,
+        birthDate      : trimmedBirthDate || null,
+        statut         : statut           || null,
+        currentClub    : currentClub      || null,
+        niveauClub     : niveauClub       || null,
+        clubDirectoryId: clubDirectoryId,
         actif,
       })
+
+      // 2. Enrôlement dans les saisons sélectionnées (AC: #5, #6)
+      if (selectedSeasonIds.length > 0) {
+        const results = await Promise.allSettled(
+          selectedSeasonIds.map(seasonId =>
+            addChildAcademyMembership({ tenantId, childId: entry.id, seasonId }),
+          ),
+        )
+        const failedCount = results.filter(r => r.status === 'rejected').length
+        if (failedCount > 0) {
+          // Warning non-bloquant — navigation maintenue après délai (AC: #8)
+          setSaving(false)
+          setEnrollWarning(
+            `${failedCount} inscription(s) académique(s) n'ont pas pu être enregistrées. ` +
+            'Vous pouvez les ajouter depuis la fiche joueur.',
+          )
+          navTimerRef.current = setTimeout(
+            () => router.replace(`/children/${entry.id}` as never),
+            2000,
+          )
+          return
+        }
+      }
+
       setSaving(false)
       router.replace(`/children/${entry.id}` as never)
     } catch (e) {
@@ -94,10 +245,8 @@ export default function NewJoueurPage() {
         <AureakText variant="h2" color={colors.accent.gold}>Nouveau joueur</AureakText>
       </View>
 
-      {/* ── Formulaire ── */}
+      {/* ── IDENTITÉ ── */}
       <View style={s.card}>
-
-        {/* Identité */}
         <AureakText variant="caption" style={s.sectionLabel}>IDENTITÉ</AureakText>
 
         <Input
@@ -131,15 +280,15 @@ export default function NewJoueurPage() {
           error={dateError ?? undefined}
         />
 
-        {/* Statut */}
+        {/* Statut — pills avec suggestion automatique */}
         <View style={{ marginTop: space.sm, gap: 6 }}>
           <AureakText variant="label" style={{ color: colors.text.muted }}>Statut</AureakText>
-          <View style={s.statutRow}>
+          <View style={s.pillRow}>
             {STATUT_OPTIONS.map(opt => (
               <Pressable
                 key={opt}
-                style={[s.statutPill, statut === opt && s.statutPillActive]}
-                onPress={() => setStatut(prev => prev === opt ? '' : opt)}
+                style={[s.pill, statut === opt && s.pillActive]}
+                onPress={() => handleStatutClick(opt)}
               >
                 <AureakText
                   variant="caption"
@@ -150,34 +299,139 @@ export default function NewJoueurPage() {
               </Pressable>
             ))}
           </View>
+          {/* Indicateur de suggestion automatique */}
+          {suggestedStatut !== '' && statut === suggestedStatut && selectedSeasonIds.length > 0 && (
+            <AureakText variant="caption" style={s.suggestionHint}>
+              Statut suggéré automatiquement d'après les saisons sélectionnées.
+            </AureakText>
+          )}
+        </View>
+      </View>
+
+      {/* ── CLUB ACTUEL (Story 22.1B — autocomplete + niveau pills) ── */}
+      <View style={[s.card, { zIndex: 20 }]}>
+        <AureakText variant="caption" style={s.sectionLabel}>CLUB ACTUEL</AureakText>
+        <AureakText variant="caption" style={s.academieHint}>
+          Optionnel — sélectionne depuis l'annuaire pour lier le joueur au club.
+        </AureakText>
+
+        {/* Autocomplétion club — AC: #1-#6 */}
+        <View style={{ position: 'relative' as never, zIndex: 10 }}>
+          <View style={s.clubInputRow}>
+            <TextInput
+              style={s.clubTextInput}
+              value={clubQuery}
+              onChangeText={handleClubChange}
+              onBlur={() => setTimeout(() => setClubResults([]), 200)}
+              placeholder="Rechercher un club (min. 2 caractères)…"
+              placeholderTextColor={colors.text.muted}
+              autoComplete="off"
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+            {clubLoading && (
+              <AureakText variant="caption" style={s.clubLoadingDot}>…</AureakText>
+            )}
+            {clubDirectoryId !== null && (
+              <Pressable style={s.clubClearBtn} onPress={clearClub}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 16, lineHeight: 20 }}>✕</AureakText>
+              </Pressable>
+            )}
+          </View>
+
+          {clubResults.length > 0 && (
+            <View style={s.clubDropdown}>
+              {clubResults.map(c => (
+                <Pressable key={c.id} style={s.clubDropdownItem} onPress={() => handleClubSelect(c)}>
+                  <AureakText variant="caption" style={{ color: colors.text.dark, fontSize: 12 }}>
+                    {c.nom}{c.ville ? ` — ${c.ville}` : ''}
+                  </AureakText>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </View>
 
+        {clubDirectoryId !== null && (
+          <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 11, marginTop: 2 }}>
+            ✓ Club lié à l'annuaire
+          </AureakText>
+        )}
+
+        {/* Niveau de compétition — pills standardisés (AC: #8-#10) */}
+        <View style={{ marginTop: space.sm, gap: 6 }}>
+          <AureakText variant="label" style={{ color: colors.text.muted }}>Niveau de compétition</AureakText>
+          <View style={s.pillRow}>
+            {FOOTBALL_TEAM_LEVELS.map(level => (
+              <Pressable
+                key={level}
+                style={[s.pill, niveauClub === level && s.pillActive]}
+                onPress={() => setNiveauClub(prev => prev === level ? null : level)}
+              >
+                <AureakText
+                  variant="caption"
+                  style={{ color: niveauClub === level ? colors.accent.gold : colors.text.muted, fontWeight: (niveauClub === level ? '700' : '400') as TextStyle['fontWeight'] }}
+                >
+                  {level}
+                </AureakText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
       </View>
 
-      {/* ── Club ── */}
+      {/* ── ACADÉMIE (Story 22.1A) ── */}
       <View style={s.card}>
-        <AureakText variant="caption" style={s.sectionLabel}>CLUB ACTUEL</AureakText>
+        <AureakText variant="caption" style={s.sectionLabel}>ACADÉMIE</AureakText>
+        <AureakText variant="caption" style={s.academieHint}>
+          Optionnel — sélectionne les saisons où ce joueur était à l'académie Aureak.
+          La saison courante est marquée d'une étoile (★).
+        </AureakText>
 
-        <Input
-          label="Nom du club"
-          value={currentClub}
-          onChangeText={setCurrentClub}
-          placeholder="ex: Onhaye"
-          variant="light"
-          autoCapitalize="words"
-        />
+        {seasonsLoading ? (
+          <AureakText variant="caption" style={s.italicMuted}>Chargement des saisons…</AureakText>
+        ) : seasonsError ? (
+          <AureakText variant="caption" style={[s.italicMuted, { color: colors.status.attention }]}>
+            Impossible de charger les saisons. La section académie sera disponible depuis la fiche joueur après création.
+          </AureakText>
+        ) : seasons.length === 0 ? (
+          <AureakText variant="caption" style={s.italicMuted}>
+            Aucune saison académie disponible. Créez-en depuis la gestion de l'académie.
+          </AureakText>
+        ) : (
+          <View style={s.pillRow}>
+            {seasons.map(season => {
+              const selected = selectedSeasonIds.includes(season.id)
+              return (
+                <Pressable
+                  key={season.id}
+                  style={[s.pill, selected && s.pillActive]}
+                  onPress={() => toggleSeason(season.id)}
+                >
+                  <AureakText
+                    variant="caption"
+                    style={{
+                      fontSize  : 11,
+                      color     : selected ? colors.accent.gold : colors.text.muted,
+                      fontWeight: (selected ? '700' : '400') as TextStyle['fontWeight'],
+                    }}
+                  >
+                    {season.label}{season.isCurrent ? ' ★' : ''}
+                  </AureakText>
+                </Pressable>
+              )
+            })}
+          </View>
+        )}
 
-        <Input
-          label="Niveau de compétition"
-          value={niveauClub}
-          onChangeText={setNiveauClub}
-          placeholder="ex: Elite 1, Provincial…"
-          variant="light"
-          style={{ marginTop: space.sm }}
-        />
+        {selectedSeasonIds.length > 0 && (
+          <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 11, marginTop: 4 }}>
+            {selectedSeasonIds.length} saison{selectedSeasonIds.length > 1 ? 's' : ''} sélectionnée{selectedSeasonIds.length > 1 ? 's' : ''}
+          </AureakText>
+        )}
       </View>
 
-      {/* ── Options ── */}
+      {/* ── OPTIONS ── */}
       <View style={s.card}>
         <AureakText variant="caption" style={s.sectionLabel}>OPTIONS</AureakText>
 
@@ -192,6 +446,15 @@ export default function NewJoueurPage() {
         </View>
       </View>
 
+      {/* ── Warning inscription académique non-bloquant (AC: #8) ── */}
+      {enrollWarning && (
+        <View style={s.warningBox}>
+          <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+            ⚠ {enrollWarning}
+          </AureakText>
+        </View>
+      )}
+
       {/* ── Erreur globale ── */}
       {error && (
         <View style={s.errorBox}>
@@ -203,7 +466,11 @@ export default function NewJoueurPage() {
 
       {/* ── Actions ── */}
       <View style={s.actions}>
-        <Pressable style={s.cancelBtn} onPress={() => router.back()} disabled={saving}>
+        <Pressable
+          style={s.cancelBtn}
+          onPress={() => { if (navTimerRef.current) clearTimeout(navTimerRef.current); router.back() }}
+          disabled={saving}
+        >
           <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
         </Pressable>
         <Button
@@ -245,12 +512,12 @@ const s = StyleSheet.create({
     marginBottom : 4,
   },
 
-  statutRow: {
+  pillRow: {
     flexDirection: 'row',
     flexWrap     : 'wrap',
     gap          : 6,
   },
-  statutPill: {
+  pill: {
     paddingHorizontal: 12,
     paddingVertical  : 5,
     borderRadius     : 12,
@@ -258,9 +525,26 @@ const s = StyleSheet.create({
     borderColor      : colors.border.light,
     backgroundColor  : 'transparent',
   },
-  statutPillActive: {
+  pillActive: {
     borderColor    : colors.accent.gold,
     backgroundColor: colors.accent.gold + '15',
+  },
+
+  // Hints texte
+  suggestionHint: {
+    color     : colors.text.muted,
+    fontSize  : 10,
+    fontStyle : 'italic' as never,
+    marginTop : 2,
+  },
+  academieHint: {
+    color    : colors.text.muted,
+    fontSize : 11,
+    marginBottom: 4,
+  },
+  italicMuted: {
+    color    : colors.text.muted,
+    fontStyle: 'italic' as never,
   },
 
   switchRow: {
@@ -268,6 +552,14 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems    : 'center',
     paddingVertical: 4,
+  },
+
+  warningBox: {
+    backgroundColor: colors.accent.gold + '15',
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '60',
+    borderRadius   : 8,
+    padding        : space.sm,
   },
 
   errorBox: {
@@ -279,11 +571,11 @@ const s = StyleSheet.create({
   },
 
   actions: {
-    flexDirection: 'row',
+    flexDirection : 'row',
     justifyContent: 'flex-end',
-    alignItems   : 'center',
-    gap          : space.sm,
-    marginTop    : space.xs,
+    alignItems    : 'center',
+    gap           : space.sm,
+    marginTop     : space.xs,
   },
   cancelBtn: {
     paddingHorizontal: space.md,
@@ -291,5 +583,52 @@ const s = StyleSheet.create({
     borderRadius     : 8,
     borderWidth      : 1,
     borderColor      : colors.border.light,
+  },
+
+  // ── Club autocomplete (Story 22.1B) ────────────────────────────────────────
+  clubInputRow: {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    borderWidth   : 1,
+    borderColor   : colors.border.light,
+    borderRadius  : 8,
+    backgroundColor: colors.light.surface,
+    paddingHorizontal: 10,
+    minHeight     : 40,
+  },
+  clubTextInput: {
+    flex      : 1,
+    fontSize  : 13,
+    color     : colors.text.dark,
+    paddingVertical: 8,
+    outlineStyle: 'none' as never,
+  },
+  clubLoadingDot: {
+    color  : colors.text.muted,
+    fontSize: 14,
+    paddingHorizontal: 4,
+  },
+  clubClearBtn: {
+    paddingHorizontal: 6,
+    paddingVertical  : 4,
+  },
+  clubDropdown: {
+    position       : 'absolute' as never,
+    top            : '100%' as never,
+    left           : 0,
+    right          : 0,
+    backgroundColor: colors.light.surface,
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '60',
+    borderRadius   : radius.xs,
+    zIndex         : 999,
+    elevation      : 8,
+    marginTop      : 2,
+  },
+  clubDropdownItem: {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 9,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
 })

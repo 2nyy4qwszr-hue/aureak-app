@@ -40,7 +40,8 @@ import { ACADEMY_STATUS_CONFIG, generateAcademyBadges } from '@aureak/business-l
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import { FOOTBALL_AGE_CATEGORIES, FOOTBALL_TEAM_LEVELS, formatNomPrenom } from '@aureak/types'
+import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
+import { computeTeamLevelStars } from '@aureak/business-logic'
 import type {
   ChildDirectoryEntry,
   ChildDirectoryHistory,
@@ -55,7 +56,7 @@ import type {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type EditSection = 'identite' | 'club' | 'adresse' | 'parent1' | 'parent2' | 'notes'
+type EditSection = 'identite' | 'club' | 'niveau' | 'adresse' | 'parent1' | 'parent2' | 'notes'
 
 // ── Section title ─────────────────────────────────────────────────────────────
 
@@ -1199,6 +1200,12 @@ export default function ChildDetailPage() {
     clubDirectoryId: draft.clubDirectoryId ?? null,
   })
 
+  const saveNiveau = () => saveEdit({
+    ageCategory   : draft.ageCategory    ?? null,
+    youthLevel    : draft.youthLevel     ?? null,
+    seniorDivision: draft.seniorDivision ?? null,
+  })
+
   const saveAdresse = () => saveEdit({
     adresseRue: draft.adresseRue ?? null,
     codePostal: draft.codePostal ?? null,
@@ -1432,6 +1439,134 @@ export default function ChildDetailPage() {
                   <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }}>Club non trouvé dans l'annuaire</AureakText>
                 </View>
               )}
+            </>
+          )}
+        </View>
+
+        {/* ── [C.bis] Niveau équipe ── */}
+        <View style={s.card}>
+          <SectionHeader title="Niveau équipe" onEdit={() => startEdit('niveau')} isEditing={isEditing('niveau')} />
+          {isEditing('niveau') ? (
+            <>
+              {/* Catégorie d'âge */}
+              <View style={[er.wrap, { alignItems: 'flex-start', paddingVertical: 8 }]}>
+                <AureakText variant="caption" style={[er.label, { paddingTop: 4 }] as never}>Catégorie d'âge</AureakText>
+                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                  {AGE_CATEGORIES.map(cat => (
+                    <Pressable
+                      key={cat}
+                      style={{
+                        paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+                        borderWidth: 1,
+                        borderColor: draft.ageCategory === cat ? colors.accent.gold : colors.border.light,
+                        backgroundColor: draft.ageCategory === cat ? colors.accent.gold + '20' : 'transparent',
+                      }}
+                      onPress={() => {
+                        const isSenior = cat === 'Senior'
+                        setDraft(d => ({
+                          ...d,
+                          ageCategory   : cat,
+                          youthLevel    : isSenior ? null : d.youthLevel,
+                          seniorDivision: isSenior ? d.seniorDivision : null,
+                        }))
+                      }}
+                    >
+                      <AureakText variant="caption" style={{ fontSize: 11, color: draft.ageCategory === cat ? colors.accent.gold : colors.text.muted } as never}>
+                        {cat}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              {/* Youth level — affiché si youth (catégorie ≠ Senior) ou si catégorie non définie (AC #6) */}
+              {(!draft.ageCategory || draft.ageCategory !== 'Senior') && (
+                <View style={[er.wrap, { alignItems: 'flex-start', paddingVertical: 8 }]}>
+                  <AureakText variant="caption" style={[er.label, { paddingTop: 4 }] as never}>Niveau (jeune)</AureakText>
+                  <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                    {YOUTH_LEVELS.map(lvl => (
+                      <Pressable
+                        key={lvl}
+                        style={{
+                          paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: draft.youthLevel === lvl ? colors.accent.gold : colors.border.light,
+                          backgroundColor: draft.youthLevel === lvl ? colors.accent.gold + '20' : 'transparent',
+                        }}
+                        onPress={() => setDraft(d => ({ ...d, youthLevel: lvl, seniorDivision: null }))}
+                      >
+                        <AureakText variant="caption" style={{ fontSize: 11, color: draft.youthLevel === lvl ? colors.accent.gold : colors.text.muted } as never}>
+                          {lvl}
+                        </AureakText>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Senior division — affiché si Senior ou si catégorie non définie (AC #6) */}
+              {(!draft.ageCategory || draft.ageCategory === 'Senior') && (
+                <View style={[er.wrap, { alignItems: 'flex-start', paddingVertical: 8 }]}>
+                  <AureakText variant="caption" style={[er.label, { paddingTop: 4 }] as never}>Division (senior)</AureakText>
+                  <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                    {SENIOR_DIVISIONS.map(div => (
+                      <Pressable
+                        key={div}
+                        style={{
+                          paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: draft.seniorDivision === div ? colors.accent.gold : colors.border.light,
+                          backgroundColor: draft.seniorDivision === div ? colors.accent.gold + '20' : 'transparent',
+                        }}
+                        onPress={() => setDraft(d => ({ ...d, seniorDivision: div, youthLevel: null }))}
+                      >
+                        <AureakText variant="caption" style={{ fontSize: 11, color: draft.seniorDivision === div ? colors.accent.gold : colors.text.muted } as never}>
+                          {div}
+                        </AureakText>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Validation : un seul type de niveau à la fois (AC #6) */}
+              {draft.youthLevel && draft.seniorDivision && (
+                <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 } as never}>
+                  Un seul niveau peut être renseigné (jeune OU senior).
+                </AureakText>
+              )}
+
+              {/* Aperçu étoiles calculées */}
+              {draft.ageCategory && (
+                <View style={{ paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 } as never}>Étoiles calculées :</AureakText>
+                  {(() => {
+                    const stars = computeTeamLevelStars(draft.ageCategory ?? null, draft.youthLevel ?? null, draft.seniorDivision ?? null)
+                    return Array.from({ length: 5 }, (_, i) => (
+                      <AureakText key={i} style={{ fontSize: 14, color: i < (stars ?? 0) ? colors.accent.gold : colors.border.light } as never}>
+                        {i < (stars ?? 0) ? '★' : '☆'}
+                      </AureakText>
+                    ))
+                  })()}
+                </View>
+              )}
+
+              <EditActions saving={savingEdit} onSave={saveNiveau} onCancel={cancelEdit} error={saveError} />
+            </>
+          ) : (
+            <>
+              <InfoRow label="Catégorie"  value={child.ageCategory} />
+              <InfoRow label="Niveau"     value={child.youthLevel ?? child.seniorDivision} />
+              <View style={ir.wrap}>
+                <AureakText variant="caption" style={ir.label}>Étoiles</AureakText>
+                <View style={{ flexDirection: 'row', gap: 3 }}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <AureakText key={i} style={{ fontSize: 14, color: i < (child.teamLevelStars ?? 0) ? colors.accent.gold : colors.border.light } as never}>
+                      {i < (child.teamLevelStars ?? 0) ? '★' : '☆'}
+                    </AureakText>
+                  ))}
+                </View>
+              </View>
             </>
           )}
         </View>

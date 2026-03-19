@@ -162,8 +162,10 @@ const pag = StyleSheet.create({
 function formatBirthDate(iso: string | null): string | null {
   if (!iso) return null
   try {
-    const d = new Date(iso)
-    return d.toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    // Parsing manuel pour éviter l'interprétation UTC de new Date('YYYY-MM-DD')
+    // qui décalerait la date d'un jour dans les fuseaux horaires négatifs.
+    const [y, m, d] = iso.split('-').map(Number)
+    return new Date(y, m - 1, d).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
   } catch { return null }
 }
 
@@ -194,15 +196,30 @@ function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => vo
           {nomComplet}
         </AureakText>
 
-        {dob && (
-          <AureakText variant="caption" style={card.metaLine}>{dob}</AureakText>
-        )}
-        {item.currentClub ? (
-          <AureakText variant="caption" style={card.metaLine} numberOfLines={1}>{item.currentClub}</AureakText>
-        ) : null}
-        {item.niveauClub ? (
-          <AureakText variant="caption" style={card.metaLine} numberOfLines={1}>{item.niveauClub}</AureakText>
-        ) : null}
+        {/* Métadonnées — toujours visibles, "—" si absent (AC: #1, #2, #3) */}
+        <AureakText
+          variant="caption"
+          style={[card.metaLine, !dob && card.placeholder]}
+          accessibilityLabel={!dob ? 'Date de naissance inconnue' : dob}
+        >
+          {dob || '—'}
+        </AureakText>
+        <AureakText
+          variant="caption"
+          style={[card.metaLine, !item.currentClub && card.placeholder]}
+          numberOfLines={1}
+          accessibilityLabel={!item.currentClub ? 'Club inconnu' : item.currentClub}
+        >
+          {item.currentClub || '—'}
+        </AureakText>
+        <AureakText
+          variant="caption"
+          style={[card.metaLine, !item.niveauClub && card.placeholder]}
+          numberOfLines={1}
+          accessibilityLabel={!item.niveauClub ? 'Niveau inconnu' : item.niveauClub}
+        >
+          {item.niveauClub || '—'}
+        </AureakText>
 
         {(item.computedStatus || item.totalAcademySeasons > 0 || item.totalStages > 0 || item.isClubPartner) && (
           <View style={card.chips}>
@@ -250,24 +267,458 @@ const card = StyleSheet.create({
     width     : '100%',
     gap       : 3,
     marginTop : 10,
-    alignItems: 'flex-start',
+    alignItems: 'center',        // Story 22.2B — centrage horizontal
   },
   name: {
     fontWeight   : '700' as never,
     fontSize     : 13,
     color        : colors.text.dark,
     letterSpacing: 0.1,
+    textAlign    : 'center' as never, // Story 22.2B
   },
   metaLine: {
     color     : colors.text.muted,
     fontSize  : 11,
     lineHeight: 17,
+    textAlign : 'center' as never, // Story 22.2B
+  },
+  placeholder: {
+    color  : colors.text.subtle,
+    opacity: 0.65,
   },
   chips: {
+    flexDirection  : 'row',
+    gap            : 4,
+    flexWrap       : 'wrap',
+    marginTop      : 4,
+    justifyContent : 'center',   // Story 22.2B
+  },
+})
+
+// ── PremiumJoueurCard — helpers + assets (Story 25.2) ────────────────────────
+
+// Background JPEG optimisé (115 Ko, 560×840px) — inclut triangles, filets dorés,
+// cercle badge haut-droite, séparateurs horizontaux et verticaux (pas besoin d'en ajouter en code)
+const CARD_BG = require('../../../assets/cards/background-card.jpg') as number
+
+// Badges statut — require() STATIQUES (Metro/Expo ne supporte pas les require dynamiques)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BADGE_ASSETS: Partial<Record<string, any>> = {
+  ACADÉMICIEN        : require('../../../assets/badges/badge-academicien.webp'),
+  NOUVEAU_ACADÉMICIEN: require('../../../assets/badges/badge-nouveau.webp'),
+  ANCIEN             : require('../../../assets/badges/badge-ancien.webp'),
+  STAGE_UNIQUEMENT   : require('../../../assets/badges/badge-stage.webp'),
+  PROSPECT           : require('../../../assets/badges/badge-prospect.webp'),
+}
+
+/** DD.MM.YYYY avec points — parsing local pour éviter UTC drift (AC #3) */
+function formatDotDate(iso: string | null): string {
+  if (!iso) return '—'
+  try {
+    const [y, m, d] = iso.split('-').map(Number)
+    return `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}.${y}`
+  } catch { return '—' }
+}
+
+/** Étoiles colorées or/gris selon count (AC #6) */
+function StarRating({ count, max = 5 }: { count: number; max?: number }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 2 }}>
+      {Array.from({ length: max }, (_, i) => (
+        <AureakText
+          key={i}
+          style={{ fontSize: 16, color: i < count ? colors.accent.gold : 'rgba(0,0,0,0.2)' } as never}
+        >
+          {i < count ? '★' : '☆'}
+        </AureakText>
+      ))}
+    </View>
+  )
+}
+
+/** Logo club : image si URL disponible, fallback initiales sur fond doré (AC #7) */
+function ClubLogo({ url, clubName }: { url: string | null; clubName: string | null }) {
+  const [imgError, setImgError] = useState(false)
+  // Reset error si l'URL change (ex: signed URL rafraîchie, ou changement de filtre)
+  useEffect(() => { setImgError(false) }, [url])
+  if (url && !imgError) {
+    return (
+      <Image
+        source={{ uri: url }}
+        style={pZone.clubLogo}
+        resizeMode="contain"
+        accessible={false}
+        onError={() => setImgError(true)}
+      />
+    )
+  }
+  const trimmed = clubName?.trim()
+  const initials = trimmed
+    ? trimmed.split(/\s+/).map(w => w.charAt(0)).slice(0, 2).join('').toUpperCase()
+    : '—'
+  return (
+    <View style={pZone.clubLogoFallback}>
+      <AureakText style={pZone.clubLogoFallbackText as never}>{initials}</AureakText>
+    </View>
+  )
+}
+
+/** Photo joueur dans la zone diagonale — masquage par le background JPEG (Story 25.3) */
+function PremiumPhotoZone({ photoUrl, displayName, nom, prenom, id }: {
+  photoUrl   : string | null
+  displayName: string
+  nom?       : string | null
+  prenom?    : string | null
+  id         : string
+}) {
+  const [imgError, setImgError] = useState(false)
+  // Reset si l'URL change (signed URL rafraîchie / re-rendu) — AC #6
+  useEffect(() => { setImgError(false) }, [photoUrl])
+  const showPhoto = photoUrl && !imgError
+  if (showPhoto) {
+    return (
+      <Image
+        source={{ uri: photoUrl }}
+        style={pPhoto.img}
+        resizeMode="cover"
+        accessible={false}
+        onError={() => setImgError(true)}
+      />
+    )
+  }
+  // Fallback décoratif — accessible={false} car la Pressable parente porte le label complet
+  return (
+    <View style={pPhoto.fallbackContainer} accessible={false}>
+      <View style={[pPhoto.fallback, { backgroundColor: avatarBgColor(id) }]}>
+        <AureakText style={pPhoto.initials as never}>
+          {getInitials(displayName, nom, prenom)}
+        </AureakText>
+      </View>
+    </View>
+  )
+}
+
+const pPhoto = StyleSheet.create({
+  // Photo JPEG — couvre la zone diagonale, masquée à droite par le background PNG (z=1)
+  img: {
+    position: 'absolute' as never,
+    top     : 0,
+    left    : 0,
+    right   : 0,
+    height  : 230,
+  },
+  // Fallback — centré dans la moitié gauche (zone visible avant la diagonale)
+  fallbackContainer: {
+    position      : 'absolute' as never,
+    top           : 0,
+    left          : 0,
+    width         : '50%' as never,
+    height        : 230,
+    alignItems    : 'center',
+    justifyContent: 'center',
+  },
+  fallback: {
+    width         : 110,
+    height        : 110,
+    borderRadius  : 55,
+    alignItems    : 'center',
+    justifyContent: 'center',
+  },
+  initials: {
+    color     : '#fff',
+    fontWeight: '700' as never,
+    fontSize  : 36,
+  },
+})
+
+const PremiumJoueurCard = React.memo(function PremiumJoueurCard({ item }: { item: JoueurListItem }) {
+  const router = useRouter()
+  const handlePress = useCallback(() => {
+    router.push(`/children/${item.id}` as never)
+  }, [router, item.id])
+  const badgeAsset = BADGE_ASSETS[item.computedStatus ?? '']
+  const prenomDisplay = item.prenom?.toUpperCase() ?? null
+  const nomDisplay = (item.nom ?? item.displayName).toUpperCase()
+
+  return (
+    <Pressable
+      style={({ pressed }) => [pCard.container, pressed && pCard.pressed]}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`Voir la fiche de ${formatNomPrenom(item.nom, item.prenom, item.displayName)}`}
+    >
+      {/* Photo joueur — z=0, masquée en diagonal par le background PNG (z=1) — AC #1, #2, #4 */}
+      <PremiumPhotoZone
+        photoUrl   ={item.currentPhotoUrl}
+        displayName={item.displayName}
+        nom        ={item.nom}
+        prenom     ={item.prenom}
+        id         ={item.id}
+      />
+
+      {/* Background JPEG — z=1 (AU-DESSUS de la zone photo pour que la diagonale blanche masque la photo) */}
+      {/* Fix : dimensions explicites 280×420 (= 560×840 × 0.5). absoluteFillObject ne contraint pas
+          la taille de l'image sur web — elle se rendait à 560×840 naturels, overflow:hidden la rognait. */}
+      <Image
+        source={CARD_BG}
+        style={{ position: 'absolute', top: 0, left: 0, width: 280, height: 420 }}
+        resizeMode="stretch"
+        accessible={false}
+      />
+
+      {/* Zone badge statut — cercle doré haut-droite (dessiné dans le background) — AC #8 */}
+      <View style={pZone.badge}>
+        {badgeAsset ? (
+          <Image source={badgeAsset} style={pZone.badgeImage} resizeMode="contain" />
+        ) : null}
+      </View>
+
+      {/* Zone nom — droite-centre, sur fond blanc du background — AC #1, #2 */}
+      <View style={pZone.nameBlock}>
+        {prenomDisplay ? (
+          <AureakText style={pZone.prenomText as never}>{prenomDisplay}</AureakText>
+        ) : null}
+        <AureakText style={pZone.nomText as never}>{nomDisplay}</AureakText>
+      </View>
+
+      {/* Rangée infos 1 — DATE DE NAISSANCE | HISTORIQUE — Story 25.7 : zones absolues */}
+      <View style={pZone.infoRow1}>
+        {/* zone-date (x:12→112) */}
+        <View style={pZone.zoneDate}>
+          <AureakText style={pZone.infoLabel as never}>DATE DE NAISSANCE</AureakText>
+          <AureakText style={pZone.infoValue as never}>{formatDotDate(item.birthDate)}</AureakText>
+        </View>
+        {/* zone-histo (x:118→268) — séparateur JPEG tombe dans le gap x:112→118 */}
+        <View style={pZone.zoneHisto}>
+          <AureakText style={pZone.infoLabel as never}>HISTORIQUE</AureakText>
+          <View style={pZone.historiqueValues}>
+            <View style={pZone.zoneHistoSaison}>
+              <AureakText style={pZone.infoValue as never}>{item.totalAcademySeasons}</AureakText>
+              <AureakText style={pZone.infoSubLabel as never}>
+                {item.totalAcademySeasons <= 1 ? 'Saison' : 'Saisons'}
+              </AureakText>
+            </View>
+            <View style={pZone.zoneHistoStage}>
+              <AureakText style={pZone.infoValue as never}>{item.totalStages}</AureakText>
+              <AureakText style={pZone.infoSubLabel as never}>
+                {item.totalStages <= 1 ? 'Stage' : 'Stages'}
+              </AureakText>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Rangée infos 2 — EQUIPE | NIVEAU | CLUB — Story 25.7 : zones absolues */}
+      <View style={pZone.infoRow2}>
+        {/* zone-equipe (x:12→86) */}
+        <View style={pZone.zoneEquipe}>
+          <AureakText style={pZone.infoLabel as never}>ÉQUIPE</AureakText>
+          <AureakText style={pZone.infoValue as never}>{item.ageCategory ?? '—'}</AureakText>
+        </View>
+        {/* zone-niveau (x:93→187) — séparateurs JPEG tombent dans les gaps x:86→93 et x:187→194 */}
+        <View style={pZone.zoneNiveau}>
+          <AureakText style={pZone.infoLabel as never}>NIVEAU</AureakText>
+          <StarRating count={item.teamLevelStars ?? 0} />
+        </View>
+        {/* zone-club (x:194→268) */}
+        <View style={pZone.zoneClub}>
+          <AureakText style={pZone.infoLabel as never}>CLUB</AureakText>
+          <ClubLogo url={item.clubLogoUrl} clubName={item.currentClub} />
+        </View>
+      </View>
+    </Pressable>
+  )
+})
+
+// ── Styles PremiumJoueurCard ───────────────────────────────────────────────────
+
+const pCard = StyleSheet.create({
+  container: {
+    position    : 'relative' as never,
+    overflow    : 'hidden',
+    borderRadius: radius.cardLg,  // 24
+    width       : 280,            // Story 25.5 — ratio exact 2:3 avec le background 560×840
+    height      : 420,
+    ...shadows.md,
+  },
+  pressed: { opacity: 0.92 },
+})
+
+const pZone = StyleSheet.create({
+  // Zone badge — cercle doré haut-droite (pré-dessiné dans le background)
+  // Story 25.6 : réduit 100→68px, repositionné top:20→22 right:18→12
+  // Le cercle doré du JPEG 280×420 fait ~68px de ∅, centré à top:22 right:12
+  badge: {
+    position: 'absolute' as never,
+    top     : 22,
+    right   : 12,
+    width   : 68,
+    height  : 68,
+  },
+  badgeImage: {
+    width : 68,
+    height: 68,
+  },
+
+  // Zone nom — droite-centre, sur la zone blanche du background
+  // Story 25.6 : aligné à droite (flex-end), top:185→170 (recalibrage post-fix 25.5),
+  // fontSize:20→17 pour absorber les noms longs sans débordement
+  nameBlock: {
+    position  : 'absolute' as never,
+    top       : 185,
+    left      : '38%' as never,
+    right     : 10,
+    alignItems: 'flex-end',
+    gap       : 2,
+  },
+  prenomText: {
+    fontSize    : 13,
+    color       : colors.text.muted,
+    fontFamily  : 'Montserrat-Regular',
+    letterSpacing: 0.5,
+    textAlign   : 'right' as never,
+  },
+  nomText: {
+    fontSize    : 22,
+    color       : '#0A0A0A',
+    fontFamily  : 'Montserrat-ExtraBold',
+    letterSpacing: 0.2,
+    lineHeight  : 26,
+    textAlign   : 'right' as never,
+  },
+
+  // Rangée infos 1 — conteneur de zones absolues (Story 25.7 : flex retiré)
+  // y : bottom:100, height:68 → occupe y:252→320 dans la carte 280×420
+  infoRow1: {
+    position: 'absolute' as never,
+    bottom  : 100,
+    left    : 0,
+    right   : 0,
+    height  : 68,
+  },
+  // zone-date (mauve) : x:12→124 (width:112) — Story 25.8 : recalibré +12px
+  zoneDate: {
+    position      : 'absolute' as never,
+    top           : 4,
+    left          : 12,
+    width         : 112,
+    bottom        : 0,
+    alignItems    : 'flex-start',
+    justifyContent: 'flex-start',
+    gap           : 2,
+  },
+  // zone-histo (orange) : x:150→268 (width:118) — Story 25.8 : left:118→150, right:12→width:118
+  // Gap date/histo : x:124→150 (26px) — séparateur JPEG ≈ x:135 tombe dans le gap ✓
+  zoneHisto: {
+    position      : 'absolute' as never,
+    top           : 4,
+    left          : 150,
+    width         : 118,
+    bottom        : 0,
+    alignItems    : 'flex-start',
+    justifyContent: 'flex-start',
+    gap           : 2,
+  },
+  historiqueValues: {
     flexDirection: 'row',
-    gap          : 4,
-    flexWrap     : 'wrap',
-    marginTop    : 4,
+    gap          : 0,
+  },
+  // zone-histo-saison : width:60 dans la zone-histo
+  zoneHistoSaison: {
+    width     : 60,
+    alignItems: 'flex-start',
+    gap       : 1,
+  },
+  // zone-histo-stage : paddingLeft:14 pour dépasser le séparateur interne (≈x:68 dans zone-histo)
+  zoneHistoStage: {
+    paddingLeft: 14,
+    flex       : 1,
+    alignItems : 'flex-start',
+    gap        : 1,
+  },
+
+  // Rangée infos 2 — conteneur de zones absolues (Story 25.7 : flex retiré)
+  // y : bottom:8, height:80 → occupe y:332→412 dans la carte 280×420
+  infoRow2: {
+    position: 'absolute' as never,
+    bottom  : 8,
+    left    : 0,
+    right   : 0,
+    height  : 80,
+  },
+  // zone-equipe (jaune) : x:12→86
+  zoneEquipe: {
+    position      : 'absolute' as never,
+    top           : 6,
+    left          : 12,
+    width         : 74,
+    bottom        : 0,
+    alignItems    : 'flex-start',
+    justifyContent: 'flex-start',
+    gap           : 2,
+  },
+  // zone-niveau (bleue) : x:100→180 (left:100, right:100) — Story 25.8 : 93→100 (centrage symétrique)
+  // Gap equipe/niveau : x:86→100 (14px) — séparateur JPEG ≈ x:89 ✓
+  // Gap niveau/club  : x:180→194 (14px) — séparateur JPEG ≈ x:187 ✓
+  zoneNiveau: {
+    position      : 'absolute' as never,
+    top           : 6,
+    left          : 100,
+    right         : 100,
+    bottom        : 0,
+    alignItems    : 'flex-start',
+    justifyContent: 'flex-start',
+    gap           : 2,
+  },
+  // zone-club (verte) : x:194→268
+  zoneClub: {
+    position      : 'absolute' as never,
+    top           : 6,
+    right         : 12,
+    width         : 74,
+    bottom        : 0,
+    alignItems    : 'flex-start',
+    justifyContent: 'flex-start',
+    gap           : 2,
+  },
+  clubLogo: {
+    width : 36,
+    height: 36,
+  },
+  clubLogoFallback: {
+    width          : 36,
+    height         : 36,
+    borderRadius   : 18,
+    backgroundColor: 'rgba(212,175,55,0.30)',
+    alignItems     : 'center',
+    justifyContent : 'center',
+  },
+  clubLogoFallbackText: {
+    fontSize  : 10,
+    fontWeight: '700',
+    color     : colors.accent.gold,
+  },
+
+  // Styles texte communs aux zones infos
+  infoLabel: {
+    width       : '100%' as never,  // Story 25.7 : remplit la zone conteneur, évite le flottement libre
+    fontSize    : 8,
+    color       : 'rgba(80,80,80,0.75)',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase' as never,
+    fontWeight  : '600' as never,
+  },
+  infoValue: {
+    width     : '100%' as never,  // Story 25.7 : remplit la zone conteneur
+    fontSize  : 17,
+    color     : 'rgba(10,10,10,0.90)',
+    fontWeight: '800' as never,
+  },
+  infoSubLabel: {
+    width     : '100%' as never,
+    fontSize  : 8,
+    color     : 'rgba(80,80,80,0.65)',
+    fontWeight: '500' as never,
   },
 })
 
@@ -282,7 +733,8 @@ function SkeletonCard() {
       <View style={sk.infoBlock}>
         <View style={[sk.line, { width: '65%', height: 13 }]} />
         <View style={[sk.line, { width: '80%', height: 11, marginTop: 3 }]} />
-        <View style={[sk.line, { width: '60%', height: 11, marginTop: 2 }]} />
+        <View style={[sk.line, { width: '70%', height: 11, marginTop: 2 }]} />
+        <View style={[sk.line, { width: '55%', height: 11, marginTop: 2 }]} />
         <View style={sk.chipsRow}>
           <View style={sk.chipSm} />
           <View style={sk.chipSm} />
@@ -295,10 +747,29 @@ function SkeletonCard() {
 const sk = StyleSheet.create({
   root    : { opacity: 0.55 },
   circle  : { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.border.divider },
-  infoBlock: { width: '100%', marginTop: 10, gap: 3, alignItems: 'flex-start' },
-  line    : { backgroundColor: colors.border.divider, borderRadius: 4 },
-  chipsRow: { flexDirection: 'row', gap: 4, marginTop: 4 },
+  infoBlock: { width: '100%', marginTop: 10, gap: 3, alignItems: 'center' },  // Story 22.2B
+  line    : { backgroundColor: colors.border.divider, borderRadius: 4, alignSelf: 'center' },  // Story 22.2B
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4, justifyContent: 'center' },  // Story 22.2B
   chipSm  : { width: 52, height: 17, borderRadius: 4, backgroundColor: colors.border.divider },
+})
+
+// ── PremiumSkeletonCard — Skeleton dimensions identiques à PremiumJoueurCard ──
+
+function PremiumSkeletonCard() {
+  return (
+    <View style={psk.container} />
+  )
+}
+
+const psk = StyleSheet.create({
+  container: {
+    width           : 280,            // Story 25.5 — cohérent avec PremiumJoueurCard
+    height          : 420,
+    borderRadius    : radius.cardLg,  // 24
+    backgroundColor : colors.border.divider,
+    opacity         : 0.55,
+    ...shadows.sm,
+  },
 })
 
 // ── FilterRow ─────────────────────────────────────────────────────────────────
@@ -431,9 +902,9 @@ export default function JoueursPage() {
     setBirthYear('all')
   }
 
-  // CSS grid natif web — minmax 200px pour 4-5 colonnes (Story 18.6)
+  // CSS grid natif web — colonnes fixes 280px (Story 25.5 — ratio exact avec le background 560×840)
   const gridStyle = Platform.OS === 'web'
-    ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }
+    ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 280px))', gap: 16 }
     : s.gridFallback
 
   return (
@@ -549,10 +1020,10 @@ export default function JoueursPage() {
         )}
       </View>
 
-      {/* ── Grille joueurs ── */}
+      {/* ── Grille joueurs — PremiumJoueurCard (Story 25.1) ── */}
       {loading ? (
         <View style={gridStyle as never}>
-          {[0,1,2,3,4,5].map(i => <SkeletonCard key={i} />)}
+          {[0,1,2,3,4,5].map(i => <PremiumSkeletonCard key={i} />)}
         </View>
       ) : joueurs.length === 0 ? (
         <View style={s.emptyState}>
@@ -564,10 +1035,9 @@ export default function JoueursPage() {
       ) : (
         <View style={gridStyle as never}>
           {joueurs.map(item => (
-            <JoueurCard
+            <PremiumJoueurCard
               key={item.id}
               item={item}
-              onPress={() => router.push(`/children/${item.id}` as never)}
             />
           ))}
         </View>
@@ -670,8 +1140,8 @@ const s = StyleSheet.create({
     gap            : 12,
   },
 
-  // Grille
-  gridFallback: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  // Grille — gap 16 cohérent avec le CSS grid web (Story 25.5)
+  gridFallback: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
 
   // État vide
   emptyState: {

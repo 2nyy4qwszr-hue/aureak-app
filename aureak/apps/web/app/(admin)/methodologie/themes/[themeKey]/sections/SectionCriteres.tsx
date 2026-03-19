@@ -1,18 +1,21 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import {
-  createCriterion, listFaultsByCriteriaIds, listCriteriaByTheme,
+  createCriterion, listCriteriaByTheme,
   updateCriterionExtended, deleteCriterionById,
   createFault, updateFaultExtended, deleteFaultById,
+  listFaultsByTheme,
 } from '@aureak/api-client'
-import type { Criterion, Fault } from '@aureak/types'
+import type { Criterion, Fault, ThemeSequence, ThemeMetaphor } from '@aureak/types'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 type Props = {
-  themeId: string
-  tenantId: string
-  criteria: Criterion[]
-  onCriteriaChange: (c: Criterion[]) => void
+  themeId          : string
+  tenantId         : string
+  criteria         : Criterion[]
+  onCriteriaChange : (c: Criterion[]) => void
+  sequences        : ThemeSequence[]
+  metaphors        : ThemeMetaphor[]
 }
 
 type FaultWithEdit = Fault & { _editing?: boolean }
@@ -36,6 +39,7 @@ const INPUT_STYLE: React.CSSProperties = {
 }
 
 const TEXTAREA_STYLE: React.CSSProperties = { ...INPUT_STYLE, resize: 'vertical' }
+const SELECT_STYLE: React.CSSProperties = { ...INPUT_STYLE, cursor: 'pointer' }
 
 const BTN_GOLD: React.CSSProperties = {
   padding: '7px 14px', backgroundColor: colors.accent.gold, color: '#fff',
@@ -52,39 +56,70 @@ const BTN_DANGER: React.CSSProperties = {
   ...BTN_GHOST, color: colors.accent.red, borderColor: colors.accent.red + '40',
 }
 
-export default function SectionCriteres({ themeId, tenantId, criteria, onCriteriaChange }: Props) {
+const BADGE_SEQ: React.CSSProperties = {
+  fontSize: 11, fontWeight: 600,
+  backgroundColor: colors.accent.gold + '15',
+  color: colors.accent.gold,
+  border: `1px solid ${colors.border.gold}`,
+  borderRadius: 999, padding: '3px 10px',
+}
+
+const BADGE_META: React.CSSProperties = {
+  fontSize: 11, fontWeight: 600,
+  backgroundColor: '#6366f115',
+  color: '#6366f1',
+  border: '1px solid #6366f140',
+  borderRadius: 999, padding: '3px 10px',
+}
+
+export default function SectionCriteres({ themeId, tenantId, criteria, onCriteriaChange, sequences, metaphors }: Props) {
   const [tree, setTree] = useState<CriterionWithFaults[]>([])
+  const [freeFaults, setFreeFaults] = useState<FaultWithEdit[]>([])
   const [loading, setLoading] = useState(true)
 
   // Add criterion form
-  const [showAddCrit, setShowAddCrit] = useState(false)
-  const [newCritLabel, setNewCritLabel] = useState('')
-  const [addingCrit, setAddingCrit] = useState(false)
+  const [showAddCrit, setShowAddCrit]         = useState(false)
+  const [newCritLabel, setNewCritLabel]       = useState('')
+  const [newCritSeqId, setNewCritSeqId]       = useState('')
+  const [newCritMetaId, setNewCritMetaId]     = useState('')
+  const [addingCrit, setAddingCrit]           = useState(false)
 
   // Add fault: per criterion
-  const [showAddFault, setShowAddFault] = useState<Record<string, boolean>>({})
+  const [showAddFault, setShowAddFault]   = useState<Record<string, boolean>>({})
   const [newFaultLabel, setNewFaultLabel] = useState<Record<string, string>>({})
-  const [addingFault, setAddingFault] = useState<Record<string, boolean>>({})
+  const [addingFault, setAddingFault]     = useState<Record<string, boolean>>({})
+
+  // Add free fault form
+  const [showAddFreeFault, setShowAddFreeFault] = useState(false)
+  const [newFreeFaultLabel, setNewFreeFaultLabel] = useState('')
+  const [newFreeFaultCritId, setNewFreeFaultCritId] = useState('')
+  const [addingFreeFault, setAddingFreeFault] = useState(false)
 
   const loadTree = async () => {
     setLoading(true)
-    const crits = await listCriteriaByTheme(themeId)
-    const allFaults = await listFaultsByCriteriaIds(crits.map(c => c.id))
-    const faultsByCrit = new Map<string, typeof allFaults>()
-    for (const f of allFaults) {
-      const arr = faultsByCrit.get(f.criterionId) ?? []
-      arr.push(f)
-      faultsByCrit.set(f.criterionId, arr)
+    try {
+      const crits = await listCriteriaByTheme(themeId)
+      const allFaults = await listFaultsByTheme(themeId)
+      const faultsByCrit = new Map<string, typeof allFaults>()
+      for (const f of allFaults) {
+        if (f.criterionId) {
+          const arr = faultsByCrit.get(f.criterionId) ?? []
+          arr.push(f)
+          faultsByCrit.set(f.criterionId, arr)
+        }
+      }
+      const withFaults: CriterionWithFaults[] = crits.map(c => ({
+        ...c,
+        faults  : faultsByCrit.get(c.id) ?? [],
+        _open   : false,
+        _editing: false,
+      }))
+      setTree(withFaults)
+      setFreeFaults(allFaults.filter(f => f.criterionId === null))
+      onCriteriaChange(crits)
+    } finally {
+      setLoading(false)
     }
-    const withFaults: CriterionWithFaults[] = crits.map(c => ({
-      ...c,
-      faults  : faultsByCrit.get(c.id) ?? [],
-      _open   : false,
-      _editing: false,
-    }))
-    setTree(withFaults)
-    onCriteriaChange(crits)
-    setLoading(false)
   }
 
   useEffect(() => { loadTree() }, [themeId])
@@ -112,26 +147,20 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
 
   const handleAddCriterion = async () => {
     if (!newCritLabel.trim()) return
-    // Criteria are linked via theme_sequences. We need at least one sequence.
-    // For the dossier view, we create criteria without a specific sequence initially.
-    // This requires a default/first sequence for the theme.
-    // Graceful degradation: show message if no sequences exist.
     setAddingCrit(true)
     try {
-      // For now we use the first available criterion's sequenceId as reference,
-      // or fall back with a placeholder message
-      const existingSeqId = tree[0]?.sequenceId
-      if (!existingSeqId) {
-        alert('Créez d\'abord une séquence dans l\'onglet "Séquences" pour pouvoir ajouter des critères.')
-        return
-      }
-      await createCriterion({
+      const { error } = await createCriterion({
         tenantId,
-        sequenceId: existingSeqId,
-        label: newCritLabel.trim(),
-        sortOrder: tree.length,
+        themeId,
+        label     : newCritLabel.trim(),
+        sortOrder : tree.length,
+        sequenceId: newCritSeqId || null,
+        metaphorId: newCritMetaId || null,
       })
+      if (error) throw error
       setNewCritLabel('')
+      setNewCritSeqId('')
+      setNewCritMetaId('')
       setShowAddCrit(false)
       await loadTree()
     } finally {
@@ -140,22 +169,32 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
   }
 
   const handleSaveCriterion = async (c: CriterionWithFaults) => {
-    await updateCriterionExtended(c.id, {
-      label: c.label,
-      description: c.description ?? undefined,
-      whyImportant: c.whyImportant,
-      minLevel: c.minLevel,
-      logicalOrder: c.logicalOrder,
-      goodExecutionVideoUrl: c.goodExecutionVideoUrl,
-      goodExecutionImageUrl: c.goodExecutionImageUrl,
-    })
-    toggleEdit(c.id)
+    try {
+      await updateCriterionExtended(c.id, {
+        label                : c.label,
+        description          : c.description ?? undefined,
+        whyImportant         : c.whyImportant,
+        minLevel             : c.minLevel,
+        logicalOrder         : c.logicalOrder,
+        goodExecutionVideoUrl: c.goodExecutionVideoUrl,
+        goodExecutionImageUrl: c.goodExecutionImageUrl,
+        sequenceId           : c.sequenceId,
+        metaphorId           : c.metaphorId,
+      })
+      toggleEdit(c.id)
+    } catch {
+      // mode édition reste ouvert si erreur
+    }
   }
 
   const handleDeleteCriterion = async (id: string) => {
-    if (!window.confirm('Supprimer ce critère et toutes ses erreurs ?')) return
-    await deleteCriterionById(id)
-    await loadTree()
+    if (!window.confirm('Supprimer ce critère ? Les erreurs associées resteront disponibles dans la liste des erreurs libres.')) return
+    try {
+      await deleteCriterionById(id)
+      await loadTree()
+    } catch {
+      // silently ignore — le critère reste visible
+    }
   }
 
   const handleAddFault = async (criterionId: string) => {
@@ -163,35 +202,81 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
     if (!label) return
     setAddingFault(prev => ({ ...prev, [criterionId]: true }))
     try {
-      await createFault({ tenantId, criterionId, label })
+      const { error } = await createFault({ tenantId, themeId, criterionId, label })
+      if (error) throw error
       setNewFaultLabel(prev => ({ ...prev, [criterionId]: '' }))
       setShowAddFault(prev => ({ ...prev, [criterionId]: false }))
       await loadTree()
+    } catch {
+      // formulaire reste ouvert si erreur
     } finally {
       setAddingFault(prev => ({ ...prev, [criterionId]: false }))
     }
   }
 
-  const handleSaveFault = async (critId: string, f: FaultWithEdit) => {
-    await updateFaultExtended(f.id, {
-      label: f.label,
-      description: f.description ?? undefined,
-      visibleSign: f.visibleSign,
-      probableCause: f.probableCause,
-      correctionWording: f.correctionWording,
-      coachingPhrase: f.coachingPhrase,
-      practicalAdjustment: f.practicalAdjustment,
-      correctiveVideoUrl: f.correctiveVideoUrl,
-      correctiveImageUrl: f.correctiveImageUrl,
-    })
-    toggleEditFault(critId, f.id)
+  const handleAddFreeFault = async () => {
+    const label = newFreeFaultLabel.trim()
+    if (!label) return
+    setAddingFreeFault(true)
+    try {
+      const { error } = await createFault({
+        tenantId,
+        themeId,
+        criterionId: newFreeFaultCritId || null,
+        label,
+      })
+      if (error) throw error
+      setNewFreeFaultLabel('')
+      setNewFreeFaultCritId('')
+      setShowAddFreeFault(false)
+      await loadTree()
+    } catch {
+      // formulaire reste ouvert si erreur
+    } finally {
+      setAddingFreeFault(false)
+    }
   }
 
-  const handleDeleteFault = async (critId: string, faultId: string) => {
-    if (!window.confirm('Supprimer cette erreur ?')) return
-    await deleteFaultById(faultId)
-    await loadTree()
+  const handleLinkFaultToCriterion = async (faultId: string, criterionId: string) => {
+    try {
+      await updateFaultExtended(faultId, { criterionId: criterionId || null })
+      await loadTree()
+    } catch {
+      // silently ignore
+    }
   }
+
+  const handleSaveFault = async (critId: string, f: FaultWithEdit) => {
+    try {
+      await updateFaultExtended(f.id, {
+        label              : f.label,
+        description        : f.description ?? undefined,
+        visibleSign        : f.visibleSign,
+        probableCause      : f.probableCause,
+        correctionWording  : f.correctionWording,
+        coachingPhrase     : f.coachingPhrase,
+        practicalAdjustment: f.practicalAdjustment,
+        correctiveVideoUrl : f.correctiveVideoUrl,
+        correctiveImageUrl : f.correctiveImageUrl,
+      })
+      toggleEditFault(critId, f.id)
+    } catch {
+      // mode édition reste ouvert si erreur
+    }
+  }
+
+  const handleDeleteFault = async (faultId: string) => {
+    if (!window.confirm('Supprimer cette erreur ?')) return
+    try {
+      await deleteFaultById(faultId)
+      await loadTree()
+    } catch {
+      // silently ignore — l'erreur reste visible
+    }
+  }
+
+  const getSeqLabel  = (id: string) => sequences.find(s => s.id === id)?.name ?? id
+  const getMetaLabel = (id: string) => metaphors.find(m => m.id === id)?.title ?? id
 
   if (loading) return (
     <div style={{ padding: 20 }}>
@@ -221,7 +306,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
       {showAddCrit && (
         <div style={{ ...CARD_STYLE, marginBottom: 16, border: `2px solid ${colors.accent.gold}40` }}>
           <div style={{ marginBottom: 12 }}>
-            <label style={LABEL_STYLE}>Libellé du critère</label>
+            <label style={LABEL_STYLE}>Libellé du critère *</label>
             <input
               type="text"
               value={newCritLabel}
@@ -232,20 +317,47 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
               onKeyDown={e => e.key === 'Enter' && handleAddCriterion()}
             />
           </div>
+
+          {/* Sélecteur séquence — exclusif avec métaphore */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={LABEL_STYLE}>Lier à une séquence (optionnel)</label>
+            <select
+              value={newCritSeqId}
+              onChange={e => { setNewCritSeqId(e.target.value); if (e.target.value) setNewCritMetaId('') }}
+              style={SELECT_STYLE}
+            >
+              <option value="">— Aucune séquence —</option>
+              {sequences.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+
+          {/* Sélecteur métaphore — exclusif avec séquence */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={LABEL_STYLE}>Lier à une métaphore (optionnel)</label>
+            <select
+              value={newCritMetaId}
+              onChange={e => { setNewCritMetaId(e.target.value); if (e.target.value) setNewCritSeqId('') }}
+              style={SELECT_STYLE}
+            >
+              <option value="">— Aucune métaphore —</option>
+              {metaphors.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+            </select>
+          </div>
+
           <div style={{ display: 'flex', gap: 8 }}>
             <button style={BTN_GOLD} onClick={handleAddCriterion} disabled={addingCrit}>
               {addingCrit ? 'Ajout...' : 'Ajouter'}
             </button>
-            <button style={BTN_GHOST} onClick={() => { setShowAddCrit(false); setNewCritLabel('') }}>
+            <button style={BTN_GHOST} onClick={() => { setShowAddCrit(false); setNewCritLabel(''); setNewCritSeqId(''); setNewCritMetaId('') }}>
               Annuler
             </button>
           </div>
         </div>
       )}
 
-      {tree.length === 0 && !showAddCrit && (
+      {tree.length === 0 && !showAddCrit && freeFaults.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: colors.text.muted, fontSize: 13 }}>
-          Aucun critère défini. Commencez par créer une séquence, puis ajoutez vos critères.
+          Aucun critère défini. Ajoutez votre premier critère de réussite.
         </div>
       )}
 
@@ -253,10 +365,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
         <div key={crit.id} style={{ ...CARD_STYLE, marginBottom: 12 }}>
           {/* Header critère */}
           <div
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              cursor: 'pointer', userSelect: 'none',
-            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
             onClick={() => toggleOpen(crit.id)}
           >
             <span style={{
@@ -270,6 +379,13 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
             <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: colors.text.dark }}>
               {crit.label}
             </span>
+            {/* Badge liaison */}
+            {!crit._editing && crit.sequenceId && (
+              <span style={BADGE_SEQ}>{getSeqLabel(crit.sequenceId)}</span>
+            )}
+            {!crit._editing && crit.metaphorId && (
+              <span style={BADGE_META}>{getMetaLabel(crit.metaphorId)}</span>
+            )}
             {crit.faults.length > 0 && (
               <span style={{ fontSize: 11, color: colors.text.muted }}>
                 {crit.faults.length} erreur{crit.faults.length > 1 ? 's' : ''}
@@ -294,7 +410,6 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
           {crit._open && (
             <div style={{ marginTop: 16, borderTop: `1px solid ${colors.border.divider}`, paddingTop: 16 }}>
               {crit._editing ? (
-                // Formulaire édition critère
                 <div>
                   <Field label="Libellé">
                     <input type="text" value={crit.label} onChange={e => updateLocalCrit(crit.id, { label: e.target.value })} style={INPUT_STYLE} />
@@ -317,13 +432,43 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
                   <Field label="Image bonne exécution (URL)">
                     <input type="text" value={crit.goodExecutionImageUrl ?? ''} onChange={e => updateLocalCrit(crit.id, { goodExecutionImageUrl: e.target.value })} style={INPUT_STYLE} />
                   </Field>
+
+                  {/* Sélecteur séquence — exclusif avec métaphore */}
+                  <Field label="Lier à une séquence">
+                    <select
+                      value={crit.sequenceId ?? ''}
+                      onChange={e => updateLocalCrit(crit.id, {
+                        sequenceId: e.target.value || null,
+                        ...(e.target.value ? { metaphorId: null } : {}),
+                      })}
+                      style={SELECT_STYLE}
+                    >
+                      <option value="">— Aucune séquence —</option>
+                      {sequences.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </Field>
+
+                  {/* Sélecteur métaphore — exclusif avec séquence */}
+                  <Field label="Lier à une métaphore">
+                    <select
+                      value={crit.metaphorId ?? ''}
+                      onChange={e => updateLocalCrit(crit.id, {
+                        metaphorId: e.target.value || null,
+                        ...(e.target.value ? { sequenceId: null } : {}),
+                      })}
+                      style={SELECT_STYLE}
+                    >
+                      <option value="">— Aucune métaphore —</option>
+                      {metaphors.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                    </select>
+                  </Field>
+
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <button style={BTN_GOLD} onClick={() => handleSaveCriterion(crit)}>Sauvegarder</button>
                     <button style={BTN_GHOST} onClick={() => toggleEdit(crit.id)}>Annuler</button>
                   </div>
                 </div>
               ) : (
-                // Affichage lecture
                 <div style={{ marginBottom: 16 }}>
                   {crit.description && <p style={{ fontSize: 13, color: colors.text.muted, margin: '0 0 8px' }}>{crit.description}</p>}
                   {crit.whyImportant && <InfoRow label="Pourquoi" value={crit.whyImportant} />}
@@ -335,9 +480,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
 
               {/* Erreurs fréquentes */}
               <div style={{ marginTop: 12 }}>
-                <div style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
-                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: colors.text.subtle }}>
                     Erreurs fréquentes
                   </span>
@@ -349,7 +492,6 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
                   </button>
                 </div>
 
-                {/* Formulaire ajout fault */}
                 {showAddFault[crit.id] && (
                   <div style={{ backgroundColor: colors.light.muted, borderRadius: 8, padding: 12, marginBottom: 10, border: `1px solid ${colors.border.light}` }}>
                     <label style={LABEL_STYLE}>Libellé de l'erreur</label>
@@ -386,7 +528,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
                       </span>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button style={{ ...BTN_GHOST, padding: '3px 7px', fontSize: 11 }} onClick={() => toggleEditFault(crit.id, fault.id)}>✎</button>
-                        <button style={{ ...BTN_DANGER, padding: '3px 7px', fontSize: 11 }} onClick={() => handleDeleteFault(crit.id, fault.id)}>🗑</button>
+                        <button style={{ ...BTN_DANGER, padding: '3px 7px', fontSize: 11 }} onClick={() => handleDeleteFault(fault.id)}>🗑</button>
                       </div>
                     </div>
 
@@ -445,6 +587,90 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
           )}
         </div>
       ))}
+
+      {/* ── Erreurs libres ─────────────────────────────────────────────────────── */}
+      {freeFaults.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
+            textTransform: 'uppercase', color: colors.accent.red,
+            marginBottom: 12 }}>
+            ⚠ Erreurs libres ({freeFaults.length})
+          </div>
+          {freeFaults.map(fault => (
+            <div key={fault.id} style={{
+              ...CARD_STYLE,
+              marginBottom: 8,
+              border: `1px solid ${colors.accent.red}30`,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark }}>
+                  ⚠ {fault.label}
+                </span>
+                <button
+                  style={{ ...BTN_DANGER, padding: '3px 7px', fontSize: 11 }}
+                  onClick={() => handleDeleteFault(fault.id)}
+                >
+                  🗑
+                </button>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <select
+                  value=""
+                  onChange={e => { if (e.target.value) handleLinkFaultToCriterion(fault.id, e.target.value) }}
+                  style={{ ...SELECT_STYLE, width: 'auto', minWidth: 200, fontSize: 12 }}
+                >
+                  <option value="">— Lier à un critère —</option>
+                  {tree.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Ajouter une erreur libre ──────────────────────────────────────────── */}
+      {showAddFreeFault ? (
+        <div style={{ ...CARD_STYLE, marginTop: 12, border: `2px solid ${colors.accent.red}30` }}>
+          <div style={{ marginBottom: 12 }}>
+            <label style={LABEL_STYLE}>Libellé de l'erreur libre *</label>
+            <input
+              type="text"
+              value={newFreeFaultLabel}
+              onChange={e => setNewFreeFaultLabel(e.target.value)}
+              style={INPUT_STYLE}
+              placeholder="Ex: Mains trop basses lors de la sortie..."
+              autoFocus
+              onKeyDown={e => e.key === 'Enter' && handleAddFreeFault()}
+            />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={LABEL_STYLE}>Lier à un critère (optionnel)</label>
+            <select
+              value={newFreeFaultCritId}
+              onChange={e => setNewFreeFaultCritId(e.target.value)}
+              style={SELECT_STYLE}
+            >
+              <option value="">— Aucun critère —</option>
+              {tree.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button style={BTN_GOLD} onClick={handleAddFreeFault} disabled={addingFreeFault}>
+              {addingFreeFault ? 'Ajout...' : 'Ajouter'}
+            </button>
+            <button style={BTN_GHOST} onClick={() => { setShowAddFreeFault(false); setNewFreeFaultLabel(''); setNewFreeFaultCritId('') }}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          style={{ ...BTN_GHOST, marginTop: 12, fontSize: 12 }}
+          onClick={() => setShowAddFreeFault(true)}
+        >
+          + Ajouter une erreur libre
+        </button>
+      )}
     </div>
   )
 }

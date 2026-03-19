@@ -15,13 +15,18 @@ export default function RootLayout() {
   }, [])
 
   const [fontsLoaded, fontError] = useFonts({
-    'Rajdhani-Regular' : require('../assets/fonts/Rajdhani/Rajdhani-Regular.ttf'),
-    'Rajdhani-SemiBold': require('../assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf'),
-    'Rajdhani-Bold'    : require('../assets/fonts/Rajdhani/Rajdhani-Bold.ttf'),
-    'Geist-Regular'    : require('../assets/fonts/Geist/Geist-Regular.otf'),
-    'Geist-Medium'     : require('../assets/fonts/Geist/Geist-Medium.otf'),
-    'Geist-SemiBold'   : require('../assets/fonts/Geist/Geist-SemiBold.otf'),
-    'GeistMono-Regular': require('../assets/fonts/Geist/GeistMono-Regular.otf'),
+    'Rajdhani-Regular'    : require('../assets/fonts/Rajdhani/Rajdhani-Regular.ttf'),
+    'Rajdhani-SemiBold'   : require('../assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf'),
+    'Rajdhani-Bold'       : require('../assets/fonts/Rajdhani/Rajdhani-Bold.ttf'),
+    'Geist-Regular'       : require('../assets/fonts/Geist/Geist-Regular.otf'),
+    'Geist-Medium'        : require('../assets/fonts/Geist/Geist-Medium.otf'),
+    'Geist-SemiBold'      : require('../assets/fonts/Geist/Geist-SemiBold.otf'),
+    'GeistMono-Regular'   : require('../assets/fonts/Geist/GeistMono-Regular.otf'),
+    // Story 25.1 — Police Montserrat pour cartes joueur premium
+    'Montserrat-Regular'  : require('../assets/fonts/Montserrat/Montserrat-Regular.ttf'),
+    'Montserrat-SemiBold' : require('../assets/fonts/Montserrat/Montserrat-SemiBold.ttf'),
+    'Montserrat-Bold'     : require('../assets/fonts/Montserrat/Montserrat-Bold.ttf'),
+    'Montserrat-ExtraBold': require('../assets/fonts/Montserrat/Montserrat-ExtraBold.ttf'),
   })
 
   useEffect(() => {

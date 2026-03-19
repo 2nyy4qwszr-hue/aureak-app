@@ -6,7 +6,7 @@ import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Theme, ThemeGroup } from '@aureak/types'
 import BlocsManagerModal from '../_components/BlocsManagerModal'
-import ThemeCard from '../_components/ThemeCard'
+import PremiumThemeCard from '../_components/PremiumThemeCard'
 
 const styles = StyleSheet.create({
   container       : { flex: 1, backgroundColor: colors.light.primary },
@@ -172,7 +172,7 @@ export default function ThemesPage() {
                 transition  : 'opacity 0.15s',
               }}
             >
-              <ThemeCard
+              <PremiumThemeCard
                 theme={theme}
                 groupName={groupMap[theme.groupId ?? ''] ?? null}
                 category={theme.category ?? null}

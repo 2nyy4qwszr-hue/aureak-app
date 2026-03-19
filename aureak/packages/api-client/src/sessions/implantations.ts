@@ -16,6 +16,20 @@ export type CreateImplantationParams = {
   gpsRadius?: number
 }
 
+function mapImplantation(row: Record<string, unknown>): Implantation {
+  return {
+    id       : row.id        as string,
+    tenantId : row.tenant_id as string,
+    name     : row.name      as string,
+    address  : (row.address    as string | null) ?? null,
+    gpsLat   : (row.gps_lat    as number | null) ?? null,
+    gpsLon   : (row.gps_lon    as number | null) ?? null,
+    gpsRadius: (row.gps_radius as number | null) ?? 300,
+    deletedAt: (row.deleted_at as string | null) ?? null,
+    createdAt: row.created_at  as string,
+  }
+}
+
 export async function createImplantation(
   params: CreateImplantationParams
 ): Promise<{ data: Implantation | null; error: unknown }> {
@@ -32,7 +46,8 @@ export async function createImplantation(
     .select()
     .single()
 
-  return { data: data as Implantation | null, error }
+  if (error || !data) return { data: null, error }
+  return { data: mapImplantation(data as Record<string, unknown>), error: null }
 }
 
 export async function listImplantations(): Promise<{ data: Implantation[]; error: unknown }> {
@@ -42,7 +57,8 @@ export async function listImplantations(): Promise<{ data: Implantation[]; error
     .is('deleted_at', null)
     .order('name', { ascending: true })
 
-  return { data: (data as Implantation[]) ?? [], error }
+  if (error || !data) return { data: [], error }
+  return { data: (data as Record<string, unknown>[]).map(mapImplantation), error: null }
 }
 
 export async function updateImplantation(

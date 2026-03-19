@@ -44,6 +44,7 @@ function toThemeMiniExercise(r: Record<string, unknown>): ThemeMiniExercise {
     tenantId    : r.tenant_id as string,
     themeId     : r.theme_id as string,
     criterionId : r.criterion_id as string | null,
+    sequenceId  : r.sequence_id as string | null,
     title       : r.title as string,
     purpose     : r.purpose as string | null,
     situation   : r.situation as string | null,
@@ -239,6 +240,7 @@ export async function createThemeMiniExercise(
       theme_id    : themeId,
       tenant_id   : tenantId,
       criterion_id: data.criterionId,
+      sequence_id : data.sequenceId ?? null,
       title       : data.title,
       purpose     : data.purpose,
       situation   : data.situation,
@@ -258,6 +260,7 @@ export async function updateThemeMiniExercise(id: string, data: Partial<ThemeMin
     .from('theme_mini_exercises')
     .update({
       criterion_id: data.criterionId,
+      sequence_id : data.sequenceId,
       title       : data.title,
       purpose     : data.purpose,
       situation   : data.situation,
@@ -605,6 +608,8 @@ export async function updateCriterionExtended(
     goodExecutionVideoUrl?: string | null
     goodExecutionImageUrl?: string | null
     sortOrder?            : number | null
+    sequenceId?           : string | null
+    metaphorId?           : string | null
   }
 ): Promise<void> {
   const update: Record<string, unknown> = {}
@@ -616,6 +621,8 @@ export async function updateCriterionExtended(
   if (data.goodExecutionVideoUrl !== undefined) update.good_execution_video_url = data.goodExecutionVideoUrl
   if (data.goodExecutionImageUrl !== undefined) update.good_execution_image_url = data.goodExecutionImageUrl
   if (data.sortOrder !== undefined)             update.sort_order = data.sortOrder
+  if (data.sequenceId !== undefined)            update.sequence_id = data.sequenceId
+  if (data.metaphorId !== undefined)            update.metaphor_id = data.metaphorId
   const { error } = await supabase.from('criteria').update(update).eq('id', id)
   if (error) throw error
 }
@@ -633,6 +640,7 @@ export async function updateFaultExtended(
     correctiveVideoUrl? : string | null
     correctiveImageUrl? : string | null
     sortOrder?          : number | null
+    criterionId?        : string | null
   }
 ): Promise<void> {
   const update: Record<string, unknown> = {}
@@ -646,6 +654,7 @@ export async function updateFaultExtended(
   if (data.correctiveVideoUrl !== undefined)  update.corrective_video_url = data.correctiveVideoUrl
   if (data.correctiveImageUrl !== undefined)  update.corrective_image_url = data.correctiveImageUrl
   if (data.sortOrder !== undefined)           update.sort_order = data.sortOrder
+  if (data.criterionId !== undefined)         update.criterion_id = data.criterionId
   const { error } = await supabase.from('faults').update(update).eq('id', id)
   if (error) throw error
 }
@@ -661,23 +670,21 @@ export async function deleteFaultById(id: string): Promise<void> {
 }
 
 export async function listCriteriaByTheme(themeId: string): Promise<import('@aureak/types').Criterion[]> {
-  // Criteria are linked via theme_sequences → criteria (sequence_id)
-  // This joins sequences → criteria for a given theme
-  const { data: sequences } = await supabase
-    .from('theme_sequences')
-    .select('id')
-    .eq('theme_id', themeId)
-  if (!sequences || sequences.length === 0) return []
-  const seqIds = sequences.map((s: { id: string }) => s.id)
   const { data } = await supabase
     .from('criteria')
     .select('*')
-    .in('sequence_id', seqIds)
+    .eq('theme_id', themeId)
     .order('logical_order', { ascending: true })
-  return (data ?? []).map((r: Record<string, unknown>) => ({
+  return (data ?? []).map(mapCriterionRow)
+}
+
+function mapCriterionRow(r: Record<string, unknown>): import('@aureak/types').Criterion {
+  return {
     id                   : r.id as string,
-    sequenceId           : r.sequence_id as string,
+    sequenceId           : r.sequence_id as string | null,
     tenantId             : r.tenant_id as string,
+    themeId              : r.theme_id as string,
+    metaphorId           : r.metaphor_id as string | null,
     label                : r.label as string,
     description          : r.description as string | null,
     sortOrder            : r.sort_order as number | null,
@@ -687,7 +694,7 @@ export async function listCriteriaByTheme(themeId: string): Promise<import('@aur
     logicalOrder         : (r.logical_order as number) ?? 0,
     goodExecutionVideoUrl: r.good_execution_video_url as string | null,
     goodExecutionImageUrl: r.good_execution_image_url as string | null,
-  }))
+  }
 }
 
 export async function listFaultsByCriterionExtended(criterionId: string): Promise<import('@aureak/types').Fault[]> {
@@ -696,29 +703,23 @@ export async function listFaultsByCriterionExtended(criterionId: string): Promis
     .select('*')
     .eq('criterion_id', criterionId)
     .order('sort_order', { ascending: true, nullsFirst: false })
-  return (data ?? []).map((r: Record<string, unknown>) => ({
-    id                 : r.id as string,
-    criterionId        : r.criterion_id as string,
-    tenantId           : r.tenant_id as string,
-    label              : r.label as string,
-    description        : r.description as string | null,
-    sortOrder          : r.sort_order as number | null,
-    createdAt          : r.created_at as string,
-    visibleSign        : r.visible_sign as string | null,
-    probableCause      : r.probable_cause as string | null,
-    correctionWording  : r.correction_wording as string | null,
-    coachingPhrase     : r.coaching_phrase as string | null,
-    practicalAdjustment: r.practical_adjustment as string | null,
-    correctiveVideoUrl : r.corrective_video_url as string | null,
-    correctiveImageUrl : r.corrective_image_url as string | null,
-  }))
+  return (data ?? []).map((r: Record<string, unknown>) => mapFaultRow(r))
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function listFaultsByTheme(themeId: string): Promise<import('@aureak/types').Fault[]> {
+  const { data } = await supabase
+    .from('faults')
+    .select('*')
+    .eq('theme_id', themeId)
+    .order('sort_order', { ascending: true, nullsFirst: false })
+  return (data ?? []).map((r: Record<string, unknown>) => mapFaultRow(r))
+}
+
 function mapFaultRow(r: Record<string, unknown>): import('@aureak/types').Fault {
   return {
     id                 : r.id as string,
-    criterionId        : r.criterion_id as string,
+    criterionId        : r.criterion_id as string | null,
+    themeId            : r.theme_id as string,
     tenantId           : r.tenant_id as string,
     label              : r.label as string,
     description        : r.description as string | null,
