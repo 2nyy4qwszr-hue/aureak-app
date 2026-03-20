@@ -1188,6 +1188,20 @@ export type ClubDirectoryEntry = {
   notionPageId                : string | null
   notionSyncedAt              : string | null
 
+  // RBFA enrichissement (migration 00081)
+  /** Identifiant interne RBFA extrait de l'URL fiche club */
+  rbfaId                      : string | null
+  /** URL de la fiche club sur rbfa.be */
+  rbfaUrl                     : string | null
+  /** URL source du logo sur les serveurs RBFA */
+  rbfaLogoUrl                 : string | null
+  /** Score de matching 0–100 calculé par l'algorithme club-matching */
+  rbfaConfidence              : number | null
+  /** Statut du matching RBFA */
+  rbfaStatus                  : RbfaStatus
+  /** Date du dernier passage du job syncMissingClubLogos */
+  lastVerifiedAt              : string | null
+
   // Timestamps
   deletedAt                   : string | null
   createdAt                   : string
@@ -1399,4 +1413,59 @@ export type SchoolCalendarException = {
   label       : string          // ex: 'Vacances Noël'
   isNoSession : boolean         // true = pas de séance ce jour
   createdAt   : string
+}
+
+// ============================================================
+// Migration 00081-00082 — Enrichissement RBFA
+// Story 28-1
+// ============================================================
+
+/** Statut du matching RBFA pour un club de l'annuaire */
+export type RbfaStatus = 'pending' | 'matched' | 'rejected' | 'skipped'
+
+/** Résultat brut d'une recherche sur rbfa.be */
+export type RbfaClubResult = {
+  rbfaId   : string
+  nom      : string
+  matricule: string | null
+  ville    : string | null
+  province : string | null
+  logoUrl  : string | null
+  rbfaUrl  : string
+}
+
+/** Score détaillé du matching club Aureak ↔ candidat RBFA */
+export type RbfaMatchScore = {
+  total          : number   // 0–100 (cappé)
+  matricule      : number   // 0 ou 60
+  nomExact       : number   // 0 ou 20
+  nomSimilarite  : number   // 0–12
+  ville          : number   // 0 ou 5
+  province       : number   // 0 ou 3
+  confidence     : 'high' | 'medium' | 'low'
+}
+
+/** Résultat du job batch syncMissingClubLogos */
+export type SyncResult = {
+  processed     : number
+  matched       : number   // import auto HIGH confidence
+  pendingReview : number   // créés en MEDIUM confidence
+  rejected      : number   // score LOW
+  skipped       : number   // aucun résultat RBFA
+  errors        : number
+}
+
+/** Fiche de révision manuelle d'un candidat RBFA ambigu */
+export type ClubMatchReview = {
+  id              : string
+  tenantId        : string
+  clubDirectoryId : string
+  rbfaCandidate   : RbfaClubResult
+  matchScore      : number
+  scoreDetail     : RbfaMatchScore
+  status          : 'pending' | 'confirmed' | 'rejected'
+  reviewedBy      : string | null
+  reviewedAt      : string | null
+  createdAt       : string
+  updatedAt       : string
 }

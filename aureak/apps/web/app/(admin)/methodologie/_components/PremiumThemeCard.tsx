@@ -20,7 +20,7 @@ type Props = {
   onManage : () => void
 }
 
-export default function PremiumThemeCard({ theme, onPress }: Props) {
+export default function PremiumThemeCard({ theme, groupName, onPress }: Props) {
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -62,6 +62,13 @@ export default function PremiumThemeCard({ theme, onPress }: Props) {
         >
           {theme.name}
         </AureakText>
+
+        {/* Nom du bloc */}
+        {groupName && (
+          <AureakText style={pZone.groupName} numberOfLines={1}>
+            {groupName}
+          </AureakText>
+        )}
       </View>
 
       {/* ── Zone image — sous la ligne dorée (~33% → bas) ── */}
@@ -106,7 +113,7 @@ const pZone = StyleSheet.create({
   // Zone titre : 0% → 30% de la hauteur (au-dessus de la ligne dorée du PNG)
   titleArea: {
     position         : 'absolute' as never,
-    top              : 0,
+    top              : 30,
     left             : 0,
     right            : 0,
     height           : '30%' as never,
@@ -128,8 +135,18 @@ const pZone = StyleSheet.create({
   } as never,
   // Décalage gauche quand le badge #01 est affiché (badge ~35px + 10px marge)
   themeNameWithBadge: {
-    paddingLeft: 32,
+    paddingLeft: 0,
   },
+
+  // Nom du bloc — texte discret sous le titre
+  groupName: {
+    fontSize     : 10,
+    fontWeight   : '400',
+    color        : colors.text.muted,
+    textAlign    : 'center',
+    marginTop    : 2,
+    letterSpacing: 0.3,
+  } as never,
 
   // Badge numéro #01 — positionné en absolu dans la titleArea
   numberBadge: {

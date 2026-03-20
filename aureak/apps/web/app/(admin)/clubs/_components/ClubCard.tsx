@@ -1,4 +1,4 @@
-// ClubCard — Story 26.1 : fond PNG premium + zones absolute
+// ClubCard — Story 26.1 : fond JPG premium + zones absolute
 // Story 26.2 : aspectRatio:1, CIRCLE_OUTER=140, nom uppercase 17px, fontFamily expo-font corrects
 
 import React, { useState, useEffect } from 'react'
@@ -7,8 +7,9 @@ import { AureakText } from '@aureak/ui'
 import { colors, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, ClubRelationType } from '@aureak/types'
 import { CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
+import RbfaStatusBadge from './RbfaStatusBadge'
 
-const CARD_BG = require('../../../../assets/cards/background-card-club.png')
+const CARD_BG = require('../../../../assets/cards/background-card-club.jpg')
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 // Proportionnelles au fond graphique (quasi carré) — Story 26.2 : aspectRatio: 1
@@ -54,12 +55,12 @@ export default function ClubCard({ club, onPress }: Props) {
       accessibilityRole="button"
       style={[s.card, hovered && s.cardHover, pressed && s.cardPressed]}
     >
-      {/* ── Fond graphique plein-cadre — contain : image entière, centrée, non zoomée ── */}
+      {/* ── Fond graphique plein-cadre ── */}
       {/* Fix : width/height 100% explicites — absoluteFillObject ne contraint pas <img> sur web */}
       <Image
         source={CARD_BG}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' } as never}
-        resizeMode="contain"
+        resizeMode="cover"
       />
 
       {/* ── Zone logo — centré dans le cercle gold du fond ── */}
@@ -92,12 +93,18 @@ export default function ClubCard({ club, onPress }: Props) {
       <View style={s.statZone}>
         <AureakText style={s.statLabel as never}>Gardiens à l'académie</AureakText>
         <View style={s.statRow}>
-          <AureakText style={s.gloveIcon as never}>🧤</AureakText>
           <AureakText style={s.statNumber as never}>
             {count > 0 ? count : '—'}
           </AureakText>
         </View>
       </View>
+
+      {/* ── Badge RBFA (statut d'enrichissement) ── */}
+      {club.rbfaStatus && club.rbfaStatus !== 'pending' && (
+        <View style={s.rbfaBadgeZone}>
+          <RbfaStatusBadge status={club.rbfaStatus} score={club.rbfaConfidence} />
+        </View>
+      )}
 
       {/* ── Badge type de relation (partenaire / associé) ── */}
       {isNonNormal && badgeColor && (
@@ -146,7 +153,7 @@ const s = StyleSheet.create({
   // Logo centré dans le cercle gold du fond
   logoZone: {
     position      : 'absolute',
-    top           : CIRCLE_TOP,
+    top           : CIRCLE_TOP -20,
     left          : '50%' as never,
     marginLeft    : -(CIRCLE_OUTER / 2),
     width         : CIRCLE_OUTER,
@@ -166,7 +173,7 @@ const s = StyleSheet.create({
   // Texte centré sous le cercle
   textZone: {
     position  : 'absolute',
-    top       : CIRCLE_TOP + CIRCLE_OUTER + 16,   // 24 + 140 + 16 = 180
+    top       : CIRCLE_TOP + CIRCLE_OUTER - 20,   // 24 + 140 + 16 = 180
     left      : 16,
     right     : 16,
     alignItems: 'center',
@@ -192,7 +199,7 @@ const s = StyleSheet.create({
   // Stat gardiens — ancré en bas
   statZone: {
     position  : 'absolute',
-    bottom    : 20,
+    bottom    : 30,
     left      : 0,
     right     : 0,
     alignItems: 'center',
@@ -218,6 +225,13 @@ const s = StyleSheet.create({
     fontSize  : 40,
     color     : '#3d2b00',   // brun gold foncé — cohérent avec la référence visuelle
     lineHeight: 44,
+  },
+
+  // Badge RBFA (bottom-left)
+  rbfaBadgeZone: {
+    position: 'absolute' as never,
+    bottom  : 10,
+    left    : 10,
   },
 
   // Badge relation (top-right)

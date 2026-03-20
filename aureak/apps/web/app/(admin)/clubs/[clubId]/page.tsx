@@ -11,10 +11,11 @@ import {
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES, CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
 import { RelationTypeSelector } from '../_components'
+import RbfaStatusBadge from '../_components/RbfaStatusBadge'
 import type { ClubChildLinkRow } from '@aureak/api-client'
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
@@ -544,7 +545,7 @@ export default function ClubDetailPage() {
         {/* Logo */}
         <View style={s.logoBox}>
           {club.logoUrl ? (
-            <img src={club.logoUrl} style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'contain', border: '1px solid #E8E3D9' }} alt="logo" />
+            <img src={club.logoUrl} style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'contain', border: '1px solid #E8E3D9', boxShadow: shadows.sm }} alt="logo" />
           ) : (
             <View style={s.logoFallback}>
               <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 20 }}>
@@ -632,6 +633,81 @@ export default function ClubDetailPage() {
               <FieldRow label="Dernier sync"   value={club.notionSyncedAt ?? 'Jamais'} />
             </Section>
           )}
+          <Section title="RBFA">
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <RbfaStatusBadge status={club.rbfaStatus ?? 'pending'} score={club.rbfaConfidence} />
+            </View>
+            {club.rbfaId && <FieldRow label="ID RBFA"       value={club.rbfaId} />}
+            {club.rbfaUrl && (
+              <View style={f.row}>
+                <AureakText variant="caption" style={f.label}>Fiche RBFA</AureakText>
+                <AureakText
+                  variant="caption"
+                  style={{ color: colors.accent.gold, textDecorationLine: 'underline' as never }}
+                  onPress={() => typeof window !== 'undefined' && window.open(club.rbfaUrl!, '_blank')}
+                >
+                  Voir sur rbfa.be
+                </AureakText>
+              </View>
+            )}
+            {club.rbfaConfidence != null && (
+              <FieldRow label="Score matching" value={`${Math.round(club.rbfaConfidence)}%`} />
+            )}
+            {club.lastVerifiedAt && (
+              <FieldRow label="Vérifié le" value={new Date(club.lastVerifiedAt).toLocaleDateString('fr-BE')} />
+            )}
+          </Section>
+
+          <Section title="Logo">
+            <View style={{ alignItems: 'center', gap: space.sm }}>
+              {/* Aperçu logo 100×100 ou fallback initiales */}
+              {club.logoUrl ? (
+                <img
+                  src={club.logoUrl}
+                  style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'contain', border: '1px solid #E8E3D9', boxShadow: shadows.sm }}
+                  alt="logo du club"
+                />
+              ) : (
+                <View style={{ width: 100, height: 100, borderRadius: 10, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' }}>
+                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 32 } as never}>
+                    {club.nom.charAt(0).toUpperCase()}
+                  </AureakText>
+                </View>
+              )}
+
+              {/* Badge source du logo */}
+              {club.logoPath ? (
+                <Badge
+                  label={club.logoPath.includes('logo-rbfa') ? 'Logo RBFA' : 'Upload manuel'}
+                  variant={club.logoPath.includes('logo-rbfa') ? 'goldOutline' : 'light'}
+                />
+              ) : (
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never, fontSize: 12 }}>
+                  Aucun logo
+                </AureakText>
+              )}
+
+              {/* Lien vers la source RBFA si disponible */}
+              {club.rbfaLogoUrl && (
+                <AureakText
+                  variant="caption"
+                  style={{ color: colors.accent.gold, textDecorationLine: 'underline' as never, fontSize: 11 }}
+                  onPress={() => typeof window !== 'undefined' && window.open(club.rbfaLogoUrl!, '_blank')}
+                >
+                  Voir source RBFA
+                </AureakText>
+              )}
+
+              {/* Suppression rapide sans passer en mode édition */}
+              {club.logoPath && !logoUploading && (
+                <Pressable onPress={handleLogoDelete}>
+                  <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>
+                    Supprimer le logo
+                  </AureakText>
+                </Pressable>
+              )}
+            </View>
+          </Section>
         </>
       )}
 
@@ -671,9 +747,9 @@ export default function ClubDetailPage() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
               {/* Aperçu : preview local en priorité, sinon logo existant, sinon initiales */}
               {(logoPreview || club.logoUrl) ? (
-                <img src={logoPreview ?? club.logoUrl!} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'contain', border: '1px solid #E8E3D9' }} alt="logo" />
+                <img src={logoPreview ?? club.logoUrl!} style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'contain', border: '1px solid #E8E3D9' }} alt="logo" />
               ) : (
-                <View style={[s.logoFallback, { width: 64, height: 64 }]}>
+                <View style={[s.logoFallback, { width: 72, height: 72 }]}>
                   <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 22 }}>
                     {club.nom.charAt(0).toUpperCase()}
                   </AureakText>
@@ -846,7 +922,7 @@ const s = StyleSheet.create({
   backBtn      : { paddingVertical: space.xs, paddingRight: space.sm },
   titleRow     : { flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap', gap: space.sm },
   logoBox      : { flexShrink: 0 },
-  logoFallback : { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' },
+  logoFallback : { width: 72, height: 72, borderRadius: 10, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' },
   gardienStat  : { alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md, paddingVertical: space.xs, backgroundColor: colors.light.muted, borderRadius: 8, borderWidth: 1, borderColor: colors.border.gold, flexShrink: 0 },
 
   editBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.accent.gold },

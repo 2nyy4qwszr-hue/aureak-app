@@ -23,10 +23,9 @@ export default function ThemesPage() {
   const router = useRouter()
   const { width } = useWindowDimensions()
   const gridColumns = width < 640 ? 1
-    : width < 900  ? 2
-    : width < 1200 ? 3
-    : width < 1400 ? 4
-    : 5
+    : width < 1100 ? 2
+    : width < 1500 ? 3
+    : 4
 
   const [themes,          setThemes]          = useState<Theme[]>([])
   const [orderedThemes,   setOrderedThemes]   = useState<Theme[]>([])

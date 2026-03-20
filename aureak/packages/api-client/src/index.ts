@@ -310,6 +310,21 @@ export {
   listFaultsByTheme,
 } from './referentiel/theme-dossier'
 
+// ── RBFA enrichissement clubs (migration 00081/00082) — Story 28-1 ───────────
+export { searchRbfaClubs }                    from './admin/rbfa-search'
+export type { RbfaRawClub }                   from './admin/rbfa-search'
+export { parseRbfaClub, parseRbfaClubs }      from './admin/rbfa-parser'
+export { scoreCandidate, findBestMatch }      from './admin/club-matching'
+export type { ClubToMatch }                   from './admin/club-matching'
+export { importRbfaLogo }                     from './admin/club-logo-import'
+export type { LogoImportResult }              from './admin/club-logo-import'
+export { syncMissingClubLogos }               from './admin/rbfa-sync'
+export {
+  listPendingMatchReviews,
+  confirmMatchReview,
+  rejectMatchReview,
+}                                             from './admin/club-match-reviews'
+
 // ── Méthodologie pédagogique (migration 00050) ────────────────────────────────
 export {
   listMethodologyThemes, getMethodologyTheme, createMethodologyTheme, updateMethodologyTheme, toggleMethodologyTheme,

@@ -494,13 +494,13 @@ const PremiumJoueurCard = React.memo(function PremiumJoueurCard({ item }: { item
           <View style={pZone.historiqueValues}>
             <View style={pZone.zoneHistoSaison}>
               <AureakText style={pZone.infoValue as never}>{item.totalAcademySeasons}</AureakText>
-              <AureakText style={pZone.infoSubLabel as never}>
+              <AureakText style={[pZone.infoSubLabel, pZone.infoSubLabelRaised] as never}>
                 {item.totalAcademySeasons <= 1 ? 'Saison' : 'Saisons'}
               </AureakText>
             </View>
             <View style={pZone.zoneHistoStage}>
               <AureakText style={pZone.infoValue as never}>{item.totalStages}</AureakText>
-              <AureakText style={pZone.infoSubLabel as never}>
+              <AureakText style={[pZone.infoSubLabel, pZone.infoSubLabelRaised] as never}>
                 {item.totalStages <= 1 ? 'Stage' : 'Stages'}
               </AureakText>
             </View>
@@ -515,14 +515,14 @@ const PremiumJoueurCard = React.memo(function PremiumJoueurCard({ item }: { item
           <AureakText style={pZone.infoLabel as never}>ÉQUIPE</AureakText>
           <AureakText style={pZone.infoValue as never}>{item.ageCategory ?? '—'}</AureakText>
         </View>
-        {/* zone-niveau (x:93→187) — séparateurs JPEG tombent dans les gaps x:86→93 et x:187→194 */}
+        {/* zone-niveau (x:113→167) — centré dans la zone bleue */}
         <View style={pZone.zoneNiveau}>
-          <AureakText style={pZone.infoLabel as never}>NIVEAU</AureakText>
+          <AureakText style={pZone.infoLabelCenter as never}>NIVEAU</AureakText>
           <StarRating count={item.teamLevelStars ?? 0} />
         </View>
-        {/* zone-club (x:194→268) */}
+        {/* zone-club (x:205→268) — centré dans la zone verte */}
         <View style={pZone.zoneClub}>
-          <AureakText style={pZone.infoLabel as never}>CLUB</AureakText>
+          <AureakText style={pZone.infoLabelCenter as never}>CLUB</AureakText>
           <ClubLogo url={item.clubLogoUrl} clubName={item.currentClub} />
         </View>
       </View>
@@ -545,34 +545,32 @@ const pCard = StyleSheet.create({
 })
 
 const pZone = StyleSheet.create({
-  // Zone badge — cercle doré haut-droite (pré-dessiné dans le background)
-  // Story 25.6 : réduit 100→68px, repositionné top:20→22 right:18→12
-  // Le cercle doré du JPEG 280×420 fait ~68px de ∅, centré à top:22 right:12
+  // Zone badge — Figma: X=-1556,Y=-1774,W=220,H=200 → scale 0.2732 → top:22, right:12, Ø68
   badge: {
-    position: 'absolute' as never,
-    top     : 22,
-    right   : 12,
-    width   : 68,
-    height  : 68,
+    position      : 'absolute' as never,
+    top           : 29,
+    right         : 25,
+    width         : 68,
+    height        : 68,
+    alignItems    : 'center',
+    justifyContent: 'center',
   },
   badgeImage: {
     width : 68,
     height: 68,
   },
 
-  // Zone nom — droite-centre, sur la zone blanche du background
-  // Story 25.6 : aligné à droite (flex-end), top:185→170 (recalibrage post-fix 25.5),
-  // fontSize:20→17 pour absorber les noms longs sans débordement
+  // Zone nom — Figma prenom(220,175,50,44) nom(146,190,458,76) → aligné droite, -10px left
   nameBlock: {
     position  : 'absolute' as never,
-    top       : 185,
-    left      : '38%' as never,
-    right     : 10,
+    top       : 175,
+    left      : 136,
+    right     : 28,
     alignItems: 'flex-end',
     gap       : 2,
   },
   prenomText: {
-    fontSize    : 13,
+    fontSize    : 12,
     color       : colors.text.muted,
     fontFamily  : 'Montserrat-Regular',
     letterSpacing: 0.5,
@@ -587,8 +585,7 @@ const pZone = StyleSheet.create({
     textAlign   : 'right' as never,
   },
 
-  // Rangée infos 1 — conteneur de zones absolues (Story 25.7 : flex retiré)
-  // y : bottom:100, height:68 → occupe y:252→320 dans la carte 280×420
+  // Rangée infos 1 — conteneur de zones absolues (calibré JPEG)
   infoRow1: {
     position: 'absolute' as never,
     bottom  : 100,
@@ -596,121 +593,129 @@ const pZone = StyleSheet.create({
     right   : 0,
     height  : 68,
   },
-  // zone-date (mauve) : x:12→124 (width:112) — Story 25.8 : recalibré +12px
+  // zone-date — -10px left → left:39
   zoneDate: {
     position      : 'absolute' as never,
-    top           : 4,
-    left          : 12,
-    width         : 112,
+    top           : 0,
+    left          : 35,
+    width         : 115,
     bottom        : 0,
     alignItems    : 'flex-start',
     justifyContent: 'flex-start',
-    gap           : 2,
+    gap           : 4,
   },
-  // zone-histo (orange) : x:150→268 (width:118) — Story 25.8 : left:118→150, right:12→width:118
-  // Gap date/histo : x:124→150 (26px) — séparateur JPEG ≈ x:135 tombe dans le gap ✓
+  // zone-histo — -10px left → left:164
   zoneHisto: {
     position      : 'absolute' as never,
-    top           : 4,
-    left          : 150,
-    width         : 118,
+    top           : 0,
+    left          : 170,
+    right         : 10,
     bottom        : 0,
     alignItems    : 'flex-start',
     justifyContent: 'flex-start',
-    gap           : 2,
+    gap           : 4,
   },
   historiqueValues: {
     flexDirection: 'row',
     gap          : 0,
+    marginLeft   : -5,
   },
-  // zone-histo-saison : width:60 dans la zone-histo
+  // Saison — centré, sublabel 10px plus haut via gap réduit
   zoneHistoSaison: {
-    width     : 60,
-    alignItems: 'flex-start',
-    gap       : 1,
+    width     : 36,
+    alignItems: 'center',
+    gap       : 0,
   },
-  // zone-histo-stage : paddingLeft:14 pour dépasser le séparateur interne (≈x:68 dans zone-histo)
+  // Stage — centré, sublabel 10px plus haut via gap réduit
   zoneHistoStage: {
-    paddingLeft: 14,
+    paddingLeft: 20,
     flex       : 1,
-    alignItems : 'flex-start',
-    gap        : 1,
+    alignItems : 'center',
+    gap        : 0,
   },
 
-  // Rangée infos 2 — conteneur de zones absolues (Story 25.7 : flex retiré)
-  // y : bottom:8, height:80 → occupe y:332→412 dans la carte 280×420
+  // Rangée infos 2 — conteneur de zones absolues (calibré JPEG), +5px vers le haut
   infoRow2: {
     position: 'absolute' as never,
-    bottom  : 8,
+    bottom  : 20,
     left    : 0,
     right   : 0,
     height  : 80,
   },
-  // zone-equipe (jaune) : x:12→86
+  // zone-equipe — -10px left → left:38
   zoneEquipe: {
     position      : 'absolute' as never,
-    top           : 6,
-    left          : 12,
-    width         : 74,
+    top           : 0,
+    left          : 38,
+    width         : 72,
     bottom        : 0,
     alignItems    : 'flex-start',
     justifyContent: 'flex-start',
-    gap           : 2,
+    gap           : 4,
   },
-  // zone-niveau (bleue) : x:100→180 (left:100, right:100) — Story 25.8 : 93→100 (centrage symétrique)
-  // Gap equipe/niveau : x:86→100 (14px) — séparateur JPEG ≈ x:89 ✓
-  // Gap niveau/club  : x:180→194 (14px) — séparateur JPEG ≈ x:187 ✓
+  // zone-niveau — -10px left → left:102
   zoneNiveau: {
     position      : 'absolute' as never,
-    top           : 6,
-    left          : 100,
-    right         : 100,
+    top           : 0,
+    left          : 95,
+    width         : 93,
     bottom        : 0,
-    alignItems    : 'flex-start',
+    alignItems    : 'center',
     justifyContent: 'flex-start',
-    gap           : 2,
+    gap           : 4,
   },
-  // zone-club (verte) : x:194→268
+  // zone-club — -10px left → left:218, right:18
   zoneClub: {
     position      : 'absolute' as never,
-    top           : 6,
-    right         : 12,
-    width         : 74,
+    top           : 0,
+    left          : 200,
+    right         : 30,
     bottom        : 0,
-    alignItems    : 'flex-start',
+    alignItems    : 'center',
     justifyContent: 'flex-start',
-    gap           : 2,
+    gap           : 4,
   },
+  // Figma W:100,H:100 → 100×0.2732 = 27px
   clubLogo: {
-    width : 36,
-    height: 36,
+    width : 27,
+    height: 27,
   },
   clubLogoFallback: {
-    width          : 36,
-    height         : 36,
-    borderRadius   : 18,
+    width          : 27,
+    height         : 27,
+    borderRadius   : 14,
     backgroundColor: 'rgba(212,175,55,0.30)',
     alignItems     : 'center',
     justifyContent : 'center',
   },
   clubLogoFallbackText: {
-    fontSize  : 10,
+    fontSize  : 8,
     fontWeight: '700',
     color     : colors.accent.gold,
   },
 
   // Styles texte communs aux zones infos
   infoLabel: {
-    width       : '100%' as never,  // Story 25.7 : remplit la zone conteneur, évite le flottement libre
+    width       : '100%' as never,
     fontSize    : 8,
     color       : 'rgba(80,80,80,0.75)',
     letterSpacing: 0.8,
     textTransform: 'uppercase' as never,
     fontWeight  : '600' as never,
   },
+  // Variante centrée pour zones niveau et club
+  infoLabelCenter: {
+    width       : '100%' as never,
+    fontSize    : 8,
+    color       : 'rgba(80,80,80,0.75)',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase' as never,
+    fontWeight  : '600' as never,
+    textAlign   : 'center' as never,
+  },
   infoValue: {
-    width     : '100%' as never,  // Story 25.7 : remplit la zone conteneur
-    fontSize  : 17,
+    width     : '100%' as never,
+    fontSize  : 18,
     color     : 'rgba(10,10,10,0.90)',
     fontWeight: '800' as never,
   },
@@ -719,6 +724,11 @@ const pZone = StyleSheet.create({
     fontSize  : 8,
     color     : 'rgba(80,80,80,0.65)',
     fontWeight: '500' as never,
+  },
+  // Saison/Stage : remonte de 10px
+  infoSubLabelRaised: {
+    marginTop: -7,
+    marginRight: 10
   },
 })
 

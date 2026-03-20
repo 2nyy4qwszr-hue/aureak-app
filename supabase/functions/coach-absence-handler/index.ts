@@ -278,7 +278,7 @@ async function handleEscalate60min(sessionId: string) {
         type   : 'replacement_escalation',
         payload: {
           sessionId,
-          message: '⚠ Aucun remplaçant n'a accepté après 60 minutes — action requise',
+          message: "⚠ Aucun remplaçant n'a accepté après 60 minutes — action requise",
         },
       },
     })

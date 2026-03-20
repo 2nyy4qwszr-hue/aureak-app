@@ -275,3 +275,9 @@ development_status:
   27-1-theme-card-design-refactor: done
   27-2-theme-card-premium-background-image: done
   epic-27-retrospective: optional
+
+  # Epic 28 : Enrichissement RBFA — Matching automatique et import de logos clubs
+  epic-28: in-progress
+  28-1-rbfa-enrichissement-clubs: done
+  28-2-affichage-logo-fiche-club: review
+  epic-28-retrospective: optional

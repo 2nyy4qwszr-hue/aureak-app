@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Stack } from 'expo-router'
 import { useFonts } from 'expo-font'
 import * as SplashScreen from 'expo-splash-screen'
@@ -14,14 +14,21 @@ export default function RootLayout() {
     useAuthStore.getState()._init()
   }, [])
 
+  // Timeout fallback : si les fontes ne chargent pas en 3s, on affiche quand même l'app
+  const [fontTimeout, setFontTimeout] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setFontTimeout(true), 3000)
+    return () => clearTimeout(t)
+  }, [])
+
   const [fontsLoaded, fontError] = useFonts({
     'Rajdhani-Regular'    : require('../assets/fonts/Rajdhani/Rajdhani-Regular.ttf'),
     'Rajdhani-SemiBold'   : require('../assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf'),
     'Rajdhani-Bold'       : require('../assets/fonts/Rajdhani/Rajdhani-Bold.ttf'),
-    'Geist-Regular'       : require('../assets/fonts/Geist/Geist-Regular.otf'),
-    'Geist-Medium'        : require('../assets/fonts/Geist/Geist-Medium.otf'),
-    'Geist-SemiBold'      : require('../assets/fonts/Geist/Geist-SemiBold.otf'),
-    'GeistMono-Regular'   : require('../assets/fonts/Geist/GeistMono-Regular.otf'),
+    'Geist-Regular'       : require('../assets/fonts/Geist/Geist-Regular.ttf'),
+    'Geist-Medium'        : require('../assets/fonts/Geist/Geist-Medium.ttf'),
+    'Geist-SemiBold'      : require('../assets/fonts/Geist/Geist-SemiBold.ttf'),
+    'GeistMono-Regular'   : require('../assets/fonts/Geist/GeistMono-Regular.ttf'),
     // Story 25.1 — Police Montserrat pour cartes joueur premium
     'Montserrat-Regular'  : require('../assets/fonts/Montserrat/Montserrat-Regular.ttf'),
     'Montserrat-SemiBold' : require('../assets/fonts/Montserrat/Montserrat-SemiBold.ttf'),
@@ -35,7 +42,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError])
 
-  if (!fontsLoaded && !fontError) return null
+  if (!fontsLoaded && !fontError && !fontTimeout) return null
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme="dark">

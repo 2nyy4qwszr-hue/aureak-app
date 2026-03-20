@@ -80,6 +80,13 @@ function mapRow(r: Record<string, unknown>): ClubDirectoryEntry {
     notesInternes               : (r.notes_internes as string | null) ?? null,
     notionPageId                : (r.notion_page_id as string | null) ?? null,
     notionSyncedAt              : (r.notion_synced_at as string | null) ?? null,
+    // RBFA enrichment fields (migration 00081)
+    rbfaId                      : (r.rbfa_id as string | null) ?? null,
+    rbfaUrl                     : (r.rbfa_url as string | null) ?? null,
+    rbfaLogoUrl                 : (r.rbfa_logo_url as string | null) ?? null,
+    rbfaConfidence              : (r.rbfa_confidence as number | null) ?? null,
+    rbfaStatus                  : (r.rbfa_status as string | null) ?? 'pending',
+    lastVerifiedAt              : (r.last_verified_at as string | null) ?? null,
     deletedAt                   : (r.deleted_at as string | null) ?? null,
     createdAt                   : r.created_at as string,
     updatedAt                   : r.updated_at as string,
