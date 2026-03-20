@@ -280,4 +280,5 @@ development_status:
   epic-28: in-progress
   28-1-rbfa-enrichissement-clubs: done
   28-2-affichage-logo-fiche-club: review
+  28-3-rbfa-import-logos-tous-clubs: review
   epic-28-retrospective: optional

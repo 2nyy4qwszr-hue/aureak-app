@@ -112,11 +112,18 @@ export default function ClubsPage() {
             </AureakText>
           )}
         </View>
-        <Pressable style={styles.newBtn} onPress={() => router.push('/clubs/new' as never)}>
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            + Nouveau club
-          </AureakText>
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Pressable style={styles.rbfaBtn} onPress={() => router.push('/clubs/rbfa-sync' as never)}>
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+              Import RBFA
+            </AureakText>
+          </Pressable>
+          <Pressable style={styles.newBtn} onPress={() => router.push('/clubs/new' as never)}>
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              + Nouveau club
+            </AureakText>
+          </Pressable>
+        </View>
       </View>
 
       {/* ── Search ── */}
@@ -266,6 +273,14 @@ const styles = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
   pageHeader : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  rbfaBtn    : {
+    backgroundColor  : colors.light.surface,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    borderRadius     : 7,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold,
+  },
   newBtn     : {
     backgroundColor  : colors.accent.gold,
     paddingHorizontal: space.md,

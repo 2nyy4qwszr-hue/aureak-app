@@ -2,12 +2,12 @@
 // Traite tous les clubs ayant rbfa_status = 'pending', par pages de 50.
 // Délai de 2s entre requêtes RBFA pour respecter le rate-limiting.
 
-import { supabase }         from '../supabase'
-import type { SyncResult }  from '@aureak/types'
-import { searchRbfaClubs }  from './rbfa-search'
-import { parseRbfaClubs }   from './rbfa-parser'
-import { findBestMatch }    from './club-matching'
-import { importRbfaLogo }   from './club-logo-import'
+import { supabase }                          from '../supabase'
+import type { SyncResult }                  from '@aureak/types'
+import { searchRbfaClubs, fetchLogoFromClubPage } from './rbfa-search'
+import { parseRbfaClubs }                   from './rbfa-parser'
+import { findBestMatch }                    from './club-matching'
+import { importRbfaLogo }                   from './club-logo-import'
 
 const BATCH_DELAY_MS = 2_000
 const MAX_RETRY      = 2
@@ -97,10 +97,19 @@ async function processClub(
   }
 
   // confidence === 'high' → import automatique
+  // Si le GraphQL retourne no_logo.jpg (logoUrl=null), tentative de fallback sur la page HTML du club
+  let resolvedLogoUrl = candidate.logoUrl
+  if (!resolvedLogoUrl && candidate.rbfaId) {
+    resolvedLogoUrl = await fetchLogoFromClubPage(candidate.rbfaId)
+    if (resolvedLogoUrl) {
+      console.info(`[RBFA] Fallback logo trouvé sur page club pour ${candidate.nom}: ${resolvedLogoUrl}`)
+    }
+  }
+
   let storagePath: string | null = null
-  if (candidate.logoUrl) {
+  if (resolvedLogoUrl) {
     const logoResult = await importRbfaLogo({
-      rbfaLogoUrl: candidate.logoUrl,
+      rbfaLogoUrl: resolvedLogoUrl,
       tenantId,
       clubId     : club.id,
     })
@@ -110,7 +119,7 @@ async function processClub(
   const updatePayload: Record<string, unknown> = {
     rbfa_id         : candidate.rbfaId,
     rbfa_url        : candidate.rbfaUrl,
-    rbfa_logo_url   : candidate.logoUrl,
+    rbfa_logo_url   : resolvedLogoUrl ?? candidate.logoUrl,
     rbfa_confidence : score.total,
     rbfa_status     : 'matched',
     last_verified_at: new Date().toISOString(),
@@ -131,6 +140,40 @@ async function processClub(
   }
 
   return { outcome: 'matched' }
+}
+
+export type RbfaStats = {
+  pending : number
+  matched : number
+  rejected: number
+  skipped : number
+  total   : number
+}
+
+/**
+ * Compte les clubs par rbfa_status pour affichage dans l'UI.
+ */
+export async function getClubRbfaStats(tenantId: string): Promise<{ data: RbfaStats; error: unknown }> {
+  const { data, error } = await supabase
+    .from('club_directory')
+    .select('rbfa_status')
+    .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+
+  if (error || !data) return {
+    data : { pending: 0, matched: 0, rejected: 0, skipped: 0, total: 0 },
+    error,
+  }
+
+  const stats: RbfaStats = { pending: 0, matched: 0, rejected: 0, skipped: 0, total: data.length }
+  for (const row of data as { rbfa_status: string | null }[]) {
+    const s = row.rbfa_status ?? 'pending'
+    if (s === 'matched')  stats.matched++
+    else if (s === 'rejected') stats.rejected++
+    else if (s === 'skipped')  stats.skipped++
+    else stats.pending++
+  }
+  return { data: stats, error: null }
 }
 
 /**
@@ -179,4 +222,44 @@ export async function syncMissingClubLogos(tenantId: string): Promise<SyncResult
   }
 
   return result
+}
+
+/**
+ * Remet tous les clubs rejected/skipped à rbfa_status='pending' pour un nouveau passage.
+ * Ne touche PAS les clubs 'matched' (logo déjà validé).
+ * Supprime également les reviews pending associées.
+ */
+export async function resetAllClubsForSync(
+  tenantId: string,
+): Promise<{ count: number; error: unknown }> {
+  // 1. Récupérer les IDs des clubs à remettre en pending
+  const { data: clubs, error: selectErr } = await supabase
+    .from('club_directory')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .in('rbfa_status', ['rejected', 'skipped'])
+    .is('deleted_at', null)
+
+  if (selectErr || !clubs) return { count: 0, error: selectErr }
+  if (clubs.length === 0)   return { count: 0, error: null }
+
+  const clubIds = clubs.map((c: { id: string }) => c.id)
+
+  // 2. Supprimer les reviews pending de ces clubs
+  await supabase
+    .from('club_match_reviews')
+    .delete()
+    .in('club_directory_id', clubIds)
+    .eq('status', 'pending')
+
+  // 3. Remettre à pending
+  const { error: updateErr } = await supabase
+    .from('club_directory')
+    .update({ rbfa_status: 'pending', last_verified_at: null })
+    .in('id', clubIds)
+    .eq('tenant_id', tenantId)
+
+  if (updateErr) return { count: 0, error: updateErr }
+
+  return { count: clubIds.length, error: null }
 }

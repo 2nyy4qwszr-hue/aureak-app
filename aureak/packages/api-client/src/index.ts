@@ -318,7 +318,8 @@ export { scoreCandidate, findBestMatch }      from './admin/club-matching'
 export type { ClubToMatch }                   from './admin/club-matching'
 export { importRbfaLogo }                     from './admin/club-logo-import'
 export type { LogoImportResult }              from './admin/club-logo-import'
-export { syncMissingClubLogos }               from './admin/rbfa-sync'
+export { syncMissingClubLogos, resetAllClubsForSync, getClubRbfaStats } from './admin/rbfa-sync'
+export type { RbfaStats } from './admin/rbfa-sync'
 export {
   listPendingMatchReviews,
   confirmMatchReview,

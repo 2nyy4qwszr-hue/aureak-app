@@ -91,3 +91,50 @@ async function executeSearch(query: string, first: number): Promise<RbfaRawClub[
 export async function searchRbfaClubs(query: string, maxResults = 10): Promise<RbfaRawClub[]> {
   return executeSearch(query, maxResults)
 }
+
+const RBFA_CLUB_PAGE_URL = (id: string) => `https://www.rbfa.be/fr/club/${id}`
+const FALLBACK_TIMEOUT   = 10_000
+
+/**
+ * Tente de récupérer l'URL du logo d'un club depuis sa page HTML sur rbfa.be.
+ * Utilisé en fallback quand le GraphQL retourne no_logo.jpg pour un club matché.
+ *
+ * Sélecteurs inspectés sur rbfa.be/fr/club/{id} (2026-03) :
+ *   - <img class="..." src="https://belgianfootball.s3.eu-west-1.amazonaws.com/...">
+ *   - L'image principale du club est généralement une balise img dans .club-header
+ *     ou contenant "logo" / "crest" / "wappen" dans l'URL ou le src
+ *
+ * NOTE : rbfa.be est rendu côté serveur (SSR) — le HTML contient les images.
+ * Si RBFA migre vers une SPA sans SSR, cette fonction retournera null.
+ * En cas d'erreur (CORS, timeout, parse) : retourne null silencieusement.
+ */
+export async function fetchLogoFromClubPage(rbfaId: string): Promise<string | null> {
+  const url = RBFA_CLUB_PAGE_URL(rbfaId)
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Aureak Club Sync/1.0' },
+      signal : AbortSignal.timeout(FALLBACK_TIMEOUT),
+    })
+    if (!res.ok) return null
+
+    const html = await res.text()
+
+    // Sélecteur 1 : img sur AWS S3 (CDN belgianfootball)
+    // Exemple : src="https://belgianfootball.s3.eu-west-1.amazonaws.com/s3fs-public/clubs/logos/xxx.png"
+    const awsMatch = html.match(
+      /src="(https:\/\/belgianfootball\.s3[^"]+\.(png|jpg|jpeg|svg|webp))"/i,
+    )
+    if (awsMatch?.[1]) return awsMatch[1]
+
+    // Sélecteur 2 : img contenant "logo" ou "crest" ou "wappen" dans l'URL
+    const logoMatch = html.match(
+      /src="(https:\/\/[^"]+(?:logo|crest|wappen)[^"]+\.(png|jpg|jpeg|svg|webp))"/i,
+    )
+    if (logoMatch?.[1]) return logoMatch[1]
+
+    return null
+  } catch {
+    // Timeout, CORS, parse error — silencieux
+    return null
+  }
+}
