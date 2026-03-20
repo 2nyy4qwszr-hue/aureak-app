@@ -194,9 +194,8 @@ export default function RbfaSyncPage() {
         </View>
 
         <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: space.sm }}>
-          "Lancer l'import" traite uniquement les clubs en attente (pending).{'\n'}
-          "Relancer tout" remet en file les clubs rejetés et sans résultat, puis lance l'import.{'\n'}
-          Les clubs déjà matchés ne sont jamais retouchés.
+          "Lancer l'import" traite uniquement les clubs en attente (pending + jamais traités).{'\n'}
+          "Relancer tout" remet TOUS les clubs en file d'attente et relance l'import complet.
         </AureakText>
 
         <Pressable
@@ -258,8 +257,7 @@ export default function RbfaSyncPage() {
               Relancer l'import complet ?
             </AureakText>
             <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.lg }}>
-              Cela remettra tous les clubs rejetés et sans résultat en file d'attente, puis lancera l'import.
-              Les clubs déjà matchés ne seront pas touchés.
+              Cela remettra TOUS les clubs en file d'attente (y compris ceux déjà matchés) et lancera un import complet depuis zéro.
             </AureakText>
             <View style={s.modalBtns}>
               <Pressable style={s.cancelBtn} onPress={() => setShowConfirm(false)}>

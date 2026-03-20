@@ -255,7 +255,7 @@ export async function syncMissingClubLogos(tenantId: string): Promise<SyncResult
       .from('club_directory')
       .select('id, nom, matricule, ville, province, tenant_id')
       .eq('tenant_id', tenantId)
-      .eq('rbfa_status', 'pending')
+      .or('rbfa_status.eq.pending,rbfa_status.is.null')
       .is('deleted_at', null)
       .order('nom', { ascending: true })
       .range(offset, offset + PAGE_SIZE - 1)
@@ -284,41 +284,30 @@ export async function syncMissingClubLogos(tenantId: string): Promise<SyncResult
 }
 
 /**
- * Remet tous les clubs rejected/skipped à rbfa_status='pending' pour un nouveau passage.
- * Ne touche PAS les clubs 'matched' (logo déjà validé).
- * Supprime également les reviews pending associées.
+ * Remet TOUS les clubs (rejected, skipped, matched, null) à rbfa_status='pending'.
+ * Supprime toutes les reviews pending associées.
+ * Seule exception : les clubs soft-deleted sont ignorés.
  */
 export async function resetAllClubsForSync(
   tenantId: string,
 ): Promise<{ count: number; error: unknown }> {
-  // 1. Récupérer les IDs des clubs à remettre en pending
-  const { data: clubs, error: selectErr } = await supabase
-    .from('club_directory')
-    .select('id')
-    .eq('tenant_id', tenantId)
-    .in('rbfa_status', ['rejected', 'skipped'])
-    .is('deleted_at', null)
-
-  if (selectErr || !clubs) return { count: 0, error: selectErr }
-  if (clubs.length === 0)   return { count: 0, error: null }
-
-  const clubIds = clubs.map((c: { id: string }) => c.id)
-
-  // 2. Supprimer les reviews pending de ces clubs
+  // 1. Supprimer toutes les reviews pending du tenant
   await supabase
     .from('club_match_reviews')
     .delete()
-    .in('club_directory_id', clubIds)
+    .eq('tenant_id', tenantId)
     .eq('status', 'pending')
 
-  // 3. Remettre à pending
-  const { error: updateErr } = await supabase
+  // 2. Remettre TOUS les clubs à pending en un seul UPDATE
+  //    (pas de filtre sur rbfa_status — inclut NULL, rejected, skipped, matched)
+  const { count, error } = await supabase
     .from('club_directory')
     .update({ rbfa_status: 'pending', last_verified_at: null })
-    .in('id', clubIds)
     .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+    .select('id', { count: 'exact', head: true })
 
-  if (updateErr) return { count: 0, error: updateErr }
+  if (error) return { count: 0, error }
 
-  return { count: clubIds.length, error: null }
+  return { count: count ?? 0, error: null }
 }
