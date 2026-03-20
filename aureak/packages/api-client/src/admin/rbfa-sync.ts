@@ -284,27 +284,29 @@ export async function syncMissingClubLogos(tenantId: string): Promise<SyncResult
 }
 
 /**
- * Remet TOUS les clubs (rejected, skipped, matched, null) à rbfa_status='pending'.
- * Supprime toutes les reviews pending associées.
- * Seule exception : les clubs soft-deleted sont ignorés.
+ * Remet les clubs rejected, skipped et jamais traités (NULL) à rbfa_status='pending'.
+ * Ne touche PAS les clubs 'matched' (logo déjà validé).
+ * Supprime les reviews pending associées.
  */
 export async function resetAllClubsForSync(
   tenantId: string,
 ): Promise<{ count: number; error: unknown }> {
-  // 1. Supprimer toutes les reviews pending du tenant
+  // 1. Supprimer les reviews pending du tenant
   await supabase
     .from('club_match_reviews')
     .delete()
     .eq('tenant_id', tenantId)
     .eq('status', 'pending')
 
-  // 2. Remettre TOUS les clubs à pending en un seul UPDATE
-  //    (pas de filtre sur rbfa_status — inclut NULL, rejected, skipped, matched)
+  // 2. Remettre à pending tous les clubs sauf 'matched'
+  //    .neq('rbfa_status', 'matched') exclut les matchés
+  //    mais ne filtre PAS les NULL — ils sont inclus via neq (NULL != 'matched' en SQL)
   const { count, error } = await supabase
     .from('club_directory')
     .update({ rbfa_status: 'pending', last_verified_at: null })
     .eq('tenant_id', tenantId)
     .is('deleted_at', null)
+    .neq('rbfa_status', 'matched')
     .select('id', { count: 'exact', head: true })
 
   if (error) return { count: 0, error }
