@@ -162,12 +162,12 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   logoImage: {
-    width       : CIRCLE_INNER,
-    height      : CIRCLE_INNER,
-    borderRadius: CIRCLE_INNER / 2,
+    width       : CIRCLE_OUTER*0.45,
+    height      : CIRCLE_OUTER,
+    borderRadius: CIRCLE_OUTER / 2,
   },
   logoFallback: {
-    fontSize: 44,
+    fontSize: 30,
   },
 
   // Texte centré sous le cercle
