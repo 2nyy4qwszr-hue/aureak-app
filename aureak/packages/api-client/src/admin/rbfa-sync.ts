@@ -13,6 +13,9 @@ const BATCH_DELAY_MS = 2_000
 const MAX_RETRY      = 2
 const PAGE_SIZE      = 50
 
+// Préfixes belges à retirer pour construire une requête de fallback
+const STRIP_PREFIX_RE = /^(?:(?:[A-Z]\.)+|R(?:oyal)?|K(?:oninklijk)?|F\.?C\.?|R\.?F\.?C\.?|K\.?F\.?C\.?|K\.?V\.?|R\.?S\.?C\.?|S\.?K\.?|A\.?S\.?|S\.?V\.?|V\.?V\.?)\s+/gi
+
 type ClubRow = {
   id       : string
   nom      : string
@@ -24,6 +27,23 @@ type ClubRow = {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms))
+}
+
+/** Retire les préfixes courants du nom de club pour une requête de fallback. */
+function stripClubPrefix(nom: string): string {
+  let result = nom
+  for (let i = 0; i < 4; i++) {
+    const stripped = result.replace(STRIP_PREFIX_RE, '').trim()
+    if (stripped === result || stripped.length < 3) break
+    result = stripped
+  }
+  return result
+}
+
+/** Premier mot significatif (≥4 lettres) du nom, pour une recherche de dernier recours. */
+function firstSignificantWord(nom: string): string | null {
+  const words = nom.split(/\s+/).filter(w => w.replace(/[^a-zA-Z]/g, '').length >= 4)
+  return words[0] ?? null
 }
 
 async function searchWithRetry(query: string) {
@@ -39,11 +59,50 @@ async function searchWithRetry(query: string) {
   return []
 }
 
+/** Déduplique une liste de candidats par rbfaId. */
+function dedupById(candidates: ReturnType<typeof parseRbfaClubs>) {
+  const seen = new Set<string>()
+  return candidates.filter(c => {
+    if (seen.has(c.rbfaId)) return false
+    seen.add(c.rbfaId)
+    return true
+  })
+}
+
+/**
+ * Stratégie de recherche multi-passes :
+ * 1. Nom complet
+ * 2. Nom sans préfixes (si différent du nom complet et résultats insuffisants)
+ * 3. Premier mot significatif (dernier recours si toujours 0 résultat)
+ */
+async function searchCandidates(nom: string) {
+  // Passe 1 : nom complet
+  let candidates = await searchWithRetry(nom)
+  if (candidates.length >= 3) return candidates
+
+  // Passe 2 : nom sans préfixes
+  const stripped = stripClubPrefix(nom)
+  if (stripped !== nom && stripped.length >= 3) {
+    const extra = await searchWithRetry(stripped)
+    candidates = dedupById([...candidates, ...extra])
+    if (candidates.length >= 1) return candidates
+  }
+
+  // Passe 3 : premier mot significatif
+  const word = firstSignificantWord(stripped.length >= 3 ? stripped : nom)
+  if (word) {
+    const extra = await searchWithRetry(word)
+    candidates = dedupById([...candidates, ...extra])
+  }
+
+  return candidates
+}
+
 async function processClub(
   club    : ClubRow,
   tenantId: string,
 ): Promise<{ outcome: 'matched' | 'pending_review' | 'rejected' | 'skipped' | 'error' }> {
-  const candidates = await searchWithRetry(club.nom)
+  const candidates = await searchCandidates(club.nom)
 
   if (!candidates.length) {
     await supabase

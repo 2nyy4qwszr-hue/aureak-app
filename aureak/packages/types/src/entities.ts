@@ -1468,4 +1468,5 @@ export type ClubMatchReview = {
   reviewedAt      : string | null
   createdAt       : string
   updatedAt       : string
+  clubNom         : string | null   // joint depuis club_directory pour affichage
 }

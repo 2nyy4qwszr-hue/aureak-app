@@ -1,12 +1,11 @@
-// Importation de logos RBFA vers Supabase Storage — Story 28-1
+// Importation de logos RBFA vers Supabase Storage — Story 28-1 / fix 28-3
+// Délègue le téléchargement à la Edge Function "import-club-logo" pour contourner
+// le CORS bloquant le fetch direct depuis le browser vers les CDN externes (AWS S3, etc.)
+//
 // Chemin déterministe : {tenantId}/{clubId}/logo-rbfa.{ext}
 // Idempotent via upsert Storage (écrase le logo RBFA précédent)
 
 import { supabase } from '../supabase'
-
-const LOGO_BUCKET        = 'club-logos'
-const DOWNLOAD_TIMEOUT   = 15_000
-const MAX_SIZE_BYTES     = 2 * 1024 * 1024   // 2 MB
 
 export type LogoImportResult =
   | { success: true;  storagePath: string }
@@ -14,7 +13,8 @@ export type LogoImportResult =
 
 /**
  * Télécharge un logo depuis le CDN RBFA et l'uploade dans Supabase Storage.
- * En cas d'erreur Storage, retourne success: false (pas de modification DB).
+ * Le téléchargement est délégué à la Edge Function "import-club-logo" (côté serveur)
+ * pour éviter les erreurs CORS lors d'appels cross-origin depuis le browser.
  */
 export async function importRbfaLogo(params: {
   rbfaLogoUrl: string
@@ -23,39 +23,23 @@ export async function importRbfaLogo(params: {
 }): Promise<LogoImportResult> {
   const { rbfaLogoUrl, tenantId, clubId } = params
 
-  // 1. Téléchargement
-  const controller = new AbortController()
-  const timeout    = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT)
-  let blob: Blob
-  let contentType: string
+  const { data, error } = await supabase.functions.invoke('import-club-logo', {
+    body: { logoUrl: rbfaLogoUrl, clubId, tenantId },
+  })
 
-  try {
-    const res = await fetch(rbfaLogoUrl, { signal: controller.signal })
-    clearTimeout(timeout)
-
-    if (!res.ok) return { success: false, reason: `HTTP ${res.status} downloading logo` }
-
-    contentType = res.headers.get('content-type') ?? 'image/jpeg'
-    blob        = await res.blob()
-  } catch (err) {
-    clearTimeout(timeout)
-    return { success: false, reason: err instanceof Error ? err.message : 'download_failed' }
+  if (error) {
+    return { success: false, reason: error.message ?? 'edge_function_error' }
   }
 
-  if (blob.size > MAX_SIZE_BYTES) {
-    return { success: false, reason: `Logo trop volumineux: ${blob.size} octets (max 2 MB)` }
+  const result = data as { storagePath?: string; error?: string }
+
+  if (result?.error) {
+    return { success: false, reason: result.error }
   }
 
-  // 2. Chemin déterministe
-  const ext         = contentType.includes('png') ? 'png' : 'jpg'
-  const storagePath = `${tenantId}/${clubId}/logo-rbfa.${ext}`
+  if (!result?.storagePath) {
+    return { success: false, reason: 'storagePath manquant dans la réponse' }
+  }
 
-  // 3. Upload (upsert)
-  const { error: uploadError } = await supabase.storage
-    .from(LOGO_BUCKET)
-    .upload(storagePath, blob, { upsert: true, contentType })
-
-  if (uploadError) return { success: false, reason: uploadError.message }
-
-  return { success: true, storagePath }
+  return { success: true, storagePath: result.storagePath }
 }

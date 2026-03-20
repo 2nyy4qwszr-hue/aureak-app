@@ -198,6 +198,15 @@ export default function RbfaSyncPage() {
           "Relancer tout" remet en file les clubs rejetés et sans résultat, puis lance l'import.{'\n'}
           Les clubs déjà matchés ne sont jamais retouchés.
         </AureakText>
+
+        <Pressable
+          style={s.reviewBtn}
+          onPress={() => router.push('/clubs/rbfa-sync/reviews' as never)}
+        >
+          <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>
+            Voir les matchings à valider manuellement →
+          </AureakText>
+        </Pressable>
       </View>
 
       {/* Erreur */}
@@ -224,14 +233,14 @@ export default function RbfaSyncPage() {
             <ResultCard label="Erreurs"       count={result.errors}        color={colors.accent.red}        icon="⚠️" />
           </View>
           {result.pendingReview > 0 && (
-            <View style={s.reviewNote}>
+            <Pressable style={s.reviewNote} onPress={() => router.push('/clubs/rbfa-sync/reviews' as never)}>
               <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
-                {result.pendingReview} club{result.pendingReview > 1 ? 's' : ''} à valider manuellement
+                {result.pendingReview} club{result.pendingReview > 1 ? 's' : ''} à valider manuellement →
               </AureakText>
               <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-                Le score de matching est intermédiaire (40–74). Consultez chaque fiche club pour confirmer ou rejeter.
+                Score intermédiaire (25–54). Appuyez pour ouvrir la page de review.
               </AureakText>
-            </View>
+            </Pressable>
           )}
         </View>
       )}
@@ -315,6 +324,15 @@ const s = StyleSheet.create({
     borderColor    : colors.accent.goldLight,
     padding        : space.md,
     marginTop      : space.md,
+  },
+  reviewBtn : {
+    marginTop        : space.md,
+    paddingVertical  : 10,
+    paddingHorizontal: space.md,
+    borderRadius     : 8,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold,
+    alignSelf        : 'flex-start',
   },
   modalOverlay: {
     flex           : 1,

@@ -1,7 +1,8 @@
-// CRUD reviews de matching RBFA — Story 28-1
+// CRUD reviews de matching RBFA — Story 28-1 / fix 28-3
 // Table : club_match_reviews (migration 00082)
 
 import { supabase }           from '../supabase'
+import { importRbfaLogo }     from './club-logo-import'
 import type { ClubMatchReview } from '@aureak/types'
 
 function mapRow(r: Record<string, unknown>): ClubMatchReview {
@@ -17,26 +18,42 @@ function mapRow(r: Record<string, unknown>): ClubMatchReview {
     reviewedAt      : (r.reviewed_at as string | null) ?? null,
     createdAt       : r.created_at as string,
     updatedAt       : r.updated_at as string,
+    // Champ enrichi (joint depuis club_directory)
+    clubNom         : (r.club_nom as string | null) ?? null,
   }
 }
 
-/** Liste les reviews en attente, triées par score décroissant. */
-export async function listPendingMatchReviews(): Promise<{
+/**
+ * Liste les reviews en attente avec le nom local du club (joint depuis club_directory).
+ * Triées par score décroissant.
+ */
+export async function listPendingMatchReviews(tenantId?: string): Promise<{
   data : ClubMatchReview[]
   error: unknown
 }> {
-  const { data, error } = await supabase
+  let q = supabase
     .from('club_match_reviews')
-    .select('*')
+    .select('*, club_directory!inner(nom)')
     .eq('status', 'pending')
     .order('match_score', { ascending: false })
 
+  if (tenantId) q = q.eq('tenant_id', tenantId)
+
+  const { data, error } = await q
+
   if (error) return { data: [], error }
-  return { data: (data as Record<string, unknown>[]).map(mapRow), error: null }
+
+  const rows = (data as Record<string, unknown>[]).map(r => {
+    const cd = r.club_directory as Record<string, unknown> | null
+    return mapRow({ ...r, club_nom: cd?.nom ?? null })
+  })
+
+  return { data: rows, error: null }
 }
 
 /**
- * Confirme un matching : applique les données RBFA sur club_directory + marque la review.
+ * Confirme un matching : applique les données RBFA sur club_directory,
+ * importe le logo si disponible, puis marque la review comme confirmée.
  */
 export async function confirmMatchReview(params: {
   reviewId  : string
@@ -54,18 +71,34 @@ export async function confirmMatchReview(params: {
 
   const r         = review as Record<string, unknown>
   const candidate = r.rbfa_candidate as ClubMatchReview['rbfaCandidate']
+  const clubId    = r.club_directory_id as string
+  const tenantId  = r.tenant_id as string
+
+  // Tenter l'import du logo via Edge Function
+  let storagePath: string | null = null
+  if (candidate.logoUrl) {
+    const logoResult = await importRbfaLogo({
+      rbfaLogoUrl: candidate.logoUrl,
+      tenantId,
+      clubId,
+    })
+    if (logoResult.success) storagePath = logoResult.storagePath
+  }
+
+  const updatePayload: Record<string, unknown> = {
+    rbfa_id         : candidate.rbfaId,
+    rbfa_url        : candidate.rbfaUrl,
+    rbfa_logo_url   : candidate.logoUrl,
+    rbfa_confidence : r.match_score,
+    rbfa_status     : 'matched',
+    last_verified_at: new Date().toISOString(),
+  }
+  if (storagePath) updatePayload.logo_path = storagePath
 
   const { error: dbErr } = await supabase
     .from('club_directory')
-    .update({
-      rbfa_id         : candidate.rbfaId,
-      rbfa_url        : candidate.rbfaUrl,
-      rbfa_logo_url   : candidate.logoUrl,
-      rbfa_confidence : r.match_score,
-      rbfa_status     : 'matched',
-      last_verified_at: new Date().toISOString(),
-    })
-    .eq('id', r.club_directory_id as string)
+    .update(updatePayload)
+    .eq('id', clubId)
 
   if (dbErr) return { error: dbErr }
 
@@ -82,7 +115,7 @@ export async function confirmMatchReview(params: {
 }
 
 /**
- * Rejette un matching : marque la review comme rejetée + club comme 'rejected'.
+ * Rejette un matching : marque la review + le club comme rejeté.
  */
 export async function rejectMatchReview(params: {
   reviewId  : string
