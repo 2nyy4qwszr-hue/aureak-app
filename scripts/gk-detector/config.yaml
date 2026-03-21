@@ -1,0 +1,24 @@
+# GK Detector — Configuration
+# Modify these values to tune the script behaviour
+
+# --- Classification thresholds ---
+min_gk_appearances: 1        # Minimum GK appearances to classify as "gardien"
+min_champ_for_non_gk: 3      # Minimum field appearances to classify as "non_gardien"
+min_match_score: 0.65        # Minimum name similarity score to accept a lineup match
+ambiguous_delta: 0.10        # Max delta between two name candidates before flagging ambiguity
+
+# --- Data collection ---
+max_matches_per_club: 50     # Max finished matches to fetch per club (cost control)
+request_delay_seconds: 1.5   # Delay between HTTP requests (be respectful)
+request_timeout_seconds: 15  # HTTP request timeout
+cache_ttl_hours: 72          # Cache validity duration in hours
+
+# --- Season date range ---
+season_start: "2025/09/01"   # Start date for match search (YYYY/MM/DD — required format)
+season_end: ""               # End date — leave empty to use today's date
+
+# --- File paths ---
+input_file: "input/players.csv"
+output_dir: "output/"
+cache_dir: "cache/"
+log_dir: "logs/"

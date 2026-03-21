@@ -277,8 +277,23 @@ development_status:
   epic-27-retrospective: optional
 
   # Epic 28 : Enrichissement RBFA — Matching automatique et import de logos clubs
-  epic-28: in-progress
+  epic-28: done
   28-1-rbfa-enrichissement-clubs: done
-  28-2-affichage-logo-fiche-club: review
-  28-3-rbfa-import-logos-tous-clubs: review
+  28-2-affichage-logo-fiche-club: done
+  28-3-rbfa-import-logos-tous-clubs: done
   epic-28-retrospective: optional
+
+  # Epic 29 : Enrichissement matricules clubs — Stockage et backfill depuis RBFA
+  epic-29: done
+  29-1-enrichissement-matricules-clubs-rbfa: done
+  epic-29-retrospective: optional
+
+  # Epic 30 : Scripts utilitaires — Détection et enrichissement données joueurs
+  epic-30: done
+  30-1-script-detection-gardiens-rbfa: done
+  epic-30-retrospective: optional
+
+  # Epic 31 : Filtre saison académie — Correctif label et logique historique
+  epic-31: done
+  31-1-filtre-saison-academie-historique: done
+  epic-31-retrospective: optional

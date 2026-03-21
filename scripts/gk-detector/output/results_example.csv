@@ -1,0 +1,11 @@
+prenom;nom;club;numaffil;matches_trouves;apparitions_total;apparitions_GK;apparitions_champ;statut_final;confiance;commentaire;rbfa_profil_url;sources_urls;score_matching
+MATHIS;BEAUJEAN;A.C. LUSTIN;1831039;12;8;6;2;gardien;haute;6 apparitions GK sur 12 matchs analysés;;https://www.rbfa.be/fr/match/7215541;https://www.rbfa.be/fr/match/7215600;0.950
+LOUIS;BILLA;A.C. LUSTIN;1678376;12;10;1;9;gardien;moyenne;1 apparition GK détectée (match du 2025-09-03 — FC LIGNY – AC LUSTIN);;https://www.rbfa.be/fr/match/7215541;0.940
+ALEXANDRE;KOTHONIDIS;A.C. LUSTIN;2228581;12;9;0;9;non_gardien;haute;9 apparition(s) trouvée(s), jamais GK;;;0.920
+JEAN-PIERRE;DUPONT;A.C. LUSTIN;;12;3;0;3;non_gardien;moyenne;3 apparition(s) trouvée(s), jamais GK;;;0.870
+SOPHIE;MARTIN;A.C. LUSTIN;;12;0;0;0;incertain;faible;joueur non trouvé dans les 12 feuilles de match analysées;;;0.000
+THEO;LEFEVRE;UNION NAMUR;987654;8;6;0;6;non_gardien;haute;6 apparition(s) trouvée(s), jamais GK;;;0.900
+EMMA;LAMBERT;UNION NAMUR;876543;8;0;0;0;incertain;faible;joueur non trouvé dans les 8 feuilles de match analysées;;;0.000
+NICOLAS;RENARD;F.C. OLYMPIC NAMUR;765432;5;2;2;0;gardien;haute;2 apparitions GK sur 5 matchs analysés;;https://www.rbfa.be/fr/match/7300001;https://www.rbfa.be/fr/match/7300002;0.960
+PIERRE;JACOBS;F.C. OLYMPIC NAMUR;654321;5;4;0;4;non_gardien;haute;4 apparition(s) trouvée(s), jamais GK;;;0.880
+LUCAS;CHARLIER;R. ENT. PROV. DE NAMUR;543210;0;0;0;0;incertain;faible;club RBFA introuvable;;;0.000
