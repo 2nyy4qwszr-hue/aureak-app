@@ -17,7 +17,7 @@ const PAGE_SIZE = 50
 
 // ── Filter types ───────────────────────────────────────────────────────────────
 
-type AcadStatusFilter = 'all' | AcademyStatus
+type AcadStatusFilter = 'all' | AcademyStatus | 'current-season'
 type SeasonFilter     = 'all' | 'eq1' | 'eq2' | 'gte3'
 type StageFilter      = 'all' | 'eq0' | 'eq1' | 'eq2' | 'gte3'
 
@@ -871,21 +871,34 @@ export default function JoueursPage() {
     [joueurs]
   )
 
+  // Extrait "2025-2026" depuis "AK.2025-2026" ou tout autre format — résistant aux préfixes DB
+  const seasonYearRange = useMemo(
+    () => currentSeasonLabel?.match(/\d{4}-\d{4}/)?.[0] ?? null,
+    [currentSeasonLabel]
+  )
+
   const acadStatusTabs = useMemo<{ key: AcadStatusFilter; label: string }[]>(() => [
     { key: 'all',               label: 'Tous'                                                        },
-    { key: 'ACADÉMICIEN',       label: currentSeasonLabel ? `Acad. ${currentSeasonLabel}` : 'Académicien' },
+    { key: 'current-season',    label: seasonYearRange ?? 'Saison actuelle'                          },
     { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau'                                                   },
     { key: 'ANCIEN',            label: 'Ancien'                                                      },
     { key: 'STAGE_UNIQUEMENT',  label: 'Stage seul'                                                  },
     { key: 'PROSPECT',          label: 'Prospect'                                                    },
-  ], [currentSeasonLabel])
+  ], [seasonYearRange])
 
   const load = useCallback(async () => {
+    // Aucune saison active configurée → filtre 'current-season' retourne 0 résultat (pas tous les joueurs)
+    if (acadStatus === 'current-season' && !seasonYearRange) {
+      setJoueurs([])
+      setTotal(0)
+      return
+    }
     setLoading(true)
     try {
       const { data, count } = await listJoueurs({
         search         : search || undefined,
-        computedStatus : acadStatus !== 'all' ? acadStatus : undefined,
+        computedStatus : (acadStatus !== 'all' && acadStatus !== 'current-season') ? acadStatus : undefined,
+        academySaison  : acadStatus === 'current-season' ? (seasonYearRange ?? undefined) : undefined,
         totalSeasonsCmp: seasonFilter !== 'all' ? seasonFilter : undefined,
         totalStagesCmp : stageFilter  !== 'all' ? stageFilter  : undefined,
         birthYear      : birthYear !== 'all' ? birthYear : undefined,
@@ -898,10 +911,10 @@ export default function JoueursPage() {
       console.error('[JoueursPage] load error', e)
     }
     setLoading(false)
-  }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page])
+  }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page, seasonYearRange])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter, birthYear])
+  useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter, birthYear, seasonYearRange])
 
   const handleSearch = () => setSearch(searchInput.trim())
 

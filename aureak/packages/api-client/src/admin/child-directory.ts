@@ -433,6 +433,8 @@ export type ListJoueursOpts = {
   niveauClub?      : string
   /** Filtre par année de naissance ex: '2010' → birth_date BETWEEN 2010-01-01 AND 2010-12-31 */
   birthYear?       : string
+  /** Filtre par saison académie : retourne les joueurs ayant un historique pour cette saison (ex: '2025-2026') */
+  academySaison?   : string
   page?            : number
   pageSize?        : number
 }
@@ -442,7 +444,7 @@ export async function listJoueurs(
 ): Promise<{ data: JoueurListItem[]; count: number }> {
   const {
     search, computedStatus, totalSeasonsCmp, totalStagesCmp,
-    currentClub, niveauClub, birthYear, page = 0, pageSize = 50,
+    currentClub, niveauClub, birthYear, academySaison, page = 0, pageSize = 50,
   } = opts
 
   const hasStatusFilter = !!(computedStatus || totalSeasonsCmp !== undefined || totalStagesCmp !== undefined)
@@ -462,6 +464,28 @@ export async function listJoueurs(
     else if (totalStagesCmp === 'gte3') vq = vq.gte('total_stages', 3)
     const { data: viewRows } = await vq
     filteredIds = ((viewRows ?? []) as Record<string, unknown>[]).map(r => r.child_id as string)
+    if (filteredIds.length === 0) return { data: [], count: 0 }
+  }
+
+  // Phase 1b (optional): filter by academy history season
+  // Retourne les joueurs ayant une entrée dans child_directory_history pour la saison donnée
+  // avec club_nom correspondant à l'académie (ILIKE '%aureak%').
+  if (academySaison) {
+    const { data: histRows } = await supabase
+      .from('child_directory_history')
+      .select('child_id')
+      .eq('saison', academySaison)
+      .ilike('club_nom', '%aureak%')
+
+    const histIds = ((histRows ?? []) as Record<string, unknown>[]).map(r => r.child_id as string)
+    if (histIds.length === 0) return { data: [], count: 0 }
+
+    if (filteredIds !== null) {
+      const histSet = new Set(histIds)
+      filteredIds = filteredIds.filter(id => histSet.has(id))
+    } else {
+      filteredIds = histIds
+    }
     if (filteredIds.length === 0) return { data: [], count: 0 }
   }
 
