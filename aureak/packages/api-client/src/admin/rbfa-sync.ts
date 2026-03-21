@@ -3,11 +3,36 @@
 // Délai de 2s entre requêtes RBFA pour respecter le rate-limiting.
 
 import { supabase }                          from '../supabase'
-import type { SyncResult }                  from '@aureak/types'
+import type { SyncResult, RbfaClubResult } from '@aureak/types'
 import { searchRbfaClubs, fetchLogoFromClubPage } from './rbfa-search'
 import { parseRbfaClubs }                   from './rbfa-parser'
 import { findBestMatch }                    from './club-matching'
 import { importRbfaLogo }                   from './club-logo-import'
+
+/**
+ * Construit le payload d'UPDATE club_directory pour un matching RBFA confirmé.
+ * Exporté pour permettre les tests unitaires (Story 29-1).
+ * Règle matricule : inclus uniquement si le candidat en fournit un (preserve les valeurs manuelles).
+ */
+export function buildMatchedClubPayload(params: {
+  candidate      : Pick<RbfaClubResult, 'rbfaId' | 'rbfaUrl' | 'logoUrl' | 'matricule'>
+  resolvedLogoUrl: string | null
+  confidence     : number
+  storagePath    : string | null
+}): Record<string, unknown> {
+  const { candidate, resolvedLogoUrl, confidence, storagePath } = params
+  const payload: Record<string, unknown> = {
+    rbfa_id         : candidate.rbfaId,
+    rbfa_url        : candidate.rbfaUrl,
+    rbfa_logo_url   : resolvedLogoUrl ?? candidate.logoUrl,
+    rbfa_confidence : confidence,
+    rbfa_status     : 'matched',
+    last_verified_at: new Date().toISOString(),
+  }
+  if (storagePath)         payload.logo_path  = storagePath
+  if (candidate.matricule) payload.matricule  = candidate.matricule
+  return payload
+}
 
 const BATCH_DELAY_MS = 2_000
 const MAX_RETRY      = 2
@@ -175,15 +200,12 @@ async function processClub(
     if (logoResult.success) storagePath = logoResult.storagePath
   }
 
-  const updatePayload: Record<string, unknown> = {
-    rbfa_id         : candidate.rbfaId,
-    rbfa_url        : candidate.rbfaUrl,
-    rbfa_logo_url   : resolvedLogoUrl ?? candidate.logoUrl,
-    rbfa_confidence : score.total,
-    rbfa_status     : 'matched',
-    last_verified_at: new Date().toISOString(),
-  }
-  if (storagePath) updatePayload.logo_path = storagePath
+  const updatePayload = buildMatchedClubPayload({
+    candidate,
+    resolvedLogoUrl,
+    confidence : score.total,
+    storagePath,
+  })
 
   const { error } = await supabase
     .from('club_directory')
@@ -249,6 +271,16 @@ export async function syncMissingClubLogos(tenantId: string): Promise<SyncResult
     errors       : 0,
   }
 
+  // Pré-charger les clubs ayant déjà une review pending pour les exclure du traitement
+  const { data: pendingReviewRows } = await supabase
+    .from('club_match_reviews')
+    .select('club_directory_id')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'pending')
+  const pendingReviewSet = new Set<string>(
+    ((pendingReviewRows ?? []) as { club_directory_id: string }[]).map(r => r.club_directory_id),
+  )
+
   let offset = 0
   while (true) {
     const { data: clubs, error } = await supabase
@@ -263,6 +295,11 @@ export async function syncMissingClubLogos(tenantId: string): Promise<SyncResult
     if (error || !clubs || clubs.length === 0) break
 
     for (const club of clubs as ClubRow[]) {
+      // Ignorer les clubs déjà en attente de review manuelle
+      if (pendingReviewSet.has(club.id)) {
+        result.pendingReview++
+        continue
+      }
       result.processed++
       await sleep(BATCH_DELAY_MS)
 

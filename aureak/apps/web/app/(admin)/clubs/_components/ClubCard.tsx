@@ -114,6 +114,15 @@ export default function ClubCard({ club, onPress }: Props) {
           </AureakText>
         </View>
       )}
+
+      {/* ── Badge matricule (top-left) — affiché uniquement si disponible ── */}
+      {club.matricule && (
+        <View style={s.matriculeBadge}>
+          <AureakText style={s.matriculeBadgeText as never}>
+            #{club.matricule}
+          </AureakText>
+        </View>
+      )}
     </Pressable>
   )
 }
@@ -248,6 +257,24 @@ const s = StyleSheet.create({
   relationBadgeText: {
     fontFamily: 'Montserrat-Bold',
     fontSize  : 9,
+  },
+
+  // Badge matricule (top-left)
+  matriculeBadge: {
+    position         : 'absolute' as never,
+    top              : 10,
+    left             : 10,
+    borderWidth      : 1,
+    borderRadius     : 8,
+    paddingHorizontal: 7,
+    paddingVertical  : 2,
+    borderColor      : colors.border.light,
+    backgroundColor  : 'rgba(255,255,255,0.85)',
+  },
+  matriculeBadgeText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize  : 10,
+    color     : colors.text.muted,
   },
 })
 

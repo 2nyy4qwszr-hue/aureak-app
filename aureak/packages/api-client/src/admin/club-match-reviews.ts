@@ -1,9 +1,10 @@
 // CRUD reviews de matching RBFA — Story 28-1 / fix 28-3
 // Table : club_match_reviews (migration 00082)
 
-import { supabase }           from '../supabase'
-import { importRbfaLogo }     from './club-logo-import'
-import type { ClubMatchReview } from '@aureak/types'
+import { supabase }                from '../supabase'
+import { importRbfaLogo }         from './club-logo-import'
+import { buildMatchedClubPayload } from './rbfa-sync'
+import type { ClubMatchReview }   from '@aureak/types'
 
 function mapRow(r: Record<string, unknown>): ClubMatchReview {
   return {
@@ -85,15 +86,12 @@ export async function confirmMatchReview(params: {
     if (logoResult.success) storagePath = logoResult.storagePath
   }
 
-  const updatePayload: Record<string, unknown> = {
-    rbfa_id         : candidate.rbfaId,
-    rbfa_url        : candidate.rbfaUrl,
-    rbfa_logo_url   : candidate.logoUrl,
-    rbfa_confidence : r.match_score,
-    rbfa_status     : 'matched',
-    last_verified_at: new Date().toISOString(),
-  }
-  if (storagePath) updatePayload.logo_path = storagePath
+  const updatePayload = buildMatchedClubPayload({
+    candidate,
+    resolvedLogoUrl: candidate.logoUrl ?? null,
+    confidence     : r.match_score as number,
+    storagePath,
+  })
 
   const { error: dbErr } = await supabase
     .from('club_directory')
