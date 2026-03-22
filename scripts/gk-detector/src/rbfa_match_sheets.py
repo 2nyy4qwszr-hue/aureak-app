@@ -14,6 +14,17 @@ logger = logging.getLogger(__name__)
 # APQ hashes (discovered via Chrome DevTools interception — 2026-03-20)
 APQ_CLUB_MATCHES = "eeeb92967d0b593c29f321f717ab2d81179bad5e1efce80a963a7d1ef4fabb41"
 APQ_MATCH_DETAIL = "cd8867b845c206fe7aa75c1ebf7b53cbda0ff030253a45e2e2b4bcc13ee46c9a"
+APQ_GET_CLUB_TEAMS = "79a7fb506ae28a8f7de7711dfa2dc37ac1cc8697798fe92b1ada0fffec2e6f22"
+
+TEAM_CALENDAR_QUERY = """
+query getTeamCalendar($teamId: ID!, $language: Language!) {
+    teamCalendar(teamId: $teamId, language: $language) {
+        id state startTime ageGroup
+        homeTeam { name clubId id }
+        awayTeam { name clubId id }
+    }
+}
+"""
 
 MATCH_URL_TEMPLATE = "https://www.rbfa.be/fr/match/{match_id}"
 
@@ -67,7 +78,7 @@ def get_club_matches(
             "language": "fr",
             "startDate": start_date,
             "endDate": end_date,
-            "hasLocation": True,
+            "hasLocation": False,
         },
         "extensions": {
             "persistedQuery": {"version": 1, "sha256Hash": APQ_CLUB_MATCHES},
@@ -161,6 +172,63 @@ def fetch_match_sheet(match_ref: MatchRef, client: RbfaClient) -> list[PlayerApp
     return appearances
 
 
+def get_club_teams(club_rbfa_id: str, client: RbfaClient) -> list[dict]:
+    """
+    Fetch all team objects for a club via getClubTeams APQ.
+    Returns a list of dicts with at least 'id', 'name', 'discipline'.
+    """
+    body = {
+        "operationName": "getClubTeams",
+        "variables": {"clubId": club_rbfa_id, "language": "fr"},
+        "extensions": {
+            "persistedQuery": {"version": 1, "sha256Hash": APQ_GET_CLUB_TEAMS},
+        },
+    }
+    try:
+        data = client.post_graphql(body)
+    except Exception as e:
+        logger.error("getClubTeams failed for clubId=%s: %s", club_rbfa_id, e)
+        return []
+
+    teams = data.get("data", {}).get("clubTeams") or []
+    logger.info("Club %s: %d teams found via getClubTeams", club_rbfa_id, len(teams))
+    return teams
+
+
+def get_team_calendar(team_id: str, client: RbfaClient) -> list[MatchRef]:
+    """
+    Fetch all finished matches for a team via the teamCalendar regular GraphQL query.
+    Returns MatchRef objects for finished matches only.
+    """
+    body = {
+        "query": TEAM_CALENDAR_QUERY,
+        "variables": {"teamId": team_id, "language": "fr"},
+    }
+    try:
+        data = client.post_graphql(body)
+    except Exception as e:
+        logger.error("teamCalendar failed for teamId=%s: %s", team_id, e)
+        return []
+
+    raw = data.get("data", {}).get("teamCalendar") or []
+    refs: list[MatchRef] = []
+    for m in raw:
+        if m.get("state") != "finished":
+            continue
+        refs.append(MatchRef(
+            match_id=m["id"],
+            date=m.get("startTime", ""),
+            home_team=m.get("homeTeam", {}).get("name", ""),
+            away_team=m.get("awayTeam", {}).get("name", ""),
+            home_club_id=m.get("homeTeam", {}).get("clubId", ""),
+            away_club_id=m.get("awayTeam", {}).get("clubId", ""),
+            age_group=m.get("ageGroup", ""),
+            state=m["state"],
+        ))
+    logger.info("Team %s: %d finished matches via teamCalendar", team_id, len(refs))
+    return refs
+
+
 def get_all_appearances_for_club(
     club_rbfa_id: str,
     config: AppConfig,
@@ -168,6 +236,8 @@ def get_all_appearances_for_club(
 ) -> tuple[list[MatchRef], list[PlayerAppearance]]:
     """
     Get all finished matches + all player appearances for a club.
+    Primary: clubMatchesAssignations (national/regional clubs).
+    Fallback: getClubTeams → teamCalendar (provincial/ACFF clubs).
     Returns (match_refs, all_appearances).
     """
     matches = get_club_matches(
@@ -177,6 +247,28 @@ def get_all_appearances_for_club(
         client=client,
         max_matches=config.max_matches_per_club,
     )
+
+    if not matches:
+        logger.info(
+            "Club %s: no matches via clubMatchesAssignations — trying teamCalendar fallback",
+            club_rbfa_id,
+        )
+        teams = get_club_teams(club_rbfa_id, client)
+        seen_match_ids: set[str] = set()
+        for team in teams:
+            team_id = team.get("id")
+            if not team_id:
+                continue
+            team_matches = get_team_calendar(team_id, client)
+            for m in team_matches:
+                if m.match_id not in seen_match_ids:
+                    seen_match_ids.add(m.match_id)
+                    matches.append(m)
+        logger.info(
+            "Club %s: %d unique finished matches found via teamCalendar fallback",
+            club_rbfa_id, len(matches),
+        )
+
     all_appearances: list[PlayerAppearance] = []
     for match_ref in matches:
         sheet = fetch_match_sheet(match_ref, client)

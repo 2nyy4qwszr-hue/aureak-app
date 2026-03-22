@@ -1,6 +1,6 @@
 # Story 28.3 : Import massif des logos RBFA pour tous les clubs
 
-Status: review
+Status: done
 
 ---
 
@@ -334,6 +334,12 @@ claude-sonnet-4-6
 - ✅ Task 5 : Bouton "Import RBFA" avec style `rbfaBtn` ajouté dans la toolbar de `clubs/page.tsx`
 - Aucune erreur TS dans les fichiers modifiés (erreurs pré-existantes dans autres fichiers non touchées)
 
+**Code Review fixes (claude-sonnet-4-6) :**
+- ✅ [CRITICAL] Migration 00090 : contrainte UNIQUE sur `club_match_reviews.club_directory_id` — l'upsert `onConflict:'club_directory_id'` est désormais valide (+ suppression des éventuels doublons existants)
+- ✅ [HIGH] Route `/clubs/rbfa-sync/reviews/` : `page.tsx` + `index.tsx` créés avec UI de review (liste, confirm, reject, score bar)
+- ✅ [MEDIUM] `syncMissingClubLogos` : pré-charge les `club_directory_id` avec review pending au démarrage → les clubs sont comptés `pendingReview` et skippés (évite re-traitement inutile et écrasement)
+- ✅ [MEDIUM] `club-match-reviews.ts` ajouté à la File List
+
 ### File List
 
 - `supabase/migrations/00086_rbfa_enrichment_columns.sql` [NOUVEAU]
@@ -344,3 +350,7 @@ claude-sonnet-4-6
 - `aureak/apps/web/app/(admin)/clubs/rbfa-sync/index.tsx` [NOUVEAU]
 - `aureak/apps/web/app/(admin)/clubs/rbfa-sync/page.tsx` [NOUVEAU]
 - `aureak/apps/web/app/(admin)/clubs/page.tsx` [MODIFIE — bouton Import RBFA + style rbfaBtn]
+- `aureak/packages/api-client/src/admin/club-match-reviews.ts` [MODIFIE — listPendingMatchReviews, confirmMatchReview, rejectMatchReview]
+- `aureak/apps/web/app/(admin)/clubs/rbfa-sync/reviews/page.tsx` [NOUVEAU — page review manuelle des matchings]
+- `aureak/apps/web/app/(admin)/clubs/rbfa-sync/reviews/index.tsx` [NOUVEAU — re-export page reviews]
+- `aureak/supabase/migrations/00090_fix_club_match_reviews_unique_club.sql` [NOUVEAU — contrainte UNIQUE club_directory_id]

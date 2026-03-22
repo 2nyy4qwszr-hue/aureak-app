@@ -1,6 +1,6 @@
 # Story 28.2 : Affichage du logo dans la fiche club
 
-Status: review
+Status: done
 
 ---
 
@@ -225,6 +225,11 @@ Aucune erreur TypeScript introduite. Les 2 erreurs TS sur page.tsx (lignes 647/6
 - Import `shadows` ajouté depuis `@aureak/theme` (déjà exporté dans le package)
 - Tous les variants Badge utilisés (`goldOutline`, `light`, `zinc`) existent dans `packages/ui/src/components/Badge/Badge.tsx`
 - `rbfaLogoUrl`, `logoPath`, `rbfaStatus` tous présents dans `ClubDirectoryEntry` (entities.ts lignes 1180, 1197, 1201)
+
+**Code Review fixes (claude-sonnet-4-6) :**
+- ✅ [HIGH] AC5 : Badge "Logo non disponible" (variant `zinc`) ajouté pour le cas `logoUrl === null && logoPath !== null` (signed URL expirée)
+- ✅ [MEDIUM] `#f87171` → `colors.accent.red` dans les 2 boutons "Supprimer le logo" (lecture + édition)
+- ✅ [MEDIUM] `border: '1px solid #E8E3D9'` → template literal `colors.border.light` dans les 3 occurrences (titre row, section lecture, preview édition)
 
 ### File List
 

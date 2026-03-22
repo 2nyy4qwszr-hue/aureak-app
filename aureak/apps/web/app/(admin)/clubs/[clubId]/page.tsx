@@ -173,7 +173,7 @@ function PlayerRow({ row, onRemove }: { row: ClubChildLinkRow; onRemove: () => v
       </View>
 
       <Pressable onPress={onRemove} style={pr.removeBtn}>
-        <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>Retirer</AureakText>
+        <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Retirer</AureakText>
       </Pressable>
     </View>
   )
@@ -279,7 +279,7 @@ function CoachRow({ name, onRemove }: { name: string; onRemove: () => void }) {
       </View>
       <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{name}</AureakText>
       <Pressable onPress={onRemove} style={pr.removeBtn}>
-        <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>Retirer</AureakText>
+        <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Retirer</AureakText>
       </Pressable>
     </View>
   )
@@ -545,7 +545,7 @@ export default function ClubDetailPage() {
         {/* Logo */}
         <View style={s.logoBox}>
           {club.logoUrl ? (
-            <img src={club.logoUrl} style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'contain', border: '1px solid #E8E3D9', boxShadow: shadows.sm }} alt="logo" />
+            <img src={club.logoUrl} style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'contain', border: `1px solid ${colors.border.light}`, boxShadow: shadows.sm }} alt="logo" />
           ) : (
             <View style={s.logoFallback}>
               <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 20 }}>
@@ -591,7 +591,7 @@ export default function ClubDetailPage() {
       {/* Error banner */}
       {error && (
         <View style={s.errorBanner}>
-          <AureakText variant="body" style={{ color: '#f87171' }}>{error}</AureakText>
+          <AureakText variant="body" style={{ color: colors.accent.red }}>{error}</AureakText>
         </View>
       )}
 
@@ -659,12 +659,12 @@ export default function ClubDetailPage() {
           </Section>
 
           <Section title="Logo">
-            <View style={{ alignItems: 'center', gap: space.sm }}>
+            <View style={{ alignItems: 'center', gap: space.md }}>
               {/* Aperçu logo 100×100 ou fallback initiales */}
               {club.logoUrl ? (
                 <img
                   src={club.logoUrl}
-                  style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'contain', border: '1px solid #E8E3D9', boxShadow: shadows.sm }}
+                  style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'contain', border: `1px solid ${colors.border.light}`, boxShadow: shadows.sm }}
                   alt="logo du club"
                 />
               ) : (
@@ -677,10 +677,14 @@ export default function ClubDetailPage() {
 
               {/* Badge source du logo */}
               {club.logoPath ? (
-                <Badge
-                  label={club.logoPath.includes('logo-rbfa') ? 'Logo RBFA' : 'Upload manuel'}
-                  variant={club.logoPath.includes('logo-rbfa') ? 'goldOutline' : 'light'}
-                />
+                club.logoUrl ? (
+                  <Badge
+                    label={club.logoPath.includes('logo-rbfa') ? 'Logo RBFA' : 'Upload manuel'}
+                    variant={club.logoPath.includes('logo-rbfa') ? 'goldOutline' : 'light'}
+                  />
+                ) : (
+                  <Badge label="Logo non disponible" variant="zinc" />
+                )
               ) : (
                 <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never, fontSize: 12 }}>
                   Aucun logo
@@ -701,7 +705,7 @@ export default function ClubDetailPage() {
               {/* Suppression rapide sans passer en mode édition */}
               {club.logoPath && !logoUploading && (
                 <Pressable onPress={handleLogoDelete}>
-                  <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>
                     Supprimer le logo
                   </AureakText>
                 </Pressable>
@@ -747,9 +751,9 @@ export default function ClubDetailPage() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
               {/* Aperçu : preview local en priorité, sinon logo existant, sinon initiales */}
               {(logoPreview || club.logoUrl) ? (
-                <img src={logoPreview ?? club.logoUrl!} style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'contain', border: '1px solid #E8E3D9' }} alt="logo" />
+                <img src={logoPreview ?? club.logoUrl!} style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'contain', border: `1px solid ${colors.border.light}` }} alt="logo" />
               ) : (
-                <View style={[s.logoFallback, { width: 72, height: 72 }]}>
+                <View style={s.logoFallback}>
                   <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '800', fontSize: 22 }}>
                     {club.nom.charAt(0).toUpperCase()}
                   </AureakText>
@@ -774,7 +778,7 @@ export default function ClubDetailPage() {
                 )}
                 {club.logoPath && !logoUploading && !logoFile && (
                   <Pressable onPress={handleLogoDelete}>
-                    <AureakText variant="caption" style={{ color: '#f87171', fontSize: 11 }}>Supprimer le logo</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Supprimer le logo</AureakText>
                   </Pressable>
                 )}
               </View>
