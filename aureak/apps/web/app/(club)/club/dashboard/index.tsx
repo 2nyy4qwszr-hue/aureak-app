@@ -2,7 +2,13 @@
 // Club Dashboard v2 — filtres · analytics · navigation gardiens · export · affiliations
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
-import { supabase, listImplantations, listAffiliatedChildrenByClub } from '@aureak/api-client'
+import {
+  listImplantations, listAffiliatedChildrenByClub,
+  getClubByUserId, listChildIdsForClub,
+  resolveProfileDisplayNames,
+  listAttendancesForChildren, listEvaluationsForChildren,
+  listAttendeeSessionsForChildren, listUpcomingSessionsForIds,
+} from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import type { EvaluationSignal, ChildClubHistory, FootballTeamLevel } from '@aureak/types'
@@ -261,61 +267,65 @@ export default function ClubDashboard() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const { data: clubRow } = await supabase
-        .from('clubs').select('user_id, name, club_access_level, tenant_id')
-        .eq('user_id', user.id).single()
-
-      if (!clubRow) { setLoading(false); return }
-      setClub(clubRow as ClubRow)
-
-      const [{ data: links }, implRes] = await Promise.all([
-        supabase.from('club_child_links').select('child_id').eq('club_id', user.id),
+      const [clubRes, implRes] = await Promise.all([
+        getClubByUserId(user.id),
         listImplantations(),
       ])
+
+      if (!clubRes.data) { setLoading(false); return }
+      setClub({
+        user_id          : clubRes.data.userId,
+        name             : clubRes.data.name,
+        club_access_level: clubRes.data.clubAccessLevel,
+        tenant_id        : clubRes.data.tenantId,
+      })
       setImplants((implRes.data ?? []) as Pick<Implantation, 'id' | 'name'>[])
 
-      const childIds = (links ?? []).map((l: { child_id: string }) => l.child_id)
-      if (childIds.length === 0) { setLoading(false); return }
+      const { data: childIds } = await listChildIdsForClub(user.id)
+      if (!childIds || childIds.length === 0) { setLoading(false); return }
 
-      const [profilesRes, attendRes, evalRes, saRes] = await Promise.all([
-        supabase.from('profiles').select('user_id, display_name').in('user_id', childIds),
-        supabase
-          .from('attendances')
-          .select('child_id, status, sessions(scheduled_at, implantation_id)')
-          .in('child_id', childIds)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('session_evaluations_merged')
-          .select('child_id, receptivite, gout_effort, attitude, top_seance, created_at')
-          .in('child_id', childIds)
-          .order('created_at', { ascending: false }),
-        supabase.from('session_attendees').select('session_id').in('child_id', childIds),
+      const [namesRes, attendRes, evalRes, attendeeRes] = await Promise.all([
+        resolveProfileDisplayNames(childIds),
+        listAttendancesForChildren(childIds),
+        listEvaluationsForChildren(childIds),
+        listAttendeeSessionsForChildren(childIds),
       ])
 
-      const profiles  = (profilesRes.data ?? []) as { user_id: string; display_name: string }[]
-      const allAtt    = (attendRes.data   ?? []) as unknown as AttendanceRow[]
-      const allEvals  = (evalRes.data     ?? []) as EvalRow[]
+      // Map to component local types (snake_case required by rendering logic)
+      const allAtt: AttendanceRow[] = attendRes.data.map(a => ({
+        child_id: a.childId,
+        status  : a.status,
+        sessions: a.sessions
+          ? { scheduled_at: a.sessions.scheduledAt, implantation_id: a.sessions.implantationId }
+          : null,
+      }))
+      const allEvals: EvalRow[] = evalRes.data.map(e => ({
+        child_id    : e.childId,
+        receptivite : e.receptivite as EvaluationSignal,
+        gout_effort : e.goutEffort  as EvaluationSignal,
+        attitude    : e.attitude    as EvaluationSignal,
+        top_seance  : e.topSeance,
+        created_at  : e.createdAt,
+      }))
 
       const stats: GoalkeeperStat[] = childIds.map(id => ({
         childId    : id,
-        name       : profiles.find(p => p.user_id === id)?.display_name ?? '—',
+        name       : namesRes.data[id] ?? '—',
         allSessions: allAtt.filter(a => a.child_id === id),
         lastEval   : allEvals.find(e => e.child_id === id) ?? null,
       }))
       setGoalies(stats.sort((a, b) => a.name.localeCompare(b.name)))
 
       // Upcoming sessions
-      const sessionIds = [...new Set((saRes.data ?? []).map((r: { session_id: string }) => r.session_id))]
-      if (sessionIds.length > 0) {
-        const { data: upSessions } = await supabase
-          .from('sessions')
-          .select('id, scheduled_at, duration_minutes, location, status')
-          .in('id', sessionIds)
-          .gt('scheduled_at', new Date().toISOString())
-          .in('status', ['planifiée', 'en_cours'])
-          .order('scheduled_at', { ascending: true })
-          .limit(5)
-        setUpcoming((upSessions ?? []) as UpcomingSession[])
+      if (attendeeRes.data.length > 0) {
+        const upRes = await listUpcomingSessionsForIds(attendeeRes.data)
+        setUpcoming(upRes.data.slice(0, 5).map(s => ({
+          id              : s.id,
+          scheduled_at    : s.scheduledAt,
+          duration_minutes: s.durationMinutes,
+          location        : s.location,
+          status          : s.status,
+        })))
       }
 
       // Affiliated children — all seasons, for this club

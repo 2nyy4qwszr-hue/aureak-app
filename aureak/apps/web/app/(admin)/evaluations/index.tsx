@@ -2,21 +2,11 @@
 // Story 6.x — Vue admin des évaluations
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { supabase } from '@aureak/api-client'
+import { listEvaluationsAdmin } from '@aureak/api-client'
+import type { AdminEvalRow } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 
-type EvalRow = {
-  id          : string
-  sessionId   : string
-  childId     : string
-  childName   : string | null
-  receptivite : string
-  goutEffort  : string
-  attitude    : string
-  topSeance   : boolean
-  evalAt      : string
-}
 
 const SIGNAL_VARIANT: Record<string, 'present' | 'attention' | 'zinc'> = {
   acquired    : 'present',
@@ -31,7 +21,7 @@ const SIGNAL_LABEL: Record<string, string> = {
 }
 
 export default function EvaluationsPage() {
-  const [evals, setEvals]     = useState<EvalRow[]>([])
+  const [evals, setEvals]     = useState<AdminEvalRow[]>([])
   const [loading, setLoading] = useState(true)
   const [from, setFrom]       = useState(() => {
     const d = new Date()
@@ -42,45 +32,8 @@ export default function EvaluationsPage() {
 
   const load = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('evaluations')
-      .select(`
-        id,
-        session_id,
-        child_id,
-        receptivite,
-        gout_effort,
-        attitude,
-        top_seance,
-        updated_at,
-        profiles!evaluations_child_id_fkey ( display_name )
-      `)
-      .gte('updated_at', new Date(from + 'T00:00:00').toISOString())
-      .lte('updated_at', new Date(to + 'T23:59:59').toISOString())
-      .order('updated_at', { ascending: false })
-      .limit(500)
-
-    const list: EvalRow[] = ((data ?? []) as unknown[]).map((r) => {
-      const row = r as {
-        id: string; session_id: string; child_id: string
-        receptivite: string; gout_effort: string; attitude: string
-        top_seance: boolean; updated_at: string
-        profiles: { display_name: string | null }[] | null
-      }
-      const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
-      return {
-        id         : row.id,
-        sessionId  : row.session_id,
-        childId    : row.child_id,
-        childName  : (profile as { display_name: string | null } | undefined)?.display_name ?? null,
-        receptivite: row.receptivite,
-        goutEffort : row.gout_effort,
-        attitude   : row.attitude,
-        topSeance  : row.top_seance,
-        evalAt     : row.updated_at,
-      }
-    })
-    setEvals(list)
+    const { data } = await listEvaluationsAdmin(from, to)
+    setEvals(data)
     setLoading(false)
   }
 

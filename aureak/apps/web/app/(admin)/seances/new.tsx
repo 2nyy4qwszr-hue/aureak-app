@@ -730,7 +730,7 @@ export default function NewSessionPage() {
 
     listImplantations().then(({ data, error }) => {
       if (error) {
-        console.error('[NewSession] listImplantations error:', error)
+        if (process.env.NODE_ENV !== 'production') console.error('[NewSession] listImplantations error:', error)
         setImplantationsError('Impossible de charger les implantations. Vérifiez votre connexion.')
       } else {
         const list = data ?? []
@@ -750,7 +750,7 @@ export default function NewSessionPage() {
     setLoadingGroups(true)
     setGroups([])
     listGroupsByImplantation(implantationId).then(({ data, error }) => {
-      if (error) console.error('[NewSession] listGroupsByImplantation error:', error)
+      if (error && process.env.NODE_ENV !== 'production') console.error('[NewSession] listGroupsByImplantation error:', error)
       setGroups(data ?? [])
       setLoadingGroups(false)
     })
@@ -832,7 +832,7 @@ export default function NewSessionPage() {
         method: groupMethod,
       })
       if (tErr || !transientGroup) {
-        console.error('[NewSession] createTransientGroup error:', tErr)
+        if (process.env.NODE_ENV !== 'production') console.error('[NewSession] createTransientGroup error:', tErr)
         setResult({ created: 0, failed: selectedDates.length })
         setCreating(false)
         return
@@ -912,7 +912,7 @@ export default function NewSessionPage() {
           resourceId: b.resourceId ?? undefined,
           sortOrder : j,
         })
-        if (linkErr) { console.warn(`[NewSession] addSessionThemeBlock[${j}] error:`, linkErr); linkWarnings++ }
+        if (linkErr) { if (process.env.NODE_ENV !== 'production') console.warn(`[NewSession] addSessionThemeBlock[${j}] error:`, linkErr); linkWarnings++ }
       }
 
       // Story 21.3 — Persister les ateliers (best-effort)
@@ -948,7 +948,7 @@ export default function NewSessionPage() {
           cardUrl,
           notes     : w.notes.trim() || undefined,
         })
-        if (wErr) { console.warn(`[NewSession] addSessionWorkshop[${k}] error:`, wErr); linkWarnings++ }
+        if (wErr) { if (process.env.NODE_ENV !== 'production') console.warn(`[NewSession] addSessionWorkshop[${k}] error:`, wErr); linkWarnings++ }
       }
 
       created++
@@ -956,7 +956,7 @@ export default function NewSessionPage() {
 
     setResult({ created, failed, linkWarnings: linkWarnings > 0 ? linkWarnings : undefined })
     } catch (err) {
-      console.error('[NewSession] handleCreate unexpected error:', err)
+      if (process.env.NODE_ENV !== 'production') console.error('[NewSession] handleCreate unexpected error:', err)
       setResult({ created: 0, failed: selectedDates.length })
     } finally {
       setCreating(false)

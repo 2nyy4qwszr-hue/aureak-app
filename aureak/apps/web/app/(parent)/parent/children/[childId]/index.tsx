@@ -2,7 +2,7 @@
 // Fiche enfant — mini-chart présences + signaux d'évaluation
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { getChildProfile, supabase } from '@aureak/api-client'
+import { getChildProfile, getProfileDisplayName } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
 import type { EvaluationSignal } from '@aureak/types'
 
@@ -150,11 +150,11 @@ export default function ChildFichePage() {
 
   useEffect(() => {
     const load = async () => {
-      const [profileRes, childRes] = await Promise.all([
+      const [profileRes, nameRes] = await Promise.all([
         getChildProfile(childId, { months: 3 }),
-        supabase.from('profiles').select('display_name').eq('user_id', childId).single(),
+        getProfileDisplayName(childId),
       ])
-      setDisplayName((childRes.data as { display_name: string } | null)?.display_name ?? '')
+      setDisplayName(nameRes.data ?? '')
       setAttendances(profileRes.attendances as unknown as AttendanceRow[])
       setEvaluations(profileRes.evaluations as EvalRow[])
       setLoading(false)

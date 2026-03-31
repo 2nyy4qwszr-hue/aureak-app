@@ -130,14 +130,14 @@ export async function updateHistoryEntry(
   return { error: error ?? null }
 }
 
-/** Supprime une entrée d'historique. */
+/** Soft-delete une entrée d'historique (ARCH-4 — purge dure = jobs RGPD uniquement). */
 export async function deleteHistoryEntry(
   id: string,
   tenantId: string,
 ): Promise<{ error: unknown }> {
   const { error } = await supabase
     .from('child_club_history')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
     .eq('tenant_id', tenantId)
 

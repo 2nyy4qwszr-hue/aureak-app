@@ -65,47 +65,51 @@ export default function ChildQuizSessionPage() {
   const handleAnswer = async (optionId: string) => {
     if (!quiz || quiz.phase !== 'question') return
     const q = quiz.questions[quiz.currentIndex]
-    const res = await submitAnswer(quiz.attemptId, q.id, optionId)
+    try {
+      const res = await submitAnswer(quiz.attemptId, q.id, optionId)
 
-    const nextCorrect = quiz.correctCount + (res.is_correct ? 1 : 0)
+      const nextCorrect = quiz.correctCount + (res.is_correct ? 1 : 0)
 
-    if (res.should_stop) {
-      stopped.current = true
-      await stopAttempt(quiz.attemptId, res.stop_reason ?? 'completed')
+      if (res.should_stop) {
+        stopped.current = true
+        await stopAttempt(quiz.attemptId, res.stop_reason ?? 'completed')
+        setQuiz({
+          ...quiz,
+          phase         : 'result',
+          lastResult    : res,
+          correctCount  : nextCorrect,
+          masteryPercent: res.mastery_percent,
+          stopReason    : res.stop_reason ?? null,
+        })
+        return
+      }
+
+      const nextIndex = quiz.currentIndex + 1
+      if (nextIndex >= quiz.questions.length) {
+        stopped.current = true
+        await stopAttempt(quiz.attemptId, 'completed')
+        setQuiz({
+          ...quiz,
+          phase         : 'result',
+          lastResult    : res,
+          correctCount  : nextCorrect,
+          masteryPercent: res.mastery_percent,
+          stopReason    : 'completed',
+        })
+        return
+      }
+
       setQuiz({
         ...quiz,
-        phase         : 'result',
-        lastResult    : res,
-        correctCount  : nextCorrect,
+        phase        : 'feedback',
+        lastResult   : res,
+        correctCount : nextCorrect,
+        currentIndex : nextIndex,
         masteryPercent: res.mastery_percent,
-        stopReason    : res.stop_reason ?? null,
       })
-      return
+    } catch {
+      setError('Une erreur est survenue. Réessaie.')
     }
-
-    const nextIndex = quiz.currentIndex + 1
-    if (nextIndex >= quiz.questions.length) {
-      stopped.current = true
-      await stopAttempt(quiz.attemptId, 'completed')
-      setQuiz({
-        ...quiz,
-        phase         : 'result',
-        lastResult    : res,
-        correctCount  : nextCorrect,
-        masteryPercent: res.mastery_percent,
-        stopReason    : 'completed',
-      })
-      return
-    }
-
-    setQuiz({
-      ...quiz,
-      phase        : 'feedback',
-      lastResult   : res,
-      correctCount : nextCorrect,
-      currentIndex : nextIndex,
-      masteryPercent: res.mastery_percent,
-    })
   }
 
   const handleNext = () => {

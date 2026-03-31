@@ -3,7 +3,7 @@
 // Story 13.3 : bannière "Séance en cours" auto-surface (AC1)
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { listSessionsByCoach, supabase, getActiveSessionsForCoach } from '@aureak/api-client'
+import { listSessionsByCoach, getActiveSessionsForCoach, listEvaluatedSessionIds } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import type { Session } from '@aureak/types'
@@ -82,13 +82,8 @@ export default function CoachDashboardPage() {
         .map(s => s.id)
 
       if (recentClosed.length > 0) {
-        const { data: evData } = await supabase
-          .from('session_evaluations_merged')
-          .select('session_id')
-          .in('session_id', recentClosed)
-        const evaluated = new Set(
-          (evData ?? []).map((e: Record<string, string>) => e.session_id)
-        )
+        const { data: evaluatedIds } = await listEvaluatedSessionIds(recentClosed)
+        const evaluated = new Set(evaluatedIds)
         setMissingEvals(recentClosed.filter(id => !evaluated.has(id)))
       }
 

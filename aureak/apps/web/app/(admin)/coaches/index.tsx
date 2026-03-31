@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { supabase, getCoachCurrentGrade } from '@aureak/api-client'
+import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { CoachGrade, CoachGradeLevel } from '@aureak/api-client'
@@ -74,22 +74,16 @@ export default function CoachesPage() {
     const load = async () => {
       setLoading(true)
 
-      const { data: profiles, count } = await supabase
-        .from('profiles')
-        .select('user_id, display_name', { count: 'exact' })
-        .eq('user_role', 'coach')
-        .is('deleted_at', null)
-        .order('display_name', { ascending: true })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+      const { data: coachRows, count, error } = await listCoaches({ page, pageSize: PAGE_SIZE })
 
-      if (!profiles) { setLoading(false); return }
+      if (error || !coachRows.length && count === 0) { setLoading(false); return }
 
-      setTotal(count ?? 0)
+      setTotal(count)
 
       const withGrades = await Promise.all(
-        (profiles as { user_id: string; display_name: string | null }[]).map(async p => {
-          const { data: grade } = await getCoachCurrentGrade(p.user_id)
-          return { userId: p.user_id, displayName: p.display_name, grade }
+        coachRows.map(async p => {
+          const { data: grade } = await getCoachCurrentGrade(p.userId)
+          return { userId: p.userId, displayName: p.displayName, grade }
         })
       )
 

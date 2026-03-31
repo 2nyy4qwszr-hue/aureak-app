@@ -6,6 +6,7 @@ import type { ValidationStatus } from '@aureak/types'
 export function useSessionValidation(sessionId: string) {
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>('pending')
   const [wsConnected, setWsConnected]           = useState(false)
+  const wsConnectedRef = useRef(false)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Polling fallback
@@ -44,12 +45,14 @@ export function useSessionValidation(sessionId: string) {
       .subscribe((status) => {
         const connected = status === 'SUBSCRIBED'
         setWsConnected(connected)
+        wsConnectedRef.current = connected
         if (connected) stopPolling()
       })
 
     // Fallback polling si WS non connecté après 3s
+    // Utilise wsConnectedRef (pas wsConnected) pour éviter la stale closure
     const wsTimeout = setTimeout(() => {
-      if (!wsConnected) startPolling()
+      if (!wsConnectedRef.current) startPolling()
     }, 3000)
 
     return () => {

@@ -30,7 +30,7 @@ export default function PartnershipsPage() {
   const load = async () => {
     setLoading(true)
     const result = await listPartnerships()
-    setPartnerships(result.data)
+    setPartnerships(result.data ?? [])
 
     // Charger les stats d'accès pour chaque partenariat
     const statsMap: Record<string, number> = {}

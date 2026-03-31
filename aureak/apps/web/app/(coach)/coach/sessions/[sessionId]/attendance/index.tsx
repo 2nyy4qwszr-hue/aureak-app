@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSessionById, recordAttendance, listAttendancesBySession,
   prefillSessionAttendees, addGuestToSession, captureNewChildDuringSession,
-  saveCoachNote, supabase,
+  saveCoachNote, listChildDirectory,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
@@ -109,15 +109,10 @@ function AddGuestModal({
     if (q.trim().length < 2) { setResults([]); return }
     setSearching(true)
     searchRef.current = setTimeout(async () => {
-      const { data } = await supabase
-        .from('child_directory')
-        .select('id, display_name')
-        .ilike('display_name', `%${q.trim()}%`)
-        .eq('actif', true)
-        .limit(8)
-      setResults((data ?? []).map((r: { id: string; display_name: string }) => ({
+      const { data } = await listChildDirectory({ search: q.trim(), pageSize: 8 })
+      setResults((data ?? []).map(r => ({
         id         : r.id,
-        displayName: r.display_name,
+        displayName: r.displayName,
       })))
       setSearching(false)
     }, 300)

@@ -339,3 +339,53 @@ export type {
   CreateMethodologySituationParams,
   CreateMethodologySessionParams,
 } from './methodology'
+
+// ── Résolution de profils (ARCH-1 : accès centralisé) ────────────────────────
+export { getProfileDisplayName, resolveProfileDisplayNames } from './profiles'
+
+// ── Admin — Dashboard KPI counts ─────────────────────────────────────────────
+export { getDashboardKpiCounts } from './admin/dashboard'
+export type { DashboardKpiCounts } from './admin/dashboard'
+
+// ── Admin — Évaluations (vue admin) ──────────────────────────────────────────
+export { listEvaluationsAdmin } from './admin/evaluations'
+export type { AdminEvalRow } from './admin/evaluations'
+
+// ── Admin — Coachs (liste paginée) ───────────────────────────────────────────
+export { listCoaches } from './admin/coaches'
+export type { CoachListRow } from './admin/coaches'
+
+// ── Admin — Notifications Edge Function ──────────────────────────────────────
+export { sendGradeNotification } from './admin/notifications'
+export type { SendGradeNotificationParams } from './admin/notifications'
+
+// ── Parent — Enfants liés à un parent ────────────────────────────────────────
+export { listChildrenOfParent } from './parent/parentChildren'
+export type { ParentChildLink } from './parent/parentChildren'
+
+// ── Club — Données dashboard + fiche gardien ─────────────────────────────────
+export {
+  getClubByUserId,
+  listChildIdsForClub,
+  listAttendancesForChildren,
+  listEvaluationsForChildren,
+  listAttendeeSessionsForChildren,
+  listUpcomingSessionsForIds,
+} from './club/clubData'
+export type {
+  ClubRow,
+  ClubAttendanceRow,
+  ClubEvalRow,
+  ClubUpcomingSession,
+} from './club/clubData'
+
+export { getGoalkeeperDetail } from './club/goalkeeperDetail'
+export type {
+  GoalkeeperDetail,
+  GoalkeeperDetailAtt,
+  GoalkeeperDetailEval,
+} from './club/goalkeeperDetail'
+
+// ── Sessions — IDs présents + séances évaluées ───────────────────────────────
+export { listPresentChildIdsForSession } from './sessions/attendances'
+export { listEvaluatedSessionIds } from './evaluations/evaluations'

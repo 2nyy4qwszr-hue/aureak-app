@@ -47,7 +47,8 @@ export async function listSessionsWithAttendance(params?: {
   if (params?.implantationId) sessionQuery = sessionQuery.eq('implantation_id', params.implantationId)
   if (params?.groupId)        sessionQuery = sessionQuery.eq('group_id', params.groupId)
 
-  const { data: sessions } = await sessionQuery
+  const { data: sessions, error: sessionsError } = await sessionQuery
+  if (sessionsError) return []
   if (!sessions || sessions.length === 0) return []
 
   const sessionIds = sessions.map((s: { id: string }) => s.id)
@@ -226,6 +227,28 @@ export async function checkinBlock(
   return { data: data as BlockCheckin | null, error }
 }
 
+// ─── Enfants présents d'une séance (coach evaluations) ───────────────────────
+
+/**
+ * Retourne les child_ids dont le statut est présent/en retard/essai pour une séance.
+ * Utilisé par coach/evaluations pour initialiser la liste d'évaluation.
+ */
+export async function listPresentChildIdsForSession(
+  sessionId: string
+): Promise<{ data: string[]; error: unknown }> {
+  const { data, error } = await supabase
+    .from('attendances')
+    .select('child_id, status')
+    .eq('session_id', sessionId)
+    .in('status', ['present', 'late', 'trial'])
+
+  if (error) return { data: [], error }
+  return {
+    data: (data ?? []).map((a: { child_id: string }) => a.child_id),
+    error: null,
+  }
+}
+
 // ─── apply_event() — Story 5.2 ────────────────────────────────────────────────
 
 export type ApplyAttendanceEventParams = {
@@ -308,7 +331,8 @@ export async function listPlayersWithAttendance(params: {
   if (params.implantationId) sessionQuery = sessionQuery.eq('implantation_id', params.implantationId)
   if (params.groupId)        sessionQuery = sessionQuery.eq('group_id', params.groupId)
 
-  const { data: sessions } = await sessionQuery
+  const { data: sessions, error: sessionsError } = await sessionQuery
+  if (sessionsError) return []
   if (!sessions || sessions.length === 0) return []
 
   type RawSession = {

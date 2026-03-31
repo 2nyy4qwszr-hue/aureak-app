@@ -371,6 +371,7 @@ export async function listSchoolCalendarExceptions(): Promise<{ data: SchoolCale
   const { data, error } = await supabase
     .from('school_calendar_exceptions')
     .select('*')
+    .is('deleted_at', null)
     .order('date', { ascending: true })
 
   const mapped = ((data ?? []) as Record<string, unknown>[]).map(r => ({
@@ -416,13 +417,13 @@ export async function addSchoolCalendarException(params: {
   }
 }
 
-/** Supprime une exception de calendrier */
+/** Supprime une exception de calendrier (soft-delete ARCH-4) */
 export async function removeSchoolCalendarException(
   exceptionId: string
 ): Promise<{ error: unknown }> {
   const { error } = await supabase
     .from('school_calendar_exceptions')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', exceptionId)
 
   return { error }
@@ -614,10 +615,11 @@ export async function generateYearSessions(
     }
   }
 
-  // 3. Charger les exceptions de calendrier
+  // 3. Charger les exceptions de calendrier (exclure les soft-deleted)
   const { data: excData } = await supabase
     .from('school_calendar_exceptions')
     .select('date, is_no_session')
+    .is('deleted_at', null)
     .gte('date', seasonStart)
     .lte('date', seasonEnd)
 

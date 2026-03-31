@@ -8,8 +8,7 @@ import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, F
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toEntry(row: any): ChildDirectoryEntry {
+function toEntry(row: Record<string, unknown>): ChildDirectoryEntry {
   return {
     id             : row.id,
     tenantId       : row.tenant_id,
@@ -49,7 +48,7 @@ function toEntry(row: any): ChildDirectoryEntry {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toHistory(row: any): ChildDirectoryHistory {
+function toHistory(row: Record<string, unknown>): ChildDirectoryHistory {
   return {
     id             : row.id,
     tenantId       : row.tenant_id,
@@ -109,8 +108,7 @@ async function getSignedPhotoUrls(paths: string[]): Promise<Record<string, strin
 }
 
 /** Mapper DB row → ChildDirectoryPhoto TS */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toPhoto(row: any, signedUrl: string | null): ChildDirectoryPhoto {
+function toPhoto(row: Record<string, unknown>, signedUrl: string | null): ChildDirectoryPhoto {
   return {
     id         : row.id,
     tenantId   : row.tenant_id,
@@ -452,17 +450,18 @@ export async function listJoueurs(
   // Phase 1 (optional): filter by computed academy status
   let filteredIds: string[] | null = null
   if (hasStatusFilter) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let vq: any = supabase.from('v_child_academy_status').select('child_id')
-    if (computedStatus)                vq = vq.eq('computed_status', computedStatus)
-    if (totalSeasonsCmp === 'eq1')     vq = vq.eq('total_academy_seasons', 1)
-    else if (totalSeasonsCmp === 'eq2')  vq = vq.eq('total_academy_seasons', 2)
-    else if (totalSeasonsCmp === 'gte3') vq = vq.gte('total_academy_seasons', 3)
-    if (totalStagesCmp === 'eq0')      vq = vq.eq('total_stages', 0)
-    else if (totalStagesCmp === 'eq1')  vq = vq.eq('total_stages', 1)
-    else if (totalStagesCmp === 'eq2')  vq = vq.eq('total_stages', 2)
-    else if (totalStagesCmp === 'gte3') vq = vq.gte('total_stages', 3)
-    const { data: viewRows } = await vq
+    const { data: viewRows } = await (() => {
+      let q = supabase.from('v_child_academy_status').select('child_id')
+      if (computedStatus)                q = q.eq('computed_status', computedStatus)
+      if (totalSeasonsCmp === 'eq1')     q = q.eq('total_academy_seasons', 1)
+      else if (totalSeasonsCmp === 'eq2')  q = q.eq('total_academy_seasons', 2)
+      else if (totalSeasonsCmp === 'gte3') q = q.gte('total_academy_seasons', 3)
+      if (totalStagesCmp === 'eq0')      q = q.eq('total_stages', 0)
+      else if (totalStagesCmp === 'eq1')  q = q.eq('total_stages', 1)
+      else if (totalStagesCmp === 'eq2')  q = q.eq('total_stages', 2)
+      else if (totalStagesCmp === 'gte3') q = q.gte('total_stages', 3)
+      return q
+    })()
     filteredIds = ((viewRows ?? []) as Record<string, unknown>[]).map(r => r.child_id as string)
     if (filteredIds.length === 0) return { data: [], count: 0 }
   }

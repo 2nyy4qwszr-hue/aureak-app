@@ -2,7 +2,7 @@
 // Dashboard parent — suivi enfants premium
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { supabase, getChildProfile } from '@aureak/api-client'
+import { getChildProfile, listChildrenOfParent } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
@@ -92,10 +92,7 @@ export default function ParentDashboardPage() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const { data: links } = await supabase
-        .from('parent_child_links')
-        .select('child_id, profiles!child_id(display_name)')
-        .eq('parent_id', user.id)
+      const { data: links } = await listChildrenOfParent(user.id)
 
       if (!links || links.length === 0) {
         setLoading(false)
@@ -106,10 +103,9 @@ export default function ParentDashboardPage() {
       type EvalRow = { receptivite: string; gout_effort: string; attitude: string; top_seance: string }
 
       const results: ChildData[] = await Promise.all(
-        links.map(async (link: Record<string, unknown>) => {
-          const profile     = link.profiles as { display_name: string | null } | null
-          const childId     = link.child_id as string
-          const displayName = profile?.display_name ?? childId.slice(0, 8)
+        links.map(async (link) => {
+          const childId     = link.childId
+          const displayName = link.displayName ?? childId.slice(0, 8)
 
           const { attendances, evaluations } = await getChildProfile(childId, { months: 3 })
           const atts  = attendances as unknown as AttRow[]

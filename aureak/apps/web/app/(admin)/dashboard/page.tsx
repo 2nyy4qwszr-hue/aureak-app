@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
-  getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, supabase,
+  getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
@@ -241,55 +241,12 @@ export default function DashboardPage() {
   useEffect(() => {
     setLoadingCounts(true)
 
-    if (!selectedImplantationId) {
-      // Global counts
-      Promise.all([
-        supabase.from('profiles').select('user_id', { count: 'exact', head: true })
-          .eq('user_role', 'child').is('deleted_at', null),
-        supabase.from('profiles').select('user_id', { count: 'exact', head: true })
-          .eq('user_role', 'coach').is('deleted_at', null),
-        supabase.from('groups').select('id', { count: 'exact', head: true })
-          .is('deleted_at', null),
-      ]).then(([childRes, coachRes, groupRes]) => {
-        setChildrenTotal(childRes.count ?? 0)
-        setCoachesTotal(coachRes.count ?? 0)
-        setGroupsTotal(groupRes.count ?? 0)
-        setLoadingCounts(false)
-      })
-    } else {
-      // Filtered counts for the selected implantation
-      const fetchFiltered = async () => {
-        // Joueurs: distinct children in groups of this implantation
-        const { data: groupsData } = await supabase
-          .from('groups')
-          .select('id')
-          .eq('implantation_id', selectedImplantationId)
-          .is('deleted_at', null)
-
-        const groupIds = (groupsData ?? []).map((g: Record<string, string>) => g.id)
-
-        const [childData, coachData, groupCountRes] = await Promise.all([
-          groupIds.length > 0
-            ? supabase.from('group_members').select('child_id').in('group_id', groupIds)
-            : Promise.resolve({ data: [] }),
-          supabase.from('coach_implantation_assignments')
-            .select('coach_id', { count: 'exact', head: true })
-            .eq('implantation_id', selectedImplantationId)
-            .is('unassigned_at', null),
-          Promise.resolve({ count: groupIds.length }),
-        ])
-
-        const distinctChildren = new Set(
-          ((childData as { data: { child_id: string }[] | null }).data ?? []).map(m => m.child_id)
-        )
-        setChildrenTotal(distinctChildren.size)
-        setCoachesTotal((coachData as { count: number | null }).count ?? 0)
-        setGroupsTotal(groupCountRes.count ?? 0)
-        setLoadingCounts(false)
-      }
-
-      fetchFiltered()
-    }
+    getDashboardKpiCounts(selectedImplantationId ?? undefined).then(({ data }) => {
+      setChildrenTotal(data.childrenTotal)
+      setCoachesTotal(data.coachesTotal)
+      setGroupsTotal(data.groupsTotal)
+      setLoadingCounts(false)
+    })
   }, [selectedImplantationId])
 
   const handleResolve = async (id: string) => {

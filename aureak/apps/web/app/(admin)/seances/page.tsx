@@ -111,7 +111,7 @@ function GenerateModal({
   const [error,        setError       ] = useState<string | null>(null)
 
   useEffect(() => {
-    if (visible) listSchoolCalendarExceptions().then(r => setExceptions(r.data))
+    if (visible) listSchoolCalendarExceptions().then(r => setExceptions(r.data ?? []))
   }, [visible])
 
   const previewCount = useMemo(() => {

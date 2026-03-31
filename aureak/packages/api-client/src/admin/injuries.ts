@@ -2,8 +2,7 @@
 import { supabase } from '../supabase'
 import type { ChildDirectoryInjury } from '@aureak/types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toInjury(row: any): ChildDirectoryInjury {
+function toInjury(row: Record<string, unknown>): ChildDirectoryInjury {
   return {
     id         : row.id,
     tenantId   : row.tenant_id,

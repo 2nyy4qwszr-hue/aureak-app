@@ -93,7 +93,8 @@ export async function listMethodologyThemes(
   if (opts.method)              q = q.eq('method', opts.method)
   if (opts.activeOnly !== false) q = q.eq('is_active', true)
 
-  const { data } = await q
+  const { data, error } = await q
+  if (error) return []
   return (data ?? []).map(r => mapTheme(r as Record<string, unknown>))
 }
 
@@ -180,7 +181,8 @@ export async function listMethodologySituations(
   if (opts.themeId)             q = q.eq('theme_id', opts.themeId)
   if (opts.activeOnly !== false) q = q.eq('is_active', true)
 
-  const { data } = await q
+  const { data, error } = await q
+  if (error) return []
   return (data ?? []).map(r => mapSituation(r as Record<string, unknown>))
 }
 

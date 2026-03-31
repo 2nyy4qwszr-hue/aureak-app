@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { getChildProfile, supabase } from '@aureak/api-client'
+import { getChildProfile, getProfileDisplayName } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { EvaluationSignal } from '@aureak/types'
@@ -81,11 +81,11 @@ export default function ChildSessionsPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [profileRes, childRes] = await Promise.all([
+      const [profileRes, nameRes] = await Promise.all([
         getChildProfile(childId, { months: 12 }),
-        supabase.from('profiles').select('display_name').eq('user_id', childId).single(),
+        getProfileDisplayName(childId),
       ])
-      setDisplayName((childRes.data as { display_name: string } | null)?.display_name ?? '')
+      setDisplayName(nameRes.data ?? '')
 
       type RawAttendance = {
         id      : string

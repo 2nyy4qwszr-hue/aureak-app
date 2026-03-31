@@ -110,3 +110,26 @@ export async function closeSession(
 
   return { data: data as CloseSessionResult | null, error }
 }
+
+// ─── IDs des séances déjà évaluées (coach dashboard) ─────────────────────────
+
+/**
+ * Parmi une liste de session_ids, retourne ceux qui ont au moins une évaluation.
+ * Utilisé par coach/dashboard pour calculer les séances sans évaluation.
+ */
+export async function listEvaluatedSessionIds(
+  sessionIds: string[]
+): Promise<{ data: string[]; error: unknown }> {
+  if (sessionIds.length === 0) return { data: [], error: null }
+
+  const { data, error } = await supabase
+    .from('session_evaluations_merged')
+    .select('session_id')
+    .in('session_id', sessionIds)
+
+  if (error) return { data: [], error }
+  const ids = [...new Set(
+    (data ?? []).map((e: { session_id: string }) => e.session_id)
+  )]
+  return { data: ids, error: null }
+}

@@ -2,7 +2,7 @@
 // Évaluations par enfant — boutons explicites + sauvegarde globale
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { getSessionById, listMergedEvaluations, applyEvaluationEvent, supabase } from '@aureak/api-client'
+import { getSessionById, listMergedEvaluations, applyEvaluationEvent, listPresentChildIdsForSession, resolveProfileDisplayNames } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import type { Session, EvaluationMerged } from '@aureak/types'
@@ -125,6 +125,7 @@ export default function EvaluationsPage() {
   const [children,    setChildren]    = useState<ChildEval[]>([])
   const [saving,      setSaving]      = useState<string | null>(null)
   const [savingAll,   setSavingAll]   = useState(false)
+  const [saveError,   setSaveError]   = useState<string | null>(null)
   const [loading,     setLoading]     = useState(true)
 
   const load = async () => {
@@ -134,29 +135,17 @@ export default function EvaluationsPage() {
     ])
     setSession(sessionRes.data)
 
-    const { data: attendances } = await supabase
-      .from('attendances')
-      .select('child_id, status')
-      .eq('session_id', sessionId)
-      .in('status', ['present', 'late', 'trial'])
-
-    const childIds = (attendances ?? []).map((a: { child_id: string }) => a.child_id)
-
-    const { data: profiles } = await supabase
-      .from('profiles').select('user_id, display_name').in('user_id', childIds)
-
-    const profileMap = new Map(
-      (profiles ?? []).map((p: { user_id: string; display_name: string }) => [p.user_id, p.display_name])
-    )
+    const { data: childIds } = await listPresentChildIdsForSession(sessionId)
+    const { data: profileMap2 } = await resolveProfileDisplayNames(childIds ?? [])
     const evalMap = new Map(
       (evalsRes.data as EvaluationMerged[]).map(e => [e.childId, e])
     )
 
-    setChildren(childIds.map((childId: string) => {
+    setChildren((childIds ?? []).map((childId: string) => {
       const ev = evalMap.get(childId)
       return {
         childId,
-        displayName: profileMap.get(childId) ?? childId.slice(0, 8),
+        displayName: profileMap2[childId] ?? childId.slice(0, 8),
         receptivite: ev?.receptivite ?? 'none',
         goutEffort : ev?.goutEffort  ?? 'none',
         attitude   : ev?.attitude    ?? 'none',
@@ -184,25 +173,9 @@ export default function EvaluationsPage() {
   const saveOne = async (child: ChildEval) => {
     if (!user?.id) return
     setSaving(child.childId)
-    await applyEvaluationEvent({
-      operationId: `${sessionId}-${child.childId}-${Date.now()}`,
-      sessionId,
-      childId    : child.childId,
-      receptivite: child.receptivite,
-      goutEffort : child.goutEffort,
-      attitude   : child.attitude,
-      topSeance  : child.topSeance,
-      occurredAt : new Date().toISOString(),
-    })
-    setChildren(prev => prev.map(c => c.childId === child.childId ? { ...c, saved: true, dirty: false } : c))
-    setSaving(null)
-  }
-
-  const saveAll = async () => {
-    if (!user?.id) return
-    setSavingAll(true)
-    await Promise.all(children.map(child =>
-      applyEvaluationEvent({
+    setSaveError(null)
+    try {
+      await applyEvaluationEvent({
         operationId: `${sessionId}-${child.childId}-${Date.now()}`,
         sessionId,
         childId    : child.childId,
@@ -212,9 +185,37 @@ export default function EvaluationsPage() {
         topSeance  : child.topSeance,
         occurredAt : new Date().toISOString(),
       })
-    ))
-    setChildren(prev => prev.map(c => ({ ...c, saved: true, dirty: false })))
-    setSavingAll(false)
+      setChildren(prev => prev.map(c => c.childId === child.childId ? { ...c, saved: true, dirty: false } : c))
+    } catch {
+      setSaveError('Erreur lors de la sauvegarde. Réessaie.')
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  const saveAll = async () => {
+    if (!user?.id) return
+    setSavingAll(true)
+    setSaveError(null)
+    try {
+      await Promise.all(children.map(child =>
+        applyEvaluationEvent({
+          operationId: `${sessionId}-${child.childId}-${Date.now()}`,
+          sessionId,
+          childId    : child.childId,
+          receptivite: child.receptivite,
+          goutEffort : child.goutEffort,
+          attitude   : child.attitude,
+          topSeance  : child.topSeance,
+          occurredAt : new Date().toISOString(),
+        })
+      ))
+      setChildren(prev => prev.map(c => ({ ...c, saved: true, dirty: false })))
+    } catch {
+      setSaveError('Erreur lors de la sauvegarde globale. Réessaie.')
+    } finally {
+      setSavingAll(false)
+    }
   }
 
   if (loading) return <Skeleton sessionId={sessionId} />
@@ -292,6 +293,11 @@ export default function EvaluationsPage() {
           >
             {savingAll ? 'Sauvegarde…' : allSaved ? '✓ Tout enregistré' : 'Tout valider'}
           </button>
+        </div>
+      )}
+      {saveError && (
+        <div style={{ margin: '8px 0', padding: '8px 12px', borderRadius: 8, backgroundColor: 'rgba(224,82,82,0.12)', color: colors.accent.red, fontSize: 13 }}>
+          {saveError}
         </div>
       )}
 

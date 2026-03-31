@@ -12,7 +12,7 @@ import {
   listGroupsByImplantation,
   listClubDirectory,
 } from '@aureak/api-client'
-import type { ProfileRole } from '@aureak/api-client'
+import type { ProfileRole, InviteProfileUserParams } from '@aureak/api-client'
 import type { Implantation, Group } from '@aureak/types'
 
 // ── Types internes ─────────────────────────────────────────────────────────────
@@ -172,8 +172,9 @@ export default function NewUserScreen() {
       parent2Phone     : form.parent2Phone     || undefined,
     }
 
-    const fn = mode === 'fiche' ? createProfileFiche : inviteProfileUser
-    const { error } = await fn(baseParams as never)
+    const { error } = mode === 'fiche'
+      ? await createProfileFiche(baseParams)
+      : await inviteProfileUser(baseParams as InviteProfileUserParams)
 
     setSubmitting(false)
     if (error) {

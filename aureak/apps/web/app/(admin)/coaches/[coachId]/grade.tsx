@@ -1,7 +1,7 @@
 'use client'
 // Story 11.1 — Attribuer un grade coach (admin)
 import { useEffect, useState } from 'react'
-import { awardCoachGrade, listCoachGradeHistory, getCoachCurrentGrade, supabase } from '@aureak/api-client'
+import { awardCoachGrade, listCoachGradeHistory, getCoachCurrentGrade, getProfileDisplayName, sendGradeNotification } from '@aureak/api-client'
 import type { CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { colors, shadows } from '@aureak/theme'
 
@@ -27,14 +27,14 @@ export default function CoachGradePage({ params }: Props) {
 
   const load = async () => {
     setLoading(true)
-    const [currentResult, historyResult, profileResult] = await Promise.all([
+    const [currentResult, historyResult, nameResult] = await Promise.all([
       getCoachCurrentGrade(coachId),
       listCoachGradeHistory(coachId),
-      supabase.from('profiles').select('display_name').eq('user_id', coachId).single(),
+      getProfileDisplayName(coachId),
     ])
     setCurrent(currentResult.data)
     setHistory(historyResult.data)
-    setCoachName((profileResult.data as { display_name: string | null } | null)?.display_name ?? coachId.slice(0, 8))
+    setCoachName(nameResult.data ?? coachId.slice(0, 8))
     setLoading(false)
   }
 
@@ -48,19 +48,12 @@ export default function CoachGradePage({ params }: Props) {
       setFeedback(`Erreur : ${(error as Error)?.message ?? 'inconnue'}`)
     } else {
       // Notification push
-      const { data: session } = await supabase.auth.getSession()
-      const tenantId = (session?.session?.user?.app_metadata as Record<string, string>)?.tenant_id ?? ''
       const gradeInfo = GRADES.find(g => g.value === selected)!
-      await supabase.functions.invoke('send-notification', {
-        body: {
-          tenantId,
-          recipientId: coachId,
-          eventType  : 'grade_awarded',
-          referenceId: gradeId,
-          urgency    : 'routine',
-          title      : 'Félicitations !',
-          body       : `Vous avez obtenu le grade ${gradeInfo.label} ${gradeInfo.emoji}`,
-        },
+      await sendGradeNotification({
+        coachId,
+        gradeId   : gradeId as string | null,
+        gradeLabel: gradeInfo.label,
+        gradeEmoji: gradeInfo.emoji,
       })
       setFeedback(`Grade ${gradeInfo.label} attribué avec succès.`)
       setNotes('')

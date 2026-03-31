@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Modal, Pressable } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
-  supabase,
+  resolveProfileDisplayNames,
   getSessionById, listSessionCoaches, listAttendancesBySession,
   listSessionAttendees, addGuestToSession, removeGuestFromSession, listChildDirectory,
   postponeSession, cancelSessionWithShift, getChildDirectoryEntry,
@@ -107,10 +107,7 @@ export default function SessionDetailPage() {
       // Resolve coach names from profiles
       if (c.data.length > 0) {
         const ids = c.data.map((coach: SessionCoach) => coach.coachId)
-        const { data: cProfiles } = await supabase
-          .from('profiles').select('user_id, display_name').in('user_id', ids)
-        const cMap: Record<string, string> = {}
-        ;(cProfiles ?? []).forEach((p: { user_id: string; display_name: string }) => { cMap[p.user_id] = p.display_name })
+        const { data: cMap } = await resolveProfileDisplayNames(ids)
         setCoachNameMap(cMap)
       }
 
@@ -129,10 +126,7 @@ export default function SessionDetailPage() {
         const nonGuestIds = (a.data as Attendance[])
           .filter(x => !guestSet.has(x.childId)).map(x => x.childId)
         if (nonGuestIds.length > 0) {
-          const { data: kProfiles } = await supabase
-            .from('profiles').select('user_id, display_name').in('user_id', nonGuestIds)
-          const kMap: Record<string, string> = {}
-          ;(kProfiles ?? []).forEach((p: { user_id: string; display_name: string }) => { kMap[p.user_id] = p.display_name })
+          const { data: kMap } = await resolveProfileDisplayNames(nonGuestIds)
           setChildNameMap(kMap)
         }
       }
