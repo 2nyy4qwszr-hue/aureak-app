@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import {
   View, Text, FlatList, Switch, StyleSheet, ActivityIndicator,
 } from 'react-native'
-import { listConsentsByChild, revokeConsent, grantConsent, supabase } from '@aureak/api-client'
+import { listConsentsByChild, revokeConsent, grantConsent, listChildrenOfParent } from '@aureak/api-client'
 import type { Consent, ConsentType } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
@@ -30,26 +30,23 @@ export default function ConsentsScreen() {
   const load = async () => {
     if (!user) return
     setLoading(true)
+    try {
+      const { data: links } = await listChildrenOfParent(user.id)
+      const children = (links ?? []).map(l => ({
+        id  : l.childId,
+        name: l.displayName ?? 'Enfant',
+      }))
 
-    // Récupérer les enfants du parent via parent_child_links
-    const { data: links } = await supabase
-      .from('parent_child_links')
-      .select('child_id, profiles!child_id(first_name, last_name)')
-      .eq('parent_id', user.id)
-    const children = (links ?? []).map((l: Record<string, unknown>) => {
-      const p = l.profiles as Record<string, string> | null
-      return { id: l.child_id as string, name: p ? `${p.first_name} ${p.last_name}` : 'Enfant' }
-    })
-
-    // Pour chaque enfant, récupérer les consentements
-    const result: ChildConsents[] = await Promise.all(
-      children.map(async child => {
-        const { data: consents } = await listConsentsByChild(child.id)
-        return { childId: child.id, childName: child.name, consents: consents ?? [] }
-      }),
-    )
-    setData(result)
-    setLoading(false)
+      const result: ChildConsents[] = await Promise.all(
+        children.map(async child => {
+          const { data: consents } = await listConsentsByChild(child.id)
+          return { childId: child.id, childName: child.name, consents: consents ?? [] }
+        }),
+      )
+      setData(result)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [user?.id])

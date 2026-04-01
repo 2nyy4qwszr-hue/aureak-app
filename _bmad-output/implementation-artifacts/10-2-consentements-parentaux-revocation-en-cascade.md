@@ -1,6 +1,6 @@
 # Story 10.2 : Consentements Parentaux & Révocation en Cascade
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
