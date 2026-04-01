@@ -152,17 +152,22 @@ function InfosTab({
 
   const handleSave = async () => {
     setSaving(true)
-    await updateGroup(group.id, {
-      method         : method,
-      dayOfWeek      : day,
-      startHour      : startH,
-      startMinute    : startM,
-      durationMinutes: duration,
-      name           : previewName,
-    })
-    setSaving(false)
-    setEditing(false)
-    onSaved()
+    try {
+      await updateGroup(group.id, {
+        method         : method,
+        dayOfWeek      : day,
+        startHour      : startH,
+        startMinute    : startM,
+        durationMinutes: duration,
+        name           : previewName,
+      })
+      setEditing(false)
+      onSaved()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] handleSave error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const methodColor = METHOD_COLOR[group.method ?? 'Goal and Player']
@@ -356,12 +361,17 @@ function StaffTab({
   const handleAdd = async () => {
     if (!addingRole || !selectedId) return
     setSaving(true)
-    await addGroupStaff({ groupId, coachId: selectedId, role: addingRole, tenantId })
-    setAddingRole(null)
-    setSelectedId('')
-    setSearch('')
-    setSaving(false)
-    onRefresh()
+    try {
+      await addGroupStaff({ groupId, coachId: selectedId, role: addingRole, tenantId })
+      setAddingRole(null)
+      setSelectedId('')
+      setSearch('')
+      onRefresh()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] GroupStaffSection.handleAdd error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleRemove = async (id: string) => {
@@ -540,12 +550,17 @@ function JoueursTab({
   const handleAdd = async () => {
     if (!selectedId) return
     setSaving(true)
-    await addGroupMember(groupId, selectedId, tenantId)
-    setAdding(false)
-    setSelectedId('')
-    setSearch('')
-    setSaving(false)
-    onRefresh()
+    try {
+      await addGroupMember(groupId, selectedId, tenantId)
+      setAdding(false)
+      setSelectedId('')
+      setSearch('')
+      onRefresh()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] GroupMembersSection.handleAdd error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleRemove = async (childId: string) => {

@@ -157,20 +157,26 @@ export default function NewUserScreen() {
       parent2Phone     : form.parent2Phone     || undefined,
     }
 
-    const { error } = mode === 'fiche'
-      ? await createProfileFiche(baseParams)
-      : await inviteProfileUser(baseParams as InviteProfileUserParams)
+    try {
+      const { error } = mode === 'fiche'
+        ? await createProfileFiche(baseParams)
+        : await inviteProfileUser(baseParams as InviteProfileUserParams)
 
-    setSubmitting(false)
-    if (error) {
-      setResult({ ok: false, msg: (error as { message?: string }).message ?? 'Erreur inconnue' })
-    } else {
-      setResult({
-        ok: true,
-        msg: mode === 'fiche'
-          ? 'Fiche créée. L\'utilisateur peut être invité ultérieurement.'
-          : 'Invitation envoyée par email.',
-      })
+      if (error) {
+        setResult({ ok: false, msg: (error as { message?: string }).message ?? 'Erreur inconnue' })
+      } else {
+        setResult({
+          ok: true,
+          msg: mode === 'fiche'
+            ? 'Fiche créée. L\'utilisateur peut être invité ultérieurement.'
+            : 'Invitation envoyée par email.',
+        })
+      }
+    } catch (e: unknown) {
+      if (process.env.NODE_ENV !== 'production') console.error('[users/new] handleSubmit error:', e)
+      setResult({ ok: false, msg: (e as Error)?.message ?? 'Erreur inattendue.' })
+    } finally {
+      setSubmitting(false)
     }
   }
 

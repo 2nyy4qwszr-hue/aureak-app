@@ -194,108 +194,111 @@ export default function EditSessionPage() {
     setSaving(true)
     setSaveError(null)
 
-    // Suffixe Z pour conserver la cohérence UTC (même format que le champ en base)
-    const scheduledAt = `${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
+    try {
+      // Suffixe Z pour conserver la cohérence UTC (même format que le champ en base)
+      const scheduledAt = `${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
 
-    // ── Coaches en premier — si échec, la session n'est pas modifiée ──────────
-    const initialSet  = new Set(initialCoaches.map(c => c.coachId))
-    const selectedSet = new Set(selectedCoaches.map(c => c.coachId))
-    const toAdd    = selectedCoaches.filter(c => !initialSet.has(c.coachId))
-    const toRemove = initialCoaches.filter(c => !selectedSet.has(c.coachId))
+      // ── Coaches en premier — si échec, la session n'est pas modifiée ──────────
+      const initialSet  = new Set(initialCoaches.map(c => c.coachId))
+      const selectedSet = new Set(selectedCoaches.map(c => c.coachId))
+      const toAdd    = selectedCoaches.filter(c => !initialSet.has(c.coachId))
+      const toRemove = initialCoaches.filter(c => !selectedSet.has(c.coachId))
 
-    const roleChanged = selectedCoaches.filter(c => {
-      const orig = initialCoaches.find(ic => ic.coachId === c.coachId)
-      return orig && orig.role !== c.role
-    })
+      const roleChanged = selectedCoaches.filter(c => {
+        const orig = initialCoaches.find(ic => ic.coachId === c.coachId)
+        return orig && orig.role !== c.role
+      })
 
-    const effectiveToRemove = [...toRemove, ...roleChanged]
-    const effectiveToAdd    = [...toAdd,    ...roleChanged]
+      const effectiveToRemove = [...toRemove, ...roleChanged]
+      const effectiveToAdd    = [...toAdd,    ...roleChanged]
 
-    if (effectiveToRemove.length > 0) {
-      const removeResults = await Promise.all(effectiveToRemove.map(c => removeCoach(sessionId!, c.coachId)))
-      if (removeResults.some(r => r.error)) {
-        setSaveError('Erreur lors de la suppression de coaches. Veuillez réessayer.')
-        setSaving(false)
+      if (effectiveToRemove.length > 0) {
+        const removeResults = await Promise.all(effectiveToRemove.map(c => removeCoach(sessionId!, c.coachId)))
+        if (removeResults.some(r => r.error)) {
+          setSaveError('Erreur lors de la suppression de coaches. Veuillez réessayer.')
+          return
+        }
+      }
+      if (effectiveToAdd.length > 0) {
+        const addResults = await Promise.all(effectiveToAdd.map(c => assignCoach(sessionId!, c.coachId, session.tenantId, c.role)))
+        if (addResults.some(r => r.error)) {
+          setSaveError("Erreur lors de l'assignation de coaches. Veuillez réessayer.")
+          return
+        }
+      }
+
+      // ── Mise à jour session — seulement si coaches OK ─────────────────────────
+      const { error: updateError } = await updateSession(sessionId!, {
+        scheduledAt,
+        durationMinutes   : duration,
+        location          : terrain || null,
+        status,
+        sessionType       : sessionType || null,
+        notes             : notes.trim() || null,
+        cancellationReason: status === 'annulée' ? cancellationReason.trim() : undefined,
+      })
+
+      if (updateError) {
+        setSaveError('Erreur lors de la mise à jour. Veuillez réessayer.')
         return
       }
-    }
-    if (effectiveToAdd.length > 0) {
-      const addResults = await Promise.all(effectiveToAdd.map(c => assignCoach(sessionId!, c.coachId, session.tenantId, c.role)))
-      if (addResults.some(r => r.error)) {
-        setSaveError("Erreur lors de l'assignation de coaches. Veuillez réessayer.")
-        setSaving(false)
+
+      // ── Ateliers — diff et sync (Story 21.3) ────────────────────────────────
+      const initialIds = new Set(initialWorkshops.map(w => w.id))
+      const currentIds = new Set(workshops.filter(w => w.id).map(w => w.id!))
+      let workshopErrors = 0
+
+      // Supprimer les ateliers supprimés
+      for (const w of initialWorkshops) {
+        if (!currentIds.has(w.id)) {
+          const { error } = await removeSessionWorkshop(w.id)
+          if (error) { console.warn('[EditSession] removeSessionWorkshop error:', error); workshopErrors++ }
+        }
+      }
+      // Mettre à jour ou créer
+      for (let k = 0; k < workshops.length; k++) {
+        const w = workshops[k]
+        if (w.pdfUploading || w.cardUploading) continue
+        const pdfUrl  = w.pdfUrl?.startsWith('blob:')  ? undefined : (w.pdfUrl  ?? undefined)
+        const cardUrl = w.cardUrl?.startsWith('blob:') ? undefined : (w.cardUrl ?? undefined)
+        if (w.id && initialIds.has(w.id)) {
+          // Mise à jour
+          const { error } = await updateSessionWorkshop(w.id, {
+            title    : w.title.trim() || `Atelier ${k + 1}`,
+            pdfUrl   : pdfUrl ?? null,
+            cardLabel: w.cardLabel,
+            cardUrl  : cardUrl ?? null,
+            notes    : w.notes.trim() || undefined,
+            sortOrder: k,
+          })
+          if (error) { console.warn('[EditSession] updateSessionWorkshop error:', error); workshopErrors++ }
+        } else if (!w.id) {
+          // Nouveau
+          const { error } = await addSessionWorkshop({
+            sessionId : sessionId!,
+            tenantId  : session.tenantId,
+            title     : w.title.trim() || `Atelier ${k + 1}`,
+            sortOrder : k,
+            pdfUrl,
+            cardLabel : w.cardLabel ?? undefined,
+            cardUrl,
+            notes     : w.notes.trim() || undefined,
+          })
+          if (error) { console.warn('[EditSession] addSessionWorkshop error:', error); workshopErrors++ }
+        }
+      }
+
+      if (workshopErrors > 0) {
+        setSaveError(`Séance enregistrée, mais ${workshopErrors} atelier(s) n'ont pas pu être sauvegardé(s). Vérifiez et réessayez.`)
         return
       }
-    }
-
-    // ── Mise à jour session — seulement si coaches OK ─────────────────────────
-    const { error: updateError } = await updateSession(sessionId!, {
-      scheduledAt,
-      durationMinutes   : duration,
-      location          : terrain || null,
-      status,
-      sessionType       : sessionType || null,
-      notes             : notes.trim() || null,
-      cancellationReason: status === 'annulée' ? cancellationReason.trim() : undefined,
-    })
-
-    if (updateError) {
-      setSaveError('Erreur lors de la mise à jour. Veuillez réessayer.')
+      router.replace(`/seances/${sessionId}?updated=true` as never)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances/edit] handleSave error:', err)
+      setSaveError('Erreur inattendue lors de la sauvegarde.')
+    } finally {
       setSaving(false)
-      return
     }
-
-    // ── Ateliers — diff et sync (Story 21.3) ────────────────────────────────
-    const initialIds = new Set(initialWorkshops.map(w => w.id))
-    const currentIds = new Set(workshops.filter(w => w.id).map(w => w.id!))
-    let workshopErrors = 0
-
-    // Supprimer les ateliers supprimés
-    for (const w of initialWorkshops) {
-      if (!currentIds.has(w.id)) {
-        const { error } = await removeSessionWorkshop(w.id)
-        if (error) { console.warn('[EditSession] removeSessionWorkshop error:', error); workshopErrors++ }
-      }
-    }
-    // Mettre à jour ou créer
-    for (let k = 0; k < workshops.length; k++) {
-      const w = workshops[k]
-      if (w.pdfUploading || w.cardUploading) continue
-      const pdfUrl  = w.pdfUrl?.startsWith('blob:')  ? undefined : (w.pdfUrl  ?? undefined)
-      const cardUrl = w.cardUrl?.startsWith('blob:') ? undefined : (w.cardUrl ?? undefined)
-      if (w.id && initialIds.has(w.id)) {
-        // Mise à jour
-        const { error } = await updateSessionWorkshop(w.id, {
-          title    : w.title.trim() || `Atelier ${k + 1}`,
-          pdfUrl   : pdfUrl ?? null,
-          cardLabel: w.cardLabel,
-          cardUrl  : cardUrl ?? null,
-          notes    : w.notes.trim() || undefined,
-          sortOrder: k,
-        })
-        if (error) { console.warn('[EditSession] updateSessionWorkshop error:', error); workshopErrors++ }
-      } else if (!w.id) {
-        // Nouveau
-        const { error } = await addSessionWorkshop({
-          sessionId : sessionId!,
-          tenantId  : session.tenantId,
-          title     : w.title.trim() || `Atelier ${k + 1}`,
-          sortOrder : k,
-          pdfUrl,
-          cardLabel : w.cardLabel ?? undefined,
-          cardUrl,
-          notes     : w.notes.trim() || undefined,
-        })
-        if (error) { console.warn('[EditSession] addSessionWorkshop error:', error); workshopErrors++ }
-      }
-    }
-
-    setSaving(false)
-    if (workshopErrors > 0) {
-      setSaveError(`Séance enregistrée, mais ${workshopErrors} atelier(s) n'ont pas pu être sauvegardé(s). Vérifiez et réessayez.`)
-      return
-    }
-    router.replace(`/seances/${sessionId}?updated=true` as never)
   }
 
   // ── Coach management ────────────────────────────────────────────────────────

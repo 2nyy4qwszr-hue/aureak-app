@@ -53,16 +53,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
 
     // Initialisation depuis la session persistée
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const { role, tenantId } = await resolveRole(session)
-      set({
-        session,
-        user     : session?.user ?? null,
-        role,
-        tenantId,
-        isLoading: false,
+    supabase.auth.getSession()
+      .then(async ({ data: { session } }) => {
+        const { role, tenantId } = await resolveRole(session)
+        set({
+          session,
+          user     : session?.user ?? null,
+          role,
+          tenantId,
+          isLoading: false,
+        })
       })
-    })
+      .catch(() => {
+        set({ session: null, user: null, role: null, tenantId: null, isLoading: false })
+      })
 
     // Listener temps réel : connexion / déconnexion / token refresh
     supabase.auth.onAuthStateChange(async (_event, session) => {

@@ -744,6 +744,7 @@ function AddHistoryModal({
       onClose()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde.')
+    } finally {
       setSaving(false)
     }
   }

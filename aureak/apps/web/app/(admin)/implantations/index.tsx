@@ -210,7 +210,7 @@ export default function ImplantationsPage() {
     setLoadError(null)
     const { data, error } = await listImplantations()
     if (error) {
-      console.error('[Implantations] listImplantations error:', error)
+      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] listImplantations error:', error)
       setLoadError('Impossible de charger les implantations. Vérifiez votre connexion.')
     } else {
       setImplantations(data)
@@ -239,21 +239,31 @@ export default function ImplantationsPage() {
   const handleCreate = async () => {
     if (!newName.trim() || !tenantId) return
     setCreating(true)
-    await createImplantation({ tenantId, name: newName.trim(), address: newAddress.trim() || undefined })
-    setNewName('')
-    setNewAddress('')
-    setShowCreate(false)
-    setCreating(false)
-    await load()
+    try {
+      await createImplantation({ tenantId, name: newName.trim(), address: newAddress.trim() || undefined })
+      setNewName('')
+      setNewAddress('')
+      setShowCreate(false)
+      await load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] handleCreate error:', err)
+    } finally {
+      setCreating(false)
+    }
   }
 
   const handleSave = async () => {
     if (!editId || !editName.trim()) return
     setSaving(true)
-    await updateImplantation(editId, { name: editName.trim(), address: editAddr.trim() || undefined })
-    setEditId(null)
-    setSaving(false)
-    await load()
+    try {
+      await updateImplantation(editId, { name: editName.trim(), address: editAddr.trim() || undefined })
+      setEditId(null)
+      await load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] handleSave error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDeactivate = async (id: string) => {

@@ -52,21 +52,27 @@ export default function NewSessionPage() {
     }
     setSaving(true)
     setError('')
-    const scheduledAt = new Date(`${date}T${time}:00`).toISOString()
-    const { data: session, error: err } = await createSession({
-      tenantId,
-      implantationId : implId,
-      groupId,
-      scheduledAt,
-      durationMinutes: parseInt(duration, 10) || 90,
-      location       : location.trim() || undefined,
-    })
-    if (err || !session) {
-      setError('Erreur lors de la création. Réessayez.')
+    try {
+      const scheduledAt = new Date(`${date}T${time}:00`).toISOString()
+      const { data: session, error: err } = await createSession({
+        tenantId,
+        implantationId : implId,
+        groupId,
+        scheduledAt,
+        durationMinutes: parseInt(duration, 10) || 90,
+        location       : location.trim() || undefined,
+      })
+      if (err || !session) {
+        setError('Erreur lors de la création. Réessayez.')
+        return
+      }
+      router.push(`/coach/sessions/${session.id}/attendance` as never)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coach/sessions/new] handleSubmit error:', err)
+      setError('Erreur inattendue. Réessayez.')
+    } finally {
       setSaving(false)
-      return
     }
-    router.push(`/coach/sessions/${session.id}/attendance` as never)
   }
 
   return (

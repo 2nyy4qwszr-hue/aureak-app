@@ -337,23 +337,28 @@ export default function SeanceDetailPage() {
   const handleSave = async () => {
     if (!sessionId || !title.trim()) return
     setSaving(true)
-    await updateMethodologySession(sessionId, {
-      title      : title.trim(),
-      method     : method      ?? null,
-      contextType: contextType ?? null,
-      moduleName : moduleName.trim()  || null,
-      trainingRef: trainingRef.trim() || null,
-      description: description.trim() || null,
-      pdfUrl     : pdfUrl.trim()    || null,
-      videoUrl   : videoUrl.trim()  || null,
-      audioUrl   : audioUrl.trim()  || null,
-      level      : level       ?? null,
-      objective  : objective.trim()   || null,
-      notes      : notes.trim()       || null,
-    })
-    setSaving(false)
-    setEditing(false)
-    load()
+    try {
+      await updateMethodologySession(sessionId, {
+        title      : title.trim(),
+        method     : method      ?? null,
+        contextType: contextType ?? null,
+        moduleName : moduleName.trim()  || null,
+        trainingRef: trainingRef.trim() || null,
+        description: description.trim() || null,
+        pdfUrl     : pdfUrl.trim()    || null,
+        videoUrl   : videoUrl.trim()  || null,
+        audioUrl   : audioUrl.trim()  || null,
+        level      : level       ?? null,
+        objective  : objective.trim()   || null,
+        notes      : notes.trim()       || null,
+      })
+      setEditing(false)
+      load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[methodologie/seances/detail] handleSave error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleToggleActive = async () => {

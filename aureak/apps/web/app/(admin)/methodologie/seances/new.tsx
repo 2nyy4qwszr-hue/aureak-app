@@ -362,24 +362,29 @@ export default function NewSeancePage() {
       audioUrl   : audioUrl.trim()  || null,
     })
 
-    if (err || !data) {
+    try {
+      if (err || !data) {
+        setError('Erreur lors de la création.')
+        return
+      }
+
+      // Link themes in order
+      await Promise.all(
+        selectedThemes.map(st => linkMethodologySessionTheme(data.id, st.themeId, st.sortOrder))
+      )
+
+      // Link situations in order
+      await Promise.all(
+        selectedSituations.map((id, i) => linkMethodologySessionSituation(data.id, id, i))
+      )
+
+      router.replace(`/methodologie/seances/${data.id}` as never)
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') console.error('[methodologie/seances/new] handleSave error:', e)
+      setError('Erreur inattendue lors de la création.')
+    } finally {
       setSaving(false)
-      setError('Erreur lors de la création.')
-      return
     }
-
-    // Link themes in order
-    await Promise.all(
-      selectedThemes.map(st => linkMethodologySessionTheme(data.id, st.themeId, st.sortOrder))
-    )
-
-    // Link situations in order
-    await Promise.all(
-      selectedSituations.map((id, i) => linkMethodologySessionSituation(data.id, id, i))
-    )
-
-    setSaving(false)
-    router.replace(`/methodologie/seances/${data.id}` as never)
   }
 
   return (
