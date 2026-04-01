@@ -749,11 +749,13 @@ export default function NewSessionPage() {
     if (!implantationId) { setGroups([]); setGroupId(''); setSelectedGroup(null); return }
     setLoadingGroups(true)
     setGroups([])
-    listGroupsByImplantation(implantationId).then(({ data, error }) => {
-      if (error && process.env.NODE_ENV !== 'production') console.error('[NewSession] listGroupsByImplantation error:', error)
-      setGroups(data ?? [])
-      setLoadingGroups(false)
-    })
+    listGroupsByImplantation(implantationId)
+      .then(({ data, error }) => {
+        if (error && process.env.NODE_ENV !== 'production') console.error('[NewSession] listGroupsByImplantation error:', error)
+        setGroups(data ?? [])
+      })
+      .catch(() => { setGroups([]) })
+      .finally(() => { setLoadingGroups(false) })
   }, [implantationId])
 
   // ── Inherit group defaults when group is selected ──────────────────────────

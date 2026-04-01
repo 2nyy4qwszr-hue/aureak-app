@@ -45,10 +45,15 @@ export default function ChildAvatarPage() {
   const handleEquip = async (item: AvatarItem) => {
     if (!user?.id || saving) return
     setSaving(true)
-    await equipAvatarItem(user.id, item.category, item.id)
-    const updated = await getPlayerAvatar(user.id)
-    setAvatar(updated)
-    setSaving(false)
+    try {
+      await equipAvatarItem(user.id, item.category, item.id)
+      const updated = await getPlayerAvatar(user.id)
+      setAvatar(updated)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[avatar] handleEquip error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const unlockedIds = new Set(unlocked.map(u => u.item_id))

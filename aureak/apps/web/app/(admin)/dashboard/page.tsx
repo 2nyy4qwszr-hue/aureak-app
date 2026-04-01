@@ -260,9 +260,14 @@ export default function DashboardPage() {
 
   const handleResolve = async (id: string) => {
     setResolving(id)
-    await resolveAnomaly(id)
-    setResolving(null)
-    await load()
+    try {
+      await resolveAnomaly(id)
+      await load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[dashboard] handleResolve error:', err)
+    } finally {
+      setResolving(null)
+    }
   }
 
   if (loading) return <DashboardSkeleton />

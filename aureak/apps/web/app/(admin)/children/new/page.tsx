@@ -211,7 +211,6 @@ export default function NewJoueurPage() {
         const failedCount = results.filter(r => r.status === 'rejected').length
         if (failedCount > 0) {
           // Warning non-bloquant — navigation maintenue après délai (AC: #8)
-          setSaving(false)
           setEnrollWarning(
             `${failedCount} inscription(s) académique(s) n'ont pas pu être enregistrées. ` +
             'Vous pouvez les ajouter depuis la fiche joueur.',
@@ -224,10 +223,10 @@ export default function NewJoueurPage() {
         }
       }
 
-      setSaving(false)
       router.replace(`/children/${entry.id}` as never)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la création du joueur.')
+    } finally {
       setSaving(false)
     }
   }
