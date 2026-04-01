@@ -8,6 +8,7 @@ import { TamaguiProvider } from 'tamagui'
 import { tamaguiConfig } from '@aureak/theme'
 import { useAuthStore } from '@aureak/business-logic'
 import { supabase } from '@aureak/api-client'
+import { initLocalDB } from '../src/db/schema'
 
 // Prévenir la disparition du splash avant que les fonts soient chargées
 SplashScreen.preventAutoHideAsync()
@@ -33,6 +34,8 @@ export default function RootLayout() {
   // Initialiser le store auth UNE SEULE FOIS à la racine de l'app
   useEffect(() => {
     useAuthStore.getState()._init()
+    // Initialiser la base SQLite locale (Story 5.1)
+    initLocalDB().catch(() => {/* silent — degraded mode si SQLite indisponible */})
   }, [])
 
   // Enregistrer le token push après connexion (Story 7.1)

@@ -1,6 +1,6 @@
 # Story 5.1 : Schéma Offline SQLite & Sync Queue Serveur
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
