@@ -1472,3 +1472,4 @@ export type ClubMatchReview = {
   updatedAt       : string
   clubNom         : string | null   // joint depuis club_directory pour affichage
 }
+

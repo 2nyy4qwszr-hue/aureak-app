@@ -1,6 +1,6 @@
 # Story 7.4 : Système de Tickets Parent (Minimal Tracé)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -187,6 +187,7 @@ export type { ImplantationStats, AnomalyEvent } from './admin/supervision'
 
 export {
   createTicket, replyToTicket, updateTicketStatus, listMyTickets, getTicketWithReplies,
+  listAllTickets, getTicketById, listTicketReplies,
 } from './parent/tickets'
 export type { CreateTicketParams, TicketCategory, TicketStatus, Ticket, TicketReply } from './parent/tickets'
 
@@ -405,3 +406,4 @@ export type { ChildDashboardExtra, ChildNextSession, ChildLastEval } from './chi
 // ── Parent — Préférences et historique notifications ─────────────────────────
 export { getNotificationPreferences, listNotificationLogs, saveNotificationPreferences } from './parent/notifications'
 export type { NotificationPreferences, NotificationLog } from './parent/notifications'
+

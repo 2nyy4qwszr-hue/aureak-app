@@ -1,6 +1,6 @@
 # Story 10.1 : Cycle de Vie Utilisateur
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
