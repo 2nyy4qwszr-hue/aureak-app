@@ -350,28 +350,33 @@ export default function ClubDetailPage() {
   const load = useCallback(async () => {
     if (!clubId) return
     setLoading(true)
-    const [clubRes, linksRes, coachesRes, playersRes, coachListRes] = await Promise.all([
-      getClubDirectoryEntry(clubId),
-      listChildrenOfClub(clubId),           // all links for this club
-      listCoachesOfClub(clubId),
-      listChildDirectory({ page: 0, pageSize: 500, actif: true }),
-      listAvailableCoaches(),
-    ])
-    if (clubRes.data) {
-      setClub(clubRes.data)
-      setForm(entryToForm(clubRes.data))
+    try {
+      const [clubRes, linksRes, coachesRes, playersRes, coachListRes] = await Promise.all([
+        getClubDirectoryEntry(clubId),
+        listChildrenOfClub(clubId),           // all links for this club
+        listCoachesOfClub(clubId),
+        listChildDirectory({ page: 0, pageSize: 500, actif: true }),
+        listAvailableCoaches(),
+      ])
+      if (clubRes.data) {
+        setClub(clubRes.data)
+        setForm(entryToForm(clubRes.data))
+      }
+      setCurrentPlayers(linksRes.data.filter(r => r.linkType === 'current'))
+      setAffiliatedPlayers(linksRes.data.filter(r => r.linkType === 'affiliated'))
+      setCoaches(coachesRes.data)
+      setAllPlayers((playersRes.data ?? []).map(p => ({
+        id         : p.id,
+        displayName: p.displayName,
+        statut     : p.statut,
+        niveauClub : p.niveauClub,
+      })))
+      setAllCoaches(coachListRes)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] load error:', err)
+    } finally {
+      setLoading(false)
     }
-    setCurrentPlayers(linksRes.data.filter(r => r.linkType === 'current'))
-    setAffiliatedPlayers(linksRes.data.filter(r => r.linkType === 'affiliated'))
-    setCoaches(coachesRes.data)
-    setAllPlayers((playersRes.data ?? []).map(p => ({
-      id         : p.id,
-      displayName: p.displayName,
-      statut     : p.statut,
-      niveauClub : p.niveauClub,
-    })))
-    setAllCoaches(coachListRes)
-    setLoading(false)
   }, [clubId])
 
   useEffect(() => { load() }, [load])

@@ -1151,7 +1151,7 @@ export default function ChildDetailPage() {
       setInjuries(injList)
       setPhotos(photoList)
     } catch (e) {
-      console.error('[ChildDetailPage] loadChild error', e)
+      if (process.env.NODE_ENV !== 'production') console.error('[ChildDetailPage] loadChild error', e)
     } finally {
       setLoading(false)
     }
@@ -1185,8 +1185,9 @@ export default function ChildDetailPage() {
       setDraft({})
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde.')
+    } finally {
+      setSavingEdit(false)
     }
-    setSavingEdit(false)
   }
 
   const handleToggleActif = async () => {
@@ -1251,9 +1252,14 @@ export default function ChildDetailPage() {
 
   const handleDeleteHistory = async (id: string) => {
     setDeletingId(id)
-    await deleteChildHistoryEntry(id)
-    setHistory(prev => prev.filter(h => h.id !== id))
-    setDeletingId(null)
+    try {
+      await deleteChildHistoryEntry(id)
+      setHistory(prev => prev.filter(h => h.id !== id))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] deleteHistory error:', err)
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
