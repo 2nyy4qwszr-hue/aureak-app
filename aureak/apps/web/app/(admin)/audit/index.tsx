@@ -13,9 +13,14 @@ export default function AuditPage() {
 
   const load = async () => {
     setLoading(true)
-    const result = await listAuditLogs(filters)
-    setLogs(result.data)
-    setLoading(false)
+    try {
+      const result = await listAuditLogs(filters)
+      setLogs(result.data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[audit] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])

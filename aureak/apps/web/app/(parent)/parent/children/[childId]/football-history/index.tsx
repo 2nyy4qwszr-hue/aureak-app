@@ -285,9 +285,14 @@ export default function FootballHistoryPage() {
 
   const load = async () => {
     if (!childId) return
-    const { data } = await listHistoryByChild(childId)
-    setHistory(data)
-    setLoading(false)
+    try {
+      const { data } = await listHistoryByChild(childId)
+      setHistory(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[football-history] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [childId])

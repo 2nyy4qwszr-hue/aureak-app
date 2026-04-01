@@ -129,34 +129,39 @@ export default function EvaluationsPage() {
   const [loading,     setLoading]     = useState(true)
 
   const load = async () => {
-    const [sessionRes, evalsRes] = await Promise.all([
-      getSessionById(sessionId),
-      listMergedEvaluations(sessionId),
-    ])
-    setSession(sessionRes.data)
+    try {
+      const [sessionRes, evalsRes] = await Promise.all([
+        getSessionById(sessionId),
+        listMergedEvaluations(sessionId),
+      ])
+      setSession(sessionRes.data)
 
-    const { data: childIds } = await listPresentChildIdsForSession(sessionId)
-    const { data: profileMap2 } = await resolveProfileDisplayNames(childIds ?? [])
-    const evalMap = new Map(
-      (evalsRes.data as EvaluationMerged[]).map(e => [e.childId, e])
-    )
+      const { data: childIds } = await listPresentChildIdsForSession(sessionId)
+      const { data: profileMap2 } = await resolveProfileDisplayNames(childIds ?? [])
+      const evalMap = new Map(
+        (evalsRes.data as EvaluationMerged[]).map(e => [e.childId, e])
+      )
 
-    setChildren((childIds ?? []).map((childId: string) => {
-      const ev = evalMap.get(childId)
-      return {
-        childId,
-        displayName: profileMap2[childId] ?? childId.slice(0, 8),
-        receptivite: ev?.receptivite ?? 'none',
-        goutEffort : ev?.goutEffort  ?? 'none',
-        attitude   : ev?.attitude    ?? 'none',
-        topSeance  : ev?.topSeance   ?? 'none',
-        note       : '',
-        saved      : !!ev,
-        dirty      : false,
-        ignored    : false,
-      }
-    }))
-    setLoading(false)
+      setChildren((childIds ?? []).map((childId: string) => {
+        const ev = evalMap.get(childId)
+        return {
+          childId,
+          displayName: profileMap2[childId] ?? childId.slice(0, 8),
+          receptivite: ev?.receptivite ?? 'none',
+          goutEffort : ev?.goutEffort  ?? 'none',
+          attitude   : ev?.attitude    ?? 'none',
+          topSeance  : ev?.topSeance   ?? 'none',
+          note       : '',
+          saved      : !!ev,
+          dirty      : false,
+          ignored    : false,
+        }
+      }))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coach/evaluations] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [sessionId])

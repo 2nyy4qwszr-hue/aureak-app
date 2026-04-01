@@ -597,8 +597,14 @@ function BlessuresSection({
 
   const handleDelete = async (id: string) => {
     setDeletingId(id)
-    try { await deleteChildInjury(id); onRefresh() } catch { /* ignore */ }
-    setDeletingId(null)
+    try {
+      await deleteChildInjury(id)
+      onRefresh()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] deleteInjury error:', err)
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   const formatDate = (iso: string | null) => {
@@ -883,8 +889,11 @@ function ChildPhotosSection({
     try {
       await setCurrentPhoto(photoId, childId)
       onRefresh()
-    } catch { /* ignore */ }
-    setSettingId(null)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] setCurrentPhoto error:', err)
+    } finally {
+      setSettingId(null)
+    }
   }
 
   const handleDelete = async (photoId: string) => {
@@ -892,8 +901,11 @@ function ChildPhotosSection({
     try {
       await deleteChildPhoto(photoId)
       onRefresh()
-    } catch { /* ignore */ }
-    setDeletingPhId(null)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] deletePhoto error:', err)
+    } finally {
+      setDeletingPhId(null)
+    }
   }
 
   return (
@@ -1184,8 +1196,11 @@ export default function ChildDetailPage() {
     try {
       await updateChildDirectoryEntry(child.id, { actif: newActif })
       setChild(prev => prev ? { ...prev, actif: newActif } : prev)
-    } catch { /* ignore */ }
-    setTogglingActif(false)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] toggleActif error:', err)
+    } finally {
+      setTogglingActif(false)
+    }
   }
 
   // ── Section saves ───────────────────────────────────────────────────────────
