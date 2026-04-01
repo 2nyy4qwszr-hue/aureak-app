@@ -1,6 +1,6 @@
 # Story 7.1 : Infrastructure Notifications — Push Tokens, Préférences & Urgence
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
