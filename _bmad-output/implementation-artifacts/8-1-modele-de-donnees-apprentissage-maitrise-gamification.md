@@ -1,6 +1,6 @@
 # Story 8.1 : Modèle de Données — Apprentissage, Maîtrise & Gamification
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

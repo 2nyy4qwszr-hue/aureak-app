@@ -1,6 +1,6 @@
 # Story 8.5 : Rapports Coach, Vue Agrégée Groupe & Accès Parent
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

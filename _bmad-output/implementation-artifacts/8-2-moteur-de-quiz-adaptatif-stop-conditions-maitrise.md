@@ -1,6 +1,6 @@
 # Story 8.2 : Moteur de Quiz Adaptatif (Stop Conditions & Maîtrise)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -1,6 +1,6 @@
 # Story 8.4 : Streaks, Révision Espacée & Déclenchement Événements Gamification
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

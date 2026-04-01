@@ -1,6 +1,6 @@
 # Story 7.3 : Board Parent — Fiche Enfant & Transparence Terrain/Admin
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
