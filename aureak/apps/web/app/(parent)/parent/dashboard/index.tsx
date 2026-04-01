@@ -123,6 +123,8 @@ export default function ParentDashboardPage() {
         )
 
         setChildren(results)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[ParentDashboard] load error:', err)
       } finally {
         setLoading(false)
       }

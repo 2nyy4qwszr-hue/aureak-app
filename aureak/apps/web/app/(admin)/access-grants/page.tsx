@@ -67,6 +67,8 @@ export default function AccessGrantsPage() {
     try {
       const { data } = await listActiveGrants()
       setGrants((data as Grant[]) ?? [])
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[AccessGrants] fetchGrants error:', err)
     } finally {
       setLoading(false)
     }

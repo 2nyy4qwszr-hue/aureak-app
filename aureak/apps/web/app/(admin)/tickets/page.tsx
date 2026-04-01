@@ -63,6 +63,8 @@ export default function TicketsAdminPage() {
     try {
       const { data } = await listAllTickets(filter !== 'all' ? filter : undefined)
       setTickets(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[TicketsAdmin] fetchTickets error:', err)
     } finally {
       setLoading(false)
     }

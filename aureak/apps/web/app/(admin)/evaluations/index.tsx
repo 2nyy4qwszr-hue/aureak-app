@@ -35,6 +35,8 @@ export default function EvaluationsPage() {
     try {
       const { data } = await listEvaluationsAdmin(from, to)
       setEvals(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[EvaluationsPage] load error:', err)
     } finally {
       setLoading(false)
     }

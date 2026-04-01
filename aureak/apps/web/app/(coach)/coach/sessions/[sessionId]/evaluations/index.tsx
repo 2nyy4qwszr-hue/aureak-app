@@ -191,7 +191,8 @@ export default function EvaluationsPage() {
         occurredAt : new Date().toISOString(),
       })
       setChildren(prev => prev.map(c => c.childId === child.childId ? { ...c, saved: true, dirty: false } : c))
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[EvaluationsPage] saveOne error:', err)
       setSaveError('Erreur lors de la sauvegarde. Réessaie.')
     } finally {
       setSaving(null)
@@ -216,7 +217,8 @@ export default function EvaluationsPage() {
         })
       ))
       setChildren(prev => prev.map(c => ({ ...c, saved: true, dirty: false })))
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[EvaluationsPage] saveAll error:', err)
       setSaveError('Erreur lors de la sauvegarde globale. Réessaie.')
     } finally {
       setSavingAll(false)

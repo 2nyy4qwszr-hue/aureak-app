@@ -123,7 +123,8 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
       setCriteria(crits)
       setFaults(faultsData)
       setMiniExercises(exos)
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionOrganisation] load error:', err)
       setError('Erreur lors du chargement des données pédagogiques.')
     } finally {
       setLoading(false)
@@ -149,7 +150,8 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
     setMetaphors(ms => ms.map(m => m.id === id ? { ...m, sequenceId: newSeqId } : m))
     try {
       await updateThemeMetaphor(id, { sequenceId: newSeqId })
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionOrganisation] reassignMetaphor error:', err)
       setMetaphors(ms => ms.map(m => m.id === id ? { ...m, sequenceId: originalSeqId } : m))
     }
   }
@@ -169,7 +171,8 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
         sequenceId: newSeqId,
         ...(clearMetaphor ? { metaphorId: null } : {}),
       })
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionOrganisation] reassignCriterion error:', err)
       setCriteria(cs => cs.map(c => c.id === id
         ? { ...c, sequenceId: originalSeqId, ...(clearMetaphor ? { metaphorId: originalMetId } : {}) }
         : c
@@ -183,7 +186,8 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
     setCriteria(cs => cs.map(c => c.id === id ? { ...c, metaphorId: newMetId } : c))
     try {
       await updateCriterionExtended(id, { metaphorId: newMetId })
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionOrganisation] reassignCriterionMetaphor error:', err)
       setCriteria(cs => cs.map(c => c.id === id ? { ...c, metaphorId: originalMetId } : c))
     }
   }
@@ -193,7 +197,8 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
     setFaults(fs => fs.map(f => f.id === id ? { ...f, criterionId: newCritId } : f))
     try {
       await updateFaultExtended(id, { criterionId: newCritId })
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionOrganisation] reassignFault error:', err)
       setFaults(fs => fs.map(f => f.id === id ? { ...f, criterionId: originalCritId } : f))
     }
   }
@@ -203,7 +208,8 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
     setMiniExercises(ms => ms.map(m => m.id === id ? { ...m, sequenceId: newSeqId } : m))
     try {
       await updateThemeMiniExercise(id, { sequenceId: newSeqId })
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionOrganisation] reassignMiniExercise error:', err)
       setMiniExercises(ms => ms.map(m => m.id === id ? { ...m, sequenceId: originalSeqId } : m))
     }
   }

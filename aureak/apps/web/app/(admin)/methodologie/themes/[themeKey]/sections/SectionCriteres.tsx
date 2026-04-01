@@ -117,6 +117,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
       setTree(withFaults)
       setFreeFaults(allFaults.filter(f => f.criterionId === null))
       onCriteriaChange(crits)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] loadTree error:', err)
     } finally {
       setLoading(false)
     }
@@ -163,6 +165,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
       setNewCritMetaId('')
       setShowAddCrit(false)
       await loadTree()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleAddCriterion error:', err)
     } finally {
       setAddingCrit(false)
     }
@@ -182,8 +186,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
         metaphorId           : c.metaphorId,
       })
       toggleEdit(c.id)
-    } catch {
-      // mode édition reste ouvert si erreur
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleSaveCriterion error:', err)
     }
   }
 
@@ -192,8 +196,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
     try {
       await deleteCriterionById(id)
       await loadTree()
-    } catch {
-      // silently ignore — le critère reste visible
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleDeleteCriterion error:', err)
     }
   }
 
@@ -207,8 +211,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
       setNewFaultLabel(prev => ({ ...prev, [criterionId]: '' }))
       setShowAddFault(prev => ({ ...prev, [criterionId]: false }))
       await loadTree()
-    } catch {
-      // formulaire reste ouvert si erreur
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleAddFault error:', err)
     } finally {
       setAddingFault(prev => ({ ...prev, [criterionId]: false }))
     }
@@ -230,8 +234,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
       setNewFreeFaultCritId('')
       setShowAddFreeFault(false)
       await loadTree()
-    } catch {
-      // formulaire reste ouvert si erreur
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleAddFreeFault error:', err)
     } finally {
       setAddingFreeFault(false)
     }
@@ -241,8 +245,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
     try {
       await updateFaultExtended(faultId, { criterionId: criterionId || null })
       await loadTree()
-    } catch {
-      // silently ignore
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleLinkFaultToCriterion error:', err)
     }
   }
 
@@ -260,8 +264,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
         correctiveImageUrl : f.correctiveImageUrl,
       })
       toggleEditFault(critId, f.id)
-    } catch {
-      // mode édition reste ouvert si erreur
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleSaveFault error:', err)
     }
   }
 
@@ -270,8 +274,8 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
     try {
       await deleteFaultById(faultId)
       await loadTree()
-    } catch {
-      // silently ignore — l'erreur reste visible
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionCriteres] handleDeleteFault error:', err)
     }
   }
 

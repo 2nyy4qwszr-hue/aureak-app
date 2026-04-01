@@ -63,6 +63,8 @@ export default function TicketDetailPage() {
       const { ticket: t, replies: r } = await getTicketWithReplies(ticketId)
       setTicket(t)
       setReplies(r)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[TicketDetail] fetchData error:', err)
     } finally {
       setLoading(false)
     }

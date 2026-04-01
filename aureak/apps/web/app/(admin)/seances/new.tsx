@@ -842,7 +842,6 @@ export default function NewSessionPage() {
       if (tErr || !transientGroup) {
         if (process.env.NODE_ENV !== 'production') console.error('[NewSession] createTransientGroup error:', tErr)
         setResult({ created: 0, failed: selectedDates.length })
-        setCreating(false)
         return
       }
       effectiveGroupId = transientGroup.id

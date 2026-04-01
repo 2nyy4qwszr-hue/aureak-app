@@ -95,7 +95,8 @@ export default function SectionVisionPedagogique({ themeId, tenantId }: Props) {
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionVisionPedagogique] save error:', err)
       setError('Erreur lors de la sauvegarde.')
     } finally {
       setSaving(false)

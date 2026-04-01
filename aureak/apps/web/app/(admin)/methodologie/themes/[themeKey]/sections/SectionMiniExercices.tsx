@@ -56,6 +56,8 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria, sequ
     try {
       const data = await listThemeMiniExercises(themeId)
       setExercises(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionMiniExercices] load error:', err)
     } finally {
       setLoading(false)
     }
@@ -87,6 +89,8 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria, sequ
       setForm(EMPTY_FORM)
       setShowAdd(false)
       await load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionMiniExercices] handleAdd error:', err)
     } finally {
       setAdding(false)
     }
@@ -115,8 +119,8 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria, sequ
       })
       setEditingId(null)
       await load()
-    } catch {
-      // mode édition reste ouvert si erreur
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionMiniExercices] handleSaveEdit error:', err)
     }
   }
 
@@ -125,8 +129,8 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria, sequ
     try {
       await deleteThemeMiniExercise(id)
       await load()
-    } catch {
-      // silently ignore — l'exercice reste visible
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SectionMiniExercices] handleDelete error:', err)
     }
   }
 

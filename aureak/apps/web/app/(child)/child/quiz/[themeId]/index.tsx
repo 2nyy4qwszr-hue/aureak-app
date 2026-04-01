@@ -41,7 +41,6 @@ export default function ChildQuizSessionPage() {
         const result = await createLearningAttempt('practice', themeId)
         if (!result.questions || result.questions.length === 0) {
           setError('Aucune question disponible pour ce thème.')
-          setLoading(false)
           return
         }
         setQuiz({
@@ -54,10 +53,12 @@ export default function ChildQuizSessionPage() {
           masteryPercent: 0,
           stopReason    : null,
         })
-      } catch {
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[ChildQuizSession] init error:', err)
         setError('Impossible de démarrer le quiz.')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     init()
   }, [user?.id, themeId])
@@ -107,7 +108,8 @@ export default function ChildQuizSessionPage() {
         currentIndex : nextIndex,
         masteryPercent: res.mastery_percent,
       })
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ChildQuizSession] handleAnswer error:', err)
       setError('Une erreur est survenue. Réessaie.')
     }
   }

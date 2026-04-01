@@ -87,6 +87,8 @@ export default function CoachDashboardPage() {
           const evaluated = new Set(evaluatedIds)
           setMissingEvals(recentClosed.filter(id => !evaluated.has(id)))
         }
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[CoachDashboard] load error:', err)
       } finally {
         setLoading(false)
       }

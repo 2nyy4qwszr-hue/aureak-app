@@ -116,7 +116,6 @@ export default function EditSessionPage() {
 
     if (!s.data) {
       setLoadError('Séance introuvable ou accès refusé.')
-      setLoading(false)
       return
     }
 
@@ -164,7 +163,8 @@ export default function EditSessionPage() {
       notes       : w.notes ?? '',
     })))
 
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[EditSession] load error:', err)
       setLoadError('Erreur lors du chargement de la séance.')
     } finally {
       setLoading(false)

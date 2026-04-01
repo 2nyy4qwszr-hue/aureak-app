@@ -139,7 +139,8 @@ function ThemeBlockRow({
         (TERRAIN_RESOURCE_TYPES as readonly string[]).includes(r.resourceType)
       )
       setResources(filtered)
-    }).catch(() => {
+    }).catch((err) => {
+      if (process.env.NODE_ENV !== 'production') console.error('[ThemeBlockRow] load sequences/resources error:', err)
       setSequences([])
       setResources([])
     }).finally(() => {
@@ -256,7 +257,10 @@ export default function ThemeBlockPicker({
           setAllThemes(themes)
         }
       })
-      .catch(() => { setAllThemes([]) })
+      .catch((err) => {
+        if (process.env.NODE_ENV !== 'production') console.error('[ThemeBlockPicker] load themes error:', err)
+        setAllThemes([])
+      })
       .finally(() => { setLoadingThemes(false) })
   }, [methodFilter])
 

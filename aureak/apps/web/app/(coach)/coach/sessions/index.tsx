@@ -65,6 +65,8 @@ export default function CoachSessionsPage() {
     try {
       const { data } = await listSessionsByCoach(user.id)
       setSessions((data ?? []).sort((a, b) => +new Date(b.scheduledAt) - +new Date(a.scheduledAt)))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[CoachSessions] load error:', err)
     } finally {
       setLoading(false)
     }

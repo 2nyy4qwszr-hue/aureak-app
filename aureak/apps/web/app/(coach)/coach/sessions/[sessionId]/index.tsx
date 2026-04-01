@@ -193,7 +193,8 @@ export default function SessionHubPage() {
       setSession(sessionRes.data)
       setAttendees(attendeesRes.data ?? [])
       setAttendances((attendancesRes.data ?? []) as Attendance[])
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SessionHub] load error:', err)
       setCloseError('Erreur de chargement — rechargez la page.')
     } finally {
       setLoading(false)

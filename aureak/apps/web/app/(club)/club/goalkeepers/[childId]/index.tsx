@@ -236,13 +236,17 @@ export default function GoalkeeperDetailPage() {
       try {
         const themeData = await getChildThemeProgression(childId)
         setThemes(themeData)
-      } catch { /* RLS may deny access */ }
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[GoalkeeperDetail] getChildThemeProgression error (RLS?):', err)
+      }
 
       // Football history (best-effort — RLS filters to linked/affiliated children)
       try {
         const { data: histData } = await listHistoryByChild(childId)
         setFootballHistory(histData)
-      } catch { /* RLS may deny access */ }
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[GoalkeeperDetail] listHistoryByChild error (RLS?):', err)
+      }
       } finally {
         setLoading(false)
       }

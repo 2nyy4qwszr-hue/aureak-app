@@ -71,6 +71,8 @@ export default function ParentTicketsPage() {
     try {
       const { data } = await listMyTickets()
       setTickets(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ParentTickets] fetchTickets error:', err)
     } finally {
       setLoading(false)
     }

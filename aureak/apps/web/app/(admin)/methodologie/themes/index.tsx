@@ -47,7 +47,8 @@ export default function ThemesPage() {
       }
       setThemes(t.data)
       setGroups(g.data)
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ThemesIndex] loadData error:', err)
       setErrorMsg('Impossible de charger les thèmes. Veuillez réessayer.')
     } finally {
       setLoading(false)
@@ -92,7 +93,8 @@ export default function ThemesPage() {
           .filter(({ t, i }) => t.orderIndex !== i)
           .map(({ t, i }) => updateThemeOrder(t.id, i))
       )
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ThemesIndex] handleDrop reorder error:', err)
       setOrderedThemes(previousOrdered)
     }
   }

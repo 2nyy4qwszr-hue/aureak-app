@@ -37,6 +37,8 @@ export default function SchoolCalendarPage() {
     try {
       const { data } = await listSchoolCalendarExceptions()
       setExceptions(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SchoolCalendar] load error:', err)
     } finally {
       setLoading(false)
     }

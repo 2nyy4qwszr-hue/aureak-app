@@ -534,7 +534,8 @@ export default function StageDetailPage() {
       setActiveDayId(day.id)
       setNewDayDate('')
       setAddingDay(false)
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[StagePage] addDay error:', err)
       setDayError('Date déjà existante ou invalide.')
     }
   }

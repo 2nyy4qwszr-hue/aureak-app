@@ -78,7 +78,6 @@ export default function SessionDetailPage() {
   const load = async () => {
     if (!sessionId) {
       setLoadError('Identifiant de séance manquant.')
-      setLoading(false)
       return
     }
     setLoading(true)
@@ -94,7 +93,6 @@ export default function SessionDetailPage() {
       ])
       if (s.error || !s.data) {
         setLoadError('Séance introuvable ou accès refusé.')
-        setLoading(false)
         return
       }
       setSession(s.data)
