@@ -2,7 +2,7 @@
 // RÈGLE : Ce package est le SEUL autorisé à importer @supabase/supabase-js
 
 export { supabase } from './supabase'
-export { signIn, signOut, getSession, inviteUser, disableUser } from './auth'
+export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
 export {
   getChildAcademyStatus,
@@ -389,3 +389,15 @@ export type {
 // ── Sessions — IDs présents + séances évaluées ───────────────────────────────
 export { listPresentChildIdsForSession } from './sessions/attendances'
 export { listEvaluatedSessionIds } from './evaluations/evaluations'
+
+// ── Sessions — Notes par joueur (ARCH-1) ─────────────────────────────────────
+export { listSessionAttendeesWithNotes } from './sessions/sessionNotes'
+export type { SessionAttendeeWithNote } from './sessions/sessionNotes'
+
+// ── Child — Dashboard extra (prochaine séance + dernière éval) ───────────────
+export { getChildDashboardExtra } from './child/childDashboard'
+export type { ChildDashboardExtra, ChildNextSession, ChildLastEval } from './child/childDashboard'
+
+// ── Parent — Préférences et historique notifications ─────────────────────────
+export { getNotificationPreferences, listNotificationLogs, saveNotificationPreferences } from './parent/notifications'
+export type { NotificationPreferences, NotificationLog } from './parent/notifications'

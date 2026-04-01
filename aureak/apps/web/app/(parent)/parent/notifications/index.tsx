@@ -2,25 +2,16 @@
 // Préférences de notification du parent
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Switch } from 'react-native'
-import { supabase } from '@aureak/api-client'
+import {
+  getNotificationPreferences, listNotificationLogs, saveNotificationPreferences,
+} from '@aureak/api-client'
+import type { NotificationPreferences, NotificationLog } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, space } from '@aureak/theme'
 
-type NotifPrefs = {
-  pushEnabled : boolean
-  emailEnabled: boolean
-  smsEnabled  : boolean
-}
-
-type NotifLog = {
-  id        : string
-  eventType : string
-  channel   : string
-  status    : string
-  urgency   : 'routine' | 'urgent'
-  sentAt    : string
-}
+type NotifPrefs = NotificationPreferences
+type NotifLog   = NotificationLog
 
 const CHANNEL_LABEL: Record<string, string> = {
   push : 'Notification push',
@@ -49,36 +40,11 @@ export default function NotificationsPage() {
     if (!user?.id) return
     const load = async () => {
       const [prefsRes, logsRes] = await Promise.all([
-        supabase
-          .from('notification_preferences')
-          .select('push_enabled, email_enabled, sms_enabled')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('notification_send_log')
-          .select('id, event_type, channel, status, urgency, sent_at')
-          .eq('recipient_id', user.id)
-          .order('sent_at', { ascending: false })
-          .limit(20),
+        getNotificationPreferences(user.id),
+        listNotificationLogs(user.id),
       ])
-
-      if (prefsRes.data) {
-        const p = prefsRes.data as { push_enabled: boolean; email_enabled: boolean; sms_enabled: boolean }
-        setPrefs({ pushEnabled: p.push_enabled, emailEnabled: p.email_enabled, smsEnabled: p.sms_enabled })
-      }
-
-      setLogs(
-        ((logsRes.data ?? []) as {
-          id: string; event_type: string; channel: string; status: string; urgency: string; sent_at: string
-        }[]).map(l => ({
-          id       : l.id,
-          eventType: l.event_type,
-          channel  : l.channel,
-          status   : l.status,
-          urgency  : l.urgency as 'routine' | 'urgent',
-          sentAt   : l.sent_at,
-        }))
-      )
+      if (prefsRes.data) setPrefs(prefsRes.data)
+      setLogs(logsRes.data)
       setLoading(false)
     }
     load()
@@ -89,17 +55,7 @@ export default function NotificationsPage() {
     const next = { ...prefs, ...patch }
     setPrefs(next)
     setSaving(true)
-    await supabase.from('notification_preferences').upsert(
-      {
-        user_id      : user.id,
-        tenant_id    : tenantId,
-        push_enabled : next.pushEnabled,
-        email_enabled: next.emailEnabled,
-        sms_enabled  : next.smsEnabled,
-        updated_at   : new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    )
+    await saveNotificationPreferences(user.id, tenantId, next)
     setSaving(false)
   }
 

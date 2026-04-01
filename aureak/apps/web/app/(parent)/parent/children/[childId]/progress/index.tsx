@@ -2,7 +2,7 @@
 // Progression enfant — vue parent avec mastery overview
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { getChildThemeProgression, supabase } from '@aureak/api-client'
+import { getChildThemeProgression, getProfileDisplayName } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
 import type { ThemeProgressEntry, MasteryStatus } from '@aureak/api-client'
 
@@ -146,11 +146,11 @@ export default function ChildProgressPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [themesRes, childRes] = await Promise.all([
+      const [themesRes, nameRes] = await Promise.all([
         getChildThemeProgression(childId),
-        supabase.from('profiles').select('display_name').eq('user_id', childId).single(),
+        getProfileDisplayName(childId),
       ])
-      setDisplayName((childRes.data as { display_name: string } | null)?.display_name ?? '')
+      setDisplayName(nameRes.data ?? '')
       setThemes(themesRes)
       setLoading(false)
     }

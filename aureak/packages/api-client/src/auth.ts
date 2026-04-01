@@ -94,3 +94,22 @@ export async function disableUser(userId: string) {
     body: { userId },
   })
 }
+
+/**
+ * Fallback de résolution du rôle depuis la table profiles.
+ * Utilisé quand le JWT app_metadata ne contient pas encore le rôle
+ * (Custom Access Token Hook non configuré).
+ */
+export async function getUserRoleFromProfile(
+  userId: string,
+): Promise<{ data: string | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('user_role')
+    .eq('user_id', userId)
+    .single()
+  return {
+    data : (data as { user_role?: string } | null)?.user_role ?? null,
+    error,
+  }
+}

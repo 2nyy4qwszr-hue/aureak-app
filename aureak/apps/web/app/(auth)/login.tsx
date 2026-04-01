@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signIn, supabase } from '@aureak/api-client'
+import { signIn, getUserRoleFromProfile } from '@aureak/api-client'
 import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
@@ -97,12 +97,8 @@ export default function LoginScreen() {
     let role = data.session?.user?.app_metadata?.role as UserRole | undefined
 
     if (!role && data.session?.user?.id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_role')
-        .eq('user_id', data.session.user.id)
-        .single()
-      role = profile?.user_role as UserRole | undefined
+      const { data: profileRole } = await getUserRoleFromProfile(data.session.user.id)
+      role = (profileRole ?? undefined) as UserRole | undefined
     }
 
     const route = role ? ROLE_ROUTES[role] : null

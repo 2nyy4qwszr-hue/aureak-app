@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getPlayerProgress, listActiveQuests,
-  getChildThemeProgression, getSkillCardCollection, supabase,
+  getChildThemeProgression, getSkillCardCollection,
+  getChildDashboardExtra,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
@@ -126,36 +127,22 @@ export default function ChildDashboardPage() {
         getSkillCardCollection(user.id),
       ])
 
-      // Next upcoming session for this child
-      const { data: saRows } = await supabase
-        .from('session_attendees')
-        .select('session_id')
-        .eq('child_id', user.id)
-
-      if (saRows && saRows.length > 0) {
-        const ids = (saRows as { session_id: string }[]).map(r => r.session_id)
-        const { data: upSessions } = await supabase
-          .from('sessions')
-          .select('scheduled_at, duration_minutes, location')
-          .in('id', ids)
-          .gt('scheduled_at', new Date().toISOString())
-          .eq('status', 'planifiée')
-          .order('scheduled_at', { ascending: true })
-          .limit(1)
-        if (upSessions && upSessions.length > 0) {
-          setNextSession(upSessions[0] as NextSession)
-        }
+      // Prochaine séance + dernière évaluation (ARCH-1 conforme)
+      const { data: extra } = await getChildDashboardExtra(user.id)
+      if (extra?.nextSession) {
+        setNextSession({
+          scheduled_at    : extra.nextSession.scheduledAt,
+          duration_minutes: extra.nextSession.durationMinutes,
+          location        : extra.nextSession.location,
+        })
       }
-
-      // Last evaluation by coach
-      const { data: evalRows } = await supabase
-        .from('session_evaluations_merged')
-        .select('receptivite, gout_effort, attitude, top_seance')
-        .eq('child_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-      if (evalRows && evalRows.length > 0) {
-        setLastEval(evalRows[0] as RecentEval)
+      if (extra?.lastEval) {
+        setLastEval({
+          receptivite: extra.lastEval.receptivite,
+          gout_effort: extra.lastEval.goutEffort,
+          attitude   : extra.lastEval.attitude,
+          top_seance : extra.lastEval.topSeance,
+        })
       }
 
       setProgress(progResult.data ?? null)

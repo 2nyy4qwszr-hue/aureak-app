@@ -216,7 +216,7 @@ export default function DashboardPage() {
       listImplantations(),
     ])
     setStats(statsResult.data ?? [])
-    setAnomalies(anomalyResult.data)
+    setAnomalies(anomalyResult.data ?? [])
     setImplantations((implRes.data ?? []).map(i => ({ id: i.id, name: i.name })))
     setLoading(false)
   }
@@ -241,7 +241,8 @@ export default function DashboardPage() {
   useEffect(() => {
     setLoadingCounts(true)
 
-    getDashboardKpiCounts(selectedImplantationId ?? undefined).then(({ data }) => {
+    getDashboardKpiCounts(selectedImplantationId ?? undefined).then(({ data, error }) => {
+      if (error || !data) { setLoadingCounts(false); return }
       setChildrenTotal(data.childrenTotal)
       setCoachesTotal(data.coachesTotal)
       setGroupsTotal(data.groupsTotal)

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSessionById, getSessionNote, upsertSessionNote,
-  saveCoachNote, supabase,
+  saveCoachNote, listSessionAttendeesWithNotes,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
@@ -72,39 +72,14 @@ export default function NotesPage() {
         setVisibleToAdmin(noteRes.data.visibleToAdmin)
       }
 
-      // Load attendees with coach_notes for per-player section
-      const { data: attendees } = await supabase
-        .from('session_attendees')
-        .select('child_id, is_guest, coach_notes')
-        .eq('session_id', sessionId)
-
+      // Participants avec noms et notes coach (ARCH-1 conforme)
+      const { data: attendees } = await listSessionAttendeesWithNotes(sessionId)
       if (attendees && attendees.length > 0) {
-        const allIds   = attendees.map((a: { child_id: string }) => a.child_id)
-        const guestIds = new Set(attendees
-          .filter((a: { is_guest: boolean }) => a.is_guest)
-          .map((a: { child_id: string }) => a.child_id)
-        )
-        const regularIds = allIds.filter((id: string) => !guestIds.has(id))
-
-        const [profilesRes, dirRes] = await Promise.all([
-          regularIds.length > 0
-            ? supabase.from('profiles').select('user_id, display_name').in('user_id', regularIds)
-            : Promise.resolve({ data: [] }),
-          guestIds.size > 0
-            ? supabase.from('child_directory').select('id, display_name').in('id', [...guestIds])
-            : Promise.resolve({ data: [] }),
-        ])
-
-        const nameMap = new Map([
-          ...(profilesRes.data ?? []).map((p: { user_id: string; display_name: string }) => [p.user_id, p.display_name] as [string, string]),
-          ...(dirRes.data ?? []).map((d: { id: string; display_name: string }) => [d.id, d.display_name] as [string, string]),
-        ])
-
-        setPlayers(attendees.map((a: { child_id: string; coach_notes: string | null }) => ({
-          childId    : a.child_id,
-          displayName: nameMap.get(a.child_id) ?? a.child_id.slice(0, 8),
-          note       : a.coach_notes ?? '',
-          saved      : !!(a.coach_notes),
+        setPlayers(attendees.map(a => ({
+          childId    : a.childId,
+          displayName: a.displayName,
+          note       : a.coachNotes ?? '',
+          saved      : !!(a.coachNotes),
           saving     : false,
         })))
       }
