@@ -38,7 +38,9 @@ export default function SessionLearningReport() {
         setAttempts((a ?? []) as unknown as AttemptRow[])
         setThemeStats(ts)
       })
-      .catch(() => {/* silent */})
+      .catch((err) => {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionLearningReport] load error:', err)
+      })
       .finally(() => setLoading(false))
   }, [sessionId])
 
