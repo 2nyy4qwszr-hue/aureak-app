@@ -1,7 +1,7 @@
 # Backlog d'implémentation — Aureak
 
 > Ordre d'exécution recommandé basé sur les dépendances inter-épics.
-> Dernière mise à jour : 2026-04-01 (post-audit + décisions produit)
+> Dernière mise à jour : 2026-04-01 (décisions produit finales)
 
 ---
 
@@ -9,27 +9,28 @@
 - `[x]` = done
 - `[ ]` = ready-for-dev
 - `[~]` = review
-- `[d]` = deferred (mobile différé ou hors scope phase 1)
+- `[d]` = deferred (mobile phase 2 ou hors scope)
 - `[2]` = phase-2 (après fonctionnalités opérationnelles)
 
 ---
 
-## Notes transversales (issues systémiques)
+## Notes transversales (règles absolues avant de coder)
 
-> **Toujours lire avant d'implémenter une story.**
-
-1. **Migrations** : toujours utiliser **00090+** (migrations 00001–00089 occupées)
-2. **Chemin UI `sessions` → `seances`** : les stories Epic 4 écrivent `(admin)/sessions/`. L'app réelle utilise `(admin)/seances/`.
-3. **Chemin UI `referentiel` → `methodologie`** : les stories Epic 3 écrivent `(admin)/referentiel/`. L'app réelle utilise `(admin)/methodologie/`.
-4. **Package `@aureak/business-logic`** : EXISTS à `aureak/packages/business-logic/src/`. Règle architecture : `api-client` = accès Supabase/fetch/mapping ; `business-logic` = règles métier, use cases, orchestration, validations partagées.
-5. **App mobile** : `apps/mobile/` différée à phase ultérieure. Stories mobile-only = `[d]`.
+1. **Migrations** : toujours utiliser **00090+** (00001–00089 occupées). Ignorer les numéros dans les story files — ils sont obsolètes.
+2. **Chemin UI `sessions` → `seances`** : les stories écrivent `(admin)/sessions/`. L'app réelle utilise `(admin)/seances/`.
+3. **Chemin UI `referentiel` → `methodologie`** : les stories écrivent `(admin)/referentiel/`. L'app réelle utilise `(admin)/methodologie/`.
+4. **Architecture packages** :
+   - `@aureak/api-client` = accès Supabase / requêtes / mapping DB→TS uniquement
+   - `@aureak/business-logic` = règles métier, validations, use cases, orchestration (EXISTS à `aureak/packages/business-logic/src/`)
+5. **App mobile** : `apps/mobile/` différée. Stories mobile-only = `[d]`.
+6. **DB remote vs repo** : le remote Supabase a ~30 tables sans migration dans le repo. Chantier séparé "DB baseline recovery" à traiter en parallèle (ne bloque pas le dev).
 
 ---
 
 ## Stories complétées (référence)
 
 - [x] Epic 1 : Fondation monorepo (1-1, 1-2, 1-3)
-- [x] Epic 2 : Auth & permissions (2-1, 2-2, 2-3, 2-5) — 2-4 deferred
+- [x] Epic 2 partial : Accès clubs + RLS policies (2-5)
 - [x] Epic 3 : Référentiel pédagogique (3-1, 3-2, 3-3, 3-4, 3-5, 3-6)
 - [x] Epic 4 : Séances terrain (4-1, 4-2, 4-3, 4-5, 4-6, 4-7)
 - [x] Epic 6 partial : Évaluations (6-1, 6-4)
@@ -63,119 +64,123 @@
 
 ---
 
-## Deferred (mobile phase 2 ou hors scope)
+## Deferred — mobile phase 2 ou hors scope
 
-- [d] 2-4 : auth-rapide-geolocalisee-pin-gps (hors scope phase 1)
-- [d] 5-3 : enregistrement-presence-offline-2s (mobile)
-- [d] 6-2 : ux-evaluation-rapide-10s-par-enfant (mobile)
-- [d] 8-3 : ux-enfant-acquired-not-acquired-avatar-badges (mobile)
-- [d] 12-3 : avatar-system-equipement-items-debloquables (mobile)
-- [d] 12-5 : carte-de-progression-theme-collection-de-skill-cards (mobile)
+- [d] 2-4 : auth-rapide-geolocalisee-pin-gps
+- [d] 5-3 : enregistrement-presence-offline-2s
+- [d] 6-2 : ux-evaluation-rapide-10s-par-enfant
+- [d] 8-3 : ux-enfant-acquired-not-acquired-avatar-badges
+- [d] 12-3 : avatar-system-equipement-items-debloquables
+- [d] 12-5 : carte-de-progression-theme-collection-de-skill-cards
 
 ---
 
-## Phase 2 (après fonctionnalités opérationnelles)
+## Phase 2 — après fonctionnalités opérationnelles
 
 - [2] 12-1 : modele-de-donnees-badges-points-ledger-cosmetiques-avatar
 - [2] 12-2 : event-bus-gamification-traitement-des-4-evenements-declencheurs
 - [2] 12-4 : quetes-hebdomadaires-attribution-progression-recompenses
+- [2] 4-4 : planification-recurrente-gestion-des-exceptions
+- [2] 6-3 : double-validation-coach-realtime-fallback-polling
 
 ---
 
 ## Backlog ordonné — ready-for-dev
 
-### Priorité 1 — Auth complète ⚠️ GAP CRITIQUE
-*Dépendance : Epic 2 code done ✓ — mais Custom Access Token Hook manquant*
+---
 
-> **État réel** : Code des stories 2-1/2-2/2-3 est présent. Gap = `custom-access-token-hook` Edge Function manquante → JWT sans `role`/`tenant_id` → RLS ne fonctionne pas en production.
+### PRIORITÉ 1 — Auth + Sécurité (Epic 2) 🔴 BLOQUANT TOUT
+*Code existant partiel — 3 gaps critiques à combler*
 
-- [ ] **AUTH-GAP-1** : Créer `supabase/functions/custom-access-token-hook/index.ts` (voir plan détaillé)
-- [ ] **AUTH-GAP-2** : Créer `supabase/migrations/00090_rls_policies_complete.sql` (fichier manquant du repo)
-- [ ] **AUTH-GAP-3** : Vérifier `supabase/RLS_PATTERNS.md` et policies DB complètes
+> **Pourquoi bloquant** : sans `custom-access-token-hook`, le JWT ne contient pas `role`/`tenant_id` → `current_tenant_id()` et `current_user_role()` retournent NULL → toutes les policies RLS échouent silencieusement en production.
+
+| # | Story | État code | Gap à combler | Migration |
+|---|-------|-----------|---------------|-----------|
+| 2-1 | Auth email/MDP | Code présent ✓ | `custom-access-token-hook` Edge Function ABSENTE | Aucune (00003 ok) |
+| 2-2 | RLS/RBAC universel | Code présent ✓ | `00010_rls_policies.sql` ABSENT du repo | Créer `00090_rls_policies_complete.sql` |
+| 2-3 | Accès cross-implantation | Code présent ✓ | Vérifier section coach_access_grants dans `00090` | Inclus dans 00090 |
+
+- [ ] **2-1** : inscription-auth-standard-email-mot-de-passe
+- [ ] **2-2** : controle-acces-par-role-rbac-regle-universelle-rls
+- [ ] **2-3** : acces-temporaire-cross-implantation-coach
 
 ---
 
-### Priorité 2 — Offline & Sync (Epic 5)
-*Dépendance : Epic 4 done ✓ — tables `sync_queue` et `event_log` existent en DB*
-
-- [ ] **5-1** : schema-offline-sqlite-sync-queue-serveur ⚠️ auditer `apps/mobile/` (SyncQueueService.ts existe dans business-logic)
-- [ ] **5-2** : event-sourcing-event-log-snapshot-attendance-apply-event ⚠️ RPC `apply_event` à vérifier/créer
-- [ ] **5-4** : sync-queue-idempotente-resolution-de-conflits (SyncQueueService.ts existe, vérifier complétion)
-- [ ] **5-5** : timeline-admin-restauration-via-event-log (2 fichiers à créer : `api-client/sessions/timeline.ts` + `seances/[id]/timeline.tsx`)
-- [ ] **5-6** : ux-offline-indicateur-sync-alertes-rappel-j1 (Edge Function `review-reminder` déjà là)
-
----
-
-### Priorité 3 — Dashboard anomalies & Contact
-*Dépendance : Epic 4 + Epic 6 done ✓ — tables existent en DB*
-
-- [ ] **9-2** : detection-anomalies ⚠️ table exists, API à créer dans `admin/anomalies.ts`
-- [ ] **9-5** : contact-direct-coach ⚠️ table exists, API à créer dans `admin/messages.ts`
-
----
-
-### Priorité 4 — Notifications infrastructure (Epic 7)
-*Dépendance : Epic 6 done ✓*
-
-- [ ] **7-1** : infrastructure-notifications-push-tokens-preferences-urgence ⚠️ vérifier CRUD push_tokens dans `parent/notifications.ts`
-- [ ] **7-3** : board-parent-fiche-enfant-transparence-terrain-admin
-- [ ] **7-4** : systeme-de-tickets-parent-minimal-trace ⚠️ CRITIQUE — `support_tickets` ABSENT DB → créer `00090_support_tickets.sql`
-
----
-
-### Priorité 5 — Quiz & apprentissage (Epic 8)
-*Dépendance : Epic 3 + Epic 6 done ✓ — tables learning_attempts/mastery_thresholds existent en DB*
-
-- [ ] **8-1** : modele-de-donnees-apprentissage-maitrise-gamification (tables DB ok, vérifier complétion)
-- [ ] **8-2** : moteur-de-quiz-adaptatif-stop-conditions-maitrise ⚠️ RPCs `next_question`, `finalize_attempt` à créer
-- [ ] **8-4** : streaks-revision-espacee-declenchement-gamification (partie shared arch seulement)
-- [ ] **8-5** : rapports-coach-vue-agregee-groupe-acces-parent
-
----
-
-### Priorité 6 — RGPD / conformité (Epic 10)
+### PRIORITÉ 2 — Permissions de contenu par grade (Epic 11)
 *Dépendance : Auth done*
 
-- [ ] **10-1** : cycle-de-vie-utilisateur (table `user_lifecycle_events` DB ok)
-- [ ] **10-2** : consentements-parentaux-revocation-en-cascade ⚠️ `user_consents` ABSENT DB → créer migration
+- [ ] **11-2** : permissions-de-contenu-par-grade ⚠️ `grade_content_permissions` ABSENT DB → `00091_grade_content_permissions.sql`
+
+---
+
+### PRIORITÉ 3 — Support tickets parent (Epic 7)
+*Dépendance : Auth done*
+
+- [ ] **7-4** : systeme-de-tickets-parent-minimal-trace ⚠️ `support_tickets` ABSENT DB → `00092_support_tickets.sql`
+
+---
+
+### PRIORITÉ 4 — Consentements parentaux (Epic 10)
+*Dépendance : Auth done*
+
+- [ ] **10-2** : consentements-parentaux-revocation-en-cascade ⚠️ `user_consents` ABSENT DB → `00093_user_consents.sql`
+
+---
+
+### PRIORITÉ 5 — Dashboard anomalies & messages admin (Epic 9)
+*Dépendance : Auth + Epic 4/6 done*
+
+- [ ] **9-2** : detection-anomalies ⚠️ table `anomaly_events` ok en DB, API `admin/anomalies.ts` à créer
+- [ ] **9-5** : contact-direct-coach ⚠️ table `admin_messages` ok en DB, API `admin/messages.ts` à créer
+
+---
+
+### PRIORITÉ 6 — Offline & Sync (Epic 5) — selon besoin réel
+*Dépendance : Epic 4 done ✓ — tables `sync_queue` et `event_log` existent en DB*
+
+- [ ] **5-1** : schema-offline-sqlite-sync-queue-serveur (SyncQueueService.ts existe, vérifier complétion)
+- [ ] **5-2** : event-sourcing-event-log-snapshot-attendance-apply-event ⚠️ RPCs `apply_event` à vérifier
+- [ ] **5-4** : sync-queue-idempotente-resolution-de-conflits
+- [ ] **5-5** : timeline-admin-restauration-via-event-log (2 fichiers à créer)
+- [ ] **5-6** : ux-offline-indicateur-sync-alertes-rappel-j1
+
+---
+
+### Suite — Notifications & apprentissage (Epics 7, 8, 10)
+
+- [ ] **7-1** : infrastructure-notifications-push-tokens-preferences-urgence
+- [ ] **7-3** : board-parent-fiche-enfant-transparence-terrain-admin
+- [ ] **8-1** : modele-de-donnees-apprentissage-maitrise-gamification
+- [ ] **8-2** : moteur-de-quiz-adaptatif-stop-conditions-maitrise
+- [ ] **8-4** : streaks-revision-espacee (partie shared arch seulement)
+- [ ] **8-5** : rapports-coach-vue-agregee-groupe-acces-parent
+- [ ] **10-1** : cycle-de-vie-utilisateur
 - [ ] **10-4** : audit-trail-admin-policies-completes-indexes-retention
-
----
-
-### Priorité 7 — Grades & partenariats reste (Epic 11)
-
-- [ ] **11-2** : permissions-de-contenu-par-grade ⚠️ `grade_content_permissions` ABSENT DB → créer migration + API
-
----
-
-### Bloc 12 — RBFA enrichissement
-
 - [ ] **28-1** : rbfa-enrichissement-clubs
 
 ---
 
-### Phase 2 — Récurrence & planification avancée
+## Chantier parallèle — DB Baseline Recovery
 
-- [ ] **4-4** : planification-recurrente-gestion-des-exceptions (RPCs à créer)
-- [ ] **6-3** : double-validation-coach-realtime-fallback-polling
+> Ne bloque pas le développement immédiat. À traiter en parallèle.
 
----
+**Problème** : ~30 tables existent en remote Supabase sans migration dans le repo. Si la DB est recréée from scratch, elle sera incomplète.
 
-## Migrations manquantes (tables absentes en DB)
+**Objectif** : rendre la base recréable à 100% depuis `supabase/migrations/`.
 
-| Table | Story | Migration à créer |
-|-------|-------|------------------|
-| `support_tickets` | 7-4 | `00090_support_tickets.sql` |
-| `user_consents` | 10-2 | `00091_user_consents.sql` |
-| `grade_content_permissions` | 11-2 | `00092_grade_content_permissions.sql` |
-| `badges`, `badge_awards`, `points_ledger` | 12-1 (phase 2) | `00093_gamification_schema.sql` |
+**Étapes** :
+1. Dumper le schéma remote : `supabase db dump --linked --schema public > /tmp/remote_schema.sql`
+2. Identifier les tables/fonctions sans migration correspondante
+3. Reconstituer les migrations manquantes (numérotées 00090+, intercalées logiquement)
+4. Valider avec `supabase db reset` + `supabase db diff` = clean
 
 ---
 
-## Commande de lancement type
+## Migrations à créer (ordre priorité)
 
-```
-Implémente la Priorité 1 — Auth Gap.
-Tasks dans l'ordre : AUTH-GAP-1 (custom-access-token-hook), AUTH-GAP-2 (migration 00090 RLS policies), AUTH-GAP-3 (vérification).
-Pour chaque task : vérifie l'état actuel → implémente → QA scan → commit.
-```
+| Migration | Contenu | Pour story |
+|-----------|---------|------------|
+| `00090_rls_policies_complete.sql` | functions helpers durcies + toutes policies + coach_access_grants | 2-2, 2-3 |
+| `00091_grade_content_permissions.sql` | table + RLS | 11-2 |
+| `00092_support_tickets.sql` | table + RLS | 7-4 |
+| `00093_user_consents.sql` | table + RLS | 10-2 |

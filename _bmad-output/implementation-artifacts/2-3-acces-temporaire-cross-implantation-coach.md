@@ -1,6 +1,6 @@
 # Story 2.3 : Accès Temporaire Cross-Implantation Coach
 
-Status: done
+Status: ready-for-dev
 
 ## Story
 

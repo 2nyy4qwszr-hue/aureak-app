@@ -1,6 +1,6 @@
 # Story 2.1 : Inscription & Auth Standard (Email/Mot de Passe)
 
-Status: done
+Status: ready-for-dev
 
 ## Story
 
