@@ -1,6 +1,6 @@
 # Story 4.2 : Roster Attendu & Présences Terrain
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

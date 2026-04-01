@@ -1,6 +1,6 @@
 # Story 6.1 : Modèle Évaluations — Event Sourcing & Règle de Fusion
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

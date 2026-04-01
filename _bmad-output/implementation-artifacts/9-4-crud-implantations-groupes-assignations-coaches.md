@@ -1,6 +1,6 @@
 # Story 9.4 : CRUD Implantations, Groupes & Assignations Coaches
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

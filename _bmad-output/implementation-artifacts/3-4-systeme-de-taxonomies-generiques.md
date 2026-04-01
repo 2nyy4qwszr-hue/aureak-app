@@ -1,6 +1,6 @@
 # Story 3.4 : Système de Taxonomies Génériques
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

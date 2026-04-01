@@ -1,6 +1,6 @@
 # Story 10.3 : Droits RGPD Parent (Accès, Rectification, Effacement, Portabilité)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

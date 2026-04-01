@@ -1,6 +1,6 @@
 # Story 4.1 : Modèle de Données — Sessions, Blocs & Récurrence
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

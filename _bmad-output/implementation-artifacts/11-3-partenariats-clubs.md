@@ -1,6 +1,6 @@
 # Story 11.3 : Partenariats Clubs
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

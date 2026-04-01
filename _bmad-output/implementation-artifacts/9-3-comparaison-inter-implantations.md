@@ -1,6 +1,6 @@
 # Story 9.3 : Comparaison Inter-implantations
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

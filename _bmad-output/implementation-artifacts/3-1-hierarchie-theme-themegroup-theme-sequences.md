@@ -1,6 +1,6 @@
 # Story 3.1 : Hiérarchie Thème — ThemeGroup, Thème & Séquences
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

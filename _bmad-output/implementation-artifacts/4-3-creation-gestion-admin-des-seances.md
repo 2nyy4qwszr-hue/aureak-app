@@ -1,6 +1,6 @@
 # Story 4.3 : Création & Gestion Admin des Séances
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

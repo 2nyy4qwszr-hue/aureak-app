@@ -1,6 +1,6 @@
 # Story 2.5 : Gestion des Accès Clubs (Partenaire & Commun)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

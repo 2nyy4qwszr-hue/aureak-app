@@ -1,6 +1,6 @@
 # Story 4.5 : Annulation & Notifications Multicanal
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

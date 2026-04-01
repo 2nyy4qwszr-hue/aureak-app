@@ -1,6 +1,6 @@
 # Story 9.1 : Dashboard Agrégé Multi-implantations
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -1,6 +1,6 @@
 # Story 6.4 : Clôture de Séance — Idempotente & Tracée
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -1,6 +1,6 @@
 # Story 7.2 : Notification Post-Séance (SESSION_CLOSED → Send-Once)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

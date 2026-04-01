@@ -1,6 +1,6 @@
 # Story 10.5 : Exports Conformes
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -1,6 +1,6 @@
 # Story 3.2 : Critères, Faults & Cues
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

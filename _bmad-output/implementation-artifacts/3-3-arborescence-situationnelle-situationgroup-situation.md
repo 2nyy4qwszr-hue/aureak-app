@@ -1,6 +1,6 @@
 # Story 3.3 : Arborescence Situationnelle (SituationGroup → Situation)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

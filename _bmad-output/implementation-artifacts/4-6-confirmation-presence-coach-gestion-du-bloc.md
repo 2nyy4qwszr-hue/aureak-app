@@ -1,6 +1,6 @@
 # Story 4.6 : Confirmation Présence Coach & Gestion du Bloc
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

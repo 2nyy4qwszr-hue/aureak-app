@@ -1,6 +1,6 @@
 # Story 4.7 : Vue Coach — Fiche Séance, Notes & Feedback Contenu
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
