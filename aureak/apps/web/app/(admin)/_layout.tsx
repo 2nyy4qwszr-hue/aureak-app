@@ -54,6 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Administration',
     items: [
       { label: 'Utilisateurs',        href: '/users'                           },
+      { label: 'Accès temporaires',   href: '/access-grants'                   },
       { label: 'Calendrier scolaire', href: '/settings/school-calendar'        },
     ],
   },
