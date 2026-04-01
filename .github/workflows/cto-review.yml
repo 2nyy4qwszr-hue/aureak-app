@@ -1,0 +1,140 @@
+name: "CTO Review — Analyse automatique de PR"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  cto-review:
+    name: "CTO Review — Claude Analysis"
+    runs-on: ubuntu-latest
+    # Permissions nécessaires pour poster des commentaires sur la PR
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      # ── 1. Checkout complet (fetch-depth 0 pour git diff) ─────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Setup Node.js ──────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ── 3. Installer les dépendances du script ────────────────────────────
+      - name: Install script dependencies
+        working-directory: .github/scripts
+        run: npm install --prefer-offline
+
+      # ── 4. Vérifier que le secret est bien configuré ──────────────────────
+      - name: Verify ANTHROPIC_API_KEY
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "❌ ANTHROPIC_API_KEY absent."
+            echo "   → Repo > Settings > Secrets > Actions > New repository secret"
+            exit 1
+          fi
+          echo "✅ Secret présent."
+
+      # ── 5. Récupérer les fichiers modifiés dans cette PR ──────────────────
+      # Sécurité : github.head_ref et sha passés via env, jamais interpolés dans run:
+      - name: Get changed files
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "Fichiers modifiés :"
+          echo "$FILES"
+          # Multiline output → utiliser délimiteur EOF
+          {
+            echo "files<<EOF"
+            echo "$FILES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      # ── 6. Exécuter le CTO Review via Claude API ──────────────────────────
+      - name: Run CTO Review agents
+        id: cto
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CHANGED_FILES:      ${{ steps.changed.outputs.files }}
+          PR_NUMBER:          ${{ github.event.pull_request.number }}
+          GITHUB_WORKSPACE:   ${{ github.workspace }}
+        run: |
+          node .github/scripts/cto-review.mjs > /tmp/cto_output.txt 2>&1 || EXIT_CODE=$?
+          cat /tmp/cto_output.txt
+          # Extraire le commentaire balisé du stdout
+          python3 - << 'PYEOF'
+          import re, sys
+          content = open('/tmp/cto_output.txt').read()
+          match = re.search(r'__COMMENT_START__\n(.*?)\n__COMMENT_END__', content, re.DOTALL)
+          if match:
+              open('/tmp/pr_comment.md', 'w').write(match.group(1))
+          else:
+              open('/tmp/pr_comment.md', 'w').write('## 🤖 CTO Review\n\n> Erreur lors de la génération du rapport — voir les logs CI.')
+          PYEOF
+          exit ${EXIT_CODE:-0}
+
+      # ── 7. Poster le commentaire sur la PR ────────────────────────────────
+      - name: Post PR comment
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const fs    = require('fs')
+            const prNum = parseInt(process.env.PR_NUMBER)
+
+            let body = ''
+            try {
+              body = fs.readFileSync('/tmp/pr_comment.md', 'utf8')
+            } catch {
+              body = '## 🤖 CTO Review\n\n> Rapport non disponible — voir les logs CI.'
+            }
+
+            // Tronquer si trop long pour l'API GitHub (65 535 chars max)
+            if (body.length > 65000) {
+              body = body.slice(0, 64800) + '\n\n> ⚠️ _Rapport tronqué — taille limite GitHub atteinte._'
+            }
+
+            // Chercher un commentaire existant de ce bot pour le mettre à jour
+            // (évite de spammer la PR à chaque push)
+            const marker = '<!-- cto-review-bot -->'
+            const { data: comments } = await github.rest.issues.listComments({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: prNum,
+            })
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes(marker)
+            )
+
+            const fullBody = marker + '\n' + body
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body:       fullBody,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: prNum,
+                body:         fullBody,
+              })
+            }
