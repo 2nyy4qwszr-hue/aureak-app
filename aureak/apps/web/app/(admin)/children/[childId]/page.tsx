@@ -591,6 +591,7 @@ function BlessuresSection({
       resetForm(); setAdding(false); onRefresh()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde.')
+    } finally {
       setSaving(false)
     }
   }
