@@ -11,24 +11,24 @@
 
 | Story | Gate 1 | Gate 2 | Warnings ouverts | En prod? |
 |-------|--------|--------|------------------|---------|
-| GLOBAL-SCAN 2026-04-01 (scan 3) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 4) | ✅ PASS | ✅ PASS | 0 | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
 > Rapport complet : `_qa/reports/2026-04-01_global_bugs.md`
-> Scan 3 : 9 BLOCKERs (B-16→B-24) + 3 warnings (W-11→W-13) — tous corrigés (commit 5a786c2)
+> Scan 4 : 1 BLOCKER (B-25) + 8 warnings (W-14→W-21) — tous résolus (commit 9cd1c87)
 
 ---
 
 ## BLOCKERs Ouverts
 
-Aucun.
+_Aucun._
 
 ---
 
-## Warnings Ouverts
+## Warnings Ouverts (deadline : avant Gate 2)
 
-Aucun.
+_Aucun._
 
 ---
 
