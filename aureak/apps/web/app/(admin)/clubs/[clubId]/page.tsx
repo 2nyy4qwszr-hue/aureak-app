@@ -391,14 +391,17 @@ export default function ClubDetailPage() {
       // Upload logo en attente (sélectionné mais pas encore envoyé)
       if (logoFile) {
         setLogoUploading(true)
-        const { error: logoErr } = await uploadClubLogo({ clubId, tenantId, file: logoFile, updatedBy: user.id })
-        setLogoUploading(false)
-        if (logoErr) {
-          setError(typeof logoErr === 'string' ? logoErr : 'Erreur lors de l\'upload du logo.')
-          return
+        try {
+          const { error: logoErr } = await uploadClubLogo({ clubId, tenantId, file: logoFile, updatedBy: user.id })
+          if (logoErr) {
+            setError(typeof logoErr === 'string' ? logoErr : 'Erreur lors de l\'upload du logo.')
+            return
+          }
+          setLogoFile(null)
+          setLogoPreview(null)
+        } finally {
+          setLogoUploading(false)
         }
-        setLogoFile(null)
-        setLogoPreview(null)
       }
 
       const { error: err } = await updateClubDirectoryEntry({

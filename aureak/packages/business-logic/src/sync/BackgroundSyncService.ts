@@ -17,7 +17,7 @@ export class BackgroundSyncService {
     this.intervalId = setInterval(async () => {
       const connected = await this.isConnected()
       if (connected) {
-        await this.syncQueue.processPending().catch(console.error)
+        await this.syncQueue.processPending().catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[BackgroundSyncService] processPending error:', err) })
       }
     }, SYNC_INTERVAL_MS)
   }

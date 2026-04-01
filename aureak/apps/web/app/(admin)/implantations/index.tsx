@@ -208,14 +208,17 @@ export default function ImplantationsPage() {
 
   const load = async () => {
     setLoadError(null)
-    const { data, error } = await listImplantations()
-    if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] listImplantations error:', error)
-      setLoadError('Impossible de charger les implantations. Vérifiez votre connexion.')
-    } else {
-      setImplantations(data)
+    try {
+      const { data, error } = await listImplantations()
+      if (error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[Implantations] listImplantations error:', error)
+        setLoadError('Impossible de charger les implantations. Vérifiez votre connexion.')
+      } else {
+        setImplantations(data)
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => { load() }, [])
