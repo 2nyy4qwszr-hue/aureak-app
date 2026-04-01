@@ -745,7 +745,7 @@ export default function NewSessionPage() {
       setLoadingImplantations(false)
     })
 
-    listAvailableCoaches().then(coaches => setAllCoaches(coaches)).catch(() => {})
+    listAvailableCoaches().then(coaches => setAllCoaches(coaches)).catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[NewSession] listAvailableCoaches error:', err) })
   }, [])
 
   // ── Load groups when implantation changes ──────────────────────────────────

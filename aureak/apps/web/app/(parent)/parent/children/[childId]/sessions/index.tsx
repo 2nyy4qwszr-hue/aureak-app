@@ -81,6 +81,7 @@ export default function ChildSessionsPage() {
 
   useEffect(() => {
     const load = async () => {
+      try {
       const [profileRes, nameRes] = await Promise.all([
         getChildProfile(childId, { months: 12 }),
         getProfileDisplayName(childId),
@@ -125,7 +126,9 @@ export default function ChildSessionsPage() {
         })
 
       setSessions(rows)
-      setLoading(false)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [childId])

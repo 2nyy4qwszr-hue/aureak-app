@@ -70,24 +70,26 @@ export default function CoachDashboardPage() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const { data } = await listSessionsByCoach(user.id)
-      const all = (data ?? []) as Session[]
-      setSessions(all)
+      try {
+        const { data } = await listSessionsByCoach(user.id)
+        const all = (data ?? []) as Session[]
+        setSessions(all)
 
-      // Missing evaluations: closed sessions in the last 30 days
-      const cutoff = new Date()
-      cutoff.setDate(cutoff.getDate() - 30)
-      const recentClosed = all
-        .filter(s => s.status === 'terminée' && new Date(s.scheduledAt) >= cutoff)
-        .map(s => s.id)
+        // Missing evaluations: closed sessions in the last 30 days
+        const cutoff = new Date()
+        cutoff.setDate(cutoff.getDate() - 30)
+        const recentClosed = all
+          .filter(s => s.status === 'terminée' && new Date(s.scheduledAt) >= cutoff)
+          .map(s => s.id)
 
-      if (recentClosed.length > 0) {
-        const { data: evaluatedIds } = await listEvaluatedSessionIds(recentClosed)
-        const evaluated = new Set(evaluatedIds)
-        setMissingEvals(recentClosed.filter(id => !evaluated.has(id)))
+        if (recentClosed.length > 0) {
+          const { data: evaluatedIds } = await listEvaluatedSessionIds(recentClosed)
+          const evaluated = new Set(evaluatedIds)
+          setMissingEvals(recentClosed.filter(id => !evaluated.has(id)))
+        }
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     }
     load()
   }, [user?.id])

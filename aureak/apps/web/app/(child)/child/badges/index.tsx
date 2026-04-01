@@ -38,6 +38,9 @@ export default function ChildBadgesPage() {
       setProgress(prog)
       setActive(activeQ)
       setAll(allQ)
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[badges] load error:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [user?.id])

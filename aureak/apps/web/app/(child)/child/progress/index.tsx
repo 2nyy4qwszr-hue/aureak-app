@@ -49,6 +49,9 @@ export default function ChildProgressPage() {
     ]).then(([t, c]) => {
       setThemes(t)
       setCards(c)
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[progress] load error:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [user?.id])

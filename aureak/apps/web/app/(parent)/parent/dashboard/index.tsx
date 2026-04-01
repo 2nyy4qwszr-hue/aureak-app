@@ -92,40 +92,40 @@ export default function ParentDashboardPage() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const { data: links } = await listChildrenOfParent(user.id)
+      try {
+        const { data: links } = await listChildrenOfParent(user.id)
 
-      if (!links || links.length === 0) {
+        if (!links || links.length === 0) return
+
+        type AttRow = { status: string; sessions?: { scheduled_at: string } | null }
+        type EvalRow = { receptivite: string; gout_effort: string; attitude: string; top_seance: string }
+
+        const results: ChildData[] = await Promise.all(
+          links.map(async (link) => {
+            const childId     = link.childId
+            const displayName = link.displayName ?? childId.slice(0, 8)
+
+            const { attendances, evaluations } = await getChildProfile(childId, { months: 3 })
+            const atts  = attendances as unknown as AttRow[]
+            const evals = evaluations as unknown as EvalRow[]
+
+            const presentCount  = atts.filter(a => PRESENT_STATUSES.has(a.status)).length
+            const lastSessionAt = atts[0]?.sessions?.scheduled_at ?? null
+            const latestEval    = evals.length > 0 ? {
+              receptivite: (evals[0].receptivite ?? 'none') as EvalSignal,
+              gout_effort: (evals[0].gout_effort ?? 'none') as EvalSignal,
+              attitude   : (evals[0].attitude    ?? 'none') as EvalSignal,
+              top_seance : (evals[0].top_seance === 'star' ? 'star' : 'none') as 'star' | 'none',
+            } : null
+
+            return { childId, displayName, totalSessions: atts.length, presentCount, lastSessionAt, latestEval }
+          })
+        )
+
+        setChildren(results)
+      } finally {
         setLoading(false)
-        return
       }
-
-      type AttRow = { status: string; sessions?: { scheduled_at: string } | null }
-      type EvalRow = { receptivite: string; gout_effort: string; attitude: string; top_seance: string }
-
-      const results: ChildData[] = await Promise.all(
-        links.map(async (link) => {
-          const childId     = link.childId
-          const displayName = link.displayName ?? childId.slice(0, 8)
-
-          const { attendances, evaluations } = await getChildProfile(childId, { months: 3 })
-          const atts  = attendances as unknown as AttRow[]
-          const evals = evaluations as unknown as EvalRow[]
-
-          const presentCount  = atts.filter(a => PRESENT_STATUSES.has(a.status)).length
-          const lastSessionAt = atts[0]?.sessions?.scheduled_at ?? null
-          const latestEval    = evals.length > 0 ? {
-            receptivite: (evals[0].receptivite ?? 'none') as EvalSignal,
-            gout_effort: (evals[0].gout_effort ?? 'none') as EvalSignal,
-            attitude   : (evals[0].attitude    ?? 'none') as EvalSignal,
-            top_seance : (evals[0].top_seance === 'star' ? 'star' : 'none') as 'star' | 'none',
-          } : null
-
-          return { childId, displayName, totalSessions: atts.length, presentCount, lastSessionAt, latestEval }
-        })
-      )
-
-      setChildren(results)
-      setLoading(false)
     }
     load()
   }, [user?.id])

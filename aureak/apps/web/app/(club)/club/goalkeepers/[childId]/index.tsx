@@ -182,9 +182,10 @@ export default function GoalkeeperDetailPage() {
   useEffect(() => {
     if (!childId) return
     const load = async () => {
+      try {
       // Profile + attendances + evals in parallel (ARCH-1 compliant)
       const { data: gkData, error: gkError } = await getGoalkeeperDetail(childId)
-      if (gkError || !gkData) { setLoading(false); return }
+      if (gkError || !gkData) { return }
 
       setDisplayName(gkData.displayName ?? '')
 
@@ -242,8 +243,9 @@ export default function GoalkeeperDetailPage() {
         const { data: histData } = await listHistoryByChild(childId)
         setFootballHistory(histData)
       } catch { /* RLS may deny access */ }
-
-      setLoading(false)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [childId])

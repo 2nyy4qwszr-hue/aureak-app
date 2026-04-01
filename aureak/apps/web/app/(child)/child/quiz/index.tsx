@@ -33,6 +33,9 @@ export default function ChildQuizIndexPage() {
     if (!user?.id) return
     getChildThemeProgression(user.id).then(entries => {
       setThemes(entries)
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[quiz] load error:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [user?.id])

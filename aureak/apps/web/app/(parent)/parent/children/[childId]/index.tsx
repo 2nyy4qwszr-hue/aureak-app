@@ -150,14 +150,17 @@ export default function ChildFichePage() {
 
   useEffect(() => {
     const load = async () => {
-      const [profileRes, nameRes] = await Promise.all([
-        getChildProfile(childId, { months: 3 }),
-        getProfileDisplayName(childId),
-      ])
-      setDisplayName(nameRes.data ?? '')
-      setAttendances(profileRes.attendances as unknown as AttendanceRow[])
-      setEvaluations(profileRes.evaluations as EvalRow[])
-      setLoading(false)
+      try {
+        const [profileRes, nameRes] = await Promise.all([
+          getChildProfile(childId, { months: 3 }),
+          getProfileDisplayName(childId),
+        ])
+        setDisplayName(nameRes.data ?? '')
+        setAttendances(profileRes.attendances as unknown as AttendanceRow[])
+        setEvaluations(profileRes.evaluations as EvalRow[])
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [childId])

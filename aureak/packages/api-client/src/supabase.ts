@@ -23,10 +23,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
     'Vérifiez votre fichier .env (copiez .env.example et renseignez les valeurs).'
   // En développement : erreur explicite pour détecter immédiatement le problème
   // En production : warning pour éviter un crash dur (valeurs manquantes = app dégradée)
-  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+  if (process.env.NODE_ENV !== 'production') {
     console.error(msg)
-  } else {
-    console.warn(msg)
   }
 }
 
