@@ -908,9 +908,10 @@ export default function JoueursPage() {
       setJoueurs(data)
       setTotal(count)
     } catch (e) {
-      console.error('[JoueursPage] load error', e)
+      if (process.env.NODE_ENV !== 'production') console.error('[JoueursPage] load error', e)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page, seasonYearRange])
 
   useEffect(() => { load() }, [load])
