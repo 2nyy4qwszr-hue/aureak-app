@@ -146,7 +146,7 @@ export default function SessionDetailPage() {
     const timer = setTimeout(() => {
       listChildDirectory({ search: guestSearch.trim(), pageSize: 8 })
         .then(({ data }) => setGuestResults(data))
-        .catch(() => {})
+        .catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] guestSearch error:', err) })
     }, 300)
     return () => clearTimeout(timer)
   }, [guestSearch])

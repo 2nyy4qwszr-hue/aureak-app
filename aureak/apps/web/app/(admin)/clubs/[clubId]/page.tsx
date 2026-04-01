@@ -417,8 +417,14 @@ export default function ClubDetailPage() {
   const handleDelete = async () => {
     if (!clubId || !tenantId || !user?.id) return
     if (typeof window !== 'undefined' && !window.confirm('Supprimer ce club ?')) return
-    await softDeleteClubDirectoryEntry({ clubId, tenantId, deletedBy: user.id })
-    router.replace('/clubs' as never)
+    try {
+      const { error } = await softDeleteClubDirectoryEntry({ clubId, tenantId, deletedBy: user.id })
+      if (error) { setError('Erreur lors de la suppression.'); return }
+      router.replace('/clubs' as never)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] handleDelete error:', err)
+      setError('Erreur lors de la suppression.')
+    }
   }
 
   // Validation + preview local — l'upload réel se déclenche dans handleSave

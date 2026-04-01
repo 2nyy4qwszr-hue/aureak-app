@@ -48,23 +48,29 @@ export default function CoachGradePage({ params }: Props) {
   const handleAward = async () => {
     setWorking(true)
     setFeedback('')
-    const { data: gradeId, error } = await awardCoachGrade(coachId, selected, notes || undefined)
-    if (error) {
-      setFeedback(`Erreur : ${(error as Error)?.message ?? 'inconnue'}`)
-    } else {
-      // Notification push
-      const gradeInfo = GRADES.find(g => g.value === selected)!
-      await sendGradeNotification({
-        coachId,
-        gradeId   : gradeId as string | null,
-        gradeLabel: gradeInfo.label,
-        gradeEmoji: gradeInfo.emoji,
-      })
-      setFeedback(`Grade ${gradeInfo.label} attribué avec succès.`)
-      setNotes('')
-      await load()
+    try {
+      const { data: gradeId, error } = await awardCoachGrade(coachId, selected, notes || undefined)
+      if (error) {
+        setFeedback(`Erreur : ${(error as Error)?.message ?? 'inconnue'}`)
+      } else {
+        // Notification push
+        const gradeInfo = GRADES.find(g => g.value === selected)!
+        await sendGradeNotification({
+          coachId,
+          gradeId   : gradeId as string | null,
+          gradeLabel: gradeInfo.label,
+          gradeEmoji: gradeInfo.emoji,
+        })
+        setFeedback(`Grade ${gradeInfo.label} attribué avec succès.`)
+        setNotes('')
+        await load()
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coaches/grade] handleAward error:', err)
+      setFeedback('Erreur inattendue lors de l\'attribution.')
+    } finally {
+      setWorking(false)
     }
-    setWorking(false)
   }
 
   if (loading) return <div style={styles.loading}>Chargement...</div>
