@@ -16,7 +16,8 @@
 | GLOBAL-SCAN 2026-04-01 (scan 6) | ✅ PASS | ✅ PASS | 0 | Non |
 | GLOBAL-SCAN 2026-04-01 (scan 7) | ✅ PASS | ✅ PASS | 0 | Non |
 | GLOBAL-SCAN 2026-04-01 (scan 8) | ✅ PASS | ✅ PASS | 0 | Non |
-| GLOBAL-SCAN 2026-04-01 (scan 9) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 9)  | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 10) | ✅ PASS | ✅ PASS | 0 | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -26,6 +27,7 @@
 > Scan 7 : W-30 + W-31 — tous résolus (commit 7bc23e2)
 > Scan 8 : B-26 — résolu (commit a7df209)
 > Scan 9 : B-27 — résolu (commit d4e875f)
+> Scan 10 : B-28 + W-32 + W-33 — tous résolus (commit 829a2b9)
 
 ---
 
