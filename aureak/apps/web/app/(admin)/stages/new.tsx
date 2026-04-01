@@ -58,6 +58,7 @@ export default function NewStagePage() {
       router.push(`/stages/${stage.id}` as never)
     } catch (e: unknown) {
       setError((e as Error).message ?? 'Erreur lors de la création')
+    } finally {
       setSaving(false)
     }
   }

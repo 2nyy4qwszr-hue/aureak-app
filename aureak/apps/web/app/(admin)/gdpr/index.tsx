@@ -26,9 +26,14 @@ export default function GdprAdminPage() {
 
   const load = async () => {
     setLoading(true)
-    const result = await listAllGdprRequests()
-    setRequests(result.data)
-    setLoading(false)
+    try {
+      const result = await listAllGdprRequests()
+      setRequests(result.data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[gdpr] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])

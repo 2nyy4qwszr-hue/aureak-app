@@ -1023,6 +1023,47 @@ export async function batchResolveCoachNames(coachIds: string[]): Promise<Map<st
   return map
 }
 
+// ─── Session validation status — ARCH-1 wrappers for useSessionValidation ────
+
+export async function getSessionValidationStatus(
+  sessionId: string
+): Promise<{ data: string | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('validation_status')
+    .eq('id', sessionId)
+    .single()
+  return {
+    data : (data as { validation_status: string } | null)?.validation_status ?? null,
+    error,
+  }
+}
+
+/**
+ * Souscrit aux changements Realtime de `validation_status` pour une séance.
+ * Retourne une fonction de nettoyage à appeler dans le return de useEffect.
+ */
+export function subscribeToSessionValidation(
+  sessionId: string,
+  onUpdate : (newStatus: string) => void,
+  onStatus : (connected: boolean) => void,
+): () => void {
+  const channel = supabase
+    .channel(`session-validation:${sessionId}`)
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` },
+      (payload) => {
+        const newStatus = (payload.new as { validation_status?: string }).validation_status
+        if (newStatus) onUpdate(newStatus)
+      }
+    )
+    .subscribe((status) => {
+      onStatus(status === 'SUBSCRIBED')
+    })
+  return () => { supabase.removeChannel(channel) }
+}
+
 /**
  * Liste les séances d'un coach qui sont actuellement dans la fenêtre active
  * [scheduled_at - 30min .. scheduled_at + duration + 15min]

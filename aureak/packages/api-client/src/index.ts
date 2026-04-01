@@ -106,6 +106,8 @@ export {
   getActiveSessionsForCoach,
   // Story 19.4 — vues admin enrichies
   listSessionsAdminView, batchResolveCoachNames,
+  // ARCH-1 wrappers for useSessionValidation
+  getSessionValidationStatus, subscribeToSessionValidation,
 } from './sessions/sessions'
 export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin } from './sessions/sessions'
 

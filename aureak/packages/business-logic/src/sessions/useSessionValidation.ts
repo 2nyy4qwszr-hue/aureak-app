@@ -1,6 +1,6 @@
 // Story 6.3 — Hook useSessionValidation (Realtime + fallback polling)
 import { useEffect, useRef, useState } from 'react'
-import { supabase, validateSession } from '@aureak/api-client'
+import { getSessionValidationStatus, subscribeToSessionValidation, validateSession } from '@aureak/api-client'
 import type { ValidationStatus } from '@aureak/types'
 
 export function useSessionValidation(sessionId: string) {
@@ -13,14 +13,8 @@ export function useSessionValidation(sessionId: string) {
   const startPolling = () => {
     if (pollingRef.current) return
     pollingRef.current = setInterval(async () => {
-      const { data } = await supabase
-        .from('sessions')
-        .select('validation_status')
-        .eq('id', sessionId)
-        .single()
-      if (data?.validation_status) {
-        setValidationStatus(data.validation_status as ValidationStatus)
-      }
+      const { data } = await getSessionValidationStatus(sessionId)
+      if (data) setValidationStatus(data as ValidationStatus)
     }, 9000)
   }
 
@@ -32,22 +26,15 @@ export function useSessionValidation(sessionId: string) {
   }
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`session-validation:${sessionId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` },
-        (payload) => {
-          const newStatus = (payload.new as { validation_status?: string }).validation_status
-          if (newStatus) setValidationStatus(newStatus as ValidationStatus)
-        }
-      )
-      .subscribe((status) => {
-        const connected = status === 'SUBSCRIBED'
+    const unsubscribe = subscribeToSessionValidation(
+      sessionId,
+      (newStatus) => setValidationStatus(newStatus as ValidationStatus),
+      (connected) => {
         setWsConnected(connected)
         wsConnectedRef.current = connected
         if (connected) stopPolling()
-      })
+      }
+    )
 
     // Fallback polling si WS non connecté après 3s
     // Utilise wsConnectedRef (pas wsConnected) pour éviter la stale closure
@@ -56,7 +43,7 @@ export function useSessionValidation(sessionId: string) {
     }, 3000)
 
     return () => {
-      supabase.removeChannel(channel)
+      unsubscribe()
       clearTimeout(wsTimeout)
       stopPolling()
     }
