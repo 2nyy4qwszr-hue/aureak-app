@@ -18,6 +18,21 @@
 | GLOBAL-SCAN 2026-04-01 (scan 8) | ✅ PASS | ✅ PASS | 0 | Non |
 | GLOBAL-SCAN 2026-04-01 (scan 9)  | ✅ PASS | ✅ PASS | 0 | Non |
 | GLOBAL-SCAN 2026-04-01 (scan 10) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 11) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 12) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 13) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 14) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 15) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 16) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 17) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 18) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 19) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 20) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 21) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 22) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 23) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 24) | ✅ PASS | ✅ PASS | 0 | Non |
+| GLOBAL-SCAN 2026-04-01 (scan 25) | ✅ PASS | ✅ PASS | 0 | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -28,6 +43,15 @@
 > Scan 8 : B-26 — résolu (commit a7df209)
 > Scan 9 : B-27 — résolu (commit d4e875f)
 > Scan 10 : B-28 + W-32 + W-33 — tous résolus (commit 829a2b9)
+> Scan 11-14 : B-29→B-34 + W-34→W-39 — tous résolus (Blocs P-Q, commits ~25d68c5)
+> Scan 15-17 : B-35→B-46 + W-40→W-43 — tous résolus (Blocs R-S, commits ~8cd6705/2e1c6a7)
+> Scan 18-19 : B-47→B-57 + W-44→W-47 — tous résolus (Blocs T-V, commits ~fa1cd7f/c1d8463)
+> Scan 20 : B-58→B-60 + W-48 — résolus (Bloc W, commit 9064e31) ; B-61→B-71 + W-49 — résolus (Bloc X, commit e24531d)
+> Scan 21 : B-72→B-84 + W-50→W-51 — résolus (Bloc Y, commit 58c881a)
+> Scan 22 : B-86→B-93 + W-53→W-54 — résolus (Bloc Z, commit df0ac1d)
+> Scan 23 : B-94 — résolu (Bloc AA, commit e5205c6)
+> Scan 24 : B-95→B-96 + W-55 — résolus (Bloc AB, commit aa1dcad)
+> Scan 25 : ✅ CLEAN — zéro issue
 
 ---
 
