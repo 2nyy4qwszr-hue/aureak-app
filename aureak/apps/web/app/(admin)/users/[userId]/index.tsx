@@ -86,20 +86,25 @@ export default function UserFichePage() {
     if (!userId) return
     setLoading(true)
     setFeedback('')
+    try {
+      const [profileRes, eventsRes] = await Promise.all([
+        getUserProfile(userId),
+        listLifecycleEvents(userId),
+      ])
 
-    const [profileRes, eventsRes] = await Promise.all([
-      getUserProfile(userId),
-      listLifecycleEvents(userId),
-    ])
+      if (profileRes.error || !profileRes.data) {
+        setProfileErr(true)
+      } else {
+        setProfile(profileRes.data)
+      }
 
-    if (profileRes.error || !profileRes.data) {
+      setEvents((eventsRes.data ?? []) as LifecycleEvent[])
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[users/detail] load error:', err)
       setProfileErr(true)
-    } else {
-      setProfile(profileRes.data)
+    } finally {
+      setLoading(false)
     }
-
-    setEvents((eventsRes.data ?? []) as LifecycleEvent[])
-    setLoading(false)
   }
 
   useEffect(() => { load() }, [userId])

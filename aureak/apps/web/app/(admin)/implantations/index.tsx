@@ -290,21 +290,26 @@ export default function ImplantationsPage() {
   const handleAddGroup = async () => {
     if (!addGroupFor || !tenantId) return
     setAddingGroup(true)
-    const name = getGroupName(addGroupFor)
-    await createGroup({
-      tenantId,
-      implantationId  : addGroupFor,
-      name,
-      method          : groupForm.method,
-      dayOfWeek       : groupForm.day,
-      startHour       : groupForm.startHour,
-      startMinute     : groupForm.startMinute,
-      durationMinutes : groupForm.durationMinutes,
-    })
-    await loadGroups(addGroupFor)
-    setGroupForm(emptyForm())
-    setAddGroupFor(null)
-    setAddingGroup(false)
+    try {
+      const name = getGroupName(addGroupFor)
+      await createGroup({
+        tenantId,
+        implantationId  : addGroupFor,
+        name,
+        method          : groupForm.method,
+        dayOfWeek       : groupForm.day,
+        startHour       : groupForm.startHour,
+        startMinute     : groupForm.startMinute,
+        durationMinutes : groupForm.durationMinutes,
+      })
+      await loadGroups(addGroupFor)
+      setGroupForm(emptyForm())
+      setAddGroupFor(null)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] handleAddGroup error:', err)
+    } finally {
+      setAddingGroup(false)
+    }
   }
 
   const handleDeleteGroup = async (implId: string, groupId: string) => {

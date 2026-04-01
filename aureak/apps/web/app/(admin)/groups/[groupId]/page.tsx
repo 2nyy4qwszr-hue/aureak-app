@@ -376,9 +376,14 @@ function StaffTab({
 
   const handleRemove = async (id: string) => {
     setRemoving(id)
-    await removeGroupStaff(id)
-    setRemoving(null)
-    onRefresh()
+    try {
+      await removeGroupStaff(id)
+      onRefresh()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] GroupStaffSection.handleRemove error:', err)
+    } finally {
+      setRemoving(null)
+    }
   }
 
   return (
@@ -565,9 +570,14 @@ function JoueursTab({
 
   const handleRemove = async (childId: string) => {
     setRemoving(childId)
-    await removeGroupMember(groupId, childId)
-    setRemoving(null)
-    onRefresh()
+    try {
+      await removeGroupMember(groupId, childId)
+      onRefresh()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] GroupMembersSection.handleRemove error:', err)
+    } finally {
+      setRemoving(null)
+    }
   }
 
   return (
@@ -998,17 +1008,22 @@ export default function GroupDetailPage() {
   const loadAll = useCallback(async () => {
     if (!groupId) return
     setLoading(true)
-    const [_, __, ___, ____, coachList, childList] = await Promise.all([
-      loadGroup(),
-      loadStaff(),
-      loadMembers(),
-      loadSessions(),
-      listAvailableCoaches(),
-      listAvailableChildren(),
-    ])
-    setCoaches(coachList)
-    setChildren(childList)
-    setLoading(false)
+    try {
+      const [_, __, ___, ____, coachList, childList] = await Promise.all([
+        loadGroup(),
+        loadStaff(),
+        loadMembers(),
+        loadSessions(),
+        listAvailableCoaches(),
+        listAvailableChildren(),
+      ])
+      setCoaches(coachList)
+      setChildren(childList)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] loadAll error:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [groupId, loadGroup, loadStaff, loadMembers, loadSessions])
 
   useEffect(() => { loadAll() }, [loadAll])

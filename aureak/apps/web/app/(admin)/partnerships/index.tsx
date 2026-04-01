@@ -29,19 +29,24 @@ export default function PartnershipsPage() {
 
   const load = async () => {
     setLoading(true)
-    const result = await listPartnerships()
-    setPartnerships(result.data ?? [])
+    try {
+      const result = await listPartnerships()
+      setPartnerships(result.data ?? [])
 
-    // Charger les stats d'accès pour chaque partenariat
-    const statsMap: Record<string, number> = {}
-    await Promise.all(
-      result.data.map(async p => {
-        const { count } = await listPartnerAccessStats(p.id)
-        statsMap[p.id] = count
-      }),
-    )
-    setStats(statsMap)
-    setLoading(false)
+      // Charger les stats d'accès pour chaque partenariat
+      const statsMap: Record<string, number> = {}
+      await Promise.all(
+        result.data.map(async p => {
+          const { count } = await listPartnerAccessStats(p.id)
+          statsMap[p.id] = count
+        }),
+      )
+      setStats(statsMap)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[partnerships] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])

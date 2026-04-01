@@ -450,10 +450,15 @@ export default function ClubDetailPage() {
     if (!club?.logoPath || !clubId || !tenantId || !user?.id) return
     if (typeof window !== 'undefined' && !window.confirm('Supprimer le logo de ce club ?')) return
     setLogoUploading(true)
-    await deleteClubLogo({ clubId, logoPath: club.logoPath, tenantId, deletedBy: user.id })
-    const clubRes = await getClubDirectoryEntry(clubId)
-    if (clubRes.data) { setClub(clubRes.data); setForm(entryToForm(clubRes.data)) }
-    setLogoUploading(false)
+    try {
+      await deleteClubLogo({ clubId, logoPath: club.logoPath, tenantId, deletedBy: user.id })
+      const clubRes = await getClubDirectoryEntry(clubId)
+      if (clubRes.data) { setClub(clubRes.data); setForm(entryToForm(clubRes.data)) }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] handleLogoDelete error:', err)
+    } finally {
+      setLogoUploading(false)
+    }
   }
 
   // ── Link helpers ──────────────────────────────────────────────────────────

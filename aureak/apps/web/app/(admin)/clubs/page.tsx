@@ -79,17 +79,22 @@ export default function ClubsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, count } = await listClubDirectory({
-      search      : search || undefined,
-      province    : provinceFilter,
-      relationTypes: relationFilter === 'all' ? undefined : [relationFilter as ClubRelationType],
-      actif       : actifFilter === 'all' ? undefined : actifFilter === 'actif',
-      page,
-      pageSize    : PAGE_SIZE,
-    })
-    setClubs(data)
-    setTotal(count)
-    setLoading(false)
+    try {
+      const { data, count } = await listClubDirectory({
+        search      : search || undefined,
+        province    : provinceFilter,
+        relationTypes: relationFilter === 'all' ? undefined : [relationFilter as ClubRelationType],
+        actif       : actifFilter === 'all' ? undefined : actifFilter === 'actif',
+        page,
+        pageSize    : PAGE_SIZE,
+      })
+      setClubs(data)
+      setTotal(count)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/list] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [search, provinceFilter, relationFilter, actifFilter, page])
 
   useEffect(() => { load() }, [load])
