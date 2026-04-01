@@ -107,7 +107,7 @@ export default function GdprAdminPage() {
               <button
                 style={working === req.id ? { ...styles.btnDanger, opacity: 0.5 } : styles.btnDanger}
                 disabled={working === req.id}
-                onClick={() => processGdprRequest(req.id, 'rejected').then(() => load())}
+                onClick={() => processGdprRequest(req.id, 'rejected').then(() => load()).catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[gdpr] reject error:', err) })}
               >
                 Rejeter
               </button>

@@ -404,9 +404,14 @@ export default function AttendancePage() {
     if (noteDebounceRef.current[childId]) clearTimeout(noteDebounceRef.current[childId])
     noteDebounceRef.current[childId] = setTimeout(async () => {
       setSavingNote(childId)
-      await saveCoachNote(sessionId, childId, trimmed)
-      setChildren(prev => prev.map(c => c.childId === childId ? { ...c, notesDirty: false } : c))
-      setSavingNote(null)
+      try {
+        await saveCoachNote(sessionId, childId, trimmed)
+        setChildren(prev => prev.map(c => c.childId === childId ? { ...c, notesDirty: false } : c))
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[attendance] saveCoachNote error:', err)
+      } finally {
+        setSavingNote(null)
+      }
     }, 2000)
   }
 

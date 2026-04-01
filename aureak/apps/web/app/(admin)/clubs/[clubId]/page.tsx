@@ -387,31 +387,37 @@ export default function ClubDetailPage() {
     if (!club || !form || !clubId || !tenantId || !user?.id) return
     setSaving(true); setError(null)
 
-    // Upload logo en attente (sélectionné mais pas encore envoyé)
-    if (logoFile) {
-      setLogoUploading(true)
-      const { error: logoErr } = await uploadClubLogo({ clubId, tenantId, file: logoFile, updatedBy: user.id })
-      setLogoUploading(false)
-      if (logoErr) {
-        setError(typeof logoErr === 'string' ? logoErr : 'Erreur lors de l\'upload du logo.')
-        setSaving(false); return
+    try {
+      // Upload logo en attente (sélectionné mais pas encore envoyé)
+      if (logoFile) {
+        setLogoUploading(true)
+        const { error: logoErr } = await uploadClubLogo({ clubId, tenantId, file: logoFile, updatedBy: user.id })
+        setLogoUploading(false)
+        if (logoErr) {
+          setError(typeof logoErr === 'string' ? logoErr : 'Erreur lors de l\'upload du logo.')
+          return
+        }
+        setLogoFile(null)
+        setLogoPreview(null)
       }
-      setLogoFile(null)
-      setLogoPreview(null)
-    }
 
-    const { error: err } = await updateClubDirectoryEntry({
-      clubId, tenantId, updatedBy: user.id,
-      nom: form.nom, matricule: form.matricule || null, label: form.label || null, province: form.province,
-      adresseRue: form.adresseRue || null, codePostal: form.codePostal || null, ville: form.ville || null, siteInternet: form.siteInternet || null,
-      correspondant: form.correspondant || null, emailPrincipal: form.emailPrincipal || null, telephonePrincipal: form.telephonePrincipal || null,
-      responsableSportif: form.responsableSportif || null, emailResponsableSportif: form.emailResponsableSportif || null, telephoneResponsableSportif: form.telephoneResponsableSportif || null,
-      clubRelationType: form.clubRelationType, actif: form.actif, notesInternes: form.notesInternes || null,
-    })
-    setSaving(false)
-    if (err) { setError('Erreur lors de la sauvegarde.'); return }
-    setEditing(false)
-    await load()
+      const { error: err } = await updateClubDirectoryEntry({
+        clubId, tenantId, updatedBy: user.id,
+        nom: form.nom, matricule: form.matricule || null, label: form.label || null, province: form.province,
+        adresseRue: form.adresseRue || null, codePostal: form.codePostal || null, ville: form.ville || null, siteInternet: form.siteInternet || null,
+        correspondant: form.correspondant || null, emailPrincipal: form.emailPrincipal || null, telephonePrincipal: form.telephonePrincipal || null,
+        responsableSportif: form.responsableSportif || null, emailResponsableSportif: form.emailResponsableSportif || null, telephoneResponsableSportif: form.telephoneResponsableSportif || null,
+        clubRelationType: form.clubRelationType, actif: form.actif, notesInternes: form.notesInternes || null,
+      })
+      if (err) { setError('Erreur lors de la sauvegarde.'); return }
+      setEditing(false)
+      await load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] handleSave error:', err)
+      setError('Erreur inattendue lors de la sauvegarde.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async () => {
@@ -471,9 +477,15 @@ export default function ClubDetailPage() {
 
   const unlinkPlayer = async (childId: string, linkType: ClubChildLinkType) => {
     if (!clubId || !tenantId || !user?.id) return
-    await unlinkChildFromClubDirectory({ clubId, childId, linkType, tenantId, linkedBy: user.id })
-    if (linkType === 'current')    setCurrentPlayers(prev => prev.filter(p => p.childId !== childId))
-    else                           setAffiliatedPlayers(prev => prev.filter(p => p.childId !== childId))
+    try {
+      const { error: err } = await unlinkChildFromClubDirectory({ clubId, childId, linkType, tenantId, linkedBy: user.id })
+      if (err) { setError('Impossible de retirer ce joueur.'); return }
+      if (linkType === 'current')    setCurrentPlayers(prev => prev.filter(p => p.childId !== childId))
+      else                           setAffiliatedPlayers(prev => prev.filter(p => p.childId !== childId))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] unlinkPlayer error:', err)
+      setError('Erreur inattendue lors du retrait du joueur.')
+    }
   }
 
   const linkCoach = async (coachId: string, name: string) => {
@@ -486,8 +498,14 @@ export default function ClubDetailPage() {
 
   const unlinkCoach = async (coachId: string) => {
     if (!clubId || !tenantId || !user?.id) return
-    await unlinkCoachFromClubDirectory({ clubId, coachId, tenantId, linkedBy: user.id })
-    setCoaches(prev => prev.filter(c => c.coachId !== coachId))
+    try {
+      const { error: err } = await unlinkCoachFromClubDirectory({ clubId, coachId, tenantId, linkedBy: user.id })
+      if (err) { setError('Impossible de retirer ce coach.'); return }
+      setCoaches(prev => prev.filter(c => c.coachId !== coachId))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] unlinkCoach error:', err)
+      setError('Erreur inattendue lors du retrait du coach.')
+    }
   }
 
   const setField = (key: keyof EditForm, value: unknown) =>

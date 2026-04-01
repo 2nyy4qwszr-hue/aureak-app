@@ -184,36 +184,41 @@ export default function NewClubScreen() {
     setError(null)
     setSubmitting(true)
 
-    const { data, error: err } = await createClubDirectoryEntry({
-      tenantId : tenantId,
-      createdBy: user.id,
-      nom                         : form.nom.trim(),
-      matricule                   : form.matricule.trim() || null,
-      label                       : form.label.trim() || null,
-      province                    : form.province,
-      adresseRue                  : form.adresseRue.trim() || null,
-      codePostal                  : form.codePostal.trim() || null,
-      ville                       : form.ville.trim() || null,
-      siteInternet                : form.siteInternet.trim() || null,
-      correspondant               : form.correspondant.trim() || null,
-      emailPrincipal              : form.emailPrincipal.trim() || null,
-      telephonePrincipal          : form.telephonePrincipal.trim() || null,
-      responsableSportif          : form.responsableSportif.trim() || null,
-      emailResponsableSportif     : form.emailResponsableSportif.trim() || null,
-      telephoneResponsableSportif : form.telephoneResponsableSportif.trim() || null,
-      clubRelationType            : form.clubRelationType,
-      actif                       : form.actif,
-      notesInternes               : form.notesInternes.trim() || null,
-    })
+    try {
+      const { data, error: err } = await createClubDirectoryEntry({
+        tenantId : tenantId,
+        createdBy: user.id,
+        nom                         : form.nom.trim(),
+        matricule                   : form.matricule.trim() || null,
+        label                       : form.label.trim() || null,
+        province                    : form.province,
+        adresseRue                  : form.adresseRue.trim() || null,
+        codePostal                  : form.codePostal.trim() || null,
+        ville                       : form.ville.trim() || null,
+        siteInternet                : form.siteInternet.trim() || null,
+        correspondant               : form.correspondant.trim() || null,
+        emailPrincipal              : form.emailPrincipal.trim() || null,
+        telephonePrincipal          : form.telephonePrincipal.trim() || null,
+        responsableSportif          : form.responsableSportif.trim() || null,
+        emailResponsableSportif     : form.emailResponsableSportif.trim() || null,
+        telephoneResponsableSportif : form.telephoneResponsableSportif.trim() || null,
+        clubRelationType            : form.clubRelationType,
+        actif                       : form.actif,
+        notesInternes               : form.notesInternes.trim() || null,
+      })
 
-    setSubmitting(false)
+      if (err || !data) {
+        setError('Erreur lors de la création du club.')
+        return
+      }
 
-    if (err || !data) {
-      setError('Erreur lors de la création du club.')
-      return
+      router.replace(`/clubs/${data.id}` as never)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/new] handleSubmit error:', err)
+      setError('Erreur inattendue lors de la création.')
+    } finally {
+      setSubmitting(false)
     }
-
-    router.replace(`/clubs/${data.id}` as never)
   }
 
   return (

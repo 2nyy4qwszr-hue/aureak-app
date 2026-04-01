@@ -495,24 +495,29 @@ export default function StageDetailPage() {
   const load = useCallback(async () => {
     if (!stageId) return
     setLoading(true)
-    const [s, cs] = await Promise.all([
-      getStage(stageId),
-      listAvailableCoaches(),
-    ])
-    setStage(s)
-    setCoaches(cs)
-    if (s) {
-      const d = await listStageDays(s.id)
-      setDays(d)
-      if (d.length > 0) setActiveDayId(prev => prev ?? d[0].id)
-      // Load blocks for all days
-      const blockMap: Record<string, StageBlock[]> = {}
-      await Promise.all(d.map(async day => {
-        blockMap[day.id] = await listStageBlocks(day.id)
-      }))
-      setBlocks(blockMap)
+    try {
+      const [s, cs] = await Promise.all([
+        getStage(stageId),
+        listAvailableCoaches(),
+      ])
+      setStage(s)
+      setCoaches(cs)
+      if (s) {
+        const d = await listStageDays(s.id)
+        setDays(d)
+        if (d.length > 0) setActiveDayId(prev => prev ?? d[0].id)
+        // Load blocks for all days
+        const blockMap: Record<string, StageBlock[]> = {}
+        await Promise.all(d.map(async day => {
+          blockMap[day.id] = await listStageBlocks(day.id)
+        }))
+        setBlocks(blockMap)
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[stages/detail] load error:', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [stageId])
 
   useEffect(() => { load() }, [load])
