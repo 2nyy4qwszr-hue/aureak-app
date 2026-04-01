@@ -61,17 +61,20 @@ export default function SectionVisionPedagogique({ themeId, tenantId }: Props) {
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const data = await getThemeVision(themeId)
-      if (data) {
-        setForm({
-          pourquoi: data.pourquoi ?? '',
-          quandEnMatch: data.quandEnMatch ?? '',
-          ceQueComprend: data.ceQueComprend ?? '',
-          ideeMaitresse: data.ideeMaitresse ?? '',
-          criteresPrioritaires: data.criteresPrioritaires ?? '',
-        })
+      try {
+        const data = await getThemeVision(themeId)
+        if (data) {
+          setForm({
+            pourquoi: data.pourquoi ?? '',
+            quandEnMatch: data.quandEnMatch ?? '',
+            ceQueComprend: data.ceQueComprend ?? '',
+            ideeMaitresse: data.ideeMaitresse ?? '',
+            criteresPrioritaires: data.criteresPrioritaires ?? '',
+          })
+        }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [themeId])

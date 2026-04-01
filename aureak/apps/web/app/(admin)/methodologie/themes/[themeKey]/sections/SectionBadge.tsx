@@ -44,18 +44,21 @@ export default function SectionBadge({ themeId, tenantId }: Props) {
 
   const load = async () => {
     setLoading(true)
-    const data = await listThemeBadgeLevels(themeId)
-    setLevels(data)
-    const initialForms: typeof forms = {}
-    data.forEach(l => {
-      initialForms[l.stage] = {
-        progressionRule: l.progressionRule ?? '',
-        requiredCriteriaCount: l.requiredCriteriaCount != null ? String(l.requiredCriteriaCount) : '',
-        badgeImageUrl: l.badgeImageUrl ?? '',
-      }
-    })
-    setForms(initialForms)
-    setLoading(false)
+    try {
+      const data = await listThemeBadgeLevels(themeId)
+      setLevels(data)
+      const initialForms: typeof forms = {}
+      data.forEach(l => {
+        initialForms[l.stage] = {
+          progressionRule: l.progressionRule ?? '',
+          requiredCriteriaCount: l.requiredCriteriaCount != null ? String(l.requiredCriteriaCount) : '',
+          badgeImageUrl: l.badgeImageUrl ?? '',
+        }
+      })
+      setForms(initialForms)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [themeId])

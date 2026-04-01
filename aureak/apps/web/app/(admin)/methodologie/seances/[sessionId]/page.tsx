@@ -303,33 +303,36 @@ export default function SeanceDetailPage() {
   const load = useCallback(async () => {
     if (!sessionId) return
     setLoading(true)
-    const [s, themes, situations, allT, allS] = await Promise.all([
-      getMethodologySession(sessionId),
-      listMethodologySessionThemes(sessionId),
-      listMethodologySessionSituations(sessionId),
-      listMethodologyThemes({ activeOnly: false }),
-      listMethodologySituations({ activeOnly: false }),
-    ])
-    if (s) {
-      setSession(s)
-      setTitle(s.title)
-      setMethod(s.method as MethodologyMethod | null)
-      setContextType(s.contextType as MethodologyContextType | null)
-      setModuleName(s.moduleName ?? '')
-      setTrainingRef(s.trainingRef ?? '')
-      setDescription(s.description ?? '')
-      setPdfUrl(s.pdfUrl ?? '')
-      setVideoUrl(s.videoUrl ?? '')
-      setAudioUrl(s.audioUrl ?? '')
-      setLevel(s.level as MethodologyLevel | null)
-      setObjective(s.objective ?? '')
-      setNotes(s.notes ?? '')
+    try {
+      const [s, themes, situations, allT, allS] = await Promise.all([
+        getMethodologySession(sessionId),
+        listMethodologySessionThemes(sessionId),
+        listMethodologySessionSituations(sessionId),
+        listMethodologyThemes({ activeOnly: false }),
+        listMethodologySituations({ activeOnly: false }),
+      ])
+      if (s) {
+        setSession(s)
+        setTitle(s.title)
+        setMethod(s.method as MethodologyMethod | null)
+        setContextType(s.contextType as MethodologyContextType | null)
+        setModuleName(s.moduleName ?? '')
+        setTrainingRef(s.trainingRef ?? '')
+        setDescription(s.description ?? '')
+        setPdfUrl(s.pdfUrl ?? '')
+        setVideoUrl(s.videoUrl ?? '')
+        setAudioUrl(s.audioUrl ?? '')
+        setLevel(s.level as MethodologyLevel | null)
+        setObjective(s.objective ?? '')
+        setNotes(s.notes ?? '')
+      }
+      setLinkedThemes(themes)
+      setLinkedSituations(situations)
+      setAllThemes(allT)
+      setAllSituations(allS)
+    } finally {
+      setLoading(false)
     }
-    setLinkedThemes(themes)
-    setLinkedSituations(situations)
-    setAllThemes(allT)
-    setAllSituations(allS)
-    setLoading(false)
   }, [sessionId])
 
   useEffect(() => { load() }, [load])

@@ -56,9 +56,12 @@ export default function SeancesPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const data = await listMethodologySessions({ activeOnly: false })
-    setSessions(data)
-    setLoading(false)
+    try {
+      const data = await listMethodologySessions({ activeOnly: false })
+      setSessions(data)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])

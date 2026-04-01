@@ -60,24 +60,27 @@ export default function SectionSequences({ themeId, tenantId, criteria }: Props)
 
   const loadSequences = async () => {
     setLoading(true)
-    const { data: seqs } = await listSequencesByTheme(themeId)
-    const allLinks = await listCriteriaLinksBySequenceIds(seqs.map(s => s.id))
-    const linksBySeq = new Map<string, string[]>()
-    for (const l of allLinks) {
-      const arr = linksBySeq.get(l.sequenceId) ?? []
-      arr.push(l.criterionId)
-      linksBySeq.set(l.sequenceId, arr)
+    try {
+      const { data: seqs } = await listSequencesByTheme(themeId)
+      const allLinks = await listCriteriaLinksBySequenceIds(seqs.map(s => s.id))
+      const linksBySeq = new Map<string, string[]>()
+      for (const l of allLinks) {
+        const arr = linksBySeq.get(l.sequenceId) ?? []
+        arr.push(l.criterionId)
+        linksBySeq.set(l.sequenceId, arr)
+      }
+      const withMeta: SeqWithMeta[] = seqs.map(s => ({
+        ...s,
+        criteriaIds: linksBySeq.get(s.id) ?? [],
+        _open      : false,
+        _editing   : false,
+        _cues      : (s as ThemeSequence).shortCues ?? [],
+        _newCue    : '',
+      }))
+      setSequences(withMeta)
+    } finally {
+      setLoading(false)
     }
-    const withMeta: SeqWithMeta[] = seqs.map(s => ({
-      ...s,
-      criteriaIds: linksBySeq.get(s.id) ?? [],
-      _open      : false,
-      _editing   : false,
-      _cues      : (s as ThemeSequence).shortCues ?? [],
-      _newCue    : '',
-    }))
-    setSequences(withMeta)
-    setLoading(false)
   }
 
   useEffect(() => { loadSequences() }, [themeId])

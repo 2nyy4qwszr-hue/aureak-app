@@ -41,24 +41,27 @@ export default function SectionQuiz({ themeKey, themeId }: Props) {
       setLoading(false)
       return
     }
-    const [themeResult, qResult] = await Promise.all([
-      getThemeByKey(themeKey),
-      listAllByTheme(themeId),
-    ])
-    if (themeResult.data) setTheme(themeResult.data)
-    const qs = qResult.data ?? []
-    setQuestions(qs)
-    const allOptions = await listOptionsByQuestionIds(qs.map(q => q.id))
-    const map: Record<string, QuizOption[]> = {}
-    for (const opt of allOptions) {
-      // PostgREST retourne question_id (snake_case) — fallback sur questionId si mapping présent
-      const key = (opt as Record<string, unknown>).question_id as string ?? opt.questionId
-      const arr = map[key] ?? []
-      arr.push(opt)
-      map[key] = arr
+    try {
+      const [themeResult, qResult] = await Promise.all([
+        getThemeByKey(themeKey),
+        listAllByTheme(themeId),
+      ])
+      if (themeResult.data) setTheme(themeResult.data)
+      const qs = qResult.data ?? []
+      setQuestions(qs)
+      const allOptions = await listOptionsByQuestionIds(qs.map(q => q.id))
+      const map: Record<string, QuizOption[]> = {}
+      for (const opt of allOptions) {
+        // PostgREST retourne question_id (snake_case) — fallback sur questionId si mapping présent
+        const key = (opt as Record<string, unknown>).question_id as string ?? opt.questionId
+        const arr = map[key] ?? []
+        arr.push(opt)
+        map[key] = arr
+      }
+      setOptionsMap(map)
+    } finally {
+      setLoading(false)
     }
-    setOptionsMap(map)
-    setLoading(false)
   }
 
   useEffect(() => { load() }, [themeId, themeKey])

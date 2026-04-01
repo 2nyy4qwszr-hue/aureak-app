@@ -741,7 +741,7 @@ export default function NewSessionPage() {
       setLoadingImplantations(false)
     })
 
-    listAvailableCoaches().then(coaches => setAllCoaches(coaches))
+    listAvailableCoaches().then(coaches => setAllCoaches(coaches)).catch(() => {})
   }, [])
 
   // ── Load groups when implantation changes ──────────────────────────────────
@@ -777,14 +777,16 @@ export default function NewSessionPage() {
       const derivedType = g.method ? (GROUP_METHOD_TO_SESSION_TYPE[g.method] ?? '') : ''
       setSessionType(derivedType as SessionType | '')
     }
-    listGroupStaff(groupId).then(staff => {
-      setGroupStaff(staff)
-      // DB one_lead_per_session → max 1 lead; prendre le premier coach principal du groupe
-      const leads = staff.filter(s => s.role === 'principal').map(s => s.coachId).slice(0, 1)
-      const assts = staff.filter(s => s.role === 'assistant').map(s => s.coachId).slice(0, 2)
-      if (leads.length) setCoachLeads(leads)
-      if (assts.length) setCoachAssistants(assts)
-    })
+    listGroupStaff(groupId)
+      .then(staff => {
+        setGroupStaff(staff)
+        // DB one_lead_per_session → max 1 lead; prendre le premier coach principal du groupe
+        const leads = staff.filter(s => s.role === 'principal').map(s => s.coachId).slice(0, 1)
+        const assts = staff.filter(s => s.role === 'assistant').map(s => s.coachId).slice(0, 2)
+        if (leads.length) setCoachLeads(leads)
+        if (assts.length) setCoachAssistants(assts)
+      })
+      .catch(() => { setGroupStaff([]) })
   }, [groupId, groups])
 
   // ── Reset contentRef states when session type changes ──────────────────────

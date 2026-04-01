@@ -39,14 +39,17 @@ export default function SectionPageTerrain({ theme, criteria, tenantId }: Props)
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const data = await getThemePageTerrain(theme.id)
-      if (data) {
-        setSequencesCourt(data.sequencesCourt ?? '')
-        setMetaphorsCourt(data.metaphorsCourt ?? '')
-        setCriteriaSummary(data.criteriaSummary ?? '')
-        setCues(data.cues ?? [])
+      try {
+        const data = await getThemePageTerrain(theme.id)
+        if (data) {
+          setSequencesCourt(data.sequencesCourt ?? '')
+          setMetaphorsCourt(data.metaphorsCourt ?? '')
+          setCriteriaSummary(data.criteriaSummary ?? '')
+          setCues(data.cues ?? [])
+        }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [theme.id])

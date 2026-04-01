@@ -55,9 +55,12 @@ export default function SectionEvalVideo({ themeId, tenantId, criteria }: Props)
 
   const load = async () => {
     setLoading(true)
-    const data = await listThemeVideoEvalTemplates(themeId)
-    setTemplates(data)
-    setLoading(false)
+    try {
+      const data = await listThemeVideoEvalTemplates(themeId)
+      setTemplates(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [themeId])

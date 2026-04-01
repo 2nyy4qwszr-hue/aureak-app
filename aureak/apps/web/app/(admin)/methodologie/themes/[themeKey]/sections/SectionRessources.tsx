@@ -55,9 +55,12 @@ export default function SectionRessources({ themeId, tenantId }: Props) {
 
   const load = async () => {
     setLoading(true)
-    const data = await listThemeResources(themeId)
-    setResources(data)
-    setLoading(false)
+    try {
+      const data = await listThemeResources(themeId)
+      setResources(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [themeId])

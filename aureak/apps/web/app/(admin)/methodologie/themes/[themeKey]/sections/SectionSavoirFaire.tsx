@@ -61,9 +61,12 @@ export default function SectionSavoirFaire({ themeId, tenantId, criteria }: Prop
 
   const load = async () => {
     setLoading(true)
-    const data = await listThemeHomeExercises(themeId)
-    setExercises(data)
-    setLoading(false)
+    try {
+      const data = await listThemeHomeExercises(themeId)
+      setExercises(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [themeId])
