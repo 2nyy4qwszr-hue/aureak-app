@@ -1,6 +1,6 @@
 # Story 10.4 : Audit Trail Admin — Policies Complètes, Indexes & Rétention
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
