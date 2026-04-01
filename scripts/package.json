@@ -1,0 +1,12 @@
+{
+  "name": "aureak-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup-e2e-users": "node setup-e2e-users.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

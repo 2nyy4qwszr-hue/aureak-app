@@ -1,0 +1,24 @@
+name: Claude Gate — API Key Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-api-key:
+    name: Verify ANTHROPIC_API_KEY secret
+    runs-on: ubuntu-latest
+
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - name: Check ANTHROPIC_API_KEY is set
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "❌ ANTHROPIC_API_KEY is not set or empty."
+            echo "   → Add it in: GitHub repo > Settings > Secrets and variables > Actions > New repository secret"
+            exit 1
+          fi
+          echo "✅ ANTHROPIC_API_KEY is present and non-empty."
