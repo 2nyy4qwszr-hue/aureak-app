@@ -1,0 +1,123 @@
+name: "QA Gate 1 — Code Review Automatique"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  qa-gate1:
+    name: "Gate 1 — Agents QA"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Anthropic SDK
+        run: pip install anthropic
+
+      # Verif secret avant de lancer quoi que ce soit
+      - name: "Verifier ANTHROPIC_API_KEY"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ERREUR : ANTHROPIC_API_KEY absent. Configurer le secret GitHub."
+            exit 1
+          fi
+          echo "OK : secret present"
+
+      # Securite : github.head_ref passe via env, jamais injecte directement
+      - name: Extract story ID
+        id: story
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          STORY_ID=$(echo "$BRANCH" | grep -oP '(?<=story-)[\d]+-[\d]+' || echo "unknown")
+          echo "id=$STORY_ID" >> $GITHUB_OUTPUT
+          echo "Branch : $BRANCH -> Story : $STORY_ID"
+
+      # continue-on-error supprime : une vraie erreur doit etre visible
+      - name: "Run Gate 1 agents"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          STORY_ID: ${{ steps.story.outputs.id }}
+        run: |
+          python _agents/scripts/orchestrator.py gate1 "$STORY_ID"
+
+      - name: "Consolidate reports"
+        if: always()
+        env:
+          STORY_ID: ${{ steps.story.outputs.id }}
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          OUTPUT=""
+          for AGENT in code-review migration-validator security; do
+            FILE="_qa/reports/${TODAY}_story-${STORY_ID}_${AGENT}.md"
+            if [ -f "$FILE" ]; then
+              # || true : grep -c retourne exit 1 si 0 correspondances — ne pas faire echouer le step
+              BLOCKERS=$(grep -c '\[BLOCKER\]' "$FILE" || true)
+              WARNINGS=$(grep -c '\[WARNING\]' "$FILE" || true)
+              OUTPUT+="### Agent : ${AGENT}\nBlockers : ${BLOCKERS} | Warnings : ${WARNINGS}\n\n$(cat "$FILE")\n\n---\n\n"
+            fi
+          done
+          printf "%s" "$OUTPUT" > /tmp/qa_reports.txt
+
+      - name: "Post PR comment"
+        uses: actions/github-script@v7
+        if: always()
+        env:
+          STORY_ID: ${{ steps.story.outputs.id }}
+        with:
+          script: |
+            const fs = require('fs');
+            const storyId = process.env.STORY_ID;
+            let body = '';
+            try { body = fs.readFileSync('/tmp/qa_reports.txt', 'utf8'); }
+            catch(e) { body = 'Aucun rapport genere — verifier les logs CI.'; }
+
+            const totalBlockers = (body.match(/\[BLOCKER\]/g) || []).length;
+            const verdict = totalBlockers > 0
+              ? `BLOQUE : ${totalBlockers} BLOCKER(s) — corrections requises avant merge`
+              : `OK : Gate 1 franchissable — validation humaine requise`;
+
+            const comment = [
+              `## QA Gate 1 — Story ${storyId}`,
+              '', verdict, '', '---', '', body, '', '---',
+              '*Genere automatiquement. Validation humaine obligatoire avant merge.*',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment.length > 65000 ? comment.substring(0, 64900) + '\n\n[rapport tronque]' : comment,
+            });
+
+      - name: "Fail si BLOCKERs detectes"
+        if: always()
+        env:
+          STORY_ID: ${{ steps.story.outputs.id }}
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          TOTAL=0
+          for AGENT in code-review migration-validator security; do
+            FILE="_qa/reports/${TODAY}_story-${STORY_ID}_${AGENT}.md"
+            if [ -f "$FILE" ]; then
+              COUNT=$(grep -c '\[BLOCKER\]' "$FILE" || true)
+              TOTAL=$((TOTAL + COUNT))
+            fi
+          done
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "BLOQUE : $TOTAL BLOCKER(s) detecte(s) — merge bloque."
+            exit 1
+          fi
+          echo "OK : aucun BLOCKER — gate franchissable."

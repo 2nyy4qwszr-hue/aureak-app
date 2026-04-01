@@ -1,0 +1,159 @@
+name: "QA Gate 2 — Agents post-merge"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  qa-gate2:
+    name: "Gate 2 — Playwright + Agents QA"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # ── Node.js + dépendances (Playwright) ───────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (Yarn 4)
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: aureak
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: aureak/apps/web
+        run: npx playwright install --with-deps chromium
+
+      # ── Playwright E2E ────────────────────────────────────────────────────────
+      # Skippé si EXPO_PUBLIC_SUPABASE_URL absent (secrets non configurés)
+      - name: Run Playwright tests
+        if: env.EXPO_PUBLIC_SUPABASE_URL != ''
+        working-directory: aureak/apps/web
+        env:
+          CI:                            "true"
+          EXPO_PUBLIC_SUPABASE_URL:      ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          E2E_ADMIN_EMAIL:               ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD:            ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_COACH_EMAIL:               ${{ secrets.E2E_COACH_EMAIL }}
+          E2E_COACH_PASSWORD:            ${{ secrets.E2E_COACH_PASSWORD }}
+          E2E_PARENT_EMAIL:              ${{ secrets.E2E_PARENT_EMAIL }}
+          E2E_PARENT_PASSWORD:           ${{ secrets.E2E_PARENT_PASSWORD }}
+          E2E_CHILD_EMAIL:               ${{ secrets.E2E_CHILD_EMAIL }}
+          E2E_CHILD_PASSWORD:            ${{ secrets.E2E_CHILD_PASSWORD }}
+        run: npx playwright test
+
+      - name: Upload Playwright report (si echec)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: aureak/apps/web/playwright-report/
+          retention-days: 7
+
+      # ── Python + Agents Gate 2 ────────────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Anthropic SDK
+        run: pip install anthropic
+
+      - name: Verify ANTHROPIC_API_KEY
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ERREUR : ANTHROPIC_API_KEY absent. Configurer le secret GitHub."
+            exit 1
+          fi
+          echo "OK : secret present"
+
+      - name: Extract story ID from commit
+        id: story
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          STORY_ID=$(echo "$COMMIT_MSG" | grep -oP '\d+-\d+' | head -1 || true)
+          if [ -z "$STORY_ID" ]; then
+            SHORT_HASH=$(git log -1 --pretty=format:'%h')
+            STORY_ID="deploy-${SHORT_HASH}"
+          fi
+          echo "id=$STORY_ID" >> $GITHUB_OUTPUT
+          echo "Story: $STORY_ID"
+
+      - name: Get changed files (contexte post-merge)
+        id: changed
+        run: |
+          FILES=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || \
+                  git diff --name-only HEAD^1 HEAD 2>/dev/null || \
+                  echo "")
+          echo "Fichiers modifies :"
+          echo "$FILES"
+          {
+            echo 'files<<EOF'
+            echo "$FILES"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Run Gate 2 agents
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          STORY_ID:          ${{ steps.story.outputs.id }}
+          CHANGED_FILES:     ${{ steps.changed.outputs.files }}
+        run: |
+          python _agents/scripts/orchestrator.py gate2 "$STORY_ID"
+
+      - name: Consolidate reports
+        if: always()
+        env:
+          STORY_ID: ${{ steps.story.outputs.id }}
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          OUTPUT=""
+          for AGENT in ux regression bugs; do
+            FILE="_qa/reports/${TODAY}_story-${STORY_ID}_${AGENT}.md"
+            if [ -f "$FILE" ]; then
+              BLOCKERS=$(grep -c '\[BLOCKER\]' "$FILE" || true)
+              WARNINGS=$(grep -c '\[WARNING\]' "$FILE" || true)
+              OUTPUT+="### Agent : ${AGENT}\nBlockers : ${BLOCKERS} | Warnings : ${WARNINGS}\n\n$(cat "$FILE")\n\n---\n\n"
+            fi
+          done
+          printf "%s" "$OUTPUT" > /tmp/qa_gate2_reports.txt
+
+      - name: Upload Gate 2 reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-gate2-${{ steps.story.outputs.id }}-${{ github.run_number }}
+          path: _qa/reports/
+          retention-days: 30
+
+      - name: Fail si BLOCKERs detectes
+        if: always()
+        env:
+          STORY_ID: ${{ steps.story.outputs.id }}
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          TOTAL=0
+          for AGENT in ux regression bugs; do
+            FILE="_qa/reports/${TODAY}_story-${STORY_ID}_${AGENT}.md"
+            if [ -f "$FILE" ]; then
+              COUNT=$(grep -c '\[BLOCKER\]' "$FILE" || true)
+              TOTAL=$((TOTAL + COUNT))
+            fi
+          done
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "BLOQUE : $TOTAL BLOCKER(s) Gate 2 detecte(s)."
+            exit 1
+          fi
+          echo "OK : Gate 2 clean — aucun BLOCKER."

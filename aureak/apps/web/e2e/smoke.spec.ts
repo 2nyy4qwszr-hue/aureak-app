@@ -17,7 +17,8 @@ test.describe('Smoke — Aureak Web', () => {
       (err) =>
         !err.includes('Warning:') &&
         !err.includes('DevTools') &&
-        !err.includes('favicon')
+        !err.includes('favicon') &&
+        !err.includes('[api-client]')  // avertissement Supabase config manquante (CI sans secrets)
     )
     expect(criticalErrors).toHaveLength(0)
   })
