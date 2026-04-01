@@ -226,27 +226,42 @@ export default function RbfaReviewsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data } = await listPendingMatchReviews(tenantId ?? undefined)
-    setReviews(data)
-    setLoading(false)
+    try {
+      const { data } = await listPendingMatchReviews(tenantId ?? undefined)
+      setReviews(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[rbfa-sync/reviews] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [tenantId])
 
   useEffect(() => { load() }, [load])
 
   const handleConfirm = async (reviewId: string) => {
     setProcessing(reviewId)
-    await confirmMatchReview({ reviewId, reviewedBy: user?.id ?? 'admin' })
-    setDone(prev => [...prev, { id: reviewId, action: 'confirmed' }])
-    setReviews(prev => prev.filter(r => r.id !== reviewId))
-    setProcessing(null)
+    try {
+      await confirmMatchReview({ reviewId, reviewedBy: user?.id ?? 'admin' })
+      setDone(prev => [...prev, { id: reviewId, action: 'confirmed' }])
+      setReviews(prev => prev.filter(r => r.id !== reviewId))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[rbfa-sync/reviews] handleConfirm error:', err)
+    } finally {
+      setProcessing(null)
+    }
   }
 
   const handleReject = async (reviewId: string) => {
     setProcessing(reviewId)
-    await rejectMatchReview({ reviewId, reviewedBy: user?.id ?? 'admin' })
-    setDone(prev => [...prev, { id: reviewId, action: 'rejected' }])
-    setReviews(prev => prev.filter(r => r.id !== reviewId))
-    setProcessing(null)
+    try {
+      await rejectMatchReview({ reviewId, reviewedBy: user?.id ?? 'admin' })
+      setDone(prev => [...prev, { id: reviewId, action: 'rejected' }])
+      setReviews(prev => prev.filter(r => r.id !== reviewId))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[rbfa-sync/reviews] handleReject error:', err)
+    } finally {
+      setProcessing(null)
+    }
   }
 
   const confirmed = done.filter(d => d.action === 'confirmed').length

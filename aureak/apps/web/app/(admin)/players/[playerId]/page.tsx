@@ -116,10 +116,10 @@ function TabPresences({ playerId }: { playerId: string }) {
   const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
-    getPlayerAttendanceHistory(playerId, { limit: 30 }).then(r => {
-      setRecords(r.data)
-      setLoading(false)
-    })
+    getPlayerAttendanceHistory(playerId, { limit: 30 })
+      .then(r => { setRecords(r.data) })
+      .catch(() => {})
+      .finally(() => { setLoading(false) })
   }, [playerId])
 
   if (loading) return <div style={P.tabLoading}>Chargement…</div>
@@ -218,10 +218,10 @@ function TabEvaluations({ playerId }: { playerId: string }) {
   const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
-    getPlayerAttendanceHistory(playerId, { limit: 50 }).then(r => {
-      setRecords(r.data.filter(a => a.receptivite || a.goutEffort || a.attitude))
-      setLoading(false)
-    })
+    getPlayerAttendanceHistory(playerId, { limit: 50 })
+      .then(r => { setRecords(r.data.filter(a => a.receptivite || a.goutEffort || a.attitude)) })
+      .catch(() => {})
+      .finally(() => { setLoading(false) })
   }, [playerId])
 
   if (loading) return <div style={P.tabLoading}>Chargement…</div>
@@ -329,12 +329,14 @@ function TabProgression({ playerId }: { playerId: string }) {
       getChildThemeProgression(playerId),
       listActiveQuests(playerId),
       getPlayerProgress(playerId),
-    ]).then(([t, q, p]) => {
-      setThemes(t)
-      setQuests(q.data)
-      setProgress(p)
-      setLoading(false)
-    })
+    ])
+      .then(([t, q, p]) => {
+        setThemes(t)
+        setQuests(q.data)
+        setProgress(p)
+      })
+      .catch(() => {})
+      .finally(() => { setLoading(false) })
   }, [playerId])
 
   if (loading) return <div style={P.tabLoading}>Chargement…</div>

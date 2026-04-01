@@ -252,7 +252,7 @@ export default function EditSessionPage() {
       for (const w of initialWorkshops) {
         if (!currentIds.has(w.id)) {
           const { error } = await removeSessionWorkshop(w.id)
-          if (error) { console.warn('[EditSession] removeSessionWorkshop error:', error); workshopErrors++ }
+          if (error) { if (process.env.NODE_ENV !== 'production') console.warn('[EditSession] removeSessionWorkshop error:', error); workshopErrors++ }
         }
       }
       // Mettre à jour ou créer
@@ -271,7 +271,7 @@ export default function EditSessionPage() {
             notes    : w.notes.trim() || undefined,
             sortOrder: k,
           })
-          if (error) { console.warn('[EditSession] updateSessionWorkshop error:', error); workshopErrors++ }
+          if (error) { if (process.env.NODE_ENV !== 'production') console.warn('[EditSession] updateSessionWorkshop error:', error); workshopErrors++ }
         } else if (!w.id) {
           // Nouveau
           const { error } = await addSessionWorkshop({
@@ -284,7 +284,7 @@ export default function EditSessionPage() {
             cardUrl,
             notes     : w.notes.trim() || undefined,
           })
-          if (error) { console.warn('[EditSession] addSessionWorkshop error:', error); workshopErrors++ }
+          if (error) { if (process.env.NODE_ENV !== 'production') console.warn('[EditSession] addSessionWorkshop error:', error); workshopErrors++ }
         }
       }
 

@@ -80,9 +80,14 @@ export default function RbfaSyncPage() {
   const loadStats = useCallback(async () => {
     if (!tenantId) return
     setStatsLoading(true)
-    const { data } = await getClubRbfaStats(tenantId)
-    setStats(data)
-    setStatsLoading(false)
+    try {
+      const { data } = await getClubRbfaStats(tenantId)
+      setStats(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[rbfa-sync] loadStats error:', err)
+    } finally {
+      setStatsLoading(false)
+    }
   }, [tenantId])
 
   useEffect(() => { loadStats() }, [loadStats])
