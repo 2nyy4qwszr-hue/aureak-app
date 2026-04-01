@@ -1,15 +1,16 @@
 # Backlog d'implémentation — Aureak
 
 > Ordre d'exécution recommandé basé sur les dépendances inter-épics.
-> Mettre à jour `[ ]` → `[x]` quand une story passe à `done`.
-> Dernière mise à jour : 2026-04-01 (post-audit story-audit.md)
+> Dernière mise à jour : 2026-04-01 (post-audit + décisions produit)
 
 ---
 
 ## Légende
 - `[x]` = done
 - `[ ]` = ready-for-dev
-- `[~]` = review (à investiguer avant de coder)
+- `[~]` = review
+- `[d]` = deferred (mobile différé ou hors scope phase 1)
+- `[2]` = phase-2 (après fonctionnalités opérationnelles)
 
 ---
 
@@ -17,19 +18,19 @@
 
 > **Toujours lire avant d'implémenter une story.**
 
-1. **Numérotation migrations** : les stories supposent 00004–00032. Toute nouvelle migration doit utiliser **00090+** (migrations 00001–00089 occupées).
+1. **Migrations** : toujours utiliser **00090+** (migrations 00001–00089 occupées)
 2. **Chemin UI `sessions` → `seances`** : les stories Epic 4 écrivent `(admin)/sessions/`. L'app réelle utilise `(admin)/seances/`.
 3. **Chemin UI `referentiel` → `methodologie`** : les stories Epic 3 écrivent `(admin)/referentiel/`. L'app réelle utilise `(admin)/methodologie/`.
-4. **Package `business-logic` absent** : les stories 3-6, 4-4, 5-4, 5-5 y référencent du code. Ce package n'existe pas — mettre la logique dans `packages/api-client/src/`.
-5. **Types locaux à consolider** : plusieurs fichiers api-client définissent leurs propres types au lieu de `@aureak/types/entities.ts`. À corriger progressivement (ARCH-10).
+4. **Package `@aureak/business-logic`** : EXISTS à `aureak/packages/business-logic/src/`. Règle architecture : `api-client` = accès Supabase/fetch/mapping ; `business-logic` = règles métier, use cases, orchestration, validations partagées.
+5. **App mobile** : `apps/mobile/` différée à phase ultérieure. Stories mobile-only = `[d]`.
 
 ---
 
 ## Stories complétées (référence)
 
 - [x] Epic 1 : Fondation monorepo (1-1, 1-2, 1-3)
-- [x] Epic 2 partial : Accès clubs (2-5)
-- [x] Epic 3 : Référentiel pédagogique (3-1, 3-2, 3-3, 3-4, 3-5)
+- [x] Epic 2 : Auth & permissions (2-1, 2-2, 2-3, 2-5) — 2-4 deferred
+- [x] Epic 3 : Référentiel pédagogique (3-1, 3-2, 3-3, 3-4, 3-5, 3-6)
 - [x] Epic 4 : Séances terrain (4-1, 4-2, 4-3, 4-5, 4-6, 4-7)
 - [x] Epic 6 partial : Évaluations (6-1, 6-4)
 - [x] Epic 7 partial : Notifications (7-2)
@@ -57,150 +58,124 @@
 ## En attente de review
 
 - [~] 1-4 : pipeline-ci-cd-tests-standards-de-code
-- [~] 2-1 : inscription-auth-standard-email-mot-de-passe
-- [~] 2-2 : controle-acces-par-role-rbac-regle-universelle-rls
-- [~] 2-3 : acces-temporaire-cross-implantation-coach
 - [~] 13-2 : sessions-calendrier-auto-generation-gestion-exceptions
 - [~] 24-6 : mini-exercices-terrain
 
 ---
 
+## Deferred (mobile phase 2 ou hors scope)
+
+- [d] 2-4 : auth-rapide-geolocalisee-pin-gps (hors scope phase 1)
+- [d] 5-3 : enregistrement-presence-offline-2s (mobile)
+- [d] 6-2 : ux-evaluation-rapide-10s-par-enfant (mobile)
+- [d] 8-3 : ux-enfant-acquired-not-acquired-avatar-badges (mobile)
+- [d] 12-3 : avatar-system-equipement-items-debloquables (mobile)
+- [d] 12-5 : carte-de-progression-theme-collection-de-skill-cards (mobile)
+
+---
+
+## Phase 2 (après fonctionnalités opérationnelles)
+
+- [2] 12-1 : modele-de-donnees-badges-points-ledger-cosmetiques-avatar
+- [2] 12-2 : event-bus-gamification-traitement-des-4-evenements-declencheurs
+- [2] 12-4 : quetes-hebdomadaires-attribution-progression-recompenses
+
+---
+
 ## Backlog ordonné — ready-for-dev
 
-### Bloc 1 — Auth & permissions (Epic 2 reste)
-*Dépendance : Epic 1 done ✓*
+### Priorité 1 — Auth complète ⚠️ GAP CRITIQUE
+*Dépendance : Epic 2 code done ✓ — mais Custom Access Token Hook manquant*
 
-- [ ] **2-4** : auth-rapide-geolocalisee-pin-gps ⚠️ vérifier `quick_auth_devices` en DB, Edge Function à créer
-- [x] **2-5** : gestion-des-acces-clubs-partenaire-commun ✅ tout implémenté
-- [ ] **2-6** : permissions-referentiel-pedagogique-rbac-contenu ⚠️ `00010_rls_policies.sql` introuvable — créer `00090_rls_policies_referentiel.sql`
+> **État réel** : Code des stories 2-1/2-2/2-3 est présent. Gap = `custom-access-token-hook` Edge Function manquante → JWT sans `role`/`tenant_id` → RLS ne fonctionne pas en production.
 
----
-
-### Bloc 2 — Référentiel pédagogique (Epic 3)
-*Dépendance : Epic 1 done ✓*
-
-- [x] **3-1** : hierarchie-theme-themegroup-theme-sequences ✅ tout implémenté (UI : `methodologie/themes/`)
-- [x] **3-2** : criteres-faults-cues ✅ implémenté (schéma évolué migrations 00080-00082)
-- [x] **3-3** : arborescence-situationnelle-situationgroup-situation ✅ implémenté (+ champ `bloc_id`)
-- [x] **3-4** : systeme-de-taxonomies-generiques ✅ tout implémenté
-- [x] **3-5** : questions-de-quiz-workflow-draft-published ✅ tout implémenté (UI : `methodologie/themes/[key]/sections/SectionQuiz`)
-- [ ] **3-6** : ciblage-audience-filtrage-dynamique ⚠️ `filterByAudience` à créer dans `api-client` (pas `business-logic`)
+- [ ] **AUTH-GAP-1** : Créer `supabase/functions/custom-access-token-hook/index.ts` (voir plan détaillé)
+- [ ] **AUTH-GAP-2** : Créer `supabase/migrations/00090_rls_policies_complete.sql` (fichier manquant du repo)
+- [ ] **AUTH-GAP-3** : Vérifier `supabase/RLS_PATTERNS.md` et policies DB complètes
 
 ---
 
-### Bloc 3 — Séances terrain (Epic 4)
-*Dépendance : Epic 3 done ✓*
+### Priorité 2 — Offline & Sync (Epic 5)
+*Dépendance : Epic 4 done ✓ — tables `sync_queue` et `event_log` existent en DB*
 
-- [x] **4-1** : modele-de-donnees-sessions-blocs-recurrence ✅ implémenté (schéma très évolué)
-- [x] **4-2** : roster-attendu-presences-terrain ✅ implémenté (colonnes supplémentaires)
-- [x] **4-3** : creation-gestion-admin-des-seances ✅ implémenté (UI : `seances/` non `sessions/`)
-- [ ] **4-4** : planification-recurrente-gestion-des-exceptions ⚠️ `recurrenceEngine` à placer dans `api-client`
-- [x] **4-5** : annulation-notifications-multicanal ✅ tout implémenté
-- [x] **4-6** : confirmation-presence-coach-gestion-du-bloc ✅ tout implémenté
-- [x] **4-7** : vue-coach-fiche-seance-notes-feedback-contenu ✅ tout implémenté
-
----
-
-### Bloc 4 — Offline & sync (Epic 5)
-*Dépendance : Epic 4 done ✓*
-
-- [ ] **5-1** : schema-offline-sqlite-sync-queue-serveur ⚠️ vérifier `sync_queue` en DB (types existent), auditer `apps/mobile/`
-- [ ] **5-2** : event-sourcing-event-log-snapshot-attendance-apply-event ⚠️ vérifier `event_log` + RPC `apply_event` en DB
-- [ ] **5-3** : enregistrement-presence-offline-2s (mobile uniquement — auditer séparément)
-- [ ] **5-4** : sync-queue-idempotente-resolution-de-conflits ⚠️ `conflictResolver` → `api-client` (pas `business-logic`)
-- [ ] **5-5** : timeline-admin-restauration-via-event-log ⚠️ 2 fichiers à créer : `api-client/sessions/timeline.ts` + `seances/[sessionId]/timeline.tsx`
+- [ ] **5-1** : schema-offline-sqlite-sync-queue-serveur ⚠️ auditer `apps/mobile/` (SyncQueueService.ts existe dans business-logic)
+- [ ] **5-2** : event-sourcing-event-log-snapshot-attendance-apply-event ⚠️ RPC `apply_event` à vérifier/créer
+- [ ] **5-4** : sync-queue-idempotente-resolution-de-conflits (SyncQueueService.ts existe, vérifier complétion)
+- [ ] **5-5** : timeline-admin-restauration-via-event-log (2 fichiers à créer : `api-client/sessions/timeline.ts` + `seances/[id]/timeline.tsx`)
 - [ ] **5-6** : ux-offline-indicateur-sync-alertes-rappel-j1 (Edge Function `review-reminder` déjà là)
 
 ---
 
-### Bloc 5 — Évaluations (Epic 6)
-*Dépendance : Epic 4 done ✓*
+### Priorité 3 — Dashboard anomalies & Contact
+*Dépendance : Epic 4 + Epic 6 done ✓ — tables existent en DB*
 
-- [x] **6-1** : modele-evaluations-event-sourcing-regle-de-fusion ✅ implémenté
-- [ ] **6-2** : ux-evaluation-rapide-10s-par-enfant (mobile uniquement)
-- [ ] **6-3** : double-validation-coach-realtime-fallback-polling ⚠️ vérifier `validation_status` sur table `sessions`
-- [x] **6-4** : cloture-de-seance-idempotente-tracee ✅ tout implémenté
+- [ ] **9-2** : detection-anomalies ⚠️ table exists, API à créer dans `admin/anomalies.ts`
+- [ ] **9-5** : contact-direct-coach ⚠️ table exists, API à créer dans `admin/messages.ts`
 
 ---
 
-### Bloc 6 — Notifications (Epic 7)
+### Priorité 4 — Notifications infrastructure (Epic 7)
 *Dépendance : Epic 6 done ✓*
 
-- [ ] **7-1** : infrastructure-notifications-push-tokens-preferences-urgence ⚠️ vérifier CRUD push_tokens/preferences dans `parent/notifications.ts`
-- [x] **7-2** : notification-post-seance-session-closed-send-once ✅ Edge Function existante
-- [ ] **7-3** : board-parent-fiche-enfant-transparence-terrain-admin ⚠️ vérifier couverture de `parent/childProfile.ts`
-- [ ] **7-4** : systeme-de-tickets-parent-minimal-trace ⚠️ CRITIQUE — vérifier table `support_tickets` en DB (API existe)
+- [ ] **7-1** : infrastructure-notifications-push-tokens-preferences-urgence ⚠️ vérifier CRUD push_tokens dans `parent/notifications.ts`
+- [ ] **7-3** : board-parent-fiche-enfant-transparence-terrain-admin
+- [ ] **7-4** : systeme-de-tickets-parent-minimal-trace ⚠️ CRITIQUE — `support_tickets` ABSENT DB → créer `00090_support_tickets.sql`
 
 ---
 
-### Bloc 7 — Quiz & apprentissage (Epic 8)
-*Dépendance : Epic 3 + Epic 6 done ✓*
+### Priorité 5 — Quiz & apprentissage (Epic 8)
+*Dépendance : Epic 3 + Epic 6 done ✓ — tables learning_attempts/mastery_thresholds existent en DB*
 
-- [ ] **8-1** : modele-de-donnees-apprentissage-maitrise-gamification ⚠️ vérifier tables `learning_attempts`, `mastery_thresholds` en DB (types existent)
-- [ ] **8-2** : moteur-de-quiz-adaptatif-stop-conditions-maitrise ⚠️ vérifier RPCs `next_question`, `finalize_attempt` dans migrations
-- [ ] **8-3** : ux-enfant-acquired-not-acquired-avatar-badges (mobile, web avatar déjà là)
-- [ ] **8-4** : streaks-revision-espacee-declenchement-evenements-gamification ⚠️ décommenter `award_badge_if_applicable` quand Epic 12 déployé
-- [ ] **8-5** : rapports-coach-vue-agregee-groupe-acces-parent ⚠️ vérifier fonctions agrégation dans `admin/supervision.ts`
-
----
-
-### Bloc 8 — Dashboard admin (Epic 9)
-*Dépendance : Epic 4 + Epic 6 done ✓*
-
-- [x] **9-1** : dashboard-agrege-multi-implantations ✅ tout implémenté
-- [ ] **9-2** : detection-anomalies ⚠️ CRITIQUE — table `anomaly_events` probablement absente + API à créer
-- [x] **9-3** : comparaison-inter-implantations ✅ tout implémenté
-- [x] **9-4** : crud-implantations-groupes-assignations-coaches ✅ implémenté (schéma très évolué)
-- [ ] **9-5** : contact-direct-coach ⚠️ table `admin_messages` probablement absente + API à créer
+- [ ] **8-1** : modele-de-donnees-apprentissage-maitrise-gamification (tables DB ok, vérifier complétion)
+- [ ] **8-2** : moteur-de-quiz-adaptatif-stop-conditions-maitrise ⚠️ RPCs `next_question`, `finalize_attempt` à créer
+- [ ] **8-4** : streaks-revision-espacee-declenchement-gamification (partie shared arch seulement)
+- [ ] **8-5** : rapports-coach-vue-agregee-groupe-acces-parent
 
 ---
 
-### Bloc 9 — RGPD (Epic 10)
-*Dépendance : Epic 2 done*
+### Priorité 6 — RGPD / conformité (Epic 10)
+*Dépendance : Auth done*
 
-- [ ] **10-1** : cycle-de-vie-utilisateur ⚠️ vérifier migrations `user_lifecycle_events` + RPCs lifecycle
-- [ ] **10-2** : consentements-parentaux-revocation-en-cascade ⚠️ vérifier migrations `user_consents` + RPC `revoke_consent_cascade`
-- [x] **10-3** : droits-rgpd-parent-acces-rectification-effacement-portabilite ✅ tout implémenté
-- [ ] **10-4** : audit-trail-admin-policies-completes-indexes-retention ⚠️ vérifier policies complètes + indexes de rétention
-- [x] **10-5** : exports-conformes ✅ tout implémenté
+- [ ] **10-1** : cycle-de-vie-utilisateur (table `user_lifecycle_events` DB ok)
+- [ ] **10-2** : consentements-parentaux-revocation-en-cascade ⚠️ `user_consents` ABSENT DB → créer migration
+- [ ] **10-4** : audit-trail-admin-policies-completes-indexes-retention
 
 ---
 
-### Bloc 10 — Grades coaches (Epic 11)
-*Dépendance : Epic 2 done*
+### Priorité 7 — Grades & partenariats reste (Epic 11)
 
-- [x] **11-1** : grades-coach-historique-immuable ✅ implémenté (type à consolider dans entities.ts)
-- [ ] **11-2** : permissions-de-contenu-par-grade ⚠️ CRITIQUE — table `grade_content_permissions` probablement absente + API à créer
-- [x] **11-3** : partenariats-clubs ✅ implémenté (type à consolider dans entities.ts)
+- [ ] **11-2** : permissions-de-contenu-par-grade ⚠️ `grade_content_permissions` ABSENT DB → créer migration + API
 
 ---
 
-### Bloc 11 — Badges & gamification (Epic 12)
-*Dépendance : Epic 8 done*
-
-- [ ] **12-1** : modele-de-donnees-badges-points-ledger-cosmetiques-avatar ⚠️ CRITIQUE — tables badges/points/avatar probablement absentes en DB
-- [ ] **12-2** : event-bus-gamification-traitement-des-4-evenements-declencheurs ⚠️ bloqué par 12-1
-- [ ] **12-3** : avatar-system-equipement-items-debloquables ⚠️ vérifier `equipAvatarItem` dans `gamification/avatar.ts`
-- [ ] **12-4** : quetes-hebdomadaires-attribution-progression-recompenses ⚠️ vérifier tables `quest_definitions`, `player_quests` en DB
-- [ ] **12-5** : carte-de-progression-theme-collection-de-skill-cards ⚠️ dépend de 12-1
-
----
-
-### Bloc 12 — RBFA enrichissement (Epic 28 reste)
+### Bloc 12 — RBFA enrichissement
 
 - [ ] **28-1** : rbfa-enrichissement-clubs
 
 ---
 
+### Phase 2 — Récurrence & planification avancée
+
+- [ ] **4-4** : planification-recurrente-gestion-des-exceptions (RPCs à créer)
+- [ ] **6-3** : double-validation-coach-realtime-fallback-polling
+
+---
+
+## Migrations manquantes (tables absentes en DB)
+
+| Table | Story | Migration à créer |
+|-------|-------|------------------|
+| `support_tickets` | 7-4 | `00090_support_tickets.sql` |
+| `user_consents` | 10-2 | `00091_user_consents.sql` |
+| `grade_content_permissions` | 11-2 | `00092_grade_content_permissions.sql` |
+| `badges`, `badge_awards`, `points_ledger` | 12-1 (phase 2) | `00093_gamification_schema.sql` |
+
+---
+
 ## Commande de lancement type
 
-Pour implémenter un bloc entier, utiliser ce prompt :
-
 ```
-Implémente le Bloc 4 — Offline & sync (Epic 5).
-Stories dans l'ordre : 5-1, 5-2, 5-3, 5-4, 5-5, 5-6.
-Pour chaque story : lis la story → vérifie les dépendances → VÉRIFIE L'ÉTAT RÉEL EN DB (migrations 00001-00089) → implémente avec migrations 00090+ → QA scan → test Playwright → commit → marque done → story suivante.
-Arrête-toi après le bloc pour review.
+Implémente la Priorité 1 — Auth Gap.
+Tasks dans l'ordre : AUTH-GAP-1 (custom-access-token-hook), AUTH-GAP-2 (migration 00090 RLS policies), AUTH-GAP-3 (vérification).
+Pour chaque task : vérifie l'état actuel → implémente → QA scan → commit.
 ```
-
-> **Rappel** : toujours utiliser les numéros de migration 00090+ (jamais les numéros indiqués dans les stories qui sont obsolètes).

@@ -1,6 +1,6 @@
 # Story 12.4 : Quêtes Hebdomadaires — Attribution, Progression & Récompenses
 
-Status: ready-for-dev
+Status: phase-2
 
 ## Story
 

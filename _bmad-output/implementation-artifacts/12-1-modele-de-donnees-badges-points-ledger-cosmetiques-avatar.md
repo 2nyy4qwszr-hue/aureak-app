@@ -1,6 +1,6 @@
 # Story 12.1 : Modèle de Données — Badges, Points Ledger & Cosmétiques Avatar
 
-Status: ready-for-dev
+Status: phase-2
 
 ## Story
 

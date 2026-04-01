@@ -1,6 +1,6 @@
 # Story 5.3 : Enregistrement Présence Offline (< 2s)
 
-Status: ready-for-dev
+Status: deferred
 
 ## Story
 

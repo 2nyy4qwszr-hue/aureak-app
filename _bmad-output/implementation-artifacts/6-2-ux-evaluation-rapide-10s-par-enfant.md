@@ -1,6 +1,6 @@
 # Story 6.2 : UX Évaluation Rapide (< 10s par enfant)
 
-Status: ready-for-dev
+Status: deferred
 
 ## Story
 

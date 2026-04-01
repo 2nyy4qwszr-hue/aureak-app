@@ -1,6 +1,6 @@
 # Story 8.3 : UX Enfant — Acquired/Not Acquired, Avatar & Badges
 
-Status: ready-for-dev
+Status: deferred
 
 ## Story
 

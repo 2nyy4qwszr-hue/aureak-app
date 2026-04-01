@@ -1,6 +1,6 @@
 # Story 12.3 : Avatar System — Équipement & Items Débloquables
 
-Status: ready-for-dev
+Status: deferred
 
 ## Story
 

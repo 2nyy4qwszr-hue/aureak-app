@@ -1,6 +1,6 @@
 # Story 2.4 : Auth Rapide Géolocalisée (PIN + GPS)
 
-Status: ready-for-dev
+Status: deferred
 
 ## Story
 

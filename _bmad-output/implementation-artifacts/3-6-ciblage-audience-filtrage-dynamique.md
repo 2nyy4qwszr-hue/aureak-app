@@ -1,6 +1,6 @@
 # Story 3.6 : Ciblage d'Audience & Filtrage Dynamique
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

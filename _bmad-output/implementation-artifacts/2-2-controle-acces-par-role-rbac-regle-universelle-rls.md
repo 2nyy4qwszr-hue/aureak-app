@@ -1,6 +1,6 @@
 # Story 2.2 : Contrôle d'Accès par Rôle (RBAC — Règle Universelle RLS)
 
-Status: review
+Status: done
 
 ## Story
 

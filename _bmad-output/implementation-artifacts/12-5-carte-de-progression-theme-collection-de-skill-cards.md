@@ -1,6 +1,6 @@
 # Story 12.5 : Carte de Progression Thème & Collection de Skill Cards
 
-Status: ready-for-dev
+Status: deferred
 
 ## Story
 
