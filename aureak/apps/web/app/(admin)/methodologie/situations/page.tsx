@@ -35,6 +35,9 @@ export default function SituationsPage() {
     Promise.all([listSituations(), listThemeGroups()]).then(([s, g]) => {
       setSituations(s.data)
       setBlocs(g.data)
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[SituationsPage] load error:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [])

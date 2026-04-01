@@ -64,9 +64,12 @@ export default function AccessGrantsPage() {
 
   const fetchGrants = async () => {
     setLoading(true)
-    const { data } = await listActiveGrants()
-    setGrants((data as Grant[]) ?? [])
-    setLoading(false)
+    try {
+      const { data } = await listActiveGrants()
+      setGrants((data as Grant[]) ?? [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -76,9 +79,12 @@ export default function AccessGrantsPage() {
   const handleRevoke = async (grantId: string) => {
     if (!user?.id) return
     setRevoking(grantId)
-    await revokeGrant(grantId, user.id)
-    setRevoking(null)
-    await fetchGrants()
+    try {
+      await revokeGrant(grantId, user.id)
+      await fetchGrants()
+    } finally {
+      setRevoking(null)
+    }
   }
 
   return (

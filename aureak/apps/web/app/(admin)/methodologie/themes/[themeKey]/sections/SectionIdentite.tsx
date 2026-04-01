@@ -56,21 +56,24 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
   const handleSave = async () => {
     setSaving(true)
     setError(null)
-    const { data, error: apiError } = await updateTheme({
-      id         : theme.id,
-      name,
-      description: description || null,
-      groupId,
-    })
-    setSaving(false)
-    if (apiError || !data) {
-      const msg = (apiError as { message?: string })?.message ?? 'Erreur inconnue'
-      setError(`Impossible de sauvegarder : ${msg}`)
-      return
+    try {
+      const { data, error: apiError } = await updateTheme({
+        id         : theme.id,
+        name,
+        description: description || null,
+        groupId,
+      })
+      if (apiError || !data) {
+        const msg = (apiError as { message?: string })?.message ?? 'Erreur inconnue'
+        setError(`Impossible de sauvegarder : ${msg}`)
+        return
+      }
+      onUpdate(data)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } finally {
+      setSaving(false)
     }
-    onUpdate(data)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
   }
 
   const handleSavePosition = async () => {

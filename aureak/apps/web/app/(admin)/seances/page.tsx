@@ -130,18 +130,21 @@ function GenerateModal({
 
   const handleGenerate = async () => {
     setLoading(true); setError(null)
-    const result: GenerateYearSessionsResult = await generateYearSessions(
-      group.id, group.implantationId, group.tenantId,
-      sessionType as never, seasonStart, seasonEnd
-    )
-    setLoading(false)
-    if (result.error) {
-      const err = result.error as { code?: string; existingCount?: number }
-      setError(err?.code === 'SESSIONS_ALREADY_EXIST'
-        ? `${err.existingCount} séances existent déjà. Changez la plage de dates.`
-        : 'Erreur lors de la génération.')
-    } else {
-      onSuccess(result.created)
+    try {
+      const result: GenerateYearSessionsResult = await generateYearSessions(
+        group.id, group.implantationId, group.tenantId,
+        sessionType as never, seasonStart, seasonEnd
+      )
+      if (result.error) {
+        const err = result.error as { code?: string; existingCount?: number }
+        setError(err?.code === 'SESSIONS_ALREADY_EXIST'
+          ? `${err.existingCount} séances existent déjà. Changez la plage de dates.`
+          : 'Erreur lors de la génération.')
+      } else {
+        onSuccess(result.created)
+      }
+    } finally {
+      setLoading(false)
     }
   }
 

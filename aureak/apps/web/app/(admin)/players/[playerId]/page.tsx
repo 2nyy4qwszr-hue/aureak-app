@@ -118,7 +118,7 @@ function TabPresences({ playerId }: { playerId: string }) {
   useEffect(() => {
     getPlayerAttendanceHistory(playerId, { limit: 30 })
       .then(r => { setRecords(r.data) })
-      .catch(() => {})
+      .catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[TabPresences] load error:', err) })
       .finally(() => { setLoading(false) })
   }, [playerId])
 
@@ -220,7 +220,7 @@ function TabEvaluations({ playerId }: { playerId: string }) {
   useEffect(() => {
     getPlayerAttendanceHistory(playerId, { limit: 50 })
       .then(r => { setRecords(r.data.filter(a => a.receptivite || a.goutEffort || a.attitude)) })
-      .catch(() => {})
+      .catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[TabEvaluations] load error:', err) })
       .finally(() => { setLoading(false) })
   }, [playerId])
 
@@ -335,7 +335,7 @@ function TabProgression({ playerId }: { playerId: string }) {
         setQuests(q.data)
         setProgress(p)
       })
-      .catch(() => {})
+      .catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[TabProgression] load error:', err) })
       .finally(() => { setLoading(false) })
   }, [playerId])
 

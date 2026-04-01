@@ -61,9 +61,12 @@ export default function ThemeGroupsPage() {
 
   const fetchGroups = async () => {
     setLoading(true)
-    const { data } = await listThemeGroups()
-    setGroups(data)
-    setLoading(false)
+    try {
+      const { data } = await listThemeGroups()
+      setGroups(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { fetchGroups() }, [])

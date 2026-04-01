@@ -34,9 +34,12 @@ export default function SchoolCalendarPage() {
 
   const load = async () => {
     setLoading(true)
-    const { data } = await listSchoolCalendarExceptions()
-    setExceptions(data)
-    setLoading(false)
+    try {
+      const { data } = await listSchoolCalendarExceptions()
+      setExceptions(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -47,19 +50,22 @@ export default function SchoolCalendarPage() {
     if (!newLabel.trim()) { setFormError('Le libellé est obligatoire.'); return }
     setFormError(null)
     setSaving(true)
-    const { error } = await addSchoolCalendarException({
-      date       : newDate.trim(),
-      label      : newLabel.trim(),
-      isNoSession: true,
-    })
-    setSaving(false)
-    if (error) {
-      setFormError('Erreur lors de l\'ajout. Cette date existe peut-être déjà.')
-    } else {
-      setNewDate('')
-      setNewLabel('')
-      setAdding(false)
-      load()
+    try {
+      const { error } = await addSchoolCalendarException({
+        date       : newDate.trim(),
+        label      : newLabel.trim(),
+        isNoSession: true,
+      })
+      if (error) {
+        setFormError('Erreur lors de l\'ajout. Cette date existe peut-être déjà.')
+      } else {
+        setNewDate('')
+        setNewLabel('')
+        setAdding(false)
+        load()
+      }
+    } finally {
+      setSaving(false)
     }
   }
 

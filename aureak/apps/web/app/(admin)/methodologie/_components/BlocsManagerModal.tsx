@@ -25,9 +25,12 @@ export default function BlocsManagerModal({ visible, onClose, onBlocChanged }: P
 
   const loadBlocs = useCallback(async () => {
     setLoading(true)
-    const { data } = await listThemeGroups()
-    setBlocs(data)
-    setLoading(false)
+    try {
+      const { data } = await listThemeGroups()
+      setBlocs(data)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -49,34 +52,40 @@ export default function BlocsManagerModal({ visible, onClose, onBlocChanged }: P
     if (!editName.trim()) return
     setSaving(true)
     setError(null)
-    const { error: err } = await updateThemeGroup(id, { name: editName.trim() })
-    setSaving(false)
-    if (err) {
-      setError('Erreur lors de la sauvegarde.')
-      return
+    try {
+      const { error: err } = await updateThemeGroup(id, { name: editName.trim() })
+      if (err) {
+        setError('Erreur lors de la sauvegarde.')
+        return
+      }
+      setEditingId(null)
+      await loadBlocs()
+      onBlocChanged()
+    } finally {
+      setSaving(false)
     }
-    setEditingId(null)
-    await loadBlocs()
-    onBlocChanged()
   }
 
   const handleDelete = async (id: string, name: string) => {
     setError(null)
     setSaving(true)
-    const { error: err } = await deleteThemeGroup(id)
-    setSaving(false)
-    if (err) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const e = err as any
-      if (e?.type === 'IN_USE') {
-        setError(`Le bloc « ${name} » est utilisé par ${e.count} élément(s) et ne peut pas être supprimé.`)
-      } else {
-        setError('Erreur lors de la suppression.')
+    try {
+      const { error: err } = await deleteThemeGroup(id)
+      if (err) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = err as any
+        if (e?.type === 'IN_USE') {
+          setError(`Le bloc « ${name} » est utilisé par ${e.count} élément(s) et ne peut pas être supprimé.`)
+        } else {
+          setError('Erreur lors de la suppression.')
+        }
+        return
       }
-      return
+      await loadBlocs()
+      onBlocChanged()
+    } finally {
+      setSaving(false)
     }
-    await loadBlocs()
-    onBlocChanged()
   }
 
   const handleAddBloc = async () => {

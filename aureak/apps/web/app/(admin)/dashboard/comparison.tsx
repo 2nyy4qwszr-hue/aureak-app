@@ -115,12 +115,15 @@ export default function ComparisonPage() {
 
   const load = async () => {
     setLoading(true)
-    const result = await getComparisonReport(
-      new Date(from).toISOString(),
-      new Date(to).toISOString(),
-    )
-    setData((result.data as ImplantationStat[]) ?? [])
-    setLoading(false)
+    try {
+      const result = await getComparisonReport(
+        new Date(from).toISOString(),
+        new Date(to).toISOString(),
+      )
+      setData((result.data as ImplantationStat[]) ?? [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [from, to])

@@ -38,6 +38,9 @@ export default function ChildAvatarPage() {
       setAvatar(av)
       setItems(allItems)
       setUnlocked(unlockedItems)
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[avatar] load error:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [user?.id])

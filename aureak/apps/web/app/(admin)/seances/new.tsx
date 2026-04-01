@@ -738,6 +738,10 @@ export default function NewSessionPage() {
         // Auto-sélection si une seule implantation existe
         if (list.length === 1) setImplantationId(list[0].id)
       }
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[NewSession] listImplantations unexpected error:', err)
+      setImplantationsError('Impossible de charger les implantations. Vérifiez votre connexion.')
+    }).finally(() => {
       setLoadingImplantations(false)
     })
 
@@ -1128,6 +1132,10 @@ export default function NewSessionPage() {
                   listImplantations().then(({ data, error }) => {
                     if (error) setImplantationsError('Impossible de charger les implantations.')
                     else setImplantations(data ?? [])
+                  }).catch(err => {
+                    if (process.env.NODE_ENV !== 'production') console.error('[NewSession] retry listImplantations error:', err)
+                    setImplantationsError('Impossible de charger les implantations.')
+                  }).finally(() => {
                     setLoadingImplantations(false)
                   })
                 }}>

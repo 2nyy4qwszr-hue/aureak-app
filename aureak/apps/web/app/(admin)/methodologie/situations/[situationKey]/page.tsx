@@ -63,19 +63,22 @@ export default function SituationDetailPage() {
   const fetchData = async () => {
     if (!situationKey) return
     setLoading(true)
-    const { data: s } = await getSituationByKey(situationKey)
-    setSituation(s)
-    if (s) {
-      const [{ data: crit }, { data: links }, { data: themes }] = await Promise.all([
-        listSituationCriteria(s.id),
-        listThemeLinksForSituation(s.id),
-        listThemes(),
-      ])
-      setCriteria(crit)
-      setLinkedThemeIds(new Set((links as SituationThemeLink[]).map((l) => l.themeId)))
-      setAllThemes(themes)
+    try {
+      const { data: s } = await getSituationByKey(situationKey)
+      setSituation(s)
+      if (s) {
+        const [{ data: crit }, { data: links }, { data: themes }] = await Promise.all([
+          listSituationCriteria(s.id),
+          listThemeLinksForSituation(s.id),
+          listThemes(),
+        ])
+        setCriteria(crit)
+        setLinkedThemeIds(new Set((links as SituationThemeLink[]).map((l) => l.themeId)))
+        setAllThemes(themes)
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => { fetchData() }, [situationKey])

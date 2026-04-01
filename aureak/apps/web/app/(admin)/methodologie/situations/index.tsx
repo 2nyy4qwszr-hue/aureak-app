@@ -30,10 +30,14 @@ export default function SituationsPage() {
   const [modalVisible,    setModalVisible]    = useState(false)
 
   const loadData = async () => {
-    const [s, g] = await Promise.all([listSituations(), listThemeGroups()])
-    setSituations(s.data)
-    setGroups(g.data)
-    setLoading(false)
+    setLoading(true)
+    try {
+      const [s, g] = await Promise.all([listSituations(), listThemeGroups()])
+      setSituations(s.data)
+      setGroups(g.data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { loadData() }, [])
