@@ -520,13 +520,18 @@ export default function PlayerPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [profileRes, academyRes] = await Promise.all([
-        getAdminPlayerProfile(playerId),
-        getChildAcademyStatus(playerId),
-      ])
-      setProfile(profileRes.data)
-      setAcademySt((academyRes.data as { status?: string } | null)?.status ?? null)
-      setLoading(false)
+      try {
+        const [profileRes, academyRes] = await Promise.all([
+          getAdminPlayerProfile(playerId),
+          getChildAcademyStatus(playerId),
+        ])
+        setProfile(profileRes.data)
+        setAcademySt((academyRes.data as { status?: string } | null)?.status ?? null)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[PlayerPage] load error:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [playerId])
