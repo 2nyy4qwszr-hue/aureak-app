@@ -122,6 +122,47 @@ export async function listMyTickets(): Promise<{ data: Ticket[]; error: unknown 
   return { data: (data as Ticket[]) ?? [], error }
 }
 
+// Admin/Coach : liste tous les tickets du tenant avec filtre optionnel (RLS gère l'accès)
+export async function listAllTickets(
+  status?: TicketStatus
+): Promise<{ data: Ticket[]; error: unknown }> {
+  let query = supabase
+    .from('tickets')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (status) query = query.eq('status', status)
+
+  const { data, error } = await query
+  return { data: (data as Ticket[]) ?? [], error }
+}
+
+// Obtenir un ticket par ID
+export async function getTicketById(
+  ticketId: string
+): Promise<{ data: Ticket | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('tickets')
+    .select('*')
+    .eq('id', ticketId)
+    .single()
+
+  return { data: data as Ticket | null, error }
+}
+
+// Lister les réponses d'un ticket
+export async function listTicketReplies(
+  ticketId: string
+): Promise<{ data: TicketReply[]; error: unknown }> {
+  const { data, error } = await supabase
+    .from('ticket_replies')
+    .select('*')
+    .eq('ticket_id', ticketId)
+    .order('created_at', { ascending: true })
+
+  return { data: (data as TicketReply[]) ?? [], error }
+}
+
 export async function getTicketWithReplies(
   ticketId: string
 ): Promise<{ ticket: Ticket | null; replies: TicketReply[]; error: unknown }> {

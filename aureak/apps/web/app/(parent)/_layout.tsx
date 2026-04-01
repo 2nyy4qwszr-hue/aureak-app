@@ -8,6 +8,7 @@ import { colors } from '@aureak/theme'
 const NAV_ITEMS = [
   { label: 'Dashboard',      href: '/parent/dashboard'      },
   { label: 'Notifications',  href: '/parent/notifications'  },
+  { label: 'Mes demandes',   href: '/parent/tickets'        },
 ] as const
 
 export default function ParentLayout() {
