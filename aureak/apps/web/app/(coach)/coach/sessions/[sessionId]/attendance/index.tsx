@@ -371,21 +371,31 @@ export default function AttendancePage() {
   const handleStatus = async (childId: string, status: AttendanceStatus) => {
     if (!user?.id || !tenantId) return
     setSaving(childId)
-    setChildren(prev => prev.map(c => c.childId === childId ? { ...c, status } : c))
-    await recordAttendance({ sessionId, childId, tenantId, status, recordedBy: user.id })
-    setSaving(null)
+    try {
+      setChildren(prev => prev.map(c => c.childId === childId ? { ...c, status } : c))
+      await recordAttendance({ sessionId, childId, tenantId, status, recordedBy: user.id })
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coach/attendance] handleStatus error:', err)
+    } finally {
+      setSaving(null)
+    }
   }
 
   const handleAllPresent = async () => {
     if (!user?.id || !tenantId || allSaving) return
     setAllSaving(true)
-    setChildren(prev => prev.map(c => ({ ...c, status: 'present' as AttendanceStatus })))
-    await Promise.all(
-      children.map(c =>
-        recordAttendance({ sessionId, childId: c.childId, tenantId, status: 'present', recordedBy: user.id })
+    try {
+      setChildren(prev => prev.map(c => ({ ...c, status: 'present' as AttendanceStatus })))
+      await Promise.all(
+        children.map(c =>
+          recordAttendance({ sessionId, childId: c.childId, tenantId, status: 'present', recordedBy: user.id })
+        )
       )
-    )
-    setAllSaving(false)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coach/attendance] handleAllPresent error:', err)
+    } finally {
+      setAllSaving(false)
+    }
   }
 
   const handleNoteChange = (childId: string, value: string) => {

@@ -69,13 +69,8 @@ export async function modifySingleException(
   sessionId: string,
   changes  : Partial<Pick<Session, 'scheduledAt' | 'durationMinutes' | 'location'>>
 ): Promise<{ data: Session | null; error: unknown }> {
-  // Archiver l'occurrence originale
-  await supabase
-    .from('sessions')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', sessionId)
-
-  // Récupérer l'originale pour copier les paramètres
+  // Lire AVANT le soft-delete (évite que RLS filtre la ligne supprimée)
+  // Les colonnes retournées sont en snake_case (résultat DB brut)
   const { data: original } = await supabase
     .from('sessions')
     .select('*')
@@ -84,13 +79,20 @@ export async function modifySingleException(
 
   if (!original) return { data: null, error: new Error('Session non trouvée') }
 
+  // Archiver l'occurrence originale
+  await supabase
+    .from('sessions')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', sessionId)
+
+  const o = original as Record<string, unknown>
   const { data, error } = await supabase.rpc('create_session_full', {
     p_params: {
-      implantation_id     : (original as Session).implantationId,
-      group_id            : (original as Session).groupId,
-      scheduled_at        : changes.scheduledAt ?? (original as Session).scheduledAt,
-      duration_minutes    : changes.durationMinutes ?? (original as Session).durationMinutes,
-      location            : changes.location ?? (original as Session).location,
+      implantation_id     : o['implantation_id'],
+      group_id            : o['group_id'],
+      scheduled_at        : changes.scheduledAt        ?? o['scheduled_at'],
+      duration_minutes    : changes.durationMinutes    ?? o['duration_minutes'],
+      location            : changes.location           ?? o['location'],
       is_exception        : true,
       original_session_id : sessionId,
       theme_ids           : [],

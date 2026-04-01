@@ -24,6 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function ExportsPage() {
   const user                    = useAuthStore(s => s.user)
+  const tenantId                = useAuthStore(s => s.tenantId)
   const [jobs, setJobs]         = useState<ExportJob[]>([])
   const [loading, setLoading]   = useState(true)
   const [creating, setCreating] = useState(false)
@@ -54,9 +55,8 @@ export default function ExportsPage() {
       if (to)   filters.to   = new Date(to).toISOString()
 
       const { data: job, error } = await createExportJob({ exportType, filters, format })
-      if (!error && job && user) {
+      if (!error && job && user && tenantId) {
         // Déclencher immédiatement
-        const tenantId = (user as unknown as Record<string, string>).tenant_id ?? ''
         await triggerExport(job, user.id, tenantId)
         await load()
       }
