@@ -92,15 +92,18 @@ export default function BlocsManagerModal({ visible, onClose, onBlocChanged }: P
     if (!newBlocName.trim() || !tenantId) return
     setSaving(true)
     setError(null)
-    const { error: err } = await createThemeGroup({ tenantId, name: newBlocName.trim() })
-    setSaving(false)
-    if (err) {
-      setError('Erreur lors de la création.')
-      return
+    try {
+      const { error: err } = await createThemeGroup({ tenantId, name: newBlocName.trim() })
+      if (err) {
+        setError('Erreur lors de la création.')
+        return
+      }
+      setNewBlocName('')
+      await loadBlocs()
+      onBlocChanged()
+    } finally {
+      setSaving(false)
     }
-    setNewBlocName('')
-    await loadBlocs()
-    onBlocChanged()
   }
 
   return (

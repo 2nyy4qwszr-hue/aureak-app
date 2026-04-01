@@ -73,22 +73,24 @@ export default function CoachesPage() {
   useEffect(() => {
     const load = async () => {
       setLoading(true)
+      try {
+        const { data: coachRows, count, error } = await listCoaches({ page, pageSize: PAGE_SIZE })
 
-      const { data: coachRows, count, error } = await listCoaches({ page, pageSize: PAGE_SIZE })
+        if (error || !coachRows.length && count === 0) return
 
-      if (error || !coachRows.length && count === 0) { setLoading(false); return }
+        setTotal(count)
 
-      setTotal(count)
+        const withGrades = await Promise.all(
+          coachRows.map(async p => {
+            const { data: grade } = await getCoachCurrentGrade(p.userId)
+            return { userId: p.userId, displayName: p.displayName, grade }
+          })
+        )
 
-      const withGrades = await Promise.all(
-        coachRows.map(async p => {
-          const { data: grade } = await getCoachCurrentGrade(p.userId)
-          return { userId: p.userId, displayName: p.displayName, grade }
-        })
-      )
-
-      setCoaches(withGrades)
-      setLoading(false)
+        setCoaches(withGrades)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [page])

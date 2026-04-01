@@ -906,7 +906,7 @@ export default function NewSessionPage() {
       // → à implémenter via une table dédiée si nécessaire (MVP : ignoré)
 
       // Pre-fill attendance roster from group members (seulement pour groupes réels)
-      if (!isPonctuel) await prefillSessionAttendees(session.id).catch(() => {})
+      if (!isPonctuel) await prefillSessionAttendees(session.id).catch(err => { if (process.env.NODE_ENV !== 'production') console.error('[NewSession] prefillSessionAttendees error:', err) })
 
       // Story 21.2 — Lier les blocs thème (best-effort : erreurs loggées mais non-bloquantes)
       for (let j = 0; j < themeBlocks.length; j++) {

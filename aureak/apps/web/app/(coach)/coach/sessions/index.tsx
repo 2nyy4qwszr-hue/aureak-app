@@ -62,9 +62,12 @@ export default function CoachSessionsPage() {
 
   const load = async () => {
     if (!user?.id) return
-    const { data } = await listSessionsByCoach(user.id)
-    setSessions((data ?? []).sort((a, b) => +new Date(b.scheduledAt) - +new Date(a.scheduledAt)))
-    setLoading(false)
+    try {
+      const { data } = await listSessionsByCoach(user.id)
+      setSessions((data ?? []).sort((a, b) => +new Date(b.scheduledAt) - +new Date(a.scheduledAt)))
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [user?.id])
@@ -72,12 +75,15 @@ export default function CoachSessionsPage() {
   const handleCancel = async () => {
     if (!cancelId) return
     setCancelling(true)
-    await cancelSessionRpc(cancelId, cancelReason.trim() || 'Annulée par le coach')
-    setCancelId(null)
-    setCancelReason('')
-    setCancelling(false)
-    setLoading(true)
-    load()
+    try {
+      await cancelSessionRpc(cancelId, cancelReason.trim() || 'Annulée par le coach')
+      setCancelId(null)
+      setCancelReason('')
+      setLoading(true)
+      load()
+    } finally {
+      setCancelling(false)
+    }
   }
 
   if (loading) return <Skeleton />

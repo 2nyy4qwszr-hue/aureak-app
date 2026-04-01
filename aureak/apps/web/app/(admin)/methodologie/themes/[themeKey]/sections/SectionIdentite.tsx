@@ -82,12 +82,15 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
     // Cas vide → null (retirer la position)
     if (trimmed === '') {
       setPositionSaving(true)
-      const { error: apiError } = await updateThemePositionIndex(theme.id, null)
-      setPositionSaving(false)
-      if (apiError) {
-        setPositionError('Erreur lors de la sauvegarde')
-      } else {
-        onUpdate({ ...theme, positionIndex: null })
+      try {
+        const { error: apiError } = await updateThemePositionIndex(theme.id, null)
+        if (apiError) {
+          setPositionError('Erreur lors de la sauvegarde')
+        } else {
+          onUpdate({ ...theme, positionIndex: null })
+        }
+      } finally {
+        setPositionSaving(false)
       }
       return
     }
@@ -98,17 +101,20 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
       return
     }
     setPositionSaving(true)
-    const { error: apiError } = await updateThemePositionIndex(theme.id, parsed)
-    setPositionSaving(false)
-    if (apiError) {
-      const msg = String((apiError as { message?: string })?.message ?? '')
-      if ((apiError as { code?: string })?.code === '23505' || msg.includes('uq_themes_group_position')) {
-        setPositionError('Cette position est déjà utilisée dans ce Bloc')
+    try {
+      const { error: apiError } = await updateThemePositionIndex(theme.id, parsed)
+      if (apiError) {
+        const msg = String((apiError as { message?: string })?.message ?? '')
+        if ((apiError as { code?: string })?.code === '23505' || msg.includes('uq_themes_group_position')) {
+          setPositionError('Cette position est déjà utilisée dans ce Bloc')
+        } else {
+          setPositionError('Erreur lors de la sauvegarde')
+        }
       } else {
-        setPositionError('Erreur lors de la sauvegarde')
+        onUpdate({ ...theme, positionIndex: parsed })
       }
-    } else {
-      onUpdate({ ...theme, positionIndex: parsed })
+    } finally {
+      setPositionSaving(false)
     }
   }
 

@@ -49,13 +49,16 @@ export default function GroupsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [allGroups, { data: impls }] = await Promise.all([
-      listAllGroups(),
-      listImplantations(),
-    ])
-    setGroups(allGroups)
-    setImplantations(impls)
-    setLoading(false)
+    try {
+      const [allGroups, { data: impls }] = await Promise.all([
+        listAllGroups(),
+        listImplantations(),
+      ])
+      setGroups(allGroups)
+      setImplantations(impls)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])

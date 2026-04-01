@@ -55,21 +55,24 @@ export default function PartnershipsPage() {
     if (!partnerName.trim()) { setFormError('Le nom du club est requis.'); return }
     setCreating(true)
     setFormError('')
-    const { error } = await createPartnership({
-      partnerName: partnerName.trim(),
-      accessLevel,
-      activeUntil: activeUntil || undefined,
-      notes      : notes || undefined,
-    })
-    if (error) {
-      setFormError((error as Error)?.message ?? 'Erreur inconnue')
-    } else {
-      setPartnerName('')
-      setActiveUntil('')
-      setNotes('')
-      await load()
+    try {
+      const { error } = await createPartnership({
+        partnerName: partnerName.trim(),
+        accessLevel,
+        activeUntil: activeUntil || undefined,
+        notes      : notes || undefined,
+      })
+      if (error) {
+        setFormError((error as Error)?.message ?? 'Erreur inconnue')
+      } else {
+        setPartnerName('')
+        setActiveUntil('')
+        setNotes('')
+        await load()
+      }
+    } finally {
+      setCreating(false)
     }
-    setCreating(false)
   }
 
   const handleUpdateExpiry = async (id: string, activeUntil: string | null) => {

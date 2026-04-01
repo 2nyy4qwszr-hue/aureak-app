@@ -100,17 +100,20 @@ export default function UsersPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, total: count, error } = await listUsers({
-      search  : search || undefined,
-      role    : roleFilter,
-      page,
-      pageSize: PAGE_SIZE,
-    })
-    if (!error) {
-      setUsers(data)
-      setTotal(count)
+    try {
+      const { data, total: count, error } = await listUsers({
+        search  : search || undefined,
+        role    : roleFilter,
+        page,
+        pageSize: PAGE_SIZE,
+      })
+      if (!error) {
+        setUsers(data)
+        setTotal(count)
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [page, roleFilter, search])
 
   useEffect(() => { load() }, [load])

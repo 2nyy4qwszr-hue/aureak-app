@@ -32,9 +32,12 @@ export default function EvaluationsPage() {
 
   const load = async () => {
     setLoading(true)
-    const { data } = await listEvaluationsAdmin(from, to)
-    setEvals(data)
-    setLoading(false)
+    try {
+      const { data } = await listEvaluationsAdmin(from, to)
+      setEvals(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [from, to])

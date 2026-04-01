@@ -58,23 +58,26 @@ export default function ThemeDossierPage() {
     async function load() {
       if (!themeKey) return
       setLoading(true)
-      const [{ data: t }, { data: g }] = await Promise.all([
-        getThemeByKey(themeKey),
-        listThemeGroups(),
-      ])
-      setTheme(t ?? null)
-      setGroups(g)
-      if (t) {
-        const [crits, { data: seqs }, metas] = await Promise.all([
-          listCriteriaByTheme(t.id),
-          listSequencesByTheme(t.id),
-          listMetaphorsByTheme(t.id),
+      try {
+        const [{ data: t }, { data: g }] = await Promise.all([
+          getThemeByKey(themeKey),
+          listThemeGroups(),
         ])
-        setCriteria(crits ?? [])
-        setSequences(seqs ?? [])
-        setMetaphors(metas ?? [])
+        setTheme(t ?? null)
+        setGroups(g)
+        if (t) {
+          const [crits, { data: seqs }, metas] = await Promise.all([
+            listCriteriaByTheme(t.id),
+            listSequencesByTheme(t.id),
+            listMetaphorsByTheme(t.id),
+          ])
+          setCriteria(crits ?? [])
+          setSequences(seqs ?? [])
+          setMetaphors(metas ?? [])
+        }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [themeKey])

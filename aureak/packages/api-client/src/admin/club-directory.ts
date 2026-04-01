@@ -231,7 +231,7 @@ export async function getClubDirectoryEntry(
     .eq('club_id', clubId)
     .maybeSingle()
   if (statsError) {
-    console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
+    if (process.env.NODE_ENV !== 'production') console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
   }
   entry.gardienCount = (statsRow as { gardien_count: number } | null)?.gardien_count ?? 0
 

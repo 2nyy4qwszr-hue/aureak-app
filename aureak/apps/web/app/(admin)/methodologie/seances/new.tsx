@@ -349,20 +349,20 @@ export default function NewSeancePage() {
     setSaving(true)
     setError(null)
 
-    const { data, error: err } = await createMethodologySession({
-      tenantId,
-      title      : finalTitle.trim(),
-      method     : method      ?? null,
-      contextType: contextType ?? null,
-      moduleName : moduleName.trim()  || null,
-      trainingRef: trainingRef.trim() || null,
-      description: description.trim() || null,
-      pdfUrl     : pdfUrl.trim()    || null,
-      videoUrl   : videoUrl.trim()  || null,
-      audioUrl   : audioUrl.trim()  || null,
-    })
-
     try {
+      const { data, error: err } = await createMethodologySession({
+        tenantId,
+        title      : finalTitle.trim(),
+        method     : method      ?? null,
+        contextType: contextType ?? null,
+        moduleName : moduleName.trim()  || null,
+        trainingRef: trainingRef.trim() || null,
+        description: description.trim() || null,
+        pdfUrl     : pdfUrl.trim()    || null,
+        videoUrl   : videoUrl.trim()  || null,
+        audioUrl   : audioUrl.trim()  || null,
+      })
+
       if (err || !data) {
         setError('Erreur lors de la création.')
         return

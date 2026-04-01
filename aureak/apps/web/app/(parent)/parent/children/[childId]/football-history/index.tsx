@@ -153,6 +153,7 @@ function HistoryModal({
       await onSave(form)
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Erreur inattendue.')
+    } finally {
       setSaving(false)
     }
   }

@@ -112,24 +112,27 @@ export default function UserFichePage() {
   const handle = async (action: 'suspend' | 'reactivate' | 'delete') => {
     setWorking(true)
     setFeedback('')
-    let error: unknown
-    if (action === 'suspend')         ({ error } = await suspendUser(userId, reason || undefined))
-    else if (action === 'reactivate') ({ error } = await reactivateUser(userId))
-    else                              ({ error } = await requestUserDeletion(userId))
+    try {
+      let error: unknown
+      if (action === 'suspend')         ({ error } = await suspendUser(userId, reason || undefined))
+      else if (action === 'reactivate') ({ error } = await reactivateUser(userId))
+      else                              ({ error } = await requestUserDeletion(userId))
 
-    if (error) {
-      setFeedback(`Erreur : ${(error as Error)?.message ?? 'inconnue'}`)
-    } else {
-      setFeedback(
-        action === 'suspend'    ? 'Utilisateur suspendu.' :
-        action === 'reactivate' ? 'Utilisateur réactivé.' :
-                                  'Suppression demandée (délai 30 jours).',
-      )
-      setConfirm(null)
-      setReason('')
-      await load()
+      if (error) {
+        setFeedback(`Erreur : ${(error as Error)?.message ?? 'inconnue'}`)
+      } else {
+        setFeedback(
+          action === 'suspend'    ? 'Utilisateur suspendu.' :
+          action === 'reactivate' ? 'Utilisateur réactivé.' :
+                                    'Suppression demandée (délai 30 jours).',
+        )
+        setConfirm(null)
+        setReason('')
+        await load()
+      }
+    } finally {
+      setWorking(false)
     }
-    setWorking(false)
   }
 
   // ── Loading ──
