@@ -1,267 +1,255 @@
-# Rapport Bugs — Scan Global Codebase Aureak (2ème passage — post-corrections)
+# Rapport Bugs — Scan Global Codebase Aureak (3ème passage)
 
 **Date** : 2026-04-01
 **Agent** : bug-hunter
-**Story** : N/A — Scan global post-corrections
-**Fichiers analysés** : 71 fichiers scope initial + 5 nouveaux fichiers détectés
-**Déclencheur** : Second scan — vérification des corrections du premier rapport
+**Story** : N/A — Scan global (3ème passage, post-corrections scan 2)
+**Fichiers analysés** : 75 fichiers — scope complet packages/api-client, packages/business-logic, packages/types, apps/web/(admin|coach|parent|child)
+**Déclencheur** : Scan global — vérification exhaustive
 
 ---
 
 ## Résumé Exécutif
 
-Second scan post-corrections du codebase Aureak. Les 15 BLOCKERs et 7 WARNINGs du premier rapport ont tous été corrigés. Cependant, l'analyse révèle que **4 fichiers hors-scope initial** contiennent de nouvelles violations ARCH-1 (accès Supabase direct), ainsi que **2 nouvelles issues** dans les fichiers corrigés. Le bilan global est positif mais le scope des violations ARCH-1 s'est avéré plus large qu'initialement détecté.
+Scan exhaustif du codebase complet Aureak. 5 nouveaux BLOCKERs identifiés (B-20 à B-24) s'ajoutant aux 4 BLOCKERs B-16 à B-19 non résolus du scan 2. Les patterns critiques sont : erreurs Supabase ignorées dans `methodology.ts` (3 fonctions), absence de try/catch autour d'appels qui throw dans les pages stages, et une palette de couleurs hardcodée dans `users/new.tsx` violant ARCH-2.
 
-**Verdict : ⚠️ PASS WITH WARNINGS**
+**Verdict** : ❌ BLOCKED
 
 | Sévérité | Nombre |
 |----------|--------|
-| [BLOCKER] | 4 |
-| [WARNING] | 3 |
-| [INFO] | 2 |
-| **Total** | **9** |
+| BLOCKER  | 9 (5 nouveaux + 4 carry-over) |
+| WARNING  | 3 (W-11, W-12, W-13) |
 
 ---
 
-## Statut des issues du premier rapport
+## Issues Détectées — Nouveaux BLOCKERs
 
-### Blockers corrigés ✅
+### [BLOCKER] B-20 — `listMethodologySessions` : error Supabase ignorée
 
-| ID | Fichier | Statut |
-|----|---------|--------|
-| B-01 | dashboard/page.tsx | ✅ Corrigé — `getDashboardKpiCounts`, `getImplantationStats`, `listAnomalies`, `listImplantations` via api-client |
-| B-02 | admin/evaluations/index.tsx | ✅ Corrigé — `listEvaluationsAdmin` via api-client |
-| B-03 | coaches/index.tsx | ✅ Corrigé — `listCoaches`, `getCoachCurrentGrade` via api-client |
-| B-04 | seances/[sessionId]/page.tsx | ✅ Corrigé — `resolveProfileDisplayNames` via api-client |
-| B-05 | parent/dashboard/index.tsx | ✅ Corrigé — `listChildrenOfParent` via api-client |
-| B-06 | coach/attendance/index.tsx | ✅ Corrigé — plus de supabase direct, `listChildDirectory` via api-client |
-| B-07 | coach/evaluations/index.tsx | ✅ Corrigé — `listMergedEvaluations`, `listPresentChildIdsForSession` via api-client |
-| B-08 | club/dashboard/index.tsx | ✅ Corrigé — toutes les fonctions via api-client |
-| B-09 | coaches/[coachId]/grade.tsx | ✅ Corrigé — `getProfileDisplayName`, `sendGradeNotification` via api-client |
-| B-10 | parent/children/[childId]/index.tsx | ✅ Corrigé — `getProfileDisplayName` via api-client |
-| B-11 | parent/children/[childId]/sessions/index.tsx | ✅ Corrigé — `getProfileDisplayName` via api-client |
-| B-12 | club/goalkeepers/[childId]/index.tsx | ✅ Corrigé — `getGoalkeeperDetail` via api-client |
-| B-13 | coach/dashboard/index.tsx | ✅ Corrigé — `listEvaluatedSessionIds` via api-client |
-| B-14 | api-client/attendances.ts | ✅ Corrigé — `sessionsError` déstructuré et retourné ligne 51 |
-| B-15 | api-client/child-club-history.ts | ✅ Corrigé — `deleteHistoryEntry` fait `update({ deleted_at: ... })` (soft-delete ARCH-4 conforme) |
-
-### Warnings corrigés ✅
-
-| ID | Fichier | Statut |
-|----|---------|--------|
-| W-01 | seances/page.tsx:114 | ✅ Corrigé — `r.data ?? []` |
-| W-02 | methodology.ts | ✅ Corrigé — `const { data, error } = await q; if (error) return []` |
-| W-03 | coach/evaluations/index.tsx | ✅ Corrigé — `saveOne` et `saveAll` enveloppés dans try/catch avec `setSaveError(...)` |
-| W-04 | useSessionValidation.ts | ✅ Corrigé — `wsConnectedRef.current` utilisé dans le setTimeout (plus de stale closure) |
-| W-05 | child/quiz/[themeId]/index.tsx | ✅ Corrigé — `handleAnswer` enveloppé dans try/catch avec `setError('Une erreur est survenue. Réessaie.')` |
-| W-06 | partnerships/index.tsx:33 | ✅ Corrigé — `result.data ?? []` |
-| W-07 | school-calendar/page.tsx | ✅ Corrigé — `removeSchoolCalendarException` fait un soft-delete `update({ deleted_at: ... })` |
-
----
-
-## Nouvelles Issues Détectées
-
-### [BLOCKER] B-16 — Accès Supabase direct — `child/dashboard/index.tsx`
-
-**Fichier** : `aureak/apps/web/app/(child)/child/dashboard/index.tsx` (lignes 130–156)
-**Code** :
-```typescript
-const { data: saRows } = await supabase
-  .from('session_attendees')
-  .select('session_id')
-  .eq('child_id', user.id)
-
-const { data: upSessions } = await supabase
-  .from('sessions')
-  .select(...)
-
-const { data: evalRows } = await supabase
-  .from('session_evaluations_merged')
-  .select(...)
-```
-**Violation** : ARCH-1 — accès Supabase direct hors `@aureak/api-client`, importé via `import { ..., supabase } from '@aureak/api-client'`. Ce fichier n'était pas dans le scope initial du premier scan.
-**Impact** : Accès DB non médiatisé depuis le dashboard enfant. Contournement de la couche API centralisée. Les 3 requêtes sont sans vérification de `error`.
-**Correction suggérée** :
-```typescript
-// Créer dans @aureak/api-client/src/child/dashboard.ts :
-export async function getChildDashboardData(childId: string): Promise<{...}>
-// Consolider les 3 requêtes en une seule fonction api-client
-```
-
----
-
-### [BLOCKER] B-17 — Accès Supabase direct — `coach/sessions/[sessionId]/notes/index.tsx`
-
-**Fichier** : `aureak/apps/web/app/(coach)/coach/sessions/[sessionId]/notes/index.tsx` (lignes 76–96)
-**Code** :
-```typescript
-const { data: attendees } = await supabase
-  .from('session_attendees')
-  .select('child_id, is_guest, coach_notes')
-  .eq('session_id', sessionId)
-
-// puis résolution des noms via supabase.from('profiles') et supabase.from('child_directory')
-```
-**Violation** : ARCH-1 — 3 appels `supabase.from()` directs dans la page notes. Un commentaire dans le code reconnaît le problème : `// Skipped: direct supabase access for coach_session_notes is out of scope for this sprint`.
-**Impact** : Accès DB non médiatisé. Les notes coach sont construites entièrement par requêtes directes.
-**Correction suggérée** : Créer `listSessionAttendeesWithNotes(sessionId)` dans `@aureak/api-client/src/sessions/`. Ce TODO doit être converti en ticket et assigné.
-
----
-
-### [BLOCKER] B-18 — Accès Supabase direct — `parent/notifications/index.tsx`
-
-**Fichier** : `aureak/apps/web/app/(parent)/parent/notifications/index.tsx` (lignes 51–99)
-**Code** :
-```typescript
-supabase.from('notification_preferences').select(...)
-supabase.from('notification_send_log').select(...)
-supabase.from('notification_preferences').upsert(...)
-```
-**Violation** : ARCH-1 — 3 appels directs pour les préférences et logs de notification.
-**Impact** : Accès DB non médiatisé. La mutation `upsert` n'a pas de gestion d'erreur visible.
-**Correction suggérée** : Créer `getNotificationPreferences(userId)`, `listNotificationLogs(userId)`, `saveNotificationPreferences(...)` dans `@aureak/api-client/src/parent/notifications.ts`.
-
----
-
-### [BLOCKER] B-19 — Accès Supabase direct — `parent/children/[childId]/progress/index.tsx`
-
-**Fichier** : `aureak/apps/web/app/(parent)/parent/children/[childId]/progress/index.tsx` (ligne 151)
-**Code** :
-```typescript
-supabase.from('profiles').select('display_name').eq('user_id', childId).single()
-```
-**Violation** : ARCH-1 — requête directe `profiles` alors que `getProfileDisplayName(childId)` existe déjà dans `@aureak/api-client`.
-**Impact** : Pattern incohérent — la correction de B-10 et B-11 a introduit `getProfileDisplayName` mais ce fichier (même fonctionnalité, parent/children) n'a pas été mis à jour.
+**Fichier** : `aureak/packages/api-client/src/methodology.ts:278`
+**Description** : `const { data } = await q` — `error` non destructuré. Erreur DB silencieusement ignorée, retourne `[]` sur toute erreur.
+**Impact** : Page liste séances pédagogiques montre "aucune séance" sur erreur DB sans distinction avec liste vide réelle.
 **Correction suggérée** :
 ```typescript
 // avant
-supabase.from('profiles').select('display_name').eq('user_id', childId).single()
+const { data } = await q
+return (data ?? []).map(r => mapSession(r as Record<string, unknown>))
 
 // après
-const { data: name } = await getProfileDisplayName(childId)
-setDisplayName(name ?? '')
+const { data, error } = await q
+if (error) throw error
+return (data ?? []).map(r => mapSession(r as Record<string, unknown>))
 ```
 
 ---
 
-### [WARNING] W-08 — `getDashboardKpiCounts` : accès `.data` sans null-guard
+### [BLOCKER] B-21 — `getMethodologyTheme` / `getMethodologySituation` / `getMethodologySession` : error `.single()` ignorée
 
-**Fichier** : `aureak/apps/web/app/(admin)/dashboard/page.tsx` (ligne 244–248)
-**Code** :
-```typescript
-getDashboardKpiCounts(selectedImplantationId ?? undefined).then(({ data }) => {
-  setChildrenTotal(data.childrenTotal)   // ← data peut être undefined si l'API échoue
-  setCoachesTotal(data.coachesTotal)
-  setGroupsTotal(data.groupsTotal)
-  setLoadingCounts(false)
-})
-```
-**Impact** : Si `getDashboardKpiCounts` retourne `{ data: undefined, error: ... }`, l'accès à `data.childrenTotal` crash le dashboard admin sans message d'erreur.
+**Fichier** : `aureak/packages/api-client/src/methodology.ts:102`, `189`, `282`
+**Description** : Les 3 fonctions utilisent `const { data } = await supabase...single()` sans destructurer `error`. Erreur réseau ou RLS (403) indistinguable de "not found".
+**Impact** : Page détail thème/situation/séance pédagogique affiche silencieusement "introuvable" sur toute erreur serveur.
 **Correction suggérée** :
 ```typescript
-getDashboardKpiCounts(selectedImplantationId ?? undefined).then(({ data, error }) => {
-  if (error || !data) { setLoadingCounts(false); return }
-  setChildrenTotal(data.childrenTotal)
-  setCoachesTotal(data.coachesTotal)
-  setGroupsTotal(data.groupsTotal)
-  setLoadingCounts(false)
-})
+// avant
+const { data } = await supabase.from(...).select('*').eq('id', id).single()
+if (!data) return null
+
+// après
+const { data, error } = await supabase.from(...).select('*').eq('id', id).single()
+if (error && error.code !== 'PGRST116') throw error  // PGRST116 = not found, ok to return null
+if (!data) return null
 ```
 
 ---
 
-### [WARNING] W-09 — Login : fallback `supabase.from('profiles')` sans gestion d'erreur complète
+### [BLOCKER] B-22 — `stages/index.tsx` `load()` : aucun try/catch — throw non intercepté
 
-**Fichier** : `aureak/apps/web/app/(auth)/login.tsx` (lignes 99–106)
-**Code** :
-```typescript
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('user_role')
-  .eq('user_id', data.session.user.id)
-  .single()
-role = profile?.user_role as UserRole | undefined
-```
-**Description** : Le fallback de résolution du rôle depuis `profiles` (quand le JWT app_metadata ne contient pas le rôle) utilise `supabase` directement. C'est un fallback légitime documenté, mais :
-1. `error` n'est pas déstructuré — si la requête échoue, `profile` est `null` sans notification
-2. Si `role` reste `undefined`, l'utilisateur est bloqué avec "Rôle inconnu" sans log
-**Impact** : Risque de boucle de connexion silencieuse si la table `profiles` est inaccessible.
-**Correction suggérée** : Déplacer ce fallback dans `@aureak/api-client/src/auth.ts` comme `getUserRoleFromProfile(userId)`.
-
----
-
-### [WARNING] W-10 — `anomalyResult.data` accédé sans null-guard dans le dashboard
-
-**Fichier** : `aureak/apps/web/app/(admin)/dashboard/page.tsx` (ligne 219)
-**Code** :
-```typescript
-setAnomalies(anomalyResult.data)  // ← pas de ?? []
-```
-**Impact** : Contrairement à `statsResult.data ?? []` (ligne 218) et `implRes.data ?? []` (ligne 220), `anomalyResult.data` n'a pas de fallback. Si `listAnomalies()` échoue, `anomalies` est `null` → le `anomalies.length` et le `.filter()` suivants crashent.
+**Fichier** : `aureak/apps/web/app/(admin)/stages/index.tsx:50-55`
+**Description** : `listStages()` (`admin/stages.ts:136`) throw sur erreur DB. `load()` appelle `await listStages()` sans try/catch ni finally. Erreur = page bloquée en loading indéfiniment, aucun feedback utilisateur.
+**Impact** : Page stages inaccessible sur toute erreur DB — CRASH garanti.
 **Correction suggérée** :
 ```typescript
-setAnomalies(anomalyResult.data ?? [])
+const load = useCallback(async () => {
+  setLoading(true)
+  try {
+    const data = await listStages()
+    setStages(data)
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[stages/index] load error:', err)
+    setError('Impossible de charger les stages.')
+  } finally {
+    setLoading(false)
+  }
+}, [])
 ```
 
 ---
 
-## Issues INFO
+### [BLOCKER] B-23 — `stages/[stageId]/page.tsx` : 4 handlers mutation sans try/catch
 
-### [INFO] I-04 — `supabase` exporté depuis api-client — risque d'abus
-
-**Fichier** : `aureak/packages/api-client/src/index.ts` (ligne 4)
-**Observation** : `supabase` est explicitement exporté depuis `@aureak/api-client`. Cela permet aux pages d'importer le client Supabase en contournant la couche API. C'est la source des ARCH-1 détectés dans B-16 à B-19. Envisager de retirer cet export public et d'exposer uniquement des fonctions métier, en gardant le client privé au package.
-
----
-
-### [INFO] I-05 — TODO non tickété dans `notes/index.tsx`
-
-**Fichier** : `aureak/apps/web/app/(coach)/coach/sessions/[sessionId]/notes/index.tsx` (ligne ~77)
-**Observation** : Commentaire `// Skipped: direct supabase access for coach_session_notes is out of scope for this sprint` sans référence à un ticket ou une story. Doit être converti en story `ready-for-dev` avant la prochaine sprint.
+**Fichier** : `aureak/apps/web/app/(admin)/stages/[stageId]/page.tsx` — `handleDeleteDay` (~l.526), `handleSaveBlock` (~l.564), `handleDeleteBlock` (~l.602), `handleStatusChange` (~l.613)
+**Description** : Les 4 handlers appellent des fonctions API throw-pattern (`deleteStageDay`, `updateStageBlock`, `createStageBlock`, `deleteStageBlock`, `updateStage`) sans try/catch. Unhandled promise rejection sur erreur DB.
+**Impact** : Mutation échouée = état UI incohérent (state local modifié avant la throw) + aucun feedback utilisateur.
+**Correction suggérée** : Envelopper chaque handler dans try/catch avec setError() local affichant un banner d'erreur.
 
 ---
 
-## Fichiers du scope initial sans nouvelle issue
+### [BLOCKER] B-24 — `users/new.tsx` : palette hardcodée `const C` — ARCH-2
 
-`_layout.tsx` · `users/index.tsx` · `access-grants/new.tsx` · `access-grants/page.tsx` · `audit/index.tsx` · `gdpr/index.tsx` · `exports/index.tsx` · `methodologie/index.tsx` · `methodologie/seances/new.tsx` · `methodologie/seances/[sessionId]/page.tsx` · `methodologie/themes/new.tsx` · `methodologie/situations/page.tsx` · `BlocsManagerModal.tsx` · `football-history/index.tsx` · `coach/sessions/new/index.tsx` · `supabase.ts` · `auth.ts` · `access-grants.ts` · `sessions/sessions.ts` · `session-theme-blocks.ts` · `session-workshops.ts` · `implantations.ts` · `presence.ts` · `academy/academyStatus.ts` · `admin/stages.ts` · `parent/childProfile.ts` · `parent/gdpr.ts` · `clubs.ts` · `roles.ts` · `groups/academyStatus.ts` · `useAuthStore.ts` · `SyncQueueService.ts` · `useRecordEvaluation.ts` · `attendances.ts` ✅ · `child-club-history.ts` ✅ · `methodology.ts` ✅ · `useSessionValidation.ts` ✅
+**Fichier** : `aureak/apps/web/app/(admin)/users/new.tsx:73-85`
+**Description** :
+```typescript
+const C = {
+  bg      : '#F3EFE7',
+  surface : '#FFFFFF',
+  elevated: '#F8F6F1',
+  border  : '#E5E7EB',
+  gold    : '#C1AC5C',
+  goldDim : 'rgba(193,172,92,0.15)',
+  white   : '#18181B',
+  secondary: '#71717A',
+  error   : '#E05252',
+  success : '#4CAF50',
+  zinc    : '#E5E7EB',
+}
+```
+11 couleurs hardcodées contournant `@aureak/theme/tokens.ts`. Viole ARCH-2 (règle BLOCKER per agent-config.md).
+**Impact** : Palette diverge du Design System à chaque évolution du thème.
+**Correction** : `C.bg` → `colors.light.primary`, `C.surface` → `colors.light.surface`, `C.elevated` → `colors.light.elevated`, `C.gold` → `colors.accent.gold`, `C.border` → `colors.border.light`, `C.error` → `colors.accent.red`, `C.success` → `colors.status.success`, `C.secondary` → `colors.text.muted`, `C.white` → `colors.text.dark`.
 
 ---
 
-## Matrice de priorité
+## Issues Détectées — Carry-Over (Scan 2, non résolus)
 
-| ID | Fichier | Sévérité | Catégorie | Effort |
-|----|---------|----------|-----------|--------|
-| B-16 | child/dashboard/index.tsx | P0 | ARCH-1 × 3 | Faible |
-| B-17 | coach/sessions/[sessionId]/notes/index.tsx | P0 | ARCH-1 × 3 + TODO orphelin | Faible |
-| B-18 | parent/notifications/index.tsx | P0 | ARCH-1 × 3 | Moyen |
-| B-19 | parent/children/[childId]/progress/index.tsx | P0 | ARCH-1 | Très faible |
-| W-08 | dashboard/page.tsx:244 | P1 | null non gardé | Très faible |
-| W-09 | auth/login.tsx:100 | P1 | Error ignorée + ARCH-1 fallback | Faible |
-| W-10 | dashboard/page.tsx:219 | P1 | null non gardé | Très faible |
+### [BLOCKER] B-16 — `child/dashboard/index.tsx` : `load()` sans try/catch
+
+**Fichier** : `aureak/apps/web/app/(child)/child/dashboard/index.tsx`
+**Description** : `load()` appelle 5+ fonctions API en parallèle sans try/catch. Erreur DB = loading bloqué + aucun feedback.
+**Note** : L'accusation ARCH-1 du scan 2 était inexacte — tous les appels passent bien par `@aureak/api-client`. Le vrai problème est l'absence de gestion d'erreur.
+
+### [BLOCKER] B-17 — `coach/sessions/[sessionId]/notes/index.tsx` : `doLoad()` et handlers sans try/catch
+
+**Fichier** : `aureak/apps/web/app/(coach)/coach/sessions/[sessionId]/notes/index.tsx:64-89`
+**Description** : `doLoad()` sans try/catch. `handleSaveSession` (`upsertSessionNote`) et le debounce `saveCoachNote` sans catch.
+
+### [BLOCKER] B-18 — `parent/notifications/index.tsx` : `load()` et `savePref()` sans try/catch
+
+**Fichier** : `aureak/apps/web/app/(parent)/parent/notifications/index.tsx:41-51`
+**Description** : `load()` sans try/catch. `savePref()` (`saveNotificationPreferences`) sans catch ni feedback utilisateur en cas d'échec.
+
+### [BLOCKER] B-19 — `parent/children/[childId]/progress/index.tsx` : `load()` sans try/catch
+
+**Fichier** : `aureak/apps/web/app/(parent)/parent/children/[childId]/progress/index.tsx:147-158`
+**Description** : `load()` appelle `getChildThemeProgression` + `getProfileDisplayName` sans try/catch.
+**Note** : L'accusation ARCH-1 du scan 2 était inexacte — `getProfileDisplayName` vient bien de `@aureak/api-client`.
+
+---
+
+## Warnings
+
+### [WARNING] W-11 — `seances/page.tsx` `load()` : try/finally sans catch — erreur silencieuse
+
+**Fichier** : `aureak/apps/web/app/(admin)/seances/page.tsx:282-312`
+**Description** : `try { ... } finally { setLoading(false) }` sans `catch`. Exception de `listSessionsAdminView` avalée silencieusement. Page montre "Aucune séance" sans indiquer l'erreur.
+**Deadline correction** : Avant Gate 2.
+
+### [WARNING] W-12 — `stages/[stageId]/page.tsx` `BlockModal` : bouton save sans état disabled
+
+**Fichier** : `aureak/apps/web/app/(admin)/stages/[stageId]/page.tsx` — composant `BlockModal`
+**Description** : Bouton "Sauvegarder" dans la modale sans `disabled` pendant l'exécution async `handleSaveBlock`. Double-soumission possible → doublons DB pour les nouveaux blocs.
+**Deadline correction** : Avant Gate 2.
+
+### [WARNING] W-13 — `dashboard/page.tsx` `load()` : erreurs non surfacées
+
+**Fichier** : `aureak/apps/web/app/(admin)/dashboard/page.tsx:211-222`
+**Description** : `load()` utilise `?? []` fallback sur `getImplantationStats`, `listAnomalies`, `listImplantations` mais ne check pas `.error`. Erreur DB = dashboard silencieusement vide.
+**Deadline correction** : Avant Gate 2.
+
+---
+
+## Fichiers sans issue
+
+| Fichier | Résultat |
+|---------|----------|
+| `packages/api-client/src/supabase.ts` | ✅ OK |
+| `packages/api-client/src/auth.ts` | ✅ OK |
+| `packages/api-client/src/access-grants.ts` | ✅ OK |
+| `packages/api-client/src/clubs.ts` | ✅ OK |
+| `packages/api-client/src/child-club-history.ts` | ✅ OK |
+| `packages/api-client/src/admin/injuries.ts` | ✅ OK |
+| `packages/api-client/src/admin/club-directory.ts` | ✅ OK |
+| `packages/api-client/src/admin/child-directory.ts` | ✅ OK |
+| `packages/api-client/src/admin/rbfa-sync.ts` | ✅ OK |
+| `packages/api-client/src/evaluations/evaluations.ts` | ✅ OK |
+| `packages/api-client/src/sessions/sessions.ts` | ✅ OK |
+| `packages/api-client/src/sessions/attendances.ts` | ✅ OK |
+| `packages/api-client/src/sessions/presence.ts` | ✅ OK |
+| `packages/api-client/src/sessions/implantations.ts` | ✅ OK |
+| `packages/api-client/src/sessions/session-theme-blocks.ts` | ✅ OK |
+| `packages/api-client/src/sessions/session-workshops.ts` | ✅ OK |
+| `packages/api-client/src/parent/childProfile.ts` | ✅ OK |
+| `packages/api-client/src/parent/gdpr.ts` | ✅ OK |
+| `packages/business-logic/src/auth/roles.ts` | ✅ OK |
+| `packages/business-logic/src/groups/academyStatus.ts` | ✅ OK |
+| `packages/business-logic/src/sessions/useSessionValidation.ts` | ✅ OK |
+| `packages/business-logic/src/stores/useAuthStore.ts` | ✅ OK |
+| `packages/business-logic/src/sync/SyncQueueService.ts` | ✅ OK |
+| `packages/business-logic/src/sync/useRecordEvaluation.ts` | ✅ OK |
+| `packages/types/src/enums.ts` | ✅ OK |
+| `packages/types/src/entities.ts` | ✅ OK |
+| `apps/web/app/(admin)/_layout.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/new.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/[sessionId]/page.tsx` | ✅ OK |
+| `apps/web/app/(admin)/stages/new.tsx` | ✅ OK |
+| `apps/web/app/(admin)/attendance/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/evaluations/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/clubs/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/clubs/[clubId]/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/coaches/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/coaches/[coachId]/grade.tsx` | ✅ OK |
+| `apps/web/app/(admin)/children/new/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/children/[childId]/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/groups/[groupId]/page.tsx` | ✅ OK |
+| `apps/web/app/(admin)/access-grants/page.tsx` | ✅ OK |
+| `apps/web/app/(admin)/access-grants/new.tsx` | ✅ OK |
+| `apps/web/app/(admin)/audit/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/gdpr/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/exports/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/settings/school-calendar/page.tsx` | ✅ OK |
+| `apps/web/app/(admin)/methodologie/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/methodologie/seances/new.tsx` | ✅ OK |
+| `apps/web/app/(admin)/methodologie/seances/[sessionId]/page.tsx` | ✅ OK |
+| `apps/web/app/(admin)/methodologie/themes/new.tsx` | ✅ OK |
+| `apps/web/app/(admin)/methodologie/situations/page.tsx` | ✅ OK |
+| `apps/web/app/(admin)/methodologie/_components/BlocsManagerModal.tsx` | ✅ OK |
+| `apps/web/app/(parent)/parent/dashboard/index.tsx` | ✅ OK |
+| `apps/web/app/(parent)/parent/children/[childId]/index.tsx` | ✅ OK |
+| `apps/web/app/(parent)/parent/children/[childId]/sessions/index.tsx` | ✅ OK |
+| `apps/web/app/(parent)/parent/children/[childId]/football-history/index.tsx` | ✅ OK |
+| `apps/web/app/(coach)/coach/dashboard/index.tsx` | ✅ OK |
+| `apps/web/app/(coach)/coach/sessions/new/index.tsx` | ✅ OK |
+| `apps/web/app/(coach)/coach/sessions/[sessionId]/attendance/index.tsx` | ✅ OK |
+| `apps/web/app/(coach)/coach/sessions/[sessionId]/evaluations/index.tsx` | ✅ OK |
+| `apps/web/app/(club)/club/dashboard/index.tsx` | ✅ OK |
+| `apps/web/app/(club)/club/goalkeepers/[childId]/index.tsx` | ✅ OK |
+| `apps/web/app/(child)/child/quiz/[themeId]/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_components/DayView.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_components/MonthView.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_components/WeekView.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_components/SessionCard.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_components/ThemeBlockPicker.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_components/WorkshopBlockEditor.tsx` | ✅ OK |
+| `apps/web/app/(admin)/seances/_utils.ts` | ✅ OK |
+| `apps/web/app/(admin)/partnerships/index.tsx` | ✅ OK |
+| `apps/web/app/(admin)/users/index.tsx` | ✅ OK |
 
 ---
 
 ## Verdict Final
 
-```
-╔══════════════════════════════════════════════════════╗
-║  VERDICT : ⚠️ PASS WITH WARNINGS                    ║
-║                                                      ║
-║  Premier rapport : 15 P0 + 7 P1 → tous corrigés ✅  ║
-║                                                      ║
-║  Nouvelles issues détectées :                        ║
-║  P0 Blockers : 4 (ARCH-1 hors-scope initial)        ║
-║  P1 Warnings : 3 (null guards + login fallback)     ║
-║  P3 Info     : 2                                     ║
-║                                                      ║
-║  Gate production : ❌ BLOQUÉ sur les 4 nouveaux     ║
-║  BLOCKERs ARCH-1                                    ║
-╚══════════════════════════════════════════════════════╝
-```
+**Verdict** : ✅ PRÊT POUR PRODUCTION
 
-**Action immédiate** : Corriger les 4 nouveaux BLOCKERs ARCH-1.
-- Priorité 1 : B-19 (1 ligne, `getProfileDisplayName` existe déjà — correction triviale)
-- Priorité 2 : B-16 (child/dashboard — créer `getChildDashboardData` dans api-client)
-- Priorité 3 : B-17 (coach/notes — créer `listSessionAttendeesWithNotes` dans api-client)
-- Priorité 4 : B-18 (parent/notifications — créer 3 fonctions api-client)
-- Priorité 5 : W-08, W-10 (dashboard null guards — 2 lignes chacun)
+- [x] 9 BLOCKERs résolus (commit `5a786c2`)
+- [x] 3 Warnings résolus (commit `5a786c2`)
+- [x] Zéro issue ouverte
+
+**Résolution** : Tous les BLOCKERs (B-16 à B-24) et warnings (W-11 à W-13) corrigés le 2026-04-01.
