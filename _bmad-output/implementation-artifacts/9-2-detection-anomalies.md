@@ -1,6 +1,6 @@
 # Story 9.2 : Détection Anomalies
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
