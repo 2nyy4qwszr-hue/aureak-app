@@ -1,6 +1,6 @@
 # Story 5.5 : Timeline Admin & Restauration via `event_log`
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

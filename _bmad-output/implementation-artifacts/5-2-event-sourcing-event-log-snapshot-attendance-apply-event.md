@@ -1,6 +1,6 @@
 # Story 5.2 : Event Sourcing — `event_log`, Snapshot Attendance & `apply_event()`
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

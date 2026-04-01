@@ -24,3 +24,5 @@ export type { StarToggleProps } from './components/StarToggle'
 
 export { HierarchyBreadcrumb } from './components/HierarchyBreadcrumb'
 export type { HierarchyBreadcrumbProps, BreadcrumbItem } from './components/HierarchyBreadcrumb'
+
+export { SyncStatusBanner } from './components/SyncStatusBanner'

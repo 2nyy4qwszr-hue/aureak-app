@@ -1,6 +1,6 @@
 # Story 5.4 : Sync Queue Idempotente & Résolution de Conflits
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

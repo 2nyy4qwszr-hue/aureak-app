@@ -7,6 +7,8 @@ export type { UserProfile } from './referentiel/filterByAudience'
 
 export { SyncQueueService } from './sync/SyncQueueService'
 export type { QueueOperation, LocalQueueItem, SyncDB, ApplyEventFn } from './sync/SyncQueueService'
+export { useSyncStatus } from './sync/useSyncStatus'
+export type { SyncStatus } from './sync/useSyncStatus'
 
 export { BackgroundSyncService } from './sync/BackgroundSyncService'
 export { useRecordEvaluation } from './sync/useRecordEvaluation'

@@ -167,6 +167,11 @@ export {
 export type { ApplyAttendanceEventParams, ApplyEventResult } from './sessions/attendances'
 
 export {
+  getAttendanceTimeline, restoreAttendance, markConflictsReviewed,
+} from './sessions/timeline'
+export type { TimelineEvent, AttendanceSnapshot, AttendanceTimeline } from './sessions/timeline'
+
+export {
   applyEvaluationEvent, listEvaluationsBySession, listMergedEvaluations,
   validateSession, closeSession,
 } from './evaluations/evaluations'

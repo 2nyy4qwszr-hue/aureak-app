@@ -1,6 +1,6 @@
 # Story 5.6 : UX Offline — Indicateur Sync, Alertes & Rappel J+1
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
