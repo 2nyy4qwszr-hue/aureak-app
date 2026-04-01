@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useAuthStore } from '@aureak/business-logic'
+import { colors } from '@aureak/theme'
 import {
   createProfileFiche,
   inviteProfileUser,
@@ -67,22 +68,6 @@ const AGE_CATEGORIES = [
   { value: 'Foot à 11',  label: 'Foot à 11'  },
   { value: 'Senior',     label: 'Senior'      },
 ] as const
-
-// ── Design tokens ──────────────────────────────────────────────────────────────
-
-const C = {
-  bg      : '#F3EFE7',
-  surface : '#FFFFFF',
-  elevated: '#F8F6F1',
-  border  : '#E5E7EB',
-  gold    : '#C1AC5C',
-  goldDim : 'rgba(193,172,92,0.15)',
-  white   : '#18181B',
-  secondary: '#71717A',
-  error   : '#E05252',
-  success : '#4CAF50',
-  zinc    : '#E5E7EB',
-}
 
 // ── Composant principal ────────────────────────────────────────────────────────
 
@@ -196,11 +181,11 @@ export default function NewUserScreen() {
       <div style={s.page}>
         <style>{css}</style>
         <div style={s.card}>
-          <div style={{ ...s.badge, background: 'rgba(76,175,80,0.15)', color: C.success, marginBottom: 24 }}>
+          <div style={{ ...s.badge, background: 'rgba(76,175,80,0.15)', color: colors.status.success, marginBottom: 24 }}>
             Profil créé
           </div>
           <div style={s.successIcon}>✓</div>
-          <p style={{ ...s.label, color: C.white, fontSize: 20, fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, marginBottom: 8, margin: 0 }}>
+          <p style={{ ...s.label, color: colors.text.dark, fontSize: 20, fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, marginBottom: 8, margin: 0 }}>
             {result.msg}
           </p>
           <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
@@ -371,13 +356,13 @@ export default function NewUserScreen() {
                     </Field>
                     <Field label="Club actuel">
                       {clubsLoading ? (
-                        <div style={{ ...s.input, color: C.secondary, display: 'flex', alignItems: 'center' }}>
+                        <div style={{ ...s.input, color: colors.text.muted, display: 'flex', alignItems: 'center' }}>
                           Chargement...
                         </div>
                       ) : clubs.length === 0 ? (
                         <div style={s.emptyClub}>
-                          <span style={{ fontSize: 13, color: C.secondary }}>Aucun club enregistré.</span>
-                          <a href="/admin/clubs" style={{ fontSize: 12, color: C.gold, textDecoration: 'none', marginTop: 2 }}>
+                          <span style={{ fontSize: 13, color: colors.text.muted }}>Aucun club enregistré.</span>
+                          <a href="/admin/clubs" style={{ fontSize: 12, color: colors.accent.gold, textDecoration: 'none', marginTop: 2 }}>
                             Créer un club →
                           </a>
                         </div>
@@ -481,7 +466,7 @@ export default function NewUserScreen() {
               <div style={{
                 ...s.badge,
                 background: mode === 'fiche' ? 'rgba(193,172,92,0.12)' : 'rgba(76,175,80,0.12)',
-                color: mode === 'fiche' ? C.gold : C.success,
+                color: mode === 'fiche' ? colors.accent.gold : colors.status.success,
               }}>
                 {mode === 'fiche' ? '📋 Fiche locale — aucun email envoyé' : '✉️ Invitation — email envoyé à la création'}
               </div>
@@ -519,24 +504,24 @@ function ModeCard({ active, onSelect, icon, title, desc, badge }: {
       style={{
         padding: 24,
         borderRadius: 12,
-        border: `2px solid ${active ? C.gold : C.border}`,
-        background: active ? C.goldDim : C.surface,
+        border: `2px solid ${active ? colors.accent.gold : colors.border.light}`,
+        background: active ? colors.accent.gold + '26' : colors.light.surface,
         cursor: 'pointer',
         transition: 'border-color 0.15s, background 0.15s',
         flex: 1,
       }}
     >
       <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
-      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 18, color: C.white, marginBottom: 6 }}>
+      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 18, color: colors.text.dark, marginBottom: 6 }}>
         {title}
       </div>
-      <div style={{ fontSize: 13, color: C.secondary, lineHeight: 1.5, marginBottom: 12 }}>{desc}</div>
+      <div style={{ fontSize: 13, color: colors.text.muted, lineHeight: 1.5, marginBottom: 12 }}>{desc}</div>
       <div style={{
         display: 'inline-block', fontSize: 11, fontWeight: 600,
         padding: '3px 10px', borderRadius: 20,
-        background: active ? C.goldDim : 'transparent',
-        border: `1px solid ${active ? C.gold : C.zinc}`,
-        color: active ? C.gold : C.secondary,
+        background: active ? colors.accent.gold + '26' : 'transparent',
+        border: `1px solid ${active ? colors.accent.gold : colors.border.light}`,
+        color: active ? colors.accent.gold : colors.text.muted,
       }}>
         {badge}
       </div>
@@ -554,18 +539,18 @@ function RoleCard({ active, onSelect, icon, title, desc }: {
       style={{
         padding: 20,
         borderRadius: 10,
-        border: `2px solid ${active ? C.gold : C.border}`,
-        background: active ? C.goldDim : C.surface,
+        border: `2px solid ${active ? colors.accent.gold : colors.border.light}`,
+        background: active ? colors.accent.gold + '26' : colors.light.surface,
         cursor: 'pointer',
         transition: 'border-color 0.15s, background 0.15s',
         textAlign: 'center' as const,
       }}
     >
       <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 16, color: active ? C.gold : C.white, marginBottom: 4 }}>
+      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 16, color: active ? colors.accent.gold : colors.text.dark, marginBottom: 4 }}>
         {title}
       </div>
-      <div style={{ fontSize: 12, color: C.secondary, lineHeight: 1.4 }}>{desc}</div>
+      <div style={{ fontSize: 12, color: colors.text.muted, lineHeight: 1.4 }}>{desc}</div>
     </div>
   )
 }
@@ -574,14 +559,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <div style={{ width: 3, height: 16, background: C.gold, borderRadius: 2 }} />
+        <div style={{ width: 3, height: 16, background: colors.accent.gold, borderRadius: 2 }} />
         <span style={{
           fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 13,
-          color: C.gold, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
+          color: colors.accent.gold, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
         }}>
           {title}
         </span>
-        <div style={{ flex: 1, height: 1, background: C.border }} />
+        <div style={{ flex: 1, height: 1, background: colors.border.light }} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
         {children}
@@ -593,9 +578,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 5, flex: 1 }}>
-      <label style={{ fontSize: 12, color: error ? C.error : C.secondary, fontWeight: 500 }}>{label}</label>
+      <label style={{ fontSize: 12, color: error ? colors.accent.red : colors.text.muted, fontWeight: 500 }}>{label}</label>
       {children}
-      {error && <span style={{ fontSize: 11, color: C.error }}>{error}</span>}
+      {error && <span style={{ fontSize: 11, color: colors.accent.red }}>{error}</span>}
     </div>
   )
 }

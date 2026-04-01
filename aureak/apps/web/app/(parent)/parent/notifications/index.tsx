@@ -39,13 +39,18 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const [prefsRes, logsRes] = await Promise.all([
-        getNotificationPreferences(user.id),
-        listNotificationLogs(user.id),
-      ])
-      if (prefsRes.data) setPrefs(prefsRes.data)
-      setLogs(logsRes.data)
-      setLoading(false)
+      try {
+        const [prefsRes, logsRes] = await Promise.all([
+          getNotificationPreferences(user.id),
+          listNotificationLogs(user.id),
+        ])
+        if (prefsRes.data) setPrefs(prefsRes.data)
+        setLogs(logsRes.data)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[parent/notifications] load error:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [user?.id])
@@ -55,8 +60,13 @@ export default function NotificationsPage() {
     const next = { ...prefs, ...patch }
     setPrefs(next)
     setSaving(true)
-    await saveNotificationPreferences(user.id, tenantId, next)
-    setSaving(false)
+    try {
+      await saveNotificationPreferences(user.id, tenantId, next)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[parent/notifications] savePref error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

@@ -99,11 +99,12 @@ export async function listMethodologyThemes(
 }
 
 export async function getMethodologyTheme(id: string): Promise<MethodologyTheme | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('methodology_themes')
     .select('*')
     .eq('id', id)
     .single()
+  if (error && (error as { code?: string }).code !== 'PGRST116') throw error
   if (!data) return null
   return mapTheme(data as Record<string, unknown>)
 }
@@ -187,11 +188,12 @@ export async function listMethodologySituations(
 }
 
 export async function getMethodologySituation(id: string): Promise<MethodologySituation | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('methodology_situations')
     .select('*')
     .eq('id', id)
     .single()
+  if (error && (error as { code?: string }).code !== 'PGRST116') throw error
   if (!data) return null
   return mapSituation(data as Record<string, unknown>)
 }
@@ -275,16 +277,18 @@ export async function listMethodologySessions(
   if (opts.contextType)          q = q.eq('context_type', opts.contextType)
   if (opts.activeOnly !== false)  q = q.eq('is_active', true)
 
-  const { data } = await q
+  const { data, error } = await q
+  if (error) return []
   return (data ?? []).map(r => mapSession(r as Record<string, unknown>))
 }
 
 export async function getMethodologySession(id: string): Promise<MethodologySession | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('methodology_sessions')
     .select('*')
     .eq('id', id)
     .single()
+  if (error && (error as { code?: string }).code !== 'PGRST116') throw error
   if (!data) return null
   return mapSession(data as Record<string, unknown>)
 }

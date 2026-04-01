@@ -146,13 +146,18 @@ export default function ChildProgressPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [themesRes, nameRes] = await Promise.all([
-        getChildThemeProgression(childId),
-        getProfileDisplayName(childId),
-      ])
-      setDisplayName(nameRes.data ?? '')
-      setThemes(themesRes)
-      setLoading(false)
+      try {
+        const [themesRes, nameRes] = await Promise.all([
+          getChildThemeProgression(childId),
+          getProfileDisplayName(childId),
+        ])
+        setDisplayName(nameRes.data ?? '')
+        setThemes(themesRes)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[parent/progress] load error:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [childId])

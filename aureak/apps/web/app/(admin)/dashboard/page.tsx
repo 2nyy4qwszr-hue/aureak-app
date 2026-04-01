@@ -210,15 +210,23 @@ export default function DashboardPage() {
   // ── Load stats + implantations list ──
   const load = async (f = from, t = to) => {
     setLoading(true)
-    const [statsResult, anomalyResult, implRes] = await Promise.all([
-      getImplantationStats(new Date(f).toISOString(), new Date(t).toISOString()),
-      listAnomalies(),
-      listImplantations(),
-    ])
-    setStats(statsResult.data ?? [])
-    setAnomalies(anomalyResult.data ?? [])
-    setImplantations((implRes.data ?? []).map(i => ({ id: i.id, name: i.name })))
-    setLoading(false)
+    try {
+      const [statsResult, anomalyResult, implRes] = await Promise.all([
+        getImplantationStats(new Date(f).toISOString(), new Date(t).toISOString()),
+        listAnomalies(),
+        listImplantations(),
+      ])
+      if (statsResult.error)   { if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getImplantationStats error:', statsResult.error) }
+      if (anomalyResult.error) { if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listAnomalies error:', anomalyResult.error) }
+      if (implRes.error)       { if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listImplantations error:', implRes.error) }
+      setStats(statsResult.data ?? [])
+      setAnomalies(anomalyResult.data ?? [])
+      setImplantations((implRes.data ?? []).map(i => ({ id: i.id, name: i.name })))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[dashboard] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handlePresetChange = (p: Preset) => {

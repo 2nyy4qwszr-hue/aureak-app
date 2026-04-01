@@ -62,29 +62,33 @@ export default function NotesPage() {
   useEffect(() => {
     if (!user?.id) return
     const doLoad = async () => {
-      const [sessionRes, noteRes] = await Promise.all([
-        getSessionById(sessionId),
-        getSessionNote(sessionId, user.id),
-      ])
-      setSession(sessionRes.data)
-      if (noteRes.data) {
-        setNote(noteRes.data.note)
-        setVisibleToAdmin(noteRes.data.visibleToAdmin)
-      }
+      try {
+        const [sessionRes, noteRes] = await Promise.all([
+          getSessionById(sessionId),
+          getSessionNote(sessionId, user.id),
+        ])
+        setSession(sessionRes.data)
+        if (noteRes.data) {
+          setNote(noteRes.data.note)
+          setVisibleToAdmin(noteRes.data.visibleToAdmin)
+        }
 
-      // Participants avec noms et notes coach (ARCH-1 conforme)
-      const { data: attendees } = await listSessionAttendeesWithNotes(sessionId)
-      if (attendees && attendees.length > 0) {
-        setPlayers(attendees.map(a => ({
-          childId    : a.childId,
-          displayName: a.displayName,
-          note       : a.coachNotes ?? '',
-          saved      : !!(a.coachNotes),
-          saving     : false,
-        })))
+        // Participants avec noms et notes coach (ARCH-1 conforme)
+        const { data: attendees } = await listSessionAttendeesWithNotes(sessionId)
+        if (attendees && attendees.length > 0) {
+          setPlayers(attendees.map(a => ({
+            childId    : a.childId,
+            displayName: a.displayName,
+            note       : a.coachNotes ?? '',
+            saved      : !!(a.coachNotes),
+            saving     : false,
+          })))
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[coach/notes] doLoad error:', err)
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     }
     doLoad()
   }, [sessionId, user?.id])
@@ -93,9 +97,14 @@ export default function NotesPage() {
     if (!user?.id || !tenantId || !note.trim()) return
     setSaving(true)
     setSaved(false)
-    await upsertSessionNote(sessionId, user.id, tenantId, note.trim(), visibleToAdmin)
-    setSaving(false)
-    setSaved(true)
+    try {
+      await upsertSessionNote(sessionId, user.id, tenantId, note.trim(), visibleToAdmin)
+      setSaved(true)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coach/notes] saveSession error:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handlePlayerNoteChange = (childId: string, value: string) => {
@@ -104,8 +113,13 @@ export default function NotesPage() {
     if (debounceRef.current[childId]) clearTimeout(debounceRef.current[childId])
     debounceRef.current[childId] = setTimeout(async () => {
       setPlayers(prev => prev.map(p => p.childId === childId ? { ...p, saving: true } : p))
-      await saveCoachNote(sessionId, childId, trimmed)
-      setPlayers(prev => prev.map(p => p.childId === childId ? { ...p, saving: false, saved: true } : p))
+      try {
+        await saveCoachNote(sessionId, childId, trimmed)
+        setPlayers(prev => prev.map(p => p.childId === childId ? { ...p, saving: false, saved: true } : p))
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[coach/notes] saveCoachNote error:', err)
+        setPlayers(prev => prev.map(p => p.childId === childId ? { ...p, saving: false } : p))
+      }
     }, 2000)
   }
 

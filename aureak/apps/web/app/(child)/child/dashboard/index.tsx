@@ -119,37 +119,42 @@ export default function ChildDashboardPage() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      // Parallel primary data
-      const [progResult, questsResult, themesData, cardsData] = await Promise.all([
-        getPlayerProgress(user.id),
-        listActiveQuests(user.id),
-        getChildThemeProgression(user.id),
-        getSkillCardCollection(user.id),
-      ])
+      try {
+        // Parallel primary data
+        const [progResult, questsResult, themesData, cardsData] = await Promise.all([
+          getPlayerProgress(user.id),
+          listActiveQuests(user.id),
+          getChildThemeProgression(user.id),
+          getSkillCardCollection(user.id),
+        ])
 
-      // Prochaine séance + dernière évaluation (ARCH-1 conforme)
-      const { data: extra } = await getChildDashboardExtra(user.id)
-      if (extra?.nextSession) {
-        setNextSession({
-          scheduled_at    : extra.nextSession.scheduledAt,
-          duration_minutes: extra.nextSession.durationMinutes,
-          location        : extra.nextSession.location,
-        })
-      }
-      if (extra?.lastEval) {
-        setLastEval({
-          receptivite: extra.lastEval.receptivite,
-          gout_effort: extra.lastEval.goutEffort,
-          attitude   : extra.lastEval.attitude,
-          top_seance : extra.lastEval.topSeance,
-        })
-      }
+        // Prochaine séance + dernière évaluation (ARCH-1 conforme)
+        const { data: extra } = await getChildDashboardExtra(user.id)
+        if (extra?.nextSession) {
+          setNextSession({
+            scheduled_at    : extra.nextSession.scheduledAt,
+            duration_minutes: extra.nextSession.durationMinutes,
+            location        : extra.nextSession.location,
+          })
+        }
+        if (extra?.lastEval) {
+          setLastEval({
+            receptivite: extra.lastEval.receptivite,
+            gout_effort: extra.lastEval.goutEffort,
+            attitude   : extra.lastEval.attitude,
+            top_seance : extra.lastEval.topSeance,
+          })
+        }
 
-      setProgress(progResult.data ?? null)
-      setQuests((questsResult.data ?? []).slice(0, 3))
-      setThemes(themesData)
-      setCards(cardsData.filter(c => c.collected).slice(0, 5))
-      setLoading(false)
+        setProgress(progResult.data ?? null)
+        setQuests((questsResult.data ?? []).slice(0, 3))
+        setThemes(themesData)
+        setCards(cardsData.filter(c => c.collected).slice(0, 5))
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[child/dashboard] load error:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [user?.id])

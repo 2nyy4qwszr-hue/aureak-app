@@ -206,12 +206,14 @@ function BlockModal({
   visible,
   initial,
   coaches,
+  saving,
   onSave,
   onClose,
 }: {
   visible : boolean
   initial : BlockDraft
   coaches : { id: string; name: string }[]
+  saving? : boolean
   onSave  : (d: BlockDraft) => void
   onClose : () => void
 }) {
@@ -414,8 +416,13 @@ function BlockModal({
             />
           </View>
 
-          <Pressable style={m.saveBtn} onPress={() => onSave(d)}>
-            <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' }}>Enregistrer</AureakText>
+          <Pressable
+            style={[m.saveBtn, saving ? { opacity: 0.5 } : undefined]}
+            onPress={() => { if (!saving) onSave(d) }}
+          >
+            <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </AureakText>
           </Pressable>
         </ScrollView>
       </View>
@@ -478,6 +485,10 @@ export default function StageDetailPage() {
   // Inline edit for stage status
   const [editingStatus, setEditingStatus] = useState(false)
 
+  // Mutation error + block saving
+  const [mutError,    setMutError]    = useState<string | null>(null)
+  const [blockSaving, setBlockSaving] = useState(false)
+
   // Coach name map for display
   const coachNames = new Map(coaches.map(c => [c.id, c.name]))
 
@@ -524,12 +535,18 @@ export default function StageDetailPage() {
   }
 
   const handleDeleteDay = async (dayId: string) => {
-    await deleteStageDay(dayId)
-    setDays(prev => prev.filter(d => d.id !== dayId))
-    setBlocks(prev => { const next = { ...prev }; delete next[dayId]; return next })
-    if (activeDayId === dayId) {
-      const remaining = days.filter(d => d.id !== dayId)
-      setActiveDayId(remaining.length > 0 ? remaining[0].id : null)
+    setMutError(null)
+    try {
+      await deleteStageDay(dayId)
+      setDays(prev => prev.filter(d => d.id !== dayId))
+      setBlocks(prev => { const next = { ...prev }; delete next[dayId]; return next })
+      if (activeDayId === dayId) {
+        const remaining = days.filter(d => d.id !== dayId)
+        setActiveDayId(remaining.length > 0 ? remaining[0].id : null)
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[stageDetail] deleteDay error:', err)
+      setMutError('Erreur lors de la suppression de la journée.')
     }
   }
 
@@ -563,6 +580,8 @@ export default function StageDetailPage() {
 
   const handleSaveBlock = async (d: BlockDraft) => {
     if (!activeDayId) return
+    setMutError(null)
+    setBlockSaving(true)
     const params = {
       startHour          : d.startHour,
       startMinute        : d.startMinute,
@@ -576,45 +595,63 @@ export default function StageDetailPage() {
       coachReplacementId : d.coachReplacementId || null,
       notes              : d.notes              || null,
     }
-
-    if (editingBlock) {
-      await updateStageBlock(editingBlock.id, params)
-      setBlocks(prev => ({
-        ...prev,
-        [activeDayId]: prev[activeDayId].map(b =>
-          b.id === editingBlock.id ? { ...b, ...params } : b
-        ),
-      }))
-    } else {
-      const block = await createStageBlock({ stageDayId: activeDayId, ...params })
-      setBlocks(prev => ({
-        ...prev,
-        [activeDayId]: [...(prev[activeDayId] ?? []), block].sort((a, b) =>
-          a.startHour !== b.startHour ? a.startHour - b.startHour : a.startMinute - b.startMinute
-        ),
-      }))
+    try {
+      if (editingBlock) {
+        await updateStageBlock(editingBlock.id, params)
+        setBlocks(prev => ({
+          ...prev,
+          [activeDayId]: prev[activeDayId].map(b =>
+            b.id === editingBlock.id ? { ...b, ...params } : b
+          ),
+        }))
+      } else {
+        const block = await createStageBlock({ stageDayId: activeDayId, ...params })
+        setBlocks(prev => ({
+          ...prev,
+          [activeDayId]: [...(prev[activeDayId] ?? []), block].sort((a, b) =>
+            a.startHour !== b.startHour ? a.startHour - b.startHour : a.startMinute - b.startMinute
+          ),
+        }))
+      }
+      setBlockModalVisible(false)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[stageDetail] saveBlock error:', err)
+      setMutError('Erreur lors de la sauvegarde du bloc.')
+    } finally {
+      setBlockSaving(false)
     }
-    setBlockModalVisible(false)
   }
 
   // ── Delete block ─────────────────────────────────────────────
 
   const handleDeleteBlock = async (blockId: string) => {
     if (!activeDayId) return
-    await deleteStageBlock(blockId)
-    setBlocks(prev => ({
-      ...prev,
-      [activeDayId]: prev[activeDayId].filter(b => b.id !== blockId),
-    }))
+    setMutError(null)
+    try {
+      await deleteStageBlock(blockId)
+      setBlocks(prev => ({
+        ...prev,
+        [activeDayId]: prev[activeDayId].filter(b => b.id !== blockId),
+      }))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[stageDetail] deleteBlock error:', err)
+      setMutError('Erreur lors de la suppression du bloc.')
+    }
   }
 
   // ── Status update ────────────────────────────────────────────
 
   const handleStatusChange = async (status: StageStatus) => {
     if (!stage) return
-    await updateStage(stage.id, { status })
-    setStage(prev => prev ? { ...prev, status } : prev)
-    setEditingStatus(false)
+    setMutError(null)
+    try {
+      await updateStage(stage.id, { status })
+      setStage(prev => prev ? { ...prev, status } : prev)
+      setEditingStatus(false)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[stageDetail] statusChange error:', err)
+      setMutError('Erreur lors de la mise à jour du statut.')
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────
@@ -650,6 +687,13 @@ export default function StageDetailPage() {
         <Pressable onPress={() => router.push('/stages' as never)}>
           <AureakText variant="caption" style={{ color: colors.text.muted }}>← Stages</AureakText>
         </Pressable>
+
+        {/* ── Mutation error banner ── */}
+        {mutError && (
+          <View style={{ backgroundColor: '#FEF2F2', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: '#f87171' }}>
+            <AureakText variant="caption" style={{ color: '#f87171' }}>{mutError}</AureakText>
+          </View>
+        )}
 
         {/* ── Hero ── */}
         <View style={[p.hero, { borderTopColor: statusColor }]}>
@@ -865,6 +909,7 @@ export default function StageDetailPage() {
         visible={blockModalVisible}
         initial={blockDraft}
         coaches={coaches}
+        saving={blockSaving}
         onSave={handleSaveBlock}
         onClose={() => setBlockModalVisible(false)}
       />

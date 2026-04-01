@@ -306,6 +306,9 @@ export default function SeancesPage() {
       } else {
         setCoachNameMap(new Map())
       }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances/page] load error:', err)
+      setSessions([])
     } finally {
       setLoading(false)
     }

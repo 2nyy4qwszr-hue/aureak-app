@@ -44,14 +44,22 @@ export default function StagesPage() {
   const router = useRouter()
   const [stages,  setStages]  = useState<StageWithMeta[]>([])
   const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState<string | null>(null)
   const [search,  setSearch]  = useState('')
   const [filter,  setFilter]  = useState<FilterStatus>('all')
 
   const load = useCallback(async () => {
     setLoading(true)
-    const data = await listStages()
-    setStages(data)
-    setLoading(false)
+    setError(null)
+    try {
+      const data = await listStages()
+      setStages(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[stages/index] load error:', err)
+      setError('Impossible de charger les stages.')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -117,6 +125,13 @@ export default function StagesPage() {
           )
         })}
       </View>
+
+      {/* Error */}
+      {error && (
+        <View style={{ backgroundColor: '#FEF2F2', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: '#f87171' }}>
+          <AureakText variant="caption" style={{ color: '#f87171' }}>{error}</AureakText>
+        </View>
+      )}
 
       {/* Grid */}
       {loading ? (
