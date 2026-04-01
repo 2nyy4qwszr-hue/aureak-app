@@ -1,6 +1,6 @@
 # Story 9.5 : Contact Direct Coach
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
