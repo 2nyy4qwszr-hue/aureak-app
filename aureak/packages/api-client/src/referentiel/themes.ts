@@ -1,6 +1,6 @@
 // Story 3.1 — CRUD référentiel thèmes (ThemeGroup, Theme, ThemeSequence)
 import { supabase } from '../supabase'
-import type { ThemeGroup, Theme, ThemeSequence, ThemeLevel, AgeGroup } from '@aureak/types'
+import type { ThemeGroup, Theme, ThemeSequence, ThemeLevel, AgeGroup, CoachGradeLevel } from '@aureak/types'
 
 // ─── Mappers snake_case → camelCase ──────────────────────────────────────────
 
@@ -31,11 +31,12 @@ function mapTheme(r: any): Theme {
     version       : r.version,
     isCurrent     : r.is_current,
     imageUrl      : r.image_url ?? null,
-    orderIndex    : r.order_index ?? 0,
-    category      : r.category ?? null,
-    positionIndex : r.position_index ?? null,
-    deletedAt     : r.deleted_at ?? null,
-    createdAt     : r.created_at,
+    orderIndex         : r.order_index ?? 0,
+    category           : r.category ?? null,
+    positionIndex      : r.position_index ?? null,
+    requiredGradeLevel : (r.required_grade_level as CoachGradeLevel) ?? 'bronze',
+    deletedAt          : r.deleted_at ?? null,
+    createdAt          : r.created_at,
   }
 }
 
@@ -202,14 +203,15 @@ export async function listThemes(
 }
 
 export type UpdateThemeParams = {
-  id             : string
-  name?          : string
-  description?   : string | null
-  groupId?       : string | null
-  imageUrl?      : string | null
-  orderIndex?    : number
-  category?      : string | null
-  positionIndex? : number | null
+  id                  : string
+  name?               : string
+  description?        : string | null
+  groupId?            : string | null
+  imageUrl?           : string | null
+  orderIndex?         : number
+  category?           : string | null
+  positionIndex?      : number | null
+  requiredGradeLevel? : CoachGradeLevel
 }
 
 export async function updateTheme(
@@ -220,9 +222,10 @@ export async function updateTheme(
   if (params.description !== undefined) payload.description = params.description
   if (params.groupId     !== undefined) payload.group_id    = params.groupId
   if (params.imageUrl    !== undefined) payload.image_url   = params.imageUrl
-  if (params.orderIndex     !== undefined) payload.order_index    = params.orderIndex
-  if (params.category       !== undefined) payload.category       = params.category
-  if (params.positionIndex  !== undefined) payload.position_index = params.positionIndex
+  if (params.orderIndex          !== undefined) payload.order_index           = params.orderIndex
+  if (params.category            !== undefined) payload.category              = params.category
+  if (params.positionIndex       !== undefined) payload.position_index        = params.positionIndex
+  if (params.requiredGradeLevel  !== undefined) payload.required_grade_level  = params.requiredGradeLevel
 
   const { data, error } = await supabase
     .from('themes')

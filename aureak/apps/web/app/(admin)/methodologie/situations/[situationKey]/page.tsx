@@ -10,12 +10,20 @@ import {
   linkSituationToTheme,
   unlinkSituationFromTheme,
   listThemes,
+  updateSituationGradeLevel,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { Situation, SituationCriterion, SituationThemeLink, Theme } from '@aureak/types'
+import type { Situation, SituationCriterion, SituationThemeLink, Theme, CoachGradeLevel } from '@aureak/types'
+
+const GRADE_OPTIONS: { value: CoachGradeLevel; label: string }[] = [
+  { value: 'bronze',   label: 'Bronze' },
+  { value: 'silver',   label: 'Argent' },
+  { value: 'gold',     label: 'Or' },
+  { value: 'platinum', label: 'Platine' },
+]
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
@@ -59,6 +67,8 @@ export default function SituationDetailPage() {
   const [newCriterionLabel, setNewCriterionLabel] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [gradeLevel, setGradeLevel] = useState<CoachGradeLevel>('bronze')
+  const [gradeSaving, setGradeSaving] = useState(false)
 
   const fetchData = async () => {
     if (!situationKey) return
@@ -67,6 +77,8 @@ export default function SituationDetailPage() {
       const { data: s } = await getSituationByKey(situationKey)
       setSituation(s)
       if (s) {
+        // required_grade_level is snake_case from Supabase (no mapper in situations.ts)
+        setGradeLevel(((s as unknown as Record<string, unknown>).required_grade_level as CoachGradeLevel) ?? 'bronze')
         const [{ data: crit }, { data: links }, { data: themes }] = await Promise.all([
           listSituationCriteria(s.id),
           listThemeLinksForSituation(s.id),
@@ -106,6 +118,18 @@ export default function SituationDetailPage() {
       await linkSituationToTheme({ situationId: situation.id, themeId, tenantId })
     }
     await fetchData()
+  }
+
+  const handleSaveGrade = async (newGrade: CoachGradeLevel) => {
+    if (!situation) return
+    setGradeLevel(newGrade)
+    setGradeSaving(true)
+    try {
+      const { error: err } = await updateSituationGradeLevel(situation.id, newGrade)
+      if (err) setError('Erreur lors de la mise à jour du grade.')
+    } finally {
+      setGradeSaving(false)
+    }
   }
 
   const handleNewVersion = async () => {
@@ -172,6 +196,34 @@ export default function SituationDetailPage() {
           </AureakText>
         )}
         <AureakButton label="Créer une nouvelle version" onPress={handleNewVersion} variant="secondary" />
+      </View>
+
+      {/* Grade minimum requis (Story 11.2) */}
+      <View style={styles.section}>
+        <AureakText variant="label">Grade minimum requis</AureakText>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>
+          Les coaches avec un grade inférieur ne verront pas cette situation.
+          {gradeSaving ? ' Sauvegarde...' : ''}
+        </AureakText>
+        <View style={{ flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' }}>
+          {GRADE_OPTIONS.map((g) => (
+            <View
+              key={g.value}
+              style={[
+                styles.themeChip,
+                gradeLevel === g.value && styles.themeChipLinked,
+              ]}
+              onTouchEnd={() => handleSaveGrade(g.value)}
+            >
+              <AureakText
+                variant="caption"
+                style={{ color: gradeLevel === g.value ? colors.accent.gold : colors.text.muted }}
+              >
+                {g.label}
+              </AureakText>
+            </View>
+          ))}
+        </View>
       </View>
 
       {/* Critères d'analyse */}

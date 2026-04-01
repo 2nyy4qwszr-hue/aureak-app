@@ -1,6 +1,6 @@
 // Story 3.3 — CRUD référentiel situationnel
 import { supabase } from '../supabase'
-import type { SituationGroup, Situation, SituationCriterion, SituationThemeLink } from '@aureak/types'
+import type { SituationGroup, Situation, SituationCriterion, SituationThemeLink, CoachGradeLevel } from '@aureak/types'
 
 // ─── SituationGroup ───────────────────────────────────────────────────────────
 
@@ -218,4 +218,16 @@ export async function listThemeLinksForSituation(
     .eq('situation_id', situationId)
 
   return { data: (data as SituationThemeLink[]) ?? [], error }
+}
+
+// Story 11.2 — Mise à jour du grade minimum requis pour une situation
+export async function updateSituationGradeLevel(
+  situationId       : string,
+  requiredGradeLevel: CoachGradeLevel,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('situations')
+    .update({ required_grade_level: requiredGradeLevel })
+    .eq('id', situationId)
+  return { error }
 }

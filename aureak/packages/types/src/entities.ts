@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -129,11 +129,12 @@ export type Theme = {
   version        : number
   isCurrent      : boolean
   imageUrl       : string | null               // bannière visuelle (Story 20-2)
-  orderIndex     : number                      // position drag&drop (Story 20-3)
-  category       : string | null               // catégorie pédagogique (Story 20-3)
-  positionIndex  : number | null               // slot fixe 1–25 dans la grille (Story 20-4)
-  deletedAt      : string | null
-  createdAt      : string
+  orderIndex          : number                      // position drag&drop (Story 20-3)
+  category            : string | null               // catégorie pédagogique (Story 20-3)
+  positionIndex       : number | null               // slot fixe 1–25 dans la grille (Story 20-4)
+  requiredGradeLevel  : CoachGradeLevel             // grade minimum requis (Story 11.2)
+  deletedAt           : string | null
+  createdAt           : string
 }
 
 /** ThemeMetaphor — métaphore pédagogique d'un thème, liée optionnellement à une séquence (Story 24.3) */
@@ -234,19 +235,20 @@ export type SituationGroup = {
 
 /** Situation — situation de match versionnée (slug invariant = situation_key) */
 export type Situation = {
-  id             : string
-  tenantId       : string
-  groupId        : string | null           // legacy situation_groups (kept for compatibility)
-  blocId         : string | null           // FK → theme_groups (= Blocs, migration 00057)
-  situationKey   : string                  // slug invariant
-  name           : string
-  description    : string | null
-  variables      : Record<string, unknown> | null
-  targetAudience : Record<string, unknown>
-  version        : number
-  isCurrent      : boolean
-  deletedAt      : string | null
-  createdAt      : string
+  id                 : string
+  tenantId           : string
+  groupId            : string | null           // legacy situation_groups (kept for compatibility)
+  blocId             : string | null           // FK → theme_groups (= Blocs, migration 00057)
+  situationKey       : string                  // slug invariant
+  name               : string
+  description        : string | null
+  variables          : Record<string, unknown> | null
+  targetAudience     : Record<string, unknown>
+  version            : number
+  isCurrent          : boolean
+  requiredGradeLevel : CoachGradeLevel         // grade minimum requis (Story 11.2)
+  deletedAt          : string | null
+  createdAt          : string
 }
 
 /** SituationCriterion — critère d'analyse d'une situation */

@@ -1,6 +1,6 @@
 # Story 11.2 : Permissions de Contenu par Grade
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

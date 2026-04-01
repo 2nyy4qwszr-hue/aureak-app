@@ -64,6 +64,7 @@ export {
   createSituation, listSituations, getSituationByKey, createNewSituationVersion,
   createSituationCriterion, listSituationCriteria,
   linkSituationToTheme, unlinkSituationFromTheme, listThemeLinksForSituation,
+  updateSituationGradeLevel,
 } from './referentiel/situations'
 export type {
   CreateSituationGroupParams, CreateSituationParams, NewSituationVersionParams, CreateSituationCriterionParams,

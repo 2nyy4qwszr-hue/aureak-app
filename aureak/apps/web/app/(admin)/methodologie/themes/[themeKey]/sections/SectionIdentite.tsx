@@ -1,8 +1,15 @@
 'use client'
 import React, { useState } from 'react'
-import type { Theme, ThemeGroup } from '@aureak/types'
+import type { Theme, ThemeGroup, CoachGradeLevel } from '@aureak/types'
 import { updateTheme, updateThemePositionIndex } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
+
+const GRADE_OPTIONS: { value: CoachGradeLevel; label: string }[] = [
+  { value: 'bronze',   label: 'Bronze (débutant)' },
+  { value: 'silver',   label: 'Argent' },
+  { value: 'gold',     label: 'Or' },
+  { value: 'platinum', label: 'Platine (expert)' },
+]
 
 type Props = {
   theme   : Theme
@@ -43,9 +50,10 @@ const TEXTAREA_STYLE: React.CSSProperties = {
 }
 
 export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
-  const [name,        setName]        = useState(theme.name)
-  const [description, setDescription] = useState(theme.description ?? '')
-  const [groupId,     setGroupId]     = useState<string | null>(theme.groupId)
+  const [name,              setName]              = useState(theme.name)
+  const [description,       setDescription]       = useState(theme.description ?? '')
+  const [groupId,           setGroupId]           = useState<string | null>(theme.groupId)
+  const [requiredGradeLevel, setRequiredGradeLevel] = useState<CoachGradeLevel>(theme.requiredGradeLevel ?? 'bronze')
   const [saving,         setSaving]         = useState(false)
   const [saved,          setSaved]          = useState(false)
   const [error,          setError]          = useState<string | null>(null)
@@ -58,10 +66,11 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
     setError(null)
     try {
       const { data, error: apiError } = await updateTheme({
-        id         : theme.id,
+        id                 : theme.id,
         name,
-        description: description || null,
+        description        : description || null,
         groupId,
+        requiredGradeLevel,
       })
       if (apiError || !data) {
         const msg = (apiError as { message?: string })?.message ?? 'Erreur inconnue'
@@ -187,6 +196,25 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
             </div>
           </div>
         )}
+
+        {/* Grade minimum requis (Story 11.2) */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={LABEL_STYLE}>Grade minimum requis</label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {GRADE_OPTIONS.map(g => (
+              <button
+                key={g.value}
+                onClick={() => setRequiredGradeLevel(g.value)}
+                style={chipStyle(requiredGradeLevel === g.value)}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 4 }}>
+            Les coaches avec un grade inférieur ne verront pas ce thème.
+          </div>
+        </div>
 
         {/* Position dans la grille */}
         <div style={{ marginBottom: 16 }}>
