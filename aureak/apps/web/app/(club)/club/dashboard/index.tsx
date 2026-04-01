@@ -267,74 +267,76 @@ export default function ClubDashboard() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const [clubRes, implRes] = await Promise.all([
-        getClubByUserId(user.id),
-        listImplantations(),
-      ])
-
-      if (!clubRes.data) { setLoading(false); return }
-      setClub({
-        user_id          : clubRes.data.userId,
-        name             : clubRes.data.name,
-        club_access_level: clubRes.data.clubAccessLevel,
-        tenant_id        : clubRes.data.tenantId,
-      })
-      setImplants((implRes.data ?? []) as Pick<Implantation, 'id' | 'name'>[])
-
-      const { data: childIds } = await listChildIdsForClub(user.id)
-      if (!childIds || childIds.length === 0) { setLoading(false); return }
-
-      const [namesRes, attendRes, evalRes, attendeeRes] = await Promise.all([
-        resolveProfileDisplayNames(childIds),
-        listAttendancesForChildren(childIds),
-        listEvaluationsForChildren(childIds),
-        listAttendeeSessionsForChildren(childIds),
-      ])
-
-      // Map to component local types (snake_case required by rendering logic)
-      const allAtt: AttendanceRow[] = attendRes.data.map(a => ({
-        child_id: a.childId,
-        status  : a.status,
-        sessions: a.sessions
-          ? { scheduled_at: a.sessions.scheduledAt, implantation_id: a.sessions.implantationId }
-          : null,
-      }))
-      const allEvals: EvalRow[] = evalRes.data.map(e => ({
-        child_id    : e.childId,
-        receptivite : e.receptivite as EvaluationSignal,
-        gout_effort : e.goutEffort  as EvaluationSignal,
-        attitude    : e.attitude    as EvaluationSignal,
-        top_seance  : e.topSeance,
-        created_at  : e.createdAt,
-      }))
-
-      const stats: GoalkeeperStat[] = childIds.map(id => ({
-        childId    : id,
-        name       : namesRes.data[id] ?? '—',
-        allSessions: allAtt.filter(a => a.child_id === id),
-        lastEval   : allEvals.find(e => e.child_id === id) ?? null,
-      }))
-      setGoalies(stats.sort((a, b) => a.name.localeCompare(b.name)))
-
-      // Upcoming sessions
-      if (attendeeRes.data.length > 0) {
-        const upRes = await listUpcomingSessionsForIds(attendeeRes.data)
-        setUpcoming(upRes.data.slice(0, 5).map(s => ({
-          id              : s.id,
-          scheduled_at    : s.scheduledAt,
-          duration_minutes: s.durationMinutes,
-          location        : s.location,
-          status          : s.status,
-        })))
-      }
-
-      // Affiliated children — all seasons, for this club
       try {
-        const { data: affiliatedData } = await listAffiliatedChildrenByClub(user.id)
-        setAffiliated(affiliatedData)
-      } catch { /* best-effort */ }
+        const [clubRes, implRes] = await Promise.all([
+          getClubByUserId(user.id),
+          listImplantations(),
+        ])
 
-      setLoading(false)
+        if (!clubRes.data) return
+        setClub({
+          user_id          : clubRes.data.userId,
+          name             : clubRes.data.name,
+          club_access_level: clubRes.data.clubAccessLevel,
+          tenant_id        : clubRes.data.tenantId,
+        })
+        setImplants((implRes.data ?? []) as Pick<Implantation, 'id' | 'name'>[])
+
+        const { data: childIds } = await listChildIdsForClub(user.id)
+        if (!childIds || childIds.length === 0) return
+
+        const [namesRes, attendRes, evalRes, attendeeRes] = await Promise.all([
+          resolveProfileDisplayNames(childIds),
+          listAttendancesForChildren(childIds),
+          listEvaluationsForChildren(childIds),
+          listAttendeeSessionsForChildren(childIds),
+        ])
+
+        // Map to component local types (snake_case required by rendering logic)
+        const allAtt: AttendanceRow[] = attendRes.data.map(a => ({
+          child_id: a.childId,
+          status  : a.status,
+          sessions: a.sessions
+            ? { scheduled_at: a.sessions.scheduledAt, implantation_id: a.sessions.implantationId }
+            : null,
+        }))
+        const allEvals: EvalRow[] = evalRes.data.map(e => ({
+          child_id    : e.childId,
+          receptivite : e.receptivite as EvaluationSignal,
+          gout_effort : e.goutEffort  as EvaluationSignal,
+          attitude    : e.attitude    as EvaluationSignal,
+          top_seance  : e.topSeance,
+          created_at  : e.createdAt,
+        }))
+
+        const stats: GoalkeeperStat[] = childIds.map(id => ({
+          childId    : id,
+          name       : namesRes.data[id] ?? '—',
+          allSessions: allAtt.filter(a => a.child_id === id),
+          lastEval   : allEvals.find(e => e.child_id === id) ?? null,
+        }))
+        setGoalies(stats.sort((a, b) => a.name.localeCompare(b.name)))
+
+        // Upcoming sessions
+        if (attendeeRes.data.length > 0) {
+          const upRes = await listUpcomingSessionsForIds(attendeeRes.data)
+          setUpcoming(upRes.data.slice(0, 5).map(s => ({
+            id              : s.id,
+            scheduled_at    : s.scheduledAt,
+            duration_minutes: s.durationMinutes,
+            location        : s.location,
+            status          : s.status,
+          })))
+        }
+
+        // Affiliated children — all seasons, for this club
+        try {
+          const { data: affiliatedData } = await listAffiliatedChildrenByClub(user.id)
+          setAffiliated(affiliatedData)
+        } catch { /* best-effort */ }
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [user?.id])
