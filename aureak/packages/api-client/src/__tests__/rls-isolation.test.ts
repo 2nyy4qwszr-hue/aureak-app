@@ -90,17 +90,17 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const migrationsDir = join(__dirname, '../../../../supabase/migrations')
+const migrationsDir = join(__dirname, '../../../../../supabase/migrations')
 
 describe('RLS — vérification structure policies (smoke)', () => {
   it('les migrations existent dans le repo', async () => {
     const files = await readdir(migrationsDir)
-    expect(files).toContain('00010_rls_policies.sql')
+    expect(files).toContain('00090_rls_policies_complete.sql')
     expect(files).toContain('00003_create_profiles.sql')
   })
 
-  it('00010_rls_policies.sql contient les fonctions durcies', async () => {
-    const content = await readFile(join(migrationsDir, '00010_rls_policies.sql'), 'utf8')
+  it('00090_rls_policies_complete.sql contient les fonctions durcies', async () => {
+    const content = await readFile(join(migrationsDir, '00090_rls_policies_complete.sql'), 'utf8')
     expect(content).toContain('is_active_user()')
     expect(content).toContain('current_tenant_id()')
     expect(content).toContain('current_user_role()')
