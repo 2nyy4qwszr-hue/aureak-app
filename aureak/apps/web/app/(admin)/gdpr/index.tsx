@@ -35,22 +35,28 @@ export default function GdprAdminPage() {
 
   const handleProcess = async (req: GdprRequest, status: GdprRequestStatus) => {
     setWorking(req.id)
-    if (req.request_type === 'access' || req.request_type === 'portability') {
-      // Déclencher génération export
-      await fetch('/api/generate-gdpr-export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId  : req.id,
-          requesterId: req.requester_id,
-          targetId   : req.target_id,
-        }),
-      })
-    } else {
-      await processGdprRequest(req.id, status)
+    try {
+      if (req.request_type === 'access' || req.request_type === 'portability') {
+        // Déclencher génération export
+        const res = await fetch('/api/generate-gdpr-export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId  : req.id,
+            requesterId: req.requester_id,
+            targetId   : req.target_id,
+          }),
+        })
+        if (!res.ok) throw new Error(`generate-gdpr-export: ${res.status}`)
+      } else {
+        await processGdprRequest(req.id, status)
+      }
+      await load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[gdpr] handleProcess error:', err)
+    } finally {
+      setWorking(null)
     }
-    await load()
-    setWorking(null)
   }
 
   if (loading) return <div style={styles.loading}>Chargement...</div>

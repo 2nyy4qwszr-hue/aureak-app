@@ -126,8 +126,9 @@ export {
   recordAttendance, listAttendancesBySession,
   confirmCoachPresence as confirmCoachPresenceDb, checkinBlock,
   listSessionsWithAttendance, listPlayersWithAttendance,
+  listSessionAttendeeRoster, batchResolveAttendeeNames,
 } from './sessions/attendances'
-export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary } from './sessions/attendances'
+export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry } from './sessions/attendances'
 
 export {
   generateRecurrenceSessions, cancelRecurrenceSeries, cancelSessionRpc, modifySingleException,

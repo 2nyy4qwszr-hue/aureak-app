@@ -34,27 +34,37 @@ export default function ExportsPage() {
 
   const load = async () => {
     setLoading(true)
-    const result = await listExportJobs()
-    setJobs(result.data)
-    setLoading(false)
+    try {
+      const result = await listExportJobs()
+      setJobs(result.data ?? [])
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[exports] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])
 
   const handleCreate = async () => {
     setCreating(true)
-    const filters: Record<string, string> = {}
-    if (from) filters.from = new Date(from).toISOString()
-    if (to)   filters.to   = new Date(to).toISOString()
+    try {
+      const filters: Record<string, string> = {}
+      if (from) filters.from = new Date(from).toISOString()
+      if (to)   filters.to   = new Date(to).toISOString()
 
-    const { data: job, error } = await createExportJob({ exportType, filters, format })
-    if (!error && job && user) {
-      // Déclencher immédiatement
-      const tenantId = (user as unknown as Record<string, string>).tenant_id ?? ''
-      await triggerExport(job, user.id, tenantId)
-      await load()
+      const { data: job, error } = await createExportJob({ exportType, filters, format })
+      if (!error && job && user) {
+        // Déclencher immédiatement
+        const tenantId = (user as unknown as Record<string, string>).tenant_id ?? ''
+        await triggerExport(job, user.id, tenantId)
+        await load()
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[exports] handleCreate error:', err)
+    } finally {
+      setCreating(false)
     }
-    setCreating(false)
   }
 
   return (

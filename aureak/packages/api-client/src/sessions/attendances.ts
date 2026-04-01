@@ -409,6 +409,58 @@ export async function listPlayersWithAttendance(params: {
     .sort((a, b) => a.displayName.localeCompare(b.displayName, 'fr'))
 }
 
+// ─── listSessionAttendeeRoster + batchResolveAttendeeNames — B-25 ────────────
+
+export type AttendeeRosterEntry = {
+  childId   : string
+  isGuest   : boolean
+  coachNotes: string | null
+}
+
+export async function listSessionAttendeeRoster(
+  sessionId: string
+): Promise<{ data: AttendeeRosterEntry[]; error: unknown }> {
+  const { data, error } = await supabase
+    .from('session_attendees')
+    .select('child_id, is_guest, coach_notes')
+    .eq('session_id', sessionId)
+  return {
+    data: (data ?? []).map(r => ({
+      childId   : (r as { child_id: string }).child_id,
+      isGuest   : (r as { is_guest: boolean }).is_guest,
+      coachNotes: (r as { coach_notes: string | null }).coach_notes,
+    })),
+    error,
+  }
+}
+
+export async function batchResolveAttendeeNames(
+  regularIds: string[],
+  guestIds  : string[],
+): Promise<{ profileMap: Map<string, string>; dirMap: Map<string, string> }> {
+  const [profilesRes, dirRes] = await Promise.all([
+    regularIds.length > 0
+      ? supabase.from('profiles').select('user_id, display_name').in('user_id', regularIds)
+      : Promise.resolve({ data: [] }),
+    guestIds.length > 0
+      ? supabase.from('child_directory').select('id, display_name').in('id', guestIds)
+      : Promise.resolve({ data: [] }),
+  ])
+  const profileMap = new Map(
+    (profilesRes.data ?? []).map(p => [
+      (p as { user_id: string }).user_id,
+      (p as { display_name: string }).display_name,
+    ])
+  )
+  const dirMap = new Map(
+    (dirRes.data ?? []).map(d => [
+      (d as { id: string }).id,
+      (d as { display_name: string }).display_name,
+    ])
+  )
+  return { profileMap, dirMap }
+}
+
 export async function listSessionEvents(
   sessionId: string
 ): Promise<{ data: unknown[]; error: unknown }> {

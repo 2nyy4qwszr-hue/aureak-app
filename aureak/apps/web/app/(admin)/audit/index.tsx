@@ -22,14 +22,20 @@ export default function AuditPage() {
 
   const handleExport = async () => {
     setExporting(true)
-    const res = await fetch('/api/export-audit-logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(filters),
-    })
-    const { fileUrl } = await res.json()
-    if (fileUrl) window.open(fileUrl, '_blank')
-    setExporting(false)
+    try {
+      const res = await fetch('/api/export-audit-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filters),
+      })
+      if (!res.ok) throw new Error(`export-audit-logs: ${res.status}`)
+      const { fileUrl } = await res.json()
+      if (fileUrl) window.open(fileUrl, '_blank')
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[audit] handleExport error:', err)
+    } finally {
+      setExporting(false)
+    }
   }
 
   return (

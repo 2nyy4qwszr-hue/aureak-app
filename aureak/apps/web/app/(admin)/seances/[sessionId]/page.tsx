@@ -132,7 +132,7 @@ export default function SessionDetailPage() {
       }
     } catch (err) {
       setLoadError('Erreur lors du chargement de la séance.')
-      console.error('[SessionDetail] load error:', err)
+      if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] load error:', err)
     } finally {
       setLoading(false)
     }

@@ -357,8 +357,8 @@ function HistoriqueSection({
       await addChildAcademyMembership({ tenantId, childId, seasonId: selSeason })
       setAddingMem(false); setSelSeason('')
       await onRefresh()
-    } catch {
-      // erreur silencieuse — l'état saving se remet à false via finally
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] handleAddMembership error:', err)
     } finally {
       setSaving(false)
     }
@@ -368,7 +368,9 @@ function HistoriqueSection({
     try {
       await removeChildAcademyMembership(id)
       await onRefresh()
-    } catch { /* silencieux */ }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] handleRemoveMembership error:', err)
+    }
   }
 
   const handleAddStage = async () => {
@@ -378,8 +380,8 @@ function HistoriqueSection({
       await addChildStageParticipation({ tenantId, childId, stageId: selStage })
       setAddingStage(false); setSelStage('')
       await onRefresh()
-    } catch {
-      // erreur silencieuse — l'état saving se remet à false via finally
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] handleAddStage error:', err)
     } finally {
       setSaving(false)
     }
@@ -389,7 +391,9 @@ function HistoriqueSection({
     try {
       await removeChildStageParticipation(id)
       await onRefresh()
-    } catch { /* silencieux */ }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] handleRemoveStage error:', err)
+    }
   }
 
   return (

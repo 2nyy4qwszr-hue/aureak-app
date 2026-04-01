@@ -27,15 +27,20 @@ export default function CoachGradePage({ params }: Props) {
 
   const load = async () => {
     setLoading(true)
-    const [currentResult, historyResult, nameResult] = await Promise.all([
-      getCoachCurrentGrade(coachId),
-      listCoachGradeHistory(coachId),
-      getProfileDisplayName(coachId),
-    ])
-    setCurrent(currentResult.data)
-    setHistory(historyResult.data)
-    setCoachName(nameResult.data ?? coachId.slice(0, 8))
-    setLoading(false)
+    try {
+      const [currentResult, historyResult, nameResult] = await Promise.all([
+        getCoachCurrentGrade(coachId),
+        listCoachGradeHistory(coachId),
+        getProfileDisplayName(coachId),
+      ])
+      setCurrent(currentResult.data)
+      setHistory(historyResult.data ?? [])
+      setCoachName(nameResult.data ?? coachId.slice(0, 8))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coaches/grade] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [coachId])

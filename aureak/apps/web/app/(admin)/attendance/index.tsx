@@ -265,20 +265,25 @@ export default function AttendancePage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const sharedParams = {
-      from,
-      to,
-      implantationId: implantFilter !== 'all' ? implantFilter : undefined,
-      groupId       : groupFilter   !== 'all' ? groupFilter   : undefined,
+    try {
+      const sharedParams = {
+        from,
+        to,
+        implantationId: implantFilter !== 'all' ? implantFilter : undefined,
+        groupId       : groupFilter   !== 'all' ? groupFilter   : undefined,
+      }
+      if (viewMode === 'sessions') {
+        const data = await listSessionsWithAttendance(sharedParams)
+        setSessions(data)
+      } else {
+        const data = await listPlayersWithAttendance(sharedParams)
+        setPlayers(data)
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[admin/attendance] load error:', err)
+    } finally {
+      setLoading(false)
     }
-    if (viewMode === 'sessions') {
-      const data = await listSessionsWithAttendance(sharedParams)
-      setSessions(data)
-    } else {
-      const data = await listPlayersWithAttendance(sharedParams)
-      setPlayers(data)
-    }
-    setLoading(false)
   }, [from, to, implantFilter, groupFilter, viewMode])
 
   useEffect(() => { load() }, [load])

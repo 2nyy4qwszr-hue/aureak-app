@@ -6,6 +6,7 @@ import {
   getSessionById, recordAttendance, listAttendancesBySession,
   prefillSessionAttendees, addGuestToSession, captureNewChildDuringSession,
   saveCoachNote, listChildDirectory,
+  listSessionAttendeeRoster, batchResolveAttendeeNames,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
@@ -320,69 +321,49 @@ export default function AttendancePage() {
   const noteDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const load = async () => {
-    const [sessionRes, attendanceRes] = await Promise.all([
-      getSessionById(sessionId),
-      listAttendancesBySession(sessionId),
-    ])
-    setSession(sessionRes.data)
+    try {
+      const [sessionRes, attendanceRes] = await Promise.all([
+        getSessionById(sessionId),
+        listAttendancesBySession(sessionId),
+      ])
+      setSession(sessionRes.data)
 
-    // Get roster (session_attendees) with is_guest + coach_notes
-    let { data: attendees } = await supabase
-      .from('session_attendees')
-      .select('child_id, is_guest, coach_notes')
-      .eq('session_id', sessionId)
+      // Get roster (session_attendees) with is_guest + coach_notes
+      let { data: attendees } = await listSessionAttendeeRoster(sessionId)
 
-    if (!attendees || attendees.length === 0) {
-      await prefillSessionAttendees(sessionId)
-      const refilled = await supabase
-        .from('session_attendees')
-        .select('child_id, is_guest, coach_notes')
-        .eq('session_id', sessionId)
-      attendees = refilled.data ?? []
-    }
-
-    const allIds     = (attendees ?? []).map((a: { child_id: string }) => a.child_id)
-    const guestIds   = new Set((attendees ?? [])
-      .filter((a: { is_guest: boolean }) => a.is_guest)
-      .map((a: { child_id: string }) => a.child_id)
-    )
-    const regularIds = allIds.filter((id: string) => !guestIds.has(id))
-
-    // Parallel lookups: auth profiles + child_directory for guests
-    const [profilesRes, dirRes] = await Promise.all([
-      regularIds.length > 0
-        ? supabase.from('profiles').select('user_id, display_name').in('user_id', regularIds)
-        : Promise.resolve({ data: [] }),
-      guestIds.size > 0
-        ? supabase.from('child_directory').select('id, display_name').in('id', [...guestIds])
-        : Promise.resolve({ data: [] }),
-    ])
-
-    const profileMap = new Map(
-      (profilesRes.data ?? []).map((p: { user_id: string; display_name: string }) => [p.user_id, p.display_name])
-    )
-    const dirMap = new Map(
-      (dirRes.data ?? []).map((d: { id: string; display_name: string }) => [d.id, d.display_name])
-    )
-    const notesMap = new Map(
-      (attendees ?? []).map((a: { child_id: string; coach_notes: string | null }) => [a.child_id, a.coach_notes ?? ''])
-    )
-    const statusMap = new Map((attendanceRes.data as Attendance[]).map(a => [a.childId, a.status]))
-
-    setChildren(allIds.map((childId: string) => {
-      const isGuest = guestIds.has(childId)
-      return {
-        childId,
-        displayName: isGuest
-          ? (dirMap.get(childId) ?? `Invité ${childId.slice(0, 6)}`)
-          : (profileMap.get(childId) ?? childId.slice(0, 8)),
-        status    : statusMap.get(childId) ?? null,
-        isGuest,
-        coachNote  : notesMap.get(childId) ?? '',
-        notesDirty : false,
+      if (attendees.length === 0) {
+        await prefillSessionAttendees(sessionId)
+        const refilled = await listSessionAttendeeRoster(sessionId)
+        attendees = refilled.data
       }
-    }))
-    setLoading(false)
+
+      const allIds     = attendees.map(a => a.childId)
+      const guestSet   = new Set(attendees.filter(a => a.isGuest).map(a => a.childId))
+      const regularIds = allIds.filter(id => !guestSet.has(id))
+
+      const { profileMap, dirMap } = await batchResolveAttendeeNames(regularIds, [...guestSet])
+
+      const notesMap  = new Map(attendees.map(a => [a.childId, a.coachNotes ?? '']))
+      const statusMap = new Map((attendanceRes.data as Attendance[]).map(a => [a.childId, a.status]))
+
+      setChildren(allIds.map(childId => {
+        const isGuest = guestSet.has(childId)
+        return {
+          childId,
+          displayName: isGuest
+            ? (dirMap.get(childId)     ?? `Invité ${childId.slice(0, 6)}`)
+            : (profileMap.get(childId) ?? childId.slice(0, 8)),
+          status    : statusMap.get(childId) ?? null,
+          isGuest,
+          coachNote  : notesMap.get(childId) ?? '',
+          notesDirty : false,
+        }
+      }))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[coach/attendance] load error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [sessionId])
