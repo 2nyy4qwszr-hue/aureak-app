@@ -116,7 +116,7 @@ export default function SessionDetailPage() {
       if (guests.length > 0) {
         const entries = await Promise.all(guests.map((g: SessionAttendee) => getChildDirectoryEntry(g.childId)))
         const map: Record<string, string> = {}
-        entries.forEach((e, i) => { if (e.data) map[guests[i].childId] = e.data.displayName })
+        entries.forEach((e, i) => { if (e) map[guests[i].childId] = e.displayName })
         setGuestNameMap(map)
       }
 
