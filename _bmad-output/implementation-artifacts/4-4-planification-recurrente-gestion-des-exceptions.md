@@ -1,6 +1,6 @@
 # Story 4.4 : Planification Récurrente & Gestion des Exceptions
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

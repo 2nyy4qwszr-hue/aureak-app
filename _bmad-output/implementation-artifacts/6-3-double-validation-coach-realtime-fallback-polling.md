@@ -1,6 +1,6 @@
 # Story 6.3 : Double Validation Coach (Realtime + Fallback Polling)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

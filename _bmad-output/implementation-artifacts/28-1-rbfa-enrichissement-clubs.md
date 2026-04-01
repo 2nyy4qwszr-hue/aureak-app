@@ -1,6 +1,6 @@
 # Story 28.1 : Enrichissement RBFA — Matching automatique et import de logos clubs
 
-Status: ready-for-dev
+Status: done
 
 ---
 

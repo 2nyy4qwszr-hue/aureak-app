@@ -1,6 +1,6 @@
 # Story 2.6 : Permissions Référentiel Pédagogique (RBAC Contenu)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
