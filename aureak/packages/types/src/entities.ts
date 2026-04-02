@@ -1474,6 +1474,37 @@ export type ClubMatchReview = {
 }
 
 // =============================================================================
+// Story 32.3 — Signaux Techniques Coach
+// =============================================================================
+
+export type CoachLevel = 'apprentice' | 'experienced'
+
+export type SignalStatus = 'active' | 'resolved' | 'archived'
+
+export type TechnicalSignal = {
+  id               : string
+  tenantId         : string
+  childId          : string
+  coachId          : string
+  sessionId        : string
+  errorObserved    : string
+  successCriterion : string
+  status           : SignalStatus
+  notifyParent     : boolean
+  createdAt        : string
+  updatedAt        : string
+}
+
+export type TrainingUsageLog = {
+  id         : string
+  tenantId   : string
+  trainingId : string
+  groupId    : string
+  sessionId  : string
+  usedAt     : string
+}
+
+// =============================================================================
 // Story 32.2 — Dashboard Opérationnel Séances
 // =============================================================================
 

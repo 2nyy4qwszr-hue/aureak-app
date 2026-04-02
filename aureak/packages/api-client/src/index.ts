@@ -179,6 +179,17 @@ export {
 } from './sessions/dashboard'
 export type { SessionCardFilters, SessionDetailRow } from './sessions/dashboard'
 
+// Story 32.3 — Coach Séance du Jour + Signaux Techniques
+export {
+  getTodaySession, getAvailableTrainings, selectTrainingForSession,
+  getChildSessionContext, createTechnicalSignal, resolveTechnicalSignal,
+  getChildTechnicalProfile, listSessionSignals,
+} from './sessions/coach-session'
+export type {
+  TodaySessionResult, TrainingWithCooldown,
+  ChildSessionContext, CreateTechnicalSignalParams,
+} from './sessions/coach-session'
+
 export {
   applyEvaluationEvent, listEvaluationsBySession, listMergedEvaluations,
   validateSession, closeSession,

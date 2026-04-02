@@ -16,11 +16,12 @@ import type { Session, SessionAttendee, Attendance } from '@aureak/types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-type TabId = 'contenu' | 'presences' | 'evaluations' | 'notes' | 'quiz'
+type TabId = 'contenu' | 'presences' | 'evaluations' | 'notes' | 'quiz' | 'signaux'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'contenu',      label: 'Contenu'     },
   { id: 'presences',    label: 'Présences'   },
+  { id: 'signaux',      label: 'Signaux'     },
   { id: 'evaluations',  label: 'Évaluations' },
   { id: 'notes',        label: 'Notes'       },
   { id: 'quiz',         label: 'Quiz'        },
@@ -329,6 +330,12 @@ export default function SessionHubPage() {
         <iframe
           style={{ border: 'none', width: '100%', minHeight: 500 }}
           src={`/coach/sessions/${sessionId}/notes`}
+        />
+      )}
+      {tab === 'signaux' && (
+        <iframe
+          style={{ border: 'none', width: '100%', minHeight: 500 }}
+          src={`/coach/sessions/${sessionId}/signaux`}
         />
       )}
       {tab === 'quiz' && (
