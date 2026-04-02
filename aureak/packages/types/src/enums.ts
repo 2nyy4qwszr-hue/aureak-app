@@ -13,7 +13,7 @@ export type CoachGradeLevel = 'bronze' | 'silver' | 'gold' | 'platinum'
 export type ClubAccessLevel = 'partner' | 'common'
 
 /** Statuts de présence terrain — miroir de l'enum PostgreSQL `attendance_status` */
-export type AttendanceStatus = 'present' | 'absent' | 'injured' | 'late' | 'trial'
+export type AttendanceStatus = 'present' | 'absent' | 'injured' | 'late' | 'trial' | 'unconfirmed'
 
 /** Signaux d'évaluation coach — miroir de l'enum PostgreSQL `evaluation_signal` */
 export type EvaluationSignal = 'positive' | 'attention' | 'none'

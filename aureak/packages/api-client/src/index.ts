@@ -190,6 +190,17 @@ export type {
   SessionAttendanceDetail, TrialConversionSuggestion,
 } from './sessions/presences'
 
+// Story 33.2 — Workflow Coach Présences & Badges
+export {
+  getCoachSessionRoster, markAttendance, addTrialByCoach,
+  listAvailableBadges, awardBadge, removeBadge,
+  uploadSessionPhoto, listSessionPhotos,
+  getChildSessionCard, listSessionBadgeAwards,
+} from './sessions/coach-attendance'
+export type {
+  RosterChild, TrialChildData, ChildSessionCard,
+} from './sessions/coach-attendance'
+
 // Story 32.3 — Coach Séance du Jour + Signaux Techniques
 export {
   getTodaySession, getAvailableTrainings, selectTrainingForSession,

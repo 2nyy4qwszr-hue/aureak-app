@@ -1606,3 +1606,38 @@ export type ChildConsecutiveAbsence = {
   childName            : string
 }
 
+// =============================================================================
+// Story 33.2 — Workflow Coach Présences & Badges
+// =============================================================================
+
+export type BadgeCategory = 'comportemental' | 'thematique'
+export type LateType = 'under_15' | 'over_15'
+
+export type BehavioralBadge = {
+  id        : string
+  tenantId  : string | null
+  name      : string
+  emoji     : string
+  category  : BadgeCategory
+  isActive  : boolean
+}
+
+export type SessionBadgeAward = {
+  id        : string
+  tenantId  : string
+  sessionId : string
+  childId   : string
+  badgeId   : string
+  awardedBy : string
+  awardedAt : string
+}
+
+export type SessionPhoto = {
+  id          : string
+  tenantId    : string
+  sessionId   : string
+  storagePath : string
+  takenBy     : string
+  takenAt     : string
+}
+
