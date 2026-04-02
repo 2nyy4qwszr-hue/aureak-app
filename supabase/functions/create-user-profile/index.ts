@@ -74,7 +74,22 @@ Deno.serve(async (req: Request) => {
     return err(401, `Unauthorized: ${authError?.message ?? 'invalid token'}`)
   }
 
-  const callerRole = callerUser.app_metadata?.role as string | undefined
+  // Role check: getUser() reads auth.users.raw_app_meta_data (not JWT claims).
+  // The custom-access-token-hook only enriches JWT claims, not raw_app_meta_data.
+  // → If app_metadata.role is missing from getUser(), decode the JWT directly.
+  let callerRole = callerUser.app_metadata?.role as string | undefined
+
+  if (!callerRole) {
+    try {
+      const token      = authHeader.replace(/^Bearer /i, '')
+      const payloadB64 = token.split('.')[1]
+      const payload    = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))) as Record<string, unknown>
+      callerRole = (payload?.app_metadata as { role?: string } | undefined)?.role
+    } catch {
+      // JWT decode failed — callerRole stays undefined → 403 below
+    }
+  }
+
   if (callerRole !== 'admin') {
     console.error('[create-user-profile] Caller is not admin, role:', callerRole)
     return err(403, `Forbidden: requires admin role (caller has '${callerRole ?? 'none'}')`)
