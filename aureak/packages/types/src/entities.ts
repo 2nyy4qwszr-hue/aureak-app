@@ -1641,3 +1641,46 @@ export type SessionPhoto = {
   takenAt     : string
 }
 
+// =============================================================================
+// Story 33.3 — Vue Parent : Présences, Badges & Heatmap
+// =============================================================================
+
+export type AbsenceReason = 'injury' | 'match' | 'school' | 'school_trip' | 'vacation' | 'other'
+
+export type AbsenceJustification = {
+  id          : string
+  tenantId    : string
+  childId     : string
+  sessionId   : string
+  reason      : AbsenceReason
+  note        : string | null
+  submittedBy : string
+  submittedAt : string
+}
+
+/** Statut pour la heatmap (calculé côté vue SQL) */
+export type HeatmapStatus = 'present' | 'absent' | 'justified' | 'injured' | 'unconfirmed'
+
+export type AttendanceHeatmapEntry = {
+  childId              : string
+  tenantId             : string
+  sessionDate          : string   // ISO date YYYY-MM-DD
+  sessionId            : string
+  groupId              : string
+  rawStatus            : string
+  justificationReason  : AbsenceReason | null
+  heatmapStatus        : HeatmapStatus
+}
+
+export type ChildBadgeHistory = {
+  childId       : string
+  tenantId      : string
+  badgeId       : string
+  badgeName     : string
+  emoji         : string
+  sessionId     : string
+  sessionDate   : string   // ISO date
+  awardedBy     : string
+  awardedByName : string
+}
+

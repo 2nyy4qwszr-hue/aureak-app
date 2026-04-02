@@ -94,6 +94,8 @@ function SubNav({ childId, active }: { childId: string; active: string }) {
   const tabs = [
     { label: 'Fiche',       href: `/parent/children/${childId}`                   },
     { label: 'Séances',     href: `/parent/children/${childId}/sessions`          },
+    { label: 'Présences',   href: `/parent/children/${childId}/presences`         },
+    { label: 'Badges',      href: `/parent/children/${childId}/badges`            },
     { label: 'Progression', href: `/parent/children/${childId}/progress`          },
     { label: 'Football',    href: `/parent/children/${childId}/football-history`  },
   ]

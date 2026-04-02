@@ -453,3 +453,13 @@ export type { ChildDashboardExtra, ChildNextSession, ChildLastEval } from './chi
 export { getNotificationPreferences, listNotificationLogs, saveNotificationPreferences } from './parent/notifications'
 export type { NotificationPreferences, NotificationLog } from './parent/notifications'
 
+// Story 33.3 — Vue Parent : Présences Heatmap & Badges
+export {
+  submitAbsenceJustification, getAbsenceJustification,
+  getChildAttendanceHeatmap, computeAttendanceStats,
+  getChildBadgeHistory, getSessionPhoto,
+} from './parent/attendance-heatmap'
+export type {
+  AttendanceStats, SessionPhotoPublic,
+} from './parent/attendance-heatmap'
+
