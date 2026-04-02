@@ -2,9 +2,9 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, TrainingType, ProgrammeType } from './enums'
 
-export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
+export type { MethodologyMethod, MethodologyContextType, MethodologyLevel, TrainingType, ProgrammeType }
 
 /** Tenant — unité d'isolation multi-tenant */
 export type Tenant = {
@@ -1248,26 +1248,31 @@ export type MethodologySituation = {
 
 /** Séance pédagogique — contenu réutilisable de la bibliothèque (PDF / vidéo / audio) */
 export type MethodologySession = {
-  id          : string
-  tenantId    : string
-  title       : string                        // auto-généré : Méthode - Contexte - Ref
-  method      : MethodologyMethod | null
-  contextType : MethodologyContextType | null // 'academie' | 'stage'
-  moduleName  : string | null                 // module pédagogique (ex: 'Module Relance')
-  trainingRef : string | null                 // référence/numéro de séance (ex: '22', '08')
-  description : string | null
-  pdfUrl      : string | null
-  plateauUrl  : string | null                   // Story 13.3 — image/PDF plateau (migration 00062)
-  videoUrl    : string | null
-  audioUrl    : string | null
+  id             : string
+  tenantId       : string
+  title          : string                        // auto-généré : Méthode - Contexte - Ref
+  method         : MethodologyMethod | null
+  contextType    : MethodologyContextType | null // 'academie' | 'stage'
+  moduleName     : string | null                 // module pédagogique (ex: 'Module Relance')
+  trainingRef    : string | null                 // référence/numéro de séance (ex: '22', '08')
+  description    : string | null
+  pdfUrl         : string | null
+  plateauUrl     : string | null                 // Story 13.3 — image/PDF plateau (migration 00062)
+  videoUrl       : string | null
+  audioUrl       : string | null
   // Champs conservés en DB mais non exposés dans le nouveau formulaire
-  objective   : string | null
-  level       : MethodologyLevel | null
-  notes       : string | null
-  isActive    : boolean
-  deletedAt   : string | null
-  createdAt   : string
-  updatedAt   : string
+  objective      : string | null
+  level          : MethodologyLevel | null
+  notes          : string | null
+  // Story 34.1 — architecture programme (migration 00100)
+  moduleNumber   : number | null  // numéro entier de module (Goal&Player: 1-3, Technique: 1-8)
+  blocName       : string | null  // bloc nommé Situationnel (ex: 'Tir au but', '1v1')
+  trainingNumber : number | null  // numéro d'entraînement dans le module/bloc
+  trainingType   : TrainingType | null  // 'decouverte' | 'consolidation'
+  isActive       : boolean
+  deletedAt      : string | null
+  createdAt      : string
+  updatedAt      : string
 }
 
 // ── Theme Dossier Pédagogique (Migration 00056) ───────────────────────────
@@ -1473,3 +1478,41 @@ export type ClubMatchReview = {
   clubNom         : string | null   // joint depuis club_directory pour affichage
 }
 
+
+
+// ── Programmes pédagogiques (Migration 00100 — Story 34.1) ───────────────────
+
+/** Programme = plan saisonnier référençant des entraînements */
+export type Programme = {
+  id            : string
+  tenantId      : string
+  name          : string
+  programmeType : ProgrammeType          // 'academie' | 'stage'
+  seasonId      : string | null
+  seasonLabel   : string | null          // joint depuis academy_seasons
+  theme         : string | null          // thème stage (ex: 'Tir au but')
+  description   : string | null
+  isActive      : boolean
+  trainingCount : number                 // calculé via programme_trainings
+  deletedAt     : string | null
+  createdAt     : string
+  updatedAt     : string | null
+}
+
+/** Lien programme ↔ entraînement */
+export type ProgrammeTraining = {
+  programmeId : string
+  trainingId  : string
+  addedAt     : string
+  // Champs joints depuis methodology_sessions
+  training    : MethodologySession | null
+}
+
+/** Config numéros par méthode + module */
+export type MethodModuleConfig = {
+  id           : string
+  method       : MethodologyMethod
+  moduleNumber : number
+  rangeStart   : number
+  rangeEnd     : number
+}
