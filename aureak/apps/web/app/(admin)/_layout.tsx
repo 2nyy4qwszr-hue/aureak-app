@@ -197,11 +197,11 @@ export default function AdminLayout() {
                           borderLeftWidth={2}
                           borderLeftColor={isActive ? colors.accent.gold : 'transparent' as never}
                           backgroundColor={
-                            isActive
+                            (isActive
                               ? colors.accent.gold + '12'
                               : pressed
                                 ? colors.light.hover
-                                : 'transparent'
+                                : 'transparent') as never
                           }
                           style={{
                             transition: `all ${transitions.fast}`,

@@ -62,13 +62,13 @@ export default function YearView({ sessions, year, onMonthClick }: Props) {
                 pressed && st.cardPressed,
                 hasAny && { borderTopColor: accentColor, borderTopWidth: 3 },
               ]}>
-                <AureakText style={[st.monthName, hasAny && { color: colors.text.dark }]}>
+                <AureakText style={[st.monthName, hasAny && { color: colors.text.dark }] as never}>
                   {monthName}
                 </AureakText>
 
                 {hasAny ? (
                   <>
-                    <AureakText style={[st.totalCount, { color: accentColor }]}>
+                    <AureakText style={[st.totalCount, { color: accentColor }] as never}>
                       {total} séance{total > 1 ? 's' : ''}
                     </AureakText>
                     <View style={st.breakdown}>
@@ -128,7 +128,7 @@ const st = StyleSheet.create({
     borderColor    : colors.border.light,
     padding        : space.md,
     gap            : 4,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
   cardPressed: { backgroundColor: colors.light.hover ?? colors.light.muted },
 

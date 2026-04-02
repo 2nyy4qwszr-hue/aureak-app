@@ -189,7 +189,7 @@ export async function addTrialByCoach(params: TrialChildData): Promise<{ data: {
     })
     .then(({ error: alertErr }) => {
       if (alertErr && process.env.NODE_ENV !== 'production') {
-        if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] addTrialByCoach alert:', alertErr)
+        console.error('[coach-attendance] addTrialByCoach alert:', alertErr)
       }
     })
 

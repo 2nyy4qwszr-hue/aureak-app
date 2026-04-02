@@ -101,10 +101,10 @@ function WorkshopBlock({
           {showOrder && (
             <>
               <Pressable style={s.actionBtn} onPress={() => onReorder('up')} disabled={isFirst}>
-                <AureakText style={[s.actionBtnText, isFirst && s.disabled]}>↑</AureakText>
+                <AureakText style={[s.actionBtnText, isFirst && s.disabled] as never}>↑</AureakText>
               </Pressable>
               <Pressable style={s.actionBtn} onPress={() => onReorder('down')} disabled={isLast}>
-                <AureakText style={[s.actionBtnText, isLast && s.disabled]}>↓</AureakText>
+                <AureakText style={[s.actionBtnText, isLast && s.disabled] as never}>↓</AureakText>
               </Pressable>
             </>
           )}
@@ -242,7 +242,7 @@ export default function WorkshopBlockEditor({
         style={[s.addBtn, !canAdd && s.addBtnDisabled]}
         onPress={canAdd ? onAdd : undefined}
       >
-        <AureakText style={[s.addBtnText, !canAdd && s.addBtnDisabledText]}>
+        <AureakText style={[s.addBtnText, !canAdd && s.addBtnDisabledText] as never}>
           {canAdd ? '+ Ajouter un atelier' : `Maximum ${MAX_WORKSHOPS} ateliers par séance`}
         </AureakText>
       </Pressable>

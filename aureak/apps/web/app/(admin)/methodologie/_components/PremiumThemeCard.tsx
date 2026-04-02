@@ -57,7 +57,7 @@ export default function PremiumThemeCard({ theme, groupName, onPress }: Props) {
 
         {/* Nom du thème — paddingLeft élargi si badge présent pour éviter le chevauchement */}
         <AureakText
-          style={[pZone.themeName, theme.positionIndex != null && pZone.themeNameWithBadge]}
+          style={[pZone.themeName, theme.positionIndex != null && pZone.themeNameWithBadge] as never}
           numberOfLines={2}
         >
           {theme.name}

@@ -61,15 +61,15 @@ export default function WeekView({
           >
             {/* Day header */}
             <View style={[st.dayHeader, today && st.dayHeaderToday]}>
-              <AureakText style={[st.dayShort, today && st.dayShortToday]}>
+              <AureakText style={[st.dayShort, today && st.dayShortToday] as never}>
                 {DAYS_SHORT[idx]}
               </AureakText>
-              <AureakText style={[st.dayNum, today && st.dayNumToday]}>
+              <AureakText style={[st.dayNum, today && st.dayNumToday] as never}>
                 {day.getDate()}
               </AureakText>
               {daySess.length > 0 && (
                 <View style={[st.countBadge, today && st.countBadgeToday]}>
-                  <AureakText style={[st.countText, today && st.countTextToday]}>
+                  <AureakText style={[st.countText, today && st.countTextToday] as never}>
                     {daySess.length}
                   </AureakText>
                 </View>

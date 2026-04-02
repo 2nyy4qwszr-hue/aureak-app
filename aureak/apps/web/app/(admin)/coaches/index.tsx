@@ -142,9 +142,9 @@ export default function CoachesPage() {
         <View style={styles.table}>
           {/* Header */}
           <View style={styles.tableHeader}>
-            <AureakText variant="caption" style={[styles.thLabel, { flex: 2 }]}>Nom</AureakText>
-            <AureakText variant="caption" style={[styles.thLabel, { flex: 1 }]}>Grade</AureakText>
-            <AureakText variant="caption" style={[styles.thLabel, { width: 170, textAlign: 'right' }]}>Actions</AureakText>
+            <AureakText variant="caption" style={[styles.thLabel, { flex: 2 }] as never}>Nom</AureakText>
+            <AureakText variant="caption" style={[styles.thLabel, { flex: 1 }] as never}>Grade</AureakText>
+            <AureakText variant="caption" style={[styles.thLabel, { width: 170, textAlign: 'right' }] as never}>Actions</AureakText>
           </View>
 
           {coaches.map((coach, idx) => (
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     borderWidth    : 1,
     borderColor    : colors.border.light,
     overflow       : 'hidden',
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
   tableHeader     : {
     flexDirection    : 'row',
@@ -281,6 +281,6 @@ const styles = StyleSheet.create({
     alignItems     : 'center',
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 })

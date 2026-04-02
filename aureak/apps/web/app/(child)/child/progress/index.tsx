@@ -162,9 +162,9 @@ export default function ChildProgressPage() {
                     <AureakText variant="caption" style={{ fontWeight: '600', textAlign: 'center', fontSize: 11 }}>
                       {card.name}
                     </AureakText>
-                    {card.acquiredAt && (
+                    {card.collected_at && (
                       <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 9 }}>
-                        {new Date(card.acquiredAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                        {new Date(card.collected_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
                       </AureakText>
                     )}
                   </View>

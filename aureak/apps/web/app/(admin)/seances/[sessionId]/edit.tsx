@@ -156,9 +156,11 @@ export default function EditSessionPage() {
       id          : w.id,
       title       : w.title,
       pdfUrl      : w.pdfUrl,
+      pdfFile     : null,
       pdfUploading: false,
       cardLabel   : w.cardLabel,
       cardUrl     : w.cardUrl,
+      cardFile    : null,
       cardUploading: false,
       notes       : w.notes ?? '',
     })))
@@ -619,8 +621,8 @@ export default function EditSessionPage() {
         <WorkshopBlockEditor
           workshops={workshops}
           onAdd={() => setWorkshops(prev => [...prev, {
-            title: '', pdfUrl: null, pdfUploading: false,
-            cardLabel: null, cardUrl: null, cardUploading: false, notes: '',
+            title: '', pdfUrl: null, pdfFile: null, pdfUploading: false,
+            cardLabel: null, cardUrl: null, cardFile: null, cardUploading: false, notes: '',
           }])}
           onRemove={i => setWorkshops(prev => prev.filter((_, idx) => idx !== i))}
           onUpdate={(i, patch) => setWorkshops(prev => prev.map((w, idx) => idx === i ? { ...w, ...patch } : w))}

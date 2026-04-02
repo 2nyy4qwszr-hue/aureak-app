@@ -1,4 +1,10 @@
 {
   "compilerOptions": {},
-  "extends": "expo/tsconfig.base"
+  "extends": "expo/tsconfig.base",
+  "exclude": [
+    "supabase/functions",
+    "apps/mobile",
+    "node_modules",
+    "dist"
+  ]
 }

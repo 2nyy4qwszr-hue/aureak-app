@@ -35,9 +35,9 @@ export default function ChildAvatarPage() {
       listAvatarItems(),
       listUnlockedItems(user.id),
     ]).then(([av, allItems, unlockedItems]) => {
-      setAvatar(av)
-      setItems(allItems)
-      setUnlocked(unlockedItems)
+      setAvatar(av.data ?? null)
+      setItems(allItems.data ?? [])
+      setUnlocked(unlockedItems.data ?? [])
     }).catch(err => {
       if (process.env.NODE_ENV !== 'production') console.error('[avatar] load error:', err)
     }).finally(() => {
@@ -51,7 +51,7 @@ export default function ChildAvatarPage() {
     try {
       await equipAvatarItem(user.id, item.category, item.id)
       const updated = await getPlayerAvatar(user.id)
-      setAvatar(updated)
+      setAvatar(updated.data ?? null)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[avatar] handleEquip error:', err)
     } finally {

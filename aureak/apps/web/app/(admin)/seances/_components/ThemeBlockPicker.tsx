@@ -182,10 +182,10 @@ function ThemeBlockRow({
         <AureakText style={s.blockNum}>Thème {index + 1}</AureakText>
         <View style={s.blockActions}>
           <Pressable style={s.actionBtn} onPress={() => onReorder('up')}  disabled={isFirst}>
-            <AureakText style={[s.actionBtnText, isFirst && s.actionBtnDisabled]}>↑</AureakText>
+            <AureakText style={[s.actionBtnText, isFirst && s.actionBtnDisabled] as never}>↑</AureakText>
           </Pressable>
           <Pressable style={s.actionBtn} onPress={() => onReorder('down')} disabled={isLast}>
-            <AureakText style={[s.actionBtnText, isLast && s.actionBtnDisabled]}>↓</AureakText>
+            <AureakText style={[s.actionBtnText, isLast && s.actionBtnDisabled] as never}>↓</AureakText>
           </Pressable>
           <Pressable style={[s.actionBtn, s.actionBtnDanger]} onPress={onRemove}>
             <AureakText style={s.actionBtnText}>✕</AureakText>

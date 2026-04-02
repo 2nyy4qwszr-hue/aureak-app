@@ -245,7 +245,7 @@ function InfosTab({
       <ChipRow
         options={GROUP_METHODS}
         value={method}
-        onSelect={setMethod}
+        onSelect={(v) => setMethod(v as GroupMethod)}
         color={m => METHOD_COLOR[m]}
       />
 
@@ -253,21 +253,21 @@ function InfosTab({
       <ChipRow
         options={[...DAYS_OF_WEEK]}
         value={day}
-        onSelect={setDay}
+        onSelect={(v) => setDay(String(v))}
       />
 
       <FieldLabel>Heure de début</FieldLabel>
       <ChipRow
         options={START_HOURS}
         value={startH}
-        onSelect={setStartH}
+        onSelect={(v) => setStartH(Number(v))}
         label={h => `${String(h).padStart(2,'0')}h`}
       />
       <View style={{ marginTop: 6 }}>
         <ChipRow
           options={START_MINUTES}
           value={startM}
-          onSelect={setStartM}
+          onSelect={(v) => setStartM(Number(v))}
           label={m => `h${String(m).padStart(2,'0')}`}
         />
       </View>
@@ -276,7 +276,7 @@ function InfosTab({
       <ChipRow
         options={[...GROUP_DURATIONS]}
         value={duration}
-        onSelect={setDuration}
+        onSelect={(v) => setDuration(Number(v))}
         label={d => `${d} min`}
       />
 

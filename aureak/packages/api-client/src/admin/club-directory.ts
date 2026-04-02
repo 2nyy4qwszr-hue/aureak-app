@@ -85,7 +85,7 @@ function mapRow(r: Record<string, unknown>): ClubDirectoryEntry {
     rbfaUrl                     : (r.rbfa_url as string | null) ?? null,
     rbfaLogoUrl                 : (r.rbfa_logo_url as string | null) ?? null,
     rbfaConfidence              : (r.rbfa_confidence as number | null) ?? null,
-    rbfaStatus                  : (r.rbfa_status as string | null) ?? 'pending',
+    rbfaStatus                  : ((r.rbfa_status as string | null) ?? 'pending') as import('@aureak/types').RbfaStatus,
     lastVerifiedAt              : (r.last_verified_at as string | null) ?? null,
     deletedAt                   : (r.deleted_at as string | null) ?? null,
     createdAt                   : r.created_at as string,

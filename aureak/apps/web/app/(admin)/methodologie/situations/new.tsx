@@ -130,17 +130,21 @@ export default function NewSituationScreen() {
         <Controller
           control={control}
           name="description"
-          render={({ field: { onChange, value } }) => (
-            <Input
-              label="Description (optionnelle)"
-              value={value ?? ''}
-              onChangeText={onChange}
-              placeholder="Description de la situation..."
-              autoCapitalize="sentences"
-              multiline
-              numberOfLines={3}
-            />
-          )}
+          render={({ field: { onChange, value } }) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const InputAny = Input as React.ComponentType<any>
+            return (
+              <InputAny
+                label="Description (optionnelle)"
+                value={value ?? ''}
+                onChangeText={onChange}
+                placeholder="Description de la situation..."
+                autoCapitalize="sentences"
+                multiline
+                numberOfLines={3}
+              />
+            )
+          }}
         />
 
         {blocs.length > 0 && (

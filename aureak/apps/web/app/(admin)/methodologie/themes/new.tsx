@@ -230,7 +230,6 @@ export default function NewThemeScreen() {
                 placeholder="sortie-au-sol"
                 autoCapitalize="none"
                 error={errors.themeKey?.message}
-                hint="Générée automatiquement — modifiable"
               />
             )}
           />

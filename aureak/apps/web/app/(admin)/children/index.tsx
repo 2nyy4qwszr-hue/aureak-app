@@ -199,14 +199,14 @@ function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => vo
         {/* Métadonnées — toujours visibles, "—" si absent (AC: #1, #2, #3) */}
         <AureakText
           variant="caption"
-          style={[card.metaLine, !dob && card.placeholder]}
+          style={[card.metaLine, !dob && card.placeholder] as never}
           accessibilityLabel={!dob ? 'Date de naissance inconnue' : dob}
         >
           {dob || '—'}
         </AureakText>
         <AureakText
           variant="caption"
-          style={[card.metaLine, !item.currentClub && card.placeholder]}
+          style={[card.metaLine, !item.currentClub && card.placeholder] as never}
           numberOfLines={1}
           accessibilityLabel={!item.currentClub ? 'Club inconnu' : item.currentClub}
         >
@@ -214,7 +214,7 @@ function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => vo
         </AureakText>
         <AureakText
           variant="caption"
-          style={[card.metaLine, !item.niveauClub && card.placeholder]}
+          style={[card.metaLine, !item.niveauClub && card.placeholder] as never}
           numberOfLines={1}
           accessibilityLabel={!item.niveauClub ? 'Niveau inconnu' : item.niveauClub}
         >
@@ -257,7 +257,7 @@ const card = StyleSheet.create({
     borderColor    : colors.border.light,
     padding        : 12,
     minHeight      : 210,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
   pressed: {
     backgroundColor: colors.light.hover ?? colors.light.muted,
@@ -539,7 +539,7 @@ const pCard = StyleSheet.create({
     borderRadius: radius.cardLg,  // 24
     width       : 280,            // Story 25.5 — ratio exact 2:3 avec le background 560×840
     height      : 420,
-    ...shadows.md,
+    boxShadow: shadows.md,
   },
   pressed: { opacity: 0.92 },
 })
@@ -778,7 +778,7 @@ const psk = StyleSheet.create({
     borderRadius    : radius.cardLg,  // 24
     backgroundColor : colors.border.divider,
     opacity         : 0.55,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 })
 
@@ -997,7 +997,7 @@ export default function JoueursPage() {
           label="Statut"
           tabs={acadStatusTabs}
           active={acadStatus}
-          onSelect={setAcadStatus}
+          onSelect={(v) => setAcadStatus(v as AcadStatusFilter)}
         />
 
         {/* Toggle filtres avancés */}
@@ -1026,13 +1026,13 @@ export default function JoueursPage() {
               label="Expérience académie"
               tabs={SEASON_TABS}
               active={seasonFilter}
-              onSelect={setSeasonFilter}
+              onSelect={(v) => setSeasonFilter(v as SeasonFilter)}
             />
             <FilterRow
               label="Expérience stage"
               tabs={STAGE_TABS}
               active={stageFilter}
-              onSelect={setStageFilter}
+              onSelect={(v) => setStageFilter(v as StageFilter)}
             />
             <FilterRow
               label="Année de naissance"
@@ -1175,6 +1175,6 @@ const s = StyleSheet.create({
     alignItems     : 'center',
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 })

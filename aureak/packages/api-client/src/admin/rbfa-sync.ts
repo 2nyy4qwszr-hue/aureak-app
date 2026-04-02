@@ -338,15 +338,15 @@ export async function resetAllClubsForSync(
   // 2. Remettre à pending tous les clubs sauf 'matched'
   //    .neq('rbfa_status', 'matched') exclut les matchés
   //    mais ne filtre PAS les NULL — ils sont inclus via neq (NULL != 'matched' en SQL)
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from('club_directory')
     .update({ rbfa_status: 'pending', last_verified_at: null })
     .eq('tenant_id', tenantId)
     .is('deleted_at', null)
     .neq('rbfa_status', 'matched')
-    .select('id', { count: 'exact', head: true })
+    .select('id')
 
   if (error) return { count: 0, error }
 
-  return { count: count ?? 0, error: null }
+  return { count: data?.length ?? 0, error: null }
 }

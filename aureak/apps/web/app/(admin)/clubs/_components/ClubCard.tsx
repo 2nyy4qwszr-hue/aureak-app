@@ -109,7 +109,7 @@ export default function ClubCard({ club, onPress }: Props) {
       {/* ── Badge type de relation (partenaire / associé) ── */}
       {isNonNormal && badgeColor && (
         <View style={[s.relationBadge, { borderColor: badgeColor }]}>
-          <AureakText style={[s.relationBadgeText as never, { color: badgeColor }]}>
+          <AureakText style={[s.relationBadgeText, { color: badgeColor }] as never}>
             {CLUB_RELATION_TYPE_LABELS[club.clubRelationType]}
           </AureakText>
         </View>

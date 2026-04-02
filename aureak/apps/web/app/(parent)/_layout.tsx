@@ -76,11 +76,11 @@ export default function ParentLayout() {
                     paddingHorizontal={12}
                     borderRadius={8}
                     backgroundColor={
-                      isActive
+                      (isActive
                         ? colors.accent.gold + '12'
                         : pressed
                           ? colors.light.hover
-                          : 'transparent'
+                          : 'transparent') as never
                     }
                   >
                     <Text

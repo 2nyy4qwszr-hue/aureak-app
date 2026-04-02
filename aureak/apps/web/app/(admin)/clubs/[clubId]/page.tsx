@@ -678,13 +678,14 @@ export default function ClubDetailPage() {
             {club.rbfaUrl && (
               <View style={f.row}>
                 <AureakText variant="caption" style={f.label}>Fiche RBFA</AureakText>
-                <AureakText
-                  variant="caption"
-                  style={{ color: colors.accent.gold, textDecorationLine: 'underline' as never }}
-                  onPress={() => typeof window !== 'undefined' && window.open(club.rbfaUrl!, '_blank')}
-                >
-                  Voir sur rbfa.be
-                </AureakText>
+                <Pressable onPress={() => typeof window !== 'undefined' && window.open(club.rbfaUrl!, '_blank')}>
+                  <AureakText
+                    variant="caption"
+                    style={{ color: colors.accent.gold, textDecorationLine: 'underline' as never }}
+                  >
+                    Voir sur rbfa.be
+                  </AureakText>
+                </Pressable>
               </View>
             )}
             {club.rbfaConfidence != null && (
@@ -730,13 +731,14 @@ export default function ClubDetailPage() {
 
               {/* Lien vers la source RBFA si disponible */}
               {club.rbfaLogoUrl && (
-                <AureakText
-                  variant="caption"
-                  style={{ color: colors.accent.gold, textDecorationLine: 'underline' as never, fontSize: 11 }}
-                  onPress={() => typeof window !== 'undefined' && window.open(club.rbfaLogoUrl!, '_blank')}
-                >
-                  Voir source RBFA
-                </AureakText>
+                <Pressable onPress={() => typeof window !== 'undefined' && window.open(club.rbfaLogoUrl!, '_blank')}>
+                  <AureakText
+                    variant="caption"
+                    style={{ color: colors.accent.gold, textDecorationLine: 'underline' as never, fontSize: 11 }}
+                  >
+                    Voir source RBFA
+                  </AureakText>
+                </Pressable>
               )}
 
               {/* Suppression rapide sans passer en mode édition */}

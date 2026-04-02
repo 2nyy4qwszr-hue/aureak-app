@@ -453,10 +453,10 @@ export default function SeanceDetailPage() {
           <TextInput style={si.input} value={title} onChangeText={setTitle} placeholderTextColor={colors.text.muted} />
 
           <FieldLabel>Méthode</FieldLabel>
-          <ChipSelect options={METHODOLOGY_METHODS} value={method} onSelect={setMethod} color={m => methodologyMethodColors[m]} />
+          <ChipSelect options={METHODOLOGY_METHODS} value={method} onSelect={(v) => setMethod(v as MethodologyMethod)} color={m => methodologyMethodColors[m]} />
 
           <FieldLabel>Contexte</FieldLabel>
-          <ChipSelect options={METHODOLOGY_CONTEXT_TYPES} value={contextType} onSelect={setContextType} label={c => METHODOLOGY_CONTEXT_LABELS[c]} />
+          <ChipSelect options={METHODOLOGY_CONTEXT_TYPES} value={contextType} onSelect={(v) => setContextType(v as MethodologyContextType)} label={c => METHODOLOGY_CONTEXT_LABELS[c]} />
 
           <FieldLabel>Module</FieldLabel>
           <TextInput style={si.input} value={moduleName} onChangeText={setModuleName} placeholder="Ex : Module Tir au but…" placeholderTextColor={colors.text.muted} />

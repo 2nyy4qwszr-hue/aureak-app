@@ -22,7 +22,7 @@ export default function RbfaStatusBadge({ status, score }: Props) {
   const cfg = CONFIG[status]
   return (
     <View style={[s.badge, { backgroundColor: cfg.bg }]}>
-      <AureakText style={[s.label as never, { color: cfg.color }]}>
+      <AureakText style={[s.label, { color: cfg.color }] as never}>
         {cfg.label}
         {status === 'matched' && score != null ? ` (${Math.round(score)}%)` : ''}
       </AureakText>

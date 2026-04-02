@@ -58,7 +58,7 @@ function SectionCard({ children, title }: { children: React.ReactNode; title?: s
   return (
     <View style={s.section}>
       {title && (
-        <AureakText variant="h4" style={{ color: colors.text.dark, marginBottom: space.sm }}>
+        <AureakText variant="h3" style={{ color: colors.text.dark, marginBottom: space.sm }}>
           {title}
         </AureakText>
       )}
@@ -413,7 +413,7 @@ export default function NewSeancePage() {
         <ChipSelect
           options={METHODOLOGY_CONTEXT_TYPES}
           value={contextType}
-          onSelect={setContextType}
+          onSelect={(v) => setContextType(v as MethodologyContextType)}
           label={c => METHODOLOGY_CONTEXT_LABELS[c]}
         />
       </SectionCard>

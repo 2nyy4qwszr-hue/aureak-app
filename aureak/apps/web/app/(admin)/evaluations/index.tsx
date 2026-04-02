@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     padding          : space.md,
     borderWidth      : 1,
     borderColor      : colors.border.light,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
   kpi       : { flex: 1, alignItems: 'center', gap: 2 },
   card      : {
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     borderWidth      : 1,
     borderColor      : colors.border.light,
     gap              : space.xs,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   signals   : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' as never },

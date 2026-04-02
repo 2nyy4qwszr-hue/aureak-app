@@ -12,12 +12,12 @@ import type { PlayerQuest } from '@aureak/api-client'
 const QUEST_STATUS_LABEL: Record<string, string> = {
   active   : 'En cours',
   completed: 'Terminée',
-  failed   : 'Expirée',
+  expired  : 'Expirée',
 }
 const QUEST_STATUS_COLOR: Record<string, string> = {
   active   : colors.status.present,
   completed: colors.accent.gold,
-  failed   : colors.status.absent,
+  expired  : colors.status.absent,
 }
 
 export default function ChildBadgesPage() {
@@ -35,9 +35,9 @@ export default function ChildBadgesPage() {
       listActiveQuests(user.id),
       listAllQuests(user.id),
     ]).then(([prog, activeQ, allQ]) => {
-      setProgress(prog)
-      setActive(activeQ)
-      setAll(allQ)
+      setProgress(prog.data ?? null)
+      setActive(activeQ.data ?? [])
+      setAll(allQ.data ?? [])
     }).catch(err => {
       if (process.env.NODE_ENV !== 'production') console.error('[badges] load error:', err)
     }).finally(() => {
@@ -151,10 +151,10 @@ export default function ChildBadgesPage() {
           )}
 
           {/* All quests with other statuses */}
-          {all.filter(q => q.status === 'failed').length > 0 && (
+          {all.filter(q => q.status === 'expired').length > 0 && (
             <>
               <AureakText variant="h3" style={{ marginTop: space.sm }}>Quêtes expirées</AureakText>
-              {all.filter(q => q.status === 'failed').map(q => {
+              {all.filter(q => q.status === 'expired').map(q => {
                 const def = q.quest_definitions as { name?: string } | null
                 return (
                   <View key={q.id} style={[styles.questCard, styles.questFailed]}>

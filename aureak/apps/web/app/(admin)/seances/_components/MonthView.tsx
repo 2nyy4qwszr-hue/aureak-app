@@ -76,7 +76,7 @@ export default function MonthView({ sessions, year, month, groupMap, onNavigate 
             <View key={dateKey} style={[st.cell, today && st.cellToday]}>
               {/* Day number */}
               <View style={[st.dayNumWrap, today && st.dayNumWrapToday]}>
-                <AureakText style={[st.dayNum, today && st.dayNumToday]}>
+                <AureakText style={[st.dayNum, today && st.dayNumToday] as never}>
                   {dayNum}
                 </AureakText>
               </View>
@@ -97,7 +97,7 @@ export default function MonthView({ sessions, year, month, groupMap, onNavigate 
                     onPress={() => onNavigate(s.id)}
                     hitSlop={{ top: 2, bottom: 2, left: 0, right: 0 }}
                   >
-                    <AureakText style={[st.chipText, { color: typeColor }]} numberOfLines={1}>
+                    <AureakText style={[st.chipText, { color: typeColor }] as never} numberOfLines={1}>
                       {label}
                     </AureakText>
                   </Pressable>

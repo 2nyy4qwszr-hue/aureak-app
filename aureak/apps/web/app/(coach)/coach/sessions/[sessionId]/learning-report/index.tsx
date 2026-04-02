@@ -107,7 +107,7 @@ export default function SessionLearningReport() {
                   <td style={S.td}>
                     {a.correct_count}/{a.questions_answered}
                   </td>
-                  <td style={S.td} style={{ color: colors.text.muted, fontSize: 12 }}>
+                  <td style={{ ...S.td, color: colors.text.muted, fontSize: 12 }}>
                     {a.stop_reason ? (STOP_LABELS[a.stop_reason] ?? a.stop_reason) : '—'}
                   </td>
                 </tr>

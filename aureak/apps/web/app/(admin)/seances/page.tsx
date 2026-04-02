@@ -405,7 +405,7 @@ export default function SeancesPage() {
               style={[st.chip, !filterImplantId && st.chipActive]}
               onPress={() => { setFilterImplantId(''); setFilterGroupId('') }}
             >
-              <AureakText style={[st.chipText, !filterImplantId && st.chipTextActive]}>Toutes</AureakText>
+              <AureakText style={[st.chipText, !filterImplantId && st.chipTextActive] as never}>Toutes</AureakText>
             </Pressable>
             {implantations.map(i => (
               <Pressable
@@ -413,7 +413,7 @@ export default function SeancesPage() {
                 style={[st.chip, filterImplantId === i.id && st.chipActive]}
                 onPress={() => setFilterImplantId(i.id)}
               >
-                <AureakText style={[st.chipText, filterImplantId === i.id && st.chipTextActive]}>{i.name}</AureakText>
+                <AureakText style={[st.chipText, filterImplantId === i.id && st.chipTextActive] as never}>{i.name}</AureakText>
               </Pressable>
             ))}
           </View>
@@ -443,7 +443,7 @@ export default function SeancesPage() {
                 style={[st.chip, !filterGroupId && st.chipActive]}
                 onPress={() => setFilterGroupId('')}
               >
-                <AureakText style={[st.chipText, !filterGroupId && st.chipTextActive]}>Tous</AureakText>
+                <AureakText style={[st.chipText, !filterGroupId && st.chipTextActive] as never}>Tous</AureakText>
               </Pressable>
               {filterGroups.map(g => (
                 <Pressable
@@ -451,7 +451,7 @@ export default function SeancesPage() {
                   style={[st.chip, filterGroupId === g.id && st.chipActive]}
                   onPress={() => setFilterGroupId(g.id)}
                 >
-                  <AureakText style={[st.chipText, filterGroupId === g.id && st.chipTextActive]}>{g.name}</AureakText>
+                  <AureakText style={[st.chipText, filterGroupId === g.id && st.chipTextActive] as never}>{g.name}</AureakText>
                 </Pressable>
               ))}
             </View>
@@ -578,7 +578,7 @@ const st = StyleSheet.create({
   chipText     : { fontSize: 11, color: colors.text.muted },
   chipTextActive: { color: colors.text.dark, fontWeight: '700' as never },
 
-  navBar    : { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, padding: space.sm, ...shadows.sm },
+  navBar    : { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.light.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border.light, padding: space.sm, boxShadow: shadows.sm },
   navBtn    : { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 6, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light },
   navArrow  : { fontSize: 20, color: colors.text.dark, lineHeight: 22 },
   navCenter : { flex: 1, alignItems: 'center', paddingHorizontal: space.sm },
@@ -588,5 +588,5 @@ const st = StyleSheet.create({
   skeletonWrap: { gap: space.sm },
   skeletonCard: { height: 80, backgroundColor: colors.light.surface, borderRadius: 10, opacity: 0.5, borderWidth: 1, borderColor: colors.border.light },
 
-  emptyState : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xxl, alignItems: 'center', borderWidth: 1, borderColor: colors.border.light, ...shadows.sm },
+  emptyState : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xxl, alignItems: 'center', borderWidth: 1, borderColor: colors.border.light, boxShadow: shadows.sm },
 })

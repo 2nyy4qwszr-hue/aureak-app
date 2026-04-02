@@ -4,16 +4,16 @@ import type { ChildDirectoryInjury } from '@aureak/types'
 
 function toInjury(row: Record<string, unknown>): ChildDirectoryInjury {
   return {
-    id         : row.id,
-    tenantId   : row.tenant_id,
-    childId    : row.child_id,
+    id         : row.id          as string,
+    tenantId   : row.tenant_id   as string,
+    childId    : row.child_id    as string,
     type       : row.type        as 'blessure' | 'grosse_blessure',
-    zone       : row.zone        ?? null,
-    dateDebut  : row.date_debut  ?? null,
-    dateFin    : row.date_fin    ?? null,
-    commentaire: row.commentaire ?? null,
-    createdAt  : row.created_at,
-    updatedAt  : row.updated_at,
+    zone       : (row.zone        as string | null) ?? null,
+    dateDebut  : (row.date_debut  as string | null) ?? null,
+    dateFin    : (row.date_fin    as string | null) ?? null,
+    commentaire: (row.commentaire as string | null) ?? null,
+    createdAt  : row.created_at  as string,
+    updatedAt  : row.updated_at  as string,
   }
 }
 

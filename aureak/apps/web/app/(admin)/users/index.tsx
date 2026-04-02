@@ -35,11 +35,11 @@ const STATUS_LABELS: Record<string, string> = {
   pending  : 'En attente',
   deleted  : 'Supprimé',
 }
-const STATUS_VARIANTS: Record<string, 'present' | 'attention' | 'zinc' | 'absent'> = {
+const STATUS_VARIANTS: Record<string, 'present' | 'attention' | 'zinc' | 'danger'> = {
   active   : 'present',
   suspended: 'attention',
   pending  : 'zinc',
-  deleted  : 'absent',
+  deleted  : 'danger',
 }
 
 const ROLE_TABS: { key: RoleFilter; label: string }[] = [
@@ -317,7 +317,7 @@ const s = StyleSheet.create({
     borderWidth    : 1,
     borderColor    : colors.border.light,
     overflow       : 'hidden',
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
   thead      : {
     flexDirection  : 'row',
@@ -369,6 +369,6 @@ const s = StyleSheet.create({
     alignItems     : 'center',
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 })

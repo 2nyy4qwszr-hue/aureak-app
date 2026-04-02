@@ -1040,7 +1040,6 @@ function ChildPhotosSection({
         )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           {/* input[type=file] natif HTML — uniquement web */}
-          {/* @ts-expect-error — élément HTML natif dans RN web */}
           <input
             type="file"
             accept="image/*"
@@ -1814,7 +1813,7 @@ const s = StyleSheet.create({
     padding        : space.md,
     marginBottom   : space.xs,
     gap            : space.sm,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 
   heroPicFallback: {
@@ -1858,7 +1857,7 @@ const s = StyleSheet.create({
     borderColor    : colors.border.light,
     padding        : space.md,
     marginBottom   : space.xs,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 
   addBtn    : {

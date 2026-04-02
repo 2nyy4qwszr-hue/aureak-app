@@ -39,13 +39,13 @@ export default function ChildQuizSessionPage() {
     const init = async () => {
       try {
         const result = await createLearningAttempt('practice', themeId)
-        if (!result.questions || result.questions.length === 0) {
+        if (!result.data?.questions || result.data.questions.length === 0) {
           setError('Aucune question disponible pour ce thème.')
           return
         }
         setQuiz({
-          attemptId     : result.attempt_id,
-          questions     : result.questions,
+          attemptId     : result.data.attempt_id,
+          questions     : result.data.questions,
           currentIndex  : 0,
           phase         : 'question',
           lastResult    : null,
@@ -67,13 +67,15 @@ export default function ChildQuizSessionPage() {
     if (!quiz || quiz.phase !== 'question') return
     const q = quiz.questions[quiz.currentIndex]
     try {
-      const res = await submitAnswer(quiz.attemptId, q.id, optionId)
+      const resWrapper = await submitAnswer(quiz.attemptId, q.id, optionId)
+      const res = resWrapper.data
+      if (!res) throw new Error('No result from submitAnswer')
 
       const nextCorrect = quiz.correctCount + (res.is_correct ? 1 : 0)
 
       if (res.should_stop) {
         stopped.current = true
-        await stopAttempt(quiz.attemptId, res.stop_reason ?? 'completed')
+        await stopAttempt(quiz.attemptId, 'child_stopped')
         setQuiz({
           ...quiz,
           phase         : 'result',
@@ -88,14 +90,14 @@ export default function ChildQuizSessionPage() {
       const nextIndex = quiz.currentIndex + 1
       if (nextIndex >= quiz.questions.length) {
         stopped.current = true
-        await stopAttempt(quiz.attemptId, 'completed')
+        await stopAttempt(quiz.attemptId, 'child_stopped')
         setQuiz({
           ...quiz,
           phase         : 'result',
           lastResult    : res,
           correctCount  : nextCorrect,
           masteryPercent: res.mastery_percent,
-          stopReason    : 'completed',
+          stopReason    : 'child_stopped',
         })
         return
       }
@@ -122,7 +124,7 @@ export default function ChildQuizSessionPage() {
   const handleQuit = async () => {
     if (quiz && !stopped.current) {
       stopped.current = true
-      await stopAttempt(quiz.attemptId, 'abandoned')
+      await stopAttempt(quiz.attemptId, 'child_stopped')
     }
     router.push('/child/quiz' as never)
   }

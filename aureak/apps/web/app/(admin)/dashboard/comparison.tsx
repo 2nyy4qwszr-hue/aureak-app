@@ -256,7 +256,7 @@ const styles: Record<string, React.CSSProperties> = {
   select       : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '14px', cursor: 'pointer' },
   exportBtn    : { padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 600, marginBottom: 1 },
   // ── Chart ──
-  chartCard    : { backgroundColor: colors.light.surface, borderRadius: '12px', border: `1px solid ${colors.border.light}`, padding: '20px 24px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: 14, ...shadows.sm },
+  chartCard    : { backgroundColor: colors.light.surface, borderRadius: '12px', border: `1px solid ${colors.border.light}`, padding: '20px 24px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: 14, boxShadow: shadows.sm },
   chartTitle   : { fontSize: '11px', fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 },
   barRow       : { display: 'flex', alignItems: 'center', gap: 12 },
   barLabel     : { display: 'flex', alignItems: 'center', gap: 4, width: 200, flexShrink: 0 },
@@ -265,7 +265,7 @@ const styles: Record<string, React.CSSProperties> = {
   // ── Table ──
   tableSection : { marginBottom: 16 },
   sectionLabel : { fontSize: '11px', fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 },
-  table        : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.light.surface, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.border.light}`, ...shadows.sm },
+  table        : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.light.surface, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.border.light}`, boxShadow: shadows.sm },
   th           : { padding: '12px 16px', textAlign: 'left', fontSize: '12px', color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: `1px solid ${colors.border.light}` },
   thActive     : { color: colors.accent.gold },
   tr           : { borderBottom: `1px solid ${colors.border.light}` },

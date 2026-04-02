@@ -22,6 +22,7 @@ const ROLE_ROUTES: Record<UserRole, string> = {
   coach : '/(coach)',
   parent: '/(parent)',
   child : '/(child)',
+  club  : '/(admin)',
 }
 
 const styles = StyleSheet.create({

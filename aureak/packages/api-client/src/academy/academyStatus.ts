@@ -54,7 +54,7 @@ function mapStage(r: Record<string, unknown>): Stage {
     location       : (r.location       as string | null) ?? null,
     type           : (r.type           as import('@aureak/types').StageType | null) ?? null,
     implantationId : (r.implantation_id as string | null) ?? null,
-    status         : (r.status         as import('@aureak/types').StageStatus) ?? 'draft',
+    status         : ((r.status as string | null) ?? 'draft') as import('@aureak/types').StageStatus,
     maxParticipants: (r.max_participants as number | null) ?? null,
     notes          : (r.notes          as string | null) ?? null,
     createdAt      : r.created_at      as string,

@@ -109,7 +109,7 @@ export default function StagesPage() {
           return (
             <Pressable
               key={st}
-              style={[s.tab, isActive ? s.tabActive : s.tabInactive]}
+              style={[s.tab, isActive && s.tabActive] as never}
               onPress={() => setFilter(st)}
             >
               <AureakText

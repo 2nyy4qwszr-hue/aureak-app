@@ -390,7 +390,7 @@ export default function NewJoueurPage() {
         {seasonsLoading ? (
           <AureakText variant="caption" style={s.italicMuted}>Chargement des saisons…</AureakText>
         ) : seasonsError ? (
-          <AureakText variant="caption" style={[s.italicMuted, { color: colors.status.attention }]}>
+          <AureakText variant="caption" style={[s.italicMuted, { color: colors.status.attention }] as never}>
             Impossible de charger les saisons. La section académie sera disponible depuis la fiche joueur après création.
           </AureakText>
         ) : seasons.length === 0 ? (
@@ -499,7 +499,7 @@ const s = StyleSheet.create({
     borderColor    : colors.border.light,
     padding        : space.md,
     gap            : space.xs,
-    ...shadows.sm,
+    boxShadow: shadows.sm,
   },
 
   sectionLabel: {
