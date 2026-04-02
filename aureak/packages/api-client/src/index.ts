@@ -112,6 +112,13 @@ export {
 } from './sessions/sessions'
 export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin } from './sessions/sessions'
 
+// Story 32.1 — Annulations & tampons (migration 00101)
+export {
+  cancelSessionV2, shiftSessionsForward,
+  getGroupDebt, listSessionBuffers, createSessionBuffer, activateBuffer,
+} from './sessions/cancellations'
+export type { CancelSessionV2Params } from './sessions/cancellations'
+
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,
   createGroup, createTransientGroup, updateGroup, deleteGroup, listGroupsByImplantation,
