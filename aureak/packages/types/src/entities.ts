@@ -1474,6 +1474,42 @@ export type ClubMatchReview = {
 }
 
 // =============================================================================
+// Story 33.1 — Dashboard Admin Présences
+// =============================================================================
+
+export type AttendanceType = 'member' | 'trial'
+
+export type CoachPresenceType = 'full' | 'partial' | 'absent'
+
+export type AttendanceCorrection = {
+  id           : string
+  tenantId     : string
+  sessionId    : string
+  childId      : string
+  correctedBy  : string
+  oldStatus    : string | null
+  newStatus    : string
+  correctedAt  : string
+}
+
+export type SessionPresenceSummary = {
+  sessionId       : string
+  tenantId        : string
+  groupId         : string
+  implantationId  : string
+  scheduledAt     : string
+  sessionStatus   : string
+  sessionType     : string | null
+  closedAt        : string | null
+  label           : string | null
+  totalRoster     : number
+  memberPresent   : number
+  trialPresent    : number
+  absentCount     : number
+  unconfirmedCount: number
+}
+
+// =============================================================================
 // Story 32.3 — Signaux Techniques Coach
 // =============================================================================
 

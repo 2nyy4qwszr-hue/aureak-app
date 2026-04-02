@@ -179,6 +179,17 @@ export {
 } from './sessions/dashboard'
 export type { SessionCardFilters, SessionDetailRow } from './sessions/dashboard'
 
+// Story 33.1 — Dashboard Admin Présences
+export {
+  listSessionsWithPresence, getSessionAttendanceDetail,
+  correctAttendance, updateCoachPresence,
+  addTrialAttendance, listTrialConversionSuggestions, convertTrialToMember,
+} from './sessions/presences'
+export type {
+  PresenceCardFilters, AttendeeWithStatus, CoachPresenceRow,
+  SessionAttendanceDetail, TrialConversionSuggestion,
+} from './sessions/presences'
+
 // Story 32.3 — Coach Séance du Jour + Signaux Techniques
 export {
   getTodaySession, getAvailableTrainings, selectTrainingForSession,
