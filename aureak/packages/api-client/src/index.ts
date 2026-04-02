@@ -2,6 +2,15 @@
 // RÈGLE : Ce package est le SEUL autorisé à importer @supabase/supabase-js
 
 export { supabase } from './supabase'
+
+export {
+  listProgrammes, getProgramme, createProgramme, updateProgramme,
+  softDeleteProgramme, duplicateProgramme,
+  createTraining, linkTrainingToProgramme, unlinkTrainingFromProgramme,
+  listTrainingsByProgramme, getUsedTrainingNumbers,
+  listModuleConfigs, getModuleConfig,
+} from './admin/programmes'
+export type { CreateProgrammeParams, UpdateProgrammeParams, CreateTrainingParams } from './admin/programmes'
 export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
 export {

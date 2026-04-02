@@ -83,6 +83,7 @@ export type MethodologyMethod =
   | 'Goal and Player'
   | 'Technique'
   | 'Situationnel'
+  | 'Performance'
   | 'Décisionnel'
   | 'Intégration'
   | 'Perfectionnement'
@@ -93,9 +94,46 @@ export type MethodologyContextType = 'academie' | 'stage'
 /** Niveau de difficulté d'une séance pédagogique (conservé en DB, non affiché dans le formulaire) */
 export type MethodologyLevel = 'debutant' | 'intermediaire' | 'avance'
 
+/** Type d'entraînement — découverte (première exposition) ou consolidation (renforcement) */
+export type TrainingType = 'decouverte' | 'consolidation'
+
+/** Type de programme pédagogique */
+export type ProgrammeType = 'academie' | 'stage'
+
 export const METHODOLOGY_METHODS: MethodologyMethod[] = [
-  'Goal and Player', 'Technique', 'Situationnel', 'Décisionnel', 'Intégration', 'Perfectionnement',
+  'Goal and Player', 'Technique', 'Situationnel', 'Performance', 'Décisionnel', 'Intégration', 'Perfectionnement',
 ]
+
+/** Blocs nommés de la méthode Situationnel */
+export const SITUATIONNEL_BLOCS = [
+  'Tir au but',
+  '1v1',
+  'Centre',
+  'Relance',
+  'Ballon profondeur',
+  'Phase arrêtée',
+  'Communication',
+] as const
+export type SituationnelBlocName = typeof SITUATIONNEL_BLOCS[number]
+
+/** Méthodes avec structure de modules numérotés */
+export const METHODS_WITH_MODULES: MethodologyMethod[] = ['Goal and Player', 'Technique']
+
+/** Méthodes avec blocs nommés */
+export const METHODS_WITH_BLOCS: MethodologyMethod[] = ['Situationnel']
+
+/** Méthodes sans structure imposée (formulaire libre) */
+export const METHODS_FREE: MethodologyMethod[] = ['Performance', 'Décisionnel', 'Intégration', 'Perfectionnement']
+
+export const TRAINING_TYPE_LABELS: Record<TrainingType, string> = {
+  decouverte   : 'Découverte',
+  consolidation: 'Consolidation',
+}
+
+export const PROGRAMME_TYPE_LABELS: Record<ProgrammeType, string> = {
+  academie: 'Académie',
+  stage   : 'Stage',
+}
 
 export const METHODOLOGY_CONTEXT_TYPES: MethodologyContextType[] = ['academie', 'stage']
 export const METHODOLOGY_LEVELS: MethodologyLevel[] = ['debutant', 'intermediaire', 'avance']
