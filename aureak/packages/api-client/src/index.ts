@@ -171,6 +171,14 @@ export {
 } from './sessions/timeline'
 export type { TimelineEvent, AttendanceSnapshot, AttendanceTimeline } from './sessions/timeline'
 
+// Story 32.2 — Dashboard Opérationnel Séances
+export {
+  listSessionCards, getSessionDetail,
+  listAdminAlerts, resolveAlert,
+  getCoachQualityMetrics, listChildConsecutiveAbsences,
+} from './sessions/dashboard'
+export type { SessionCardFilters, SessionDetailRow } from './sessions/dashboard'
+
 export {
   applyEvaluationEvent, listEvaluationsBySession, listMergedEvaluations,
   validateSession, closeSession,

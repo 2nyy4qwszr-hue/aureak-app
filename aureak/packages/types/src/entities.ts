@@ -1473,3 +1473,69 @@ export type ClubMatchReview = {
   clubNom         : string | null   // joint depuis club_directory pour affichage
 }
 
+// =============================================================================
+// Story 32.2 — Dashboard Opérationnel Séances
+// =============================================================================
+
+export type AlertType =
+  | 'consecutive_absences'
+  | 'debrief_missing'
+  | 'coach_absent_unresolved'
+
+export type AlertEntityType = 'child' | 'session' | 'coach'
+
+export type AdminAlert = {
+  id          : string
+  tenantId    : string
+  type        : AlertType
+  entityId    : string
+  entityType  : AlertEntityType
+  metadata    : Record<string, unknown>
+  status      : 'active' | 'resolved'
+  resolvedAt  : string | null
+  resolvedBy  : string | null
+  createdAt   : string
+}
+
+export type SessionCardDensity = 'compact' | 'standard' | 'detaille'
+
+export type CoachQualityMetrics = {
+  coachId               : string
+  tenantId              : string
+  totalSessions         : number
+  sessionsDone          : number
+  debriefsFilled        : number
+  debriefsMissing       : number
+  debriefFillRate       : number | null   // %
+  presenceRate          : number | null   // %
+  avgDebriefDelayHours  : number | null
+}
+
+/** Ligne de la vue v_session_attendance_stats */
+export type SessionAttendanceStats = {
+  sessionId          : string
+  tenantId           : string
+  groupId            : string
+  implantationId     : string
+  scheduledAt        : string
+  status             : string
+  sessionType        : string | null
+  closedAt           : string | null
+  label              : string | null
+  durationMinutes    : number
+  cancellationReason : string | null
+  totalAttendees     : number
+  presentCount       : number
+  absentCount        : number
+  lateCount          : number
+}
+
+/** Ligne de la vue v_child_consecutive_absences */
+export type ChildConsecutiveAbsence = {
+  childId              : string
+  groupId              : string
+  tenantId             : string
+  consecutiveAbsences  : number
+  childName            : string
+}
+

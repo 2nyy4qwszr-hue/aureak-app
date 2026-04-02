@@ -14,10 +14,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Opérations',
     items: [
-      { label: 'Tableau de bord', href: '/dashboard'   },
-      { label: 'Séances',         href: '/seances'     },
-      { label: 'Présences',       href: '/attendance'  },
-      { label: 'Évaluations',     href: '/evaluations' },
+      { label: 'Tableau de bord',    href: '/dashboard'          },
+      { label: 'Dashboard séances', href: '/dashboard/seances'  },
+      { label: 'Séances',           href: '/seances'            },
+      { label: 'Présences',         href: '/attendance'         },
+      { label: 'Évaluations',       href: '/evaluations'        },
     ],
   },
   {
