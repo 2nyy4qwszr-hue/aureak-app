@@ -146,6 +146,7 @@ export const methodologyMethodColors = {
   'Goal and Player' : '#FFB800',
   'Technique'       : '#4FC3F7',
   'Situationnel'    : '#66BB6A',
+  'Performance'     : '#EF4444',
   'Décisionnel'     : '#CE93D8',
   'Intégration'     : '#F97316',
   'Perfectionnement': '#EC4899',

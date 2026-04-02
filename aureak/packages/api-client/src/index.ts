@@ -9,8 +9,12 @@ export {
   createTraining, linkTrainingToProgramme, unlinkTrainingFromProgramme,
   listTrainingsByProgramme, getUsedTrainingNumbers,
   listModuleConfigs, getModuleConfig,
+  getProgrammeOverview, getMethodProgress, searchTrainings,
 } from './admin/programmes'
-export type { CreateProgrammeParams, UpdateProgrammeParams, CreateTrainingParams } from './admin/programmes'
+export type {
+  CreateProgrammeParams, UpdateProgrammeParams, CreateTrainingParams,
+  MethodStat, ModuleStat,
+} from './admin/programmes'
 export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
 export {

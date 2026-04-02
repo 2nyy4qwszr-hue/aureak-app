@@ -23,10 +23,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Méthodologie',
     items: [
-      { label: 'Programmes',    href: '/methodologie/programmes' },
-      { label: 'Entraînements', href: '/methodologie/seances'    },
-      { label: 'Thèmes',        href: '/methodologie/themes'     },
-      { label: 'Situations',    href: '/methodologie/situations' },
+      { label: 'Programmes',    href: '/methodologie/programmes'   },
+      { label: 'Bibliothèque',  href: '/methodologie/bibliotheque' },
+      { label: 'Entraînements', href: '/methodologie/seances'       },
+      { label: 'Thèmes',        href: '/methodologie/themes'        },
+      { label: 'Situations',    href: '/methodologie/situations'    },
     ],
   },
   {

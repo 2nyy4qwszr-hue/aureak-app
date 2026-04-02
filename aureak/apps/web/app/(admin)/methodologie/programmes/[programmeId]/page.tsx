@@ -1,21 +1,23 @@
 'use client'
-// /methodologie/programmes/[programmeId] — Détail programme + création entraînement (Story 34.1)
+// /methodologie/programmes/[programmeId] — Détail programme (Story 34.1 + 34.2)
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { View, Pressable, ActivityIndicator, StyleSheet, TextInput, ScrollView } from 'react-native'
-import { Text, Separator } from 'tamagui'
+import { Text } from 'tamagui'
 import {
   getProgramme, listTrainingsByProgramme, createTraining,
-  getModuleConfig, getUsedTrainingNumbers,
+  getModuleConfig, getUsedTrainingNumbers, listModuleConfigs,
+  getProgrammeOverview, getMethodProgress,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { colors, shadows, radius } from '@aureak/theme'
+import { colors, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS, SITUATIONNEL_BLOCS, METHODS_WITH_MODULES,
-  METHODS_WITH_BLOCS, TRAINING_TYPE_LABELS,
+  METHODS_WITH_BLOCS, METHODS_FREE, TRAINING_TYPE_LABELS,
 } from '@aureak/types'
-import type { Programme, MethodologySession } from '@aureak/types'
+import type { MethodStat, ModuleStat } from '@aureak/api-client'
+import type { Programme, MethodologySession, MethodModuleConfig } from '@aureak/types'
 import type { MethodologyMethod, TrainingType } from '@aureak/types'
 
 const MODULE_COUNTS: Record<string, number> = {
@@ -24,25 +26,31 @@ const MODULE_COUNTS: Record<string, number> = {
 }
 
 export default function ProgrammeDetailPage() {
-  const router                          = useRouter()
-  const { programmeId }                 = useLocalSearchParams<{ programmeId: string }>()
-  const { user }                        = useAuthStore()
-  const tenantId                        = (user?.app_metadata?.tenant_id as string | undefined) ?? ''
-  const [programme, setProgramme]       = useState<Programme | null>(null)
-  const [trainings, setTrainings]       = useState<MethodologySession[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [showForm, setShowForm]         = useState(false)
+  const router                                = useRouter()
+  const { programmeId }                       = useLocalSearchParams<{ programmeId: string }>()
+  const { user }                              = useAuthStore()
+  const tenantId                              = (user?.app_metadata?.tenant_id as string | undefined) ?? ''
+
+  const [programme, setProgramme]             = useState<Programme | null>(null)
+  const [trainings, setTrainings]             = useState<MethodologySession[]>([])
+  const [moduleConfigs, setModuleConfigs]     = useState<MethodModuleConfig[]>([])
+  const [loading, setLoading]                 = useState(true)
+  const [selectedMethod, setSelectedMethod]   = useState<MethodologyMethod | null>(null)
+  const [selectedUnit, setSelectedUnit]       = useState<number | string | null>(null)
+  const [showForm, setShowForm]               = useState(false)
 
   const load = useCallback(async () => {
     if (!programmeId) return
     setLoading(true)
     try {
-      const [prog, list] = await Promise.all([
+      const [prog, list, cfgs] = await Promise.all([
         getProgramme(programmeId),
         listTrainingsByProgramme(programmeId),
+        listModuleConfigs(),
       ])
       setProgramme(prog)
       setTrainings(list)
+      setModuleConfigs(cfgs)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[ProgrammeDetail] load:', err)
     } finally {
@@ -51,6 +59,40 @@ export default function ProgrammeDetailPage() {
   }, [programmeId])
 
   useEffect(() => { load() }, [load])
+
+  const overview: MethodStat[] = useMemo(
+    () => getProgrammeOverview(trainings),
+    [trainings],
+  )
+
+  const unitProgress: ModuleStat[] = useMemo(() => {
+    if (!selectedMethod) return []
+    return getMethodProgress(trainings, selectedMethod, moduleConfigs)
+  }, [trainings, selectedMethod, moduleConfigs])
+
+  const displayedTrainings = useMemo(() => {
+    if (!selectedMethod) return trainings
+    const byMethod = trainings.filter((t) => t.method === selectedMethod)
+    if (selectedUnit == null) return byMethod
+    if (typeof selectedUnit === 'number') return byMethod.filter((t) => t.moduleNumber === selectedUnit)
+    if (selectedUnit === 'all')           return byMethod
+    return byMethod.filter((t) => t.blocName === selectedUnit)
+  }, [trainings, selectedMethod, selectedUnit])
+
+  function selectMethod(m: MethodologyMethod) {
+    if (selectedMethod === m) {
+      setSelectedMethod(null)
+      setSelectedUnit(null)
+    } else {
+      setSelectedMethod(m)
+      setSelectedUnit(null)
+    }
+    setShowForm(false)
+  }
+
+  function selectUnit(u: number | string) {
+    setSelectedUnit(selectedUnit === u ? null : u)
+  }
 
   if (loading) {
     return (
@@ -71,7 +113,10 @@ export default function ProgrammeDetailPage() {
     )
   }
 
-  const isAcademie = programme.programmeType === 'academie'
+  const isAcademie         = programme.programmeType === 'academie'
+  const methodHasUnits     = selectedMethod
+    ? (METHODS_WITH_MODULES.includes(selectedMethod) || METHODS_WITH_BLOCS.includes(selectedMethod))
+    : false
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.light.primary }}>
@@ -80,7 +125,7 @@ export default function ProgrammeDetailPage() {
           <Text color={colors.text.muted} fontSize={14}>← Programmes</Text>
         </Pressable>
 
-        {/* Programme header card */}
+        {/* ── Programme header ───────────────────────────────────────────── */}
         <View style={[styles.card, { borderColor: isAcademie ? colors.border.gold : colors.border.light }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <View style={{ flex: 1, gap: 4 }}>
@@ -93,9 +138,9 @@ export default function ProgrammeDetailPage() {
                 {programme.theme ? <Text fontSize={12} color={colors.text.muted}>• {programme.theme}</Text> : null}
               </View>
               <Text fontSize={20} fontWeight="700" color={colors.text.primary}>{programme.name}</Text>
-              {programme.seasonLabel ? (
-                <Text fontSize={13} color={colors.text.muted}>Saison {programme.seasonLabel}</Text>
-              ) : null}
+              {programme.seasonLabel
+                ? <Text fontSize={13} color={colors.text.muted}>Saison {programme.seasonLabel}</Text>
+                : null}
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text fontSize={28} fontWeight="700" color={isAcademie ? colors.accent.gold : colors.text.primary}>
@@ -104,67 +149,236 @@ export default function ProgrammeDetailPage() {
               <Text fontSize={11} color={colors.text.muted}>entraînement(s)</Text>
             </View>
           </View>
-          {programme.description ? (
-            <Text fontSize={13} color={colors.text.subtle} style={{ marginTop: 8 }}>{programme.description}</Text>
-          ) : null}
+          {programme.description
+            ? <Text fontSize={13} color={colors.text.subtle} style={{ marginTop: 8 }}>{programme.description}</Text>
+            : null}
         </View>
 
-        {/* Bouton + Formulaire */}
-        {!showForm ? (
-          <Pressable onPress={() => setShowForm(true)} style={styles.btnPrimary}>
-            <Text color="#000" fontWeight="600" fontSize={15}>+ Ajouter un entraînement</Text>
+        {/* ── Tuiles méthodes (AC2) ──────────────────────────────────────── */}
+        <Text fontWeight="700" fontSize={14} color={colors.text.muted} style={{ marginTop: 4, marginBottom: 8 }}>
+          MÉTHODES
+        </Text>
+        <View style={styles.methodGrid}>
+          {overview.filter((s) => s.trainingCount > 0 || s.expectedCount != null).map((stat) => {
+            const color   = (methodologyMethodColors as Record<string, string>)[stat.method] ?? colors.text.muted
+            const isActive = selectedMethod === stat.method
+            const pct = stat.expectedCount ? Math.min(100, Math.round((stat.trainingCount / stat.expectedCount) * 100)) : null
+            return (
+              <Pressable key={stat.method} onPress={() => selectMethod(stat.method)} style={[
+                styles.methodTile,
+                { borderColor: color, backgroundColor: isActive ? color + '22' : colors.light.surface },
+              ]}>
+                <View style={[styles.methodDot, { backgroundColor: color }]} />
+                <Text fontSize={12} fontWeight="700" color={isActive ? color as never : colors.text.primary} numberOfLines={1} style={{ flex: 1 }}>
+                  {stat.method}
+                </Text>
+                <Text fontSize={12} fontWeight="600" color={color as never}>
+                  {stat.trainingCount}{stat.expectedCount != null ? `/${stat.expectedCount}` : ''}
+                </Text>
+                {pct != null && (
+                  <View style={styles.progressBg}>
+                    <View style={[styles.progressFill, { width: `${pct}%` as never, backgroundColor: color }]} />
+                  </View>
+                )}
+              </Pressable>
+            )
+          })}
+          {overview.filter((s) => s.trainingCount === 0 && s.expectedCount == null).map((stat) => {
+            const color   = (methodologyMethodColors as Record<string, string>)[stat.method] ?? colors.text.muted
+            const isActive = selectedMethod === stat.method
+            return (
+              <Pressable key={stat.method} onPress={() => selectMethod(stat.method)} style={[
+                styles.methodTile,
+                { borderColor: colors.border.light, backgroundColor: isActive ? color + '22' : colors.light.elevated },
+              ]}>
+                <View style={[styles.methodDot, { backgroundColor: color, opacity: 0.5 }]} />
+                <Text fontSize={12} color={colors.text.muted} numberOfLines={1} style={{ flex: 1 }}>{stat.method}</Text>
+                <Text fontSize={11} color={colors.text.muted}>0</Text>
+              </Pressable>
+            )
+          })}
+        </View>
+
+        {/* ── Breadcrumb + bouton ajout ──────────────────────────────────── */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            {selectedMethod ? (
+              <>
+                <Text fontSize={13} color={colors.text.muted}>Tous</Text>
+                <Text fontSize={13} color={colors.text.muted}>›</Text>
+                <Text fontSize={13} fontWeight="600" color={colors.text.primary}>{selectedMethod}</Text>
+                {selectedUnit != null && selectedUnit !== 'all' && (
+                  <>
+                    <Text fontSize={13} color={colors.text.muted}>›</Text>
+                    <Text fontSize={13} fontWeight="600" color={colors.text.primary}>
+                      {typeof selectedUnit === 'number' ? `Module ${selectedUnit}` : selectedUnit}
+                    </Text>
+                  </>
+                )}
+              </>
+            ) : (
+              <Text fontSize={13} fontWeight="600" color={colors.text.primary}>
+                Tous les entraînements ({trainings.length})
+              </Text>
+            )}
+          </View>
+          <Pressable onPress={() => setShowForm(!showForm)} style={styles.btnPrimary}>
+            <Text color="#000" fontWeight="600" fontSize={13}>+ Ajouter</Text>
           </Pressable>
-        ) : (
+        </View>
+
+        {/* ── Chips modules / blocs (AC3 / AC4) ────────────────────────── */}
+        {selectedMethod && methodHasUnits && unitProgress.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }} contentContainerStyle={{ gap: 8, paddingBottom: 4 }}>
+            <Pressable
+              onPress={() => setSelectedUnit(null)}
+              style={[styles.unitChip, selectedUnit == null && styles.unitChipActive]}
+            >
+              <Text fontSize={12} fontWeight="600" color={selectedUnit == null ? '#fff' : colors.text.muted}>Tous</Text>
+            </Pressable>
+            {unitProgress.map((u) => {
+              const isActive = selectedUnit === u.moduleOrBloc
+              const color    = (methodologyMethodColors as Record<string, string>)[selectedMethod] ?? colors.text.muted
+              return (
+                <Pressable
+                  key={String(u.moduleOrBloc)}
+                  onPress={() => selectUnit(u.moduleOrBloc)}
+                  style={[styles.unitChip, isActive && { ...styles.unitChipActive, backgroundColor: color }]}
+                >
+                  <Text fontSize={12} fontWeight="600" color={isActive ? '#fff' : colors.text.muted}>
+                    {u.label}
+                  </Text>
+                  <Text fontSize={11} color={isActive ? '#ffffffbb' : colors.text.muted}>
+                    {' '}{u.trainingCount}{u.expectedCount != null ? `/${u.expectedCount}` : ''}
+                  </Text>
+                </Pressable>
+              )
+            })}
+          </ScrollView>
+        )}
+
+        {/* ── Formulaire ajout entraînement ─────────────────────────────── */}
+        {showForm && (
           <TrainingForm
             tenantId={tenantId}
             programmeId={programmeId!}
+            prefillMethod={selectedMethod ?? undefined}
+            prefillModule={typeof selectedUnit === 'number' ? selectedUnit : undefined}
+            prefillBloc={typeof selectedUnit === 'string' && selectedUnit !== 'all' ? selectedUnit : undefined}
             onCreated={() => { setShowForm(false); load() }}
             onCancel={() => setShowForm(false)}
           />
         )}
 
-        <Separator marginVertical={8} />
-
-        <Text fontWeight="600" color={colors.text.primary} fontSize={16} style={{ marginBottom: 8 }}>
-          Entraînements ({trainings.length})
-        </Text>
-
-        {trainings.length === 0 ? (
-          <View style={[styles.card, { alignItems: 'center', paddingVertical: 32 }]}>
-            <Text color={colors.text.muted} style={{ textAlign: 'center' }}>
-              Aucun entraînement dans ce programme.
-            </Text>
-          </View>
-        ) : (
-          trainings.map((t) => <TrainingRow key={t.id} training={t} />)
-        )}
+        {/* ── Liste entraînements ────────────────────────────────────────── */}
+        <View style={{ marginTop: 8, gap: 8 }}>
+          {displayedTrainings.length === 0 ? (
+            <View style={[styles.card, { alignItems: 'center', paddingVertical: 32 }]}>
+              <Text color={colors.text.muted} style={{ textAlign: 'center' }}>
+                {selectedMethod
+                  ? 'Aucun entraînement pour cette méthode.'
+                  : 'Aucun entraînement dans ce programme.'}
+              </Text>
+            </View>
+          ) : (
+            displayedTrainings.map((t) => <TrainingCard key={t.id} training={t} />)
+          )}
+        </View>
       </View>
     </ScrollView>
+  )
+}
+
+// ── TrainingCard (AC5) ────────────────────────────────────────────────────────
+
+function TrainingCard({ training }: { training: MethodologySession }) {
+  const typeColor = training.trainingType === 'decouverte' ? '#3B82F6'
+    : training.trainingType === 'consolidation'           ? '#F97316'
+    : null
+  const methodColor = training.method
+    ? ((methodologyMethodColors as Record<string, string>)[training.method] ?? colors.text.muted)
+    : colors.text.muted
+
+  const isOdd = training.trainingNumber != null ? training.trainingNumber % 2 !== 0 : null
+
+  return (
+    <View style={styles.card}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+        {training.trainingNumber != null ? (
+          <View style={[styles.numBadge, { backgroundColor: methodColor + '22', borderColor: methodColor }]}>
+            <Text fontWeight="700" fontSize={15} color={methodColor as never}>{training.trainingNumber}</Text>
+          </View>
+        ) : null}
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text fontWeight="700" fontSize={15} color={colors.text.primary}>{training.title}</Text>
+
+          {/* Chips méthode + module/bloc */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {training.method ? (
+              <View style={[styles.chip, { backgroundColor: methodColor + '22', borderColor: methodColor + '44' }]}>
+                <Text fontSize={11} fontWeight="600" color={methodColor as never}>{training.method}</Text>
+              </View>
+            ) : null}
+            {training.moduleNumber != null ? (
+              <View style={styles.chip}>
+                <Text fontSize={11} color={colors.text.muted}>M{training.moduleNumber}</Text>
+              </View>
+            ) : null}
+            {training.blocName ? (
+              <View style={styles.chip}>
+                <Text fontSize={11} color={colors.text.muted}>{training.blocName}</Text>
+              </View>
+            ) : null}
+            {isOdd != null && training.blocName ? (
+              <View style={styles.chip}>
+                <Text fontSize={11} color={colors.text.muted}>{isOdd ? '▲ Impair' : '● Pair'}</Text>
+              </View>
+            ) : null}
+          </View>
+
+          {training.description ? (
+            <Text fontSize={12} color={colors.text.subtle} numberOfLines={2}>{training.description}</Text>
+          ) : null}
+        </View>
+
+        {/* Badge type */}
+        {typeColor && training.trainingType ? (
+          <View style={[styles.badge, { backgroundColor: typeColor }]}>
+            <Text fontSize={11} fontWeight="600" color="#fff">
+              {TRAINING_TYPE_LABELS[training.trainingType]}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </View>
   )
 }
 
 // ── Formulaire création entraînement (cascading) ──────────────────────────────
 
 function TrainingForm({
-  tenantId, programmeId, onCreated, onCancel,
+  tenantId, programmeId, prefillMethod, prefillModule, prefillBloc, onCreated, onCancel,
 }: {
-  tenantId: string
-  programmeId: string
-  onCreated: () => void
-  onCancel: () => void
+  tenantId       : string
+  programmeId    : string
+  prefillMethod? : MethodologyMethod
+  prefillModule? : number
+  prefillBloc?   : string
+  onCreated      : () => void
+  onCancel       : () => void
 }) {
-  const [method, setMethod]                   = useState<MethodologyMethod | ''>('')
-  const [moduleNumber, setModuleNumber]       = useState<number | null>(null)
-  const [blocName, setBlocName]               = useState('')
-  const [trainingNumber, setTrainingNumber]   = useState('')
-  const [trainingType, setTrainingType]       = useState<TrainingType | ''>('')
-  const [title, setTitle]                     = useState('')
-  const [description, setDescription]         = useState('')
-  const [saving, setSaving]                   = useState(false)
-  const [error, setError]                     = useState<string | null>(null)
-  const [rangeStart, setRangeStart]           = useState<number | null>(null)
-  const [rangeEnd, setRangeEnd]               = useState<number | null>(null)
-  const [usedNumbers, setUsedNumbers]         = useState<number[]>([])
+  const [method, setMethod]                 = useState<MethodologyMethod | ''>(prefillMethod ?? '')
+  const [moduleNumber, setModuleNumber]     = useState<number | null>(prefillModule ?? null)
+  const [blocName, setBlocName]             = useState(prefillBloc ?? '')
+  const [trainingNumber, setTrainingNumber] = useState('')
+  const [trainingType, setTrainingType]     = useState<TrainingType | ''>('')
+  const [title, setTitle]                   = useState('')
+  const [description, setDescription]       = useState('')
+  const [saving, setSaving]                 = useState(false)
+  const [error, setError]                   = useState<string | null>(null)
+  const [rangeStart, setRangeStart]         = useState<number | null>(null)
+  const [rangeEnd, setRangeEnd]             = useState<number | null>(null)
+  const [usedNumbers, setUsedNumbers]       = useState<number[]>([])
 
   const hasModules  = method ? METHODS_WITH_MODULES.includes(method as MethodologyMethod) : false
   const hasBlocs    = method ? METHODS_WITH_BLOCS.includes(method as MethodologyMethod)   : false
@@ -184,9 +398,9 @@ function TrainingForm({
   }, [method, blocName, programmeId])
 
   async function handleSave() {
-    if (!method)      { setError('Choisissez une méthode.'); return }
+    if (!method)       { setError('Choisissez une méthode.'); return }
     if (!title.trim()) { setError('Le titre est obligatoire.'); return }
-    if (!tenantId)    { setError('Tenant introuvable.'); return }
+    if (!tenantId)     { setError('Tenant introuvable.'); return }
     setSaving(true)
     try {
       await createTraining({
@@ -214,14 +428,18 @@ function TrainingForm({
   const isUsed = tNum != null && usedNumbers.includes(tNum)
 
   return (
-    <View style={[styles.card, { borderColor: colors.border.gold, marginBottom: 8 }]}>
+    <View style={[styles.card, { borderColor: colors.border.gold }]}>
       <Text fontWeight="700" fontSize={16} color={colors.text.primary} style={{ marginBottom: 12 }}>
         Nouvel entraînement
       </Text>
 
       {/* 1. Méthode */}
       <Text style={styles.stepLabel}>1. Méthode *</Text>
-      <select value={method} onChange={(e) => { setMethod(e.target.value as MethodologyMethod); setModuleNumber(null); setBlocName(''); setTrainingNumber('') }} style={webSelectStyle}>
+      <select
+        value={method}
+        onChange={(e) => { setMethod(e.target.value as MethodologyMethod); setModuleNumber(null); setBlocName(''); setTrainingNumber('') }}
+        style={webSelectStyle}
+      >
         <option value="">— Choisir la méthode —</option>
         {METHODOLOGY_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
       </select>
@@ -252,11 +470,7 @@ function TrainingForm({
       {hasBlocs && (
         <>
           <Text style={styles.stepLabel}>2. Bloc *</Text>
-          <select
-            value={blocName}
-            onChange={(e) => { setBlocName(e.target.value); setTrainingNumber('') }}
-            style={webSelectStyle}
-          >
+          <select value={blocName} onChange={(e) => { setBlocName(e.target.value); setTrainingNumber('') }} style={webSelectStyle}>
             <option value="">— Choisir le bloc —</option>
             {SITUATIONNEL_BLOCS.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
@@ -348,33 +562,6 @@ function TrainingForm({
   )
 }
 
-function TrainingRow({ training }: { training: MethodologySession }) {
-  const typeColor = training.trainingType === 'decouverte' ? '#3B82F6' : training.trainingType === 'consolidation' ? '#F97316' : null
-
-  return (
-    <View style={[styles.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }]}>
-      {training.trainingNumber != null ? (
-        <View style={styles.numBadge}>
-          <Text fontWeight="700" fontSize={14} color={colors.text.primary}>{training.trainingNumber}</Text>
-        </View>
-      ) : null}
-      <View style={{ flex: 1, gap: 4 }}>
-        <Text fontWeight="600" fontSize={14} color={colors.text.primary}>{training.title}</Text>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {training.method ? <Text fontSize={11} color={colors.text.muted}>{training.method}</Text> : null}
-          {training.moduleNumber != null ? <Text fontSize={11} color={colors.text.muted}>• M{training.moduleNumber}</Text> : null}
-          {training.blocName    ? <Text fontSize={11} color={colors.text.muted}>• {training.blocName}</Text>   : null}
-        </View>
-      </View>
-      {typeColor && training.trainingType ? (
-        <View style={[styles.badge, { backgroundColor: typeColor }]}>
-          <Text fontSize={11} fontWeight="600" color="#fff">{TRAINING_TYPE_LABELS[training.trainingType]}</Text>
-        </View>
-      ) : null}
-    </View>
-  )
-}
-
 const webSelectStyle: React.CSSProperties = {
   backgroundColor: colors.light.elevated,
   border         : `1px solid ${colors.border.light}`,
@@ -387,34 +574,65 @@ const webSelectStyle: React.CSSProperties = {
 }
 
 const styles = StyleSheet.create({
-  page    : { padding: 20, gap: 12 },
-  center  : { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  card    : {
+  page         : { padding: 20, gap: 12 },
+  center       : { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  card         : {
     backgroundColor: colors.light.surface,
     borderRadius   : radius.cardLg,
     padding        : 16,
     borderWidth    : 1,
     borderColor    : colors.border.light,
     boxShadow      : shadows.sm,
-    marginBottom   : 8,
   } as never,
-  badge   : { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.xs },
-  numBadge: { width: 36, height: 36, backgroundColor: colors.light.elevated, borderRadius: radius.xs, justifyContent: 'center', alignItems: 'center' },
-  btnPrimary: { backgroundColor: colors.accent.gold, paddingHorizontal: 20, paddingVertical: 12, borderRadius: radius.button, alignItems: 'center' },
-  stepLabel : { fontSize: 13, fontWeight: '600', color: colors.text.muted, marginBottom: 6 },
-  input     : {
+  badge        : { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.xs },
+  numBadge     : { width: 40, height: 40, borderRadius: radius.xs, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  chip         : {
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius     : radius.xs,
+    backgroundColor  : colors.light.elevated,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  btnPrimary   : { backgroundColor: colors.accent.gold, paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.button, alignItems: 'center' },
+  stepLabel    : { fontSize: 13, fontWeight: '600', color: colors.text.muted, marginBottom: 6 },
+  input        : {
     backgroundColor: colors.light.elevated,
     borderWidth    : 1, borderColor: colors.border.light,
     borderRadius   : radius.button,
     padding        : 10, fontSize: 15,
     color          : colors.text.primary,
   },
-  typeBtn   : {
-    flex           : 1, padding: 10,
+  typeBtn      : {
+    flex: 1, padding: 10,
     borderRadius   : radius.button,
     backgroundColor: colors.light.elevated,
     borderWidth    : 1, borderColor: colors.border.light,
     alignItems     : 'center',
   },
-  actions   : { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  actions      : { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  methodGrid   : { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  methodTile   : {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    gap            : 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius   : radius.button,
+    borderWidth    : 1.5,
+    width          : '47%' as never,
+    flexWrap       : 'wrap' as never,
+  } as never,
+  methodDot    : { width: 8, height: 8, borderRadius: 4 },
+  progressBg   : { height: 3, backgroundColor: colors.border.light, borderRadius: 2, width: '100%' as never, marginTop: 4 } as never,
+  progressFill : { height: 3, borderRadius: 2 },
+  unitChip     : {
+    paddingHorizontal: 14, paddingVertical: 7,
+    borderRadius     : radius.button,
+    backgroundColor  : colors.light.elevated,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    flexDirection    : 'row',
+    alignItems       : 'center',
+  },
+  unitChipActive: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 })

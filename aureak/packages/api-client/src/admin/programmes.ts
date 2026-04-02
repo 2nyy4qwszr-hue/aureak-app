@@ -1,11 +1,17 @@
-// @aureak/api-client — Programmes pédagogiques (Story 34.1)
+// @aureak/api-client — Programmes pédagogiques (Story 34.1 + 34.2)
 // Migration 00100
 
 import { supabase } from '../supabase'
 import type {
   Programme, ProgrammeTraining, MethodModuleConfig, MethodologySession,
 } from '@aureak/types'
-import type { MethodologyMethod, ProgrammeType, TrainingType } from '@aureak/types'
+import type {
+  MethodologyMethod, ProgrammeType, TrainingType,
+  MethodologyContextType, MethodologyLevel,
+} from '@aureak/types'
+import {
+  METHODOLOGY_METHODS, METHODS_WITH_MODULES, METHODS_WITH_BLOCS, SITUATIONNEL_BLOCS,
+} from '@aureak/types'
 
 // ── Row mappers ───────────────────────────────────────────────────────────────
 
@@ -396,4 +402,151 @@ export async function getModuleConfig(method: string, moduleNumber: number): Pro
 
   if (error) return null
   return mapModuleConfig(data as Record<string, unknown>)
+}
+
+// ── Vue d'ensemble & progression (Story 34.2) ─────────────────────────────────
+
+export type MethodStat = {
+  method        : MethodologyMethod
+  trainingCount : number
+  expectedCount : number | null
+}
+
+export type ModuleStat = {
+  moduleOrBloc      : number | string
+  label             : string
+  trainingCount     : number
+  decouverteCount   : number
+  consolidationCount: number
+  expectedCount     : number | null
+}
+
+/** Expected total per method (fixed by curriculum design). */
+const METHOD_EXPECTED_TOTAL: Partial<Record<MethodologyMethod, number>> = {
+  'Goal and Player': 15,  // 3 modules × 5
+  'Technique'      : 30,  // 8 modules (M1-M3,M5-M7=4 / M4,M8=3)
+  'Situationnel'   : 14,  // 7 blocs × 2
+}
+
+/**
+ * Returns per-method training counts + expected counts for a programme.
+ * Derived client-side from already-loaded trainings — no extra DB call.
+ */
+export function getProgrammeOverview(trainings: MethodologySession[]): MethodStat[] {
+  const counts: Partial<Record<MethodologyMethod, number>> = {}
+  for (const t of trainings) {
+    if (t.method) counts[t.method] = (counts[t.method] ?? 0) + 1
+  }
+  return METHODOLOGY_METHODS.map((m) => ({
+    method        : m,
+    trainingCount : counts[m] ?? 0,
+    expectedCount : METHOD_EXPECTED_TOTAL[m] ?? null,
+  }))
+}
+
+/**
+ * Returns per-module/bloc stats for a given method.
+ * For methods with modules: requires moduleConfigs from listModuleConfigs().
+ */
+export function getMethodProgress(
+  trainings      : MethodologySession[],
+  method         : MethodologyMethod,
+  moduleConfigs  : MethodModuleConfig[],
+): ModuleStat[] {
+  const methodTrainings = trainings.filter((t) => t.method === method)
+
+  if (METHODS_WITH_MODULES.includes(method)) {
+    const cfgs = moduleConfigs
+      .filter((c) => c.method === method)
+      .sort((a, b) => a.moduleNumber - b.moduleNumber)
+    return cfgs.map((cfg) => {
+      const mt = methodTrainings.filter((t) => t.moduleNumber === cfg.moduleNumber)
+      return {
+        moduleOrBloc      : cfg.moduleNumber,
+        label             : `Module ${cfg.moduleNumber}`,
+        trainingCount     : mt.length,
+        decouverteCount   : mt.filter((t) => t.trainingType === 'decouverte').length,
+        consolidationCount: mt.filter((t) => t.trainingType === 'consolidation').length,
+        expectedCount     : cfg.rangeEnd - cfg.rangeStart + 1,
+      }
+    })
+  }
+
+  if (METHODS_WITH_BLOCS.includes(method)) {
+    return SITUATIONNEL_BLOCS.map((bloc) => {
+      const bt = methodTrainings.filter((t) => t.blocName === bloc)
+      return {
+        moduleOrBloc      : bloc,
+        label             : bloc,
+        trainingCount     : bt.length,
+        decouverteCount   : bt.filter((t) => t.trainingType === 'decouverte').length,
+        consolidationCount: bt.filter((t) => t.trainingType === 'consolidation').length,
+        expectedCount     : 2,
+      }
+    })
+  }
+
+  // Free method — single entry
+  return [{
+    moduleOrBloc      : 'all',
+    label             : method,
+    trainingCount     : methodTrainings.length,
+    decouverteCount   : methodTrainings.filter((t) => t.trainingType === 'decouverte').length,
+    consolidationCount: methodTrainings.filter((t) => t.trainingType === 'consolidation').length,
+    expectedCount     : null,
+  }]
+}
+
+// ── Recherche bibliothèque (Story 34.2) ───────────────────────────────────────
+
+function mapSessionRow(row: Record<string, unknown>): MethodologySession {
+  return {
+    id             : row.id         as string,
+    tenantId       : row.tenant_id  as string,
+    title          : row.title      as string,
+    method         : str(row.method)       as MethodologyMethod | null,
+    contextType    : str(row.context_type) as MethodologyContextType | null,
+    moduleName     : str(row.module_name),
+    trainingRef    : str(row.training_ref),
+    description    : str(row.description),
+    pdfUrl         : str(row.pdf_url),
+    plateauUrl     : str(row.plateau_url),
+    videoUrl       : str(row.video_url),
+    audioUrl       : str(row.audio_url),
+    objective      : str(row.objective),
+    level          : str(row.level) as MethodologyLevel | null,
+    notes          : str(row.notes),
+    moduleNumber   : row.module_number   != null ? (row.module_number   as number) : null,
+    blocName       : str(row.bloc_name),
+    trainingNumber : row.training_number != null ? (row.training_number as number) : null,
+    trainingType   : str(row.training_type) as TrainingType | null,
+    isActive       : row.is_active as boolean,
+    deletedAt      : str(row.deleted_at),
+    createdAt      : row.created_at as string,
+    updatedAt      : row.updated_at as string,
+  }
+}
+
+export async function searchTrainings(
+  query  : string,
+  filters?: { method?: MethodologyMethod; trainingType?: TrainingType },
+): Promise<MethodologySession[]> {
+  let q = supabase
+    .from('methodology_sessions')
+    .select('*')
+    .is('deleted_at', null)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(60)
+
+  if (query.trim()) q = q.ilike('title', `%${query.trim()}%`)
+  if (filters?.method)       q = q.eq('method', filters.method)
+  if (filters?.trainingType) q = q.eq('training_type', filters.trainingType)
+
+  const { data, error } = await q
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[programmes] searchTrainings:', error)
+    throw error
+  }
+  return (data ?? []).map((r) => mapSessionRow(r as Record<string, unknown>))
 }
