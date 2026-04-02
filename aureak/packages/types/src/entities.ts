@@ -678,6 +678,35 @@ export type Session = {
   // Story 21.1 — Training Builder : contexte global + titre auto-généré (migration 00071)
   contextType           : 'academie' | 'stage' | null   // contexte pédagogique global
   label                 : string | null                  // titre lisible, ex: "Goal & Player – Module 2 – ENT 7"
+  // Story 32.1 — Annulations & tampons (migration 00101)
+  cancellationType      : CancellationType | null
+}
+
+// ── Annulations & tampons (Story 32.1 — migration 00101) ──────────────────────
+
+export type CancellationType = 'reporter' | 'decaler'
+export type BufferStatus     = 'available' | 'activated' | 'expired'
+
+export type SessionBuffer = {
+  id          : string
+  tenantId    : string
+  groupId     : string
+  seasonId    : string | null
+  bufferDate  : string          // ISO date 'YYYY-MM-DD'
+  status      : BufferStatus
+  createdAt   : string
+  activatedAt : string | null
+  sessionId   : string | null   // session de rattrapage liée si activé
+}
+
+export type SeasonDebt = {
+  id             : string
+  tenantId       : string
+  groupId        : string
+  seasonId       : string | null
+  debtCount      : number
+  suspendedCount : number
+  updatedAt      : string
 }
 
 /** SessionCoach — coach assigné à une séance */

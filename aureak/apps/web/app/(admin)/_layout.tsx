@@ -15,9 +15,10 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Opérations',
     items: [
       { label: 'Tableau de bord', href: '/dashboard'   },
-      { label: 'Séances',         href: '/seances'     },
-      { label: 'Présences',       href: '/attendance'  },
-      { label: 'Évaluations',     href: '/evaluations' },
+      { label: 'Séances',         href: '/seances'          },
+      { label: 'Tampons',         href: '/seances/tampons'  },
+      { label: 'Présences',       href: '/attendance'       },
+      { label: 'Évaluations',     href: '/evaluations'      },
     ],
   },
   {

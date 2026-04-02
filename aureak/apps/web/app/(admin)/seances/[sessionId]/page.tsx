@@ -7,11 +7,13 @@ import {
   listSessionAttendees, addGuestToSession, removeGuestFromSession, listChildDirectory,
   postponeSession, cancelSessionWithShift, getChildDirectoryEntry,
   listSessionThemeBlocks, listSessionWorkshops,
+  cancelSessionV2, getGroupDebt,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, SeasonDebt, SessionBuffer } from '@aureak/types'
+import type { CancellationType } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -66,10 +68,14 @@ export default function SessionDetailPage() {
   const [guestSearch,   setGuestSearch]  = useState('')
   const [guestResults, setGuestResults]= useState<ChildDirectoryEntry[]>([])
   const [showGuestPicker, setShowGuestPicker] = useState(false)
-  // Cancel dialog
-  const [showCancelDialog, setShowCancelDialog] = useState(false)
-  const [cancelReason, setCancelReason] = useState('')
-  const [cancelError,  setCancelError]  = useState('')
+  // Cancel dialog — Story 32.1
+  const [showCancelDialog, setShowCancelDialog]     = useState(false)
+  const [cancelReason,     setCancelReason]         = useState('')
+  const [cancelError,      setCancelError]          = useState('')
+  const [cancelType,       setCancelType]           = useState<CancellationType>('reporter')
+  const [cancelSaving,     setCancelSaving]         = useState(false)
+  const [groupDebt,        setGroupDebt]            = useState<SeasonDebt | null>(null)
+  const [groupBuffers,     setGroupBuffers]         = useState<SessionBuffer[]>([])
   // Postpone dialog (Story 13.2)
   const [showPostponeDialog, setShowPostponeDialog] = useState(false)
   const [postponeDate,       setPostponeDate      ] = useState('')
@@ -165,18 +171,44 @@ export default function SessionDetailPage() {
     load()
   }
 
+  const handleOpenCancelDialog = async () => {
+    setShowCancelDialog(true)
+    if (session?.groupId) {
+      try {
+        const { debt, buffers } = await getGroupDebt(session.groupId)
+        setGroupDebt(debt)
+        setGroupBuffers(buffers)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] loadDebt:', err)
+      }
+    }
+  }
+
   const handleCancel = async () => {
     if (!cancelReason.trim()) {
       setCancelError('Le motif est obligatoire.')
       return
     }
-    // Story 13.2 : utilise cancelSessionWithShift (log audit si contenu perdu)
-    const { error } = await cancelSessionWithShift(sessionId!, cancelReason.trim())
-    if (error) {
-      setCancelError((error as Error).message ?? 'Erreur lors de l\'annulation.')
-    } else {
+    if (!session) return
+    setCancelSaving(true)
+    try {
+      // Story 32.1 : utilise cancelSessionV2 avec type Reporter/Décaler
+      await cancelSessionV2({
+        sessionId : sessionId!,
+        type      : cancelType,
+        reason    : cancelReason.trim(),
+        tenantId  : session.tenantId,
+        groupId   : session.groupId,
+        seasonId  : null,
+      })
       setShowCancelDialog(false)
+      setCancelReason('')
       load()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] handleCancel:', err)
+      setCancelError((err as Error).message ?? 'Erreur lors de l\'annulation.')
+    } finally {
+      setCancelSaving(false)
     }
   }
 
@@ -490,7 +522,7 @@ export default function SessionDetailPage() {
           />
           <AureakButton
             label="✕ Annuler la séance"
-            onPress={() => setShowCancelDialog(true)}
+            onPress={handleOpenCancelDialog}
             variant="danger"
           />
         </View>
@@ -498,7 +530,7 @@ export default function SessionDetailPage() {
       {session.status === 'en_cours' ? (
         <AureakButton
           label="Annuler la séance"
-          onPress={() => setShowCancelDialog(true)}
+          onPress={handleOpenCancelDialog}
           variant="danger"
         />
       ) : null}
@@ -542,19 +574,58 @@ export default function SessionDetailPage() {
         </View>
       </Modal>
 
-      {/* Cancel dialog */}
+      {/* Cancel dialog — Story 32.1 */}
       <Modal visible={showCancelDialog} transparent animationType="fade">
         <View style={{
           flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
           justifyContent: 'center', alignItems: 'center', padding: space.xl,
         }}>
-          <View style={[styles.card, { width: '100%', maxWidth: 400 }]}>
+          <View style={[styles.card, { width: '100%', maxWidth: 440 }]}>
             <AureakText variant="h3">Annuler la séance</AureakText>
-            <AureakText variant="body" style={{ color: colors.text.muted }}>
-              Le motif est obligatoire et sera communiqué aux parents.
+
+            {/* Mode : Reporter vs Décaler */}
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 4 }}>
+              {(['reporter', 'decaler'] as CancellationType[]).map((t) => (
+                <Pressable
+                  key={t}
+                  onPress={() => setCancelType(t)}
+                  style={{
+                    flex: 1, padding: 10, borderRadius: 8, alignItems: 'center',
+                    borderWidth: 1.5,
+                    backgroundColor: cancelType === t ? (t === 'reporter' ? colors.accent.red : colors.accent.gold) : colors.light.elevated,
+                    borderColor    : cancelType === t ? (t === 'reporter' ? colors.accent.red : colors.accent.gold) : colors.border.light,
+                  }}
+                >
+                  <AureakText variant="caption" style={{
+                    fontWeight: '700' as never,
+                    color: cancelType === t ? '#fff' : colors.text.muted,
+                  }}>
+                    {t === 'reporter' ? '⚠️ Reporter' : '📅 Décaler'}
+                  </AureakText>
+                </Pressable>
+              ))}
+            </View>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 8 }}>
+              {cancelType === 'reporter'
+                ? 'Séance perdue → dette +1 tampon. Les séances séquentielles avancent.'
+                : 'Programme décalé d\'une semaine → aucune dette créée.'}
             </AureakText>
+
+            {/* Infos dette */}
+            {groupDebt && (
+              <View style={{ backgroundColor: colors.light.elevated, borderRadius: 6, padding: 8, marginBottom: 8 }}>
+                <AureakText variant="caption" style={{ fontWeight: '700' as never, color: colors.text.primary }}>
+                  Dette actuelle : {groupDebt.debtCount} tampon(s)
+                  {groupDebt.suspendedCount > 0 ? ` + ${groupDebt.suspendedCount} suspendue(s)` : ''}
+                </AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                  Tampons disponibles : {groupBuffers.filter((b) => b.status === 'available').length}
+                </AureakText>
+              </View>
+            )}
+
             {session?.sessionType && ['goal_and_player','technique','situationnel'].includes(session.sessionType) && (
-              <View style={{ backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm }}>
+              <View style={{ backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm, marginBottom: 8 }}>
                 <AureakText variant="caption" style={{ color: '#D97706', fontWeight: '700' as never }}>
                   ⚠️ Séance avec contenu séquentiel
                 </AureakText>
@@ -566,7 +637,7 @@ export default function SessionDetailPage() {
             <View style={styles.row}>
               <TextInput
                 style={styles.input}
-                placeholder="Motif d'annulation..."
+                placeholder="Motif d'annulation…"
                 value={cancelReason}
                 onChangeText={setCancelReason}
                 multiline
@@ -578,10 +649,10 @@ export default function SessionDetailPage() {
               </AureakText>
             ) : null}
             <View style={styles.row}>
-              <AureakButton label="Confirmer" onPress={handleCancel} variant="primary" />
+              <AureakButton label={cancelSaving ? '…' : 'Confirmer'} onPress={handleCancel} variant="primary" disabled={cancelSaving} />
               <AureakButton
                 label="Annuler"
-                onPress={() => { setShowCancelDialog(false); setCancelReason(''); setCancelError('') }}
+                onPress={() => { setShowCancelDialog(false); setCancelReason(''); setCancelError(''); setCancelType('reporter') }}
                 variant="secondary"
               />
             </View>
