@@ -1,4 +1,4 @@
-name: "CTO Review — Analyse automatique de PR"
+name: "Aureak AI Review — Multi-agents"
 
 on:
   pull_request:
@@ -6,46 +6,44 @@ on:
     branches: [main]
 
 jobs:
-  cto-review:
-    name: "CTO Review — Claude Analysis"
+  ai-review:
+    name: "AI Review — 5 agents Claude"
     runs-on: ubuntu-latest
-    # Permissions nécessaires pour poster des commentaires sur la PR
     permissions:
       pull-requests: write
       contents: read
 
     steps:
-      # ── 1. Checkout complet (fetch-depth 0 pour git diff) ─────────────────
+      # ── 1. Checkout complet ────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ── 2. Setup Node.js ──────────────────────────────────────────────────
+      # ── 2. Node.js ─────────────────────────────────────────────────────────
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # ── 3. Installer les dépendances du script ────────────────────────────
+      # ── 3. Dépendances script ──────────────────────────────────────────────
       - name: Install script dependencies
         working-directory: .github/scripts
         run: npm install --prefer-offline
 
-      # ── 4. Vérifier que le secret est bien configuré ──────────────────────
+      # ── 4. Vérification secret ─────────────────────────────────────────────
       - name: Verify ANTHROPIC_API_KEY
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "❌ ANTHROPIC_API_KEY absent."
-            echo "   → Repo > Settings > Secrets > Actions > New repository secret"
+            echo "❌ ANTHROPIC_API_KEY absent — Repo > Settings > Secrets > Actions"
             exit 1
           fi
           echo "✅ Secret présent."
 
-      # ── 5. Récupérer les fichiers modifiés dans cette PR ──────────────────
-      # Sécurité : github.head_ref et sha passés via env, jamais interpolés dans run:
+      # ── 5. Fichiers modifiés ───────────────────────────────────────────────
+      # Sécurité : SHA passés via env, jamais interpolés directement dans run:
       - name: Get changed files
         id: changed
         env:
@@ -55,37 +53,74 @@ jobs:
           FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
           echo "Fichiers modifiés :"
           echo "$FILES"
-          # Multiline output → utiliser délimiteur EOF
           {
             echo "files<<EOF"
             echo "$FILES"
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
-      # ── 6. Exécuter le CTO Review via Claude API ──────────────────────────
-      - name: Run CTO Review agents
-        id: cto
+      # ── 6. Exécution des agents ────────────────────────────────────────────
+      # ── 6b. Score précédent (indicateur d'évolution) ─────────────────────
+      - name: Get previous review score
+        id: prev_score
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          result-encoding: string
+          script: |
+            const prNum = parseInt(process.env.PR_NUMBER)
+            const { data: comments } = await github.rest.issues.listComments({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: prNum,
+              per_page:     100,
+            })
+            const botComment = comments
+              .filter(c => c.user.type === 'Bot' && c.body.includes('<!-- aureak-ai-review -->'))
+              .pop()
+            if (!botComment) return '0'
+            const match = botComment.body.match(/\|\s*Score\s*\|\s*[🟢🟡🟠🔴]\s*\*\*(\d+)\/100\*\*/)
+            return match ? match[1] : '0'
+
+      # ── 7. Exécution des agents ────────────────────────────────────────────
+      - name: Run AI Review agents
+        id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CHANGED_FILES:      ${{ steps.changed.outputs.files }}
           PR_NUMBER:          ${{ github.event.pull_request.number }}
+          PREV_SCORE:         ${{ steps.prev_score.outputs.result }}
           GITHUB_WORKSPACE:   ${{ github.workspace }}
         run: |
-          node .github/scripts/cto-review.mjs > /tmp/cto_output.txt 2>&1 || EXIT_CODE=$?
-          cat /tmp/cto_output.txt
-          # Extraire le commentaire balisé du stdout
+          # Capture stdout+stderr, on veut les deux
+          node .github/scripts/cto-review.mjs 2>&1 | tee /tmp/cto_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          # Extraire le commentaire PR balisé du stdout
           python3 - << 'PYEOF'
-          import re, sys
+          import re
           content = open('/tmp/cto_output.txt').read()
           match = re.search(r'__COMMENT_START__\n(.*?)\n__COMMENT_END__', content, re.DOTALL)
-          if match:
-              open('/tmp/pr_comment.md', 'w').write(match.group(1))
-          else:
-              open('/tmp/pr_comment.md', 'w').write('## 🤖 CTO Review\n\n> Erreur lors de la génération du rapport — voir les logs CI.')
+          open('/tmp/pr_comment.md', 'w').write(
+            match.group(1) if match
+            else '## 🤖 Aureak AI Review\n\n> Erreur lors de la génération — voir les logs CI.'
+          )
+          # Extraire le signal de blocage
+          blocked = 'true' in re.findall(r'__BLOCKED__:(true|false)', content)
+          reason_match = re.search(r'__BLOCK_REASON__:(.*)', content)
+          reason = reason_match.group(1).strip() if reason_match else 'Voir les détails dans le commentaire PR'
+          open('/tmp/block_signal.txt', 'w').write(f"BLOCKED={str(blocked).lower()}\nREASON={reason}")
           PYEOF
-          exit ${EXIT_CODE:-0}
 
-      # ── 7. Poster le commentaire sur la PR ────────────────────────────────
+          # Lire le signal de blocage
+          source /tmp/block_signal.txt || true
+          echo "blocked=$BLOCKED" >> $GITHUB_OUTPUT
+          echo "block_reason=$REASON" >> $GITHUB_OUTPUT
+
+          exit $EXIT_CODE
+
+      # ── 7. Poster le commentaire (toujours — même si bloqué) ──────────────
       - name: Post PR comment
         if: always()
         uses: actions/github-script@v7
@@ -100,17 +135,16 @@ jobs:
             try {
               body = fs.readFileSync('/tmp/pr_comment.md', 'utf8')
             } catch {
-              body = '## 🤖 CTO Review\n\n> Rapport non disponible — voir les logs CI.'
+              body = '## 🤖 Aureak AI Review\n\n> Rapport non disponible — voir les logs CI.'
             }
 
-            // Tronquer si trop long pour l'API GitHub (65 535 chars max)
+            // Tronquer si trop long (limite GitHub : 65 535 chars)
             if (body.length > 65000) {
-              body = body.slice(0, 64800) + '\n\n> ⚠️ _Rapport tronqué — taille limite GitHub atteinte._'
+              body = body.slice(0, 64800) + '\n\n> ⚠️ _Rapport tronqué — limite GitHub atteinte._'
             }
 
-            // Chercher un commentaire existant de ce bot pour le mettre à jour
-            // (évite de spammer la PR à chaque push)
-            const marker = '<!-- cto-review-bot -->'
+            // Mettre à jour le commentaire existant du bot (évite le spam sur chaque push)
+            const MARKER = '<!-- aureak-ai-review -->'
             const { data: comments } = await github.rest.issues.listComments({
               owner:        context.repo.owner,
               repo:         context.repo.repo,
@@ -118,10 +152,10 @@ jobs:
             })
 
             const existing = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes(marker)
+              c.user.type === 'Bot' && c.body.includes(MARKER)
             )
 
-            const fullBody = marker + '\n' + body
+            const fullBody = MARKER + '\n' + body
 
             if (existing) {
               await github.rest.issues.updateComment({
@@ -130,6 +164,7 @@ jobs:
                 comment_id: existing.id,
                 body:       fullBody,
               })
+              console.log('Commentaire AI Review mis à jour.')
             } else {
               await github.rest.issues.createComment({
                 owner:        context.repo.owner,
@@ -137,4 +172,33 @@ jobs:
                 issue_number: prNum,
                 body:         fullBody,
               })
+              console.log('Commentaire AI Review créé.')
             }
+
+      # ── 8. Étape de blocage explicite ─────────────────────────────────────
+      # Cette étape échoue si le script a demandé un blocage.
+      # Configurer ce job comme "required status check" dans les branch protection rules
+      # pour empêcher le merge automatique.
+      - name: Enforce block decision
+        if: always()
+        env:
+          REVIEW_EXIT: ${{ steps.review.outcome }}
+        run: |
+          if [ "$REVIEW_EXIT" = "failure" ]; then
+            echo ""
+            echo "════════════════════════════════════════"
+            echo "  🚨  PR BLOQUÉE — Merge interdit"
+            echo "════════════════════════════════════════"
+            echo ""
+            echo "  Cause possible :"
+            echo "    • Score global < 80/100"
+            echo "    • Faille de sécurité critique détectée"
+            echo "    • Agent a retourné BLOCKED"
+            echo ""
+            echo "  → Consulter le commentaire AI Review dans la PR"
+            echo "  → Corriger les problèmes signalés"
+            echo "  → Repousser la branche pour relancer l'analyse"
+            echo ""
+            exit 1
+          fi
+          echo "✅ Aucun blocage — PR peut être mergée après validation humaine."
