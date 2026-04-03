@@ -4,13 +4,13 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listAllGroups, listImplantations } from '@aureak/api-client'
+import { listAllGroups, listImplantations, listAcademySeasons, createGroup } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import {
   GROUP_METHODS, METHOD_COLOR,
 } from '@aureak/business-logic'
-import type { GroupWithMeta, GroupMethod, Implantation } from '@aureak/types'
+import type { GroupWithMeta, GroupMethod, Implantation, AcademySeason } from '@aureak/types'
 
 // ── Method badge ───────────────────────────────────────────────────────────────
 
@@ -47,21 +47,76 @@ export default function GroupsPage() {
   const [implantFilter,  setImplantFilter]  = useState<string>('all')
   const [methodFilter,   setMethodFilter]   = useState<FilterMethod>('all')
 
+  // ── Modal génération ──────────────────────────────────────────────────────
+  const [showGenModal,   setShowGenModal]   = useState(false)
+  const [seasons,        setSeasons]        = useState<AcademySeason[]>([])
+  const [genSeasonId,    setGenSeasonId]    = useState<string>('')
+  const [genImplantId,   setGenImplantId]   = useState<string>('')
+  const [generating,     setGenerating]     = useState(false)
+  const [genResult,      setGenResult]      = useState<string | null>(null)
+
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [allGroups, { data: impls }] = await Promise.all([
+      const [allGroups, { data: impls }, { data: seas }] = await Promise.all([
         listAllGroups(),
         listImplantations(),
+        listAcademySeasons(),
       ])
       setGroups(allGroups)
-      setImplantations(impls)
+      setImplantations(impls ?? [])
+      const seasonList = seas ?? []
+      setSeasons(seasonList)
+      setGenSeasonId(prev => {
+        if (prev || seasonList.length === 0) return prev
+        const current = seasonList.find(s => s.isCurrent) ?? seasonList[0]
+        return current.id
+      })
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  const handleOpenGenModal = () => {
+    if (implantations.length > 0 && !genImplantId) {
+      setGenImplantId(implantations[0].id)
+    }
+    setGenResult(null)
+    setShowGenModal(true)
+  }
+
+  const handleGenerate = async () => {
+    if (!genImplantId) return
+    const implant = implantations.find(i => i.id === genImplantId)
+    if (!implant) return
+    setGenerating(true)
+    setGenResult(null)
+    try {
+      let created = 0
+      let errors  = 0
+      for (const method of GROUP_METHODS) {
+        const name = `${implant.name} - ${method}`
+        const { error } = await createGroup({
+          tenantId       : implant.tenantId,
+          implantationId : genImplantId,
+          name,
+          method,
+        })
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[GroupsPage] createGroup error:', error)
+          errors++
+        } else {
+          created++
+        }
+      }
+      setGenResult(`${created} groupe${created !== 1 ? 's' : ''} créé${created !== 1 ? 's' : ''}${errors > 0 ? `, ${errors} erreur(s)` : ''}.`)
+      await load()
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   const filtered = groups.filter(g => {
     if (search && !g.name.toLowerCase().includes(search.toLowerCase())) return false
@@ -75,7 +130,10 @@ export default function GroupsPage() {
     return `${String(h).padStart(2, '0')}h${String(m ?? 0).padStart(2, '0')}`
   }
 
+  const genImplant = implantations.find(i => i.id === genImplantId)
+
   return (
+    <>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
       {/* ── Header ── */}
@@ -88,6 +146,11 @@ export default function GroupsPage() {
             </AureakText>
           )}
         </View>
+        <Pressable style={s.genBtn} onPress={handleOpenGenModal}>
+          <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+            + Générer groupes
+          </AureakText>
+        </Pressable>
       </View>
 
       {/* ── Search ── */}
@@ -234,13 +297,172 @@ export default function GroupsPage() {
         </View>
       )}
     </ScrollView>
+
+    {/* ── Modal génération groupes ── */}
+    {showGenModal && (
+      <Pressable
+        style={{
+          position: 'fixed' as never,
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.35)',
+          zIndex: 100,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 32,
+        }}
+        onPress={() => setShowGenModal(false)}
+      >
+        <Pressable
+          onPress={e => e.stopPropagation()}
+          style={{
+            backgroundColor: colors.light.surface,
+            borderRadius   : 12,
+            padding        : 24,
+            width          : '100%',
+            maxWidth       : 480,
+            gap            : 16,
+          }}
+        >
+          {/* Modal header */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <AureakText variant="h3" style={{ color: colors.text.dark }}>Générer des groupes</AureakText>
+            <Pressable onPress={() => setShowGenModal(false)}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 18 }}>✕</AureakText>
+            </Pressable>
+          </View>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
+            Génère un groupe par méthode pédagogique pour l'implantation sélectionnée.
+          </AureakText>
+
+          {/* Saison */}
+          {seasons.length > 0 && (
+            <View style={{ gap: 6 }}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700' }}>SAISON</AureakText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {seasons.map(season => (
+                    <Pressable
+                      key={season.id}
+                      style={[s2.chip, genSeasonId === season.id && s2.chipActive]}
+                      onPress={() => setGenSeasonId(season.id)}
+                    >
+                      <AureakText variant="caption" style={{ color: genSeasonId === season.id ? colors.light.primary : colors.text.dark, fontWeight: '600' }}>
+                        {season.label}{season.isCurrent ? ' (actuelle)' : ''}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Implantation */}
+          <View style={{ gap: 6 }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700' }}>IMPLANTATION</AureakText>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {implantations.map(i => (
+                <Pressable
+                  key={i.id}
+                  style={[s2.chip, genImplantId === i.id && s2.chipActive]}
+                  onPress={() => setGenImplantId(i.id)}
+                >
+                  <AureakText variant="caption" style={{ color: genImplantId === i.id ? colors.light.primary : colors.text.dark, fontWeight: '600' }}>
+                    {i.name}
+                  </AureakText>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Aperçu */}
+          {genImplantId && (
+            <View style={{ backgroundColor: colors.light.muted, borderRadius: 8, padding: 12, gap: 6 }}>
+              <AureakText variant="caption" style={{ color: colors.text.subtle, fontWeight: '700', letterSpacing: 0.8 }}>
+                APERÇU ({GROUP_METHODS.length} GROUPES)
+              </AureakText>
+              {GROUP_METHODS.map(method => {
+                const color = METHOD_COLOR[method]
+                return (
+                  <View key={method} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+                    <AureakText variant="caption" style={{ color: colors.text.dark }}>
+                      {genImplant?.name ?? '…'} — {method}
+                    </AureakText>
+                  </View>
+                )
+              })}
+            </View>
+          )}
+
+          {/* Résultat */}
+          {genResult && (
+            <AureakText variant="caption" style={{ color: colors.status.present, fontWeight: '700' }}>
+              {genResult}
+            </AureakText>
+          )}
+
+          {/* Actions */}
+          <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
+            <Pressable
+              style={[s2.cancelBtn]}
+              onPress={() => setShowGenModal(false)}
+            >
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>Annuler</AureakText>
+            </Pressable>
+            <Pressable
+              style={[s2.generateBtn, (!genImplantId || generating) && { opacity: 0.5 }]}
+              onPress={handleGenerate}
+              disabled={!genImplantId || generating}
+            >
+              <AureakText variant="caption" style={{ color: colors.light.primary, fontWeight: '700' }}>
+                {generating ? 'Génération…' : 'Générer'}
+              </AureakText>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    )}
+    </>
   )
 }
+
+const s2 = StyleSheet.create({
+  chip       : {
+    paddingHorizontal: 12,
+    paddingVertical  : 6,
+    borderRadius     : 16,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.muted,
+  },
+  chipActive : { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
+  cancelBtn  : {
+    paddingHorizontal: 16,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  generateBtn: {
+    paddingHorizontal: 16,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+    backgroundColor  : colors.accent.gold,
+  },
+})
 
 const s = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
   header     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  genBtn     : {
+    paddingHorizontal: space.md,
+    paddingVertical  : 6,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.border.gold,
+    backgroundColor  : colors.accent.gold + '08',
+  },
 
   searchInput: {
     backgroundColor  : colors.light.surface,
