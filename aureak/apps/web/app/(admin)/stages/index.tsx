@@ -7,6 +7,7 @@ import { listStages } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
+import { SkeletonCard } from '../../../components/SkeletonCard'
 
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
@@ -136,7 +137,7 @@ export default function StagesPage() {
       {/* Grid */}
       {loading ? (
         <View style={s.skeletonGrid}>
-          {[0,1,2].map(i => <View key={i} style={s.skeletonCard} />)}
+          {[0,1,2,3,4,5].map(i => <SkeletonCard key={i} height={150} />)}
         </View>
       ) : filtered.length === 0 ? (
         <View style={s.emptyState}>
