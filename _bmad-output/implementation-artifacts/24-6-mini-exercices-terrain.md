@@ -1,6 +1,6 @@
 # Story 24.6 : Mini-Exercices Terrain — Liaison optionnelle à une séquence
 
-Status: review
+Status: done
 
 ## Story
 
