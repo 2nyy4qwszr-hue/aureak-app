@@ -394,6 +394,66 @@ export async function removeGroupStaff(id: string): Promise<{ error: unknown }> 
   return { error }
 }
 
+// ─── Groups by coach ─────────────────────────────────────────────────────────
+
+export type CoachGroupEntry = {
+  id          : string
+  groupId     : string
+  groupName   : string
+  role        : GroupStaffRole
+  implantationId : string | null
+  implantationName: string | null
+  createdAt   : string
+}
+
+export async function listGroupsByCoach(coachId: string): Promise<CoachGroupEntry[]> {
+  const { data: staffRows } = await supabase
+    .from('group_staff')
+    .select('id, group_id, role, created_at')
+    .eq('coach_id', coachId)
+    .order('created_at', { ascending: false })
+
+  if (!staffRows || staffRows.length === 0) return []
+
+  const groupIds = staffRows.map(s => (s as Record<string, unknown>).group_id as string)
+
+  const { data: groupRows } = await supabase
+    .from('groups')
+    .select('id, name, implantation_id')
+    .in('id', groupIds)
+
+  const { data: implantRows } = await supabase
+    .from('implantations')
+    .select('id, name')
+
+  const groupMap: Record<string, { name: string; implantationId: string | null }> = {}
+  for (const g of groupRows ?? []) {
+    const gr = g as Record<string, unknown>
+    groupMap[gr.id as string] = { name: gr.name as string, implantationId: gr.implantation_id as string | null }
+  }
+
+  const implantMap: Record<string, string> = {}
+  for (const i of implantRows ?? []) {
+    const ir = i as Record<string, unknown>
+    implantMap[ir.id as string] = ir.name as string
+  }
+
+  return staffRows.map(s => {
+    const r = s as Record<string, unknown>
+    const group = groupMap[r.group_id as string]
+    const implantId = group?.implantationId ?? null
+    return {
+      id              : r.id as string,
+      groupId         : r.group_id as string,
+      groupName       : group?.name ?? 'Groupe inconnu',
+      role            : r.role as GroupStaffRole,
+      implantationId  : implantId,
+      implantationName: implantId ? (implantMap[implantId] ?? null) : null,
+      createdAt       : r.created_at as string,
+    }
+  })
+}
+
 // ─── Members with names ───────────────────────────────────────────────────────
 
 export async function listGroupMembersWithProfiles(

@@ -2,7 +2,8 @@
 // Story 32.2 — Métriques qualité coach (vue admin)
 // Taux de remplissage débrief, taux de présence, délai moyen
 import { useEffect, useState } from 'react'
-import { getCoachQualityMetrics, getProfileDisplayName } from '@aureak/api-client'
+import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach } from '@aureak/api-client'
+import type { CoachGroupEntry } from '@aureak/api-client'
 import type { CoachQualityMetrics } from '@aureak/types'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
@@ -49,18 +50,23 @@ function MetricTile({
 
 export default function CoachQualityPage({ params }: Props) {
   const { coachId } = params
-  const [metrics,   setMetrics]   = useState<CoachQualityMetrics | null>(null)
-  const [coachName, setCoachName] = useState<string>('')
-  const [loading,   setLoading]   = useState(true)
+  const [metrics,    setMetrics]    = useState<CoachQualityMetrics | null>(null)
+  const [coachName,  setCoachName]  = useState<string>('')
+  const [groups,     setGroups]     = useState<CoachGroupEntry[]>([])
+  const [loading,    setLoading]    = useState(true)
 
   useEffect(() => {
     setLoading(true)
     Promise.all([
       getCoachQualityMetrics(coachId),
       getProfileDisplayName(coachId),
-    ]).then(([metricsRes, nameRes]) => {
+      listGroupsByCoach(coachId),
+    ]).then(([metricsRes, nameRes, groupsRes]) => {
       setMetrics(metricsRes.data)
       setCoachName(nameRes.data ?? coachId)
+      setGroups(groupsRes)
+    }).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] load error:', err)
     }).finally(() => setLoading(false))
   }, [coachId])
 
@@ -170,6 +176,53 @@ export default function CoachQualityPage({ params }: Props) {
           </div>
         </>
       )}
+
+      {/* ── Historique des groupes ── */}
+      <div style={{ marginTop: 32 }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 700, color: colors.text.dark }}>
+          Historique des groupes
+        </h2>
+        {loading ? (
+          <div style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</div>
+        ) : groups.length === 0 ? (
+          <div style={{
+            padding: 20, textAlign: 'center',
+            background: colors.light.surface, borderRadius: radius.card,
+            border: `1px dashed ${colors.border.divider}`, color: colors.text.muted, fontSize: 13,
+          }}>
+            Aucun groupe associé à ce coach.
+          </div>
+        ) : (
+          <div style={{ background: colors.light.surface, borderRadius: radius.card, boxShadow: shadows.sm, border: `1px solid ${colors.border.divider}`, overflow: 'hidden' }}>
+            {groups.map((g, i) => (
+              <div key={g.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 16px',
+                borderTop: i > 0 ? `1px solid ${colors.border.divider}` : undefined,
+              }}>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark }}>{g.groupName}</span>
+                  {g.implantationName && (
+                    <span style={{ fontSize: 12, color: colors.text.muted, marginLeft: 8 }}>— {g.implantationName}</span>
+                  )}
+                </div>
+                <span style={{
+                  fontSize: 11, fontWeight: 700,
+                  color: g.role === 'principal' ? colors.accent.gold : colors.text.muted,
+                  background: g.role === 'principal' ? colors.accent.gold + '18' : colors.light.muted,
+                  padding: '2px 8px', borderRadius: 20,
+                  textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}>
+                  {g.role}
+                </span>
+                <span style={{ fontSize: 11, color: colors.text.subtle }}>
+                  {new Date(g.createdAt).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Navigation links */}
       <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>

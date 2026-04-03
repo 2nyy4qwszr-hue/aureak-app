@@ -117,12 +117,12 @@ export {
   createGroup, createTransientGroup, updateGroup, deleteGroup, listGroupsByImplantation,
   getGroup, listAllGroups,
   addGroupMember, removeGroupMember, listGroupMembers, listGroupMembersWithProfiles,
-  listGroupStaff, addGroupStaff, updateGroupStaffRole, removeGroupStaff,
+  listGroupStaff, addGroupStaff, updateGroupStaffRole, removeGroupStaff, listGroupsByCoach,
   listAvailableCoaches, listAvailableChildren,
   listSessionsByGroup,
 } from './sessions/implantations'
 export type {
-  CreateImplantationParams, CreateGroupParams, AddGroupStaffParams,
+  CreateImplantationParams, CreateGroupParams, AddGroupStaffParams, CoachGroupEntry,
 } from './sessions/implantations'
 export {
   prefillSessionAttendees,
