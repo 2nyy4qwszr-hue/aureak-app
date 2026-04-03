@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { listAuditLogs } from '@aureak/api-client'
 import type { AuditLog, AuditFilters } from '@aureak/api-client'
-import { colors } from '@aureak/theme'
+import { colors, shadows, radius } from '@aureak/theme'
 
 export default function AuditPage() {
   const [logs, setLogs]         = useState<AuditLog[]>([])
@@ -46,6 +46,7 @@ export default function AuditPage() {
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Journal d&apos;audit</h1>
+      <p style={styles.subtitle}>{logs.length} entrée{logs.length !== 1 ? 's' : ''} · Filtrez par action, entité ou date</p>
 
       {/* Filtres */}
       <div style={styles.filterRow}>
@@ -128,16 +129,17 @@ export default function AuditPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container  : { padding: '24px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark },
+  container  : { padding: '32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark },
   loading    : { padding: '48px', textAlign: 'center', color: colors.text.muted },
-  title      : { fontSize: '28px', fontWeight: 700, marginBottom: '24px' },
-  filterRow  : { display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' },
-  input      : { padding: '8px 12px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '13px' },
+  title      : { fontSize: '28px', fontWeight: 800, marginBottom: '8px', fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold },
+  subtitle   : { fontSize: '13px', color: colors.text.muted, marginBottom: '24px' },
+  filterRow  : { display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center' },
+  input      : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '13px' },
   searchBtn  : { padding: '8px 14px', borderRadius: '6px', border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, cursor: 'pointer', fontWeight: 600 },
-  exportBtn  : { padding: '8px 14px', borderRadius: '6px', border: 'none', backgroundColor: colors.border.light, color: colors.text.dark, cursor: 'pointer', fontWeight: 600 },
-  table      : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.light.surface, borderRadius: '12px', overflow: 'hidden' },
-  th         : { padding: '10px 14px', textAlign: 'left', fontSize: '12px', color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #334155' },
-  tr         : { borderBottom: '1px solid #1E293B' },
-  td         : { padding: '10px 14px', fontSize: '13px' },
-  entity     : { backgroundColor: colors.border.light, padding: '2px 6px', borderRadius: '4px', fontSize: '12px' },
+  exportBtn  : { padding: '8px 14px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.muted, cursor: 'pointer', fontWeight: 600 },
+  table      : { width: '100%', borderCollapse: 'collapse', backgroundColor: colors.light.surface, borderRadius: '12px', overflow: 'hidden', boxShadow: shadows.sm, border: `1px solid ${colors.border.divider}` },
+  th         : { padding: '10px 14px', textAlign: 'left', fontSize: '11px', color: colors.text.subtle, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: `1px solid ${colors.border.divider}`, backgroundColor: colors.light.muted },
+  tr         : { borderBottom: `1px solid ${colors.border.divider}` },
+  td         : { padding: '10px 14px', fontSize: '13px', color: colors.text.dark },
+  entity     : { backgroundColor: colors.accent.gold + '18', border: `1px solid ${colors.border.gold}`, padding: '2px 6px', borderRadius: '4px', fontSize: '12px', color: colors.accent.gold },
 }
