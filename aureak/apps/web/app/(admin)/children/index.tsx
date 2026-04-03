@@ -7,7 +7,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
-import { AureakText, Button } from '@aureak/ui'
+import { AureakText, Button, EmptyState } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
@@ -1216,12 +1216,13 @@ export default function JoueursPage() {
           {[0,1,2,3,4,5].map(i => <PremiumSkeletonCard key={i} />)}
         </View>
       ) : joueurs.length === 0 ? (
-        <View style={s.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun joueur</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
-            {search.trim() ? 'Modifiez votre recherche.' : 'Aucun joueur ne correspond aux filtres.'}
-          </AureakText>
-        </View>
+        <EmptyState
+          icon="⚽"
+          title="Aucun joueur trouvé"
+          subtitle={search.trim() ? 'Modifiez votre recherche.' : 'Modifiez vos filtres ou ajoutez un nouveau joueur.'}
+          ctaLabel="Ajouter un joueur"
+          onCta={() => router.push('/children/new' as never)}
+        />
       ) : (
         <View style={gridStyle as never}>
           {joueurs.map(item => (
@@ -1437,17 +1438,6 @@ const s = StyleSheet.create({
 
   // Grille — gap 16 cohérent avec le CSS grid web (Story 25.5)
   gridFallback: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-
-  // État vide
-  emptyState: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 10,
-    padding        : space.xxl,
-    alignItems     : 'center',
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    boxShadow: shadows.sm,
-  },
 
   // Bulk actions bar
   bulkBar: {

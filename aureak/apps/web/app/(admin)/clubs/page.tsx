@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listClubDirectory } from '@aureak/api-client'
@@ -77,6 +77,22 @@ export default function ClubsPage() {
   const [provinceFilter,  setProvinceFilter]  = usePersistedFilters<BelgianProvince | undefined>('clubs-filter-province', undefined)
   const [relationFilter,  setRelationFilter]  = usePersistedFilters<FilterRelation>('clubs-filter-relation', 'all')
   const [actifFilter,     setActifFilter]     = usePersistedFilters<FilterActif>('clubs-filter-actif', 'actif')
+
+  const [sortKey, setSortKey] = useState<'nom' | 'ville' | 'province'>('nom')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+
+  const toggleSort = (key: 'nom' | 'ville' | 'province') => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  const sortedClubs = useMemo(() => {
+    return [...clubs].sort((a, b) => {
+      const va = (a[sortKey] ?? '').toLowerCase()
+      const vb = (b[sortKey] ?? '').toLowerCase()
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
+    })
+  }, [clubs, sortKey, sortDir])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -232,6 +248,18 @@ export default function ClubsPage() {
         ))}
       </View>
 
+      {/* ── Sort chips ── */}
+      <View style={{ flexDirection: 'row', gap: 6, marginBottom: 8 }}>
+        {(['nom', 'ville', 'province'] as const).map(k => (
+          <Pressable key={k} onPress={() => toggleSort(k)} style={[sortChip.base, sortKey === k && sortChip.active]}>
+            <AureakText variant="caption" style={{ color: sortKey === k ? colors.accent.gold : colors.text.muted, fontSize: 11 }}>
+              {k === 'nom' ? 'Nom' : k === 'ville' ? 'Ville' : 'Province'}
+              {sortKey === k ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''}
+            </AureakText>
+          </Pressable>
+        ))}
+      </View>
+
       {/* ── Grille ── */}
       {loading ? (
         <View style={styles.grid}>
@@ -241,7 +269,7 @@ export default function ClubsPage() {
             </View>
           ))}
         </View>
-      ) : clubs.length === 0 ? (
+      ) : sortedClubs.length === 0 ? (
         <View style={styles.emptyState}>
           <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun club</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
@@ -250,7 +278,7 @@ export default function ClubsPage() {
         </View>
       ) : (
         <View style={styles.grid}>
-          {clubs.map(club => (
+          {sortedClubs.map(club => (
             <View key={club.id} style={[styles.cell, { width: `${Math.floor(100 / columns)}%` as never }]}>
               <ClubCard
                 club={club}
@@ -378,4 +406,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.xs,
     paddingBottom    : space.sm,
   },
+})
+
+const sortChip = StyleSheet.create({
+  base  : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
+  active: { borderColor: colors.accent.gold, backgroundColor: colors.light.surface },
 })
