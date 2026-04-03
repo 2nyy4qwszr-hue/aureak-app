@@ -5,16 +5,19 @@ import { colors, radius, shadows, transitions } from '@aureak/theme'
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning'
 
+export type ToastAction = { label: string; onPress: () => void }
+
 export interface Toast {
   id       : string
   type     : ToastType
   message  : string
   duration?: number
+  action?  : ToastAction
 }
 
 interface ToastContextValue {
-  showToast: (message: string, type?: ToastType, duration?: number) => void
-  success  : (message: string) => void
+  showToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction) => void
+  success  : (message: string, action?: ToastAction) => void
   error    : (message: string) => void
   info     : (message: string) => void
   warning  : (message: string) => void
@@ -47,14 +50,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const showToast = useCallback((message: string, type: ToastType = 'info', duration = 4000) => {
+  const showToast = useCallback((message: string, type: ToastType = 'info', duration = 4000, action?: ToastAction) => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const toast: Toast = { id, type, message, duration }
+    const toast: Toast = { id, type, message, duration, action }
     setToasts(prev => [...prev.slice(-4), toast]) // max 5 toasts
     timerRefs.current[id] = setTimeout(() => removeToast(id), duration)
   }, [removeToast])
 
-  const success = useCallback((msg: string) => showToast(msg, 'success'), [showToast])
+  const success = useCallback((msg: string, action?: ToastAction) => showToast(msg, 'success', 4000, action), [showToast])
   const error   = useCallback((msg: string) => showToast(msg, 'error', 6000), [showToast])
   const info    = useCallback((msg: string) => showToast(msg, 'info'), [showToast])
   const warning = useCallback((msg: string) => showToast(msg, 'warning'), [showToast])
@@ -125,6 +128,25 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               >
                 {toast.message}
               </span>
+              {toast.action && (
+                <button
+                  onClick={() => { toast.action!.onPress(); removeToast(toast.id) }}
+                  style={{
+                    background   : 'none',
+                    border       : `1px solid ${cfg.border}`,
+                    borderRadius : 4,
+                    cursor       : 'pointer',
+                    color        : cfg.border,
+                    fontSize     : 11,
+                    fontWeight   : 700,
+                    padding      : '3px 8px',
+                    flexShrink   : 0,
+                    whiteSpace   : 'nowrap',
+                  }}
+                >
+                  {toast.action.label}
+                </button>
+              )}
               <button
                 onClick={() => removeToast(toast.id)}
                 style={{
