@@ -4,6 +4,7 @@ import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 
 type NavGroup = {
   label : string
@@ -367,7 +368,9 @@ export default function AdminLayout() {
           </XStack>
         )}
 
-        <Slot />
+        <ErrorBoundary>
+          <Slot />
+        </ErrorBoundary>
       </YStack>
     </XStack>
   )
