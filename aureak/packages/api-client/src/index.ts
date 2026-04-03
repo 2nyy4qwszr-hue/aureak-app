@@ -469,3 +469,9 @@ export type {
   AttendanceStats, SessionPhotoPublic,
 } from './parent/attendance-heatmap'
 
+// Story tbd-notifs-inapp — Notifications in-app
+export {
+  listInAppNotifications, markNotificationRead, markAllNotificationsRead, countUnreadNotifications,
+} from './notifications'
+export type { InAppNotification } from './notifications'
+

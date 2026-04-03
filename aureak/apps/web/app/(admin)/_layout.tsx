@@ -7,6 +7,7 @@ import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { ToastProvider } from '../../components/ToastContext'
 import { GlobalSearch } from '../../components/GlobalSearch'
+import { NotificationBadge } from '../../components/NotificationBadge'
 
 type NavGroup = {
   label : string
@@ -175,6 +176,9 @@ export default function AdminLayout() {
 
         {/* ── Global search ── */}
         <GlobalSearch />
+
+        {/* ── Notification badge ── */}
+        <NotificationBadge />
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
