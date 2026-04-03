@@ -1,10 +1,11 @@
 'use client'
 // Fiche enfant — mini-chart présences + signaux d'évaluation
+// Story tbd-parent-synthese : ajout badge récent + taux de présence amélioré
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { getChildProfile, getProfileDisplayName } from '@aureak/api-client'
+import { getChildProfile, getProfileDisplayName, getChildBadgeHistory } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
-import type { EvaluationSignal } from '@aureak/types'
+import type { EvaluationSignal, ChildBadgeHistory } from '@aureak/types'
 
 type AttendanceRow = {
   id       : string
@@ -149,18 +150,23 @@ export default function ChildFichePage() {
   const [displayName, setDisplayName] = useState('')
   const [attendances, setAttendances] = useState<AttendanceRow[]>([])
   const [evaluations, setEvaluations] = useState<EvalRow[]>([])
+  const [recentBadge, setRecentBadge] = useState<ChildBadgeHistory | null>(null)
   const [loading,     setLoading]     = useState(true)
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [profileRes, nameRes] = await Promise.all([
+        const [profileRes, nameRes, badgeRes] = await Promise.all([
           getChildProfile(childId, { months: 3 }),
           getProfileDisplayName(childId),
+          getChildBadgeHistory(childId),
         ])
         setDisplayName(nameRes.data ?? '')
         setAttendances(profileRes.attendances as unknown as AttendanceRow[])
         setEvaluations(profileRes.evaluations as EvalRow[])
+        setRecentBadge(badgeRes.data?.[0] ?? null)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[ChildFichePage] load error:', err)
       } finally {
         setLoading(false)
       }
@@ -218,6 +224,32 @@ export default function ChildFichePage() {
           </div>
         ))}
       </div>
+
+      {/* Badge récent */}
+      {recentBadge && (
+        <div style={{
+          display        : 'flex',
+          alignItems     : 'center',
+          gap            : 12,
+          backgroundColor: colors.light.surface,
+          borderRadius   : 10,
+          border         : `1px solid ${colors.border.gold}`,
+          padding        : '12px 16px',
+          marginBottom   : 20,
+        }}>
+          <span style={{ fontSize: 28 }}>{recentBadge.emoji}</span>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
+              Dernier badge obtenu
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: colors.text.dark }}>{recentBadge.badgeName}</div>
+            <div style={{ fontSize: 11, color: colors.text.muted }}>
+              {new Date(recentBadge.sessionDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+              {' · Par '}{recentBadge.awardedByName}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Attendance bar */}
       {attendances.length > 0 && (
