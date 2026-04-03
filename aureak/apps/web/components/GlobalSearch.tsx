@@ -1,122 +1,14 @@
 'use client'
 // Story tbd-recherche-globale — Recherche globale dans la sidebar admin
-import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { useRouter } from 'expo-router'
-import { listChildDirectory, listClubDirectory, listCoaches } from '@aureak/api-client'
-import { colors, space } from '@aureak/theme'
-
-type SearchResult = {
-  id      : string
-  label   : string
-  subLabel: string
-  href    : string
-  type    : 'joueur' | 'club' | 'coach'
-}
-
-const TYPE_ICON: Record<SearchResult['type'], string> = {
-  joueur: '⚽',
-  club  : '🏟',
-  coach : '👤',
-}
-const TYPE_COLOR: Record<SearchResult['type'], string> = {
-  joueur: colors.status.present,
-  club  : '#3B82F6',
-  coach : colors.accent.gold,
-}
+import React, { useRef, useEffect } from 'react'
+import { colors } from '@aureak/theme'
+import { useSearch, SEARCH_TYPE_ICON, SEARCH_TYPE_COLOR } from './SearchContext'
 
 export function GlobalSearch() {
-  const router  = useRouter()
-  const [query,   setQuery]   = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [open,    setOpen]    = useState(false)
-  const [loading, setLoading] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { query, results, loading, open, setOpen, handleChange, handleSelect } = useSearch()
   const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const search = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); return }
-    setLoading(true)
-    try {
-      const [childRes, clubRes, coachRes] = await Promise.allSettled([
-        listChildDirectory({ search: q, page: 1, pageSize: 5 }),
-        listClubDirectory({ search: q }),
-        listCoaches({ page: 1, pageSize: 5 }),
-      ])
-
-      const items: SearchResult[] = []
-
-      if (childRes.status === 'fulfilled') {
-        const children = childRes.value
-        const arr = Array.isArray(children) ? children : (children as { data?: unknown[] }).data ?? []
-        ;(arr as { id: string; displayName?: string; currentClub?: string | null }[]).forEach(c => {
-          if (c.displayName?.toLowerCase().includes(q.toLowerCase())) {
-            items.push({
-              id      : c.id,
-              label   : c.displayName ?? c.id,
-              subLabel: c.currentClub ?? 'Joueur',
-              href    : `/children/${c.id}`,
-              type    : 'joueur',
-            })
-          }
-        })
-      }
-
-      if (clubRes.status === 'fulfilled') {
-        const clubs = clubRes.value
-        const arr = Array.isArray(clubs) ? clubs : (clubs as { data?: unknown[] }).data ?? []
-        ;(arr as { id: string; name?: string; city?: string | null }[]).slice(0, 5).forEach(c => {
-          if (c.name?.toLowerCase().includes(q.toLowerCase())) {
-            items.push({
-              id      : c.id,
-              label   : c.name ?? c.id,
-              subLabel: c.city ?? 'Club',
-              href    : `/clubs/${c.id}`,
-              type    : 'club',
-            })
-          }
-        })
-      }
-
-      if (coachRes.status === 'fulfilled') {
-        const coaches = coachRes.value
-        const arr = Array.isArray(coaches) ? coaches : (coaches as { data?: unknown[] }).data ?? []
-        ;(arr as { userId: string; displayName?: string | null }[]).forEach(c => {
-          if (c.displayName?.toLowerCase().includes(q.toLowerCase())) {
-            items.push({
-              id      : c.userId,
-              label   : c.displayName ?? c.userId,
-              subLabel: 'Coach',
-              href    : `/coaches/${c.userId}`,
-              type    : 'coach',
-            })
-          }
-        })
-      }
-
-      setResults(items.slice(0, 10))
-    } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('[GlobalSearch] search error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const q = e.target.value
-    setQuery(q)
-    setOpen(true)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => search(q), 300)
-  }
-
-  const handleSelect = (result: SearchResult) => {
-    router.push(result.href as never)
-    setQuery('')
-    setResults([])
-    setOpen(false)
-  }
-
-  // Close on outside click
+  // Ferme la dropdown sur clic extérieur
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -125,7 +17,7 @@ export function GlobalSearch() {
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [])
+  }, [setOpen])
 
   return (
     <div
@@ -195,13 +87,13 @@ export function GlobalSearch() {
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.light.muted }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent' }}
             >
-              <span style={{ fontSize: 14 }}>{TYPE_ICON[r.type]}</span>
+              <span style={{ fontSize: 14 }}>{SEARCH_TYPE_ICON[r.type]}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: colors.text.dark, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {r.label}
                 </div>
                 <div style={{ fontSize: 10, color: colors.text.muted }}>
-                  <span style={{ color: TYPE_COLOR[r.type], fontWeight: 700 }}>{r.type}</span>
+                  <span style={{ color: SEARCH_TYPE_COLOR[r.type], fontWeight: 700 }}>{r.type}</span>
                   {' · '}{r.subLabel}
                 </div>
               </div>

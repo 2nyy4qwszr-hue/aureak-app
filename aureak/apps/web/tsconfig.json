@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
+    "types": ["vitest/globals"],
     "paths": {
       "@aureak/types": ["../../packages/types/src/index.ts"],
       "@aureak/theme": ["../../packages/theme/src/index.ts"],

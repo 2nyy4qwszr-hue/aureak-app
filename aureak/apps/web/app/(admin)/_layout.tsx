@@ -6,6 +6,8 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { ToastProvider } from '../../components/ToastContext'
+import { NotificationProvider } from '../../components/NotificationContext'
+import { SearchProvider } from '../../components/SearchContext'
 import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
 
@@ -102,6 +104,8 @@ export default function AdminLayout() {
 
   return (
     <ToastProvider>
+    <NotificationProvider>
+    <SearchProvider>
     <XStack flex={1} style={{ height: '100vh' as never }}>
 
       {/* ── Mobile overlay ── */}
@@ -384,6 +388,8 @@ export default function AdminLayout() {
         </ErrorBoundary>
       </YStack>
     </XStack>
+    </SearchProvider>
+    </NotificationProvider>
     </ToastProvider>
   )
 }

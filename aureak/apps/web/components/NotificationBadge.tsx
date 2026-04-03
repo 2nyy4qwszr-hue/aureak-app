@@ -1,29 +1,13 @@
 'use client'
 // Story tbd-notifs-inapp — Badge de notifications in-app dans la sidebar
-import React, { useEffect, useState, useCallback } from 'react'
+import React from 'react'
 import { useRouter } from 'expo-router'
-import { countUnreadNotifications } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
+import { useNotification } from './NotificationContext'
 
 export function NotificationBadge() {
   const router = useRouter()
-  const [count, setCount] = useState(0)
-
-  const load = useCallback(async () => {
-    try {
-      const { count: n } = await countUnreadNotifications()
-      setCount(n)
-    } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('[NotificationBadge] load error:', err)
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-    // Rafraîchir toutes les 60 secondes
-    const interval = setInterval(load, 60_000)
-    return () => clearInterval(interval)
-  }, [load])
+  const { count } = useNotification()
 
   return (
     <button

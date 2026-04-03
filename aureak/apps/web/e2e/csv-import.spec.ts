@@ -94,7 +94,7 @@ test.describe('Import CSV joueurs', () => {
     }
   })
 
-  test('le bouton Importer est désactivé tant qu'aucun fichier n'est uploadé', async ({ page }) => {
+  test("le bouton Importer est désactivé tant qu'aucun fichier n'est uploadé", async ({ page }) => {
     await page.getByText('Importer CSV').click()
     await expect(page.getByText('Importer des joueurs depuis un CSV')).toBeVisible()
 
