@@ -51,7 +51,8 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Analytics',
     items: [
-      { label: 'Comparaison',   href: '/analytics'     },
+      { label: 'Comparaison',     href: '/analytics'                },
+      { label: 'Par implantation', href: '/analytics/implantation'  },
     ],
   },
   {
