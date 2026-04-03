@@ -250,6 +250,7 @@ export default function SeancesPage() {
   const [allGroups,       setAllGroups]       = useState<GroupRef[]>([])
   const [filterImplantId, setFilterImplantId] = useState('')
   const [filterGroupId,   setFilterGroupId]   = useState('')
+  const [filterStatus,    setFilterStatus]    = useState<string>('')
 
   // ── Data ────────────────────────────────────────────────────────────────────
   const [sessions,     setSessions]     = useState<SessionRowAdmin[]>([])
@@ -325,6 +326,12 @@ export default function SeancesPage() {
   const implantMap = useMemo(() => new Map(implantations.map(i => [i.id, i.name])), [implantations])
   const groupMap   = useMemo(() => new Map(allGroups.map(g => [g.id, g.name])), [allGroups])
 
+  // ── Client-side status filter ─────────────────────────────────────────────
+  const filteredSessions = useMemo(
+    () => filterStatus ? sessions.filter(s => s.status === filterStatus) : sessions,
+    [sessions, filterStatus]
+  )
+
   // ── Nav helpers ──────────────────────────────────────────────────────────────
   const goPrev      = () => setRefDate(d => navigatePeriod(d, period, -1))
   const goNext      = () => setRefDate(d => navigatePeriod(d, period,  1))
@@ -363,7 +370,7 @@ export default function SeancesPage() {
           <AureakText variant="h2" color={colors.accent.gold}>Séances</AureakText>
           {!loading && (
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {sessions.length} séance{sessions.length !== 1 ? 's' : ''} sur la période
+              {filteredSessions.length}{filterStatus ? `/${sessions.length}` : ''} séance{filteredSessions.length !== 1 ? 's' : ''} sur la période
             </AureakText>
           )}
         </View>
@@ -457,6 +464,28 @@ export default function SeancesPage() {
             </View>
           </View>
         )}
+
+        {/* Statut — filtre client */}
+        <View style={st.filterSection}>
+          <AureakText style={st.filterLabel}>Statut</AureakText>
+          <View style={st.chipRow}>
+            {[
+              { key: '', label: 'Tous' },
+              { key: 'planifiée', label: 'Planifiée' },
+              { key: 'en_cours',  label: 'En cours' },
+              { key: 'réalisée',  label: 'Réalisée' },
+              { key: 'annulée',   label: 'Annulée' },
+            ].map(({ key, label }) => (
+              <Pressable
+                key={key}
+                style={[st.chip, filterStatus === key && st.chipActive]}
+                onPress={() => setFilterStatus(key)}
+              >
+                <AureakText style={[st.chipText, filterStatus === key && st.chipTextActive] as never}>{label}</AureakText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
       </View>
 
       {/* ── Period navigation ── */}
@@ -479,13 +508,15 @@ export default function SeancesPage() {
           {[0,1,2,3].map(i => <View key={i} style={st.skeletonCard} />)}
         </View>
 
-      ) : sessions.length === 0 && period !== 'month' && period !== 'year' ? (
+      ) : filteredSessions.length === 0 && period !== 'month' && period !== 'year' ? (
         <View style={st.emptyState}>
           <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucune séance</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4, textAlign: 'center' as never }}>
-            {filterImplantId
-              ? 'Aucune séance pour cette sélection sur la période.'
-              : 'Aucune séance sur cette période.'}
+            {filterStatus
+              ? `Aucune séance avec le statut "${filterStatus}" sur cette période.`
+              : filterImplantId
+                ? 'Aucune séance pour cette sélection sur la période.'
+                : 'Aucune séance sur cette période.'}
           </AureakText>
           <Pressable
             style={[st.newBtn, { marginTop: space.md }]}
@@ -499,7 +530,7 @@ export default function SeancesPage() {
 
       ) : period === 'day' ? (
         <DayView
-          sessions    ={sessions}
+          sessions    ={filteredSessions}
           coachNameMap={coachNameMap}
           groupMap    ={groupMap}
           implantMap  ={implantMap}
@@ -509,7 +540,7 @@ export default function SeancesPage() {
 
       ) : period === 'week' ? (
         <WeekView
-          sessions    ={sessions}
+          sessions    ={filteredSessions}
           weekStart   ={range.start}
           coachNameMap={coachNameMap}
           groupMap    ={groupMap}
@@ -520,7 +551,7 @@ export default function SeancesPage() {
 
       ) : period === 'month' ? (
         <MonthView
-          sessions  ={sessions}
+          sessions  ={filteredSessions}
           year      ={refDate.getFullYear()}
           month     ={refDate.getMonth()}
           groupMap  ={groupMap}
@@ -529,7 +560,7 @@ export default function SeancesPage() {
 
       ) : (
         <YearView
-          sessions    ={sessions}
+          sessions    ={filteredSessions}
           year        ={refDate.getFullYear()}
           onMonthClick={handleMonthClick}
         />
