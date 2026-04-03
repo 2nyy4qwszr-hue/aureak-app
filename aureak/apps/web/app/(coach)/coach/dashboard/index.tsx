@@ -316,6 +316,54 @@ export default function CoachDashboardPage() {
           })}
         </div>
       )}
+
+      {/* ── Taux de présence récent ── */}
+      {completedMonth.length > 0 && (() => {
+        // Taux estimé depuis les sessions terminées du mois
+        const avgDuration = completedMonth.reduce((sum, s) => sum + (s.durationMinutes ?? 60), 0) / completedMonth.length
+        return (
+          <div style={{ marginTop: 24 }}>
+            <div style={S.sectionLabel}>Activité ce mois</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ ...S.kpiCard, borderTop: `3px solid ${colors.status.success}` }}>
+                <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
+                  {completedMonth.length}
+                </div>
+                <div style={{ fontSize: 11, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
+                  séances réalisées
+                </div>
+              </div>
+              <div style={{ ...S.kpiCard, borderTop: `3px solid ${colors.accent.gold}` }}>
+                <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
+                  {Math.round(avgDuration)} min
+                </div>
+                <div style={{ fontSize: 11, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
+                  durée moyenne
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* ── Séances récentes avec évaluations manquantes ── */}
+      {missingEvals.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={S.sectionLabel}>Évaluations à compléter</div>
+          <div style={S.alertBand}>
+            <span style={{ fontSize: 13, color: colors.status.attention }}>
+              {missingEvals.length} séance{missingEvals.length > 1 ? 's' : ''} récente{missingEvals.length > 1 ? 's' : ''} sans évaluation — cliquez pour compléter
+            </span>
+            <button
+              className="cd-btn"
+              style={S.alertAction}
+              onClick={() => router.push('/coach/sessions' as never)}
+            >
+              Compléter →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
