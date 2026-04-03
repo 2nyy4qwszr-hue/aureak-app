@@ -21,9 +21,12 @@ import {
   listChildInjuries, addChildInjury, deleteChildInjury,
   // Story 18.2 — photos joueurs
   listChildPhotos, addChildPhoto, setCurrentPhoto, deleteChildPhoto,
+  // Story tbd-historique-versions-joueur
+  listAuditLogs,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
   type AddChildPhotoParams,
+  type AuditLog,
 } from '@aureak/api-client'
 
 // ── Niveaux de compétition ───────────────────────────────────────────────────
@@ -1105,6 +1108,7 @@ export default function ChildDetailPage() {
   const [allStages,    setAllStages]    = useState<Stage[]>([])
   const [injuries,     setInjuries]     = useState<ChildDirectoryInjury[]>([])
   const [photos,       setPhotos]       = useState<ChildDirectoryPhoto[]>([])
+  const [auditLogs,    setAuditLogs]    = useState<AuditLog[]>([])
   const [loading,      setLoading]      = useState(true)
   const [showAddHist,  setShowAddHist]  = useState(false)
   const [deletingId,   setDeletingId]   = useState<string | null>(null)
@@ -1120,7 +1124,7 @@ export default function ChildDetailPage() {
     if (!childId) return
     setLoading(true)
     try {
-      const [entryR, histR, acStatusR, memsR, stPartsR, seasonsR, stageListR, injuriesR, photosR] = await Promise.allSettled([
+      const [entryR, histR, acStatusR, memsR, stPartsR, seasonsR, stageListR, injuriesR, photosR, auditR] = await Promise.allSettled([
         getChildDirectoryEntry(childId),
         listChildDirectoryHistory(childId),
         getChildAcademyStatus(childId),
@@ -1130,6 +1134,7 @@ export default function ChildDetailPage() {
         listStages({ status: 'planifié' }),
         listChildInjuries(childId),
         listChildPhotos(childId),
+        listAuditLogs({ entityType: 'child_directory' }),
       ])
 
       const entry     = entryR.status     === 'fulfilled' ? entryR.value     : null
@@ -1141,6 +1146,7 @@ export default function ChildDetailPage() {
       const stageList = stageListR.status === 'fulfilled' ? stageListR.value : []
       const injList   = injuriesR.status  === 'fulfilled' ? injuriesR.value  : []
       const photoList = photosR.status    === 'fulfilled' ? photosR.value    : []
+      const auditList = auditR.status     === 'fulfilled' ? (auditR.value.data ?? []) : []
 
       setChild(entry)
       setHistory(hist)
@@ -1151,6 +1157,7 @@ export default function ChildDetailPage() {
       setAllStages(stageList as Stage[])
       setInjuries(injList)
       setPhotos(photoList)
+      setAuditLogs(auditList)
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') console.error('[ChildDetailPage] loadChild error', e)
     } finally {
@@ -1777,6 +1784,35 @@ export default function ChildDetailPage() {
             )
           )}
         </View>
+
+        {/* ── Historique des modifications ── */}
+        {(() => {
+          const childLogs = auditLogs.filter(l => l.entity_id === childId).slice(0, 15)
+          return (
+            <View style={s.card}>
+              <SectionTitle>Historique des modifications</SectionTitle>
+              {childLogs.length === 0 ? (
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucune modification enregistrée.</AureakText>
+              ) : childLogs.map(log => (
+                <View key={log.id} style={{ paddingVertical: space.xs, borderBottomWidth: 1, borderBottomColor: colors.border.divider, gap: 2 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' }}>
+                      {log.action}
+                    </AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
+                      {new Date(log.created_at).toLocaleString('fr-BE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </AureakText>
+                  </View>
+                  {Object.keys(log.metadata ?? {}).length > 0 && (
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
+                      {Object.entries(log.metadata).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')}
+                    </AureakText>
+                  )}
+                </View>
+              ))}
+            </View>
+          )
+        })()}
 
         {/* ── Métadonnées ── */}
         <View style={s.card}>
