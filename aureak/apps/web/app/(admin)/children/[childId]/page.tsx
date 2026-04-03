@@ -1300,9 +1300,24 @@ export default function ChildDetailPage() {
       <ScrollView style={s.container} contentContainerStyle={s.content}>
 
         {/* ── Navigation ── */}
-        <View style={s.pageHeader}>
+        <View style={[s.pageHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Pressable onPress={() => router.back()}>
             <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
+          </Pressable>
+          <Pressable
+            style={{
+              paddingHorizontal: space.md,
+              paddingVertical  : 5,
+              borderRadius     : 6,
+              borderWidth      : 1,
+              borderColor      : colors.border.light,
+              backgroundColor  : colors.light.surface,
+            }}
+            onPress={() => { if (typeof window !== 'undefined') window.print() }}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+              Exporter PDF
+            </AureakText>
           </Pressable>
         </View>
 
