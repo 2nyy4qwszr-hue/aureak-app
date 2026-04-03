@@ -12,6 +12,7 @@ import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
 import type { AcademyStatus } from '@aureak/types'
+import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
 
 const PAGE_SIZE = 50
 
@@ -839,10 +840,10 @@ export default function JoueursPage() {
 
   const [searchInput,  setSearchInput]  = useState('')
   const [search,       setSearch]       = useState('')
-  const [acadStatus,   setAcadStatus]   = useState<AcadStatusFilter>('all')
-  const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>('all')
-  const [stageFilter,  setStageFilter]  = useState<StageFilter>('all')
-  const [birthYear,    setBirthYear]    = useState<string>('all')
+  const [acadStatus,   setAcadStatus]   = usePersistedFilters<AcadStatusFilter>('children-filter-acadStatus', 'all')
+  const [seasonFilter, setSeasonFilter] = usePersistedFilters<SeasonFilter>('children-filter-season', 'all')
+  const [stageFilter,  setStageFilter]  = usePersistedFilters<StageFilter>('children-filter-stage', 'all')
+  const [birthYear,    setBirthYear]    = usePersistedFilters<string>('children-filter-birthYear', 'all')
 
   // Nombre total de filtres actifs (hors recherche)
   const activeFilterCount = useMemo(() => {

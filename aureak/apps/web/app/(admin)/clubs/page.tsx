@@ -7,6 +7,7 @@ import { colors, space } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
 import { ClubCard, ClubCardSkeleton } from './_components'
+import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
 
 const PAGE_SIZE = 50
 
@@ -73,9 +74,9 @@ export default function ClubsPage() {
 
   const [search,          setSearch]          = useState('')
   const [searchInput,     setSearchInput]     = useState('')
-  const [provinceFilter,  setProvinceFilter]  = useState<BelgianProvince | undefined>()
-  const [relationFilter,  setRelationFilter]  = useState<FilterRelation>('all')
-  const [actifFilter,     setActifFilter]     = useState<FilterActif>('actif')
+  const [provinceFilter,  setProvinceFilter]  = usePersistedFilters<BelgianProvince | undefined>('clubs-filter-province', undefined)
+  const [relationFilter,  setRelationFilter]  = usePersistedFilters<FilterRelation>('clubs-filter-relation', 'all')
+  const [actifFilter,     setActifFilter]     = usePersistedFilters<FilterActif>('clubs-filter-actif', 'actif')
 
   const load = useCallback(async () => {
     setLoading(true)
