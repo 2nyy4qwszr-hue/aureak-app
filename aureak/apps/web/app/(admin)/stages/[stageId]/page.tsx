@@ -10,7 +10,7 @@ import {
   listStageBlocks, createStageBlock, updateStageBlock, deleteStageBlock,
   listAvailableCoaches,
 } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
+import { AureakText, HierarchyBreadcrumb } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import { METHOD_COLOR } from '@aureak/business-logic'
 import type {
@@ -694,6 +694,10 @@ export default function StageDetailPage() {
           <Pressable onPress={() => router.push('/stages' as never)} style={p.backBtn}>
             <AureakText variant="caption" style={{ color: colors.text.muted }}>← Stages</AureakText>
           </Pressable>
+          <HierarchyBreadcrumb items={[
+            { label: 'Stages', onPress: () => router.push('/stages' as never) },
+            { label: stage?.name ?? 'Stage' },
+          ]} />
           <Pressable
             style={{
               paddingHorizontal: space.md,

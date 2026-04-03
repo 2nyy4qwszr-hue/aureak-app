@@ -10,7 +10,7 @@ import {
   uploadClubLogo, deleteClubLogo,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakText, Badge } from '@aureak/ui'
+import { AureakText, Badge, HierarchyBreadcrumb } from '@aureak/ui'
 import { colors, space, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES, CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
@@ -552,6 +552,10 @@ export default function ClubDetailPage() {
         <Pressable onPress={() => router.push('/clubs' as never)} style={s.backBtn}>
           <AureakText variant="caption" style={{ color: colors.text.muted }}>← Clubs</AureakText>
         </Pressable>
+        <HierarchyBreadcrumb items={[
+          { label: 'Clubs', onPress: () => router.push('/clubs' as never) },
+          { label: club?.nom ?? 'Club' },
+        ]} />
         <View style={s.headerActions}>
           {!editing ? (
             <>

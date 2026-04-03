@@ -41,7 +41,7 @@ const FOOTBALL_SEASONS = [
 ]
 import { ACADEMY_STATUS_CONFIG, generateAcademyBadges } from '@aureak/business-logic'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakText, Badge } from '@aureak/ui'
+import { AureakText, Badge, HierarchyBreadcrumb } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import { computeTeamLevelStars } from '@aureak/business-logic'
@@ -1304,6 +1304,10 @@ export default function ChildDetailPage() {
           <Pressable onPress={() => router.push('/children' as never)} style={s.backBtn}>
             <AureakText variant="caption" style={{ color: colors.text.muted }}>← Joueurs</AureakText>
           </Pressable>
+          <HierarchyBreadcrumb items={[
+            { label: 'Joueurs', onPress: () => router.push('/children' as never) },
+            { label: child?.displayName ?? 'Joueur' },
+          ]} />
           <Pressable
             style={{
               paddingHorizontal: space.md,

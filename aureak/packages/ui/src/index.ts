@@ -29,3 +29,4 @@ export { SyncStatusBanner } from './components/SyncStatusBanner'
 
 export { EmptyState } from './components/EmptyState'
 export { ConfirmDialog } from './components/ConfirmDialog'
+export { DetailSkeleton, ListRowSkeleton, CardSkeleton } from './components/Skeleton'
