@@ -28,6 +28,7 @@ export default function AdminMessagesPage() {
   const [urgency,    setUrgency]    = useState<'routine' | 'urgent'>('routine')
   const [success,    setSuccess]    = useState(false)
   const [error,      setError]      = useState<string | null>(null)
+  const [search,     setSearch]     = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -70,6 +71,17 @@ export default function AdminMessagesPage() {
   }
 
   const coachName = (id: string) => coaches.find(c => c.userId === id)?.displayName ?? id
+
+  // ── Client-side search ────────────────────────────────────────────────────────
+  const filteredMessages = search.trim()
+    ? messages.filter(m => {
+        const q = search.toLowerCase()
+        return (
+          m.message.toLowerCase().includes(q) ||
+          coachName(m.recipient_id).toLowerCase().includes(q)
+        )
+      })
+    : messages
 
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
@@ -153,14 +165,40 @@ export default function AdminMessagesPage() {
       </View>
 
       {/* ── Historique ── */}
-      <AureakText variant="label" style={[s.sectionLabel, { marginTop: space.md }] as never}>HISTORIQUE</AureakText>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.md }}>
+        <AureakText variant="label" style={s.sectionLabel as never}>
+          HISTORIQUE {filteredMessages.length !== messages.length ? `(${filteredMessages.length}/${messages.length})` : `(${messages.length})`}
+        </AureakText>
+      </View>
+
+      {/* Recherche */}
+      {messages.length > 0 && (
+        <View style={s.searchRow}>
+          <TextInput
+            style={s.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher par expéditeur ou contenu…"
+            placeholderTextColor={colors.text.muted}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {search !== '' && (
+            <Pressable style={s.clearBtn} onPress={() => setSearch('')}>
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {loading ? (
         <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
-      ) : messages.length === 0 ? (
-        <AureakText variant="body" style={{ color: colors.text.muted }}>Aucun message envoyé.</AureakText>
+      ) : filteredMessages.length === 0 ? (
+        <AureakText variant="body" style={{ color: colors.text.muted }}>
+          {search ? 'Aucun résultat pour cette recherche.' : 'Aucun message envoyé.'}
+        </AureakText>
       ) : (
-        messages.map(m => (
+        filteredMessages.map(m => (
           <View key={m.id} style={[s.msgCard, { borderLeftColor: URGENCY_COLOR[m.urgency] }]}>
             <View style={s.msgHeader}>
               <AureakText variant="caption" style={{ color: colors.text.muted }}>
@@ -186,6 +224,9 @@ export default function AdminMessagesPage() {
 const s = StyleSheet.create({
   container     : { flex: 1, backgroundColor: colors.light.primary },
   content       : { padding: space.xl, gap: space.md },
+  searchRow     : { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, backgroundColor: colors.light.surface, paddingHorizontal: 12, gap: 8 },
+  searchInput   : { flex: 1, paddingVertical: 9, color: colors.text.dark, fontSize: 13 },
+  clearBtn      : { padding: 4 },
   card          : {
     backgroundColor: colors.light.surface,
     borderRadius   : 10,
