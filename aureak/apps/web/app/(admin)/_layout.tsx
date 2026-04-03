@@ -188,7 +188,8 @@ export default function AdminLayout() {
 
               <YStack gap={1} paddingHorizontal={8}>
                 {group.items.map(({ label, href }) => {
-                  const isActive = pathname === href || pathname.startsWith(href + '/')
+                  // Exact match OR prefix match — but avoid short paths like '/' matching everything
+                  const isActive = pathname === href || (href.length > 1 && pathname.startsWith(href + '/'))
                   return (
                     <Pressable key={href} onPress={() => router.push(href as never)}>
                       {({ pressed }) => (
@@ -197,11 +198,11 @@ export default function AdminLayout() {
                           paddingLeft={12}
                           paddingRight={12}
                           borderRadius={radius.xs}
-                          borderLeftWidth={2}
+                          borderLeftWidth={3}
                           borderLeftColor={isActive ? colors.accent.gold : 'transparent' as never}
                           backgroundColor={
                             (isActive
-                              ? colors.accent.gold + '12'
+                              ? colors.accent.gold + '18'
                               : pressed
                                 ? colors.light.hover
                                 : 'transparent') as never
@@ -213,8 +214,9 @@ export default function AdminLayout() {
                           <Text
                             fontFamily="$body"
                             fontSize={13}
-                            fontWeight={isActive ? '600' : '400'}
+                            fontWeight={isActive ? '700' : '400'}
                             color={isActive ? colors.accent.gold : colors.text.muted}
+                            style={isActive ? { letterSpacing: 0.1 } as never : undefined}
                           >
                             {label}
                           </Text>
