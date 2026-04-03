@@ -545,13 +545,49 @@ export default function DashboardPresencesPage() {
       `}</style>
 
       {/* ── Header ── */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: colors.text.dark }}>
-          Dashboard Présences
-        </h1>
-        <p style={{ margin: '4px 0 0', fontSize: 13, color: colors.text.muted }}>
-          {sessions.length} séance{sessions.length !== 1 ? 's' : ''} · {timeView === 'day' ? "Aujourd'hui" : timeView === 'week' ? 'Cette semaine' : 'Ce mois'}
-        </p>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: colors.text.dark }}>
+            Dashboard Présences
+          </h1>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: colors.text.muted }}>
+            {sessions.length} séance{sessions.length !== 1 ? 's' : ''} · {timeView === 'day' ? "Aujourd'hui" : timeView === 'week' ? 'Cette semaine' : 'Ce mois'}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => {
+              const header = 'sessionId,date,groupId,status,roster,presents,absents,essais'
+              const rows = sessions.map(s => [
+                s.sessionId,
+                new Date(s.scheduledAt).toLocaleDateString('fr-BE'),
+                s.groupId,
+                s.sessionStatus,
+                s.totalRoster,
+                s.memberPresent + s.trialPresent,
+                s.absentCount,
+                s.trialPresent,
+              ].join(','))
+              const csv  = [header, ...rows].join('\n')
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+              const url  = URL.createObjectURL(blob)
+              const a    = document.createElement('a')
+              a.href = url
+              a.download = `presences-${new Date().toISOString().slice(0, 10)}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            }}
+            style={{ padding: '6px 14px', borderRadius: 6, border: `1px solid ${colors.border.light}`, background: colors.light.surface, cursor: 'pointer', fontSize: 12, color: colors.text.muted, fontWeight: 600 }}
+          >
+            Exporter CSV
+          </button>
+          <button
+            onClick={() => { if (typeof window !== 'undefined') window.print() }}
+            style={{ padding: '6px 14px', borderRadius: 6, border: `1px solid ${colors.border.light}`, background: colors.light.surface, cursor: 'pointer', fontSize: 12, color: colors.text.muted, fontWeight: 600 }}
+          >
+            Imprimer
+          </button>
+        </div>
       </div>
 
       {/* ── Suggestions conversion essai → membre ── */}
