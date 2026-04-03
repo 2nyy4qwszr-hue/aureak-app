@@ -8,6 +8,7 @@ import { colors, space } from '@aureak/theme'
 import type { BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
 import { RelationTypeSelector } from './_components'
+import { useToast } from '../../../../components/ToastContext'
 
 // ── Field components ─────────────────────────────────────────────────────────
 
@@ -163,6 +164,7 @@ export default function NewClubScreen() {
   const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
   const user     = useAuthStore((s) => s.user)
+  const toast    = useToast()
 
   const [form,       setForm]       = useState<Form>(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
@@ -209,13 +211,16 @@ export default function NewClubScreen() {
 
       if (err || !data) {
         setError('Erreur lors de la création du club.')
+        toast.error('Erreur lors de la création du club.')
         return
       }
 
+      toast.success(`Club "${data.nom}" créé avec succès.`)
       router.replace(`/clubs/${data.id}` as never)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[clubs/new] handleSubmit error:', err)
       setError('Erreur inattendue lors de la création.')
+      toast.error('Erreur inattendue lors de la création.')
     } finally {
       setSubmitting(false)
     }

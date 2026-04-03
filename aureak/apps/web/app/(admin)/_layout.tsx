@@ -5,6 +5,7 @@ import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { ToastProvider } from '../../components/ToastContext'
 
 type NavGroup = {
   label : string
@@ -97,6 +98,7 @@ export default function AdminLayout() {
   const adminInitial = (user?.email ?? 'A').charAt(0).toUpperCase()
 
   return (
+    <ToastProvider>
     <XStack flex={1} style={{ height: '100vh' as never }}>
 
       {/* ── Mobile overlay ── */}
@@ -373,5 +375,6 @@ export default function AdminLayout() {
         </ErrorBoundary>
       </YStack>
     </XStack>
+    </ToastProvider>
   )
 }

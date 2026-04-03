@@ -7,6 +7,7 @@ import { createStage, listImplantations } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Implantation, StageType } from '@aureak/types'
+import { useToast } from '../../../components/ToastContext'
 
 const STAGE_TYPES: { value: StageType; label: string }[] = [
   { value: 'été',       label: 'Été'          },
@@ -18,6 +19,7 @@ const STAGE_TYPES: { value: StageType; label: string }[] = [
 
 export default function NewStagePage() {
   const router = useRouter()
+  const toast  = useToast()
 
   const [implantations, setImplantations] = useState<Implantation[]>([])
   const [saving, setSaving] = useState(false)
@@ -55,9 +57,12 @@ export default function NewStagePage() {
         seasonLabel    : seasonLabel || null,
         notes          : notes || null,
       })
+      toast.success(`Stage "${name}" créé avec succès.`)
       router.push(`/stages/${stage.id}` as never)
     } catch (e: unknown) {
-      setError((e as Error).message ?? 'Erreur lors de la création')
+      const msg = (e as Error).message ?? 'Erreur lors de la création'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }

@@ -20,6 +20,7 @@ import { AureakText, Input, Button } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS } from '@aureak/types'
 import type { AcademySeason } from '@aureak/types'
+import { useToast } from '../../../../components/ToastContext'
 
 // ── Statuts disponibles ────────────────────────────────────────────────────────
 // Valeurs string libres — ne pas confondre avec AcademyStatus (computed depuis la vue)
@@ -32,6 +33,7 @@ type StatutOption = (typeof STATUT_OPTIONS)[number]
 export default function NewJoueurPage() {
   const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
+  const toast    = useToast()
 
   // ── Form state ────────────────────────────────────────────────────────────────
   const [nom,       setNom]       = useState('')
@@ -223,9 +225,13 @@ export default function NewJoueurPage() {
         }
       }
 
+      const displayNameFinal = [nom.trim(), prenom.trim()].filter(Boolean).join(' ')
+      toast.success(`Joueur "${displayNameFinal}" créé avec succès.`)
       router.replace(`/children/${entry.id}` as never)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de la création du joueur.')
+      const msg = e instanceof Error ? e.message : 'Erreur lors de la création du joueur.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
