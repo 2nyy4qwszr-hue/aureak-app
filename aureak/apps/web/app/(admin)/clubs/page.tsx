@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listClubDirectory } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
@@ -64,6 +64,7 @@ const ACTIF_TABS: { key: FilterActif; label: string }[] = [
 
 export default function ClubsPage() {
   const router = useRouter()
+  const params = useLocalSearchParams<{ search?: string; province?: string; relation?: string; actif?: string }>()
   const { width } = useWindowDimensions()
   const columns = width >= 1600 ? 5 : width >= 1280 ? 4 : width >= 900 ? 3 : width >= 600 ? 2 : 1
 
@@ -72,11 +73,31 @@ export default function ClubsPage() {
   const [page,             setPage]             = useState(0)
   const [loading,          setLoading]          = useState(true)
 
-  const [search,          setSearch]          = useState('')
-  const [searchInput,     setSearchInput]     = useState('')
-  const [provinceFilter,  setProvinceFilter]  = usePersistedFilters<BelgianProvince | undefined>('clubs-filter-province', undefined)
-  const [relationFilter,  setRelationFilter]  = usePersistedFilters<FilterRelation>('clubs-filter-relation', 'all')
-  const [actifFilter,     setActifFilter]     = usePersistedFilters<FilterActif>('clubs-filter-actif', 'actif')
+  const [search,          setSearch]          = useState(params.search ?? '')
+  const [searchInput,     setSearchInput]     = useState(params.search ?? '')
+  const [provinceFilter,  setProvinceFilter]  = usePersistedFilters<BelgianProvince | undefined>(
+    'clubs-filter-province',
+    (params.province as BelgianProvince | undefined) ?? undefined,
+  )
+  const [relationFilter,  setRelationFilter]  = usePersistedFilters<FilterRelation>(
+    'clubs-filter-relation',
+    (params.relation as FilterRelation | undefined) ?? 'all',
+  )
+  const [actifFilter,     setActifFilter]     = usePersistedFilters<FilterActif>(
+    'clubs-filter-actif',
+    (params.actif as FilterActif | undefined) ?? 'actif',
+  )
+
+  // Sync filters to URL so the browser Back button restores state
+  useEffect(() => {
+    router.setParams({
+      search  : search || undefined,
+      province: provinceFilter ?? undefined,
+      relation: relationFilter !== 'all' ? relationFilter : undefined,
+      actif   : actifFilter !== 'actif' ? actifFilter : undefined,
+    } as never)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, provinceFilter, relationFilter, actifFilter])
 
   const [sortKey, setSortKey] = useState<'nom' | 'ville' | 'province'>('nom')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')

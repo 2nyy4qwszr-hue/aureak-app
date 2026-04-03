@@ -17,6 +17,7 @@ import { BELGIAN_PROVINCES, CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
 import { RelationTypeSelector } from '../_components'
 import RbfaStatusBadge from '../_components/RbfaStatusBadge'
 import type { ClubChildLinkRow } from '@aureak/api-client'
+import { useToast } from '../../../../components/ToastContext'
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
@@ -313,15 +314,18 @@ export default function ClubDetailPage() {
   const tenantId   = useAuthStore((s) => s.tenantId)
   const user       = useAuthStore((s) => s.user)
 
-  const [club,          setClub]          = useState<ClubDirectoryEntry | null>(null)
-  const [loading,       setLoading]       = useState(true)
-  const [editing,       setEditing]       = useState(false)
-  const [saving,        setSaving]        = useState(false)
-  const [error,         setError]         = useState<string | null>(null)
-  const [form,          setForm]          = useState<EditForm | null>(null)
-  const [logoFile,      setLogoFile]      = useState<File | null>(null)
-  const [logoPreview,   setLogoPreview]   = useState<string | null>(null)
-  const [logoUploading, setLogoUploading] = useState(false)
+  const toast = useToast()
+
+  const [club,           setClub]           = useState<ClubDirectoryEntry | null>(null)
+  const [loading,        setLoading]        = useState(true)
+  const [editing,        setEditing]        = useState(false)
+  const [saving,         setSaving]         = useState(false)
+  const [error,          setError]          = useState<string | null>(null)
+  const [form,           setForm]           = useState<EditForm | null>(null)
+  const [logoFile,       setLogoFile]       = useState<File | null>(null)
+  const [logoPreview,    setLogoPreview]    = useState<string | null>(null)
+  const [logoUploading,  setLogoUploading]  = useState(false)
+  const [optimisticActif, setOptimisticActif] = useState<boolean | null>(null)
 
   // Players split by type
   const [currentPlayers,    setCurrentPlayers]    = useState<ClubChildLinkRow[]>([])
@@ -433,6 +437,24 @@ export default function ClubDetailPage() {
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] handleDelete error:', err)
       setError('Erreur lors de la suppression.')
+    }
+  }
+
+  // ── Toggle actif (optimistic) ─────────────────────────────────────────────
+
+  const handleToggleActif = async () => {
+    if (!club || !clubId || !tenantId || !user?.id) return
+    const newValue = !(optimisticActif ?? club.actif)
+    setOptimisticActif(newValue)
+    try {
+      const { error: err } = await updateClubDirectoryEntry({
+        clubId, tenantId, updatedBy: user.id, nom: club.nom, actif: newValue,
+      })
+      if (err) throw new Error('Erreur API')
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] handleToggleActif error:', err)
+      setOptimisticActif(!newValue) // rollback
+      toast.error('Erreur — modification annulée')
     }
   }
 
@@ -624,7 +646,12 @@ export default function ClubDetailPage() {
               variant={RELATION_BADGE_VARIANTS[club.clubRelationType as Exclude<ClubRelationType, 'normal'>]}
             />
           )}
-          <Badge label={club.actif ? 'Actif' : 'Inactif'} variant={club.actif ? 'present' : 'zinc'} />
+          <Pressable onPress={!editing ? handleToggleActif : undefined} style={{ opacity: editing ? 0.6 : 1 }}>
+            <Badge
+              label={(optimisticActif ?? club.actif) ? 'Actif' : 'Inactif'}
+              variant={(optimisticActif ?? club.actif) ? 'present' : 'zinc'}
+            />
+          </Pressable>
           {club.notionPageId && <Badge label="Notion" variant="zinc" />}
         </View>
       </View>

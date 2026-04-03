@@ -13,15 +13,17 @@ import { useToast } from '../../../components/ToastContext'
 // ── Field components ─────────────────────────────────────────────────────────
 
 function FormField({
-  label, value, onChange, placeholder, required, keyboardType, multiline,
+  label, value, onChange, onBlur, placeholder, required, keyboardType, multiline, error,
 }: {
   label       : string
   value       : string
   onChange    : (v: string) => void
+  onBlur?     : () => void
   placeholder?: string
   required?   : boolean
   keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'url'
   multiline?  : boolean
+  error?      : string
 }) {
   return (
     <View style={ff.wrapper}>
@@ -29,22 +31,26 @@ function FormField({
         {label}{required ? ' *' : ''}
       </AureakText>
       <TextInput
-        style={[ff.input, multiline && ff.textarea]}
+        style={[ff.input, multiline && ff.textarea, error ? ff.inputError : undefined]}
         value={value}
         onChangeText={onChange}
+        onBlur={onBlur}
         placeholder={placeholder}
         placeholderTextColor={colors.text.muted}
         keyboardType={keyboardType ?? 'default'}
         multiline={multiline}
         autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'sentences'}
       />
+      {error ? (
+        <AureakText variant="caption" style={ff.errorText}>{error}</AureakText>
+      ) : null}
     </View>
   )
 }
 const ff = StyleSheet.create({
-  wrapper : { gap: 4 },
-  label   : { color: colors.text.muted, fontSize: 11, fontWeight: '600' },
-  input   : {
+  wrapper   : { gap: 4 },
+  label     : { color: colors.text.muted, fontSize: 11, fontWeight: '600' },
+  input     : {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
     borderColor      : colors.border.light,
@@ -55,7 +61,9 @@ const ff = StyleSheet.create({
     fontSize         : 13,
     fontFamily       : 'System',
   },
-  textarea: { minHeight: 80, textAlignVertical: 'top' as never },
+  inputError: { borderColor: colors.accent.red },
+  errorText : { color: colors.accent.red, fontSize: 11 },
+  textarea  : { minHeight: 80, textAlignVertical: 'top' as never },
 })
 
 // ── Province selector ─────────────────────────────────────────────────────────
@@ -166,16 +174,37 @@ export default function NewClubScreen() {
   const user     = useAuthStore((s) => s.user)
   const toast    = useToast()
 
-  const [form,       setForm]       = useState<Form>(EMPTY_FORM)
-  const [submitting, setSubmitting] = useState(false)
-  const [error,      setError]      = useState<string | null>(null)
+  const [form,        setForm]        = useState<Form>(EMPTY_FORM)
+  const [submitting,  setSubmitting]  = useState(false)
+  const [error,       setError]       = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof Form, string>>>({})
 
   const setField = (key: keyof Form, value: unknown) =>
     setForm(f => ({ ...f, [key]: value }))
 
+  const validateField = (key: keyof Form, value: string) => {
+    let msg: string | undefined
+    if (key === 'emailPrincipal' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+      msg = 'Email invalide'
+    else if (key === 'emailResponsableSportif' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+      msg = 'Email invalide'
+    else if (key === 'siteInternet' && value && !/^https?:\/\//i.test(value))
+      msg = 'URL doit commencer par http:// ou https://'
+    setFieldErrors(e => {
+      const next = { ...e }
+      if (msg) next[key] = msg
+      else delete next[key]
+      return next
+    })
+  }
+
   const handleSubmit = async () => {
     if (!form.nom.trim()) {
       setError('Le nom du club est obligatoire.')
+      return
+    }
+    if (Object.keys(fieldErrors).length > 0) {
+      setError('Corrigez les erreurs avant de soumettre.')
       return
     }
     if (!tenantId || !user?.id) {
@@ -236,8 +265,8 @@ export default function NewClubScreen() {
 
         {/* Header */}
         <View style={styles.cardHeader}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
+          <Pressable onPress={() => router.push('/clubs' as never)} style={styles.backBtn}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>← Clubs</AureakText>
           </Pressable>
           <AureakText variant="h2" color={colors.accent.gold}>Nouveau club</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.muted }}>
@@ -254,7 +283,7 @@ export default function NewClubScreen() {
 
         {/* ── Identité ── */}
         <SectionTitle title="Identité" />
-        <FormField label="Nom du club" value={form.nom} onChange={v => setField('nom', v)} placeholder="RFC Liège" required />
+        <FormField label="Nom du club" value={form.nom} onChange={v => setField('nom', v)} placeholder="RFC Liège" required error={fieldErrors.nom} />
         <FormField label="Matricule"   value={form.matricule} onChange={v => setField('matricule', v)} placeholder="0001" />
         <FormField label="Label"       value={form.label} onChange={v => setField('label', v)} placeholder="ex: Académie, U15…" />
         <ProvinceSelector value={form.province} onChange={v => setField('province', v)} />
@@ -270,18 +299,18 @@ export default function NewClubScreen() {
             <FormField label="Ville" value={form.ville} onChange={v => setField('ville', v)} placeholder="Liège" />
           </View>
         </View>
-        <FormField label="Site internet" value={form.siteInternet} onChange={v => setField('siteInternet', v)} placeholder="https://www.club.be" keyboardType="url" />
+        <FormField label="Site internet" value={form.siteInternet} onChange={v => setField('siteInternet', v)} onBlur={() => validateField('siteInternet', form.siteInternet)} placeholder="https://www.club.be" keyboardType="url" error={fieldErrors.siteInternet} />
 
         {/* ── Contact général ── */}
         <SectionTitle title="Contact général" />
         <FormField label="Correspondant"   value={form.correspondant}     onChange={v => setField('correspondant', v)}     placeholder="Jean Dupont" />
-        <FormField label="Email principal" value={form.emailPrincipal}    onChange={v => setField('emailPrincipal', v)}    placeholder="contact@club.be" keyboardType="email-address" />
+        <FormField label="Email principal" value={form.emailPrincipal}    onChange={v => setField('emailPrincipal', v)}    onBlur={() => validateField('emailPrincipal', form.emailPrincipal)}    placeholder="contact@club.be" keyboardType="email-address" error={fieldErrors.emailPrincipal} />
         <FormField label="Téléphone"       value={form.telephonePrincipal} onChange={v => setField('telephonePrincipal', v)} placeholder="+32 4 xx xx xx xx" keyboardType="phone-pad" />
 
         {/* ── Responsable sportif ── */}
         <SectionTitle title="Responsable sportif" />
         <FormField label="Nom"       value={form.responsableSportif}          onChange={v => setField('responsableSportif', v)}          placeholder="Marie Martin" />
-        <FormField label="Email"     value={form.emailResponsableSportif}     onChange={v => setField('emailResponsableSportif', v)}     placeholder="sport@club.be" keyboardType="email-address" />
+        <FormField label="Email"     value={form.emailResponsableSportif}     onChange={v => setField('emailResponsableSportif', v)}     onBlur={() => validateField('emailResponsableSportif', form.emailResponsableSportif)}     placeholder="sport@club.be" keyboardType="email-address" error={fieldErrors.emailResponsableSportif} />
         <FormField label="Téléphone" value={form.telephoneResponsableSportif} onChange={v => setField('telephoneResponsableSportif', v)} placeholder="+32 4 xx xx xx xx" keyboardType="phone-pad" />
 
         {/* ── Statut ── */}
@@ -297,7 +326,7 @@ export default function NewClubScreen() {
 
         {/* ── Actions ── */}
         <View style={styles.actions}>
-          <Pressable style={styles.cancelBtn} onPress={() => router.back()}>
+          <Pressable style={styles.cancelBtn} onPress={() => router.push('/clubs' as never)}>
             <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
           </Pressable>
           <Pressable style={[styles.submitBtn, submitting && styles.submitBtnDisabled]} onPress={handleSubmit} disabled={submitting}>

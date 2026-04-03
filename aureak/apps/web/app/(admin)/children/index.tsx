@@ -5,7 +5,7 @@
 // UI v2 : infos gauche · avatar droite · filtres avancés repliables
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
 import { AureakText, Button, EmptyState } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
@@ -831,6 +831,7 @@ const fr = StyleSheet.create({
 
 export default function JoueursPage() {
   const router = useRouter()
+  const params = useLocalSearchParams<{ search?: string; status?: string; season?: string; stage?: string; birthYear?: string }>()
 
   const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
   const [total,              setTotal]              = useState(0)
@@ -838,12 +839,36 @@ export default function JoueursPage() {
   const [loading,            setLoading]            = useState(true)
   const [showAdvFilters,     setShowAdvFilters]     = useState(false)
 
-  const [searchInput,  setSearchInput]  = useState('')
-  const [search,       setSearch]       = useState('')
-  const [acadStatus,   setAcadStatus]   = usePersistedFilters<AcadStatusFilter>('children-filter-acadStatus', 'all')
-  const [seasonFilter, setSeasonFilter] = usePersistedFilters<SeasonFilter>('children-filter-season', 'all')
-  const [stageFilter,  setStageFilter]  = usePersistedFilters<StageFilter>('children-filter-stage', 'all')
-  const [birthYear,    setBirthYear]    = usePersistedFilters<string>('children-filter-birthYear', 'all')
+  const [searchInput,  setSearchInput]  = useState(params.search ?? '')
+  const [search,       setSearch]       = useState(params.search ?? '')
+  const [acadStatus,   setAcadStatus]   = usePersistedFilters<AcadStatusFilter>(
+    'children-filter-acadStatus',
+    (params.status as AcadStatusFilter | undefined) ?? 'all',
+  )
+  const [seasonFilter, setSeasonFilter] = usePersistedFilters<SeasonFilter>(
+    'children-filter-season',
+    (params.season as SeasonFilter | undefined) ?? 'all',
+  )
+  const [stageFilter,  setStageFilter]  = usePersistedFilters<StageFilter>(
+    'children-filter-stage',
+    (params.stage as StageFilter | undefined) ?? 'all',
+  )
+  const [birthYear,    setBirthYear]    = usePersistedFilters<string>(
+    'children-filter-birthYear',
+    params.birthYear ?? 'all',
+  )
+
+  // Sync filters to URL so the browser Back button restores state
+  useEffect(() => {
+    router.setParams({
+      search   : search || undefined,
+      status   : acadStatus   !== 'all' ? acadStatus   : undefined,
+      season   : seasonFilter !== 'all' ? seasonFilter : undefined,
+      stage    : stageFilter  !== 'all' ? stageFilter  : undefined,
+      birthYear: birthYear    !== 'all' ? birthYear    : undefined,
+    } as never)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, acadStatus, seasonFilter, stageFilter, birthYear])
 
   // Nombre total de filtres actifs (hors recherche)
   const activeFilterCount = useMemo(() => {
