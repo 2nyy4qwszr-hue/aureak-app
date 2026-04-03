@@ -1,6 +1,6 @@
 # Story 12.2 : Event Bus Gamification — Traitement des 4 Événements Déclencheurs
 
-Status: phase-2
+Status: done
 
 ## Story
 

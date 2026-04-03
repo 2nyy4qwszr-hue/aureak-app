@@ -1684,3 +1684,145 @@ export type ChildBadgeHistory = {
   awardedByName : string
 }
 
+// ─── Stories 12.1 + 12.2 — Gamification : badges, points, avatar, skill cards ─
+
+export type BadgeDefinition = {
+  id          : string
+  tenantId    : string
+  code        : string
+  label       : string
+  description : string | null
+  iconUrl     : string | null
+  points      : number
+  season      : number | null
+  isActive    : boolean
+  createdAt   : string
+}
+
+export type PlayerBadgeSource = 'quiz' | 'attendance' | 'skill_mastered' | 'coach_award' | 'special_event'
+
+export type PlayerBadge = {
+  id        : string
+  tenantId  : string
+  childId   : string
+  badgeId   : string
+  awardedAt : string
+  source    : PlayerBadgeSource
+  refId     : string | null
+}
+
+export type PlayerPointsLedger = {
+  id          : string
+  tenantId    : string
+  childId     : string
+  eventType   : 'BADGE_AWARDED'
+  refId       : string
+  pointsDelta : number
+  createdAt   : string
+}
+
+export type AvatarItemCategory = 'frame' | 'background' | 'accessory' | 'effect' | 'title'
+
+export type AvatarItem = {
+  id              : string
+  tenantId        : string
+  slug            : string
+  name            : string
+  category        : AvatarItemCategory
+  unlockCondition : Record<string, unknown>
+  assetUrl        : string | null
+  isActive        : boolean
+  sortOrder       : number | null
+}
+
+export type PlayerAvatar = {
+  childId            : string
+  tenantId           : string
+  equippedFrame      : string | null
+  equippedBackground : string | null
+  equippedAccessory  : string | null
+  equippedEffect     : string | null
+  equippedTitle      : string | null
+  updatedAt          : string
+}
+
+export type UnlockTrigger = 'badge_earned' | 'total_points' | 'themes_acquired'
+
+export type PlayerUnlockedItem = {
+  childId       : string
+  itemId        : string
+  unlockedAt    : string
+  unlockTrigger : UnlockTrigger
+}
+
+export type MasteryStatus = 'not_started' | 'in_progress' | 'acquired' | 'revalidated'
+
+export type PlayerThemeMastery = {
+  childId         : string
+  themeId         : string
+  tenantId        : string
+  masteryStatus   : MasteryStatus
+  firstAcquiredAt : string | null
+  lastAttemptAt   : string | null
+  totalAttempts   : number
+  reviewCount     : number
+  updatedAt       : string
+}
+
+export type CardRarity = 'common' | 'rare' | 'epic' | 'legendary'
+export type CardUnlockCondition = 'theme_acquired' | 'revalidated' | 'first_acquired' | 'streak_active'
+
+export type SkillCard = {
+  id               : string
+  tenantId         : string
+  themeId          : string
+  slug             : string
+  name             : string
+  description      : string | null
+  rarity           : CardRarity
+  illustrationUrl  : string | null
+  unlockCondition  : CardUnlockCondition
+}
+
+export type PlayerSkillCard = {
+  childId     : string
+  skillCardId : string
+  tenantId    : string
+  collectedAt : string
+}
+
+// ─── Story 12.4 — Quêtes hebdomadaires ───────────────────────────────────────
+
+export type QuestRecurrence = 'weekly' | 'monthly' | 'once'
+export type QuestType = 'attend_sessions' | 'acquire_themes' | 'complete_reviews'
+export type QuestStatus = 'active' | 'completed' | 'expired'
+
+export type QuestDefinition = {
+  id            : string
+  tenantId      : string
+  code          : string
+  name          : string
+  description   : string | null
+  iconUrl       : string | null
+  recurrence    : QuestRecurrence
+  questType     : QuestType
+  targetValue   : number
+  rewardBadgeId : string | null
+  xpReward      : number
+  isActive      : boolean
+}
+
+export type PlayerQuest = {
+  id           : string
+  tenantId     : string
+  childId      : string
+  questId      : string
+  status       : QuestStatus
+  currentValue : number
+  targetValue  : number
+  periodStart  : string
+  periodEnd    : string
+  completedAt  : string | null
+  createdAt    : string
+}
+
