@@ -1,6 +1,6 @@
 # Story 1.4 : Pipeline CI/CD, Tests & Standards de Code
 
-Status: review
+Status: done
 
 ## Story
 
