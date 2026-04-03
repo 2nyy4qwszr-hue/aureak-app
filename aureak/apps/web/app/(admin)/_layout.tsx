@@ -6,6 +6,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { ToastProvider } from '../../components/ToastContext'
+import { GlobalSearch } from '../../components/GlobalSearch'
 
 type NavGroup = {
   label : string
@@ -171,6 +172,9 @@ export default function AdminLayout() {
             Administration
           </Text>
         </YStack>
+
+        {/* ── Global search ── */}
+        <GlobalSearch />
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
