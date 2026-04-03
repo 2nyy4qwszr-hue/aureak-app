@@ -46,6 +46,19 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
     marginTop: space.xl,
   },
+  expiryAlert: {
+    backgroundColor: colors.status.attention + '12',
+    borderRadius   : 8,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.status.attention + '40',
+    gap            : 4,
+  },
+  grantCardExpiring: {
+    borderColor    : colors.status.attention + '60',
+    borderLeftWidth: 4,
+    borderLeftColor: colors.status.attention,
+  },
 })
 
 function formatExpiry(iso: string): string {
@@ -89,6 +102,18 @@ export default function AccessGrantsPage() {
     }
   }
 
+  // Grants expirant dans moins de 24h
+  const now24h      = Date.now() + 24 * 60 * 60 * 1000
+  const expiringSoon = grants.filter(g => new Date(g.expires_at).getTime() < now24h)
+
+  function expiryWarning(iso: string): string | null {
+    const ms = new Date(iso).getTime() - Date.now()
+    if (ms < 0)      return 'Expiré'
+    if (ms < 3600000) return `Expire dans ${Math.round(ms / 60000)} min`
+    if (ms < 86400000) return `Expire dans ${Math.round(ms / 3600000)} h`
+    return null
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
@@ -99,6 +124,18 @@ export default function AccessGrantsPage() {
           variant="primary"
         />
       </View>
+
+      {/* Alerte expiration imminente */}
+      {!loading && expiringSoon.length > 0 && (
+        <View style={styles.expiryAlert}>
+          <AureakText variant="caption" style={{ color: colors.status.attention, fontWeight: '700' }}>
+            Expiration imminente ({expiringSoon.length} grant{expiringSoon.length > 1 ? 's' : ''})
+          </AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
+            Ces accès expirent dans moins de 24h. Pensez à les renouveler si nécessaire.
+          </AureakText>
+        </View>
+      )}
 
       {loading && (
         <AureakText variant="body" style={styles.empty}>
@@ -112,26 +149,37 @@ export default function AccessGrantsPage() {
         </AureakText>
       )}
 
-      {grants.map((grant) => (
-        <View key={grant.id} style={styles.grantCard}>
-          <AureakText variant="label">
-            Coach : {grant.coach_id}
-          </AureakText>
-          <AureakText variant="body" style={styles.grantMeta}>
-            Implantation : {grant.implantation_id}
-          </AureakText>
-          <AureakText variant="caption" style={styles.grantMeta}>
-            Expire : {formatExpiry(grant.expires_at)}
-          </AureakText>
-          <AureakButton
-            label={revoking === grant.id ? 'Révocation...' : 'Révoquer'}
-            onPress={() => handleRevoke(grant.id)}
-            variant="secondary"
-            loading={revoking === grant.id}
-            disabled={revoking !== null}
-          />
-        </View>
-      ))}
+      {grants.map((grant) => {
+        const warning = expiryWarning(grant.expires_at)
+        const isExpiring = expiringSoon.some(g => g.id === grant.id)
+        return (
+          <View key={grant.id} style={[styles.grantCard, isExpiring && styles.grantCardExpiring]}>
+            <AureakText variant="label">
+              Coach : {grant.coach_id}
+            </AureakText>
+            <AureakText variant="body" style={styles.grantMeta}>
+              Implantation : {grant.implantation_id}
+            </AureakText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <AureakText variant="caption" style={styles.grantMeta}>
+                Expire : {formatExpiry(grant.expires_at)}
+              </AureakText>
+              {warning && (
+                <AureakText variant="caption" style={{ color: colors.status.attention, fontWeight: '700' }}>
+                  ({warning})
+                </AureakText>
+              )}
+            </View>
+            <AureakButton
+              label={revoking === grant.id ? 'Révocation...' : 'Révoquer'}
+              onPress={() => handleRevoke(grant.id)}
+              variant="secondary"
+              loading={revoking === grant.id}
+              disabled={revoking !== null}
+            />
+          </View>
+        )
+      })}
     </ScrollView>
   )
 }
