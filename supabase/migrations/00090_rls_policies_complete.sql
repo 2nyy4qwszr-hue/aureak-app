@@ -139,16 +139,17 @@ CREATE POLICY "admin_manage_links" ON parent_child_links
 DROP POLICY IF EXISTS "user_own_operations"  ON processed_operations;
 DROP POLICY IF EXISTS "admin_all_operations" ON processed_operations;
 
+-- processed_operations n'a pas de user_id — isolation par tenant uniquement
 CREATE POLICY "user_own_operations" ON processed_operations
   FOR ALL USING (
-    user_id = auth.uid()
+    tenant_id = current_tenant_id()
     AND is_active_user()
   );
 
 CREATE POLICY "admin_all_operations" ON processed_operations
   FOR SELECT USING (
     current_user_role() = 'admin'
-    AND is_active_user()
+    AND tenant_id = current_tenant_id()
   );
 
 -- =============================================================================

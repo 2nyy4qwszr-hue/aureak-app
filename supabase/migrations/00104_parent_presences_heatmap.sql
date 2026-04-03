@@ -30,7 +30,7 @@ CREATE POLICY "absence_justifications_parent_read" ON absence_justifications
   FOR SELECT USING (
     (auth.jwt() -> 'app_metadata' ->> 'role') = 'parent'
     AND child_id IN (
-      SELECT child_id FROM parent_children WHERE parent_id = auth.uid()
+      SELECT child_id FROM parent_child_links WHERE parent_id = auth.uid()
     )
   );
 
@@ -39,7 +39,7 @@ CREATE POLICY "absence_justifications_parent_insert" ON absence_justifications
     (auth.jwt() -> 'app_metadata' ->> 'role') = 'parent'
     AND submitted_by = auth.uid()
     AND child_id IN (
-      SELECT child_id FROM parent_children WHERE parent_id = auth.uid()
+      SELECT child_id FROM parent_child_links WHERE parent_id = auth.uid()
     )
   );
 

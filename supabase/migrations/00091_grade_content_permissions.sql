@@ -47,7 +47,9 @@ CREATE POLICY "cg_coach_read" ON coach_grades
   FOR SELECT USING (coach_id = auth.uid() AND is_active_user());
 
 -- 3. Vue coach_current_grade — grade le plus récent par coach (DISTINCT ON)
-CREATE OR REPLACE VIEW coach_current_grade AS
+-- DROP avant CREATE OR REPLACE car PostgreSQL ne peut pas changer les types/noms de colonnes d'une vue existante
+DROP VIEW IF EXISTS coach_current_grade;
+CREATE VIEW coach_current_grade AS
   SELECT DISTINCT ON (coach_id)
     id, tenant_id, coach_id, grade_level, awarded_by, awarded_at, notes, created_at
   FROM coach_grades
