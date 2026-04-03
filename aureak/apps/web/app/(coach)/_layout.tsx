@@ -8,6 +8,7 @@ import { colors } from '@aureak/theme'
 const NAV_ITEMS = [
   { label: 'Dashboard',   href: '/coach/dashboard' },
   { label: 'Mes séances', href: '/coach/sessions'  },
+  { label: 'Messages',    href: '/coach/messages'  },
 ] as const
 
 export default function CoachLayout() {

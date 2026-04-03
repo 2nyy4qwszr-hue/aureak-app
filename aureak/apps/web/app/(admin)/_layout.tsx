@@ -60,6 +60,9 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Tickets support',     href: '/tickets'                         },
       { label: 'Journal d\'audit',    href: '/audit'                           },
       { label: 'Calendrier scolaire', href: '/settings/school-calendar'        },
+      { label: 'Anomalies',           href: '/anomalies'                       },
+      { label: 'Messages coaches',    href: '/messages'                        },
+      { label: 'Permissions grades',  href: '/grade-permissions'               },
     ],
   },
 ]

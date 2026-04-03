@@ -265,6 +265,12 @@ export {
 export type { CoachGradeLevel, CoachGrade } from './admin/grades'
 
 export {
+  listThemesWithGrades, listSituationsWithGrades,
+  updateThemeGradeLevel,
+} from './admin/grade-permissions'
+export type { GradeContentItem } from './admin/grade-permissions'
+
+export {
   createProfileFiche, inviteProfileUser,
 } from './admin/profiles'
 export type { CreateProfileFicheParams, InviteProfileUserParams, ProfileRole } from './admin/profiles'

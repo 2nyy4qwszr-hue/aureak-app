@@ -1,0 +1,227 @@
+'use client'
+// Story 9.2 — Dashboard anomalies admin
+import React, { useEffect, useState, useCallback } from 'react'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { listAnomalies, resolveAnomaly } from '@aureak/api-client'
+import type { AnomalyEvent } from '@aureak/api-client'
+import { AureakText } from '@aureak/ui'
+import { colors, space } from '@aureak/theme'
+
+const TYPE_LABELS: Record<AnomalyEvent['anomalyType'], string> = {
+  session_not_closed     : 'Séance non clôturée',
+  high_absenteeism       : 'Absentéisme élevé',
+  coach_feedback_missing : 'Notes coach manquantes',
+  no_session_activity    : 'Aucune activité planifiée',
+}
+
+const TYPE_ICONS: Record<AnomalyEvent['anomalyType'], string> = {
+  session_not_closed     : '🔓',
+  high_absenteeism       : '⚠️',
+  coach_feedback_missing : '📝',
+  no_session_activity    : '📅',
+}
+
+const SEVERITY_COLOR: Record<AnomalyEvent['severity'], string> = {
+  info    : '#3B82F6',
+  warning : colors.status.attention,
+  critical: colors.accent.red,
+}
+
+const SEVERITY_LABEL: Record<AnomalyEvent['severity'], string> = {
+  info    : 'Info',
+  warning : 'Attention',
+  critical: 'Critique',
+}
+
+export default function AnomaliesPage() {
+  const [anomalies, setAnomalies] = useState<AnomalyEvent[]>([])
+  const [loading,   setLoading]   = useState(true)
+  const [resolving, setResolving] = useState<string | null>(null)
+  const [filter,    setFilter]    = useState<'all' | AnomalyEvent['severity']>('all')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data } = await listAnomalies()
+      setAnomalies(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Anomalies] load error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const handleResolve = async (id: string) => {
+    setResolving(id)
+    try {
+      await resolveAnomaly(id)
+      setAnomalies(prev => prev.filter(a => a.id !== id))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Anomalies] resolve error:', err)
+    } finally {
+      setResolving(null)
+    }
+  }
+
+  const filtered = filter === 'all' ? anomalies : anomalies.filter(a => a.severity === filter)
+
+  const counts = {
+    all     : anomalies.length,
+    critical: anomalies.filter(a => a.severity === 'critical').length,
+    warning : anomalies.filter(a => a.severity === 'warning').length,
+    info    : anomalies.filter(a => a.severity === 'info').length,
+  }
+
+  return (
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+      {/* Header */}
+      <View style={s.header}>
+        <View>
+          <AureakText variant="h2">Anomalies</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>
+            {anomalies.length} anomalie{anomalies.length !== 1 ? 's' : ''} active{anomalies.length !== 1 ? 's' : ''}
+          </AureakText>
+        </View>
+        <Pressable style={s.refreshBtn} onPress={load}>
+          <AureakText variant="caption" style={{ color: colors.accent.gold }}>↻ Actualiser</AureakText>
+        </Pressable>
+      </View>
+
+      {/* KPI row */}
+      <View style={s.kpiRow}>
+        {([
+          { key: 'all',      label: 'Total',    value: counts.all,      color: colors.text.dark },
+          { key: 'critical', label: 'Critiques', value: counts.critical, color: colors.accent.red },
+          { key: 'warning',  label: 'Attention', value: counts.warning,  color: colors.status.attention },
+          { key: 'info',     label: 'Info',      value: counts.info,     color: '#3B82F6' },
+        ] as const).map(k => (
+          <Pressable key={k.key} style={[s.kpi, filter === k.key && s.kpiActive]} onPress={() => setFilter(k.key)}>
+            <AureakText variant="h2" style={{ color: k.color, fontSize: 24 }}>{k.value}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>{k.label}</AureakText>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* List */}
+      {loading ? (
+        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
+      ) : filtered.length === 0 ? (
+        <View style={s.empty}>
+          <AureakText variant="body" style={{ fontSize: 32 }}>✅</AureakText>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
+            {filter === 'all' ? 'Aucune anomalie active.' : 'Aucune anomalie dans cette catégorie.'}
+          </AureakText>
+        </View>
+      ) : (
+        filtered.map(a => {
+          const color = SEVERITY_COLOR[a.severity]
+          return (
+            <View key={a.id} style={[s.card, { borderLeftColor: color }]}>
+              <View style={s.cardTop}>
+                <AureakText variant="caption" style={{ fontSize: 20 }}>
+                  {TYPE_ICONS[a.anomalyType]}
+                </AureakText>
+                <View style={{ flex: 1 }}>
+                  <AureakText variant="body" style={{ fontWeight: '700' }}>
+                    {TYPE_LABELS[a.anomalyType]}
+                  </AureakText>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                    {new Date(a.createdAt).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </AureakText>
+                </View>
+                <View style={[s.severityBadge, { backgroundColor: color + '18', borderColor: color + '40' }]}>
+                  <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 10 }}>
+                    {SEVERITY_LABEL[a.severity]}
+                  </AureakText>
+                </View>
+              </View>
+
+              {Object.keys(a.metadata ?? {}).length > 0 && (
+                <View style={s.metaBox}>
+                  {Object.entries(a.metadata).map(([k, v]) => (
+                    <AureakText key={k} variant="caption" style={{ color: colors.text.muted }}>
+                      {k} : {String(v)}
+                    </AureakText>
+                  ))}
+                </View>
+              )}
+
+              <Pressable
+                style={[s.resolveBtn, resolving === a.id && s.resolveBtnDisabled]}
+                onPress={() => handleResolve(a.id)}
+                disabled={resolving === a.id}
+              >
+                <AureakText variant="caption" style={{ color: resolving === a.id ? colors.text.muted : colors.status.present, fontWeight: '700' }}>
+                  {resolving === a.id ? 'Résolution…' : '✓ Marquer comme résolu'}
+                </AureakText>
+              </Pressable>
+            </View>
+          )
+        })
+      )}
+    </ScrollView>
+  )
+}
+
+const s = StyleSheet.create({
+  container     : { flex: 1, backgroundColor: colors.light.primary },
+  content       : { padding: space.xl, gap: space.md },
+  header        : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  refreshBtn    : {
+    paddingHorizontal: space.md,
+    paddingVertical  : 6,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.border.gold,
+  },
+  kpiRow        : {
+    flexDirection  : 'row',
+    backgroundColor: colors.light.surface,
+    borderRadius   : 10,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    overflow       : 'hidden',
+  },
+  kpi           : {
+    flex           : 1,
+    alignItems     : 'center',
+    padding        : space.md,
+    gap            : 4,
+  },
+  kpiActive     : { backgroundColor: colors.light.muted },
+  card          : {
+    backgroundColor: colors.light.surface,
+    borderRadius   : 8,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    borderLeftWidth: 4,
+    gap            : space.sm,
+  },
+  cardTop       : { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
+  severityBadge : {
+    paddingHorizontal: 8,
+    paddingVertical  : 3,
+    borderRadius     : 4,
+    borderWidth      : 1,
+  },
+  metaBox       : {
+    backgroundColor: colors.light.muted,
+    borderRadius   : 6,
+    padding        : space.sm,
+    gap            : 2,
+  },
+  resolveBtn    : {
+    alignSelf      : 'flex-start',
+    paddingHorizontal: space.md,
+    paddingVertical  : 6,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.status.present + '40',
+    backgroundColor  : colors.status.present + '12',
+  },
+  resolveBtnDisabled: { opacity: 0.4 },
+  empty         : { alignItems: 'center', gap: space.md, paddingVertical: space.xl * 2 },
+})

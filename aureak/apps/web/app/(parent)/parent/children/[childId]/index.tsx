@@ -94,10 +94,11 @@ function SubNav({ childId, active }: { childId: string; active: string }) {
   const tabs = [
     { label: 'Fiche',       href: `/parent/children/${childId}`                   },
     { label: 'Séances',     href: `/parent/children/${childId}/sessions`          },
-    { label: 'Présences',   href: `/parent/children/${childId}/presences`         },
-    { label: 'Badges',      href: `/parent/children/${childId}/badges`            },
-    { label: 'Progression', href: `/parent/children/${childId}/progress`          },
-    { label: 'Football',    href: `/parent/children/${childId}/football-history`  },
+    { label: 'Présences',      href: `/parent/children/${childId}/presences`      },
+    { label: 'Badges',         href: `/parent/children/${childId}/badges`         },
+    { label: 'Progression',    href: `/parent/children/${childId}/progress`       },
+    { label: 'Football',       href: `/parent/children/${childId}/football-history` },
+    { label: 'Consentements',  href: `/parent/children/${childId}/consents`       },
   ]
   return (
     <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.light}`, marginBottom: 20 }}>
@@ -205,7 +206,7 @@ export default function ChildFichePage() {
       <div style={P.kpiRow}>
         {[
           { value: attendances.length, label: 'Séances',     color: colors.accent.gold         },
-          { value: presentCount,       label: 'Présences',   color: colors.status.present      },
+          { value: presentCount,       label: 'Présent(e)s', color: colors.status.present      },
           { value: rate !== null ? `${rate}%` : '–', label: 'Assiduité', color: rateColor     },
           { value: topCount > 0 ? `⭐ ${topCount}` : '0', label: 'Top séance', color: colors.accent.gold },
         ].map((kpi, i) => (
@@ -244,7 +245,7 @@ export default function ChildFichePage() {
 
       {/* Recent attendances */}
       <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-        Présences récentes
+        Dernières séances
       </div>
 
       {attendances.length === 0 ? (
