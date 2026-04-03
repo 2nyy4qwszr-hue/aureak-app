@@ -8,7 +8,7 @@ import { colors, space } from '@aureak/theme'
 import type { BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
 import { RelationTypeSelector } from './_components'
-import { useToast } from '../../../../components/ToastContext'
+import { useToast } from '../../../components/ToastContext'
 
 // ── Field components ─────────────────────────────────────────────────────────
 
