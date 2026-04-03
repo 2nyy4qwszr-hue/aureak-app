@@ -689,10 +689,27 @@ export default function StageDetailPage() {
     <>
       <ScrollView style={p.container} contentContainerStyle={p.content}>
 
-        {/* ── Back ── */}
-        <Pressable onPress={() => router.push('/stages' as never)}>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Stages</AureakText>
-        </Pressable>
+        {/* ── Back + Export ── */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Pressable onPress={() => router.push('/stages' as never)}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>← Stages</AureakText>
+          </Pressable>
+          <Pressable
+            style={{
+              paddingHorizontal: space.md,
+              paddingVertical  : 5,
+              borderRadius     : 6,
+              borderWidth      : 1,
+              borderColor      : colors.border.light,
+              backgroundColor  : colors.light.surface,
+            }}
+            onPress={() => { if (typeof window !== 'undefined') window.print() }}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+              Exporter PDF
+            </AureakText>
+          </Pressable>
+        </View>
 
         {/* ── Mutation error banner ── */}
         {mutError && (
