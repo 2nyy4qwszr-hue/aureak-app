@@ -10,7 +10,7 @@ import {
   uploadClubLogo, deleteClubLogo,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakText, Badge, HierarchyBreadcrumb } from '@aureak/ui'
+import { AureakText, Badge, HierarchyBreadcrumb, ConfirmDialog, ListRowSkeleton } from '@aureak/ui'
 import { colors, space, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES, CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
@@ -326,6 +326,10 @@ export default function ClubDetailPage() {
   const [logoPreview,    setLogoPreview]    = useState<string | null>(null)
   const [logoUploading,  setLogoUploading]  = useState(false)
   const [optimisticActif, setOptimisticActif] = useState<boolean | null>(null)
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false)
+
+  // Loading state for links (players + coaches)
+  const [loadingLinks, setLoadingLinks] = useState(true)
 
   // Players split by type
   const [currentPlayers,    setCurrentPlayers]    = useState<ClubChildLinkRow[]>([])
@@ -351,9 +355,22 @@ export default function ClubDetailPage() {
     return allCoaches.filter(c => !coachIds.has(c.id) && (!q || c.name.toLowerCase().includes(q))).slice(0, 6)
   }, [allCoaches, coachIds, coachSearch])
 
+  const isDirty = useMemo(() => editing && club && form ? (
+    form.nom !== club.nom ||
+    form.matricule !== (club.matricule ?? '') ||
+    form.label !== (club.label ?? '') ||
+    form.ville !== (club.ville ?? '') ||
+    form.province !== (club.province ?? null) ||
+    form.siteInternet !== (club.siteInternet ?? '') ||
+    form.emailPrincipal !== (club.emailPrincipal ?? '') ||
+    form.clubRelationType !== club.clubRelationType ||
+    form.notesInternes !== (club.notesInternes ?? '')
+  ) : false, [editing, club, form])
+
   const load = useCallback(async () => {
     if (!clubId) return
     setLoading(true)
+    setLoadingLinks(true)
     try {
       const [clubRes, linksRes, coachesRes, playersRes, coachListRes] = await Promise.all([
         getClubDirectoryEntry(clubId),
@@ -380,6 +397,7 @@ export default function ClubDetailPage() {
       if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] load error:', err)
     } finally {
       setLoading(false)
+      setLoadingLinks(false)
     }
   }, [clubId])
 
@@ -429,7 +447,6 @@ export default function ClubDetailPage() {
 
   const handleDelete = async () => {
     if (!clubId || !tenantId || !user?.id) return
-    if (typeof window !== 'undefined' && !window.confirm('Supprimer ce club ?')) return
     try {
       const { error } = await softDeleteClubDirectoryEntry({ clubId, tenantId, deletedBy: user.id })
       if (error) { setError('Erreur lors de la suppression.'); return }
@@ -567,6 +584,7 @@ export default function ClubDetailPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
+    <>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
       {/* Header */}
@@ -584,12 +602,15 @@ export default function ClubDetailPage() {
               <Pressable style={s.editBtn} onPress={() => setEditing(true)}>
                 <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>Modifier</AureakText>
               </Pressable>
-              <Pressable style={s.deleteBtn} onPress={handleDelete}>
+              <Pressable style={s.deleteBtn} onPress={() => setConfirmDeleteVisible(true)}>
                 <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>Supprimer</AureakText>
               </Pressable>
             </>
           ) : (
             <>
+              {isDirty && (
+                <AureakText variant="caption" style={{ color: colors.accent.gold }}>• Modifié</AureakText>
+              )}
               <Pressable style={s.cancelBtn} onPress={() => { setEditing(false); setForm(entryToForm(club)); setLogoFile(null); setLogoPreview(null) }}>
                 <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
               </Pressable>
@@ -877,8 +898,10 @@ export default function ClubDetailPage() {
           </AureakText>
         </View>
 
-        {currentPlayers.length === 0 ? (
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun joueur actuellement lié.</AureakText>
+        {loadingLinks ? (
+          <ListRowSkeleton count={3} />
+        ) : currentPlayers.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center', paddingVertical: space.md }}>Aucun joueur actuellement lié.</AureakText>
         ) : (
           currentPlayers.map(p => (
             <PlayerRow
@@ -915,8 +938,10 @@ export default function ClubDetailPage() {
           </AureakText>
         </View>
 
-        {affiliatedPlayers.length === 0 ? (
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun joueur affilié.</AureakText>
+        {loadingLinks ? (
+          <ListRowSkeleton count={3} />
+        ) : affiliatedPlayers.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center', paddingVertical: space.md }}>Aucun joueur affilié.</AureakText>
         ) : (
           affiliatedPlayers.map(p => (
             <PlayerRow
@@ -942,8 +967,10 @@ export default function ClubDetailPage() {
 
       {/* ── Section 3 : Coachs liés ── */}
       <Section title="Coachs liés" count={coaches.length}>
-        {coaches.length === 0 ? (
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucun coach lié.</AureakText>
+        {loadingLinks ? (
+          <ListRowSkeleton count={3} />
+        ) : coaches.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center', paddingVertical: space.md }}>Aucun coach lié.</AureakText>
         ) : (
           coaches.map(c => (
             <CoachRow
@@ -985,6 +1012,17 @@ export default function ClubDetailPage() {
       </Section>
 
     </ScrollView>
+
+    <ConfirmDialog
+      visible={confirmDeleteVisible}
+      title="Supprimer ce club ?"
+      message="Cette action est irréversible."
+      confirmLabel="Supprimer"
+      danger
+      onConfirm={() => { setConfirmDeleteVisible(false); handleDelete() }}
+      onCancel={() => setConfirmDeleteVisible(false)}
+    />
+    </>
   )
 }
 

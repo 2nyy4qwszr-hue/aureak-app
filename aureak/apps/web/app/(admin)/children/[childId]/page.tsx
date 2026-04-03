@@ -41,7 +41,8 @@ const FOOTBALL_SEASONS = [
 ]
 import { ACADEMY_STATUS_CONFIG, generateAcademyBadges } from '@aureak/business-logic'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakText, Badge, HierarchyBreadcrumb } from '@aureak/ui'
+import { useToast } from '../../../../components/ToastContext'
+import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import { computeTeamLevelStars } from '@aureak/business-logic'
@@ -566,15 +567,16 @@ function BlessuresSection({
   injuries : ChildDirectoryInjury[]
   onRefresh: () => void
 }) {
-  const [adding,      setAdding]      = useState(false)
-  const [type,        setType]        = useState<'blessure' | 'grosse_blessure'>('blessure')
-  const [zone,        setZone]        = useState('')
-  const [dateDebut,   setDateDebut]   = useState('')
-  const [dateFin,     setDateFin]     = useState('')
-  const [commentaire, setCommentaire] = useState('')
-  const [saving,      setSaving]      = useState(false)
-  const [error,       setError]       = useState<string | null>(null)
-  const [deletingId,  setDeletingId]  = useState<string | null>(null)
+  const [adding,               setAdding]               = useState(false)
+  const [type,                 setType]                 = useState<'blessure' | 'grosse_blessure'>('blessure')
+  const [zone,                 setZone]                 = useState('')
+  const [dateDebut,            setDateDebut]            = useState('')
+  const [dateFin,              setDateFin]              = useState('')
+  const [commentaire,          setCommentaire]          = useState('')
+  const [saving,               setSaving]               = useState(false)
+  const [error,                setError]                = useState<string | null>(null)
+  const [deletingId,           setDeletingId]           = useState<string | null>(null)
+  const [confirmDeleteInjId,   setConfirmDeleteInjId]   = useState<string | null>(null)
 
   const resetForm = () => {
     setType('blessure'); setZone(''); setDateDebut('')
@@ -658,7 +660,7 @@ function BlessuresSection({
                   <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 2 }}>{inj.commentaire}</AureakText>
                 )}
               </View>
-              <Pressable onPress={() => handleDelete(inj.id)} disabled={deletingId === inj.id} style={s.deleteBtn}>
+              <Pressable onPress={() => setConfirmDeleteInjId(inj.id)} disabled={deletingId === inj.id} style={s.deleteBtn}>
                 <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
                   {deletingId === inj.id ? '...' : 'Suppr.'}
                 </AureakText>
@@ -700,6 +702,19 @@ function BlessuresSection({
           </View>
         </View>
       )}
+
+      <ConfirmDialog
+        visible={confirmDeleteInjId !== null}
+        title="Supprimer cette blessure ?"
+        message="Cette action est irréversible."
+        confirmLabel="Supprimer"
+        danger
+        onConfirm={() => {
+          if (confirmDeleteInjId) { handleDelete(confirmDeleteInjId) }
+          setConfirmDeleteInjId(null)
+        }}
+        onCancel={() => setConfirmDeleteInjId(null)}
+      />
     </View>
   )
 }
@@ -1098,6 +1113,7 @@ export default function ChildDetailPage() {
   const { childId } = useLocalSearchParams<{ childId: string }>()
   const router      = useRouter()
   const tenantId    = useAuthStore((s) => s.tenantId)
+  const toast       = useToast()
 
   const [child,        setChild]        = useState<ChildDirectoryEntry | null>(null)
   const [history,      setHistory]      = useState<ChildDirectoryHistory[]>([])
@@ -1109,20 +1125,23 @@ export default function ChildDetailPage() {
   const [injuries,     setInjuries]     = useState<ChildDirectoryInjury[]>([])
   const [photos,       setPhotos]       = useState<ChildDirectoryPhoto[]>([])
   const [auditLogs,    setAuditLogs]    = useState<AuditLog[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [showAddHist,  setShowAddHist]  = useState(false)
+  const [loading,        setLoading]        = useState(true)
+  const [loadingHistory, setLoadingHistory] = useState(true)
+  const [showAddHist,    setShowAddHist]    = useState(false)
   const [deletingId,   setDeletingId]   = useState<string | null>(null)
 
   // ── Edit state ──────────────────────────────────────────────────────────────
   const [editSection, setEditSection] = useState<EditSection | null>(null)
   const [draft,       setDraft]       = useState<Partial<ChildDirectoryEntry>>({})
   const [savingEdit,  setSavingEdit]  = useState(false)
-  const [saveError,   setSaveError]   = useState<string | null>(null)
-  const [togglingActif, setTogglingActif] = useState(false)
+  const [saveError,             setSaveError]             = useState<string | null>(null)
+  const [togglingActif,         setTogglingActif]         = useState(false)
+  const [confirmDeleteHistId,   setConfirmDeleteHistId]   = useState<string | null>(null)
 
   const loadChild = useCallback(async () => {
     if (!childId) return
     setLoading(true)
+    setLoadingHistory(true)
     try {
       const [entryR, histR, acStatusR, memsR, stPartsR, seasonsR, stageListR, injuriesR, photosR, auditR] = await Promise.allSettled([
         getChildDirectoryEntry(childId),
@@ -1162,6 +1181,7 @@ export default function ChildDetailPage() {
       if (process.env.NODE_ENV !== 'production') console.error('[ChildDetailPage] loadChild error', e)
     } finally {
       setLoading(false)
+      setLoadingHistory(false)
     }
   }, [childId])
 
@@ -1198,6 +1218,15 @@ export default function ChildDetailPage() {
     }
   }
 
+  const reactivate = async (id: string) => {
+    try {
+      await updateChildDirectoryEntry(id, { actif: true })
+      setChild(prev => prev ? { ...prev, actif: true } : prev)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[children] reactivate error:', err)
+    }
+  }
+
   const handleToggleActif = async () => {
     if (!child || togglingActif) return
     setTogglingActif(true)
@@ -1205,6 +1234,14 @@ export default function ChildDetailPage() {
     try {
       await updateChildDirectoryEntry(child.id, { actif: newActif })
       setChild(prev => prev ? { ...prev, actif: newActif } : prev)
+      if (!newActif) {
+        const childId_ = child.id
+        const displayName = child.displayName
+        toast.success(`${displayName} désactivé`, {
+          label  : 'Annuler',
+          onPress: () => reactivate(childId_),
+        })
+      }
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[children] toggleActif error:', err)
     } finally {
@@ -1356,7 +1393,13 @@ export default function ChildDetailPage() {
                 {formatNomPrenom(child.nom, child.prenom, child.displayName)}
               </AureakText>
               {child.currentClub && (
-                <AureakText variant="caption" style={{ color: colors.text.muted }}>{child.currentClub}</AureakText>
+                child.clubDirectoryId ? (
+                  <Pressable onPress={() => router.push(`/clubs/${child.clubDirectoryId}` as never)}>
+                    <AureakText variant="caption" style={{ color: colors.accent.gold }}>{child.currentClub} →</AureakText>
+                  </Pressable>
+                ) : (
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>{child.currentClub}</AureakText>
+                )
               )}
               {academyData ? (
                 <AcademyStatusHeader data={academyData} />
@@ -1634,9 +1677,11 @@ export default function ChildDetailPage() {
             </Pressable>
           </View>
 
-          {history.length === 0 ? (
-            <AureakText variant="caption" style={{ color: colors.text.muted }}>
-              Aucune saison enregistrée.
+          {loadingHistory ? (
+            <ListRowSkeleton count={3} />
+          ) : history.length === 0 ? (
+            <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center', paddingVertical: space.md }}>
+              Aucun historique football enregistré.
             </AureakText>
           ) : (
             <View>
@@ -1654,7 +1699,7 @@ export default function ChildDetailPage() {
                       <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 2 }}>{h.notes}</AureakText>
                     )}
                   </View>
-                  <Pressable onPress={() => handleDeleteHistory(h.id)} disabled={deletingId === h.id} style={s.deleteBtn}>
+                  <Pressable onPress={() => setConfirmDeleteHistId(h.id)} disabled={deletingId === h.id} style={s.deleteBtn}>
                     <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
                       {deletingId === h.id ? '...' : 'Suppr.'}
                     </AureakText>
@@ -1850,6 +1895,19 @@ export default function ChildDetailPage() {
           onAdded={() => { setShowAddHist(false); loadChild() }}
         />
       )}
+
+      <ConfirmDialog
+        visible={confirmDeleteHistId !== null}
+        title="Supprimer cet historique ?"
+        message="Cette action est irréversible."
+        confirmLabel="Supprimer"
+        danger
+        onConfirm={() => {
+          if (confirmDeleteHistId) { handleDeleteHistory(confirmDeleteHistId) }
+          setConfirmDeleteHistId(null)
+        }}
+        onCancel={() => setConfirmDeleteHistId(null)}
+      />
     </>
   )
 }
