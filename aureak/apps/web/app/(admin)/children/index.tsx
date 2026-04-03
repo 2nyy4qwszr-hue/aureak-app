@@ -927,6 +927,46 @@ export default function JoueursPage() {
     setBirthYear('all')
   }
 
+  // ── Bulk selection ──────────────────────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkMode,    setBulkMode]    = useState(false)
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectAll   = () => setSelectedIds(new Set(joueurs.map(j => j.id)))
+  const deselectAll = () => setSelectedIds(new Set())
+
+  const handleExportCSV = () => {
+    const targets = joueurs.filter(j => selectedIds.has(j.id))
+    const header  = ['id', 'nom', 'prenom', 'displayName', 'statut', 'club', 'actif', 'nbSaisons', 'nbStages'].join(',')
+    const rows = targets.map(j => [
+      j.id,
+      j.nom ?? '',
+      j.prenom ?? '',
+      j.displayName,
+      j.computedStatus ?? '',
+      j.currentClub ?? '',
+      j.actif ? 'oui' : 'non',
+      j.totalSeasons ?? 0,
+      j.totalStages ?? 0,
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    const csv  = [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url
+    a.download = `joueurs-selection-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // CSS grid natif web — colonnes fixes 280px (Story 25.5 — ratio exact avec le background 560×840)
   const gridStyle = Platform.OS === 'web'
     ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 280px))', gap: 16 }
@@ -1045,6 +1085,38 @@ export default function JoueursPage() {
         )}
       </View>
 
+      {/* ── Barre bulk actions ── */}
+      {Platform.OS === 'web' && !loading && joueurs.length > 0 && (
+        <View style={s.bulkBar}>
+          <Pressable onPress={() => { setBulkMode(v => !v); deselectAll() }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+              {bulkMode ? 'Quitter la sélection' : 'Sélectionner'}
+            </AureakText>
+          </Pressable>
+          {bulkMode && (
+            <>
+              <Pressable onPress={selectedIds.size === joueurs.length ? deselectAll : selectAll}>
+                <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' as never }}>
+                  {selectedIds.size === joueurs.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                </AureakText>
+              </Pressable>
+              {selectedIds.size > 0 && (
+                <>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                    {selectedIds.size} sélectionné{selectedIds.size > 1 ? 's' : ''}
+                  </AureakText>
+                  <Pressable style={s.bulkBtn} onPress={handleExportCSV}>
+                    <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
+                      Exporter CSV
+                    </AureakText>
+                  </Pressable>
+                </>
+              )}
+            </>
+          )}
+        </View>
+      )}
+
       {/* ── Grille joueurs — PremiumJoueurCard (Story 25.1) ── */}
       {loading ? (
         <View style={gridStyle as never}>
@@ -1060,10 +1132,21 @@ export default function JoueursPage() {
       ) : (
         <View style={gridStyle as never}>
           {joueurs.map(item => (
-            <PremiumJoueurCard
-              key={item.id}
-              item={item}
-            />
+            <View key={item.id} style={{ position: 'relative' as never }}>
+              {bulkMode && Platform.OS === 'web' && (
+                <Pressable
+                  onPress={() => toggleSelect(item.id)}
+                  style={[s.checkboxOverlay, selectedIds.has(item.id) && s.checkboxActive]}
+                >
+                  <AureakText variant="caption" style={{ color: selectedIds.has(item.id) ? colors.accent.gold : colors.text.subtle, fontWeight: '700' as never }}>
+                    {selectedIds.has(item.id) ? '☑' : '☐'}
+                  </AureakText>
+                </Pressable>
+              )}
+              <PremiumJoueurCard
+                item={item}
+              />
+            </View>
           ))}
         </View>
       )}
@@ -1177,5 +1260,43 @@ const s = StyleSheet.create({
     borderWidth    : 1,
     borderColor    : colors.border.light,
     boxShadow: shadows.sm,
+  },
+
+  // Bulk actions bar
+  bulkBar: {
+    flexDirection   : 'row',
+    alignItems      : 'center',
+    gap             : 12,
+    paddingVertical : 8,
+    paddingHorizontal: 12,
+    backgroundColor : colors.light.surface,
+    borderRadius    : 8,
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+  },
+  bulkBtn: {
+    paddingHorizontal: 12,
+    paddingVertical  : 6,
+    borderRadius     : 6,
+    backgroundColor  : colors.accent.gold,
+  },
+  checkboxOverlay: {
+    position   : 'absolute',
+    top        : 8,
+    left       : 8,
+    zIndex     : 10,
+    width      : 28,
+    height     : 28,
+    borderRadius: 6,
+    backgroundColor: colors.light.surface,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    alignItems : 'center',
+    justifyContent: 'center',
+    boxShadow: shadows.sm,
+  },
+  checkboxActive: {
+    borderColor    : colors.accent.gold,
+    backgroundColor: colors.accent.gold + '18',
   },
 })
