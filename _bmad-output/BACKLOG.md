@@ -35,9 +35,9 @@
 - [x] Epic 4 : Séances terrain (4-1, 4-2, 4-3, 4-5, 4-6, 4-7)
 - [x] Epic 6 partial : Évaluations (6-1, 6-4)
 - [x] Epic 7 partial : Notifications (7-2)
-- [x] Epic 9 partial : Dashboard admin (9-1, 9-3, 9-4)
-- [x] Epic 10 partial : RGPD (10-3, 10-5)
-- [x] Epic 11 partial : Grades coaches (11-1, 11-3)
+- [x] Epic 9 : Dashboard admin + anomalies + messagerie (9-1, 9-2, 9-3, 9-4, 9-5)
+- [x] Epic 10 : RGPD + consentements + audit (10-1, 10-2, 10-3, 10-4, 10-5)
+- [x] Epic 11 : Grades coaches + permissions contenu + partenariats (11-1, 11-2, 11-3)
 - [x] Epic 13 : Séances v2 (13-1, 13-3)
 - [x] Epic 18 : Joueurs admin (18-1, 18-2, 18-4, 18-5, 18-6, 18-7)
 - [x] Epic 19 : Séances admin UI (19-4, 19-5)
@@ -87,76 +87,9 @@
 
 ## Backlog ordonné — ready-for-dev
 
----
+**✅ Tout le backlog Phase 1 est implémenté** (stories 2-1→2-3, 5-1→5-6, 7-1→7-4, 8-1→8-5, 9-1→9-5, 10-1→10-5, 11-1→11-3, 28-1)
 
-### PRIORITÉ 1 — Auth + Sécurité (Epic 2) 🔴 BLOQUANT TOUT
-*Code existant partiel — 3 gaps critiques à combler*
-
-> **Pourquoi bloquant** : sans `custom-access-token-hook`, le JWT ne contient pas `role`/`tenant_id` → `current_tenant_id()` et `current_user_role()` retournent NULL → toutes les policies RLS échouent silencieusement en production.
-
-| # | Story | État code | Gap à combler | Migration |
-|---|-------|-----------|---------------|-----------|
-| 2-1 | Auth email/MDP | Code présent ✓ | `custom-access-token-hook` Edge Function ABSENTE | Aucune (00003 ok) |
-| 2-2 | RLS/RBAC universel | Code présent ✓ | `00010_rls_policies.sql` ABSENT du repo | Créer `00090_rls_policies_complete.sql` |
-| 2-3 | Accès cross-implantation | Code présent ✓ | Vérifier section coach_access_grants dans `00090` | Inclus dans 00090 |
-
-- [ ] **2-1** : inscription-auth-standard-email-mot-de-passe
-- [ ] **2-2** : controle-acces-par-role-rbac-regle-universelle-rls
-- [ ] **2-3** : acces-temporaire-cross-implantation-coach
-
----
-
-### PRIORITÉ 2 — Permissions de contenu par grade (Epic 11)
-*Dépendance : Auth done*
-
-- [ ] **11-2** : permissions-de-contenu-par-grade ⚠️ `grade_content_permissions` ABSENT DB → `00091_grade_content_permissions.sql`
-
----
-
-### PRIORITÉ 3 — Support tickets parent (Epic 7)
-*Dépendance : Auth done*
-
-- [ ] **7-4** : systeme-de-tickets-parent-minimal-trace ⚠️ `support_tickets` ABSENT DB → `00092_support_tickets.sql`
-
----
-
-### PRIORITÉ 4 — Consentements parentaux (Epic 10)
-*Dépendance : Auth done*
-
-- [ ] **10-2** : consentements-parentaux-revocation-en-cascade ⚠️ `user_consents` ABSENT DB → `00093_user_consents.sql`
-
----
-
-### PRIORITÉ 5 — Dashboard anomalies & messages admin (Epic 9)
-*Dépendance : Auth + Epic 4/6 done*
-
-- [ ] **9-2** : detection-anomalies ⚠️ table `anomaly_events` ok en DB, API `admin/anomalies.ts` à créer
-- [ ] **9-5** : contact-direct-coach ⚠️ table `admin_messages` ok en DB, API `admin/messages.ts` à créer
-
----
-
-### PRIORITÉ 6 — Offline & Sync (Epic 5) — selon besoin réel
-*Dépendance : Epic 4 done ✓ — tables `sync_queue` et `event_log` existent en DB*
-
-- [ ] **5-1** : schema-offline-sqlite-sync-queue-serveur (SyncQueueService.ts existe, vérifier complétion)
-- [ ] **5-2** : event-sourcing-event-log-snapshot-attendance-apply-event ⚠️ RPCs `apply_event` à vérifier
-- [ ] **5-4** : sync-queue-idempotente-resolution-de-conflits
-- [ ] **5-5** : timeline-admin-restauration-via-event-log (2 fichiers à créer)
-- [ ] **5-6** : ux-offline-indicateur-sync-alertes-rappel-j1
-
----
-
-### Suite — Notifications & apprentissage (Epics 7, 8, 10)
-
-- [ ] **7-1** : infrastructure-notifications-push-tokens-preferences-urgence
-- [ ] **7-3** : board-parent-fiche-enfant-transparence-terrain-admin
-- [ ] **8-1** : modele-de-donnees-apprentissage-maitrise-gamification
-- [ ] **8-2** : moteur-de-quiz-adaptatif-stop-conditions-maitrise
-- [ ] **8-4** : streaks-revision-espacee (partie shared arch seulement)
-- [ ] **8-5** : rapports-coach-vue-agregee-groupe-acces-parent
-- [ ] **10-1** : cycle-de-vie-utilisateur
-- [ ] **10-4** : audit-trail-admin-policies-completes-indexes-retention
-- [ ] **28-1** : rbfa-enrichissement-clubs
+*Prochaine étape : DB Baseline Recovery + tests end-to-end*
 
 ---
 
