@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
+import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
 import { AureakText, Button } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
@@ -927,6 +927,83 @@ export default function JoueursPage() {
     setBirthYear('all')
   }
 
+  // ── CSV Import ──────────────────────────────────────────────────────────────
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [csvPreview,      setCsvPreview]      = useState<Record<string, string>[]>([])
+  const [csvError,        setCsvError]        = useState<string | null>(null)
+  const [importing,       setImporting]       = useState(false)
+  const [importResult,    setImportResult]    = useState<{ ok: number; err: number } | null>(null)
+
+  const handleCsvFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCsvError(null)
+    setCsvPreview([])
+    setImportResult(null)
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+      if (lines.length < 2) { setCsvError('Le fichier doit contenir au moins une ligne de données.'); return }
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+      const rows = lines.slice(1).map(line => {
+        const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''))
+        return Object.fromEntries(headers.map((h, i) => [h, vals[i] ?? '']))
+      })
+      setCsvPreview(rows.slice(0, 5))
+    }
+    reader.readAsText(file, 'utf-8')
+  }
+
+  const handleImportCsv = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (csvPreview.length === 0) return
+    const fileInput = (e.currentTarget.elements.namedItem('csvFile') as HTMLInputElement)
+    const file = fileInput?.files?.[0]
+    if (!file) return
+    setImporting(true)
+    setCsvError(null)
+    try {
+      const text  = await file.text()
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+      const rows = lines.slice(1).map(line => {
+        const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''))
+        return Object.fromEntries(headers.map((h, i) => [h, vals[i] ?? '']))
+      })
+      // Récupérer le tenant_id depuis la session
+      const { supabase } = await import('@aureak/api-client')
+      const { data: { session } } = await supabase.auth.getSession()
+      const tenantId = (session?.user?.app_metadata?.tenant_id ?? session?.user?.user_metadata?.tenant_id ?? '') as string
+      let ok = 0, errCount = 0
+      for (const row of rows) {
+        const displayName = row['displayName'] || row['display_name'] || row['nom_complet'] || `${row['prenom'] ?? ''} ${row['nom'] ?? ''}`.trim()
+        if (!displayName) { errCount++; continue }
+        try {
+          await createChildDirectoryEntry({
+            tenantId,
+            displayName,
+            nom        : row['nom']        || null,
+            prenom     : row['prenom']     || null,
+            birthDate  : row['birthDate']  || row['birth_date']  || null,
+            statut     : row['statut']     || null,
+            currentClub: row['currentClub']|| row['current_club']|| null,
+          })
+          ok++
+        } catch {
+          errCount++
+        }
+      }
+      setImportResult({ ok, err: errCount })
+      if (ok > 0) { await load() }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[CsvImport] error:', err)
+      setCsvError('Erreur lors du traitement du fichier.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   // ── Bulk selection ──────────────────────────────────────────────────────────
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkMode,    setBulkMode]    = useState(false)
@@ -953,8 +1030,8 @@ export default function JoueursPage() {
       j.displayName,
       j.computedStatus ?? '',
       j.currentClub ?? '',
-      j.actif ? 'oui' : 'non',
-      j.totalSeasons ?? 0,
+      j.inCurrentSeason ? 'oui' : 'non',
+      j.totalAcademySeasons ?? 0,
       j.totalStages ?? 0,
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
     const csv  = [header, ...rows].join('\n')
@@ -973,6 +1050,7 @@ export default function JoueursPage() {
     : s.gridFallback
 
   return (
+    <>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
       {/* ── En-tête ── */}
@@ -994,6 +1072,21 @@ export default function JoueursPage() {
               </AureakText>
             </Pressable>
           )}
+          <Pressable
+            style={{
+              paddingHorizontal: space.md,
+              paddingVertical  : 6,
+              borderRadius     : 6,
+              borderWidth      : 1,
+              borderColor      : colors.border.light,
+              backgroundColor  : colors.light.surface,
+            }}
+            onPress={() => { setCsvPreview([]); setCsvError(null); setImportResult(null); setShowImportModal(true) }}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+              Importer CSV
+            </AureakText>
+          </Pressable>
           <Button
             label="Ajouter un joueur"
             variant="primary"
@@ -1161,6 +1254,100 @@ export default function JoueursPage() {
         />
       )}
     </ScrollView>
+
+    {/* ── Modal import CSV ── */}
+    {showImportModal && (
+      <div
+        onClick={() => setShowImportModal(false)}
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.35)', zIndex: 100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32,
+        }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            backgroundColor: colors.light.surface,
+            borderRadius   : 12,
+            padding        : 24,
+            width          : '100%',
+            maxWidth       : 520,
+            display        : 'flex',
+            flexDirection  : 'column',
+            gap            : 16,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: colors.text.dark }}>Importer des joueurs depuis un CSV</span>
+            <button onClick={() => setShowImportModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: colors.text.muted }}>✕</button>
+          </div>
+
+          <div style={{ fontSize: 12, color: colors.text.muted }}>
+            Format attendu : colonnes <code>displayName</code> (ou <code>nom</code> + <code>prenom</code>),
+            optionnelles : <code>statut</code>, <code>currentClub</code>, <code>birthDate</code>.
+          </div>
+
+          <form onSubmit={handleImportCsv} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input
+              type="file"
+              name="csvFile"
+              accept=".csv,text/csv"
+              onChange={handleCsvFile}
+              style={{ fontSize: 13 }}
+            />
+
+            {csvError && (
+              <span style={{ fontSize: 12, color: colors.accent.red }}>{csvError}</span>
+            )}
+
+            {csvPreview.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', marginBottom: 6 }}>
+                  Aperçu ({csvPreview.length} premières lignes)
+                </div>
+                <div style={{ overflow: 'auto', fontSize: 11, backgroundColor: colors.light.muted, borderRadius: 6, padding: 8 }}>
+                  {csvPreview.map((row, i) => (
+                    <div key={i} style={{ marginBottom: 4, color: colors.text.dark }}>
+                      {Object.entries(row).slice(0, 5).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {importResult && (
+              <div style={{ fontSize: 13, color: importResult.err === 0 ? colors.status.present : colors.status.attention, fontWeight: 600 }}>
+                {importResult.ok} importé{importResult.ok > 1 ? 's' : ''}{importResult.err > 0 ? `, ${importResult.err} erreur(s)` : ''}.
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                style={{ padding: '8px 16px', borderRadius: 6, border: `1px solid ${colors.border.light}`, background: 'none', cursor: 'pointer', fontSize: 13, color: colors.text.muted }}
+              >
+                Fermer
+              </button>
+              <button
+                type="submit"
+                disabled={csvPreview.length === 0 || importing}
+                style={{
+                  padding: '8px 16px', borderRadius: 6, border: 'none',
+                  backgroundColor: csvPreview.length > 0 && !importing ? colors.accent.gold : colors.light.muted,
+                  cursor: csvPreview.length > 0 && !importing ? 'pointer' : 'not-allowed',
+                  fontSize: 13, fontWeight: 700, color: colors.light.primary,
+                }}
+              >
+                {importing ? 'Import en cours…' : 'Importer'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 
