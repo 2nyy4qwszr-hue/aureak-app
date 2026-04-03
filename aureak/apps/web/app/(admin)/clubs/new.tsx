@@ -248,7 +248,7 @@ export default function NewClubScreen() {
         {/* Error */}
         {error && (
           <View style={styles.errorBanner}>
-            <AureakText variant="body" style={{ color: '#f87171' }}>{error}</AureakText>
+            <AureakText variant="body" style={{ color: colors.accent.red }}>{error}</AureakText>
           </View>
         )}
 
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
-    borderLeftColor: '#f87171',
+    borderLeftColor: colors.accent.red,
     borderRadius   : 4,
     padding        : space.md,
   },

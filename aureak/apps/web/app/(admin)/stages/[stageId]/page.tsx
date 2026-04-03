@@ -431,7 +431,7 @@ function BlockModal({
 }
 
 const m = StyleSheet.create({
-  overlay : { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  overlay : { flex: 1, backgroundColor: colors.overlay.modal, justifyContent: 'flex-end' },
   sheet   : {
     backgroundColor: colors.light.surface,
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
@@ -691,7 +691,7 @@ export default function StageDetailPage() {
 
         {/* ── Back + Export ── */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Pressable onPress={() => router.push('/stages' as never)}>
+          <Pressable onPress={() => router.push('/stages' as never)} style={p.backBtn}>
             <AureakText variant="caption" style={{ color: colors.text.muted }}>← Stages</AureakText>
           </Pressable>
           <Pressable
@@ -943,6 +943,7 @@ export default function StageDetailPage() {
 const p = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.xl, gap: space.lg },
+  backBtn  : { paddingBottom: 4 },
 
   hero: {
     backgroundColor: colors.light.surface,

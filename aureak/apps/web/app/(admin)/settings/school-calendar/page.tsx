@@ -128,7 +128,7 @@ export default function SchoolCalendarPage() {
             placeholder="ex: Vacances Pâques"
           />
           {formError && (
-            <AureakText variant="caption" style={{ color: '#DC2626', marginTop: 4 }}>{formError}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: 4 }}>{formError}</AureakText>
           )}
           <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
             <AureakButton
@@ -173,7 +173,7 @@ export default function SchoolCalendarPage() {
                       style={styles.deleteBtn}
                       onPress={() => handleRemove(e.id)}
                     >
-                      <AureakText variant="caption" style={{ color: '#DC2626', fontSize: 11 }}>
+                      <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>
                         Supprimer
                       </AureakText>
                     </Pressable>
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
   rowAlt    : { backgroundColor: colors.light.muted },
   deleteBtn : {
     paddingHorizontal: space.sm, paddingVertical: 4,
-    borderRadius: 5, borderWidth: 1, borderColor: '#FCA5A5',
-    backgroundColor: '#FEF2F2',
+    borderRadius: 5, borderWidth: 1, borderColor: colors.accent.red + '80',
+    backgroundColor: colors.accent.red + '15',
   },
   infoBox   : {
     backgroundColor: colors.light.surface, borderRadius: 8, padding: space.md,

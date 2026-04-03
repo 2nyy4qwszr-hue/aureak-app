@@ -20,7 +20,7 @@ const CIRCLE_INNER = CIRCLE_OUTER - 28   // 112px — inscrit dans le ring gold
 // ── Badge colors ──────────────────────────────────────────────────────────────
 const RELATION_BADGE_COLORS: Record<Exclude<ClubRelationType, 'normal'>, string> = {
   partenaire: colors.accent.gold,
-  associe   : '#60a5fa',
+  associe   : colors.entity.club,
 }
 
 // ── ClubCard ──────────────────────────────────────────────────────────────────

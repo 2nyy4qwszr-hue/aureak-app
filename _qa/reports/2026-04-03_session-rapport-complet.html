@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rapport de session — Aureak · 3 avril 2026</title>
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #F3EBD0;
+      --beige: #F3EFE7;
+      --white: #FFFFFF;
+      --dark: #1A1A1A;
+      --dark2: #2A2A2A;
+      --text: #2D2D2D;
+      --muted: #6B7280;
+      --border: #E5E0D8;
+      --red: #E05252;
+      --green: #10B981;
+      --blue: #3B82F6;
+      --purple: #8B5CF6;
+      --orange: #F59E0B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--beige);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--dark);
+      color: white;
+      padding: 48px 64px;
+      border-bottom: 4px solid var(--gold);
+    }
+    .header-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+    .header h1 span { color: var(--gold); }
+    .header p {
+      color: #9CA3AF;
+      margin-top: 6px;
+      font-size: 15px;
+    }
+    .stats-grid {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      text-align: center;
+    }
+    .stat-box .num {
+      font-size: 40px;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .stat-box .lbl {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9CA3AF;
+      margin-top: 4px;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      background: var(--dark2);
+      padding: 0 64px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      border-bottom: 1px solid #333;
+    }
+    .nav a {
+      color: #9CA3AF;
+      text-decoration: none;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav a:hover { color: white; }
+    .nav a.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ── Main ── */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 64px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .section-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Story Card ── */
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+      gap: 24px;
+    }
+    .story-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+    .story-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+
+    .story-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .story-id {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: monospace;
+      color: var(--muted);
+      background: var(--beige);
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .story-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .status-done { background: #D1FAE5; color: #065F46; }
+    .status-pass { background: var(--gold-light); color: #92400E; }
+
+    .story-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .story-commit {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    .story-sections { margin-top: 16px; }
+
+    .story-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .story-text {
+      font-size: 13.5px;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .tag-db { background: #EDE9FE; color: #5B21B6; }
+    .tag-ts { background: #DBEAFE; color: #1E40AF; }
+    .tag-ui { background: #D1FAE5; color: #065F46; }
+    .tag-api { background: #FEF3C7; color: #92400E; }
+    .tag-edge { background: #FCE7F3; color: #9D174D; }
+    .tag-css { background: #E0F2FE; color: #075985; }
+
+    .files-list {
+      margin-top: 8px;
+    }
+    .file-item {
+      font-size: 12px;
+      font-family: monospace;
+      color: #4B5563;
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .file-new::before { content: '+'; color: var(--green); font-weight: 700; }
+    .file-mod::before { content: '~'; color: var(--orange); font-weight: 700; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    /* ── Overview Card ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .overview-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .overview-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .overview-card .val {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--dark);
+    }
+    .overview-card .val.gold { color: var(--gold); }
+    .overview-card .val.green { color: var(--green); }
+    .overview-card p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--gold-light);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -28px;
+      top: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid var(--white);
+      box-shadow: 0 0 0 2px var(--gold-light);
+    }
+    .timeline-item .commit {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .timeline-item .msg {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .timeline-item .detail {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Improvements ── */
+    .improvement-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+      border-left: 4px solid var(--gold);
+    }
+    .improvement-card h3 {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .improvement-card p {
+      font-size: 14px;
+      color: #4B5563;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .improvement-card ul {
+      padding-left: 20px;
+    }
+    .improvement-card ul li {
+      font-size: 13.5px;
+      color: #4B5563;
+      margin-bottom: 6px;
+    }
+    .improvement-card .priority {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .pri-high { background: #FEE2E2; color: #991B1B; }
+    .pri-med { background: #FEF3C7; color: #92400E; }
+    .pri-low { background: #D1FAE5; color: #065F46; }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--dark);
+      color: #6B7280;
+      text-align: center;
+      padding: 32px;
+      font-size: 13px;
+    }
+    .footer span { color: var(--gold); }
+
+    /* ── Badge ── */
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1.5px solid;
+    }
+    .badge-green { color: var(--green); border-color: var(--green); background: #D1FAE5; }
+    .badge-gold { color: var(--gold); border-color: var(--gold); background: var(--gold-light); }
+    .badge-blue { color: var(--blue); border-color: var(--blue); background: #DBEAFE; }
+    .badge-red { color: var(--red); border-color: var(--red); background: #FEE2E2; }
+
+    h2.phase-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--dark);
+      margin: 40px 0 20px;
+      padding: 12px 20px;
+      background: var(--gold-light);
+      border-radius: 10px;
+      border-left: 4px solid var(--gold);
+    }
+
+    @media (max-width: 768px) {
+      .header { padding: 32px 24px; }
+      .main { padding: 32px 16px; }
+      .story-grid { grid-template-columns: 1fr; }
+      .overview-grid { grid-template-columns: 1fr 1fr; }
+      .nav { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-meta">
+    <div>
+      <h1>Rapport de session — <span>Aureak</span></h1>
+      <p>3 avril 2026 · 39 stories implémentées · Pipeline CI/CD complet · Gamification · 34 nouvelles features</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="num">39</div>
+        <div class="lbl">Stories done</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">73</div>
+        <div class="lbl">Fichiers modifiés</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">4 302</div>
+        <div class="lbl">Lignes ajoutées</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">5</div>
+        <div class="lbl">Migrations SQL</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <a href="#resume" class="active">Résumé</a>
+  <a href="#infra">Infra & CI/CD</a>
+  <a href="#gamification">Gamification</a>
+  <a href="#ux">UX & Design</a>
+  <a href="#features">Features</a>
+  <a href="#data">Données & DB</a>
+  <a href="#timeline">Timeline commits</a>
+  <a href="#ameliorations">Pistes d'amélioration</a>
+</nav>
+
+<div class="main">
+
+  <!-- ══ RÉSUMÉ ══ -->
+  <section class="section" id="resume">
+    <div class="section-header">
+      <div class="section-icon" style="background:#FEF3C7">🗺️</div>
+      <div>
+        <div class="section-title">Vue d'ensemble de la session</div>
+        <div class="section-subtitle">Ce qui existait, ce qui a été fait, ce que ça change</div>
+      </div>
+    </div>
+
+    <div class="overview-grid">
+      <div class="overview-card">
+        <h3>État avant la session</h3>
+        <div class="val">5</div>
+        <p>Stories en statut "review" ou "phase-2" bloquées, sans qu'un pipeline automatique existe pour les traiter.</p>
+      </div>
+      <div class="overview-card">
+        <h3>Stories validées</h3>
+        <div class="val green">39</div>
+        <p>Toutes les stories de la queue journalière sont passées en <strong>done</strong> avec Gate 1 + Gate 2.</p>
+      </div>
+      <div class="overview-card">
+        <h3>Migrations DB créées</h3>
+        <div class="val gold">5</div>
+        <p>00106 (gamification), 00107 (quêtes), 00108 (baseline note), 00109 (access-grants), 00110 (notifications in-app).</p>
+      </div>
+      <div class="overview-card">
+        <h3>Nouvelles pages admin</h3>
+        <div class="val">8+</div>
+        <p>Onboarding, access-grants, analytics/implantation, calendrier séances, vue groupes enrichie, recherche globale…</p>
+      </div>
+    </div>
+
+    <div class="story-card" style="border-left: 4px solid var(--gold);">
+      <div class="story-label">Contexte de départ</div>
+      <div class="story-text">
+        La session a démarré avec une queue de 40 stories construite lors du <em>/morning</em> de la veille.
+        5 stories étaient des fichiers déjà créés (review ou phase-2) — il fallait vérifier leur implémentation et les marquer done.
+        35 stories étaient de nouvelles features à créer entièrement via Story Factory puis à implémenter.
+        <br><br>
+        <strong>Avant cette session :</strong> l'app avait son cœur fonctionnel (joueurs, séances, stages, méthodologie, clubs)
+        mais manquait de finition UX (toasts, skeletons, filtres persistants, cohérence design) et de plusieurs features
+        importantes (gamification, notifications, calendrier, import CSV, export PDF, onboarding…).
+      </div>
+      <div class="badge-row">
+        <span class="badge badge-gold">Queue 40 stories</span>
+        <span class="badge badge-green">39 done aujourd'hui</span>
+        <span class="badge badge-blue">1 skip (story déjà couverte)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ INFRA & CI/CD ══ -->
+  <section class="section" id="infra">
+    <div class="section-header">
+      <div class="section-icon" style="background:#EDE9FE">⚙️</div>
+      <div>
+        <div class="section-title">Infrastructure & CI/CD</div>
+        <div class="section-subtitle">Story 1.4 — Pipeline GitHub Actions + Tests</div>
+      </div>
+    </div>
+
+    <div class="story-grid">
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">story-1-4</div>
+            <div class="story-title">Pipeline CI/CD, Tests & Standards de code</div>
+            <div class="story-commit">commit 7625be4</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+
+        <div class="story-label">Objectif</div>
+        <div class="story-text">Mettre en place un pipeline de validation automatique sur chaque PR vers <code>main</code> : lint, type-check, tests unitaires. Déclencher EAS Build + Playwright E2E uniquement au merge sur <code>main</code>.</div>
+
+        <div class="story-label">Avant</div>
+        <div class="story-text">Aucune validation automatique. Les push pouvaient casser le build sans alerte. Pas de tests unitaires ni E2E en place. Pas de configuration Prettier standardisée.</div>
+
+        <div class="story-label">Comment c'a été fait</div>
+        <div class="story-text">
+          Le fichier story existait déjà avec tous les tasks cochés [x]. Vérification que les fichiers physiques étaient bien présents : <code>.github/workflows/ci.yml</code>, <code>eas-build.yml</code>, <code>vitest.config.ts</code>, tests RNTL, smoke Playwright. Statut mis à jour "review → done".
+        </div>
+
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Chaque PR déclenche automatiquement ESLint, TypeScript <code>--noEmit</code>, et 13 tests Vitest (3 types + 10 UI). Les builds EAS + Playwright ne s'exécutent qu'au merge, évitant la surcharge CI.</div>
+
+        <div class="tag-row">
+          <span class="tag tag-css">GitHub Actions</span>
+          <span class="tag tag-ts">Vitest</span>
+          <span class="tag tag-ui">Playwright</span>
+          <span class="tag tag-api">EAS Build</span>
+        </div>
+
+        <div class="files-list">
+          <div class="file-item file-mod">.github/workflows/ci.yml</div>
+          <div class="file-item file-mod">.github/workflows/eas-build.yml</div>
+          <div class="file-item file-mod">aureak/packages/types/src/enums.test.ts</div>
+          <div class="file-item file-mod">aureak/packages/ui/src/components/IndicatorToggle/IndicatorToggle.test.tsx</div>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-db-baseline-recovery</div>
+            <div class="story-title">DB Baseline Recovery — migrations 00090+</div>
+            <div class="story-commit">commit 91b3d83</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+
+        <div class="story-label">Objectif</div>
+        <div class="story-text">Documenter et résoudre la divergence entre les deux répertoires de migrations : <code>aureak/supabase/migrations/</code> (00001–00090, historiques) et <code>supabase/migrations/</code> (nouvelles, 00096+).</div>
+
+        <div class="story-label">Avant</div>
+        <div class="story-text">Confusion sur quelle source de vérité utiliser pour les migrations. Risque de recréer des tables déjà existantes. Aucune documentation sur la divergence.</div>
+
+        <div class="story-label">Comment c'a été fait</div>
+        <div class="story-text">Création de <code>00108_baseline_sync_note.sql</code> : fichier SQL commenté qui liste les tables déjà présentes via les migrations historiques et explique la stratégie <code>IF NOT EXISTS</code> pour les nouvelles migrations.</div>
+
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Tout nouveau développeur (ou agent) sait que les tables de base (player_progress, themes, etc.) viennent des migrations 00025-00036 dans <code>aureak/</code>, et que toute nouvelle migration doit utiliser des guards <code>IF NOT EXISTS</code>.</div>
+
+        <div class="tag-row">
+          <span class="tag tag-db">SQL</span>
+        </div>
+        <div class="files-list">
+          <div class="file-item file-new">supabase/migrations/00108_baseline_sync_note.sql</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ GAMIFICATION ══ -->
+  <section class="section" id="gamification">
+    <div class="section-header">
+      <div class="section-icon" style="background:#FCE7F3">🏆</div>
+      <div>
+        <div class="section-title">Système de Gamification</div>
+        <div class="section-subtitle">Stories 12.1 + 12.2 + 12.4 — Badges, points, avatar, quêtes</div>
+      </div>
+    </div>
+
+    <div class="story-grid">
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">story-12-1 + 12-2</div>
+            <div class="story-title">Modèle données gamification + Event bus</div>
+            <div class="story-commit">commit 63ad3a4</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+
+        <div class="story-label">Objectif</div>
+        <div class="story-text">Créer le modèle de données complet pour récompenser les joueurs : badges gagnables, ledger de points immuable, items cosmétiques avatar débloquables. RPC centrale <code>award_badge_if_applicable()</code> gérant 4 événements.</div>
+
+        <div class="story-label">Avant</div>
+        <div class="story-text">Aucune table de gamification dans le répertoire actif <code>supabase/migrations/</code>. Les types TypeScript <code>BadgeDefinition</code>, <code>PlayerBadge</code>, <code>PlayerPointsLedger</code> n'existaient pas. L'app n'avait aucun mécanisme de récompense pour les enfants.</div>
+
+        <div class="story-label">Comment c'a été fait</div>
+        <div class="story-text">
+          Migration <strong>00106</strong> créée avec 9 tables (<code>badge_definitions</code>, <code>player_badges</code>, <code>player_points_ledger</code>, <code>avatar_items</code>, <code>player_avatars</code>, <code>player_unlocked_items</code>, <code>player_theme_mastery</code>, <code>skill_cards</code>, <code>player_skill_cards</code>).
+          Trigger <code>fn_badge_awarded_ledger</code> : à chaque INSERT badge → points automatiquement ajoutés au ledger.
+          RPC SECURITY DEFINER <code>award_badge_if_applicable</code> avec idempotency via <code>processed_operations</code>.
+          12 types TypeScript ajoutés dans <code>entities.ts</code>.
+        </div>
+
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Le système peut récompenser un enfant pour : acquérir un thème (QUIZ_MASTERED), revalider une compétence (SKILL_MASTERED), ou une attribution coach (COACH_AWARD). Le ledger est append-only — aucune suppression ou modification de points possible, même pour l'admin.</div>
+
+        <div class="tag-row">
+          <span class="tag tag-db">Migration 00106</span>
+          <span class="tag tag-ts">12 types TS</span>
+          <span class="tag tag-api">RPC SECURITY DEFINER</span>
+        </div>
+        <div class="files-list">
+          <div class="file-item file-new">supabase/migrations/00106_gamification_model.sql</div>
+          <div class="file-item file-mod">aureak/packages/types/src/entities.ts (+120 lignes)</div>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">story-12-4</div>
+            <div class="story-title">Quêtes hebdomadaires — attribution & progression</div>
+            <div class="story-commit">commit 63ad3a4</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+
+        <div class="story-label">Objectif</div>
+        <div class="story-text">Système de quêtes hebdomadaires automatiquement assignées aux enfants (3 types : assister à des séances, acquérir des thèmes, compléter des révisions). Progression en temps réel lors de chaque événement.</div>
+
+        <div class="story-label">Avant</div>
+        <div class="story-text">Aucune mécanique de quête. Les enfants n'avaient aucun objectif hebdomadaire concret pour maintenir leur engagement. L'event bus (12.2) ne gérait pas la progression des quêtes.</div>
+
+        <div class="story-label">Comment c'a été fait</div>
+        <div class="story-text">
+          Migration <strong>00107</strong> : tables <code>quest_definitions</code> (catalogue) + <code>player_quests</code> (instances par enfant par période).
+          Extension de <code>award_badge_if_applicable</code> : à chaque événement QUIZ_MASTERED ou SESSION_ATTENDED, progression automatique des quêtes actives dans la période.
+          Types TypeScript : <code>QuestDefinition</code>, <code>PlayerQuest</code>, <code>QuestStatus</code>, <code>QuestType</code>.
+        </div>
+
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Un enfant peut recevoir des quêtes hebdomadaires. La progression se met à jour automatiquement à chaque quiz ou séance. Quêtes expirées automatiquement en fin de période. Contrainte UNIQUE(child_id, quest_id, period_start) garantit l'idempotency.</div>
+
+        <div class="tag-row">
+          <span class="tag tag-db">Migration 00107</span>
+          <span class="tag tag-ts">4 types TS</span>
+          <span class="tag tag-api">Event bus étendu</span>
+        </div>
+        <div class="files-list">
+          <div class="file-item file-new">supabase/migrations/00107_gamification_quests.sql</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ UX & DESIGN ══ -->
+  <section class="section" id="ux">
+    <div class="section-header">
+      <div class="section-icon" style="background:#D1FAE5">🎨</div>
+      <div>
+        <div class="section-title">UX & Design System</div>
+        <div class="section-subtitle">Cohérence visuelle, feedback, accessibilité, persistance</div>
+      </div>
+    </div>
+
+    <h2 class="phase-title">Composants transversaux</h2>
+    <div class="story-grid">
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-sidebar-icones-coherence</div>
+            <div class="story-title">Cohérence icônes sidebar — état actif gold</div>
+            <div class="story-commit">commit 29b2b9d</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les items actifs de la sidebar utilisaient des styles incohérents selon les sections — certains sans indication visuelle gold distincte.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Standardisation du pattern active dans <code>_layout.tsx</code> : fond <code>colors.accent.gold + '20'</code>, texte <code>colors.accent.gold</code>, bande gauche 3px gold.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Tous les items actifs de la sidebar ont un look gold identique, cohérent avec le design "Light Premium" de l'app.</div>
+        <div class="tag-row"><span class="tag tag-ui">UI</span><span class="tag tag-css">Design System</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-error-boundary</div>
+            <div class="story-title">Error Boundary global admin</div>
+            <div class="story-commit">commit 5722c6c</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Une erreur JavaScript dans n'importe quel composant admin faisait crasher l'interface entière avec un écran blanc — aucune récupération possible.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Composant React class <code>ErrorBoundary.tsx</code> avec <code>componentDidCatch</code>, fallback UI Light Premium (carte blanche, message d'erreur lisible, bouton "Recharger"). Intégré dans <code>_layout.tsx</code> autour du contenu principal.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Si un composant crash, l'utilisateur voit une page d'erreur claire avec un bouton pour recharger — la sidebar reste opérationnelle, pas de page blanche.</div>
+        <div class="tag-row"><span class="tag tag-ui">React</span><span class="tag tag-ts">TypeScript</span></div>
+        <div class="files-list">
+          <div class="file-item file-new">aureak/apps/web/components/ErrorBoundary.tsx</div>
+          <div class="file-item file-mod">aureak/apps/web/app/(admin)/_layout.tsx</div>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-toasts-feedback</div>
+            <div class="story-title">Feedback visuel (toasts) après actions admin</div>
+            <div class="story-commit">commit f537ff7</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Après une action CRUD (créer un joueur, modifier un club…), l'admin n'avait aucun retour visuel — il devait deviner si l'action avait réussi ou non.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Hook <code>useToast()</code> + composant <code>ToastContainer</code> sans dépendance externe. Messages de succès (vert) et d'erreur (rouge) avec auto-disparition 3s. Intégré dans les pages children/new, clubs/new, stages.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Chaque action admin confirmée ou échouée affiche un toast non-bloquant en bas de l'écran. Pattern réutilisable via <code>useToast()</code> dans toutes les pages.</div>
+        <div class="tag-row"><span class="tag tag-ui">Hook React</span><span class="tag tag-ts">Zéro dépendance</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-skeleton-loading</div>
+            <div class="story-title">Skeleton loading sur pages lentes</div>
+            <div class="story-commit">commit fce5117</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les listes (joueurs, clubs, stages) affichaient un écran vide pendant le chargement — l'utilisateur ne savait pas si la page chargeait ou si elle était cassée.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Composants <code>SkeletonRow</code> et <code>SkeletonCard</code> avec animation shimmer CSS. Remplacent le contenu pendant <code>loading === true</code> dans children/, clubs/, stages/.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'utilisateur voit immédiatement la structure de la page (lignes grises animées) pendant le chargement — expérience perçue comme plus rapide.</div>
+        <div class="tag-row"><span class="tag tag-ui">CSS Animation</span><span class="tag tag-ui">UX</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-filtres-persistants</div>
+            <div class="story-title">Filtres persistants entre sessions (localStorage)</div>
+            <div class="story-commit">commit 5c6c01b</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">À chaque rechargement de page, les filtres des listes joueurs et clubs étaient remis à zéro — l'admin devait re-sélectionner ses filtres à chaque visite.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Hook <code>usePersistedFilters(key, defaultValue)</code> : lit localStorage à l'init, écrit à chaque changement. Clés distinctes par page (<code>aureak_children_filters</code>, <code>aureak_clubs_filters</code>).</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Les filtres (statut, actif/inactif, province) sont mémorisés entre les sessions. Si l'admin filtre les joueurs "Académicien + actif", ce filtre est encore actif à sa prochaine connexion.</div>
+        <div class="tag-row"><span class="tag tag-ui">localStorage</span><span class="tag tag-ts">Hook générique</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-route-players-orpheline</div>
+            <div class="story-title">Route players/ orpheline — redirection</div>
+            <div class="story-commit">commit e79657a</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">La route <code>/players/</code> était soit absente (404) soit dupliquée. L'URL canonique est <code>/children/</code> (vocabulaire "joueurs = enfants = child"). Des anciens liens pouvaient pointer vers <code>/players/</code>.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Création de <code>aureak/apps/web/app/(admin)/players/index.tsx</code> avec <code>router.replace('/children')</code> côté client, et meta redirect pour les robots.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Toute visite sur <code>/players</code> est silencieusement redirigée vers <code>/children</code> sans 404. Les anciens bookmarks fonctionnent.</div>
+        <div class="tag-row"><span class="tag tag-ui">Routing</span></div>
+      </div>
+    </div>
+
+    <h2 class="phase-title">Migration Design Light Premium</h2>
+    <div class="story-grid">
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-presences / analytics / audit / coach+parent / partnerships</div>
+            <div class="story-title">Migration Light Premium — 5 sections</div>
+            <div class="story-commit">commits e85bd0d → ebe171d</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Objectif</div>
+        <div class="story-text">Unifier le design de toutes les sections admin, coach et parent vers le thème "Light Premium" établi en story 1-3 : fond beige clair, cards blanches avec ombres subtiles, texte sombre, accents gold.</div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les pages présences, analytics, audit, coach et parent avaient des styles incohérents — certaines avec des fonds sombres résiduels, des couleurs hexadécimales hardcodées (#1A1A1A, #fff) au lieu des tokens du design system.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">
+          Pour chaque section : lecture des fichiers existants, remplacement des couleurs hardcodées par les tokens
+          (<code>colors.light.primary</code>, <code>colors.light.surface</code>, <code>colors.border.light</code>, <code>shadows.sm</code>),
+          suppression des fonds sombres dans les content areas (la sidebar dark reste intentionnellement).
+        </div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">100% des sections admin/coach/parent utilisent le même fond beige, les mêmes cards blanches et les mêmes tokens. Cohérence visuelle complète avec la charte Light Premium.</div>
+        <div class="tag-row">
+          <span class="tag tag-css">Design Tokens</span>
+          <span class="tag tag-ui">5 sections migrées</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FEATURES ══ -->
+  <section class="section" id="features">
+    <div class="section-header">
+      <div class="section-icon" style="background:#DBEAFE">✨</div>
+      <div>
+        <div class="section-title">Nouvelles Features</div>
+        <div class="section-subtitle">Outils admin, productivité, données et communication</div>
+      </div>
+    </div>
+
+    <div class="story-grid">
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-recherche-globale</div>
+            <div class="story-title">Recherche globale dans la sidebar</div>
+            <div class="story-commit">commit 3ec52ed</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Pour trouver un joueur ou un club, l'admin devait naviguer manuellement vers la bonne section. Pas de recherche transversale.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Champ de recherche dans <code>_layout.tsx</code> déclenche des appels parallèles aux API joueurs + clubs + coaches, avec debounce 300ms. Résultats dans un dropdown avec liens de navigation directe.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'admin tape un nom depuis n'importe quelle page et accède directement au joueur, club ou coach en 2 secondes.</div>
+        <div class="tag-row"><span class="tag tag-ui">UX</span><span class="tag tag-api">3 endpoints parallèles</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-bulk-actions-joueurs</div>
+            <div class="story-title">Bulk actions liste joueurs</div>
+            <div class="story-commit">commit 9841acc</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les actions sur les joueurs (désactiver, exporter) devaient être faites une par une. Sur 678 joueurs, c'était impraticable.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Ajout de checkboxes par ligne + "Sélectionner tout" dans <code>children/index.tsx</code>. Menu d'actions en bulk : désactiver les sélectionnés, exporter en CSV (Blob côté client).</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'admin peut sélectionner N joueurs et les désactiver ou exporter en une action. L'export CSV inclut : nom, prénom, date de naissance, club, statut.</div>
+        <div class="tag-row"><span class="tag tag-ui">UX</span><span class="tag tag-api">Bulk operations</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-calendrier-seances</div>
+            <div class="story-title">Calendrier visuel des séances (mensuel)</div>
+            <div class="story-commit">commit f30d54f</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les séances étaient affichées uniquement en liste chronologique — impossible d'avoir une vue d'ensemble du mois.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Grille calendrier mensuelle 100% custom en JSX/CSS (pas de lib externe). Les séances apparaissent comme dots colorés par groupe sur chaque jour. Navigation mois précédent/suivant. Clic sur un jour = liste des séances de la journée.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Vue mensuelle disponible dans la section séances. L'admin voit d'un coup d'œil la densité des séances et les jours chargés.</div>
+        <div class="tag-row"><span class="tag tag-ui">Calendrier custom</span><span class="tag tag-ts">Zéro dépendance</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-generation-groupes-saison</div>
+            <div class="story-title">Génération automatique groupes par saison</div>
+            <div class="story-commit">commit 364e337</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Chaque nouvelle saison, l'admin devait créer manuellement chaque groupe (U13, U15, U17…) un par un.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Bouton "Générer pour la saison" dans la page groupes. Modal de sélection de saison + catégories standard. Appel batch à <code>createGroup</code> pour chaque catégorie sélectionnée. Feedback en temps réel.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Génération de tous les groupes d'une nouvelle saison en une action. L'admin choisit la saison et les catégories à créer — les groupes apparaissent immédiatement.</div>
+        <div class="tag-row"><span class="tag tag-ui">UX</span><span class="tag tag-api">Batch API</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-import-csv-joueurs</div>
+            <div class="story-title">Import CSV joueurs en masse</div>
+            <div class="story-commit">commit ebbfed9</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Ajouter de nouveaux joueurs se faisait uniquement via le formulaire de création individuelle — impossible d'importer depuis une liste CSV.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Upload CSV via <code>FileReader</code> + parser natif (split/CSV sans lib externe). Colonnes : nom, prénom, date_naissance, club, statut. Preview des lignes avant import. Batch <code>createChildDirectoryEntry</code> avec compteur de succès/erreurs.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'admin peut importer une liste Excel exportée en CSV directement dans la plateforme. Preview des données avant confirmation, rapport d'import (N succès, M erreurs).</div>
+        <div class="tag-row"><span class="tag tag-ui">FileReader</span><span class="tag tag-api">Batch insert</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-export-pdf-joueur + tbd-export-pdf-stage</div>
+            <div class="story-title">Export PDF — Fiche joueur + Planning stage</div>
+            <div class="story-commit">commits a40930b + de2c918</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Impossible d'imprimer ou d'exporter une fiche joueur ou un planning de stage dans un format portable.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Bouton "Imprimer" sur les pages concernées déclenche <code>window.print()</code> avec CSS <code>@media print</code> : masque sidebar + navigation, formate le contenu sur une page A4, tailles de police adaptées.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Chaque fiche joueur et chaque planning de stage peut être imprimé ou sauvegardé en PDF via le navigateur. Aucune dépendance externe (puppeteer, jsPDF) nécessaire.</div>
+        <div class="tag-row"><span class="tag tag-css">@media print</span><span class="tag tag-ui">window.print()</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-notifs-inapp</div>
+            <div class="story-title">Notifications in-app — badge sidebar + panel</div>
+            <div class="story-commit">commit 47f8265</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Aucun mécanisme de notification interne. L'admin ne savait pas si des événements importants s'étaient produits depuis sa dernière connexion.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Migration <strong>00110</strong> : table <code>notifications (id, tenant_id, user_id, type, title, body, read_at, created_at)</code> avec RLS. Types TS + API <code>listNotifications</code>, <code>markAsRead</code>. Badge numérique dans la sidebar. Panel dropdown avec liste des notifs non lues.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Badge rouge dans la sidebar indique le nombre de notifications non lues. Clic = panel des notifs avec marquage "lu" au clic. Infrastructure prête pour envoyer des notifications depuis n'importe quelle Edge Function.</div>
+        <div class="tag-row">
+          <span class="tag tag-db">Migration 00110</span>
+          <span class="tag tag-api">API notifications</span>
+          <span class="tag tag-ui">Badge sidebar</span>
+        </div>
+        <div class="files-list">
+          <div class="file-item file-new">supabase/migrations/00110_inapp_notifications.sql</div>
+          <div class="file-item file-mod">aureak/apps/web/app/(admin)/_layout.tsx</div>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-onboarding</div>
+            <div class="story-title">Wizard onboarding premier lancement admin</div>
+            <div class="story-commit">commit 7f3a000</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Un nouvel admin arrivait sur un dashboard vide sans aucun guide. Il devait deviner l'ordre de création des données (implantation → groupes → coaches → joueurs).</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Page <code>/onboarding/</code> avec wizard 4 étapes : 1- Paramètres académie, 2- Créer première implantation, 3- Créer premier groupe, 4- Inviter un coach. Progression mémorisée en localStorage. Redirection auto si onboarding non complété.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Un nouvel admin est guidé étape par étape. Il peut sauter des étapes et les compléter plus tard. La progression persiste entre sessions via localStorage.</div>
+        <div class="tag-row"><span class="tag tag-ui">Wizard 4 étapes</span><span class="tag tag-ui">localStorage</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-digest-coach</div>
+            <div class="story-title">Digest hebdomadaire coach (email lundi)</div>
+            <div class="story-commit">commit b61ba35</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les coaches n'avaient aucun récapitulatif automatique de leur semaine. Ils devaient se connecter activement pour voir les stats.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Edge Function Deno <code>weekly-digest-coach</code> : récupère les coaches actifs par tenant, calcule les stats de la semaine (séances, présences, évaluations), génère un email HTML et l'envoie via Resend. Déclenchée par le scheduler Supabase le lundi matin.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Chaque coach reçoit automatiquement un email récapitulatif le lundi avec : ses séances de la semaine, le taux de présence, et les évaluations données. Opt-out possible via <code>coach_preferences</code>.</div>
+        <div class="tag-row">
+          <span class="tag tag-edge">Edge Function</span>
+          <span class="tag tag-api">Resend email</span>
+          <span class="tag tag-ts">Deno TypeScript</span>
+        </div>
+        <div class="files-list">
+          <div class="file-item file-new">supabase/functions/weekly-digest-coach/index.ts</div>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-audit-timeline + tbd-anomalies-actions</div>
+            <div class="story-title">Audit timeline filtrable + Anomalies inline</div>
+            <div class="story-commit">commits c83d8f2 + e6d32c0</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">La page audit affichait un tableau brut sans mise en forme. Les anomalies nécessitaient une navigation vers une autre page pour agir.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Timeline verticale avec icônes par type d'action + filtres utilisateur/type dans la page audit. Pour les anomalies : boutons inline "Résoudre" / "Ignorer" qui ouvrent un modal de confirmation sans redirection.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'audit est lisible et navigable. La résolution d'anomalies se fait sans quitter la liste — gain de temps significatif pour l'admin opérationnel.</div>
+        <div class="tag-row"><span class="tag tag-ui">Timeline</span><span class="tag tag-ui">Modal inline</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-historique-versions-joueur</div>
+            <div class="story-title">Historique des modifications fiche joueur</div>
+            <div class="story-commit">commit 331b58e</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Impossible de savoir qui avait modifié une fiche joueur et quand. Aucune traçabilité des changements.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Section "Historique des modifications" dans <code>children/[childId]/page.tsx</code> qui filtre les <code>audit_logs</code> par <code>entity_id = childId</code>. Affichage chronologique : qui, quoi, quand.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'admin voit l'historique complet des modifications d'un joueur directement dans sa fiche. Traçabilité RGPD renforcée.</div>
+        <div class="tag-row"><span class="tag tag-ui">Audit trail</span><span class="tag tag-api">audit_logs</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-vue-implantation</div>
+            <div class="story-title">Vue analytics agrégée par implantation</div>
+            <div class="story-commit">commit b3837d1</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les stats analytics n'existaient qu'au niveau global. Impossible de comparer les performances entre implantations.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Nouvelle page <code>analytics/implantation/page.tsx</code> : tableau de bord par implantation avec joueurs actifs, taux de présence moyen du mois, nombre de séances. Données agrégées depuis l'API.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">La direction peut comparer les implantations (ex: Liège vs Namur) sur des métriques clés et identifier les sites à soutenir.</div>
+        <div class="tag-row"><span class="tag tag-ui">Dashboard</span><span class="tag tag-api">Agrégation</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ DATA & DB ══ -->
+  <section class="section" id="data">
+    <div class="section-header">
+      <div class="section-icon" style="background:#FEF3C7">🗄️</div>
+      <div>
+        <div class="section-title">Données & Base de données</div>
+        <div class="section-subtitle">5 nouvelles migrations, 2 Edge Functions, pagination serveur</div>
+      </div>
+    </div>
+
+    <div class="story-grid">
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-access-grants-expiration</div>
+            <div class="story-title">Accès temporaires avec date d'expiration</div>
+            <div class="story-commit">commit efdc670</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Aucun mécanisme d'accès temporaire. Les accès accordés ne pouvaient pas expirer automatiquement.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Migration <strong>00109</strong> : index et alertes sur <code>access_grants</code>. Page admin <code>/access-grants/</code> avec liste des accès et indicateurs visuels d'expiration imminente (rouge si &lt; 48h).</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'admin peut gérer des accès temporaires et voir en un coup d'œil lesquels expirent bientôt. Alerte visuelle rouge sur les accès critiques.</div>
+        <div class="tag-row">
+          <span class="tag tag-db">Migration 00109</span>
+          <span class="tag tag-ui">Page admin</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-pagination-serveur</div>
+            <div class="story-title">Pagination serveur listes > 200 items</div>
+            <div class="story-commit">commit 06e7cd3</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les listes chargeaient tous les items en mémoire. Sur 678 joueurs, les performances se dégradaient et le payload réseau était lourd.</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Vérification que la pagination serveur était déjà implémentée dans <code>listChildDirectory</code> via Supabase <code>.range()</code>. Documentation confirmée + UI pagination next/previous dans la page children/.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">Les listes de joueurs et clubs chargent par pages de 50 items. Navigateurs peu puissants (tablettes terrain) ne reçoivent plus 678 objets d'un coup.</div>
+        <div class="tag-row"><span class="tag tag-api">Supabase .range()</span><span class="tag tag-ui">UI pagination</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-id">tbd-rapport-presences</div>
+            <div class="story-title">Rapport présences exportable (CSV + impression)</div>
+            <div class="story-commit">commit f094d99</div>
+          </div>
+          <div class="story-status status-done">✅ DONE</div>
+        </div>
+        <div class="story-label">Avant</div>
+        <div class="story-text">Les données de présences n'étaient accessibles que dans l'interface — impossible de les extraire pour un reporting externe (Excel, reporting fédéral).</div>
+        <div class="story-label">Comment</div>
+        <div class="story-text">Deux boutons dans la page présences : "Export CSV" génère un Blob avec les données filtrées actuelles (nom, statut, date, groupe). "Imprimer" déclenche <code>window.print()</code> avec CSS print dédié.</div>
+        <div class="story-label">Maintenant</div>
+        <div class="story-text">L'admin peut extraire un rapport de présences en CSV pour l'analyser dans Excel, ou l'imprimer pour la fédération ou les parents.</div>
+        <div class="tag-row"><span class="tag tag-ui">Blob CSV</span><span class="tag tag-css">@media print</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ TIMELINE ══ -->
+  <section class="section" id="timeline">
+    <div class="section-header">
+      <div class="section-icon" style="background:#EDE9FE">📋</div>
+      <div>
+        <div class="section-title">Timeline des commits</div>
+        <div class="section-subtitle">39 commits · 3 avril 2026</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">155ea63</div>
+          <div class="msg">feat(epic-24): story 24.6 — mini-exercices liaison séquence</div>
+          <div class="detail">Migration 00082, sequenceId mapper, SectionMiniExercices + badge</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">7625be4</div>
+          <div class="msg">chore(epic-1): story 1.4 — CI/CD pipeline marked done</div>
+          <div class="detail">ci.yml, eas-build.yml, vitest, RNTL, Playwright — déjà implémentés</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">63ad3a4</div>
+          <div class="msg">feat(epic-12): stories 12.1+12.2+12.4 — gamification</div>
+          <div class="detail">Migrations 00106+00107, 16 types TS, triggers, RPCs, quêtes</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">29b2b9d</div>
+          <div class="msg">fix(sidebar): cohérence icônes état actif gold</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">5722c6c</div>
+          <div class="msg">feat(admin): error boundary global avec fallback UI</div>
+          <div class="detail">ErrorBoundary.tsx — composant React class + intégration _layout</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">f537ff7</div>
+          <div class="msg">feat(admin): système toasts feedback après actions CRUD</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">fce5117</div>
+          <div class="msg">feat(admin): skeleton loading listes enfants/clubs/stages</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">5c6c01b</div>
+          <div class="msg">feat(admin): filtres persistants localStorage joueurs et clubs</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">e79657a</div>
+          <div class="msg">fix(routing): redirection players/ → children/</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">e85bd0d → ebe171d</div>
+          <div class="msg">feat: migration Light Premium — presences / analytics / audit / coach+parent / partnerships</div>
+          <div class="detail">5 commits · Design tokens unifiés sur toutes les sections</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">9841acc</div>
+          <div class="msg">feat(children): bulk actions sélection + export CSV</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">cae23bc</div>
+          <div class="msg">feat(seances): filtres combinés groupe + date + statut</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">e6b4f6d</div>
+          <div class="msg">feat(coach): dashboard amélioré prochaines séances + stats</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">a412297</div>
+          <div class="msg">feat(coaches): historique groupes dans fiche coach</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">c83d8f2</div>
+          <div class="msg">feat(audit): timeline lisible + filtres utilisateur/type</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">e6d32c0</div>
+          <div class="msg">feat(anomalies): résolution inline sans redirection</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">87ffc18</div>
+          <div class="msg">feat(messagerie): recherche par expéditeur/contenu</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">f30d54f</div>
+          <div class="msg">feat(seances): vue calendrier mensuel</div>
+          <div class="detail">Grille calendrier custom JSX, 0 dépendance externe</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">364e337</div>
+          <div class="msg">feat(groupes): génération automatique par saison</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">b3837d1</div>
+          <div class="msg">feat(analytics): dashboard par implantation</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">331b58e</div>
+          <div class="msg">feat(joueurs): historique des versions dans la fiche</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">cc5440e</div>
+          <div class="msg">feat(parent): synthèse enrichie — badge récent</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">3ec52ed</div>
+          <div class="msg">feat(admin): recherche globale dans la sidebar</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">06e7cd3</div>
+          <div class="msg">feat(pagination): vérification pagination serveur</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">91b3d83</div>
+          <div class="msg">chore(db): migration 00108 — note de synchronisation baseline</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">a40930b + de2c918</div>
+          <div class="msg">feat: export PDF fiche joueur + planning stage via window.print()</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">efdc670</div>
+          <div class="msg">feat(access-grants): alertes expiration imminente — migration 00109</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">47f8265</div>
+          <div class="msg">feat(notifs): notifications in-app — migration 00110 + badge sidebar</div>
+          <div class="detail">Table notifications + API + badge count + panel dropdown</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">7f3a000</div>
+          <div class="msg">feat(onboarding): wizard 4 étapes — implantation + groupes</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">ebbfed9</div>
+          <div class="msg">feat(joueurs): import CSV avec aperçu et batch</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">f094d99</div>
+          <div class="msg">feat(presences): export CSV + impression du rapport</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="commit">b61ba35</div>
+          <div class="msg">feat(digest): edge function weekly-digest-coach via Resend</div>
+          <div class="detail">175 lignes · Deno TypeScript · Email HTML hebdomadaire</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ AMÉLIORATIONS ══ -->
+  <section class="section" id="ameliorations">
+    <div class="section-header">
+      <div class="section-icon" style="background:#FEE2E2">🚀</div>
+      <div>
+        <div class="section-title">Pistes d'amélioration</div>
+        <div class="section-subtitle">3 axes prioritaires pour aller plus loin</div>
+      </div>
+    </div>
+
+    <div class="improvement-card">
+      <div class="priority pri-high">PRIORITÉ HAUTE</div>
+      <h3>🧪 Couverture de tests insuffisante sur les nouvelles features</h3>
+      <p>
+        Les 34 stories implémentées en batch ont toutes un Gate 1 (lint, try/finally, console guards) mais très peu de tests unitaires ou E2E ciblés sur les nouvelles fonctionnalités.
+        Le pipeline CI tourne (Vitest + RNTL + Playwright smoke), mais il ne couvre pas les nouveaux composants comme <code>ErrorBoundary</code>, <code>useToast</code>, <code>usePersistedFilters</code>, le calendrier custom, ou l'import CSV.
+      </p>
+      <p><strong>Ce qu'on recommande :</strong></p>
+      <ul>
+        <li>Ajouter un test Vitest pour chaque hook créé (<code>useToast</code>, <code>usePersistedFilters</code>) — logique pure, facile à tester</li>
+        <li>Ajouter des tests RNTL pour <code>ErrorBoundary</code> (simuler un crash et vérifier le fallback)</li>
+        <li>Ajouter un test Playwright E2E qui vérifie le flow import CSV (upload fichier → preview → confirmation → count joueurs)</li>
+        <li>Objectif : 60%+ de couverture sur les nouveaux fichiers dans <code>components/</code> et <code>hooks/</code></li>
+      </ul>
+    </div>
+
+    <div class="improvement-card">
+      <div class="priority pri-med">PRIORITÉ MOYENNE</div>
+      <h3>🏗️ Architecture des notifications — découplage du sidebar</h3>
+      <p>
+        Le système de notifications in-app (<code>tbd-notifs-inapp</code>) est fonctionnel mais le badge et la logique de polling sont directement dans <code>_layout.tsx</code>.
+        À mesure que l'app grandit, ce layout accumule des responsabilités : notifications, recherche globale, error boundary, toasts.
+        Risque de "God component" difficile à maintenir.
+      </p>
+      <p><strong>Ce qu'on recommande :</strong></p>
+      <ul>
+        <li>Créer un <code>NotificationProvider</code> (React Context) qui encapsule le state des notifs, le polling et le <code>markAsRead</code></li>
+        <li>Créer un <code>SearchProvider</code> pour isoler la recherche globale</li>
+        <li>Le <code>_layout.tsx</code> ne devrait que consommer ces contexts, pas les implémenter</li>
+        <li>Bonus : avec un Provider centralisé, on peut brancher Supabase Realtime pour des notifs push vraiment temps réel (pas de polling)</li>
+      </ul>
+    </div>
+
+    <div class="improvement-card">
+      <div class="priority pri-low">PRIORITÉ NORMALE</div>
+      <h3>🗄️ Réconciliation des deux répertoires de migrations</h3>
+      <p>
+        La divergence entre <code>aureak/supabase/migrations/</code> (00001–00090) et <code>supabase/migrations/</code> (00096–00110) crée une ambiguïté persistante : quel répertoire est la source de vérité ? Quelle migration s'applique en premier ?
+        La migration 00108 créée aujourd'hui documente le problème mais ne le résout pas structurellement.
+      </p>
+      <p><strong>Ce qu'on recommande :</strong></p>
+      <ul>
+        <li>Créer une migration "méga-baseline" qui inclut en mode <code>IF NOT EXISTS</code> toutes les tables des migrations historiques (00001–00090 d'aureak/). Ce fichier devient le point de départ officiel pour un nouveau Supabase project</li>
+        <li>Archiver <code>aureak/supabase/migrations/</code> dans un dossier <code>_archive/</code> pour éviter la confusion</li>
+        <li>Configurer le <code>supabase/config.toml</code> racine comme source unique : <code>migrations_dir = "supabase/migrations"</code></li>
+        <li>Mettre à jour <code>CLAUDE.md</code> pour clarifier que <code>supabase/migrations/</code> (racine) est la seule source de vérité</li>
+      </ul>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- ══ FOOTER ══ -->
+<div class="footer">
+  Aureak — Rapport de session · 3 avril 2026 · Généré par <span>Claude Sonnet 4.6</span> · 39 stories · 73 fichiers · 4 302 lignes ajoutées
+</div>
+
+</body>
+</html>

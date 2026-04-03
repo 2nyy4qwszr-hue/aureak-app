@@ -35,20 +35,20 @@ export function GlobalSearch() {
             width          : '100%',
             boxSizing      : 'border-box',
             padding        : '7px 10px 7px 28px',
-            border         : `1px solid ${colors.border.light}`,
+            border         : `1px solid ${colors.border.dark}`,
             borderRadius   : 6,
-            backgroundColor: colors.light.muted,
-            color          : colors.text.dark,
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            color          : colors.text.primary,
             fontSize       : 12,
             outline        : 'none',
             fontFamily     : 'inherit',
           }}
         />
-        <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: colors.text.muted }}>
+        <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: colors.text.secondary }}>
           🔍
         </span>
         {loading && (
-          <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 10, color: colors.text.muted }}>
+          <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 10, color: colors.text.secondary }}>
             …
           </span>
         )}

@@ -34,6 +34,20 @@ export const colors = {
     attention: '#FFC107',  // point d'attention 🟡 — évaluation uniquement
     absent   : '#F44336',  // absent 🔴 — PRÉSENCES UNIQUEMENT
     success  : '#10B981',  // émeraude — checkmarks validation (site web)
+    warning  : '#F59E0B',  // ambre — alertes non-critiques
+    info     : '#60A5FA',  // bleu ciel — informations neutres
+    neutral  : '#9CA3AF',  // gris — état indéterminé
+    injured  : '#CE93D8',  // lilas — blessure / indisponibilité joueur
+  },
+  overlay: {
+    dark : 'rgba(0,0,0,0.5)',          // fond modal standard
+    modal: 'rgba(0,0,0,0.7)',          // fond modal plein écran
+    light: 'rgba(255,255,255,0.85)',   // surface translucide sur fond sombre
+  },
+  entity: {
+    stage : '#4ADE80',  // vert — statut "en cours" stage
+    club  : '#60A5FA',  // bleu — badges club
+    coach : '#A78BFA',  // violet — badges coach
   },
   text: {
     primary  : '#FFFFFF',         // texte principal sur fond sombre

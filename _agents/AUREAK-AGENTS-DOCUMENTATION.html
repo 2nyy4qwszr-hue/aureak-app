@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Aureak — Documentation Système Agents v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --gold:     #C1AC5C;
+    --gold-dk:  #8B7830;
+    --beige:    #F3EFE7;
+    --dark:     #111111;
+    --hero:     #2A2827;
+    --white:    #FFFFFF;
+    --text:     #18181B;
+    --sec:      #52525B;
+    --muted:    #A1A1AA;
+    --border:   rgba(0,0,0,0.08);
+    --green:    #059669;
+    --red:      #DC2626;
+    --blue:     #2563EB;
+    --orange:   #D97706;
+    --purple:   #7C3AED;
+    --font:     'Montserrat', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--white);
+    color: var(--text);
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 10px; }
+    .page-break { page-break-before: always; }
+    .cover { page-break-after: always; }
+    section { page-break-inside: avoid; }
+    .agent-card { page-break-inside: avoid; }
+  }
+
+  @page { size: A4; margin: 12mm 14mm; }
+
+  @media screen {
+    body { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  }
+
+  /* ── COVER ─────────────────────────────────────────── */
+  .cover {
+    background: var(--dark);
+    color: var(--white);
+    min-height: 240px;
+    border-radius: 16px;
+    padding: 40px 48px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-dk), var(--gold));
+  }
+  .cover-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .cover h1 {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .cover-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 24px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .meta-item { }
+  .meta-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .meta-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  /* ── PDF BUTTON ─────────────────────────────────────── */
+  .pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold);
+    color: var(--dark);
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    position: absolute;
+    top: 32px; right: 40px;
+  }
+  .pdf-btn:hover { background: #d4bc6a; }
+
+  /* ── SECTION ─────────────────────────────────────────── */
+  section {
+    margin-bottom: 40px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--beige);
+  }
+  .section-num {
+    width: 28px; height: 28px;
+    background: var(--dark);
+    color: var(--gold);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+  .section-desc {
+    font-size: 10px;
+    color: var(--sec);
+    margin-top: 2px;
+  }
+
+  /* ── AGENT CARDS ─────────────────────────────────────── */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .agents-grid.single { grid-template-columns: 1fr; }
+
+  .agent-card {
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    background: var(--white);
+    transition: box-shadow 0.15s;
+  }
+  .agent-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .agent-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .agent-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .agent-name {
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .agent-trigger {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .agent-desc {
+    font-size: 10px;
+    color: var(--sec);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .agent-phrase {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
+    font-style: italic;
+    background: var(--beige);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--gold);
+  }
+  .agent-io {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .io-chip {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+  .chip-input {
+    background: rgba(37,99,235,0.06);
+    border-color: rgba(37,99,235,0.2);
+    color: var(--blue);
+  }
+  .chip-output {
+    background: rgba(5,150,105,0.06);
+    border-color: rgba(5,150,105,0.2);
+    color: var(--green);
+  }
+  .chip-gate {
+    background: rgba(193,172,92,0.1);
+    border-color: rgba(193,172,92,0.3);
+    color: var(--gold-dk);
+  }
+
+  /* ── COLOR THEMES ───────────────────────────────────── */
+  .theme-reactive  { background: rgba(220,38,38,0.08);  color: var(--red);    }
+  .theme-proactive { background: rgba(124,58,237,0.08); color: var(--purple); }
+  .theme-bmad      { background: rgba(5,150,105,0.08);  color: var(--green);  }
+  .theme-morning   { background: rgba(193,172,92,0.12); color: var(--gold-dk);}
+
+  .trigger-gate1   { color: var(--red); }
+  .trigger-gate2   { color: var(--orange); }
+  .trigger-manual  { color: var(--purple); }
+  .trigger-auto    { color: var(--blue); }
+  .trigger-morning { color: var(--gold-dk); }
+  .trigger-bmad    { color: var(--green); }
+
+  /* ── FLOW DIAGRAM ─────────────────────────────────────── */
+  .flow {
+    background: var(--dark);
+    border-radius: 12px;
+    padding: 24px;
+    color: var(--white);
+  }
+  .flow-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .flow-node {
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .flow-node.gold { background: rgba(193,172,92,0.15); color: var(--gold); }
+  .flow-node.green { background: rgba(5,150,105,0.15); color: #34d399; }
+  .flow-node.red { background: rgba(220,38,38,0.15); color: #f87171; }
+  .flow-node.purple { background: rgba(124,58,237,0.15); color: #a78bfa; }
+  .flow-arrow { color: rgba(255,255,255,0.3); font-size: 14px; }
+  .flow-label {
+    font-size: 8.5px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  .flow-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 12px 0;
+  }
+
+  /* ── TABLE ─────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  th {
+    background: var(--dark);
+    color: var(--gold);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--beige); }
+
+  .badge {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+  .badge-done    { background: rgba(5,150,105,0.12);  color: var(--green);  }
+  .badge-ready   { background: rgba(193,172,92,0.12); color: var(--gold-dk);}
+  .badge-planned { background: rgba(37,99,235,0.10);  color: var(--blue);   }
+  .badge-bmad    { background: rgba(124,58,237,0.10); color: var(--purple); }
+
+  /* ── CATEGORY HEADER ─────────────────────────────────── */
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    margin-top: 20px;
+  }
+  .cat-header:first-child { margin-top: 0; }
+  .cat-header h3 { font-size: 11px; font-weight: 800; }
+  .cat-header p  { font-size: 9px; opacity: 0.75; margin-top: 1px; }
+  .cat-reactive  { background: rgba(220,38,38,0.06);  border: 1px solid rgba(220,38,38,0.15); }
+  .cat-proactive { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.15); }
+  .cat-bmad      { background: rgba(5,150,105,0.06);  border: 1px solid rgba(5,150,105,0.15); }
+
+  .tag {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .tag-reactive  { background: var(--red);    color: white; }
+  .tag-proactive { background: var(--purple); color: white; }
+  .tag-bmad      { background: var(--green);  color: white; }
+
+  /* ── PRINCIPLE BOX ─────────────────────────────────────── */
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .principle {
+    background: var(--beige);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .principle-num {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .principle-title {
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .principle-desc {
+    font-size: 9px;
+    color: var(--sec);
+  }
+
+  .antipattern-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .antipattern {
+    background: rgba(220,38,38,0.04);
+    border: 1px solid rgba(220,38,38,0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 10px;
+  }
+  .antipattern strong { color: var(--red); }
+
+  /* ── PALETTE ─────────────────────────────────────────────── */
+  .palette {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .swatch {
+    text-align: center;
+  }
+  .swatch-color {
+    width: 64px; height: 48px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.08);
+    margin-bottom: 4px;
+  }
+  .swatch-name {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+  }
+  .swatch-hex {
+    font-size: 8px;
+    color: var(--muted);
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ── HOW TO ─────────────────────────────────────────────── */
+  .howto-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  .howto-card {
+    background: var(--beige);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .howto-step {
+    width: 24px; height: 24px;
+    background: var(--dark);
+    color: var(--gold);
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px;
+  }
+  .howto-title {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .howto-desc { font-size: 9.5px; color: var(--sec); }
+  code {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 9.5px;
+  }
+
+  .info-box {
+    background: var(--beige);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 10px;
+    color: var(--sec);
+  }
+  .info-box strong { color: var(--text); }
+
+  /* ── PROGRESS BARS ─────────────────────────────────────── */
+  .epic-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .epic-item {
+    background: var(--beige);
+    border-radius: 8px;
+    padding: 8px 12px;
+    border-left: 3px solid var(--green);
+  }
+  .epic-item.partial { border-left-color: var(--orange); }
+  .epic-item.deferred { border-left-color: var(--muted); opacity: 0.6; }
+  .epic-label { font-size: 9px; font-weight: 700; color: var(--text); }
+  .epic-stories { font-size: 8px; color: var(--sec); margin-top: 2px; }
+
+  .pages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .pages-role {
+    background: var(--dark);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: white;
+  }
+  .pages-role-label {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .pages-role ul {
+    list-style: none;
+    padding: 0;
+  }
+  .pages-role ul li {
+    font-size: 9px;
+    color: rgba(255,255,255,0.65);
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .pages-role ul li:last-child { border-bottom: none; }
+
+  .migration-strip {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .migration-pill {
+    font-size: 8px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+  }
+  .m-old  { background: rgba(5,150,105,0.1); color: var(--green); border: 1px solid rgba(5,150,105,0.2); }
+  .m-new  { background: rgba(193,172,92,0.12); color: var(--gold-dk); border: 1px solid rgba(193,172,92,0.3); }
+  .m-fix  { background: rgba(220,38,38,0.08); color: var(--red); border: 1px solid rgba(220,38,38,0.15); }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <button class="pdf-btn no-print" onclick="window.print()">⬇ Exporter en PDF</button>
+  <div class="cover-label">Documentation — Système d'Agents</div>
+  <h1>Aureak<br>Agent Ecosystem</h1>
+  <div class="cover-sub">Architecture complète des agents proactifs, réactifs et BMAD — v5.0 · Avril 2026</div>
+  <div class="cover-meta">
+    <div class="meta-item">
+      <span class="meta-label">Agents total</span>
+      <span class="meta-value">17</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Agents actifs</span>
+      <span class="meta-value">16</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Version</span>
+      <span class="meta-value">5.0</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Migrations DB</span>
+      <span class="meta-value">00110</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Stories done</span>
+      <span class="meta-value">80+</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Phase 1</span>
+      <span class="meta-value">100%</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Cron nightly</span>
+      <span class="meta-value">6h00 BXL</span>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1 — VISION -->
+<section>
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div>
+      <div class="section-title">Vision du Système</div>
+      <div class="section-desc">Pourquoi ces agents, comment ils s'articulent</div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-title">Architecture Globale</div>
+
+    <div class="flow-label">Démarrage quotidien — v5 (BMAD intégré)</div>
+    <div class="flow-row">
+      <div class="flow-node gold">🌅 /morning</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Day Conductor</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Brief priorisé</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node gold">Jeremy choisit</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">BMAD SM (sous-agent)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Story BMAD créée</div>
+    </div>
+
+    <div class="flow-row" style="margin-top:4px;padding-left:20px;">
+      <div class="flow-node gold">GO</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">BMAD Dev (sous-agent)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">BMAD Review (sous-agent)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node red">Gate 1 Aureak</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node red">Gate 2 Aureak</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Commit auto</div>
+    </div>
+
+    <div class="flow-sep"></div>
+
+    <div class="flow-label">Feedback terrain</div>
+    <div class="flow-row">
+      <div class="flow-node gold">💬 Texte brut Jeremy</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Feedback Dispatcher</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Tickets structurés</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node gold">Jeremy confirme</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">BMAD SM (sous-agent)</div>
+    </div>
+
+    <div class="flow-sep"></div>
+
+    <div class="flow-label">Patrouille autonome (proactif)</div>
+    <div class="flow-row">
+      <div class="flow-node red">Design Patrol</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node red">Bug Crawler</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node red">UX Inspector</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node red">Feature Scout</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Rapports _qa/</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node gold">Morning Brief</div>
+    </div>
+
+    <div class="flow-sep"></div>
+
+    <div class="flow-label">Gate 1 — Pré-PR (agents Aureak — règles spécifiques)</div>
+    <div class="flow-row">
+      <div class="flow-node">Code Reviewer</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node">Migration Validator</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node">Security Auditor</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Rapports Gate 1</div>
+    </div>
+
+    <div class="flow-label">Gate 2 — Pré-Deploy (agents Aureak — design + UX + intégration)</div>
+    <div class="flow-row">
+      <div class="flow-node">Design Critic</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node">UX Auditor</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node">Regression Detector</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-node red">Bug Hunter</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Verdict deploy</div>
+    </div>
+  </div>
+
+  <div class="info-box" style="margin-top:16px;">
+    <strong>v5 — Changement majeur :</strong> Le Day Conductor <em>orchestre</em> mais ne code plus directement. La création de stories est déléguée au <strong>BMAD SM</strong> (contexte propre, workflow create-story, mode autonome) et l'implémentation au <strong>BMAD Dev</strong> (contexte propre, workflow dev-story, HALT conditions, tasks en ordre strict). Les Gates restent des agents Aureak custom car ils portent les règles spécifiques du projet (try/finally, console guards, 12 principes design, RLS Aureak) que BMAD générique ne connaît pas.
+  </div>
+</section>
+
+<!-- SECTION 2 — AGENTS PROACTIFS -->
+<section>
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div>
+      <div class="section-title">Agents Proactifs</div>
+      <div class="section-desc">7 agents — génèrent des propositions, pas des stories directement</div>
+    </div>
+  </div>
+
+  <div class="cat-header cat-proactive">
+    <span class="tag tag-proactive">PROACTIFS</span>
+    <div>
+      <h3>Génération & Dispatch</h3>
+      <p>Transforment une intention en story BMAD codable — le cœur du workflow quotidien</p>
+    </div>
+  </div>
+
+  <div class="agents-grid">
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-morning">🌅</div>
+        <div>
+          <div class="agent-name">Morning Supervisor</div>
+          <div class="agent-trigger trigger-morning">Déclenché par : /morning</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Analyse l'état du projet et propose jusqu'à 10 stories priorisées pour la journée — Jeremy choisit les numéros, les stories se créent automatiquement."</div>
+      <div class="agent-desc">Lit le backlog, les bugs connus, les pages existantes et le PRD. Présente un brief structuré en 4 catégories : BUGS / DESIGN / UX / FEATURES. Sur confirmation de Jeremy, déclenche la Story Factory pour chaque numéro choisi.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : /morning</span>
+        <span class="io-chip chip-output">Output : propositions numérotées</span>
+        <span class="io-chip chip-gate">Fichier : .claude/commands/morning.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-proactive">⚗️</div>
+        <div>
+          <div class="agent-name">Story Factory</div>
+          <div class="agent-trigger trigger-manual">Déclenché par : story "décision" ou Morning</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Transforme une décision validée en langage naturel en fichier story BMAD complet, avec SQL, snippets de code et liste de fichiers — prêt à coder sans aucune question."</div>
+      <div class="agent-desc">Lit l'architecture, le PRD, les migrations, les types et les stories existantes avant d'écrire. Génère le fichier dans <code>_bmad-output/implementation-artifacts/</code> et met à jour BACKLOG.md automatiquement.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : décision 1-3 phrases</span>
+        <span class="io-chip chip-output">Output : story BMAD .md</span>
+        <span class="io-chip chip-gate">Script : story.sh</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-proactive">📥</div>
+        <div>
+          <div class="agent-name">Feedback Dispatcher</div>
+          <div class="agent-trigger trigger-manual">Déclenché par : texte brut de Jeremy</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Analyse un retour brut en français, le catégorise en tickets BUG/DESIGN/UX/FEATURE avec priorité, vérifie les doublons existants, et déclenche la Story Factory sur confirmation."</div>
+      <div class="agent-desc">Prend le retour d'expérience, une observation ou une frustration de Jeremy. Identifie chaque problème distinct, lit les fichiers concernés pour confirmer, et présente des tickets structurés avant d'agir.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : texte libre FR</span>
+        <span class="io-chip chip-output">Output : tickets BUG/DESIGN/UX/FEAT</span>
+        <span class="io-chip chip-gate">Fichier : feedback-dispatcher.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-proactive">🎨</div>
+        <div>
+          <div class="agent-name">Design Patrol</div>
+          <div class="agent-trigger trigger-auto">Déclenché par : audit autonome périodique</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Parcourt toutes les pages de l'app via Playwright, détecte chaque dérive visuelle par rapport aux 12 principes design, et produit un rapport de dérives priorisées pour le Morning Brief."</div>
+      <div class="agent-desc">Vérifie la palette (couleurs hardcodées ?), les anti-patterns (glassmorphism, dégradés violets, bento hors dashboard), les tokens manquants, et les états vides sans illustration. Chaque BLOCKER = story obligatoire.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : aucun</span>
+        <span class="io-chip chip-output">Output : _qa/reports/design-patrol.md</span>
+        <span class="io-chip chip-gate">Fichier : design-patrol.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-proactive">🕷️</div>
+        <div>
+          <div class="agent-name">Bug Crawler</div>
+          <div class="agent-trigger trigger-auto">Déclenché par : audit autonome périodique</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Navigue dans l'app en simulant les interactions réelles, capture toutes les erreurs console JS et les crashes de rendu, et produit un rapport de bugs classés CRITICAL / HIGH / MEDIUM."</div>
+      <div class="agent-desc">Injecte un collecteur d'erreurs global, crawle chaque route, teste les interactions clés (recherche, formulaires, navigation), et identifie les spinners infinis, les 404, et les promise rejections silencieuses.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : aucun</span>
+        <span class="io-chip chip-output">Output : _qa/reports/bug-crawler.md</span>
+        <span class="io-chip chip-gate">Fichier : bug-crawler.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-proactive">⚡</div>
+        <div>
+          <div class="agent-name">UX Inspector</div>
+          <div class="agent-trigger trigger-auto">Déclenché par : audit autonome périodique</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Simule les 5 parcours réels d'un admin, compte le nombre de clics par action, identifie les états manquants et les incohérences de navigation, et propose des simplifications concrètes."</div>
+      <div class="agent-desc">Mesure : créer une séance, trouver un joueur, ajouter un joueur à un club, consulter un planning stage, naviguer entre sections. Chaque friction > 3 clics est signalée avec une proposition de simplification.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : aucun</span>
+        <span class="io-chip chip-output">Output : _qa/reports/ux-inspector.md</span>
+        <span class="io-chip chip-gate">Fichier : ux-inspector.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-proactive">🔭</div>
+        <div>
+          <div class="agent-name">Feature Scout</div>
+          <div class="agent-trigger trigger-auto">Déclenché par : revue de backlog périodique</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Compare le PRD à l'état réel du backlog, identifie les FRs Phase 1 non implémentés et les quick wins, et produit les 'Story Factory calls' prêts à copier-coller."</div>
+      <div class="agent-desc">Construit une matrice de couverture PRD vs stories done/in-progress. Signale les FRs Phase 1 manquants (priorité absolue), les FRs Phase 2 débloqués, et les améliorations hors PRD à haute valeur.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : aucun</span>
+        <span class="io-chip chip-output">Output : _qa/reports/feature-scout.md</span>
+        <span class="io-chip chip-gate">Fichier : feature-scout.md</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SECTION 3 — AGENTS RÉACTIFS -->
+<section class="page-break">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div>
+      <div class="section-title">Agents Réactifs — Gate 1 &amp; Gate 2</div>
+      <div class="section-desc">7 agents — déclenchés après chaque implémentation de story</div>
+    </div>
+  </div>
+
+  <div class="cat-header cat-reactive" style="margin-top:0">
+    <span class="tag tag-reactive">GATE 1</span>
+    <div>
+      <h3>Pré-PR — Qualité du code</h3>
+      <p>Toujours après implémentation, avant le commit. Lancer avec <code>qa gate1 {story-id}</code></p>
+    </div>
+  </div>
+
+  <div class="agents-grid">
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive">🔍</div>
+        <div>
+          <div class="agent-name">Code Reviewer</div>
+          <div class="agent-trigger trigger-gate1">Gate 1 — toujours</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Analyse chaque fichier modifié de la story contre les règles absolues du projet : try/finally, console guards, accès Supabase via api-client, pas de couleurs hardcodées."</div>
+      <div class="agent-desc">Vérifie les patterns interdits, les imports non conformes, et les violations des contraintes stack. Produit un rapport avec BLOCKER/WARNING/INFO et un verdict GO/NO-GO.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : story + fichiers modifiés</span>
+        <span class="io-chip chip-output">Output : _qa/reports/code-review.md</span>
+        <span class="io-chip chip-gate">Fichier : code-reviewer.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive">🗄️</div>
+        <div>
+          <div class="agent-name">Migration Validator</div>
+          <div class="agent-trigger trigger-gate1">Gate 1 — si nouveau .sql</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Vérifie que chaque migration SQL est idempotente (IF NOT EXISTS), soft-delete conforme, RLS ajouté si nouvelle table, et synchronisée avec les types TypeScript dans entities.ts."</div>
+      <div class="agent-desc">Lit toutes les migrations précédentes pour le contexte, compare le schéma DB aux types TS, vérifie la numérotation séquentielle et l'absence de migrations destructives (DROP, ALTER avec perte).</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : fichier .sql + story</span>
+        <span class="io-chip chip-output">Output : _qa/reports/migration-validator.md</span>
+        <span class="io-chip chip-gate">Fichier : migration-validator.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive">🔐</div>
+        <div>
+          <div class="agent-name">Security Auditor</div>
+          <div class="agent-trigger trigger-gate1">Gate 1 — si auth / RLS / données sensibles</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Audite les policies RLS, l'isolation multi-tenant, les Edge Functions, et l'exposition de données sensibles — uniquement sur les stories touchant l'auth ou les tables protégées."</div>
+      <div class="agent-desc">Vérifie les JWT claims, les headers non-autoritaires, les fuites de tenant_id, l'exposition de PII, et les Edge Functions sans authentification. Déclenché uniquement quand c'est pertinent.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : migrations + edge functions</span>
+        <span class="io-chip chip-output">Output : _qa/reports/security.md</span>
+        <span class="io-chip chip-gate">Fichier : security-auditor.md</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cat-header cat-reactive" style="margin-top:20px">
+    <span class="tag tag-reactive">GATE 2</span>
+    <div>
+      <h3>Pré-Deploy — Qualité visuelle &amp; intégration</h3>
+      <p>Après Gate 1 validé. Lancer avec <code>qa gate2 {story-id}</code></p>
+    </div>
+  </div>
+
+  <div class="agents-grid">
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive">🖼️</div>
+        <div>
+          <div class="agent-name">Design Critic</div>
+          <div class="agent-trigger trigger-gate2">Gate 2 — toujours si page .tsx</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Navigue dans l'app via Playwright sur la route de la story, vérifie les 12 principes design et les 6 anti-patterns BLOCKER, et produit un rapport visuel avec screenshots annotés."</div>
+      <div class="agent-desc">Lit design-vision.md, prend des screenshots, vérifie la palette (tokens vs hardcodé), les ombres, les transitions, l'ambiance globale. Un anti-pattern = BLOCKER immédiat avant deploy.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : story + route + fichiers .tsx</span>
+        <span class="io-chip chip-output">Output : _qa/reports/design-critic.md</span>
+        <span class="io-chip chip-gate">Fichier : design-critic.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive">🧭</div>
+        <div>
+          <div class="agent-name">UX Auditor</div>
+          <div class="agent-trigger trigger-gate2">Gate 2 — toujours si page .tsx</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Vérifie que les composants UI de la story respectent la spec UX : états vides, loading, erreur, feedback de succès, confirmations destructrices, cohérence des patterns d'interaction."</div>
+      <div class="agent-desc">Consulte la UX design specification et les tokens de theme. Valide les états manquants, la conformité aux patterns établis, et l'absence de friction non justifiée dans le flux implémenté.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : story + fichiers .tsx</span>
+        <span class="io-chip chip-output">Output : _qa/reports/ux.md</span>
+        <span class="io-chip chip-gate">Fichier : ux-auditor.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive">🔗</div>
+        <div>
+          <div class="agent-name">Regression Detector</div>
+          <div class="agent-trigger trigger-gate2">Gate 2 — si fichier partagé modifié</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Analyse les impacts en cascade quand un fichier partagé (entities.ts, api-client, tokens, _layout) est modifié, en listant toutes les stories done qui pourraient être affectées."</div>
+      <div class="agent-desc">Déclenché uniquement si la story touche entities.ts, enums.ts, api-client/*.ts, tokens.ts, _layout.tsx ou une migration. Lit toutes les stories done pour identifier les dépendances cassées potentielles.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : fichiers partagés modifiés</span>
+        <span class="io-chip chip-output">Output : _qa/reports/regression.md</span>
+        <span class="io-chip chip-gate">Fichier : regression-detector.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-reactive" style="background:rgba(220,38,38,0.12)">🐛</div>
+        <div>
+          <div class="agent-name">Bug Hunter</div>
+          <div class="agent-trigger trigger-gate2">Gate 2 — toujours (synthèse finale)</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Synthèse finale avant deploy : lit tous les rapports Gate 1 et Gate 2 précédents, teste les ACs de la story via Playwright, et produit le verdict GO/NO-GO avec liste de blockers."</div>
+      <div class="agent-desc">Lance en dernier. Consolide les BLOCKER des autres agents, teste au moins 3 ACs manuellement, et met à jour _qa/summary.md avec le verdict final de la story. Sans son GO, pas de deploy.</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : story + tous les rapports précédents</span>
+        <span class="io-chip chip-output">Output : _qa/reports/bugs.md + summary.md</span>
+        <span class="io-chip chip-gate">Fichier : bug-hunter.md</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SECTION 4 — AGENTS BMAD -->
+<section>
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div>
+      <div class="section-title">Agents BMAD — Fondation du Projet</div>
+      <div class="section-desc">Utilisés lors de la phase de conception — génèrent les artéfacts de planification</div>
+    </div>
+  </div>
+
+  <div class="cat-header cat-bmad" style="margin-top:0">
+    <span class="tag tag-bmad">BMAD</span>
+    <div>
+      <h3>Méthode BMAD — Build, Measure, Analyze, Design</h3>
+      <p>Phases séquentielles : Analysis → Planning → Solutioning → Implementation</p>
+    </div>
+  </div>
+
+  <div class="agents-grid">
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-bmad">📋</div>
+        <div>
+          <div class="agent-name">Analyst BMAD</div>
+          <div class="agent-trigger trigger-bmad">Phase 1 — Analysis</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Produit le Product Brief à partir des inputs de Jeremy — vision, cibles, contraintes, personas — la fondation de tout le projet."</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : vision produit</span>
+        <span class="io-chip chip-output">Output : product-brief.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-bmad">📐</div>
+        <div>
+          <div class="agent-name">PM BMAD</div>
+          <div class="agent-trigger trigger-bmad">Phase 2 — Planning</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Transforme le Product Brief en PRD complet avec 109 FRs numérotés, 3 phases de déploiement, et la UX Design Specification."</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : product-brief.md</span>
+        <span class="io-chip chip-output">Output : prd.md + ux-design-specification.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-bmad">🏗️</div>
+        <div>
+          <div class="agent-name">Architect BMAD</div>
+          <div class="agent-trigger trigger-bmad">Phase 3 — Solutioning</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Conçoit l'architecture technique complète — stack, monorepo, patterns, contraintes — et la documente dans architecture.md, source de vérité technique du projet."</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : prd.md</span>
+        <span class="io-chip chip-output">Output : architecture.md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-bmad">📝</div>
+        <div>
+          <div class="agent-name">Story Writer BMAD</div>
+          <div class="agent-trigger trigger-bmad">Phase 3 — Solutioning</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Décompose les epics en stories BMAD détaillées — 80+ fichiers done couvrant les Epics 1–33 (Phase 1 complète + stories additionnelles)."</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : architecture.md + prd.md</span>
+        <span class="io-chip chip-output">Output : 80+ stories .md</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-bmad">⚙️</div>
+        <div>
+          <div class="agent-name">Dev Agent BMAD</div>
+          <div class="agent-trigger trigger-bmad">Phase 4 — Implementation</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Implémente chaque story BMAD — migration SQL, types TS, API client, UI — en suivant les tâches checklistées et les dev notes de la story."</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : story ready-for-dev</span>
+        <span class="io-chip chip-output">Output : code + story → done</span>
+      </div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon theme-bmad">✅</div>
+        <div>
+          <div class="agent-name">QA Agent BMAD</div>
+          <div class="agent-trigger trigger-bmad">Phase 4 — après implémentation</div>
+        </div>
+      </div>
+      <div class="agent-phrase">"Valide chaque story implémentée en testant les ACs manuellement via Playwright et en vérifiant la conformité aux règles absolues du projet."</div>
+      <div class="agent-io">
+        <span class="io-chip chip-input">Input : story done + app running</span>
+        <span class="io-chip chip-output">Output : verdict QA</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="info-box">
+    <strong>Note :</strong> Pour les grandes epics ou refactors complexes, utiliser BMAD Story Writer pour une décomposition rigoureuse. Pour les features et corrections du quotidien, utiliser directement la <strong>Story Factory</strong> (plus rapide, même format BMAD).
+  </div>
+</section>
+
+<!-- SECTION 5 — DESIGN VISION -->
+<section class="page-break">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div>
+      <div class="section-title">Design Vision — 12 Principes</div>
+      <div class="section-desc">Source : _agents/design-vision.md — référence pour Design Patrol, Design Critic, Story Factory</div>
+    </div>
+  </div>
+
+  <div class="principles-grid">
+    <div class="principle">
+      <div class="principle-num">01</div>
+      <div class="principle-title">Light Premium</div>
+      <div class="principle-desc">Fond beige #F0EBE1, cards blanches. Jamais fond dark hors sidebar.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">02</div>
+      <div class="principle-title">Gold Accent Only</div>
+      <div class="principle-desc">Seul #C9A84C pour les accents. Aucun violet, bleu, ou vert primaire.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">03</div>
+      <div class="principle-title">Typographie Montserrat</div>
+      <div class="principle-desc">900 display, 700 titre, 500 body, 400 caption. Jamais system-ui en prod.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">04</div>
+      <div class="principle-title">Hiérarchie d'Ombres</div>
+      <div class="principle-desc">shadows.sm repos, shadows.md hover, shadows.lg modales. Jamais flat partout.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">05</div>
+      <div class="principle-title">Transitions Fluides</div>
+      <div class="principle-desc">transitions.fast (150ms) sur hover/focus. Jamais sans transition.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">06</div>
+      <div class="principle-title">Sidebar Dark Fixe</div>
+      <div class="principle-desc">#111111 avec stripe gold 2.5px en haut. Seul élément dark du layout.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">07</div>
+      <div class="principle-title">Bento Dashboard Only</div>
+      <div class="principle-desc">Grille bento uniquement sur le dashboard. Sous-pages = listes/fiches.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">08</div>
+      <div class="principle-title">Photo Humaine</div>
+      <div class="principle-desc">Chaque page importante a une photo de gardien. Pas de pages 100% UI.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">09</div>
+      <div class="principle-title">Coins Raisonnables</div>
+      <div class="principle-desc">Max radius.cardLg (24px). Jamais de médaillons ou bulles excessives.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">10</div>
+      <div class="principle-title">États Complets</div>
+      <div class="principle-desc">Loading (skeleton), empty state (illus + CTA), error, success — tous définis.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">11</div>
+      <div class="principle-title">Tokens Only</div>
+      <div class="principle-desc">Zéro couleur hardcodée dans les composants. @aureak/theme obligatoire.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">12</div>
+      <div class="principle-title">Densité Calibrée</div>
+      <div class="principle-desc">Assez d'air pour respirer, assez dense pour l'admin. Ni trop spacieux, ni étouffant.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div style="font-size:10px;font-weight:700;color:var(--red);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;">6 Anti-Patterns BLOCKER</div>
+    <div class="antipattern-list">
+      <div class="antipattern"><strong>🚫 Bento hors dashboard</strong> — grille asymétrique sur sous-pages</div>
+      <div class="antipattern"><strong>🚫 Dégradés violet / bleu</strong> — interdit dans l'app admin</div>
+      <div class="antipattern"><strong>🚫 Glassmorphism</strong> — backdrop-filter sur n'importe quel composant</div>
+      <div class="antipattern"><strong>🚫 Fond dark hors sidebar</strong> — hors hero tile dashboard</div>
+      <div class="antipattern"><strong>🚫 Texte blanc sur fond clair</strong> — lisibilité obligatoire</div>
+      <div class="antipattern"><strong>🚫 Border-radius &gt; 24px</strong> — pas de bulles ni médaillons</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div style="font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;">Palette Validée</div>
+    <div class="palette">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F0EBE1;"></div>
+        <span class="swatch-name">Background</span>
+        <span class="swatch-hex">#F0EBE1</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FFFFFF; border:1px solid #eee;"></div>
+        <span class="swatch-name">Cards</span>
+        <span class="swatch-hex">#FFFFFF</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#111111;"></div>
+        <span class="swatch-name">Sidebar</span>
+        <span class="swatch-hex">#111111</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#2A2827;"></div>
+        <span class="swatch-name">Hero Tile</span>
+        <span class="swatch-hex">#2A2827</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#C9A84C;"></div>
+        <span class="swatch-name">Gold</span>
+        <span class="swatch-hex">#C9A84C</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1A1A1A;"></div>
+        <span class="swatch-name">Text</span>
+        <span class="swatch-hex">#1A1A1A</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#E05252;"></div>
+        <span class="swatch-name">Danger</span>
+        <span class="swatch-hex">#E05252</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#10B981;"></div>
+        <span class="swatch-name">Success</span>
+        <span class="swatch-hex">#10B981</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6 — HOW TO USE -->
+<section>
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div>
+      <div class="section-title">Comment Utiliser le Système</div>
+      <div class="section-desc">2 commandes suffisent pour toute la journée</div>
+    </div>
+  </div>
+
+  <div class="flow" style="margin-bottom:16px;">
+    <div class="flow-title">Journée complète — zéro commande entre les étapes</div>
+    <div class="flow-row">
+      <div class="flow-node gold">/morning</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Brief affiché</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node gold">Jeremy choisit "1, 3"</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Stories créées</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node gold">Jeremy dit "GO"</div>
+    </div>
+    <div class="flow-row" style="margin-top:6px;padding-left:40px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div class="flow-row">
+      <div class="flow-node purple">Implémentation auto</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node red">Gate 1 auto</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node red">Gate 2 auto</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Commit auto</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node gold">Jeremy dit "GO"</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Story suivante...</div>
+    </div>
+  </div>
+
+  <div style="background:var(--dark);border-radius:12px;padding:20px 24px;margin-bottom:16px;">
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">Référence Commandes</div>
+    <table style="color:rgba(255,255,255,0.85);">
+      <thead><tr>
+        <th style="background:rgba(255,255,255,0.06);color:var(--gold);">Commande</th>
+        <th style="background:rgba(255,255,255,0.06);color:var(--gold);">Quand</th>
+        <th style="background:rgba(255,255,255,0.06);color:var(--gold);">Ce qui se passe</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><code style="background:rgba(193,172,92,0.15);color:var(--gold);padding:2px 8px;border-radius:4px;font-size:10px;">/morning</code></td>
+          <td style="color:rgba(255,255,255,0.6);">Le matin, toujours</td>
+          <td style="color:rgba(255,255,255,0.6);">Patrouille si rapports &gt;12h → brief → stories → GO → implémentation + gates + commit auto</td>
+        </tr>
+        <tr>
+          <td><code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:4px;font-size:10px;">/go</code></td>
+          <td style="color:rgba(255,255,255,0.6);">Session coupée / reprise</td>
+          <td style="color:rgba(255,255,255,0.6);">Lit <code style="font-size:9px;">day-queue.md</code> → reprend la prochaine story pending → pipeline complet</td>
+        </tr>
+        <tr>
+          <td><code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:4px;font-size:10px;">/patrol</code></td>
+          <td style="color:rgba(255,255,255,0.6);">Audit manuel à tout moment</td>
+          <td style="color:rgba(255,255,255,0.6);">Lance Design Patrol + Bug Crawler + UX Inspector + Feature Scout → rapport consolidé</td>
+        </tr>
+        <tr>
+          <td><code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:4px;font-size:10px;">/feedback</code></td>
+          <td style="color:rgba(255,255,255,0.6);">Retour terrain hors brief</td>
+          <td style="color:rgba(255,255,255,0.6);">Texte libre → tickets BUG/DESIGN/UX/FEATURE → stories → ajout queue si active</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="howto-grid">
+    <div class="howto-card">
+      <div class="howto-step">1</div>
+      <div class="howto-title">Le matin — toujours</div>
+      <div class="howto-desc">
+        <code>/morning</code><br><br>
+        → Brief en 4 catégories (BUGS / DESIGN / UX / FEATURES)<br>
+        → Répondre avec les numéros : <em>"1, 3"</em><br>
+        → Pas assez ? <em>"plus"</em> ou <em>"plus de features"</em><br>
+        → Valider : <em>"GO"</em> → tout est automatique jusqu'au commit
+      </div>
+    </div>
+    <div class="howto-card">
+      <div class="howto-step">2</div>
+      <div class="howto-title">Reprendre / session coupée</div>
+      <div class="howto-desc">
+        <code>/go</code><br><br>
+        → Reprend la prochaine story pending dans la queue<br>
+        → Pipeline complet automatique<br><br>
+        <code>/patrol</code><br><br>
+        → Audit visuel + bugs + UX + features<br>
+        → À lancer si tu veux un état des lieux complet
+      </div>
+    </div>
+    <div class="howto-card">
+      <div class="howto-step">3</div>
+      <div class="howto-title">Feedback terrain</div>
+      <div class="howto-desc">
+        <code>/feedback</code> suivi du texte brut :<br><br>
+        <em>"Le formulaire plante quand je mets une date passée"</em><br><br>
+        → Tickets BUG/DESIGN/UX/FEATURE structurés<br>
+        → Confirmer → stories créées<br>
+        → Ajout à la queue si /morning est actif
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);border-radius:10px;padding:14px 18px;font-size:10px;">
+    <strong style="color:var(--green);display:block;margin-bottom:6px;">Ce qui se passe automatiquement après GO :</strong>
+    <span style="color:var(--sec);">
+      <strong style="color:var(--text);">BMAD Dev</strong> (migration → types → API → UI) → <strong style="color:var(--text);">BMAD Review</strong> (adversarial, auto-fix HIGH/MEDIUM, valide ACs) → <strong style="color:var(--text);">Gate 1</strong> (Code Reviewer + Migration Validator + Security) → <strong style="color:var(--text);">Gate 2</strong> (Design Critic + UX Auditor + Bug Hunter) → Commit git → <code>_qa/summary.md</code> mis à jour → Story marquée <code>done</code> → Annonce de la suivante.
+    </span>
+  </div>
+
+  <div style="margin-top:12px;background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.15);border-radius:10px;padding:12px 16px;font-size:10px;color:var(--sec);">
+    <strong style="color:var(--red);">Seuls cas où Claude Code s'arrête :</strong>
+    blocker non corrigeable automatiquement, dépendance manquante, ou story qui contredit l'architecture existante. Dans ces cas : description précise du problème + action attendue de Jeremy.
+  </div>
+
+  <div style="margin-top:16px;background:var(--dark);border-radius:10px;padding:14px 18px;">
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Cron Nightly — 6h00 Brussels (4h UTC)</div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.7);line-height:1.8;">
+      <strong style="color:white;">Trigger :</strong> <code style="background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;font-size:9px;">trig_01Wnvr56ZrgHPich3bhzvwfe</code><br>
+      <strong style="color:white;">Tâches :</strong> Feature Scout (couverture PRD) + Analyse statique QA (try/finally, console guards, couleurs hardcodées)<br>
+      <strong style="color:white;">Résultat :</strong> Rapport <code style="background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;font-size:9px;">_qa/reports/YYYY-MM-DD_patrol-consolidated.md</code> committé dans le repo<br>
+      <strong style="color:white;">Voir / modifier :</strong> <code style="background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;font-size:9px;">https://claude.ai/code/scheduled/trig_01Wnvr56ZrgHPich3bhzvwfe</code>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7 — AVANCEMENT DU PROJET -->
+<section class="page-break">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div>
+      <div class="section-title">Avancement du Projet — Avril 2026</div>
+      <div class="section-desc">État réel du code, migrations appliquées, pages implémentées par rôle</div>
+    </div>
+  </div>
+
+  <!-- ÉPICS -->
+  <div style="font-size:10px;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">Epics — Phase 1 complète (100%)</div>
+  <div class="epic-grid">
+    <div class="epic-item"><div class="epic-label">Epic 1 — Fondation</div><div class="epic-stories">1-1, 1-2, 1-3 ✓ — monorepo, migrations, design system</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 2 — Auth & RBAC</div><div class="epic-stories">2-1→2-3, 2-5 ✓ — RLS, hook JWT, accès clubs</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 3 — Référentiel péda.</div><div class="epic-stories">3-1→3-6 ✓ — thèmes, situations, critères, cues</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 4 — Séances terrain</div><div class="epic-stories">4-1→4-3, 4-5→4-7 ✓ — CRUD, présences, évaluations</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 5 — Offline & Sync</div><div class="epic-stories">5-1→5-6 ✓ — SQLite, event-log, conflict resolution</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 6 — Évaluations</div><div class="epic-stories">6-1, 6-4 ✓ — modèle, dashboard coach</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 7 — Notifications</div><div class="epic-stories">7-1→7-4 ✓ — push, tickets, messages admin</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 8 — Apprentissage</div><div class="epic-stories">8-1, 8-2, 8-4, 8-5 ✓ — quiz, streaks, rapports</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 9 — Dashboard admin</div><div class="epic-stories">9-1→9-5 ✓ — KPIs, anomalies, messagerie coaches</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 10 — RGPD</div><div class="epic-stories">10-1→10-5 ✓ — consentements, exports, audit trail</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 11 — Grades coaches</div><div class="epic-stories">11-1→11-3 ✓ — historique, permissions contenu, partenariats</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 13 — Séances v2</div><div class="epic-stories">13-1, 13-3 ✓ — groupes transients, calendrier</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 18 — Joueurs admin</div><div class="epic-stories">18-1→18-7 ✓ — annuaire, photos, statut académie</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 19-21 — Séances UX</div><div class="epic-stories">Training builder, vues semaine/mois/année</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 22-27 — Cartes & Design</div><div class="epic-stories">Joueur premium, club, thème, sections pédago.</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 28-29 — RBFA</div><div class="epic-stories">Logos clubs, matricules, détection gardiens</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 31 — Filtre saison</div><div class="epic-stories">Sélecteur académique coach/admin</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 32 — Dashboard séances</div><div class="epic-stories">32-2, 32-3 ✓ — métriques, signaux techniques</div></div>
+    <div class="epic-item"><div class="epic-label">Epic 33 — Présences parent</div><div class="epic-stories">33-1→33-3 ✓ — heatmap, badges, corrections</div></div>
+  </div>
+
+  <!-- MIGRATIONS -->
+  <div style="font-size:10px;font-weight:700;margin-top:20px;margin-bottom:8px;letter-spacing:0.5px;">Migrations DB appliquées — 00001 → 00105</div>
+  <div class="migration-strip">
+    <span class="migration-pill m-old">00001–00089</span>
+    <span style="font-size:9px;color:var(--sec);align-self:center;">Tables fondation (remote)</span>
+    <span class="migration-pill m-new">00090 RLS complet</span>
+    <span class="migration-pill m-new">00091 Grade perms</span>
+    <span class="migration-pill m-new">00092 Tickets</span>
+    <span class="migration-pill m-new">00093 Lifecycle</span>
+    <span class="migration-pill m-new">00094 Consents</span>
+    <span class="migration-pill m-new">00095 Anomalies</span>
+    <span class="migration-pill m-new">00096 Admin messages</span>
+    <span class="migration-pill m-new">00097 Timeline RPCs</span>
+    <span class="migration-pill m-new">00098 Notifications v2</span>
+    <span class="migration-pill m-new">00099 Audit trail</span>
+    <span class="migration-pill m-new">00100 Dashboard views</span>
+    <span class="migration-pill m-new">00101 Signaux coach</span>
+    <span class="migration-pill m-new">00102 Corrections présences</span>
+    <span class="migration-pill m-new">00103 Badges photos</span>
+    <span class="migration-pill m-new">00104 Heatmap parent</span>
+    <span class="migration-pill m-fix">00105 Fix RLS profiles</span>
+    <span class="migration-pill m-new">00106 Gamification model</span>
+    <span class="migration-pill m-new">00107 Gamification quests</span>
+    <span class="migration-pill m-new">00108 Baseline sync note</span>
+    <span class="migration-pill m-new">00109 Access grants index</span>
+    <span class="migration-pill m-new">00110 In-app notifications</span>
+  </div>
+
+  <!-- EDGE FUNCTIONS -->
+  <div style="font-size:10px;font-weight:700;margin-top:20px;margin-bottom:8px;letter-spacing:0.5px;">Edge Functions déployées</div>
+  <div class="migration-strip">
+    <span class="migration-pill m-new">custom-access-token-hook ✓ déployé</span>
+    <span class="migration-pill m-old">admin-disable-user</span>
+    <span class="migration-pill m-old">coach-absence-handler</span>
+    <span class="migration-pill m-old">create-user-profile</span>
+    <span class="migration-pill m-old">import-club-logo</span>
+    <span class="migration-pill m-old">session-close-reminder</span>
+  </div>
+  <div style="margin-top:6px;font-size:9px;color:var(--red);">⚠ Hook custom-access-token à activer manuellement : Dashboard Supabase → Authentication → Hooks → Custom Access Token</div>
+
+  <!-- PAGES PAR RÔLE -->
+  <div style="font-size:10px;font-weight:700;margin-top:20px;margin-bottom:8px;letter-spacing:0.5px;">Pages web implémentées par rôle</div>
+  <div class="pages-grid">
+    <div class="pages-role">
+      <div class="pages-role-label">Admin</div>
+      <ul>
+        <li>/dashboard</li>
+        <li>/dashboard/seances</li>
+        <li>/seances</li>
+        <li>/presences (v2)</li>
+        <li>/attendance</li>
+        <li>/evaluations</li>
+        <li>/children (+ fiche)</li>
+        <li>/coaches (+ fiche)</li>
+        <li>/clubs (+ fiche)</li>
+        <li>/groups (+ fiche)</li>
+        <li>/implantations</li>
+        <li>/stages (+ new + fiche)</li>
+        <li>/methodologie/seances</li>
+        <li>/methodologie/themes</li>
+        <li>/methodologie/situations</li>
+        <li>/analytics</li>
+        <li>/users (+ new + fiche)</li>
+        <li>/access-grants</li>
+        <li>/tickets</li>
+        <li>/audit</li>
+        <li>/anomalies ✨</li>
+        <li>/messages ✨</li>
+        <li>/grade-permissions ✨</li>
+        <li>/settings/school-calendar</li>
+      </ul>
+    </div>
+    <div class="pages-role">
+      <div class="pages-role-label">Coach</div>
+      <ul>
+        <li>/coach/dashboard</li>
+        <li>/coach/sessions</li>
+        <li>/coach/sessions/[id]</li>
+        <li>/coach/sessions/[id]/grille ✨</li>
+        <li>/coach/sessions/[id]/badges ✨</li>
+        <li>/coach/sessions/[id]/signaux ✨</li>
+        <li>/coach/sessions/[id]/notes</li>
+        <li>/coach/sessions/[id]/report</li>
+        <li>/coach/messages ✨</li>
+      </ul>
+    </div>
+    <div class="pages-role">
+      <div class="pages-role-label">Parent</div>
+      <ul>
+        <li>/parent/dashboard</li>
+        <li>/parent/children/[id]</li>
+        <li>/parent/children/[id]/presences ✨</li>
+        <li>/parent/children/[id]/badges ✨</li>
+        <li>/parent/children/[id]/consents ✨</li>
+        <li>/parent/children/[id]/sessions</li>
+        <li>/parent/children/[id]/football-history</li>
+      </ul>
+    </div>
+    <div class="pages-role">
+      <div class="pages-role-label">Child / Club</div>
+      <ul>
+        <li>/child/dashboard</li>
+        <li>/child/quiz/[themeId]</li>
+        <li>/child/badges</li>
+        <li>/child/progress</li>
+        <li>/child/avatar</li>
+        <li>—</li>
+        <li>/club/dashboard</li>
+        <li>/club/goalkeepers</li>
+        <li>/club/goalkeepers/[id]</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:8px;font-size:9px;color:var(--sec);">✨ = page ajoutée dans cette session (Epics 9/10/11/32/33)</div>
+</section>
+
+<!-- SECTION 8 — STATUS TABLE -->
+<section class="page-break">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div>
+      <div class="section-title">État de Tous les Agents</div>
+      <div class="section-desc">Référence complète — fichiers, statuts, déclencheurs</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Agent</th>
+        <th>Catégorie</th>
+        <th>Déclencheur</th>
+        <th>Fichier</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Day Conductor (Morning)</strong></td>
+        <td>Proactif</td>
+        <td><code>/morning</code></td>
+        <td><code>.claude/commands/morning.md</code></td>
+        <td><span class="badge badge-done">ACTIF v2</span></td>
+      </tr>
+      <tr>
+        <td><strong>Queue Resume</strong></td>
+        <td>Proactif</td>
+        <td><code>/go</code></td>
+        <td><code>.claude/commands/go.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Patrol Coordinator</strong></td>
+        <td>Proactif</td>
+        <td><code>/patrol</code></td>
+        <td><code>.claude/commands/patrol.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Feedback Dispatcher</strong></td>
+        <td>Proactif</td>
+        <td><code>/feedback</code></td>
+        <td><code>.claude/commands/feedback.md</code></td>
+        <td><span class="badge badge-done">ACTIF v2</span></td>
+      </tr>
+      <tr>
+        <td><strong>Nightly Static Analysis</strong></td>
+        <td>Cron cloud</td>
+        <td>Tous les jours 6h Brussels</td>
+        <td><code>trig_01Wnvr56ZrgHPich3bhzvwfe</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Story Factory</strong></td>
+        <td>Proactif</td>
+        <td><code>story "..."</code> ou Morning</td>
+        <td><code>_agents/prompts/story-factory.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Design Patrol</strong></td>
+        <td>Proactif</td>
+        <td>Audit autonome app</td>
+        <td><code>_agents/prompts/design-patrol.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bug Crawler</strong></td>
+        <td>Proactif</td>
+        <td>Crawl autonome app</td>
+        <td><code>_agents/prompts/bug-crawler.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>UX Inspector</strong></td>
+        <td>Proactif</td>
+        <td>Audit flux autonome</td>
+        <td><code>_agents/prompts/ux-inspector.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Feature Scout</strong></td>
+        <td>Proactif</td>
+        <td>Revue PRD vs backlog</td>
+        <td><code>_agents/prompts/feature-scout.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Code Reviewer</strong></td>
+        <td>Réactif — Gate 1</td>
+        <td><code>qa gate1 {id}</code></td>
+        <td><code>_agents/prompts/code-reviewer.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Migration Validator</strong></td>
+        <td>Réactif — Gate 1</td>
+        <td><code>qa gate1 {id}</code> si .sql</td>
+        <td><code>_agents/prompts/migration-validator.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Security Auditor</strong></td>
+        <td>Réactif — Gate 1</td>
+        <td><code>qa gate1 {id}</code> si auth/RLS</td>
+        <td><code>_agents/prompts/security-auditor.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Design Critic</strong></td>
+        <td>Réactif — Gate 2</td>
+        <td><code>qa gate2 {id}</code> si .tsx</td>
+        <td><code>_agents/prompts/design-critic.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>UX Auditor</strong></td>
+        <td>Réactif — Gate 2</td>
+        <td><code>qa gate2 {id}</code> si .tsx</td>
+        <td><code>_agents/prompts/ux-auditor.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Regression Detector</strong></td>
+        <td>Réactif — Gate 2</td>
+        <td><code>qa gate2 {id}</code> si partagé</td>
+        <td><code>_agents/prompts/regression-detector.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Bug Hunter</strong></td>
+        <td>Réactif — Gate 2</td>
+        <td><code>qa gate2 {id}</code> — toujours</td>
+        <td><code>_agents/prompts/bug-hunter.md</code></td>
+        <td><span class="badge badge-done">ACTIF</span></td>
+      </tr>
+      <tr>
+        <td><strong>Analyst BMAD</strong></td>
+        <td>BMAD</td>
+        <td>Phase 1 — une fois</td>
+        <td>BMAD method</td>
+        <td><span class="badge badge-bmad">COMPLÉTÉ</span></td>
+      </tr>
+      <tr>
+        <td><strong>PM BMAD</strong></td>
+        <td>BMAD</td>
+        <td>Phase 2 — une fois</td>
+        <td>BMAD method</td>
+        <td><span class="badge badge-bmad">COMPLÉTÉ</span></td>
+      </tr>
+      <tr>
+        <td><strong>Architect BMAD</strong></td>
+        <td>BMAD</td>
+        <td>Phase 3 — une fois</td>
+        <td>BMAD method</td>
+        <td><span class="badge badge-bmad">COMPLÉTÉ</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PROCHAINES ÉTAPES -->
+  <div style="margin-top:24px;background:var(--dark);border-radius:12px;padding:20px 24px;">
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">Prochaines Étapes — Phase 2</div>
+    <table style="color:rgba(255,255,255,0.85);">
+      <thead><tr>
+        <th style="background:rgba(255,255,255,0.06);color:var(--gold);">Action</th>
+        <th style="background:rgba(255,255,255,0.06);color:var(--gold);">Priorité</th>
+        <th style="background:rgba(255,255,255,0.06);color:var(--gold);">Détail</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td style="color:white;font-weight:700;">Activer Custom Access Token Hook</td>
+          <td><span style="color:#f87171;font-size:9px;font-weight:700;">CRITIQUE</span></td>
+          <td style="color:rgba(255,255,255,0.6);">Dashboard → Authentication → Hooks → Custom Access Token → custom-access-token-hook</td>
+        </tr>
+        <tr>
+          <td style="color:white;font-weight:700;">DB Baseline Recovery</td>
+          <td><span style="color:var(--gold);font-size:9px;font-weight:700;">HAUTE</span></td>
+          <td style="color:rgba(255,255,255,0.6);">~30 tables remote sans migration dans le repo. <code style="font-size:9px;">supabase db dump</code> → reconstituer migrations manquantes</td>
+        </tr>
+        <tr>
+          <td style="color:white;font-weight:700;">Tests E2E Playwright</td>
+          <td><span style="color:var(--gold);font-size:9px;font-weight:700;">HAUTE</span></td>
+          <td style="color:rgba(255,255,255,0.6);">Couvrir les 5 parcours principaux (login, créer séance, présences, évaluation, rapport parent)</td>
+        </tr>
+        <tr>
+          <td style="color:white;font-weight:700;">Phase 2 — Gamification</td>
+          <td><span style="color:rgba(255,255,255,0.4);font-size:9px;font-weight:700;">PLANIFIÉE</span></td>
+          <td style="color:rgba(255,255,255,0.6);">Epics 12 (badges, points, avatar, quêtes) — dépend Phase 1 stable</td>
+        </tr>
+        <tr>
+          <td style="color:white;font-weight:700;">App Mobile (Expo iOS/Android)</td>
+          <td><span style="color:rgba(255,255,255,0.4);font-size:9px;font-weight:700;">PLANIFIÉE</span></td>
+          <td style="color:rgba(255,255,255,0.6);">apps/mobile/ — présences offline, quiz enfant, dashboard coach mobile</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</body>
+</html>

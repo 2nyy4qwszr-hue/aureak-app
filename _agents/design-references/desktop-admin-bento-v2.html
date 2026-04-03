@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aureak — Admin Dashboard v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Palette LIGHT (principale) */
+      --bg:         #F0EBE1;   /* beige chaud */
+      --surface:    #FFFFFF;   /* cards */
+      --surface2:   #F8F5EF;   /* chips, sous-éléments */
+      --gold:       #C1AC5C;
+      --gold-dark:  #8B7830;
+      --gold-bg:    rgba(193,172,92,0.10);
+      --text:       #18181B;
+      --text-sec:   #52525B;
+      --text-muted: #A1A1AA;
+      --border:     rgba(0,0,0,0.06);
+
+      /* ── Sidebar (reste dark — contraste premium) */
+      --sidebar:    #111111;
+      --sidebar-border: rgba(255,255,255,0.05);
+
+      /* ── Shadows */
+      --sh-sm:  0 1px 4px rgba(0,0,0,0.05), 0 2px 12px rgba(0,0,0,0.04);
+      --sh-md:  0 4px 24px rgba(0,0,0,0.08);
+      --sh-gold:0 4px 20px rgba(193,172,92,0.20);
+
+      /* ── Radii */
+      --r:    16px;
+      --r-sm: 10px;
+
+      --font: 'Montserrat', sans-serif;
+      --sidebar-w: 216px;
+      --gap: 12px;
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: var(--font);
+      color: var(--text);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       LAYOUT — sidebar + main, full viewport
+    ══════════════════════════════════════════════════════ */
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      height: 100%;
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    /* stripe gold top */
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2.5px;
+      background: var(--gold);
+    }
+
+    .s-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px 18px 18px;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+    .s-mark {
+      width: 34px; height: 34px;
+      background: var(--gold);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900; color: #0E0E10;
+      flex-shrink: 0;
+    }
+    .s-name { font-size: 14px; font-weight: 800; color: #fff; }
+    .s-sub  { font-size: 9px;  font-weight: 600; color: rgba(255,255,255,0.28); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .s-nav { flex: 1; overflow-y: auto; padding: 10px 10px; }
+    .s-nav::-webkit-scrollbar { width: 0; }
+
+    .s-section { margin-bottom: 18px; }
+    .s-label {
+      font-size: 8.5px; font-weight: 700;
+      color: rgba(255,255,255,0.22);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0 8px 6px;
+    }
+    .s-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px;
+      border-radius: 9px;
+      font-size: 12px; font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer;
+      margin-bottom: 1px;
+      transition: all 0.12s;
+    }
+    .s-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.75); }
+    .s-item.active {
+      background: rgba(193,172,92,0.13);
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .s-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
+    .s-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .s-avatar {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #0E0E10;
+      flex-shrink: 0;
+    }
+    .s-aname { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75); }
+    .s-arole { font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.28); }
+
+    /* ── MAIN ───────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      padding: 14px 16px 14px 14px;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       BENTO — remplit TOUT l'espace restant
+    ══════════════════════════════════════════════════════ */
+    .bento {
+      flex: 1;
+      min-height: 0;               /* critical for flex child to shrink */
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1.15fr;
+      grid-template-rows: 1fr 1fr 0.75fr;
+      gap: var(--gap);
+    }
+
+    /* ── CARD BASE ──────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--r);
+      box-shadow: var(--sh-sm);
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+      transition: box-shadow 0.18s, transform 0.18s;
+      cursor: pointer;
+    }
+    .card:hover {
+      box-shadow: var(--sh-md);
+      transform: translateY(-1px);
+    }
+    .ci { /* card-inner */
+      padding: 18px 20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── PILL ───────────────────────────────────────────── */
+    .pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 9.5px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .pill-gold  { background: var(--gold-bg); color: var(--gold-dark); }
+    .pill-green { background: rgba(16,185,129,0.10); color: #059669; }
+    .pill-red   { background: rgba(239,68,68,0.09);  color: #DC2626; }
+    .pill-blue  { background: rgba(59,130,246,0.09); color: #2563EB; }
+
+    /* ── CARD TITLES ────────────────────────────────────── */
+    .ct  { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .ch  { font-size: 14px; font-weight: 800; color: var(--text); margin-top: 2px; }
+    .divider { height: 1px; background: var(--border); margin: 10px 0; flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════════
+       TILE 1 — HERO ACADÉMIE (col 1, rows 1-2)
+       Photo gardien + overlay dark + headline
+    ═══════════════════════════════════════════════ */
+    .t-hero {
+      grid-column: 1; grid-row: 1 / 3;
+      background: #2A2827;
+      position: relative;
+    }
+    .t-hero:hover { transform: none; } /* no lift on hero */
+
+    .hero-photo {
+      position: absolute; inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=900&q=85&fit=crop');
+      background-size: cover;
+      background-position: center top;
+      opacity: 0.55;
+    }
+    /* fallback si image ne charge pas */
+    .hero-photo-fallback {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, #1A1208 0%, #0A0A0C 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* gradient overlay bas → texte lisible */
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(10,10,12,0.08) 0%,
+        rgba(10,10,12,0.10) 40%,
+        rgba(10,10,12,0.82) 75%,
+        rgba(10,10,12,0.96) 100%
+      );
+    }
+
+    .hero-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 24px;
+    }
+    .hero-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .hero-badge {
+      background: var(--gold);
+      color: #0E0E10;
+      font-size: 10px; font-weight: 800;
+      padding: 4px 11px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .hero-saison {
+      font-size: 10px; font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.08);
+      padding: 4px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-bottom {}
+    .hero-eyebrow {
+      font-size: 10px; font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .hero-title {
+      font-size: 28px; font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    .hero-stats {
+      display: flex; gap: 20px;
+    }
+    .hero-stat {}
+    .hero-stat-num {
+      font-size: 26px; font-weight: 900;
+      color: var(--gold);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .hero-stat-label {
+      font-size: 10px; font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+    .hero-divider {
+      width: 1px; background: rgba(255,255,255,0.15);
+      margin: 0 4px;
+      align-self: stretch;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TILE 2 — SÉANCES DU JOUR (col 2, row 1)
+    ═══════════════════════════════════════════════ */
+    .t-seances { grid-column: 2; grid-row: 1; }
+
+    .s-list { display: flex; flex-direction: column; gap: 7px; flex: 1; overflow: hidden; margin-top: 10px; }
+    .s-item-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 11px;
+      background: var(--surface2);
+      border-radius: var(--r-sm);
+      flex-shrink: 0;
+    }
+    .s-time { font-size: 10px; font-weight: 700; color: var(--text-muted); min-width: 34px; }
+    .s-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-g { background: #10B981; }
+    .dot-o { background: var(--gold); }
+    .dot-b { background: #3B82F6; }
+    .s-info { flex: 1; min-width: 0; }
+    .s-name { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .s-sub  { font-size: 9.5px; font-weight: 500; color: var(--text-muted); }
+
+    /* ═══════════════════════════════════════════════
+       TILE 3 — JOUEURS (col 3, rows 1-2)
+    ═══════════════════════════════════════════════ */
+    .t-joueurs { grid-column: 3; grid-row: 1 / 3; }
+
+    .j-counts {
+      display: flex; gap: 8px; margin: 10px 0 8px;
+      flex-shrink: 0;
+    }
+    .j-chip {
+      flex: 1;
+      background: var(--surface2);
+      border-radius: var(--r-sm);
+      padding: 9px 8px;
+      text-align: center;
+    }
+    .j-chip-num  { font-size: 20px; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
+    .j-chip-cat  { font-size: 9px; font-weight: 700; color: var(--text-muted); margin-top: 1px; }
+
+    .j-list { display: flex; flex-direction: column; gap: 5px; flex: 1; overflow: hidden; }
+    .j-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .j-row:last-child { border-bottom: none; }
+    .j-av {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800;
+      color: var(--gold-dark);
+      flex-shrink: 0;
+    }
+    .j-name { font-size: 11px; font-weight: 700; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .j-tag  {
+      font-size: 9px; font-weight: 700;
+      padding: 2px 7px; border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .tag-u15 { background: rgba(59,130,246,0.10); color: #2563EB; }
+    .tag-u17 { background: var(--gold-bg); color: var(--gold-dark); }
+    .tag-u19 { background: rgba(16,185,129,0.10); color: #059669; }
+
+    .j-footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .j-total-num { font-size: 30px; font-weight: 900; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+    .j-total-lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       TILE 4 — PLANNING / PRÉSENCE (col 2, row 2)
+    ═══════════════════════════════════════════════ */
+    .t-planning { grid-column: 2; grid-row: 2; }
+
+    .p-numbers { display: flex; gap: 16px; margin: 8px 0 10px; flex-shrink: 0; }
+    .p-num-block {}
+    .p-big { font-size: 32px; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+    .p-big-gold { color: var(--gold); }
+    .p-big-text { color: var(--text); }
+    .p-lbl { font-size: 9.5px; font-weight: 600; color: var(--text-muted); margin-top: 2px; }
+
+    .week-chart { display: flex; align-items: flex-end; gap: 5px; flex: 1; min-height: 0; }
+    .w-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-height: 0; height: 100%; }
+    .w-bar-wrap { flex: 1; width: 100%; background: var(--surface2); border-radius: 5px; position: relative; overflow: hidden; min-height: 0; }
+    .w-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: var(--gold); border-radius: 5px; opacity: 0.6; }
+    .w-col.today .w-bar-fill { opacity: 1; }
+    .w-day { font-size: 9px; font-weight: 700; color: var(--text-muted); }
+    .w-col.today .w-day { color: var(--gold-dark); font-weight: 800; }
+
+    /* ═══════════════════════════════════════════════
+       TILE 5 — PROGRESSION ACADÉMIE (cols 1-2, row 3)
+    ═══════════════════════════════════════════════ */
+    .t-academie { grid-column: 1 / 3; grid-row: 3; }
+
+    .a-inner {
+      display: flex; align-items: center; gap: 24px;
+      flex: 1; min-height: 0; overflow: hidden;
+    }
+    .a-big-block { flex-shrink: 0; }
+    .a-big-num { font-size: 50px; font-weight: 900; color: var(--text); letter-spacing: -0.04em; line-height: 1; }
+    .a-big-lbl { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
+    .a-sep { width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0; }
+    .a-bars { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .a-bar-row { display: flex; align-items: center; gap: 8px; }
+    .a-bar-lbl { font-size: 10px; font-weight: 600; color: var(--text-sec); width: 110px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .a-bar-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+    .a-bar-fill  { height: 100%; background: var(--gold); border-radius: 99px; }
+    .a-bar-val   { font-size: 10px; font-weight: 800; color: var(--text); min-width: 28px; text-align: right; }
+
+    /* ═══════════════════════════════════════════════
+       TILE 6 — ALERTES (col 3, row 3)
+    ═══════════════════════════════════════════════ */
+    .t-alertes { grid-column: 3; grid-row: 3; }
+
+    .al-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: hidden; margin-top: 8px; }
+    .al-row {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 10px;
+      background: var(--surface2);
+      border-radius: var(--r-sm);
+      flex-shrink: 0;
+    }
+    .al-icon { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+    .al-text { font-size: 10.5px; font-weight: 600; color: var(--text-sec); line-height: 1.35; }
+    .al-text b { color: var(--text); font-weight: 800; }
+
+    /* ── top row of cards: labels + pill in same line ── */
+    .card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ SIDEBAR ════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="s-logo">
+      <div class="s-mark">A</div>
+      <div>
+        <div class="s-name">AUREAK</div>
+        <div class="s-sub">Académie GK</div>
+      </div>
+    </div>
+
+    <nav class="s-nav">
+      <div class="s-section">
+        <div class="s-label">Vue d'ensemble</div>
+        <div class="s-item active"><span class="s-icon">⊞</span> Dashboard</div>
+      </div>
+      <div class="s-section">
+        <div class="s-label">Opérations</div>
+        <div class="s-item"><span class="s-icon">◷</span> Séances</div>
+        <div class="s-item"><span class="s-icon">✓</span> Présences</div>
+        <div class="s-item"><span class="s-icon">★</span> Évaluations</div>
+        <div class="s-item"><span class="s-icon">◈</span> Groupes</div>
+        <div class="s-item"><span class="s-icon">◉</span> Stages</div>
+      </div>
+      <div class="s-section">
+        <div class="s-label">Gestion</div>
+        <div class="s-item"><span class="s-icon">⊙</span> Joueurs</div>
+        <div class="s-item"><span class="s-icon">◎</span> Clubs</div>
+        <div class="s-item"><span class="s-icon">▽</span> Implantations</div>
+        <div class="s-item"><span class="s-icon">⊗</span> Saisons</div>
+      </div>
+      <div class="s-section">
+        <div class="s-label">Méthodologie</div>
+        <div class="s-item"><span class="s-icon">◇</span> Thèmes</div>
+        <div class="s-item"><span class="s-icon">△</span> Situations</div>
+      </div>
+    </nav>
+
+    <div class="s-footer">
+      <div class="s-avatar">JD</div>
+      <div>
+        <div class="s-aname">Jérémy D.</div>
+        <div class="s-arole">Administrateur</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- BENTO -->
+    <div class="bento">
+
+      <!-- ① HERO ACADÉMIE -->
+      <div class="card t-hero">
+        <div class="hero-photo"
+          onerror="this.style.display='none'"
+          style="background-image: url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=900&q=85&fit=crop&crop=top')">
+        </div>
+        <!-- fallback gradient si photo absente -->
+        <div style="position:absolute;inset:0;background:#2A2827;z-index:0;"></div>
+        <div class="hero-overlay" style="z-index:1;"></div>
+        <div class="hero-content" style="z-index:2;">
+          <div class="hero-top">
+            <div class="hero-badge">Aureak Academy</div>
+            <div class="hero-saison">2025 – 2026</div>
+          </div>
+          <div class="hero-bottom">
+            <div class="hero-eyebrow">Académie Gardiens de But</div>
+            <div class="hero-title">L'excellence<br>commence ici.</div>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <div class="hero-stat-num">142</div>
+                <div class="hero-stat-label">gardiens</div>
+              </div>
+              <div class="hero-divider"></div>
+              <div class="hero-stat">
+                <div class="hero-stat-num">3</div>
+                <div class="hero-stat-label">implantations</div>
+              </div>
+              <div class="hero-divider"></div>
+              <div class="hero-stat">
+                <div class="hero-stat-num">87<span style="font-size:14px">%</span></div>
+                <div class="hero-stat-label">présence</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② SÉANCES DU JOUR -->
+      <div class="card t-seances">
+        <div class="ci">
+          <div class="card-header">
+            <div>
+              <div class="ct">Aujourd'hui</div>
+              <div class="ch">Séances</div>
+            </div>
+            <span class="pill pill-green">3 actives</span>
+          </div>
+          <div class="s-list">
+            <div class="s-item-row">
+              <div class="s-time">09h00</div>
+              <div class="s-dot dot-g"></div>
+              <div class="s-info">
+                <div class="s-name">U15 — Situationnel</div>
+                <div class="s-sub">Liège · Gr. A · 14 joueurs</div>
+              </div>
+              <span class="pill pill-green" style="font-size:8.5px;">En cours</span>
+            </div>
+            <div class="s-item-row">
+              <div class="s-time">14h00</div>
+              <div class="s-dot dot-o"></div>
+              <div class="s-info">
+                <div class="s-name">U17 — Décisionnel</div>
+                <div class="s-sub">Namur · Gr. B · 12 joueurs</div>
+              </div>
+              <span class="pill pill-gold" style="font-size:8.5px;">Planifiée</span>
+            </div>
+            <div class="s-item-row">
+              <div class="s-time">17h30</div>
+              <div class="s-dot dot-b"></div>
+              <div class="s-info">
+                <div class="s-name">U19 — Technique</div>
+                <div class="s-sub">Liège · Elite · 10 joueurs</div>
+              </div>
+              <span class="pill pill-blue" style="font-size:8.5px;">Planifiée</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ JOUEURS ACTIFS -->
+      <div class="card t-joueurs">
+        <div class="ci">
+          <div class="card-header">
+            <div>
+              <div class="ct">Académie</div>
+              <div class="ch">Joueurs actifs</div>
+            </div>
+            <span class="pill pill-gold">Saison en cours</span>
+          </div>
+          <div class="j-counts">
+            <div class="j-chip">
+              <div class="j-chip-num" style="color:#2563EB;">48</div>
+              <div class="j-chip-cat">U15</div>
+            </div>
+            <div class="j-chip">
+              <div class="j-chip-num" style="color:var(--gold-dark);">56</div>
+              <div class="j-chip-cat">U17</div>
+            </div>
+            <div class="j-chip">
+              <div class="j-chip-num" style="color:#059669;">38</div>
+              <div class="j-chip-cat">U19</div>
+            </div>
+          </div>
+          <div class="j-list">
+            <div class="j-row">
+              <div class="j-av">TH</div>
+              <div class="j-name">Thomas Hakim</div>
+              <span class="j-tag tag-u17">U17</span>
+            </div>
+            <div class="j-row">
+              <div class="j-av">LB</div>
+              <div class="j-name">Lucas Bernard</div>
+              <span class="j-tag tag-u15">U15</span>
+            </div>
+            <div class="j-row">
+              <div class="j-av">AM</div>
+              <div class="j-name">Adam Marchetti</div>
+              <span class="j-tag tag-u19">U19</span>
+            </div>
+            <div class="j-row">
+              <div class="j-av">NR</div>
+              <div class="j-name">Noah Renard</div>
+              <span class="j-tag tag-u15">U15</span>
+            </div>
+            <div class="j-row">
+              <div class="j-av">SR</div>
+              <div class="j-name">Samuel Radelet</div>
+              <span class="j-tag tag-u17">U17</span>
+            </div>
+          </div>
+          <div class="j-footer">
+            <div>
+              <div class="j-total-num">142</div>
+              <div class="j-total-lbl">gardiens inscrits</div>
+            </div>
+            <span class="pill pill-gold" style="font-size:10px;">+8 vs S-1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ PLANNING SEMAINE -->
+      <div class="card t-planning">
+        <div class="ci">
+          <div class="card-header">
+            <div>
+              <div class="ct">Cette semaine</div>
+              <div class="ch">Planning</div>
+            </div>
+          </div>
+          <div class="p-numbers">
+            <div class="p-num-block">
+              <div class="p-big p-big-text">14</div>
+              <div class="p-lbl">séances</div>
+            </div>
+            <div style="width:1px;background:var(--border);margin:0 4px;"></div>
+            <div class="p-num-block">
+              <div class="p-big p-big-gold">87<span style="font-size:16px;font-weight:700;">%</span></div>
+              <div class="p-lbl">présence moy.</div>
+            </div>
+          </div>
+          <div class="week-chart">
+            <div class="w-col"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:70%;"></div></div><div class="w-day">Lu</div></div>
+            <div class="w-col"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:90%;"></div></div><div class="w-day">Ma</div></div>
+            <div class="w-col"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:55%;"></div></div><div class="w-day">Me</div></div>
+            <div class="w-col today"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:100%;"></div></div><div class="w-day">Je</div></div>
+            <div class="w-col"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:15%;opacity:0.25;"></div></div><div class="w-day">Ve</div></div>
+            <div class="w-col"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:80%;"></div></div><div class="w-day">Sa</div></div>
+            <div class="w-col"><div class="w-bar-wrap"><div class="w-bar-fill" style="height:40%;"></div></div><div class="w-day">Di</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ PROGRESSION ACADÉMIE -->
+      <div class="card t-academie">
+        <div class="ci">
+          <div class="card-header" style="margin-bottom:10px;">
+            <div>
+              <div class="ct">Saison 2025–2026</div>
+              <div class="ch">Progression de l'académie</div>
+            </div>
+            <span class="pill pill-green">+12% vs saison précédente</span>
+          </div>
+          <div class="a-inner">
+            <div class="a-big-block">
+              <div class="a-big-num">78<span style="font-size:24px;color:var(--text-muted);">%</span></div>
+              <div class="a-big-lbl">objectif global</div>
+            </div>
+            <div class="a-sep"></div>
+            <div class="a-bars">
+              <div class="a-bar-row">
+                <div class="a-bar-lbl">Évaluations</div>
+                <div class="a-bar-track"><div class="a-bar-fill" style="width:82%;"></div></div>
+                <div class="a-bar-val">82%</div>
+              </div>
+              <div class="a-bar-row">
+                <div class="a-bar-lbl">Séances réalisées</div>
+                <div class="a-bar-track"><div class="a-bar-fill" style="width:91%;"></div></div>
+                <div class="a-bar-val">91%</div>
+              </div>
+              <div class="a-bar-row">
+                <div class="a-bar-lbl">Badges débloqués</div>
+                <div class="a-bar-track"><div class="a-bar-fill" style="width:64%;"></div></div>
+                <div class="a-bar-val">64%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ ALERTES -->
+      <div class="card t-alertes">
+        <div class="ci">
+          <div class="card-header">
+            <div>
+              <div class="ct">Système</div>
+              <div class="ch">Alertes</div>
+            </div>
+            <span class="pill pill-red">3</span>
+          </div>
+          <div class="al-list">
+            <div class="al-row">
+              <div class="al-icon">⚠</div>
+              <div class="al-text"><b>5 joueurs</b> sans éval. depuis +30j</div>
+            </div>
+            <div class="al-row">
+              <div class="al-icon">◉</div>
+              <div class="al-text">Séance <b>U15 Liège</b> annulée — à reprogrammer</div>
+            </div>
+            <div class="al-row">
+              <div class="al-icon">★</div>
+              <div class="al-text"><b>2 badges</b> expirés non attribués</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bento -->
+  </main>
+
+</div>
+</body>
+</html>

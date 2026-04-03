@@ -269,6 +269,7 @@ max_frequency = "5s"
 [auth.hook.custom_access_token]
 enabled = true
 uri = "http://host.docker.internal:54321/functions/v1/custom-access-token-hook"
+secrets = "env(HOOK_CUSTOM_ACCESS_TOKEN_SECRET)"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]

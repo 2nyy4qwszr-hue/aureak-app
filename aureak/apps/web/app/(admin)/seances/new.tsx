@@ -21,6 +21,7 @@ import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode } from '@aureak/types'
 import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
 import { generateSessionLabel } from './_utils'
+import { useToast } from '../../../components/ToastContext'
 
 // SessionType → category filter pour listThemes (Story 21.2)
 const SESSION_TYPE_TO_METHOD: Partial<Record<SessionType, string>> = {
@@ -666,6 +667,7 @@ function TitleField({
 
 export default function NewSessionPage() {
   const router    = useRouter()
+  const toast     = useToast()
   const tenantId  = useAuthStore(s => s.tenantId) ?? ''
 
   // ── Step 1 — Contexte ────────────────────────────────────────
@@ -961,6 +963,7 @@ export default function NewSessionPage() {
       created++
     }
 
+    if (created > 0) toast.success(`${created} séance${created !== 1 ? 's' : ''} créée${created !== 1 ? 's' : ''}.`)
     setResult({ created, failed, linkWarnings: linkWarnings > 0 ? linkWarnings : undefined })
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[NewSession] handleCreate unexpected error:', err)

@@ -25,7 +25,7 @@ export function NotificationBadge() {
         width          : 'calc(100% - 16px)',
         boxSizing      : 'border-box' as const,
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = colors.light.muted }}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(255,255,255,0.08)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent' }}
     >
       <span style={{ fontSize: 14, position: 'relative' }}>
@@ -51,7 +51,7 @@ export function NotificationBadge() {
           </span>
         )}
       </span>
-      <span style={{ fontSize: 13, color: count > 0 ? colors.text.dark : colors.text.muted, fontWeight: count > 0 ? 600 : 400 }}>
+      <span style={{ fontSize: 13, color: count > 0 ? colors.text.primary : colors.text.secondary, fontWeight: count > 0 ? 600 : 400 }}>
         Notifications{count > 0 ? ` (${count})` : ''}
       </span>
     </button>

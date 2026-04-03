@@ -51,9 +51,9 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 // ── Utilisateurs de test ───────────────────────────────────────────────────
 const TEST_USERS = [
-  { email: 'admin.e2e@test.com',  password: 'Admin1234!',  role: 'admin',  displayName: 'Admin E2E'  },
-  { email: 'coach.e2e@test.com',  password: 'Coach1234!',  role: 'coach',  displayName: 'Coach E2E'  },
-  { email: 'parent.e2e@test.com', password: 'Parent1234!', role: 'parent', displayName: 'Parent E2E' },
+  { email: 'admin@test.com',  password: 'Test1234!',  role: 'admin',  displayName: 'Admin E2E'  },
+  { email: 'coach@test.com',  password: 'Test1234!',  role: 'coach',  displayName: 'Coach E2E'  },
+  { email: 'parent@test.com', password: 'Test1234!',  role: 'parent', displayName: 'Parent E2E' },
 ]
 
 // ── Client Supabase (service role — bypasse RLS) ───────────────────────────

@@ -297,3 +297,23 @@ development_status:
   epic-31: done
   31-1-filtre-saison-academie-historique: done
   epic-31-retrospective: optional
+
+  # Epic 32 : Refonte UX Gestion des Séances — Annulations, Dashboard, App Coach
+  epic-32: in-progress
+  32-1-gestion-annulations-tampons-seances: ready-for-dev
+  32-2-dashboard-operationnel-seances-admin: ready-for-dev
+  32-3-app-coach-seance-du-jour-signaux-techniques: ready-for-dev
+  epic-32-retrospective: optional
+
+  # Epic 33 : Présences & Évaluations — Dashboard Admin, Workflow Coach, Vue Parent
+  epic-33: in-progress
+  33-1-dashboard-admin-presences: ready-for-dev
+  33-2-workflow-coach-presences-badges: ready-for-dev
+  33-3-vue-parent-evaluations-heatmap: ready-for-dev
+  epic-33-retrospective: optional
+
+  # Epic 34 : Méthodologie — Architecture Programme & UX Bibliothèque Entraînements
+  epic-34: in-progress
+  34-1-architecture-programme-formulaire-intelligent: ready-for-dev
+  34-2-navigation-programme-ux-bibliotheque: ready-for-dev
+  epic-34-retrospective: optional

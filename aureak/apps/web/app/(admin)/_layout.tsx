@@ -10,6 +10,7 @@ import { NotificationProvider } from '../../components/NotificationContext'
 import { SearchProvider } from '../../components/SearchContext'
 import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 
 type NavGroup = {
   label : string
@@ -20,12 +21,10 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Opérations',
     items: [
-      { label: 'Tableau de bord',     href: '/dashboard'          },
-      { label: 'Dashboard séances',  href: '/dashboard/seances'  },
-      { label: 'Séances',            href: '/seances'            },
-      { label: 'Présences (v2)',     href: '/presences'          },
-      { label: 'Présences',          href: '/attendance'         },
-      { label: 'Évaluations',        href: '/evaluations'        },
+      { label: 'Tableau de bord', href: '/dashboard'    },
+      { label: 'Séances',         href: '/seances'      },
+      { label: 'Présences',       href: '/presences'    },
+      { label: 'Évaluations',     href: '/evaluations'  },
     ],
   },
   {
@@ -79,7 +78,18 @@ export default function AdminLayout() {
   const pathname = usePathname()
   const { width } = useWindowDimensions()
   const { role, isLoading, signOut, user } = useAuthStore()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
+  })
+  useKeyboardShortcuts()
+
+  const toggleSidebar = () => setSidebarCollapsed(v => {
+    const next = !v
+    try { localStorage.setItem('sidebar-collapsed', String(next)) } catch { /* noop */ }
+    return next
+  })
+  const sidebarWidth = sidebarCollapsed ? 52 : 220
 
   const isMobile = width < 768
 
@@ -119,12 +129,12 @@ export default function AdminLayout() {
         />
       )}
 
-      {/* ── Sidebar — Light Premium ── */}
+      {/* ── Sidebar — Dark Premium ── */}
       <YStack
-        width={220}
-        backgroundColor={colors.light.surface}
+        width={sidebarWidth}
+        backgroundColor={colors.background.primary}
         borderRightWidth={1}
-        borderRightColor={colors.border.divider}
+        borderRightColor={colors.border.dark}
         style={{
           flexShrink     : 0,
           display        : 'flex',
@@ -134,7 +144,7 @@ export default function AdminLayout() {
           ...(isMobile ? {
             position   : 'fixed',
             top        : 0,
-            left       : mobileOpen ? 0 : -220,
+            left       : mobileOpen ? 0 : -sidebarWidth,
             transition : `left ${transitions.normal}`,
             zIndex     : 50,
             boxShadow  : mobileOpen ? shadows.lg : 'none',
@@ -154,53 +164,51 @@ export default function AdminLayout() {
           paddingBottom={18}
           paddingHorizontal={20}
           borderBottomWidth={1}
-          borderBottomColor={colors.border.divider}
+          borderBottomColor={colors.border.dark}
           marginBottom={8}
         >
-          <Text
-            fontFamily="$heading"
-            fontSize={22}
-            fontWeight="800"
-            color={colors.accent.gold}
-            letterSpacing={4}
-          >
-            AUREAK
-          </Text>
-          <Text
-            fontFamily="$body"
-            fontSize={10}
-            color={colors.text.muted}
-            letterSpacing={1.8}
-            marginTop={2}
-            style={{ textTransform: 'uppercase' as never }}
-          >
-            Administration
-          </Text>
+          <XStack alignItems="center" justifyContent="space-between">
+            {!sidebarCollapsed && (
+              <YStack>
+                <Text fontFamily="$heading" fontSize={22} fontWeight="800" color={colors.accent.gold} letterSpacing={4}>
+                  AUREAK
+                </Text>
+                <Text fontFamily="$body" fontSize={10} color={colors.text.secondary} letterSpacing={1.8} marginTop={2} style={{ textTransform: 'uppercase' as never }}>
+                  Administration
+                </Text>
+              </YStack>
+            )}
+            <Pressable onPress={toggleSidebar} style={{ padding: 4, borderRadius: 4, marginLeft: sidebarCollapsed ? 'auto' : 0 } as never}>
+              <Text fontSize={12} color={colors.text.secondary}>{sidebarCollapsed ? '›' : '‹'}</Text>
+            </Pressable>
+          </XStack>
         </YStack>
 
         {/* ── Global search ── */}
-        <GlobalSearch />
+        {!sidebarCollapsed && <GlobalSearch />}
 
         {/* ── Notification badge ── */}
-        <NotificationBadge />
+        {!sidebarCollapsed && <NotificationBadge />}
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
           {NAV_GROUPS.map((group, gi) => (
             <YStack key={group.label} marginBottom={4}>
-              <Text
-                fontFamily="$body"
-                fontSize={9}
-                fontWeight="700"
-                color={colors.text.subtle}
-                letterSpacing={1.5}
-                paddingHorizontal={20}
-                paddingBottom={4}
-                paddingTop={gi === 0 ? 4 : 12}
-                style={{ textTransform: 'uppercase' as never }}
-              >
-                {group.label}
-              </Text>
+              {!sidebarCollapsed && (
+                <Text
+                  fontFamily="$body"
+                  fontSize={9}
+                  fontWeight="700"
+                  color={colors.text.secondary}
+                  letterSpacing={1.5}
+                  paddingHorizontal={20}
+                  paddingBottom={4}
+                  paddingTop={gi === 0 ? 4 : 12}
+                  style={{ textTransform: 'uppercase' as never }}
+                >
+                  {group.label}
+                </Text>
+              )}
 
               <YStack gap={1} paddingHorizontal={8}>
                 {group.items.map(({ label, href }) => {
@@ -220,22 +228,26 @@ export default function AdminLayout() {
                             (isActive
                               ? colors.accent.gold + '18'
                               : pressed
-                                ? colors.light.hover
+                                ? 'rgba(255,255,255,0.08)'
                                 : 'transparent') as never
                           }
                           style={{
                             transition: `all ${transitions.fast}`,
                           } as never}
                         >
-                          <Text
-                            fontFamily="$body"
-                            fontSize={13}
-                            fontWeight={isActive ? '700' : '400'}
-                            color={isActive ? colors.accent.gold : colors.text.muted}
-                            style={isActive ? { letterSpacing: 0.1 } as never : undefined}
-                          >
-                            {label}
-                          </Text>
+                          {sidebarCollapsed ? (
+                            <Text fontSize={16}>{label.charAt(0)}</Text>
+                          ) : (
+                            <Text
+                              fontFamily="$body"
+                              fontSize={13}
+                              fontWeight={isActive ? '700' : '400'}
+                              color={isActive ? colors.accent.gold : colors.text.secondary}
+                              style={isActive ? { letterSpacing: 0.1 } as never : undefined}
+                            >
+                              {label}
+                            </Text>
+                          )}
                         </YStack>
                       )}
                     </Pressable>
@@ -245,10 +257,10 @@ export default function AdminLayout() {
 
               {gi < NAV_GROUPS.length - 1 && (
                 <Separator
-                  borderColor={colors.border.divider}
+                  borderColor={colors.border.dark}
                   marginTop={10}
                   marginHorizontal={20}
-                  opacity={0.6}
+                  opacity={0.4}
                 />
               )}
             </YStack>
@@ -257,10 +269,10 @@ export default function AdminLayout() {
 
         {/* ── Admin info + sign out ── */}
         <YStack paddingHorizontal={12} paddingTop={8}>
-          <Separator borderColor={colors.border.divider} opacity={0.6} marginBottom={10} />
+          <Separator borderColor={colors.border.dark} opacity={0.4} marginBottom={10} />
 
           {/* Admin user pill */}
-          {user && (
+          {user && !sidebarCollapsed && (
             <XStack
               alignItems="center"
               gap={10}
@@ -268,7 +280,7 @@ export default function AdminLayout() {
               paddingVertical={8}
               marginBottom={4}
               borderRadius={8}
-              backgroundColor={colors.light.muted}
+              backgroundColor='rgba(255,255,255,0.08)'
             >
               {/* Avatar initial */}
               <YStack
@@ -295,7 +307,7 @@ export default function AdminLayout() {
                   fontFamily="$body"
                   fontSize={11}
                   fontWeight="600"
-                  color={colors.text.dark}
+                  color={colors.text.primary}
                   numberOfLines={1}
                   style={{
                     overflow    : 'hidden',
@@ -308,7 +320,7 @@ export default function AdminLayout() {
                 <Text
                   fontFamily="$body"
                   fontSize={9}
-                  color={colors.text.subtle}
+                  color={colors.text.secondary}
                   style={{ textTransform: 'uppercase' as never, letterSpacing: 1 }}
                 >
                   Admin
@@ -324,9 +336,9 @@ export default function AdminLayout() {
                 paddingVertical={7}
                 paddingHorizontal={12}
                 borderRadius={radius.xs}
-                backgroundColor={pressed ? colors.light.hover : 'transparent'}
+                backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : 'transparent'}
               >
-                <Text fontFamily="$body" fontSize={13} color={colors.text.muted}>
+                <Text fontFamily="$body" fontSize={13} color={colors.text.secondary}>
                   Déconnexion
                 </Text>
               </YStack>

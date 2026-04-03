@@ -22,7 +22,7 @@ const TYPE_ICONS: Record<AnomalyEvent['anomalyType'], string> = {
 }
 
 const SEVERITY_COLOR: Record<AnomalyEvent['severity'], string> = {
-  info    : '#3B82F6',
+  info    : colors.status.info,
   warning : colors.status.attention,
   critical: colors.accent.red,
 }
@@ -108,7 +108,7 @@ export default function AnomaliesPage() {
           { key: 'all',      label: 'Total',    value: counts.all,      color: colors.text.dark },
           { key: 'critical', label: 'Critiques', value: counts.critical, color: colors.accent.red },
           { key: 'warning',  label: 'Attention', value: counts.warning,  color: colors.status.attention },
-          { key: 'info',     label: 'Info',      value: counts.info,     color: '#3B82F6' },
+          { key: 'info',     label: 'Info',      value: counts.info,     color: colors.status.info },
         ] as const).map(k => (
           <Pressable key={k.key} style={[s.kpi, filter === k.key && s.kpiActive]} onPress={() => setFilter(k.key)}>
             <AureakText variant="h2" style={{ color: k.color, fontSize: 24 }}>{k.value}</AureakText>

@@ -11,9 +11,9 @@ import { SkeletonCard } from '../../../components/SkeletonCard'
 
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
-  en_cours : '#4ade80',
+  en_cours : colors.entity.stage,
   terminé  : colors.text.muted,
-  annulé   : '#f87171',
+  annulé   : colors.accent.red,
 }
 
 const TYPE_LABELS: Record<StageType, string> = {
@@ -129,8 +129,8 @@ export default function StagesPage() {
 
       {/* Error */}
       {error && (
-        <View style={{ backgroundColor: '#FEF2F2', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: '#f87171' }}>
-          <AureakText variant="caption" style={{ color: '#f87171' }}>{error}</AureakText>
+        <View style={{ backgroundColor: '#FEF2F2', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
+          <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
         </View>
       )}
 

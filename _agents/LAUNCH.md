@@ -23,6 +23,25 @@ alias qa="/Users/jeremydevriendt/Documents/Claude-projets/Application\ Aureak/_a
 
 ---
 
+## STORY FACTORY — Création de story (avant implémentation)
+
+```
+Lis le fichier `_agents/prompts/story-factory.md` pour les instructions complètes.
+
+Décision validée :
+"{DECISION EN LANGAGE NATUREL}"                                  ← MODIFIER
+
+Contexte additionnel (optionnel) :
+"{CONTEXTE}"                                                     ← MODIFIER ou supprimer
+
+Epic de rattachement (si connu) : {NUM}                          ← MODIFIER ou supprimer
+
+Lis d'abord architecture.md, prd.md, les migrations et stories existantes.
+Produis la story dans : _bmad-output/implementation-artifacts/{slug}.md
+```
+
+---
+
 ## GATE 1 — Pré-PR
 
 ### Agent 1 · Code Reviewer (toujours)
@@ -77,7 +96,25 @@ Produis le rapport dans : _qa/reports/{DATE}_migration-{000XX}_validator.md
 
 ## GATE 2 — Pré-Deploy
 
-### Agent 4 · UX Auditor (toujours)
+### Agent 4 · Design Critic (toujours si page .tsx modifiée)
+
+```
+Lis le fichier `_agents/prompts/design-critic.md` pour les instructions complètes.
+
+Story analysée : story-{XX-Y}                                    ← MODIFIER
+Route principale : http://localhost:8081/{route}                  ← MODIFIER
+
+Fichiers .tsx modifiés :
+- {composant1.tsx}                                               ← MODIFIER
+- {composant2.tsx}
+
+Lis d'abord _agents/design-vision.md, puis navigue dans l'app.
+Produis le rapport dans : _qa/reports/{DATE}_story-{XX-Y}_design-critic.md
+```
+
+---
+
+### Agent 5 · UX Auditor (toujours)
 
 ```
 Lis le fichier `_agents/prompts/ux-auditor.md` pour les instructions complètes.
@@ -94,7 +131,7 @@ Produis le rapport dans : _qa/reports/{DATE}_story-{XX-Y}_ux.md
 
 ---
 
-### Agent 5 · Bug Hunter (toujours — lancer en dernier)
+### Agent 6 · Bug Hunter (toujours — lancer en dernier)
 
 ```
 Lis le fichier `_agents/prompts/bug-hunter.md` pour les instructions complètes.
@@ -117,7 +154,7 @@ Mets à jour _qa/summary.md avec le verdict final.
 
 ---
 
-### Agent 6 · Regression Detector (si fichier partagé modifié)
+### Agent 7 · Regression Detector (si fichier partagé modifié)
 
 ```
 Lis le fichier `_agents/prompts/regression-detector.md` pour les instructions complètes.
@@ -140,9 +177,10 @@ Produis le rapport dans : _qa/reports/{DATE}_story-{XX-Y}_regression.md
 ```
 Gate 1                              Gate 2
 ──────                              ──────
-1. Code Reviewer ← toujours         1. UX Auditor         ← toujours
-2. Migration Validator ← si .sql    2. Regression Detector ← si fichier partagé
-3. Security Auditor ← si applicable 3. Bug Hunter          ← toujours (synthèse finale)
+1. Code Reviewer ← toujours         1. Design Critic      ← toujours si page .tsx
+2. Migration Validator ← si .sql    2. UX Auditor         ← toujours si page .tsx
+3. Security Auditor ← si applicable 3. Regression Detector ← si fichier partagé
+                                    4. Bug Hunter          ← toujours (synthèse finale)
 ```
 
 ---

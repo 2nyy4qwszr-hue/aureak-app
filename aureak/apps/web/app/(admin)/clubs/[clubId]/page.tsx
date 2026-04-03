@@ -534,8 +534,8 @@ export default function ClubDetailPage() {
   if (!club || !form) {
     return (
       <ScrollView style={s.container} contentContainerStyle={s.content}>
-        <Pressable onPress={() => router.back()} style={s.backBtn}>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
+        <Pressable onPress={() => router.push('/clubs' as never)} style={s.backBtn}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Clubs</AureakText>
         </Pressable>
         <AureakText variant="body" style={{ color: colors.text.muted }}>Club introuvable.</AureakText>
       </ScrollView>
@@ -549,7 +549,7 @@ export default function ClubDetailPage() {
 
       {/* Header */}
       <View style={s.pageHeader}>
-        <Pressable onPress={() => router.back()} style={s.backBtn}>
+        <Pressable onPress={() => router.push('/clubs' as never)} style={s.backBtn}>
           <AureakText variant="caption" style={{ color: colors.text.muted }}>← Clubs</AureakText>
         </Pressable>
         <View style={s.headerActions}>

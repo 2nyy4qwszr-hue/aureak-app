@@ -22,16 +22,16 @@ function fmtDay(iso: string) {
 }
 
 const COMPLETION_CONFIG = {
-  complete   : { label: 'Complet',      color: '#66BB6A', bg: '#66BB6A14' },
-  partial    : { label: 'En cours',     color: '#4FC3F7', bg: '#4FC3F714' },
+  complete   : { label: 'Complet',      color: colors.status.present, bg: colors.status.present + '14' },
+  partial    : { label: 'En cours',     color: colors.status.info,    bg: colors.status.info    + '14' },
   not_started: { label: 'Non démarré',  color: colors.text.muted, bg: colors.light.muted },
 }
 
 const SESSION_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   planifiée: { label: 'Planifiée',  color: colors.text.muted },
-  en_cours : { label: 'En cours',   color: '#4FC3F7' },
-  terminée : { label: 'Terminée',   color: '#66BB6A' },
-  annulée  : { label: 'Annulée',    color: '#EF5350' },
+  en_cours : { label: 'En cours',   color: colors.status.info },
+  terminée : { label: 'Terminée',   color: colors.status.present },
+  annulée  : { label: 'Annulée',    color: colors.status.absent },
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ function AttendancePill({ count, label, color }: { count: number; label: string;
 
 function ProgressBar({ present, total }: { present: number; total: number }) {
   const pct = total > 0 ? (present / total) * 100 : 0
-  const barColor = pct >= 80 ? '#66BB6A' : pct >= 50 ? '#4FC3F7' : '#EF5350'
+  const barColor = pct >= 80 ? colors.status.present : pct >= 50 ? colors.status.info : colors.status.absent
   return (
     <View style={sc.progressTrack}>
       <View style={[sc.progressFill, { width: `${pct}%` as never, backgroundColor: barColor }]} />
@@ -145,11 +145,11 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
         <View style={{ gap: 6, marginTop: 8 }}>
           {/* Pills */}
           <View style={{ flexDirection: 'row', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
-            <AttendancePill count={s.presentCount}  label="présents"  color="#66BB6A" />
-            <AttendancePill count={s.absentCount}   label="absents"   color="#EF5350" />
-            <AttendancePill count={s.lateCount}     label="retards"   color="#FFA726" />
-            <AttendancePill count={s.injuredCount}  label="blessés"   color="#CE93D8" />
-            <AttendancePill count={s.trialCount}    label="essai"     color="#4FC3F7" />
+            <AttendancePill count={s.presentCount}  label="présents"  color={colors.status.present} />
+            <AttendancePill count={s.absentCount}   label="absents"   color={colors.status.absent} />
+            <AttendancePill count={s.lateCount}     label="retards"   color={colors.status.warning} />
+            <AttendancePill count={s.injuredCount}  label="blessés"   color={colors.status.injured} />
+            <AttendancePill count={s.trialCount}    label="essai"     color={colors.status.info} />
             <AttendancePill count={s.excusedCount}  label="excusés"   color={colors.text.muted} />
             {rate !== null && (
               <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, marginLeft: 'auto' as never }}>
@@ -174,10 +174,10 @@ function SessionCard({ s }: { s: SessionAttendanceSummary }) {
 // ─── PlayerRow ────────────────────────────────────────────────────────────────
 
 function PlayerRow({ p, onPress }: { p: PlayerAttendanceSummary; onPress: () => void }) {
-  const rateColor = p.attendanceRate >= 80 ? '#66BB6A' : p.attendanceRate >= 50 ? '#FFA726' : '#EF5350'
+  const rateColor = p.attendanceRate >= 80 ? colors.status.present : p.attendanceRate >= 50 ? colors.status.warning : colors.status.absent
   const lastStatusColor: Record<string, string> = {
-    present: '#66BB6A', late: '#FFA726', trial: colors.accent.gold,
-    absent: '#EF5350', injured: '#CE93D8',
+    present: colors.status.present, late: colors.status.warning, trial: colors.accent.gold,
+    absent: colors.status.absent, injured: colors.status.injured,
   }
   const lastStatusLabel: Record<string, string> = {
     present: 'Présent', late: 'Retard', trial: 'Essai', absent: 'Absent', injured: 'Blessé',
@@ -413,10 +413,10 @@ export default function AttendancePage() {
       {!loading && viewMode === 'sessions' && totalSessions > 0 && (
         <View style={sc.kpiRow}>
           <KpiCard value={totalSessions}  label="Séances"       color={colors.accent.gold} />
-          <KpiCard value={`${avgRate}%`}  label="Taux présence" color={avgRate >= 75 ? '#66BB6A' : avgRate >= 50 ? '#FFA726' : '#EF5350'} />
-          <KpiCard value={totalPresent}   label="Présences"     color="#66BB6A" />
-          <KpiCard value={totalAbsent}    label="Absences"      color="#EF5350" />
-          <KpiCard value={completeSessions} label="Complètes"   color="#4FC3F7" />
+          <KpiCard value={`${avgRate}%`}  label="Taux présence" color={avgRate >= 75 ? colors.status.present : avgRate >= 50 ? colors.status.warning : colors.status.absent} />
+          <KpiCard value={totalPresent}   label="Présences"     color={colors.status.present} />
+          <KpiCard value={totalAbsent}    label="Absences"      color={colors.status.absent} />
+          <KpiCard value={completeSessions} label="Complètes"   color={colors.status.info} />
         </View>
       )}
 

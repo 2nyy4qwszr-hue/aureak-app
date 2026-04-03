@@ -26,3 +26,6 @@ export { HierarchyBreadcrumb } from './components/HierarchyBreadcrumb'
 export type { HierarchyBreadcrumbProps, BreadcrumbItem } from './components/HierarchyBreadcrumb'
 
 export { SyncStatusBanner } from './components/SyncStatusBanner'
+
+export { EmptyState } from './components/EmptyState'
+export { ConfirmDialog } from './components/ConfirmDialog'

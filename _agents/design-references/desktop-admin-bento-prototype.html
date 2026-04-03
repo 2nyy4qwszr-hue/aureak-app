@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aureak — Admin Dashboard Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --beige:      #F3EFE7;
+      --white:      #FFFFFF;
+      --gold:       #C1AC5C;
+      --gold-light: #D6C98E;
+      --gold-bg:    #F8F4E8;
+      --text:       #18181B;
+      --text-sec:   #71717A;
+      --text-muted: #A1A1AA;
+      --sidebar-bg: #0F0F10;
+      --sidebar-act:#1C1C1E;
+      --border:     rgba(0,0,0,0.07);
+      --shadow-sm:  0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md:  0 4px 20px rgba(0,0,0,0.09);
+      --shadow-gold:0 8px 32px rgba(193,172,92,0.18);
+      --radius:     18px;
+      --radius-sm:  12px;
+      --font:       'Montserrat', sans-serif;
+    }
+
+    html, body { height: 100%; background: var(--beige); font-family: var(--font); color: var(--text); }
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── SIDEBAR ────────────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      border-right: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+    }
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--gold);
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 16px;
+    }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--gold);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900; color: #18181B;
+    }
+    .logo-text { font-size: 15px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.04em; }
+    .logo-sub  { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .nav-section { padding: 0 12px; margin-bottom: 20px; }
+    .nav-label {
+      font-size: 9px; font-weight: 700;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0 10px 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px; font-weight: 500;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+    .nav-item.active {
+      background: rgba(193,172,92,0.12);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 16px 20px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .avatar-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .avatar {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--gold), #8B6914);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: #fff;
+    }
+    .avatar-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); }
+    .avatar-role { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 500; }
+
+    /* ── MAIN CONTENT ───────────────────────────────────── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 36px;
+      background: var(--beige);
+    }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .topbar-left h1 {
+      font-size: 26px; font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .topbar-left p {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-sec);
+      margin-top: 2px;
+    }
+    .topbar-right { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+    }
+    .btn-ghost {
+      background: rgba(0,0,0,0.05);
+      color: var(--text-sec);
+    }
+    .btn-gold {
+      background: var(--gold);
+      color: #18181B;
+      box-shadow: var(--shadow-gold);
+    }
+
+    /* ── BENTO GRID ─────────────────────────────────────── */
+    /*
+      Inspiration Apple Titanium : tiles asymétriques, pas une grille égale.
+      Layout : 3 colonnes, 3 rangées, tiles de tailles variées.
+
+      [ LARGE — séances du jour          ] [ TALL — joueurs actifs ]
+      [ MED — groupes ] [ MED — planning ] [ TALL — suite          ]
+      [ SMALL ] [ SMALL ] [ SMALL         ] [ WIDE — académie stat  ]
+    */
+    .bento {
+      display: grid;
+      grid-template-columns: 2fr 1.4fr 1fr;
+      grid-template-rows: 200px 160px 140px;
+      gap: 14px;
+    }
+
+    /* ── CARD BASE ──────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      position: relative;
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .card-inner {
+      padding: 22px 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Card gold variant */
+    .card-gold {
+      background: linear-gradient(135deg, #2A2416 0%, #1A1408 100%);
+      box-shadow: var(--shadow-gold);
+    }
+    .card-gold:hover { box-shadow: 0 12px 40px rgba(193,172,92,0.28); }
+
+    /* Card dark variant */
+    .card-dark {
+      background: linear-gradient(135deg, #1A1A1E 0%, #0F0F12 100%);
+    }
+
+    /* Card accent green */
+    .card-green {
+      background: linear-gradient(135deg, #0F2A1A 0%, #0A1F12 100%);
+    }
+
+    /* Card accent blue */
+    .card-blue {
+      background: linear-gradient(135deg, #111A2E 0%, #0A1020 100%);
+    }
+
+    /* Pill tag */
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .pill-gold { background: rgba(193,172,92,0.15); color: var(--gold); }
+    .pill-green { background: rgba(16,185,129,0.15); color: #10B981; }
+    .pill-red   { background: rgba(239,68,68,0.12);  color: #EF4444; }
+    .pill-blue  { background: rgba(59,130,246,0.12); color: #60A5FA; }
+    .pill-white { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+
+    /* Big number */
+    .big-num {
+      font-size: 52px; font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .big-num-white { color: #FFFFFF; }
+    .big-num-gold  { color: var(--gold); }
+    .big-num-green { color: #10B981; }
+
+    /* Pitch SVG watermark */
+    .pitch-watermark {
+      position: absolute;
+      right: -20px; bottom: -20px;
+      width: 200px; opacity: 0.06;
+    }
+
+    /* ── CARD 1 — Séances du jour (LARGE, colspan 1, rowspan 1) */
+    .card-seances {
+      grid-column: 1; grid-row: 1;
+      background: var(--white);
+    }
+
+    /* ── CARD 2 — Planning semaine (MED, col 2, row 1) */
+    .card-planning {
+      grid-column: 2; grid-row: 1;
+    }
+
+    /* ── CARD 3 — Joueurs actifs (TALL, col 3, rows 1-2) */
+    .card-joueurs {
+      grid-column: 3; grid-row: 1 / 3;
+    }
+
+    /* ── CARD 4 — Groupes (col 1, row 2) */
+    .card-groupes {
+      grid-column: 1; grid-row: 2;
+    }
+
+    /* ── CARD 5 — Taux présence (col 2, row 2) */
+    .card-presence {
+      grid-column: 2; grid-row: 2;
+    }
+
+    /* ── CARD 6 — Progression académie (WIDE, cols 1-2, row 3) */
+    .card-academie {
+      grid-column: 1 / 3; grid-row: 3;
+    }
+
+    /* ── CARD 7 — Alertes (col 3, row 3) */
+    .card-alertes {
+      grid-column: 3; grid-row: 3;
+    }
+
+    /* Session item in card-seances */
+    .session-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .session-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      background: var(--beige);
+      border-radius: 10px;
+    }
+    .session-time {
+      font-size: 11px; font-weight: 700;
+      color: var(--text-sec);
+      min-width: 38px;
+    }
+    .session-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-green { background: #10B981; }
+    .dot-gold  { background: var(--gold); }
+    .dot-blue  { background: #60A5FA; }
+    .session-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; }
+    .session-group { font-size: 10px; font-weight: 500; color: var(--text-muted); }
+
+    /* Week bar chart */
+    .week-bars {
+      display: flex; align-items: flex-end; gap: 6px;
+      height: 70px;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+    .week-day { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .week-bar {
+      width: 100%;
+      background: var(--beige);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    .week-bar-fill {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: var(--gold);
+      border-radius: 4px;
+      opacity: 0.8;
+    }
+    .week-day-label { font-size: 9px; font-weight: 600; color: var(--text-muted); }
+    .week-day.today .week-bar-fill { background: var(--gold); opacity: 1; }
+    .week-day.today .week-day-label { color: var(--gold); font-weight: 700; }
+
+    /* Joueur list */
+    .joueur-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .joueur-item {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .joueur-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2A2416, #1A1408);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    .joueur-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85); flex: 1; }
+    .joueur-meta { font-size: 10px; color: rgba(255,255,255,0.35); }
+    .joueur-badge {
+      font-size: 9px; font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .badge-u15 { background: rgba(96,165,250,0.2); color: #60A5FA; }
+    .badge-u17 { background: rgba(193,172,92,0.2); color: var(--gold); }
+    .badge-u19 { background: rgba(16,185,129,0.2); color: #10B981; }
+
+    /* Groupe cards in card-groupes */
+    .groupes-row { display: flex; gap: 8px; margin-top: 8px; flex: 1; }
+    .groupe-chip {
+      flex: 1;
+      background: var(--beige);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .groupe-chip-name { font-size: 11px; font-weight: 700; color: var(--text); }
+    .groupe-chip-num  { font-size: 18px; font-weight: 900; color: var(--text); }
+    .groupe-chip-sub  { font-size: 9px; font-weight: 500; color: var(--text-muted); }
+
+    /* Radial progress for presence */
+    .radial-wrap {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .radial-svg { width: 90px; height: 90px; }
+
+    /* Academy progress bars */
+    .acad-stats { display: flex; gap: 24px; align-items: center; }
+    .acad-big { flex-shrink: 0; }
+    .acad-bars { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .acad-bar-row { display: flex; align-items: center; gap: 10px; }
+    .acad-bar-label { font-size: 11px; font-weight: 600; color: var(--text-sec); width: 100px; }
+    .acad-bar-track {
+      flex: 1; height: 6px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .acad-bar-fill {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 999px;
+    }
+    .acad-bar-val { font-size: 11px; font-weight: 700; color: var(--text); min-width: 30px; text-align: right; }
+
+    /* Alerte items */
+    .alerte-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .alerte-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+    }
+    .alerte-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+    .alerte-text { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.7); line-height: 1.4; }
+    .alerte-dot { font-size: 9px; }
+
+    /* Card title */
+    .card-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .card-title-white { color: rgba(255,255,255,0.35); }
+    .card-heading { font-size: 15px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .card-heading-white { color: #FFFFFF; }
+
+    /* Pitch SVG */
+    .pitch-bg {
+      position: absolute;
+      right: 0; bottom: 0;
+      height: 100%;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">A</div>
+      <div>
+        <div class="logo-text">AUREAK</div>
+        <div class="logo-sub">Académie GK</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Vue d'ensemble</div>
+      <div class="nav-item active"><span class="nav-icon">⊞</span> Dashboard</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Opérations</div>
+      <div class="nav-item"><span class="nav-icon">◷</span> Séances</div>
+      <div class="nav-item"><span class="nav-icon">✓</span> Présences</div>
+      <div class="nav-item"><span class="nav-icon">★</span> Évaluations</div>
+      <div class="nav-item"><span class="nav-icon">◈</span> Groupes</div>
+      <div class="nav-item"><span class="nav-icon">◉</span> Stages</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Gestion</div>
+      <div class="nav-item"><span class="nav-icon">⊙</span> Joueurs</div>
+      <div class="nav-item"><span class="nav-icon">◎</span> Clubs</div>
+      <div class="nav-item"><span class="nav-icon">▽</span> Implantations</div>
+      <div class="nav-item"><span class="nav-icon">⊗</span> Saisons</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Méthodologie</div>
+      <div class="nav-item"><span class="nav-icon">◇</span> Thèmes</div>
+      <div class="nav-item"><span class="nav-icon">△</span> Situations</div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="avatar-row">
+        <div class="avatar">JD</div>
+        <div>
+          <div class="avatar-name">Jérémy D.</div>
+          <div class="avatar-role">Administrateur</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1>Bonjour, Jérémy</h1>
+        <p>Jeudi 3 avril 2026 · Saison 2025–2026</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost">Rapport hebdo</button>
+        <button class="btn btn-gold">+ Nouvelle séance</button>
+      </div>
+    </div>
+
+    <!-- BENTO GRID -->
+    <div class="bento">
+
+      <!-- ① SÉANCES DU JOUR — large, blanc -->
+      <div class="card card-seances">
+        <div class="card-inner">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div class="card-title">Aujourd'hui</div>
+              <div class="card-heading">Séances du jour</div>
+            </div>
+            <span class="pill pill-green">● 3 actives</span>
+          </div>
+          <div class="session-list">
+            <div class="session-item">
+              <div class="session-time">09h00</div>
+              <div class="session-dot dot-green"></div>
+              <div style="flex:1">
+                <div class="session-name">Séance U15 — Situationnel</div>
+                <div class="session-group">Liège · Groupe A · 14 joueurs</div>
+              </div>
+              <span class="pill pill-green" style="font-size:9px">En cours</span>
+            </div>
+            <div class="session-item">
+              <div class="session-time">14h00</div>
+              <div class="session-dot dot-gold"></div>
+              <div style="flex:1">
+                <div class="session-name">Séance U17 — Décisionnel</div>
+                <div class="session-group">Namur · Groupe B · 12 joueurs</div>
+              </div>
+              <span class="pill pill-gold" style="font-size:9px">Planifiée</span>
+            </div>
+            <div class="session-item">
+              <div class="session-time">17h30</div>
+              <div class="session-dot dot-blue"></div>
+              <div style="flex:1">
+                <div class="session-name">Séance U19 — Technique</div>
+                <div class="session-group">Liège · Groupe Elite · 10 joueurs</div>
+              </div>
+              <span class="pill pill-blue" style="font-size:9px">Planifiée</span>
+            </div>
+          </div>
+        </div>
+        <!-- Ghost pitch watermark -->
+        <svg class="pitch-bg" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="118" height="88" rx="2" stroke="#18181B" stroke-width="1.5"/>
+          <line x1="60" y1="1" x2="60" y2="89" stroke="#18181B" stroke-width="1"/>
+          <circle cx="60" cy="45" r="12" stroke="#18181B" stroke-width="1"/>
+          <rect x="1" y="28" width="18" height="34" stroke="#18181B" stroke-width="1"/>
+          <rect x="101" y="28" width="18" height="34" stroke="#18181B" stroke-width="1"/>
+          <circle cx="60" cy="45" r="1.5" fill="#18181B"/>
+        </svg>
+      </div>
+
+      <!-- ② PLANNING SEMAINE — dark -->
+      <div class="card card-dark card-planning">
+        <div class="card-inner">
+          <div class="card-title card-title-white">Cette semaine</div>
+          <div class="card-heading card-heading-white" style="margin-bottom:4px;">Planning</div>
+          <div style="display:flex; gap:16px; margin-top:4px;">
+            <div>
+              <div style="font-size:32px; font-weight:900; color:#fff; letter-spacing:-0.03em; line-height:1;">14</div>
+              <div style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.35);">séances</div>
+            </div>
+            <div style="width:1px; background:rgba(255,255,255,0.06);"></div>
+            <div>
+              <div style="font-size:32px; font-weight:900; color:var(--gold); letter-spacing:-0.03em; line-height:1;">87<span style="font-size:16px">%</span></div>
+              <div style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.35);">présence moy.</div>
+            </div>
+          </div>
+          <!-- Mini bar chart -->
+          <div class="week-bars">
+            <div class="week-day">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:70%;"></div></div>
+              <div class="week-day-label">Lun</div>
+            </div>
+            <div class="week-day">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:90%;"></div></div>
+              <div class="week-day-label">Mar</div>
+            </div>
+            <div class="week-day">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:55%;"></div></div>
+              <div class="week-day-label">Mer</div>
+            </div>
+            <div class="week-day today">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:100%;"></div></div>
+              <div class="week-day-label">Jeu</div>
+            </div>
+            <div class="week-day">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:20%; opacity:0.3;"></div></div>
+              <div class="week-day-label">Ven</div>
+            </div>
+            <div class="week-day">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:80%;"></div></div>
+              <div class="week-day-label">Sam</div>
+            </div>
+            <div class="week-day">
+              <div class="week-bar" style="height:40px;"><div class="week-bar-fill" style="height:45%;"></div></div>
+              <div class="week-day-label">Dim</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ JOUEURS ACTIFS — tall gold, col 3, rows 1-2 -->
+      <div class="card card-gold card-joueurs">
+        <div class="card-inner">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div class="card-title card-title-white">Académie</div>
+              <div class="card-heading" style="color:#fff; margin-top:2px;">Joueurs actifs</div>
+            </div>
+            <span class="pill pill-white">Saison en cours</span>
+          </div>
+          <div style="margin: 12px 0 4px;">
+            <div class="big-num big-num-gold">142</div>
+            <div style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); margin-top:4px;">gardiens inscrits</div>
+          </div>
+          <div class="joueur-list">
+            <div class="joueur-item">
+              <div class="joueur-avatar">TH</div>
+              <div style="flex:1">
+                <div class="joueur-name">Thomas Hakim</div>
+                <div class="joueur-meta">Liège · U17</div>
+              </div>
+              <span class="joueur-badge badge-u17">U17</span>
+            </div>
+            <div class="joueur-item">
+              <div class="joueur-avatar">LB</div>
+              <div style="flex:1">
+                <div class="joueur-name">Lucas Bernard</div>
+                <div class="joueur-meta">Namur · U15</div>
+              </div>
+              <span class="joueur-badge badge-u15">U15</span>
+            </div>
+            <div class="joueur-item">
+              <div class="joueur-avatar">AM</div>
+              <div style="flex:1">
+                <div class="joueur-name">Adam Marchetti</div>
+                <div class="joueur-meta">Liège · U19</div>
+              </div>
+              <span class="joueur-badge badge-u19">U19</span>
+            </div>
+            <div class="joueur-item">
+              <div class="joueur-avatar">NR</div>
+              <div style="flex:1">
+                <div class="joueur-name">Noah Renard</div>
+                <div class="joueur-meta">Charleroi · U15</div>
+              </div>
+              <span class="joueur-badge badge-u15">U15</span>
+            </div>
+            <div class="joueur-item">
+              <div class="joueur-avatar">SR</div>
+              <div style="flex:1">
+                <div class="joueur-name">Samuel Radelet</div>
+                <div class="joueur-meta">Liège · U17</div>
+              </div>
+              <span class="joueur-badge badge-u17">U17</span>
+            </div>
+          </div>
+          <div style="margin-top:auto; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+            <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); letter-spacing:0.05em;">RÉPARTITION</div>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+              <div style="flex:1; background:rgba(255,255,255,0.05); border-radius:8px; padding:8px; text-align:center;">
+                <div style="font-size:18px; font-weight:900; color:var(--gold);">48</div>
+                <div style="font-size:9px; font-weight:600; color:rgba(255,255,255,0.35);">U15</div>
+              </div>
+              <div style="flex:1; background:rgba(255,255,255,0.05); border-radius:8px; padding:8px; text-align:center;">
+                <div style="font-size:18px; font-weight:900; color:var(--gold);">56</div>
+                <div style="font-size:9px; font-weight:600; color:rgba(255,255,255,0.35);">U17</div>
+              </div>
+              <div style="flex:1; background:rgba(255,255,255,0.05); border-radius:8px; padding:8px; text-align:center;">
+                <div style="font-size:18px; font-weight:900; color:var(--gold);">38</div>
+                <div style="font-size:9px; font-weight:600; color:rgba(255,255,255,0.35);">U19</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ GROUPES — blanc -->
+      <div class="card card-groupes">
+        <div class="card-inner">
+          <div class="card-title">Implantations</div>
+          <div class="card-heading">Groupes actifs</div>
+          <div class="groupes-row">
+            <div class="groupe-chip">
+              <div class="groupe-chip-name">Liège</div>
+              <div class="groupe-chip-num">6</div>
+              <div class="groupe-chip-sub">groupes</div>
+            </div>
+            <div class="groupe-chip">
+              <div class="groupe-chip-name">Namur</div>
+              <div class="groupe-chip-num">4</div>
+              <div class="groupe-chip-sub">groupes</div>
+            </div>
+            <div class="groupe-chip">
+              <div class="groupe-chip-name">Charleroi</div>
+              <div class="groupe-chip-num">3</div>
+              <div class="groupe-chip-sub">groupes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ TAUX DE PRÉSENCE — blue dark -->
+      <div class="card card-blue card-presence">
+        <div class="card-inner">
+          <div class="card-title card-title-white">30 derniers jours</div>
+          <div class="card-heading card-heading-white">Présence</div>
+          <div style="display:flex; align-items:center; gap:16px; flex:1; margin-top:8px;">
+            <!-- Radial -->
+            <div style="position:relative; flex-shrink:0;">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8"/>
+                <circle cx="40" cy="40" r="30" fill="none" stroke="#C1AC5C" stroke-width="8"
+                  stroke-dasharray="188.4" stroke-dashoffset="23.8"
+                  stroke-linecap="round" transform="rotate(-90 40 40)"/>
+              </svg>
+              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                <div style="font-size:18px; font-weight:900; color:#fff; line-height:1;">87<span style="font-size:11px">%</span></div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div style="width:6px; height:6px; border-radius:50%; background:#10B981;"></div>
+                <div style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.6);">Présents <span style="color:#fff; font-weight:700;">1238</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div style="width:6px; height:6px; border-radius:50%; background:#EF4444;"></div>
+                <div style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.6);">Absents <span style="color:#fff; font-weight:700;">185</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div style="width:6px; height:6px; border-radius:50%; background:var(--gold);"></div>
+                <div style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.6);">Excusés <span style="color:#fff; font-weight:700;">47</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ PROGRESSION ACADÉMIE — wide, blanc, rows 3 -->
+      <div class="card card-academie">
+        <div class="card-inner">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+            <div>
+              <div class="card-title">Saison 2025–2026</div>
+              <div class="card-heading">Progression de l'académie</div>
+            </div>
+            <span class="pill pill-gold">+12% vs S-1</span>
+          </div>
+          <div class="acad-stats">
+            <div class="acad-big">
+              <div style="font-size:48px; font-weight:900; color:var(--text); letter-spacing:-0.04em; line-height:1;">78<span style="font-size:22px; color:var(--text-sec);">%</span></div>
+              <div style="font-size:11px; font-weight:600; color:var(--text-muted); margin-top:4px;">objectif global</div>
+            </div>
+            <div class="acad-bars">
+              <div class="acad-bar-row">
+                <div class="acad-bar-label">Évaluations</div>
+                <div class="acad-bar-track"><div class="acad-bar-fill" style="width:82%;"></div></div>
+                <div class="acad-bar-val">82%</div>
+              </div>
+              <div class="acad-bar-row">
+                <div class="acad-bar-label">Séances réalisées</div>
+                <div class="acad-bar-track"><div class="acad-bar-fill" style="width:91%;"></div></div>
+                <div class="acad-bar-val">91%</div>
+              </div>
+              <div class="acad-bar-row">
+                <div class="acad-bar-label">Badges débloqués</div>
+                <div class="acad-bar-track"><div class="acad-bar-fill" style="width:64%; background:var(--gold-light);"></div></div>
+                <div class="acad-bar-val">64%</div>
+              </div>
+              <div class="acad-bar-row">
+                <div class="acad-bar-label">Quizz complétés</div>
+                <div class="acad-bar-track"><div class="acad-bar-fill" style="width:47%; background:rgba(193,172,92,0.4);"></div></div>
+                <div class="acad-bar-val">47%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑦ ALERTES — dark -->
+      <div class="card card-dark card-alertes">
+        <div class="card-inner">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="card-title card-title-white">Système</div>
+            <span class="pill pill-red">3 alertes</span>
+          </div>
+          <div class="alerte-list">
+            <div class="alerte-item">
+              <div class="alerte-icon">⚠</div>
+              <div class="alerte-text">5 joueurs sans évaluation depuis &gt;30j</div>
+            </div>
+            <div class="alerte-item">
+              <div class="alerte-icon">◉</div>
+              <div class="alerte-text">Séance U15 Liège annulée — à reprogrammer</div>
+            </div>
+            <div class="alerte-item">
+              <div class="alerte-icon">★</div>
+              <div class="alerte-text">2 badges expirés non attribués</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bento -->
+  </main>
+
+</div>
+</body>
+</html>

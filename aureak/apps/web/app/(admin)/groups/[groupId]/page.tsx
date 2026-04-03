@@ -934,7 +934,7 @@ const sea = StyleSheet.create({
     borderWidth      : 1,
   },
   overlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1, backgroundColor: colors.overlay.dark,
     justifyContent: 'center', alignItems: 'center', padding: space.xl,
   },
   modal: {
@@ -1060,8 +1060,8 @@ export default function GroupDetailPage() {
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
       {/* ── Back ── */}
-      <Pressable onPress={() => router.back()} style={{ marginBottom: space.sm }}>
-        <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Groupes</AureakText>
+      <Pressable onPress={() => router.push('/groups' as never)} style={s.backBtn}>
+        <AureakText variant="caption" style={{ color: colors.text.muted }}>← Groupes</AureakText>
       </Pressable>
 
       {/* ── Hero header ── */}
@@ -1183,6 +1183,7 @@ const s = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md, maxWidth: 860 },
   center     : { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  backBtn    : { paddingBottom: 4 },
 
   hero       : {
     backgroundColor: colors.light.surface,

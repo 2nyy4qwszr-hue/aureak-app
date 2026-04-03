@@ -31,7 +31,7 @@ const STATUS_COLOR: Record<string, string> = {
   late   : colors.status.attention,
   trial  : colors.accent.gold,
   absent : colors.status.absent,
-  injured: '#CE93D8',
+  injured: colors.status.injured,
 }
 const STATUS_LABEL: Record<string, string> = {
   present: 'Présent', late: 'Retard', trial: 'Essai', absent: 'Absent', injured: 'Blessé',

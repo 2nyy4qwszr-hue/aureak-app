@@ -1284,8 +1284,8 @@ export default function ChildDetailPage() {
     return (
       <View style={s.center}>
         <AureakText variant="h3" style={{ color: colors.text.muted }}>Joueur introuvable</AureakText>
-        <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
+        <Pressable onPress={() => router.push('/children' as never)} style={[s.backBtn, { marginTop: space.md }]}>
+          <AureakText variant="caption" style={{ color: colors.text.muted }}>← Joueurs</AureakText>
         </Pressable>
       </View>
     )
@@ -1301,8 +1301,8 @@ export default function ChildDetailPage() {
 
         {/* ── Navigation ── */}
         <View style={[s.pageHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Pressable onPress={() => router.back()}>
-            <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
+          <Pressable onPress={() => router.push('/children' as never)} style={s.backBtn}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>← Joueurs</AureakText>
           </Pressable>
           <Pressable
             style={{
@@ -1855,6 +1855,7 @@ const s = StyleSheet.create({
   content   : { padding: space.xl, gap: space.sm, maxWidth: 820 },
   center    : { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pageHeader: { marginBottom: space.sm },
+  backBtn   : { paddingBottom: space.xs },
 
   heroCard  : {
     backgroundColor: colors.light.surface,
