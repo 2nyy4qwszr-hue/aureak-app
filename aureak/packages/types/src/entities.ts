@@ -1755,13 +1755,13 @@ export type PlayerUnlockedItem = {
   unlockTrigger : UnlockTrigger
 }
 
-export type MasteryStatus = 'not_started' | 'in_progress' | 'acquired' | 'revalidated'
+export type ThemeMasteryStatus = 'not_started' | 'in_progress' | 'acquired' | 'revalidated'
 
 export type PlayerThemeMastery = {
   childId         : string
   themeId         : string
   tenantId        : string
-  masteryStatus   : MasteryStatus
+  masteryStatus   : ThemeMasteryStatus
   firstAcquiredAt : string | null
   lastAttemptAt   : string | null
   totalAttempts   : number
