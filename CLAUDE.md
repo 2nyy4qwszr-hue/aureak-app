@@ -142,10 +142,33 @@ grep -n "catch(() => {})" <fichier>
 
 ---
 
-## Numérotation des migrations
+## Migrations Supabase — Source de vérité unique
 
+> **`supabase/migrations/` (racine du dépôt) est le seul dossier actif.**
+
+### Structure
+```
+supabase/migrations/       ← SEUL DOSSIER ACTIF (00001–00110+)
+supabase/config.toml       ← config Supabase active (lancer depuis la racine)
+aureak/supabase/_archive/  ← archive lecture seule, ne pas modifier
+aureak/supabase/config.toml ← config legacy, NE PAS lancer supabase depuis aureak/
+```
+
+### Règles
+- **Ne jamais créer de migration dans `aureak/supabase/migrations/`** — ce dossier est archivé
+- **Toujours lancer `supabase` depuis la racine du dépôt**, pas depuis `aureak/`
+- Les anciennes stories référençant `aureak/supabase/migrations/` = documentation historique, les fichiers sont dans `supabase/migrations/` (racine) maintenant
+
+### Numérotation
 La dernière migration est visible via :
 ```bash
 ls supabase/migrations/ | tail -5
 ```
 Toujours incrémenter de 1. Format : `NNNNN_description_courte.sql`
+
+### Démarrer Supabase localement
+```bash
+# Depuis la racine du dépôt uniquement
+supabase start
+supabase db push
+```

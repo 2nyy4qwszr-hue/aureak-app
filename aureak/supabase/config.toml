@@ -1,3 +1,13 @@
+# ⚠️  NE PAS UTILISER pour lancer `supabase` depuis ce dossier.
+#
+# Source de vérité unique : supabase/migrations/ à la RACINE du dépôt.
+# Les migrations historiques (00001–00090) sont archivées dans _archive/migrations/.
+# Toutes les nouvelles migrations vont dans supabase/migrations/ (racine).
+#
+# Pour démarrer Supabase localement :
+#   cd /path/to/repo  (racine du dépôt)
+#   supabase start
+#
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
 [api]
