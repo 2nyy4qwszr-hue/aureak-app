@@ -1,6 +1,61 @@
 date: 2026-04-03
 status: in-progress
 
+# ── Queue /morning 5 avril 2026 — feedback Jeremy ─────────────────────────────
+
+next-morning-queue:
+
+  - story_id: story-43-1
+    title: "BUG — Supprimer un entraînement pédagogique"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-42-1
+    title: "Dashboard admin — refonte bento visuel"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-42-2
+    title: "Page Présences — redesign visuel compact"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-43-2
+    title: "Méthodologie — cards entraînements compactes"
+    priority: P3
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-43-3
+    title: "Modules structurés entraînement Goal & Player"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-34-1
+    title: "Architecture Programme pédagogique — formulaire intelligent"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    note: "Story existante ready-for-dev — concept Programme à implémenter"
+
+  - story_id: story-34-2
+    title: "Navigation Programme — UX bibliothèque"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    note: "Dépend de story-34-1 done"
+
 # Stratégie d'exécution
 # Stories existantes → implémentées directement
 # Nouvelles stories → créées via Story Factory juste avant implémentation
