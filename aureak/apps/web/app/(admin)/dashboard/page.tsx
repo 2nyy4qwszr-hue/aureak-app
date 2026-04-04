@@ -452,7 +452,7 @@ export default function DashboardPage() {
                 fontSize: 13,
                 fontWeight: 700,
                 color: criticalCount > 0 ? colors.status.absent : colors.status.attention,
-                fontFamily: 'Rajdhani, sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
                 letterSpacing: 0.3,
               }}>
                 {anomalies.length} anomalie{anomalies.length > 1 ? 's' : ''} non résolue{anomalies.length > 1 ? 's' : ''}
@@ -532,7 +532,7 @@ export default function DashboardPage() {
       {visibleStats.length === 0 ? (
         <div style={S.emptyState}>
           <div style={{ fontSize: 36, marginBottom: 14 }}>📊</div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
             Aucune donnée disponible
           </div>
           <div style={{ fontSize: 13, color: colors.text.muted, maxWidth: 320, textAlign: 'center', lineHeight: 1.5 }}>
@@ -577,7 +577,7 @@ const S: Record<string, React.CSSProperties> = {
   pageTitle       : {
     fontSize       : 26,
     fontWeight     : 900,
-    fontFamily     : 'Rajdhani, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     letterSpacing  : 0.4,
     margin         : 0,
     color          : colors.accent.gold,
@@ -691,7 +691,7 @@ const S: Record<string, React.CSSProperties> = {
   kpiValue        : {
     fontSize       : 28,
     fontWeight     : 700,
-    fontFamily     : 'Rajdhani, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     lineHeight     : 1,
     letterSpacing  : 0.5,
   },
@@ -778,7 +778,7 @@ const S: Record<string, React.CSSProperties> = {
   implantName     : {
     fontSize       : 16,
     fontWeight     : 700,
-    fontFamily     : 'Rajdhani, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     letterSpacing  : 0.3,
     color          : colors.text.dark,
     marginBottom   : 14,

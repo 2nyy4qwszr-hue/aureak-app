@@ -90,7 +90,7 @@ function EmptyFirst({ firstName }: { firstName: string }) {
   return (
     <div style={D.emptyHero}>
       <div style={{ fontSize: 52, marginBottom: 12 }}>🥋</div>
-      <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', marginBottom: 8 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', marginBottom: 8 }}>
         Bienvenue, {firstName} !
       </div>
       <div style={{ fontSize: 14, color: colors.text.muted, lineHeight: 1.6, marginBottom: 24 }}>
@@ -229,7 +229,7 @@ export default function ChildDashboardPage() {
           <div style={D.streakBadge}>
             <span className="streak-icon" style={{ fontSize: 26, lineHeight: 1 }}>🔥</span>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 26, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
+              <div style={{ fontSize: 26, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
                 {streak}
               </div>
               <div style={{ fontSize: 9, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -255,7 +255,7 @@ export default function ChildDashboardPage() {
               <div style={{ fontSize: 10, fontWeight: 700, color: colors.accent.gold, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>
                 {levelTitle}
               </div>
-              <div style={{ fontSize: 42, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark, lineHeight: 1 }}>
+              <div style={{ fontSize: 42, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark, lineHeight: 1 }}>
                 {pts.toLocaleString('fr-FR')}
                 <span style={{ fontSize: 18, color: colors.text.muted, fontWeight: 500, marginLeft: 6 }}>pts</span>
               </div>
@@ -266,7 +266,7 @@ export default function ChildDashboardPage() {
 
             {/* Circular badge */}
             <div style={D.levelCircle}>
-              <div style={{ fontSize: 30, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
+              <div style={{ fontSize: 30, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
                 {level}
               </div>
               <div style={{ fontSize: 8, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -303,7 +303,7 @@ export default function ChildDashboardPage() {
               { val: themes.length, label: 'Thèmes', color: colors.text.muted },
             ].map((k, i, arr) => (
               <div key={k.label} style={{ flex: 1, textAlign: 'center', borderRight: i < arr.length - 1 ? `1px solid ${colors.border.light}` : 'none' }}>
-                <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: k.color, lineHeight: 1 }}>
+                <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: k.color, lineHeight: 1 }}>
                   {k.val}
                 </div>
                 <div style={{ fontSize: 9, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
@@ -353,7 +353,7 @@ export default function ChildDashboardPage() {
                 <span style={{ fontSize: 11, fontWeight: 800, color: colors.accent.gold }}>Demain</span>
               ) : (
                 <>
-                  <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
+                  <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.accent.gold, lineHeight: 1 }}>
                     {daysUntil}
                   </div>
                   <div style={{ fontSize: 9, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase' }}>jours</div>
@@ -424,7 +424,7 @@ export default function ChildDashboardPage() {
                       )}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 18, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: pct >= 100 ? colors.status.present : colors.accent.gold, lineHeight: 1 }}>
+                      <div style={{ fontSize: 18, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: pct >= 100 ? colors.status.present : colors.accent.gold, lineHeight: 1 }}>
                         {pct}%
                       </div>
                       <div style={{ fontSize: 10, color: colors.text.muted }}>
@@ -549,7 +549,7 @@ export default function ChildDashboardPage() {
 const D: Record<string, React.CSSProperties> = {
   page       : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
   header     : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  title      : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, marginBottom: 4, display: 'flex', alignItems: 'center' },
+  title      : { fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: 0, marginBottom: 4, display: 'flex', alignItems: 'center' },
   subtitle   : { fontSize: 13, color: colors.text.muted, margin: 0 },
   streakBadge: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,

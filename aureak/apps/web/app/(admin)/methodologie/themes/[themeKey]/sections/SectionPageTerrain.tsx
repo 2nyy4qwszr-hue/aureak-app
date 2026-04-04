@@ -153,7 +153,7 @@ export default function SectionPageTerrain({ theme, criteria, tenantId }: Props)
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: colors.accent.gold }}>
               AUREAK — PAGE TERRAIN
             </div>
-            <div style={{ fontSize: 18, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark, marginTop: 4 }}>
+            <div style={{ fontSize: 18, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark, marginTop: 4 }}>
               {theme.name}
             </div>
             {theme.level && (

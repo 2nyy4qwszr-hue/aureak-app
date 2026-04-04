@@ -91,6 +91,35 @@
 
 *Prochaine étape : DB Baseline Recovery + tests end-to-end*
 
+### Epic 45 — Design System v3
+
+- [ ] 45-1 : design-system-montserrat-gamification-tokens (Montserrat + XP/niveaux/badge tokens)
+
+### Epic 42 — Dashboard & Présences redesign
+
+- [ ] 42-1 : dashboard-bento-redesign
+- [ ] 42-2 : presences-redesign-visual-compact
+
+### Epic 43 — Méthodologie UX
+
+- [ ] 43-1 : bug-delete-methodologie-seance (P1)
+- [ ] 43-2 : methodologie-cards-compactes
+- [ ] 43-3 : modules-goal-player
+
+### Epic 44 — Bugs & UX coaching/joueurs
+
+- [ ] 44-1 : bug-edge-function-create-coach (P1)
+- [ ] 44-2 : bug-filtre-saison-actuelle-joueurs (P1)
+- [ ] 44-3 : ux-creation-coach-role-prefill
+- [ ] 44-4 : fiche-joueur-parents-club-liens
+- [ ] 44-5 : mini-stats-joueur-groupe
+- [ ] 44-6 : implantation-stats-enfants
+
+### Epic 34 — Programme pédagogique
+
+- [ ] 34-1 : architecture-programme-pedagogique-formulaire-intelligent (P1)
+- [ ] 34-2 : navigation-programme-ux-bibliotheque (P1 — dépend 34-1)
+
 ---
 
 ## Chantier parallèle — DB Baseline Recovery

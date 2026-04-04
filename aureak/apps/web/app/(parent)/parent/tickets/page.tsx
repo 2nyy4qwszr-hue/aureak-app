@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     color: colors.text.dark,
     minHeight: 100,
     textAlignVertical: 'top',
-    fontFamily: 'Geist-Regular',
+    fontFamily: 'Montserrat',
     fontSize: 14,
   },
 })

@@ -181,7 +181,7 @@ export default function ParentDashboardPage() {
                 <div style={P.cardTop}>
                   <div style={P.avatar}>{initial}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
                       {child.displayName}
                     </div>
                     {child.lastSessionAt && (
@@ -198,14 +198,14 @@ export default function ParentDashboardPage() {
                 {/* ── KPI row ── */}
                 <div style={P.kpiRow}>
                   <div style={P.kpi}>
-                    <div style={{ fontSize: 26, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold }}>
+                    <div style={{ fontSize: 26, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', color: colors.accent.gold }}>
                       {child.totalSessions}
                     </div>
                     <div style={P.kpiLabel}>Séances</div>
                   </div>
                   <div style={P.kpiDivider} />
                   <div style={P.kpi}>
-                    <div style={{ fontSize: 26, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', color: colors.status.present }}>
+                    <div style={{ fontSize: 26, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', color: colors.status.present }}>
                       {child.presentCount}
                     </div>
                     <div style={P.kpiLabel}>Présences</div>
@@ -213,7 +213,7 @@ export default function ParentDashboardPage() {
                   <div style={P.kpiDivider} />
                   <div style={P.kpi}>
                     <div style={{
-                      fontSize: 26, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif',
+                      fontSize: 26, fontWeight: 800, fontFamily: 'Montserrat, sans-serif',
                       color: rate !== null ? rateColor(rate) : colors.text.muted,
                     }}>
                       {rate !== null ? `${rate}%` : '—'}
@@ -285,7 +285,7 @@ export default function ParentDashboardPage() {
 const P: Record<string, React.CSSProperties> = {
   container  : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 900 },
   header     : { marginBottom: 28 },
-  title      : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, marginBottom: 4 },
+  title      : { fontSize: 26, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: 0, marginBottom: 4 },
   subtitle   : { fontSize: 13, color: colors.text.muted, margin: 0 },
   emptyCard  : { backgroundColor: colors.light.surface, borderRadius: radius.card, padding: '48px 32px', textAlign: 'center', border: `1px solid ${colors.border.light}`, boxShadow: shadows.sm },
   childCard  : { backgroundColor: colors.light.surface, borderRadius: radius.card, border: `1px solid ${colors.border.light}`, overflow: 'hidden', boxShadow: shadows.sm },

@@ -134,7 +134,7 @@ const styles: Record<string, React.CSSProperties> = {
   breadcrumbLink : { fontSize: '12px', color: colors.accent.gold, textDecoration: 'none', fontWeight: 600 },
   breadcrumbSep  : { fontSize: '12px', color: colors.text.muted },
   breadcrumbCurrent: { fontSize: '12px', color: colors.text.dark, fontWeight: 600 },
-  title          : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Rajdhani, sans-serif' },
+  title          : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Montserrat, sans-serif' },
   card           : { backgroundColor: colors.light.surface, borderRadius: '12px', padding: '24px', marginBottom: '32px', boxShadow: shadows.sm },
   sectionTitle   : { fontSize: '20px', fontWeight: 600, marginBottom: '16px', color: colors.accent.gold },
   textarea       : { width: '100%', padding: '12px', borderRadius: '8px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.primary, color: colors.text.dark, fontSize: '14px', resize: 'vertical', boxSizing: 'border-box' },

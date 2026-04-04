@@ -70,7 +70,7 @@ export default function SessionLearningReport() {
             return (
               <div key={themeId} style={{ ...S.themeCard, borderColor: color + '40' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: colors.text.dark, marginBottom: 4 }}>{stat.name}</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color, fontFamily: 'Rajdhani, sans-serif' }}>{pct}%</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color, fontFamily: 'Montserrat, sans-serif' }}>{pct}%</div>
                 <div style={{ fontSize: 11, color: colors.text.muted }}>{stat.acquired}/{stat.total} acquis</div>
               </div>
             )

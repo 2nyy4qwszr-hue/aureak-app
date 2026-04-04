@@ -245,7 +245,7 @@ const S: Record<string, React.CSSProperties> = {
   themeTitle: {
     fontSize: 22,
     fontWeight: 900,
-    fontFamily: 'Rajdhani, sans-serif',
+    fontFamily: 'Montserrat, sans-serif',
     letterSpacing: 0.4,
     margin: 0,
     color: colors.text.dark,

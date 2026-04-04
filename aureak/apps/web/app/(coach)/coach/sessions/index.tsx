@@ -284,7 +284,7 @@ export default function CoachSessionsPage() {
 const S: Record<string, React.CSSProperties> = {
   page          : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 860 },
   header        : { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title         : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, color: colors.accent.gold },
+  title         : { fontSize: 26, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: 0, color: colors.accent.gold },
   btnNew        : { padding: '9px 20px', borderRadius: 7, border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'opacity 0.15s' },
   filters       : { display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
   filterBtn     : { padding: '7px 16px', borderRadius: 20, border: '1px solid', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' },

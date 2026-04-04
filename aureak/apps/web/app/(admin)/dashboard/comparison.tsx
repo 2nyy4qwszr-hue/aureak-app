@@ -247,7 +247,7 @@ export default function ComparisonPage() {
 
 const styles: Record<string, React.CSSProperties> = {
   container    : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 960 },
-  title        : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Rajdhani, sans-serif' },
+  title        : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Montserrat, sans-serif' },
   filterRow    : { display: 'flex', alignItems: 'flex-end', gap: '16px', marginBottom: '28px', flexWrap: 'wrap' },
   filterGroup  : { display: 'flex', flexDirection: 'column', gap: '6px' },
   filterLabel  : { fontSize: '10px', color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },

@@ -456,7 +456,7 @@ export default function ClubDashboard() {
         {kpis.map((k, i) => (
           <div key={i} className="cl-kpi" style={D.kpiCard}>
             <div style={{ fontSize: 20, marginBottom: 5 }}>{k.icon}</div>
-            <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: k.color, lineHeight: 1 }}>
+            <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: k.color, lineHeight: 1 }}>
               {k.value}
             </div>
             <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
@@ -851,7 +851,7 @@ const D: Record<string, React.CSSProperties> = {
   page       : { padding: '26px 30px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 1100 },
   header     : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
   clubAvatar : { width: 46, height: 46, borderRadius: '50%', backgroundColor: colors.accent.gold, color: colors.text.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, flexShrink: 0 },
-  clubName   : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 5px', letterSpacing: '0.02em' },
+  clubName   : { fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: '0 0 5px', letterSpacing: '0.02em' },
   kpiRow     : { display: 'flex', gap: 10, marginBottom: 16 },
   kpiCard    : { flex: 1, backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, padding: '18px 16px', cursor: 'default', transition: 'border-color 0.15s, transform 0.15s' },
   filterBar  : { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '10px 14px', backgroundColor: colors.light.surface, borderRadius: 8, border: `1px solid ${colors.border.light}`, marginBottom: 16 },

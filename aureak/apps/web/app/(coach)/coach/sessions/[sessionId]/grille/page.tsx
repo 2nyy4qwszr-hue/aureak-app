@@ -128,7 +128,7 @@ function ChildFlipCard({
               backgroundColor: sc.border,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 20, fontWeight: 800, color: '#fff',
-              fontFamily: 'Rajdhani, sans-serif',
+              fontFamily: 'Montserrat, sans-serif',
             }}>
               {initials}
             </div>
@@ -167,7 +167,7 @@ function ChildFlipCard({
           gap             : 4,
           overflow        : 'hidden',
         } as React.CSSProperties}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: colors.text.dark, fontFamily: 'Rajdhani, sans-serif' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: colors.text.dark, fontFamily: 'Montserrat, sans-serif' }}>
             {child.displayName.split(' ')[0]}
           </div>
           {loadingBack ? (

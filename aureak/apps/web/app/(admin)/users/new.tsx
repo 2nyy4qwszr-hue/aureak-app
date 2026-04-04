@@ -191,7 +191,7 @@ export default function NewUserScreen() {
             Profil créé
           </div>
           <div style={s.successIcon}>✓</div>
-          <p style={{ ...s.label, color: colors.text.dark, fontSize: 20, fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, marginBottom: 8, margin: 0 }}>
+          <p style={{ ...s.label, color: colors.text.dark, fontSize: 20, fontFamily: 'Montserrat, sans-serif', fontWeight: 600, marginBottom: 8, margin: 0 }}>
             {result.msg}
           </p>
           <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
@@ -518,7 +518,7 @@ function ModeCard({ active, onSelect, icon, title, desc, badge }: {
       }}
     >
       <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
-      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 18, color: colors.text.dark, marginBottom: 6 }}>
+      <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 18, color: colors.text.dark, marginBottom: 6 }}>
         {title}
       </div>
       <div style={{ fontSize: 13, color: colors.text.muted, lineHeight: 1.5, marginBottom: 12 }}>{desc}</div>
@@ -553,7 +553,7 @@ function RoleCard({ active, onSelect, icon, title, desc }: {
       }}
     >
       <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 16, color: active ? colors.accent.gold : colors.text.dark, marginBottom: 4 }}>
+      <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 16, color: active ? colors.accent.gold : colors.text.dark, marginBottom: 4 }}>
         {title}
       </div>
       <div style={{ fontSize: 12, color: colors.text.muted, lineHeight: 1.4 }}>{desc}</div>
@@ -567,7 +567,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <div style={{ width: 3, height: 16, background: colors.accent.gold, borderRadius: 2 }} />
         <span style={{
-          fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 13,
+          fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 13,
           color: colors.accent.gold, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
         }}>
           {title}
@@ -620,7 +620,7 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: 'Geist, sans-serif',
   },
   title: {
-    fontFamily: 'Rajdhani, sans-serif',
+    fontFamily: 'Montserrat, sans-serif',
     fontWeight: 700,
     fontSize: 26,
     color: '#18181B',
@@ -675,7 +675,7 @@ const s: Record<string, React.CSSProperties> = {
     margin: '0 0 8px',
   },
   stepTitle: {
-    fontFamily: 'Rajdhani, sans-serif',
+    fontFamily: 'Montserrat, sans-serif',
     fontWeight: 700,
     fontSize: 22,
     color: '#18181B',
@@ -763,7 +763,7 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 700,
     cursor: 'pointer',
-    fontFamily: 'Rajdhani, sans-serif',
+    fontFamily: 'Montserrat, sans-serif',
     letterSpacing: '0.04em',
     transition: 'opacity 0.15s',
   },

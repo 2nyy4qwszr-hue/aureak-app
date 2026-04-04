@@ -280,7 +280,7 @@ export default function EvaluationsPage() {
       {children.length > 0 && (
         <div style={E.statusBar}>
           <div style={E.statusInfo}>
-            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', color: allSaved ? colors.status.present : colors.accent.gold }}>
+            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', color: allSaved ? colors.status.present : colors.accent.gold }}>
               {savedCount}
             </span>
             <span style={{ fontSize: 13, color: colors.text.muted }}>
@@ -444,7 +444,7 @@ export default function EvaluationsPage() {
 const E: Record<string, React.CSSProperties> = {
   page      : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
   back      : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
-  title     : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 4px' },
+  title     : { fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: '0 0 4px' },
   subtitle  : { fontSize: 13, color: colors.text.muted },
   subNav    : { display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.light}`, marginBottom: 20 },
   subNavBtn : { padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: 'color 0.15s', paddingBottom: 10 },

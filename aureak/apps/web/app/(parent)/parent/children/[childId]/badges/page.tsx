@@ -161,7 +161,7 @@ export default function ChildBadgesPage() {
 const S: Record<string, React.CSSProperties> = {
   page     : { padding: '24px 28px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark },
   back     : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 12 },
-  title    : { fontSize: 22, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 16px' },
+  title    : { fontSize: 22, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', margin: '0 0 16px' },
   card     : { backgroundColor: colors.light.surface, borderRadius: 12, padding: '16px 18px', border: `1px solid ${colors.border.light}`, boxShadow: shadows.sm, marginBottom: 16 },
   cardTitle: { fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 },
 }

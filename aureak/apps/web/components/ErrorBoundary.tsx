@@ -77,7 +77,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             <h2
               style={{
-                fontFamily: 'Rajdhani, sans-serif',
+                fontFamily: 'Montserrat, sans-serif',
                 fontSize  : 22,
                 fontWeight: 700,
                 color     : colors.text.dark,

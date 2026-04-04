@@ -157,7 +157,7 @@ export default function SectionBadge({ themeId, tenantId }: Props) {
                 }}>
                   🏅
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 13, color, fontFamily: 'Rajdhani, sans-serif', letterSpacing: 0.5 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color, fontFamily: 'Montserrat, sans-serif', letterSpacing: 0.5 }}>
                   {stage}
                 </div>
                 <div style={{ fontSize: 11, color: colors.text.muted }}>Niveau {idx + 1}</div>

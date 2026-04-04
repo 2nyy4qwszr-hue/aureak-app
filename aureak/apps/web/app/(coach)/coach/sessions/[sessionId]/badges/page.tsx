@@ -64,7 +64,7 @@ function BadgeSummary({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: colors.text.dark, fontFamily: 'Rajdhani, sans-serif' }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: colors.text.dark, fontFamily: 'Montserrat, sans-serif' }}>
         Récapitulatif badges
       </div>
 
@@ -310,11 +310,11 @@ export default function SessionBadgesPage() {
             border: `2px solid ${colors.accent.gold}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 28, fontWeight: 800, color: colors.accent.gold,
-            fontFamily: 'Rajdhani, sans-serif', margin: '0 auto 12px',
+            fontFamily: 'Montserrat, sans-serif', margin: '0 auto 12px',
           }}>
             {child.displayName.split(' ').map(p => p[0] ?? '').join('').toUpperCase().slice(0, 2)}
           </div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: colors.text.dark, fontFamily: 'Rajdhani, sans-serif' }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: colors.text.dark, fontFamily: 'Montserrat, sans-serif' }}>
             {child.displayName}
           </div>
           {selBadges.size > 0 && (

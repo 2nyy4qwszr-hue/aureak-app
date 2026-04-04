@@ -22,18 +22,16 @@ export default function RootLayout() {
   }, [])
 
   const [fontsLoaded, fontError] = useFonts({
-    'Rajdhani-Regular'    : require('../assets/fonts/Rajdhani/Rajdhani-Regular.ttf'),
-    'Rajdhani-SemiBold'   : require('../assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf'),
-    'Rajdhani-Bold'       : require('../assets/fonts/Rajdhani/Rajdhani-Bold.ttf'),
-    'Geist-Regular'       : require('../assets/fonts/Geist/Geist-Regular.ttf'),
-    'Geist-Medium'        : require('../assets/fonts/Geist/Geist-Medium.ttf'),
-    'Geist-SemiBold'      : require('../assets/fonts/Geist/Geist-SemiBold.ttf'),
-    'GeistMono-Regular'   : require('../assets/fonts/Geist/GeistMono-Regular.ttf'),
-    // Story 25.1 — Police Montserrat pour cartes joueur premium
-    'Montserrat-Regular'  : require('../assets/fonts/Montserrat/Montserrat-Regular.ttf'),
-    'Montserrat-SemiBold' : require('../assets/fonts/Montserrat/Montserrat-SemiBold.ttf'),
-    'Montserrat-Bold'     : require('../assets/fonts/Montserrat/Montserrat-Bold.ttf'),
-    'Montserrat-ExtraBold': require('../assets/fonts/Montserrat/Montserrat-ExtraBold.ttf'),
+    // Geist Mono — valeurs numériques tabulaires (typography.stat)
+    'GeistMono-Regular'      : require('../assets/fonts/Geist/GeistMono-Regular.ttf'),
+    // Montserrat — police unique pour display/heading/body (Story 45.1)
+    // weights : 400 Regular, 500 Medium, 600 SemiBold, 700 Bold, 800 ExtraBold, 900 Black
+    'Montserrat-Regular'     : require('../assets/fonts/Montserrat/Montserrat-Regular.ttf'),
+    'Montserrat-Medium'      : require('../assets/fonts/Montserrat/Montserrat-Medium.ttf'),
+    'Montserrat-SemiBold'    : require('../assets/fonts/Montserrat/Montserrat-SemiBold.ttf'),
+    'Montserrat-Bold'        : require('../assets/fonts/Montserrat/Montserrat-Bold.ttf'),
+    'Montserrat-ExtraBold'   : require('../assets/fonts/Montserrat/Montserrat-ExtraBold.ttf'),
+    'Montserrat-Black'       : require('../assets/fonts/Montserrat/Montserrat-Black.ttf'),
   })
 
   useEffect(() => {

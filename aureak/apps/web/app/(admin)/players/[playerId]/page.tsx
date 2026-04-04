@@ -582,7 +582,7 @@ export default function PlayerPage() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', margin: 0, color: colors.text.dark }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', margin: 0, color: colors.text.dark }}>
               {profile.displayName}
             </h1>
             <span style={{ fontSize: 11, fontWeight: 700, color: accountColor, padding: '3px 8px', borderRadius: 5, border: `1px solid ${accountColor + '40'}`, backgroundColor: accountColor + '12' }}>

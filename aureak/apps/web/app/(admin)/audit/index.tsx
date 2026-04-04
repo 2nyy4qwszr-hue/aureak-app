@@ -297,7 +297,7 @@ export default function AuditPage() {
 const st: Record<string, React.CSSProperties> = {
   container : { padding: '32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 900 },
   loading   : { padding: '48px', textAlign: 'center', color: colors.text.muted },
-  title     : { fontSize: '28px', fontWeight: 800, marginBottom: '8px', fontFamily: 'Rajdhani, sans-serif', color: colors.accent.gold },
+  title     : { fontSize: '28px', fontWeight: 800, marginBottom: '8px', fontFamily: 'Montserrat, sans-serif', color: colors.accent.gold },
   subtitle  : { fontSize: '13px', color: colors.text.muted, marginBottom: '24px' },
   filterRow : { display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px', alignItems: 'center' },
   input     : { padding: '8px 12px', borderRadius: '6px', border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: '13px' },

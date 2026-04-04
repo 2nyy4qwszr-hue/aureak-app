@@ -367,7 +367,7 @@ export default function UserFichePage() {
 const P: Record<string, React.CSSProperties> = {
   page       : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 760 },
   back       : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 20 },
-  title      : { fontSize: 24, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', margin: 0, color: colors.text.dark },
+  title      : { fontSize: 24, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', margin: 0, color: colors.text.dark },
   badge      : { fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 5, border: '1px solid', display: 'inline-block' },
 
   card       : { backgroundColor: colors.light.surface, borderRadius: 12, border: `1px solid ${colors.border.light}`, padding: '18px 20px', marginBottom: 16 },

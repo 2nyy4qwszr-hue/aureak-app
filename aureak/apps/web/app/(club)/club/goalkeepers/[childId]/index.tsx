@@ -348,7 +348,7 @@ export default function GoalkeeperDetailPage() {
           { label: 'Top séance',  value: topCount > 0 ? `⭐ ${topCount}` : '–', color: colors.accent.gold },
         ].map((k, i) => (
           <div key={i} style={G.kpi}>
-            <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: k.color, lineHeight: 1 }}>{k.value}</div>
+            <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: k.color, lineHeight: 1 }}>{k.value}</div>
             <div style={{ fontSize: 10, color: colors.text.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>{k.label}</div>
           </div>
         ))}
@@ -736,7 +736,7 @@ const G: Record<string, React.CSSProperties> = {
   back       : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 18, transition: 'color 0.15s', display: 'block' },
   hero       : { display: 'flex', alignItems: 'flex-start', gap: 18, padding: '20px 20px', backgroundColor: colors.light.surface, borderRadius: 12, border: `1px solid ${colors.border.light}`, marginBottom: 16 },
   avatar     : { width: 56, height: 56, borderRadius: '50%', backgroundColor: colors.accent.gold, color: colors.text.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, flexShrink: 0 },
-  name       : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0 },
+  name       : { fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: 0 },
   kpiRow     : { display: 'flex', backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden', marginBottom: 16 },
   kpi        : { flex: 1, padding: '14px 0', textAlign: 'center', borderRight: `1px solid ${colors.border.light}` },
   twoCol     : { display: 'flex', gap: 20, alignItems: 'flex-start' },

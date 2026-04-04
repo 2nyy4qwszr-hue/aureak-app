@@ -202,5 +202,70 @@ Dossier : `_agents/design-references/`
 
 ---
 
-*Dernière mise à jour : 2026-04-03*
+## Typographie — Montserrat
+
+> Décision validée Story 45.1 (2026-04-04) : Montserrat remplace Rajdhani (display/heading) et Geist (body).
+> Une seule famille pour tout le texte UI — clarté premium, forte lisibilité, 5 poids distincts.
+
+| Weight | Valeur | Usage dans l'app |
+|--------|--------|-----------------|
+| Black  | 900    | Display hero, stats clés (KPI, XP, scores) |
+| Bold   | 700    | H1, H2, titres de cards, tile headers |
+| SemiBold | 600  | H3, labels de section, badges |
+| Medium | 500    | Corps texte important, sous-titres |
+| Regular | 400   | Corps standard, descriptions, légendes |
+
+**Cas particulier** : `typography.stat` conserve `Geist Mono` pour les chiffres tabulaires (présences, XP bars, compteurs) — chiffres à largeur fixe.
+
+---
+
+## Gamification visuelle
+
+> Source de vérité dans `tokens.ts` — objet `gamification` (Story 45.1).
+
+### XP System
+- **Gains** : +10 pts par présence validée, +5 pts par exercice méthodologique complété
+- **Affichage** : barre de progression horizontale, hauteur 8px, or AUREAK (#C1AC5C), fond gris (#E5E7EB)
+- **Glow** : halo gold `rgba(193,172,92,0.4)` sur la barre active
+- **Animation fill** : `0.6s cubic-bezier(0.4, 0, 0.2, 1)` — smooth ease
+
+### Badges — États locked / unlocked
+| État | Opacité | Filtre | Ombre |
+|------|---------|--------|-------|
+| Locked | 35% | `grayscale(100%)` | aucune |
+| Unlocked | 100% | aucun | `0 0 8px rgba(193,172,92,0.5)` |
+
+**Animation unlock** : spring bounce `0.4s cubic-bezier(0.34, 1.56, 0.64, 1)` — scale 0 → 1.2 → 1
+
+**Sizes** : sm=32px / md=48px / lg=64px
+
+### Les 6 tiers de niveau
+
+| Tier | Couleur | Label | XP min | XP max |
+|------|---------|-------|--------|--------|
+| Bronze   | `#CD7F32` | Bronze  | 0      | 499    |
+| Argent   | `#9BA0A7` | Argent  | 500    | 1 499  |
+| Or       | `#C1AC5C` | Or      | 1 500  | 3 499  |
+| Platine  | `#60A5FA` | Platine | 3 500  | 6 999  |
+| Diamant  | `#A78BFA` | Diamant | 7 000  | 9 999  |
+| Légende  | `#F97316` | Légende | 10 000 | ∞      |
+
+**Level up animation** : flash gold `0.8s cubic-bezier(0.34, 1.56, 0.64, 1)`
+
+---
+
+## Roadmap redesign séquentiel
+
+> Ordre d'implémentation des redesign screens — chaque étape s'appuie sur la précédente.
+
+1. **Dashboard admin** (bento tiles, hero card, KPIs) — Epic 42
+2. **Séances** (liste, planning, fiche séance avec méthodologie) — Epic 43
+3. **Présences** (fiche présence, QR/manuel, évaluation inline) — Epic 44
+4. **Évaluations** (fiches joueur, radar stats, historique progression) — Epic 45+
+
+Chaque redesign consomme les tokens `gamification`, `transitions.slide`, et `typography` Montserrat définis dans Story 45.1.
+
+---
+
+*Dernière mise à jour : 2026-04-04*
 *À relire au début de chaque session design*

@@ -213,7 +213,7 @@ export default function NewSessionPage() {
 const F: Record<string, React.CSSProperties> = {
   page     : { padding: '32px 40px', maxWidth: 560, backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark },
   back     : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 20, transition: 'color 0.15s' },
-  title    : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 28px', color: colors.text.dark },
+  title    : { fontSize: 26, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: '0 0 28px', color: colors.text.dark },
   form     : { display: 'flex', flexDirection: 'column', gap: 20 },
   field    : { display: 'flex', flexDirection: 'column', gap: 6 },
   label    : { fontSize: 12, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.06em' },

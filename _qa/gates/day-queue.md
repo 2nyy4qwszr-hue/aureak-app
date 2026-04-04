@@ -5,6 +5,14 @@ status: in-progress
 
 next-morning-queue:
 
+  - story_id: story-45-1
+    title: "Design System — Montserrat + tokens gamification (XP/niveaux/badges)"
+    priority: P1
+    status: in-progress
+    gate1: pending
+    gate2: pending
+    note: "Prérequis de tout le redesign — passe en premier"
+
   - story_id: story-43-1
     title: "BUG — Supprimer un entraînement pédagogique"
     priority: P1

@@ -174,7 +174,7 @@ const styles: Record<string, React.CSSProperties> = {
   breadcrumbSep  : { fontSize: '12px', color: colors.text.muted },
   breadcrumbPart : { fontSize: '12px', color: colors.text.muted },
   breadcrumbCurrent: { fontSize: '12px', color: colors.text.dark, fontWeight: 600 },
-  title          : { fontSize: '26px', fontWeight: 700, marginBottom: '4px', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.4px' },
+  title          : { fontSize: '26px', fontWeight: 700, marginBottom: '4px', fontFamily: 'Montserrat, sans-serif', letterSpacing: '0.4px' },
   coachLabel     : { fontSize: '13px', color: colors.text.muted, marginBottom: '20px' },
   currentCard : { backgroundColor: colors.light.surface, borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '4px', boxShadow: shadows.sm },
   currentLabel: { fontSize: '12px', color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.05em' },

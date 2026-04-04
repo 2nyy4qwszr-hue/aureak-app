@@ -423,7 +423,7 @@ export default function SessionHubPage() {
 const S: Record<string, React.CSSProperties> = {
   page        : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 860, paddingBottom: 100 },
   back        : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: `color ${transitions.fast}` },
-  title       : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 4px' },
+  title       : { fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: '0 0 4px' },
   subtitle    : { fontSize: 13, color: colors.text.muted, display: 'flex', alignItems: 'center', gap: 8 },
   realizedBadge: { fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, backgroundColor: colors.status.present + '22', color: colors.status.present },
   tabBar      : { display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.light}`, marginBottom: 20 },

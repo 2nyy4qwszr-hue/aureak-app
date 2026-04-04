@@ -70,9 +70,9 @@ export const colors = {
 // =============================================================================
 
 export const fonts = {
-  display : 'Rajdhani',    // titres, stats clés
-  heading : 'Rajdhani',    // H1, H2, H3
-  body    : 'Geist',       // paragraphes, labels, descriptions
+  display : 'Montserrat',  // titres, stats clés — weight 900 (Black)
+  heading : 'Montserrat',  // H1, H2, H3 — weights 700/600
+  body    : 'Montserrat',  // paragraphes, labels, descriptions — weights 500/400
   mono    : 'Geist Mono',  // valeurs numériques, données tabulaires
 } as const
 
@@ -81,15 +81,15 @@ export const fonts = {
 // =============================================================================
 
 export const typography = {
-  display : { size: 36, weight: '900' as const, family: 'Rajdhani',   letterSpacing: 0.5 },
-  h1      : { size: 28, weight: '700' as const, family: 'Rajdhani',   letterSpacing: 0.3 },
-  h2      : { size: 22, weight: '600' as const, family: 'Rajdhani',   letterSpacing: 0.2 },
-  h3      : { size: 18, weight: '600' as const, family: 'Rajdhani',   letterSpacing: 0.1 },
-  bodyLg  : { size: 16, weight: '400' as const, family: 'Geist',      lineHeight: 24 },
-  body    : { size: 15, weight: '400' as const, family: 'Geist',      lineHeight: 22 },
-  bodySm  : { size: 13, weight: '400' as const, family: 'Geist',      lineHeight: 18 },
-  caption : { size: 11, weight: '400' as const, family: 'Geist',      lineHeight: 14 },
-  label   : { size: 12, weight: '600' as const, family: 'Geist',      letterSpacing: 0.8, textTransform: 'uppercase' as const },
+  display : { size: 36, weight: '900' as const, family: 'Montserrat', letterSpacing: 0.5 },
+  h1      : { size: 28, weight: '700' as const, family: 'Montserrat', letterSpacing: 0.3 },
+  h2      : { size: 22, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.2 },
+  h3      : { size: 18, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.1 },
+  bodyLg  : { size: 16, weight: '400' as const, family: 'Montserrat', lineHeight: 24 },
+  body    : { size: 15, weight: '400' as const, family: 'Montserrat', lineHeight: 22 },
+  bodySm  : { size: 13, weight: '400' as const, family: 'Montserrat', lineHeight: 18 },
+  caption : { size: 11, weight: '400' as const, family: 'Montserrat', lineHeight: 14 },
+  label   : { size: 12, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.8, textTransform: 'uppercase' as const },
   stat    : { size: 24, weight: '700' as const, family: 'Geist Mono' },
 } as const
 
@@ -149,6 +149,7 @@ export const transitions = {
   fast   : '0.15s cubic-bezier(0.4, 0, 0.2, 1)',
   normal : '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   slow   : '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  slide  : '0.25s cubic-bezier(0.4, 0, 0.2, 1)',  // transitions de route, slide-in panels
 } as const
 
 // =============================================================================
@@ -166,8 +167,47 @@ export const methodologyMethodColors = {
 } as const
 
 // =============================================================================
+// Gamification — XP system, niveaux, badges, animations
+// =============================================================================
+
+export const gamification = {
+  xp: {
+    barHeight  : 8,
+    barRadius  : 4,
+    fillColor  : '#C1AC5C',               // gold AUREAK
+    trackColor : '#E5E7EB',               // gris clair
+    glowColor  : 'rgba(193,172,92,0.4)',  // halo gold actif
+  },
+  levels: {
+    bronze  : { color: '#CD7F32', label: 'Bronze',  min: 0,     max: 499    },
+    silver  : { color: '#9BA0A7', label: 'Argent',  min: 500,   max: 1499   },
+    gold    : { color: '#C1AC5C', label: 'Or',      min: 1500,  max: 3499   },
+    platinum: { color: '#60A5FA', label: 'Platine', min: 3500,  max: 6999   },
+    diamond : { color: '#A78BFA', label: 'Diamant', min: 7000,  max: 9999   },
+    legend  : { color: '#F97316', label: 'Légende', min: 10000, max: 999999 },
+  },
+  badge: {
+    lockedOpacity : 0.35,
+    lockedFilter  : 'grayscale(100%)',
+    unlockedShadow: '0 0 8px rgba(193,172,92,0.5)',
+    size: { sm: 32, md: 48, lg: 64 },
+  },
+  animations: {
+    badgeUnlock: '0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',  // spring bounce unlock
+    xpFill     : '0.6s cubic-bezier(0.4, 0, 0.2, 1)',       // fill XP bar
+    levelUp    : '0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',  // level up flash
+  },
+} as const
+
+/** Résout le tier de niveau pour un score XP donné. Retourne 'bronze' si hors plage. */
+export function resolveLevel(xp: number): keyof typeof gamification.levels {
+  const entries = Object.entries(gamification.levels) as [keyof typeof gamification.levels, { min: number; max: number }][]
+  return entries.find(([, { min, max }]) => xp >= min && xp <= max)?.[0] ?? 'bronze'
+}
+
+// =============================================================================
 // Export agrégé
 // =============================================================================
 
-const tokens = { colors, fonts, typography, space, radius, shadows, layout, transitions, methodologyMethodColors }
+const tokens = { colors, fonts, typography, space, radius, shadows, layout, transitions, methodologyMethodColors, gamification }
 export default tokens

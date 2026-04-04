@@ -43,7 +43,7 @@ function KpiCard({ value, label, accent, dim = false }: {
   return (
     <div style={{ ...S.kpiCard, borderTop: `3px solid ${accent}` }}>
       <div style={{
-        fontSize: 34, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif',
+        fontSize: 34, fontWeight: 900, fontFamily: 'Montserrat, sans-serif',
         color: dim ? colors.text.muted : colors.text.dark, lineHeight: 1,
       }}>
         {value}
@@ -326,7 +326,7 @@ export default function CoachDashboardPage() {
             <div style={S.sectionLabel}>Activité ce mois</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div style={{ ...S.kpiCard, borderTop: `3px solid ${colors.status.success}` }}>
-                <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
+                <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
                   {completedMonth.length}
                 </div>
                 <div style={{ fontSize: 11, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
@@ -334,7 +334,7 @@ export default function CoachDashboardPage() {
                 </div>
               </div>
               <div style={{ ...S.kpiCard, borderTop: `3px solid ${colors.accent.gold}` }}>
-                <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: colors.text.dark }}>
+                <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
                   {Math.round(avgDuration)} min
                 </div>
                 <div style={{ fontSize: 11, color: colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 4 }}>
@@ -371,7 +371,7 @@ export default function CoachDashboardPage() {
 const S: Record<string, React.CSSProperties> = {
   container    : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 960 },
   header       : { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
-  title        : { fontSize: 26, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: 0, marginBottom: 4 },
+  title        : { fontSize: 26, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: 0, marginBottom: 4 },
   subtitle     : { fontSize: 13, color: colors.text.muted, margin: 0 },
   kpiGrid      : { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 },
   kpiCard      : { backgroundColor: colors.light.surface, borderRadius: 10, padding: '16px 18px', border: `1px solid ${colors.border.light}` },

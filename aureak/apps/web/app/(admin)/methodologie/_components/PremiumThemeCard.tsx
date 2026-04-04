@@ -126,7 +126,7 @@ const pZone = StyleSheet.create({
   themeName: {
     fontSize     : 17,
     fontWeight   : '900',
-    fontFamily   : 'Rajdhani, sans-serif',
+    fontFamily   : 'Montserrat, sans-serif',
     textTransform: 'uppercase' as never,
     letterSpacing: 0.5,
     color        : colors.text.dark,

@@ -89,7 +89,7 @@ function MasteryOverview({ themes }: { themes: ThemeProgressEntry[] }) {
         <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           Maîtrise globale
         </div>
-        <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', color: masteryPct >= 70 ? colors.status.present : masteryPct >= 40 ? colors.status.attention : colors.text.muted }}>
+        <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Montserrat, sans-serif', color: masteryPct >= 70 ? colors.status.present : masteryPct >= 40 ? colors.status.attention : colors.text.muted }}>
           {masteryPct}%
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function ChildProgressPage() {
           { value: allCards.length,                                                                                  label: 'Cartes',     color: colors.accent.gold      },
         ].map((kpi, i) => (
           <div key={i} style={PR.kpi}>
-            <div style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', color: kpi.color, lineHeight: 1 }}>
+            <div style={{ fontSize: 24, fontWeight: 800, fontFamily: 'Montserrat, sans-serif', color: kpi.color, lineHeight: 1 }}>
               {kpi.value}
             </div>
             <div style={PR.kpiLabel}>{kpi.label}</div>
@@ -301,7 +301,7 @@ export default function ChildProgressPage() {
 const PR: Record<string, React.CSSProperties> = {
   page        : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: 780 },
   back        : { fontSize: 13, color: colors.text.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16, transition: 'color 0.15s' },
-  title       : { fontSize: 24, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', margin: '0 0 20px' },
+  title       : { fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', margin: '0 0 20px' },
   overviewCard: { backgroundColor: colors.light.surface, borderRadius: 12, padding: '18px 20px', border: `1px solid ${colors.border.light}`, marginBottom: 16 },
   kpiRow      : { display: 'flex', backgroundColor: colors.light.surface, borderRadius: 10, border: `1px solid ${colors.border.light}`, overflow: 'hidden', marginBottom: 16 },
   kpi         : { flex: 1, padding: '14px 0', textAlign: 'center', borderRight: `1px solid ${colors.border.light}` },

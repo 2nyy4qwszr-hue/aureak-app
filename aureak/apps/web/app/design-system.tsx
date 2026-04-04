@@ -45,8 +45,8 @@ export default function DesignSystemWebPage() {
       <View style={styles.section}>
         <AureakText variant="h2">Typographie</AureakText>
         <View style={styles.divider} />
-        <AureakText variant="h1">H1 — Rajdhani 28</AureakText>
-        <AureakText variant="h2">H2 — Rajdhani 22</AureakText>
+        <AureakText variant="h1">H1 — Montserrat 28</AureakText>
+        <AureakText variant="h2">H2 — Montserrat 22</AureakText>
         <AureakText variant="body">Body — Geist 15</AureakText>
         <AureakText variant="stat">42.5 — Geist Mono</AureakText>
       </View>
