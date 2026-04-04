@@ -1268,6 +1268,7 @@ export type MethodologySession = {
   deletedAt   : string | null
   createdAt   : string
   updatedAt   : string
+  sessionsCount?: number  // nombre de séances terrain liées (protection suppression AC6)
 }
 
 // ── Theme Dossier Pédagogique (Migration 00056) ───────────────────────────

@@ -387,7 +387,7 @@ export {
 export {
   listMethodologyThemes, getMethodologyTheme, createMethodologyTheme, updateMethodologyTheme, toggleMethodologyTheme,
   listMethodologySituations, getMethodologySituation, createMethodologySituation, updateMethodologySituation, toggleMethodologySituation,
-  listMethodologySessions, getMethodologySession, createMethodologySession, updateMethodologySession, toggleMethodologySession,
+  listMethodologySessions, getMethodologySession, createMethodologySession, updateMethodologySession, toggleMethodologySession, softDeleteMethodologySession,
   linkMethodologySessionTheme, unlinkMethodologySessionTheme, listMethodologySessionThemes,
   linkMethodologySessionSituation, unlinkMethodologySessionSituation, listMethodologySessionSituations,
 } from './methodology'

@@ -47,25 +47,26 @@ function mapSituation(row: Record<string, unknown>): MethodologySituation {
 
 function mapSession(row: Record<string, unknown>): MethodologySession {
   return {
-    id          : row.id         as string,
-    tenantId    : row.tenant_id  as string,
-    title       : row.title      as string,
-    method      : str(row.method)       as MethodologyMethod      | null,
-    contextType : str(row.context_type) as MethodologyContextType | null,
-    moduleName  : str(row.module_name),
-    trainingRef : str(row.training_ref),
-    description : str(row.description),
-    pdfUrl      : str(row.pdf_url),
-    plateauUrl  : str(row.plateau_url),
-    videoUrl    : str(row.video_url),
-    audioUrl    : str(row.audio_url),
-    objective   : str(row.objective),
-    level       : str(row.level)        as MethodologyLevel       | null,
-    notes       : str(row.notes),
-    isActive    : row.is_active  as boolean,
-    deletedAt   : str(row.deleted_at),
-    createdAt   : row.created_at as string,
-    updatedAt   : row.updated_at as string,
+    id           : row.id         as string,
+    tenantId     : row.tenant_id  as string,
+    title        : row.title      as string,
+    method       : str(row.method)       as MethodologyMethod      | null,
+    contextType  : str(row.context_type) as MethodologyContextType | null,
+    moduleName   : str(row.module_name),
+    trainingRef  : str(row.training_ref),
+    description  : str(row.description),
+    pdfUrl       : str(row.pdf_url),
+    plateauUrl   : str(row.plateau_url),
+    videoUrl     : str(row.video_url),
+    audioUrl     : str(row.audio_url),
+    objective    : str(row.objective),
+    level        : str(row.level)        as MethodologyLevel       | null,
+    notes        : str(row.notes),
+    isActive     : row.is_active  as boolean,
+    deletedAt    : str(row.deleted_at),
+    createdAt    : row.created_at as string,
+    updatedAt    : row.updated_at as string,
+    sessionsCount: typeof row.sessions_count === 'number' ? row.sessions_count : undefined,
   }
 }
 
@@ -269,7 +270,7 @@ export async function listMethodologySessions(
 ): Promise<MethodologySession[]> {
   let q = supabase
     .from('methodology_sessions')
-    .select('*')
+    .select('*, sessions(count)')
     .is('deleted_at', null)
     .order('title', { ascending: true })
 
@@ -279,7 +280,15 @@ export async function listMethodologySessions(
 
   const { data, error } = await q
   if (error) return []
-  return (data ?? []).map(r => mapSession(r as Record<string, unknown>))
+  return (data ?? []).map(r => {
+    const row = r as Record<string, unknown>
+    // sessions est un tableau [{count: N}] retourné par Supabase avec aggregate
+    const sessionsArr = row.sessions as Array<{ count: number }> | null | undefined
+    const sessionsCount = Array.isArray(sessionsArr) && sessionsArr.length > 0
+      ? sessionsArr[0].count
+      : 0
+    return mapSession({ ...row, sessions_count: sessionsCount })
+  })
 }
 
 export async function getMethodologySession(id: string): Promise<MethodologySession | null> {
@@ -351,6 +360,14 @@ export async function toggleMethodologySession(
     .update({ is_active: isActive, updated_at: new Date().toISOString() })
     .eq('id', id)
   return { error: error ?? null }
+}
+
+export async function softDeleteMethodologySession(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('methodology_sessions')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
 }
 
 // ── Liaisons séance pédagogique ↔ thèmes ─────────────────────────────────────

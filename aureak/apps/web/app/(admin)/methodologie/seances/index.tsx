@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listMethodologySessions } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
+import { listMethodologySessions, softDeleteMethodologySession } from '@aureak/api-client'
+import { AureakText, ConfirmDialog } from '@aureak/ui'
 import { colors, space, shadows, radius, transitions, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS, METHODOLOGY_CONTEXT_TYPES,
@@ -12,6 +12,7 @@ import {
   type MethodologyMethod, type MethodologyContextType, type MethodologyLevel,
 } from '@aureak/types'
 import type { MethodologySession } from '@aureak/types'
+import { useToast } from '../../../../components/ToastContext'
 
 type FilterMethod  = MethodologyMethod | 'all'
 type FilterContext = MethodologyContextType | 'all'
@@ -47,12 +48,15 @@ function LevelDot({ level }: { level: string | null }) {
 
 export default function SeancesPage() {
   const router = useRouter()
+  const toast  = useToast()
 
-  const [sessions,       setSessions]       = useState<MethodologySession[]>([])
-  const [loading,        setLoading]        = useState(true)
-  const [search,         setSearch]         = useState('')
-  const [methodFilter,   setMethodFilter]   = useState<FilterMethod>('all')
-  const [contextFilter,  setContextFilter]  = useState<FilterContext>('all')
+  const [sessions,        setSessions]        = useState<MethodologySession[]>([])
+  const [loading,         setLoading]         = useState(true)
+  const [search,          setSearch]          = useState('')
+  const [methodFilter,    setMethodFilter]    = useState<FilterMethod>('all')
+  const [contextFilter,   setContextFilter]   = useState<FilterContext>('all')
+  const [deletingId,      setDeletingId]      = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -66,6 +70,21 @@ export default function SeancesPage() {
 
   useEffect(() => { load() }, [load])
 
+  const handleDelete = async (id: string) => {
+    setConfirmDeleteId(null)
+    setDeletingId(id)
+    try {
+      await softDeleteMethodologySession(id)
+      setSessions(prev => prev.filter(s => s.id !== id))
+      toast.success('Entraînement supprimé')
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances] delete error:', err)
+      toast.error('Erreur lors de la suppression')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const filtered = sessions.filter(s => {
     if (search && !s.title.toLowerCase().includes(search.toLowerCase())) return false
     if (methodFilter  !== 'all' && s.method      !== methodFilter)  return false
@@ -73,11 +92,13 @@ export default function SeancesPage() {
     return true
   })
 
+  const confirmSession = sessions.find(s => s.id === confirmDeleteId) ?? null
+
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView style={st.container} contentContainerStyle={st.content}>
 
       {/* ── Header ── */}
-      <View style={s.header}>
+      <View style={st.header}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
             <AureakText variant="h2" color={colors.accent.gold}>Entraînements pédagogiques</AureakText>
@@ -87,7 +108,7 @@ export default function SeancesPage() {
               </AureakText>
             )}
           </View>
-          <Pressable style={s.newBtn} onPress={() => router.push('/methodologie/seances/new' as never)}>
+          <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/seances/new' as never)}>
             <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>+ Nouvel entraînement</AureakText>
           </Pressable>
         </View>
@@ -95,7 +116,7 @@ export default function SeancesPage() {
 
       {/* ── Search ── */}
       <TextInput
-        style={s.searchInput}
+        style={st.searchInput}
         value={search}
         onChangeText={setSearch}
         placeholder="Rechercher par titre…"
@@ -103,7 +124,7 @@ export default function SeancesPage() {
       />
 
       {/* ── Filters ── */}
-      <View style={s.filterRow}>
+      <View style={st.filterRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', gap: 6 }}>
             {/* Method filter */}
@@ -113,7 +134,7 @@ export default function SeancesPage() {
                 <Pressable
                   key={m}
                   onPress={() => setMethodFilter(m)}
-                  style={[s.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
+                  style={[st.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
                 >
                   <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                     {m === 'all' ? 'Toutes méthodes' : m}
@@ -125,7 +146,7 @@ export default function SeancesPage() {
         </ScrollView>
       </View>
 
-      <View style={s.filterRow}>
+      <View style={st.filterRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', gap: 6 }}>
             {(['all', ...METHODOLOGY_CONTEXT_TYPES] as (FilterContext)[]).map(c => {
@@ -134,7 +155,7 @@ export default function SeancesPage() {
                 <Pressable
                   key={c}
                   onPress={() => setContextFilter(c)}
-                  style={[s.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
+                  style={[st.chip, { borderColor: active ? colors.accent.gold : colors.border.light, backgroundColor: active ? colors.accent.gold + '18' : 'transparent' }]}
                 >
                   <AureakText variant="caption" style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
                     {c === 'all' ? 'Tous contextes' : METHODOLOGY_CONTEXT_LABELS[c as MethodologyContextType]}
@@ -150,80 +171,110 @@ export default function SeancesPage() {
       {loading ? (
         <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
       ) : filtered.length === 0 ? (
-        <View style={s.empty}>
+        <View style={st.empty}>
           <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
             {sessions.length === 0 ? 'Aucun entraînement pédagogique. Créez le premier.' : 'Aucun résultat pour ces filtres.'}
           </AureakText>
         </View>
       ) : (
         <View style={{ gap: space.sm }}>
-          {filtered.map(session => (
-            <Pressable
-              key={session.id}
-              style={({ pressed }) => [s.row, pressed && { backgroundColor: colors.light.muted }]}
-              onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}
-            >
-              {/* Active indicator */}
-              <View style={[s.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.border.light }]} />
+          {filtered.map(session => {
+            const isLinked  = (session.sessionsCount ?? 0) > 0
+            const isDeleting = deletingId === session.id
+            return (
+              <View key={session.id} style={st.row}>
+                {/* Active indicator */}
+                <View style={[st.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.border.light }]} />
 
-              <View style={{ flex: 1, gap: 6 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <AureakText variant="body" style={{ fontWeight: '600', fontSize: 14 }}>{session.title}</AureakText>
-                  {session.trainingRef && (
-                    <View style={{ backgroundColor: colors.accent.gold + '18', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-                      <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10, fontWeight: '700' }}>#{session.trainingRef}</AureakText>
+                <Pressable
+                  style={({ pressed }) => [{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }, pressed && { opacity: 0.8 }]}
+                  onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}
+                >
+                  <View style={{ flex: 1, gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <AureakText variant="body" style={{ fontWeight: '600', fontSize: 14 }}>{session.title}</AureakText>
+                      {session.trainingRef && (
+                        <View style={{ backgroundColor: colors.accent.gold + '18', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                          <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10, fontWeight: '700' }}>#{session.trainingRef}</AureakText>
+                        </View>
+                      )}
+                      {!session.isActive && (
+                        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
+                      )}
                     </View>
-                  )}
-                  {!session.isActive && (
-                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
-                  )}
-                </View>
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <MethodBadge method={session.method} />
-                  <ContextBadge contextType={session.contextType} />
-                  {session.moduleName && (
-                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{session.moduleName}</AureakText>
-                  )}
-                </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <MethodBadge method={session.method} />
+                      <ContextBadge contextType={session.contextType} />
+                      {session.moduleName && (
+                        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{session.moduleName}</AureakText>
+                      )}
+                    </View>
 
-                {session.description && (
-                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }} numberOfLines={1}>
-                    {session.description}
-                  </AureakText>
+                    {session.description && (
+                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }} numberOfLines={1}>
+                        {session.description}
+                      </AureakText>
+                    )}
+                  </View>
+
+                  {/* Media indicators */}
+                  <View style={{ gap: 3, alignItems: 'flex-end' }}>
+                    {session.pdfUrl && (
+                      <View style={st.pdfBadge}>
+                        <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10, fontWeight: '700' }}>PDF</AureakText>
+                      </View>
+                    )}
+                    {session.videoUrl && (
+                      <View style={[st.pdfBadge, { borderColor: '#4FC3F7' + '50', backgroundColor: '#4FC3F7' + '18' }]}>
+                        <AureakText variant="caption" style={{ color: '#4FC3F7', fontSize: 10, fontWeight: '700' }}>VID</AureakText>
+                      </View>
+                    )}
+                    {session.audioUrl && (
+                      <View style={[st.pdfBadge, { borderColor: '#CE93D8' + '50', backgroundColor: '#CE93D8' + '18' }]}>
+                        <AureakText variant="caption" style={{ color: '#CE93D8', fontSize: 10, fontWeight: '700' }}>AUDIO</AureakText>
+                      </View>
+                    )}
+                  </View>
+
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 16 }}>›</AureakText>
+                </Pressable>
+
+                {/* Supprimer — masqué si lié à une séance terrain (AC6) */}
+                {!isLinked && (
+                  <Pressable
+                    style={[st.deleteBtn, isDeleting && { opacity: 0.5 }]}
+                    onPress={() => setConfirmDeleteId(session.id)}
+                    disabled={isDeleting}
+                  >
+                    <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11, fontWeight: '600' }}>
+                      {isDeleting ? '…' : 'Supprimer'}
+                    </AureakText>
+                  </Pressable>
                 )}
               </View>
-
-              {/* Media indicators */}
-              <View style={{ gap: 3, alignItems: 'flex-end' }}>
-                {session.pdfUrl && (
-                  <View style={s.pdfBadge}>
-                    <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10, fontWeight: '700' }}>PDF</AureakText>
-                  </View>
-                )}
-                {session.videoUrl && (
-                  <View style={[s.pdfBadge, { borderColor: '#4FC3F7' + '50', backgroundColor: '#4FC3F7' + '18' }]}>
-                    <AureakText variant="caption" style={{ color: '#4FC3F7', fontSize: 10, fontWeight: '700' }}>VID</AureakText>
-                  </View>
-                )}
-                {session.audioUrl && (
-                  <View style={[s.pdfBadge, { borderColor: '#CE93D8' + '50', backgroundColor: '#CE93D8' + '18' }]}>
-                    <AureakText variant="caption" style={{ color: '#CE93D8', fontSize: 10, fontWeight: '700' }}>AUDIO</AureakText>
-                  </View>
-                )}
-              </View>
-
-              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 16 }}>›</AureakText>
-            </Pressable>
-          ))}
+            )
+          })}
         </View>
       )}
+
+      {/* ── ConfirmDialog ── */}
+      <ConfirmDialog
+        visible={confirmDeleteId !== null}
+        title="Supprimer cet entraînement ?"
+        message="Cette action est irréversible."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        danger
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
 
     </ScrollView>
   )
 }
 
-const s = StyleSheet.create({
+const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
   header     : { gap: 4 },
@@ -259,5 +310,13 @@ const s = StyleSheet.create({
     borderRadius    : 6,
     paddingHorizontal: 7,
     paddingVertical : 3,
+  },
+  deleteBtn: {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 5,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.accent.red + '50',
+    backgroundColor  : colors.accent.red + '0D',
   },
 })
