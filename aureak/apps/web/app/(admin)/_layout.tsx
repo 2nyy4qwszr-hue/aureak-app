@@ -17,63 +17,64 @@ function KeyboardHandler() {
   return null
 }
 
+type NavItem = { label: string; href: string; icon: string }
 type NavGroup = {
   label : string
-  items : { label: string; href: string }[]
+  items : NavItem[]
 }
 
 const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Opérations',
     items: [
-      { label: 'Tableau de bord', href: '/dashboard'    },
-      { label: 'Séances',         href: '/seances'      },
-      { label: 'Présences',       href: '/presences'    },
-      { label: 'Évaluations',     href: '/evaluations'  },
+      { label: 'Tableau de bord', href: '/dashboard',   icon: '🏠' },
+      { label: 'Séances',         href: '/seances',     icon: '📅' },
+      { label: 'Présences',       href: '/presences',   icon: '✅' },
+      { label: 'Évaluations',     href: '/evaluations', icon: '⭐' },
     ],
   },
   {
     label: 'Méthodologie',
     items: [
-      { label: 'Entraînements', href: '/methodologie/seances'    },
-      { label: 'Thèmes',        href: '/methodologie/themes'     },
-      { label: 'Situations',    href: '/methodologie/situations' },
+      { label: 'Entraînements', href: '/methodologie/seances',    icon: '📚' },
+      { label: 'Thèmes',        href: '/methodologie/themes',     icon: '📚' },
+      { label: 'Situations',    href: '/methodologie/situations', icon: '📚' },
     ],
   },
   {
     label: 'Gestion',
     items: [
-      { label: 'Joueurs',       href: '/children'      },
-      { label: 'Coachs',        href: '/coaches'       },
-      { label: 'Clubs',         href: '/clubs'         },
-      { label: 'Groupes',       href: '/groups'        },
-      { label: 'Implantations', href: '/implantations' },
+      { label: 'Joueurs',       href: '/children',      icon: '👥' },
+      { label: 'Coachs',        href: '/coaches',       icon: '👨‍🏫' },
+      { label: 'Clubs',         href: '/clubs',         icon: '🏅' },
+      { label: 'Groupes',       href: '/groups',        icon: '🏆' },
+      { label: 'Implantations', href: '/implantations', icon: '🏟️' },
     ],
   },
   {
     label: 'Événements',
     items: [
-      { label: 'Stages', href: '/stages' },
+      { label: 'Stages', href: '/stages', icon: '🎯' },
     ],
   },
   {
     label: 'Analytics',
     items: [
-      { label: 'Comparaison',     href: '/analytics'                },
-      { label: 'Par implantation', href: '/analytics/implantation'  },
+      { label: 'Comparaison',      href: '/analytics',               icon: '📊' },
+      { label: 'Par implantation', href: '/analytics/implantation',  icon: '📊' },
     ],
   },
   {
     label: 'Administration',
     items: [
-      { label: 'Utilisateurs',        href: '/users'                           },
-      { label: 'Accès temporaires',   href: '/access-grants'                   },
-      { label: 'Tickets support',     href: '/tickets'                         },
-      { label: 'Journal d\'audit',    href: '/audit'                           },
-      { label: 'Calendrier scolaire', href: '/settings/school-calendar'        },
-      { label: 'Anomalies',           href: '/anomalies'                       },
-      { label: 'Messages coaches',    href: '/messages'                        },
-      { label: 'Permissions grades',  href: '/grade-permissions'               },
+      { label: 'Utilisateurs',        href: '/users',                    icon: '👤' },
+      { label: 'Accès temporaires',   href: '/access-grants',            icon: '🔐' },
+      { label: 'Tickets support',     href: '/tickets',                  icon: '🎫' },
+      { label: 'Journal d\'audit',    href: '/audit',                    icon: '🔍' },
+      { label: 'Calendrier scolaire', href: '/settings/school-calendar', icon: '📅' },
+      { label: 'Anomalies',           href: '/anomalies',                icon: '⚠️' },
+      { label: 'Messages coaches',    href: '/messages',                 icon: '💬' },
+      { label: 'Permissions grades',  href: '/grade-permissions',        icon: '🔐' },
     ],
   },
 ]
@@ -215,7 +216,7 @@ export default function AdminLayout() {
               )}
 
               <YStack gap={1} paddingHorizontal={8}>
-                {group.items.map(({ label, href }) => {
+                {group.items.map(({ label, href, icon }) => {
                   // Exact match OR prefix match — but avoid short paths like '/' matching everything
                   const isActive = pathname === href || (href.length > 1 && pathname.startsWith(href + '/'))
                   return (
@@ -240,17 +241,30 @@ export default function AdminLayout() {
                           } as never}
                         >
                           {sidebarCollapsed ? (
-                            <Text fontSize={16}>{label.charAt(0)}</Text>
-                          ) : (
                             <Text
-                              fontFamily="$body"
-                              fontSize={13}
-                              fontWeight={isActive ? '700' : '400'}
-                              color={isActive ? colors.accent.gold : colors.text.secondary}
-                              style={isActive ? { letterSpacing: 0.1 } as never : undefined}
+                              fontSize={18}
+                              style={{ opacity: isActive ? 1 : 0.55 } as never}
                             >
-                              {label}
+                              {icon}
                             </Text>
+                          ) : (
+                            <XStack alignItems="center">
+                              <Text
+                                fontSize={16}
+                                style={{ marginRight: 8, opacity: isActive ? 1 : 0.55 } as never}
+                              >
+                                {icon}
+                              </Text>
+                              <Text
+                                fontFamily="$body"
+                                fontSize={13}
+                                fontWeight={isActive ? '700' : '400'}
+                                color={isActive ? colors.accent.gold : colors.text.secondary}
+                                style={isActive ? { letterSpacing: 0.1 } as never : undefined}
+                              >
+                                {label}
+                              </Text>
+                            </XStack>
                           )}
                         </YStack>
                       )}
