@@ -1,8 +1,9 @@
 'use client'
 // Story 9.4 — Implantations & Groupes — nommage standardisé automatique
 // Story 44.6 — Stats groupes + listing enfants expandable
+// Story 47.2 — Design card avec photo de couverture + chips groupes
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import {
@@ -12,21 +13,18 @@ import {
   deleteImplantation,
   listGroupsByImplantation,
   createGroup,
-  updateGroup,
-  deleteGroup,
   listGroupMembersWithDetails,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import {
   generateGroupName,
-  buildGroupBaseName,
   GROUP_METHODS,
   DAYS_OF_WEEK,
   GROUP_DURATIONS,
   METHOD_COLOR,
 } from '@aureak/business-logic'
-import { AureakButton, AureakText, Badge } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { AureakButton, AureakText } from '@aureak/ui'
+import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Implantation, Group, GroupMethod, GroupMemberWithDetails } from '@aureak/types'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -135,43 +133,168 @@ function NamePreview({ name }: { name: string }) {
   )
 }
 
-function GroupRow({
-  group,
-  onManage,
-  onDelete,
+// ── ImplantationCard — card visuelle avec photo + groupes chips ──────────────
+
+function ImplantationCard({
+  impl,
+  implGroups,
+  membersByGroup,
+  isEditing,
+  editName,
+  editAddr,
+  saving,
+  onEditStart,
+  onEditNameChange,
+  onEditAddrChange,
+  onSave,
+  onCancelEdit,
+  onDeactivate,
+  onAddGroup,
+  onManageGroup,
+  router,
 }: {
-  group   : Group
-  onManage: () => void
-  onDelete: () => void
+  impl           : Implantation
+  implGroups     : Group[]
+  membersByGroup : Record<string, GroupMemberWithDetails[]>
+  isEditing      : boolean
+  editName       : string
+  editAddr       : string
+  saving         : boolean
+  onEditStart    : () => void
+  onEditNameChange: (v: string) => void
+  onEditAddrChange: (v: string) => void
+  onSave         : () => void
+  onCancelEdit   : () => void
+  onDeactivate   : () => void
+  onAddGroup     : () => void
+  onManageGroup  : (groupId: string) => void
+  router         : ReturnType<typeof useRouter>
 }) {
-  const methodColor = group.method ? METHOD_COLOR[group.method] : colors.text.muted
+  const totalChildren = implGroups.reduce((total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0)
+
   return (
-    <View style={[styles.groupRow, { borderLeftColor: methodColor, borderLeftWidth: 3 }]}>
-      <View style={{ flex: 1, gap: 2 }}>
-        <AureakText variant="body" style={{ fontWeight: '600' }}>{group.name}</AureakText>
-        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {group.method && (
-            <View style={methodBadgeStyle(group.method)}>
-              <AureakText variant="caption" style={{ color: methodColor, fontWeight: '600' }}>
-                {group.method}
-              </AureakText>
-            </View>
-          )}
-          {group.dayOfWeek && group.startHour !== null && (
-            <AureakText variant="caption" style={{ color: colors.text.muted }}>
-              {group.dayOfWeek} · {formatTime(group.startHour!, group.startMinute ?? 0)}
-              {group.durationMinutes ? ` · ${group.durationMinutes} min` : ''}
+    <View style={styles.card}>
+      {/* ── Photo de couverture ── */}
+      <View style={styles.coverContainer}>
+        {/* Gradient vert terrain (systématique — pas de photo_url dans le type Implantation actuel) */}
+        <View
+          style={[
+            styles.coverGradient,
+            { background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)' } as any,
+          ]}
+        />
+        {/* Badge joueurs en haut à droite */}
+        {totalChildren > 0 && (
+          <View style={styles.playersBadge}>
+            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
+              {totalChildren} joueur{totalChildren !== 1 ? 's' : ''}
             </AureakText>
-          )}
-        </View>
+          </View>
+        )}
+        {/* Overlay sombre subtil en bas pour lisibilité */}
+        <View
+          style={[
+            styles.coverOverlay,
+            { background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 60%)' } as any,
+          ]}
+        />
       </View>
-      <View style={{ flexDirection: 'row', gap: 6 }}>
-        <Pressable onPress={onManage} style={[styles.deleteBtn, { borderColor: colors.accent.gold + '60' }]}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>Gérer →</AureakText>
-        </Pressable>
-        <Pressable onPress={onDelete} style={styles.deleteBtn}>
-          <AureakText variant="caption" style={{ color: colors.status.absent }}>Suppr.</AureakText>
-        </Pressable>
+
+      {/* ── Contenu card ── */}
+      <View style={styles.cardBody}>
+
+        {/* Mode édition */}
+        {isEditing ? (
+          <View style={{ gap: space.xs }}>
+            <TextInput
+              style={styles.input}
+              value={editName}
+              onChangeText={onEditNameChange}
+              placeholderTextColor={colors.text.muted}
+              placeholder="Nom de l'implantation"
+            />
+            <TextInput
+              style={styles.input}
+              value={editAddr}
+              onChangeText={onEditAddrChange}
+              placeholder="Adresse"
+              placeholderTextColor={colors.text.muted}
+            />
+            <View style={{ flexDirection: 'row', gap: space.sm }}>
+              <AureakButton label="Annuler" onPress={onCancelEdit} variant="secondary" />
+              <AureakButton label={saving ? 'Enregistrement...' : 'Enregistrer'} onPress={onSave} loading={saving} fullWidth />
+            </View>
+          </View>
+        ) : (
+          <>
+            {/* Nom + actions */}
+            <View style={styles.cardTitleRow}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <AureakText variant="h3" style={styles.cardTitle}>{impl.name}</AureakText>
+                {impl.address && (
+                  <AureakText variant="caption" style={styles.cardAddress}>{impl.address}</AureakText>
+                )}
+              </View>
+              <View style={{ flexDirection: 'row', gap: space.xs }}>
+                <Pressable style={styles.actionBtn} onPress={onEditStart}>
+                  <AureakText variant="caption" style={{ color: colors.accent.gold }}>Modifier</AureakText>
+                </Pressable>
+                <Pressable style={[styles.actionBtn, { borderColor: colors.status.absent }]} onPress={onDeactivate}>
+                  <AureakText variant="caption" style={{ color: colors.status.absent }}>Désactiver</AureakText>
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Chips groupes scrollables */}
+            {implGroups.length > 0 && (
+              <View style={styles.groupsChipSection}>
+                <AureakText variant="label" style={styles.groupsLabel}>GROUPES</AureakText>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.groupsChipScroll}
+                >
+                  {implGroups.map((g) => {
+                    const methodColor = g.method ? METHOD_COLOR[g.method] : colors.accent.gold
+                    return (
+                      <Pressable
+                        key={g.id}
+                        style={[styles.groupChip, { borderColor: methodColor + '60' }]}
+                        onPress={() => onManageGroup(g.id)}
+                      >
+                        <View style={[styles.groupChipDot, { backgroundColor: methodColor }]} />
+                        <AureakText
+                          variant="caption"
+                          style={{ color: colors.text.dark, fontWeight: '600', fontSize: 12 }}
+                          numberOfLines={1}
+                        >
+                          {g.name}
+                        </AureakText>
+                        {g.dayOfWeek && g.startHour !== null && (
+                          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
+                            {g.dayOfWeek} {formatTime(g.startHour!, g.startMinute ?? 0)}
+                          </AureakText>
+                        )}
+                        {(membersByGroup[g.id]?.length ?? 0) > 0 && (
+                          <View style={styles.groupChipCount}>
+                            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
+                              {membersByGroup[g.id]?.length}
+                            </AureakText>
+                          </View>
+                        )}
+                      </Pressable>
+                    )
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Bouton ajouter un groupe */}
+            <Pressable style={styles.addGroupBtn} onPress={onAddGroup}>
+              <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un groupe</AureakText>
+            </Pressable>
+          </>
+        )}
       </View>
     </View>
   )
@@ -180,19 +303,21 @@ function GroupRow({
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function ImplantationsPage() {
-  const router   = useRouter()
-  const tenantId = useAuthStore((s) => s.tenantId)
+  const router      = useRouter()
+  const tenantId    = useAuthStore((s) => s.tenantId)
+  const { width }   = useWindowDimensions()
+
+  // Grille responsive : 3 cols ≥1024, 2 cols ≥640, 1 col mobile
+  const numCols = width >= 1024 ? 3 : width >= 640 ? 2 : 1
 
   const [implantations, setImplantations]   = useState<Implantation[]>([])
   const [groups, setGroups]               = useState<Record<string, Group[]>>({})
   const [loading, setLoading]             = useState(true)
   const [loadError, setLoadError]         = useState<string | null>(null)
-  const [expanded, setExpanded]           = useState<string | null>(null)
 
   // Story 44.6 — stats enfants par groupe
   const [membersByGroup, setMembersByGroup] = useState<Record<string, GroupMemberWithDetails[]>>({})
   const [loadingMembers, setLoadingMembers] = useState(false)
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   // Create implantation
   const [showCreate, setShowCreate] = useState(false)
@@ -206,7 +331,7 @@ export default function ImplantationsPage() {
   const [editAddr, setEditAddr] = useState('')
   const [saving, setSaving]     = useState(false)
 
-  // Add group
+  // Add group panel (pour le formulaire détaillé)
   const [addGroupFor, setAddGroupFor]   = useState<string | null>(null)
   const [groupForm, setGroupForm]       = useState<GroupFormState>(emptyForm())
   const [addingGroup, setAddingGroup]   = useState(false)
@@ -222,19 +347,31 @@ export default function ImplantationsPage() {
         setLoadError('Impossible de charger les implantations. Vérifiez votre connexion.')
       } else {
         setImplantations(data)
+        // Charger les groupes de toutes les implantations en parallèle (pour les chips)
+        loadAllGroups(data.map(i => i.id))
       }
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [])
-
-  const loadGroups = async (implantationId: string) => {
-    const { data } = await listGroupsByImplantation(implantationId)
-    setGroups(prev => ({ ...prev, [implantationId]: data }))
-    // Charger les membres pour tous les groupes de cette implantation (parallèle)
-    await loadMembersForGroups(data.map(g => g.id))
+  const loadAllGroups = async (implantationIds: string[]) => {
+    if (implantationIds.length === 0) return
+    try {
+      const results = await Promise.all(
+        implantationIds.map(id => listGroupsByImplantation(id).then(res => ({ id, groups: res.data })))
+      )
+      const newGroups: Record<string, Group[]> = {}
+      for (const { id, groups: g } of results) {
+        newGroups[id] = g
+      }
+      setGroups(prev => ({ ...prev, ...newGroups }))
+      // Charger les membres pour tous les groupes
+      const allGroupIds = results.flatMap(r => r.groups.map(g => g.id))
+      await loadMembersForGroups(allGroupIds)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] loadAllGroups error:', err)
+    }
   }
 
   // Story 44.6 — chargement parallèle des membres pour une liste de groupIds
@@ -259,14 +396,13 @@ export default function ImplantationsPage() {
     }
   }
 
-  const handleExpand = (id: string) => {
-    if (expanded === id) {
-      setExpanded(null)
-    } else {
-      setExpanded(id)
-      loadGroups(id)
-    }
+  const loadGroups = async (implantationId: string) => {
+    const { data } = await listGroupsByImplantation(implantationId)
+    setGroups(prev => ({ ...prev, [implantationId]: data }))
+    await loadMembersForGroups(data.map(g => g.id))
   }
+
+  useEffect(() => { load() }, [])
 
   // ── Implantation CRUD ──────────────────────────────────────────────────────
 
@@ -346,29 +482,12 @@ export default function ImplantationsPage() {
     }
   }
 
-  const handleDeleteGroup = async (implId: string, groupId: string) => {
-    await deleteGroup(groupId)
-    await loadGroups(implId)
-  }
+  // ── Render helpers ─────────────────────────────────────────────────────────
 
-  // Story 44.6 — toggle expansion liste enfants d'un groupe
-  const toggleGroupExpand = (groupId: string) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev)
-      if (next.has(groupId)) {
-        next.delete(groupId)
-      } else {
-        next.add(groupId)
-      }
-      return next
-    })
-  }
-
-  // Story 44.6 — compter le total d'enfants pour une implantation
-  const countChildrenForImplantation = (implId: string): number => {
-    const implGroups = groups[implId] ?? []
-    return implGroups.reduce((total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0)
-  }
+  // Calcul de la largeur de chaque colonne selon la grille
+  const colGap   = space.md
+  const paddings = space.xl * 2
+  const colWidth = (width - paddings - colGap * (numCols - 1)) / numCols
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -419,248 +538,110 @@ export default function ImplantationsPage() {
           Aucune implantation. Créez la première.
         </AureakText>
       ) : (
-        implantations.map((impl) => (
-          <View key={impl.id} style={styles.card}>
-
-            {/* Implantation header */}
-            {editId === impl.id ? (
-              <View style={{ gap: space.xs }}>
-                <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholderTextColor={colors.text.muted} />
-                <TextInput style={styles.input} value={editAddr} onChangeText={setEditAddr} placeholder="Adresse" placeholderTextColor={colors.text.muted} />
-                <View style={{ flexDirection: 'row', gap: space.sm }}>
-                  <AureakButton label="Annuler" onPress={() => setEditId(null)} variant="secondary" />
-                  <AureakButton label={saving ? 'Enregistrement...' : 'Enregistrer'} onPress={handleSave} loading={saving} fullWidth />
-                </View>
+        <>
+          {/* Grille de cards */}
+          <View style={[styles.grid, { gap: colGap }]}>
+            {implantations.map((impl) => (
+              <View key={impl.id} style={{ width: colWidth }}>
+                <ImplantationCard
+                  impl={impl}
+                  implGroups={groups[impl.id] ?? []}
+                  membersByGroup={membersByGroup}
+                  isEditing={editId === impl.id}
+                  editName={editName}
+                  editAddr={editAddr}
+                  saving={saving}
+                  onEditStart={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
+                  onEditNameChange={setEditName}
+                  onEditAddrChange={setEditAddr}
+                  onSave={handleSave}
+                  onCancelEdit={() => setEditId(null)}
+                  onDeactivate={() => handleDeactivate(impl.id)}
+                  onAddGroup={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
+                  onManageGroup={(groupId) => router.push(`/groups/${groupId}` as never)}
+                  router={router}
+                />
               </View>
-            ) : (
-              <View style={styles.cardHeader}>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <AureakText variant="h3">{impl.name}</AureakText>
-                    {groups[impl.id] !== undefined && countChildrenForImplantation(impl.id) > 0 && (
-                      <View style={styles.childrenBadge}>
-                        <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
-                          {countChildrenForImplantation(impl.id)} joueurs
-                        </AureakText>
-                      </View>
-                    )}
-                  </View>
-                  {impl.address && (
-                    <AureakText variant="caption" style={{ color: colors.text.muted }}>{impl.address}</AureakText>
-                  )}
-                </View>
-                <View style={{ flexDirection: 'row', gap: space.xs }}>
-                  <Pressable
-                    style={styles.actionBtn}
-                    onPress={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
-                  >
-                    <AureakText variant="caption" style={{ color: colors.accent.gold }}>Modifier</AureakText>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.actionBtn, { borderColor: colors.status.absent }]}
-                    onPress={() => handleDeactivate(impl.id)}
-                  >
-                    <AureakText variant="caption" style={{ color: colors.status.absent }}>Désactiver</AureakText>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-
-            {/* Groups toggle */}
-            <Pressable style={styles.groupsToggle} onPress={() => handleExpand(impl.id)}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <AureakText variant="label" style={{ color: colors.accent.gold }}>
-                  {expanded === impl.id ? '▾' : '▸'}
-                </AureakText>
-                <AureakText variant="label" style={{ color: colors.accent.gold }}>
-                  Groupes
-                </AureakText>
-                {groups[impl.id] && (
-                  <View style={styles.groupCount}>
-                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                      {groups[impl.id].length}
-                    </AureakText>
-                  </View>
-                )}
-              </View>
-            </Pressable>
-
-            {/* Groups section */}
-            {expanded === impl.id && (
-              <View style={styles.groupsSection}>
-
-                {/* Existing groups */}
-                {(groups[impl.id] ?? []).length === 0 ? (
-                  <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
-                    Aucun groupe — créez le premier ci-dessous.
-                  </AureakText>
-                ) : (
-                  (groups[impl.id] ?? []).map(g => {
-                    const members      = membersByGroup[g.id] ?? []
-                    const memberCount  = members.length
-                    const isExpanded   = expandedGroups.has(g.id)
-                    const methodColor  = g.method ? METHOD_COLOR[g.method] : colors.text.muted
-                    return (
-                      <View key={g.id}>
-                        <View style={[styles.groupRow, { borderLeftColor: methodColor, borderLeftWidth: 3 }]}>
-                          <View style={{ flex: 1, gap: 2 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                              <AureakText variant="body" style={{ fontWeight: '600' }}>{g.name}</AureakText>
-                              {/* Badge nombre d'enfants (Story 44.6) */}
-                              <View style={styles.memberCountBadge}>
-                                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                                  {memberCount} joueur{memberCount !== 1 ? 's' : ''}
-                                </AureakText>
-                              </View>
-                            </View>
-                            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                              {g.method && (
-                                <View style={methodBadgeStyle(g.method)}>
-                                  <AureakText variant="caption" style={{ color: methodColor, fontWeight: '600' }}>
-                                    {g.method}
-                                  </AureakText>
-                                </View>
-                              )}
-                              {g.dayOfWeek && g.startHour !== null && (
-                                <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                                  {g.dayOfWeek} · {formatTime(g.startHour!, g.startMinute ?? 0)}
-                                  {g.durationMinutes ? ` · ${g.durationMinutes} min` : ''}
-                                </AureakText>
-                              )}
-                            </View>
-                          </View>
-                          <View style={{ flexDirection: 'row', gap: 6 }}>
-                            {/* Toggle enfants (Story 44.6) */}
-                            <Pressable
-                              onPress={() => toggleGroupExpand(g.id)}
-                              style={[styles.deleteBtn, { borderColor: colors.border.light }]}
-                            >
-                              <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
-                                {isExpanded ? '▴ Joueurs' : '▾ Joueurs'}
-                              </AureakText>
-                            </Pressable>
-                            <Pressable
-                              onPress={() => router.push(`/groups/${g.id}` as never)}
-                              style={[styles.deleteBtn, { borderColor: colors.accent.gold + '60' }]}
-                            >
-                              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>Gérer →</AureakText>
-                            </Pressable>
-                            <Pressable onPress={() => handleDeleteGroup(impl.id, g.id)} style={styles.deleteBtn}>
-                              <AureakText variant="caption" style={{ color: colors.status.absent }}>Suppr.</AureakText>
-                            </Pressable>
-                          </View>
-                        </View>
-
-                        {/* Section expandable liste enfants (Story 44.6) */}
-                        {isExpanded && (
-                          <View style={styles.membersSection}>
-                            {members.length === 0 ? (
-                              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
-                                Aucun joueur inscrit
-                              </AureakText>
-                            ) : (
-                              members.map(m => (
-                                <Pressable
-                                  key={m.childId}
-                                  style={styles.memberRow}
-                                  onPress={() => router.push(`/children/${m.childId}` as never)}
-                                >
-                                  <AureakText variant="body" style={{ fontWeight: '500', flex: 1 }}>
-                                    {m.displayName}
-                                  </AureakText>
-                                  {m.currentClub && (
-                                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                                      {m.currentClub}
-                                    </AureakText>
-                                  )}
-                                </Pressable>
-                              ))
-                            )}
-                          </View>
-                        )}
-                      </View>
-                    )
-                  })
-                )}
-
-                {/* Add group form */}
-                {addGroupFor === impl.id ? (
-                  <View style={styles.groupForm}>
-                    <AureakText variant="label" style={{ color: colors.text.muted, marginBottom: space.xs }}>
-                      MÉTHODE
-                    </AureakText>
-                    <ChipRow
-                      options={GROUP_METHODS}
-                      value={groupForm.method}
-                      onSelect={(m) => setGroupForm(f => ({ ...f, method: m }))}
-                      color={(m) => METHOD_COLOR[m]}
-                    />
-
-                    <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
-                      JOUR
-                    </AureakText>
-                    <ChipRow
-                      options={[...DAYS_OF_WEEK]}
-                      value={groupForm.day}
-                      onSelect={(d) => setGroupForm(f => ({ ...f, day: d }))}
-                    />
-
-                    <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
-                      HEURE DE DÉBUT
-                    </AureakText>
-                    <ChipRow
-                      options={START_HOURS}
-                      value={groupForm.startHour}
-                      onSelect={(h) => setGroupForm(f => ({ ...f, startHour: h }))}
-                      label={(h) => `${String(h).padStart(2, '0')}h`}
-                    />
-                    <View style={{ marginTop: 6 }}>
-                      <ChipRow
-                        options={START_MINUTES}
-                        value={groupForm.startMinute}
-                        onSelect={(m) => setGroupForm(f => ({ ...f, startMinute: m }))}
-                        label={(m) => `h${String(m).padStart(2, '0')}`}
-                      />
-                    </View>
-
-                    <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
-                      DURÉE
-                    </AureakText>
-                    <ChipRow
-                      options={[...GROUP_DURATIONS]}
-                      value={groupForm.durationMinutes}
-                      onSelect={(d) => setGroupForm(f => ({ ...f, durationMinutes: d }))}
-                      label={(d) => `${d} min`}
-                    />
-
-                    <NamePreview name={getGroupName(impl.id)} />
-
-                    <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
-                      <AureakButton
-                        label="Annuler"
-                        onPress={() => { setAddGroupFor(null); setGroupForm(emptyForm()) }}
-                        variant="secondary"
-                      />
-                      <AureakButton
-                        label={addingGroup ? 'Ajout...' : 'Créer le groupe'}
-                        onPress={handleAddGroup}
-                        loading={addingGroup}
-                        fullWidth
-                      />
-                    </View>
-                  </View>
-                ) : (
-                  <Pressable
-                    style={styles.addGroupBtn}
-                    onPress={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
-                  >
-                    <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un groupe</AureakText>
-                  </Pressable>
-                )}
-              </View>
-            )}
+            ))}
           </View>
-        ))
+
+          {/* Formulaire d'ajout de groupe — panneau flottant */}
+          {addGroupFor !== null && (
+            <View style={styles.addGroupPanel}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+                <AureakText variant="h3">
+                  Nouveau groupe — {implantations.find(i => i.id === addGroupFor)?.name}
+                </AureakText>
+                <Pressable onPress={() => { setAddGroupFor(null); setGroupForm(emptyForm()) }}>
+                  <AureakText variant="body" style={{ color: colors.text.muted }}>✕</AureakText>
+                </Pressable>
+              </View>
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginBottom: space.xs }}>
+                MÉTHODE
+              </AureakText>
+              <ChipRow
+                options={GROUP_METHODS}
+                value={groupForm.method}
+                onSelect={(m) => setGroupForm(f => ({ ...f, method: m }))}
+                color={(m) => METHOD_COLOR[m]}
+              />
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
+                JOUR
+              </AureakText>
+              <ChipRow
+                options={[...DAYS_OF_WEEK]}
+                value={groupForm.day}
+                onSelect={(d) => setGroupForm(f => ({ ...f, day: d }))}
+              />
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
+                HEURE DE DÉBUT
+              </AureakText>
+              <ChipRow
+                options={START_HOURS}
+                value={groupForm.startHour}
+                onSelect={(h) => setGroupForm(f => ({ ...f, startHour: h }))}
+                label={(h) => `${String(h).padStart(2, '0')}h`}
+              />
+              <View style={{ marginTop: 6 }}>
+                <ChipRow
+                  options={START_MINUTES}
+                  value={groupForm.startMinute}
+                  onSelect={(m) => setGroupForm(f => ({ ...f, startMinute: m }))}
+                  label={(m) => `h${String(m).padStart(2, '0')}`}
+                />
+              </View>
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
+                DURÉE
+              </AureakText>
+              <ChipRow
+                options={[...GROUP_DURATIONS]}
+                value={groupForm.durationMinutes}
+                onSelect={(d) => setGroupForm(f => ({ ...f, durationMinutes: d }))}
+                label={(d) => `${d} min`}
+              />
+
+              <NamePreview name={getGroupName(addGroupFor)} />
+
+              <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
+                <AureakButton
+                  label="Annuler"
+                  onPress={() => { setAddGroupFor(null); setGroupForm(emptyForm()) }}
+                  variant="secondary"
+                />
+                <AureakButton
+                  label={addingGroup ? 'Ajout...' : 'Créer le groupe'}
+                  onPress={handleAddGroup}
+                  loading={addingGroup}
+                  fullWidth
+                />
+              </View>
+            </View>
+          )}
+        </>
       )}
     </ScrollView>
   )
@@ -674,119 +655,146 @@ const styles = StyleSheet.create({
   header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   formCard    : {
     backgroundColor: colors.light.muted,
-    borderRadius   : 10,
+    borderRadius   : radius.card,
     padding        : space.md,
     gap            : space.sm,
     borderWidth    : 1,
     borderColor    : colors.accent.gold,
   },
-  card        : {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 8,
-    padding        : space.md,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    gap            : space.sm,
-  },
-  cardHeader  : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  actionBtn   : {
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    borderRadius     : 6,
-    paddingHorizontal: space.sm,
-    paddingVertical  : space.xs,
-  },
   input       : {
     backgroundColor: colors.light.primary,
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    borderRadius   : 6,
+    borderRadius   : radius.xs,
     color          : colors.text.dark,
     padding        : space.sm,
     fontSize       : 14,
   },
-  groupsToggle : { paddingVertical: space.xs },
-  groupCount   : {
-    backgroundColor: colors.light.muted,
-    borderRadius   : 10,
-    paddingHorizontal: 8,
-    paddingVertical  : 1,
+  // ── Grille responsive ──
+  grid        : {
+    flexDirection : 'row',
+    flexWrap      : 'wrap',
   },
-  groupsSection: { gap: space.sm, paddingLeft: space.sm },
-  groupRow     : {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    backgroundColor  : colors.light.muted,
-    borderRadius     : '0 8px 8px 0' as unknown as number,
-    paddingHorizontal: space.sm,
-    paddingVertical  : space.sm,
-    gap              : space.sm,
-  },
-  deleteBtn   : {
-    borderWidth      : 1,
-    borderColor      : colors.status.absent + '40',
-    borderRadius     : 6,
-    paddingHorizontal: 10,
-    paddingVertical  : 3,
-  },
-  groupForm   : {
-    backgroundColor: colors.light.muted,
-    borderRadius   : 8,
-    padding        : space.md,
+  // ── Card implantation ──
+  card        : {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    gap            : 0,
+    overflow       : 'hidden',
+    boxShadow      : shadows.sm,
+  } as any,
+  // ── Photo de couverture ──
+  coverContainer: {
+    height   : 140,
+    position : 'relative',
+    overflow : 'hidden',
   },
-  namePreview : {
-    backgroundColor: colors.light.primary,
-    borderRadius   : 6,
-    borderWidth    : 1,
-    borderColor    : colors.accent.gold + '40',
-    padding        : space.sm,
-    marginTop      : space.sm,
+  coverGradient : {
+    position        : 'absolute',
+    top             : 0, left: 0, right: 0, bottom: 0,
   },
-  addGroupBtn : {
+  coverOverlay  : {
+    position        : 'absolute',
+    top             : 0, left: 0, right: 0, bottom: 0,
+  },
+  playersBadge  : {
+    position         : 'absolute',
+    top              : space.sm,
+    right            : space.sm,
+    backgroundColor  : 'rgba(0,0,0,0.45)',
+    borderRadius     : radius.badge,
+    paddingHorizontal: 10,
+    paddingVertical  : 4,
+    zIndex           : 2,
+  },
+  // ── Contenu card ──
+  cardBody      : {
+    padding : space.md,
+    gap     : space.sm,
+  },
+  cardTitleRow  : {
+    flexDirection : 'row',
+    alignItems    : 'flex-start',
+    justifyContent: 'space-between',
+    gap           : space.sm,
+  },
+  cardTitle     : {
+    fontWeight: '700',
+    color     : colors.text.dark,
+  },
+  cardAddress   : {
+    color     : colors.text.muted,
+    marginTop : 2,
+  },
+  actionBtn     : {
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : radius.xs,
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.xs,
+  },
+  // ── Chips groupes ──
+  groupsChipSection: {
+    gap: space.xs,
+  },
+  groupsLabel   : {
+    color        : colors.text.muted,
+    marginBottom : 2,
+  },
+  groupsChipScroll: {
+    flexDirection : 'row',
+    gap           : space.xs,
+    paddingBottom : space.xs,
+  },
+  groupChip     : {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    gap              : 5,
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderRadius     : radius.badge,
+    paddingHorizontal: 10,
+    paddingVertical  : 5,
+  },
+  groupChipDot  : {
+    width        : 7,
+    height       : 7,
+    borderRadius : 4,
+  },
+  groupChipCount: {
+    backgroundColor  : colors.border.light,
+    borderRadius     : radius.badge,
+    paddingHorizontal: 6,
+    paddingVertical  : 1,
+    marginLeft       : 2,
+  },
+  addGroupBtn   : {
     paddingVertical  : space.xs,
     paddingHorizontal: space.sm,
     borderWidth      : 1,
     borderColor      : colors.accent.gold + '40',
-    borderRadius     : 6,
+    borderRadius     : radius.xs,
     borderStyle      : 'dashed' as const,
     alignItems       : 'center',
   },
-  // Story 44.6 — stats enfants
-  childrenBadge: {
-    backgroundColor  : colors.accent.gold + '18',
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold + '60',
-    borderRadius     : 12,
-    paddingHorizontal: 8,
-    paddingVertical  : 2,
-  },
-  memberCountBadge: {
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    borderRadius     : 10,
-    paddingHorizontal: 7,
-    paddingVertical  : 1,
-  },
-  membersSection: {
-    backgroundColor  : colors.light.primary,
-    borderLeftWidth  : 2,
-    borderLeftColor  : colors.border.light,
-    marginLeft       : space.sm,
-    paddingLeft      : space.sm,
-    paddingVertical  : space.xs,
-    gap              : 2,
-  },
-  memberRow: {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    justifyContent   : 'space-between',
-    paddingVertical  : 6,
-    paddingHorizontal: space.xs,
-    borderRadius     : 6,
-    gap              : space.sm,
+  // ── Panneau ajout groupe ──
+  addGroupPanel : {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold,
+    gap            : 0,
+    marginTop      : space.md,
+    boxShadow      : shadows.gold,
+  } as any,
+  namePreview   : {
+    backgroundColor: colors.light.primary,
+    borderRadius   : radius.xs,
+    borderWidth    : 1,
+    borderColor    : colors.accent.gold + '40',
+    padding        : space.sm,
+    marginTop      : space.sm,
   },
 })
