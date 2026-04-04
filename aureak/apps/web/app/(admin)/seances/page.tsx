@@ -427,11 +427,11 @@ export default function SeancesPage() {
         </View>
 
         {/* Groupe cascade */}
-        {filterImplantId && filterGroups.length > 0 && (
+        {!!filterImplantId && filterGroups.length > 0 && (
           <View style={st.filterSection}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
               <AureakText style={st.filterLabel}>Groupe</AureakText>
-              {filterGroupId && (
+              {!!filterGroupId && (
                 <Pressable
                   style={st.generateBtn}
                   onPress={() => {

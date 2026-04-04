@@ -69,37 +69,37 @@ export default function YearView({ sessions, year, onMonthClick }: Props) {
                 {hasAny ? (
                   <>
                     <AureakText style={[st.totalCount, { color: accentColor }] as never}>
-                      {total} séance{total > 1 ? 's' : ''}
+                      {`${total} séance${total > 1 ? 's' : ''}`}
                     </AureakText>
                     <View style={st.breakdown}>
                       {planified > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: colors.accent.gold }]} />
-                          <AureakText style={st.breakdownText}>Planifiée{planified > 1 ? 's' : ''} : {planified}</AureakText>
+                          <AureakText style={st.breakdownText}>{`Planifiée${planified > 1 ? 's' : ''} : ${planified}`}</AureakText>
                         </View>
                       )}
                       {enCours > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#3B82F6' }]} />
-                          <AureakText style={st.breakdownText}>En cours : {enCours}</AureakText>
+                          <AureakText style={st.breakdownText}>{`En cours : ${enCours}`}</AureakText>
                         </View>
                       )}
                       {realized > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#10B981' }]} />
-                          <AureakText style={st.breakdownText}>Réalisée{realized > 1 ? 's' : ''} : {realized}</AureakText>
+                          <AureakText style={st.breakdownText}>{`Réalisée${realized > 1 ? 's' : ''} : ${realized}`}</AureakText>
                         </View>
                       )}
                       {reportee > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#F59E0B' }]} />
-                          <AureakText style={st.breakdownText}>Reportée{reportee > 1 ? 's' : ''} : {reportee}</AureakText>
+                          <AureakText style={st.breakdownText}>{`Reportée${reportee > 1 ? 's' : ''} : ${reportee}`}</AureakText>
                         </View>
                       )}
                       {cancelled > 0 && (
                         <View style={st.breakdownRow}>
                           <View style={[st.dot, { backgroundColor: '#DC2626' }]} />
-                          <AureakText style={st.breakdownText}>Annulée{cancelled > 1 ? 's' : ''} : {cancelled}</AureakText>
+                          <AureakText style={st.breakdownText}>{`Annulée${cancelled > 1 ? 's' : ''} : ${cancelled}`}</AureakText>
                         </View>
                       )}
                     </View>
