@@ -22,10 +22,7 @@ const styles = StyleSheet.create({
 export default function ThemesPage() {
   const router = useRouter()
   const { width } = useWindowDimensions()
-  const gridColumns = width < 640 ? 1
-    : width < 1100 ? 2
-    : width < 1500 ? 3
-    : 4
+  const gridColumns = width >= 1024 ? 5 : width >= 640 ? 3 : 2
 
   const [themes,          setThemes]          = useState<Theme[]>([])
   const [orderedThemes,   setOrderedThemes]   = useState<Theme[]>([])
@@ -155,7 +152,7 @@ export default function ThemesPage() {
         <View style={{
           display             : 'grid',
           gridTemplateColumns : `repeat(${gridColumns}, 1fr)`,
-          gap                 : space.lg,
+          gap                 : 12,
         } as never}>
           {visibleThemes.map((theme, index) => (
             <div
