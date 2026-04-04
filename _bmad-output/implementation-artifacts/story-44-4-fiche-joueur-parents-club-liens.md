@@ -1,6 +1,6 @@
 # Story 44.4 : Fiche joueur — parents liés et club actuel cliquable
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -17,12 +17,12 @@ afin d'accéder rapidement aux contacts et à la fiche club sans chercher manuel
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/children/[childId]/page.tsx` — section parents et club
-- [ ] Vérifier les champs disponibles : `parent1Name`, `parent1Email`, `parent1Phone`, `parent2Name`, `parent2Email`, `parent2Phone` dans le type `ChildDirectoryEntry`
-- [ ] Rendre le club actuel cliquable avec `Pressable` + `router.push` si `clubDirectoryId` présent
-- [ ] Vérifier section parents — si données manquantes : les afficher proprement avec fallback "Non renseigné"
-- [ ] Lire `aureak/apps/web/app/(admin)/clubs/[clubId]/page.tsx` — vérifier que `listChildrenOfClub` retourne bien les joueurs liés
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/children/[childId]/page.tsx` — section parents et club
+- [x] Vérifier les champs disponibles : `parent1Nom`, `parent1Email`, `parent1Tel`, `parent2Nom`, `parent2Email`, `parent2Tel` dans le type `ChildDirectoryEntry`
+- [x] Rendre le club actuel cliquable avec `Pressable` + `router.push` si `clubDirectoryId` présent — déjà implémenté (lignes 1524-1530 et header fiche)
+- [x] Vérifier section parents — affichage avec fallback "—" via `InfoRow` (lignes 1784-1820)
+- [x] Lire `aureak/apps/web/app/(admin)/clubs/[clubId]/page.tsx` — `listChildrenOfClub` correctement utilisé avec try/finally et console guard
+- [x] Vérifier TypeScript — 0 erreur
 
 ## Files
 
