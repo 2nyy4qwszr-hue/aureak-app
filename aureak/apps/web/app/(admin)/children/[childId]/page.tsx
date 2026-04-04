@@ -58,6 +58,18 @@ import type {
   Stage,
 } from '@aureak/types'
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Calcule la saison académique courante au format "AAAA-AAAA+1".
+ *  Règle : avant le 1er août on est encore dans la saison précédente. */
+function getCurrentFootballSeason(): string {
+  const now   = new Date()
+  const year  = now.getFullYear()
+  const month = now.getMonth() + 1 // 1-12
+  const startYear = month >= 8 ? year : year - 1
+  return `${startYear}-${startYear + 1}`
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type EditSection = 'identite' | 'club' | 'niveau' | 'adresse' | 'parent1' | 'parent2' | 'notes'
@@ -858,6 +870,246 @@ const mst = StyleSheet.create({
   errorBox  : { backgroundColor: colors.status.attention + '20', borderRadius: 6, padding: space.sm, marginBottom: space.sm, borderWidth: 1, borderColor: colors.status.attention },
 })
 
+// ── Affiliation section ────────────────────────────────────────────────────────
+
+function AffiliationSection({
+  childId, tenantId, child, history, onRefresh,
+}: {
+  childId  : string
+  tenantId : string
+  child    : ChildDirectoryEntry
+  history  : ChildDirectoryHistory[]
+  onRefresh: () => void
+}) {
+  const currentSaison = getCurrentFootballSeason()
+
+  // Affiliations = entrées history avec affilie = true
+  const affiliations = history.filter(h => h.affilie)
+
+  // Affiliation existante pour la saison courante
+  const currentAffiliation = affiliations.find(h => h.saison === currentSaison) ?? null
+
+  // Modal state
+  const [showModal,    setShowModal]    = useState(false)
+  const [searchText,   setSearchText]   = useState(child.currentClub ?? '')
+  const [searchResults, setSearchResults] = useState<Array<{ id: string; nom: string }>>([])
+  const [selectedClub, setSelectedClub] = useState<{ id: string; nom: string } | null>(null)
+  const [searching,    setSearching]    = useState(false)
+  const [saving,       setSaving]       = useState(false)
+  const [modalError,   setModalError]   = useState<string | null>(null)
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleOpenModal = () => {
+    setSearchText(child.currentClub ?? '')
+    setSelectedClub(null)
+    setSearchResults([])
+    setModalError(null)
+    setShowModal(true)
+  }
+
+  const handleSearch = (text: string) => {
+    setSearchText(text)
+    setSelectedClub(null)
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (text.length < 2) { setSearchResults([]); return }
+    searchTimer.current = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const { data } = await listClubDirectory({ search: text, pageSize: 8 })
+        setSearchResults(data.map(c => ({ id: c.id, nom: c.nom })))
+      } catch {
+        setSearchResults([])
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+  }
+
+  const handleSelectClub = (club: { id: string; nom: string }) => {
+    setSelectedClub(club)
+    setSearchText(club.nom)
+    setSearchResults([])
+  }
+
+  const handleValidate = async () => {
+    if (!selectedClub) {
+      setModalError('Veuillez sélectionner un club dans la liste.')
+      return
+    }
+    setSaving(true)
+    setModalError(null)
+    try {
+      await addChildHistoryEntry({
+        tenantId,
+        childId,
+        saison          : currentSaison,
+        clubNom         : selectedClub.nom,
+        clubDirectoryId : selectedClub.id,
+        affilie         : true,
+      })
+      setShowModal(false)
+      onRefresh()
+    } catch (e: unknown) {
+      setModalError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <View style={s.card}>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+        <SectionTitle>Club actuel & Affiliations</SectionTitle>
+        <Pressable style={s.addBtn} onPress={handleOpenModal}>
+          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>
+            + Valider affiliation
+          </AureakText>
+        </Pressable>
+      </View>
+
+      {/* Club actuel (champ texte libre) */}
+      <InfoRow label="Club actuel" value={child.currentClub} />
+      {child.clubDirectoryId && (
+        <InfoRow label="Saison courante" value={currentSaison} />
+      )}
+
+      {/* Affiliation saison courante */}
+      {currentAffiliation ? (
+        <View style={aff.currentBox}>
+          <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700', fontSize: 11 }}>
+            Affilié {currentSaison} — {currentAffiliation.clubNom}
+          </AureakText>
+          {currentAffiliation.clubDirectoryId && (
+            <AureakText variant="caption" style={{ color: '#059669', fontSize: 10 }}>Lié à l'annuaire</AureakText>
+          )}
+        </View>
+      ) : (
+        <View style={aff.warningBox}>
+          <AureakText variant="caption" style={{ color: '#92400E', fontSize: 11 }}>
+            Aucune affiliation enregistrée pour {currentSaison}
+          </AureakText>
+        </View>
+      )}
+
+      {/* Tableau des affiliations */}
+      {affiliations.length > 0 && (
+        <View style={{ marginTop: space.sm }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', fontSize: 10, letterSpacing: 0.8, marginBottom: 6 }}>
+            HISTORIQUE DES AFFILIATIONS
+          </AureakText>
+          {/* En-têtes */}
+          <View style={aff.tableHeader}>
+            <View style={aff.colSaison}><AureakText variant="caption" style={aff.headerText}>Saison</AureakText></View>
+            <View style={aff.colClub}><AureakText variant="caption" style={aff.headerText}>Club</AureakText></View>
+            <View style={aff.colCat}><AureakText variant="caption" style={aff.headerText}>Catégorie</AureakText></View>
+            <View style={aff.colNiveau}><AureakText variant="caption" style={aff.headerText}>Niveau</AureakText></View>
+            <View style={aff.colAff}><AureakText variant="caption" style={aff.headerText}>Affilié</AureakText></View>
+          </View>
+          {affiliations
+            .sort((a, b) => b.saison.localeCompare(a.saison))
+            .map(h => (
+              <View key={h.id} style={aff.tableRow}>
+                <View style={aff.colSaison}><AureakText variant="caption" style={{ fontSize: 12 }}>{h.saison}</AureakText></View>
+                <View style={aff.colClub}><AureakText variant="caption" style={{ fontSize: 12 }} numberOfLines={1}>{h.clubNom}</AureakText></View>
+                <View style={aff.colCat}><AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>{h.categorie ?? '—'}</AureakText></View>
+                <View style={aff.colNiveau}><AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>{h.niveau ?? '—'}</AureakText></View>
+                <View style={aff.colAff}><AureakText variant="caption" style={{ fontSize: 12, color: h.affilie ? '#059669' : colors.text.muted }}>{h.affilie ? '✓' : '✗'}</AureakText></View>
+              </View>
+            ))}
+        </View>
+      )}
+
+      {/* Modal validation affiliation */}
+      {showModal && (
+        <View style={mst.overlay}>
+          <View style={mst.box}>
+            <AureakText variant="h3" style={{ marginBottom: 4 }}>Valider une affiliation club</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.md }}>
+              Saison : <AureakText style={{ color: colors.accent.gold, fontWeight: '700' }}>{currentSaison}</AureakText>
+            </AureakText>
+
+            {modalError && (
+              <View style={mst.errorBox}>
+                <AureakText variant="caption" style={{ color: colors.status.attention }}>{modalError}</AureakText>
+              </View>
+            )}
+
+            <AureakText variant="caption" style={mst.fieldLabel}>Rechercher un club *</AureakText>
+            <View style={{ position: 'relative' as never, zIndex: 20 }}>
+              <TextInput
+                style={mst.input}
+                value={searchText}
+                onChangeText={handleSearch}
+                placeholder="Nom du club (min. 2 caractères)…"
+                placeholderTextColor={colors.text.muted}
+                autoComplete="off"
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+              {searching && (
+                <AureakText variant="caption" style={{ position: 'absolute' as never, right: 8, top: 8, color: colors.text.muted, fontSize: 11 }}>
+                  …
+                </AureakText>
+              )}
+              {searchResults.length > 0 && (
+                <View style={ac.dropdown}>
+                  {searchResults.map(c => (
+                    <Pressable key={c.id} style={ac.item} onPress={() => handleSelectClub(c)}>
+                      <AureakText variant="caption" style={ac.itemText}>{c.nom}</AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {selectedClub && (
+              <View style={aff.selectedBox}>
+                <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' }}>
+                  Club sélectionné : {selectedClub.nom}
+                </AureakText>
+              </View>
+            )}
+
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: space.sm }}>
+              L'affiliation sera créée avec <AureakText style={{ fontWeight: '700' }}>affilié = oui</AureakText> pour la saison {currentSaison}.
+            </AureakText>
+
+            <View style={mst.actions}>
+              <Pressable style={mst.cancelBtn} onPress={() => setShowModal(false)} disabled={saving}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
+              </Pressable>
+              <Pressable
+                style={[mst.saveBtn, (!selectedClub || saving) && { opacity: 0.5 }]}
+                onPress={handleValidate}
+                disabled={!selectedClub || saving}
+              >
+                <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                  {saving ? 'Enregistrement…' : 'Valider l\'affiliation'}
+                </AureakText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+    </View>
+  )
+}
+
+const aff = StyleSheet.create({
+  currentBox : { backgroundColor: '#ECFDF5', borderRadius: 8, padding: space.sm, marginTop: space.xs, borderWidth: 1, borderColor: '#6EE7B7', gap: 2 },
+  warningBox : { backgroundColor: '#FFFBEB', borderRadius: 8, padding: space.sm, marginTop: space.xs, borderWidth: 1, borderColor: '#FDE68A' },
+  selectedBox: { backgroundColor: '#ECFDF5', borderRadius: 6, padding: space.sm, marginTop: space.sm, borderWidth: 1, borderColor: '#6EE7B7' },
+  tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border.divider, paddingBottom: 4, marginBottom: 2 },
+  tableRow   : { flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
+  headerText : { color: colors.text.muted, fontWeight: '700', fontSize: 10, letterSpacing: 0.5 },
+  colSaison  : { width: 90 },
+  colClub    : { flex: 1 },
+  colCat     : { width: 80 },
+  colNiveau  : { width: 90 },
+  colAff     : { width: 50, textAlign: 'center' as never },
+})
+
 // ── Photos section ────────────────────────────────────────────────────────────
 
 function ChildPhotosSection({
@@ -1538,7 +1790,18 @@ export default function ChildDetailPage() {
           )}
         </View>
 
-        {/* ── [C.bis] Niveau équipe ── */}
+        {/* ── [C.bis] Affiliations par saison ── */}
+        {tenantId && (
+          <AffiliationSection
+            childId={childId!}
+            tenantId={tenantId}
+            child={child}
+            history={history}
+            onRefresh={loadChild}
+          />
+        )}
+
+        {/* ── [C.ter] Niveau équipe ── */}
         <View style={s.card}>
           <SectionHeader title="Niveau équipe" onEdit={() => startEdit('niveau')} isEditing={isEditing('niveau')} />
           {isEditing('niveau') ? (
