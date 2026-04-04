@@ -177,77 +177,73 @@ export default function SeancesPage() {
           </AureakText>
         </View>
       ) : (
-        <View style={{ gap: space.sm }}>
+        <View style={gridStyle as any}>
           {filtered.map(session => {
-            const isLinked  = (session.sessionsCount ?? 0) > 0
+            const isLinked   = (session.sessionsCount ?? 0) > 0
             const isDeleting = deletingId === session.id
+            const dateShort  = new Date(session.createdAt).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: '2-digit' })
             return (
-              <View key={session.id} style={st.row}>
-                {/* Active indicator */}
-                <View style={[st.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.border.light }]} />
-
-                <Pressable
-                  style={({ pressed }) => [{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }, pressed && { opacity: 0.8 }]}
-                  onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}
-                >
-                  <View style={{ flex: 1, gap: 6 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <AureakText variant="body" style={{ fontWeight: '600', fontSize: 14 }}>{session.title}</AureakText>
+              <View key={session.id} style={st.card}>
+                {/* Top row : active dot + title + ref */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={[st.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.border.light }]} />
+                  <Pressable
+                    style={({ pressed }) => [{ flex: 1 }, pressed && { opacity: 0.8 }]}
+                    onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <AureakText variant="body" style={{ fontWeight: '600', fontSize: 13, flex: 1 }} numberOfLines={1}>
+                        {session.title}
+                      </AureakText>
                       {session.trainingRef && (
-                        <View style={{ backgroundColor: colors.accent.gold + '18', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                        <View style={{ backgroundColor: colors.accent.gold + '18', borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1 }}>
                           <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10, fontWeight: '700' }}>#{session.trainingRef}</AureakText>
                         </View>
                       )}
-                      {!session.isActive && (
-                        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
-                      )}
                     </View>
+                  </Pressable>
+                </View>
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <MethodBadge method={session.method} />
-                      <ContextBadge contextType={session.contextType} />
-                      {session.moduleName && (
-                        <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>{session.moduleName}</AureakText>
-                      )}
-                    </View>
-
-                    {session.description && (
-                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12 }} numberOfLines={1}>
-                        {session.description}
-                      </AureakText>
+                {/* Badges row : méthode + niveau */}
+                <Pressable onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                    <MethodBadge method={session.method} />
+                    <LevelDot level={session.level} />
+                    {!session.isActive && (
+                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' }}>inactif</AureakText>
                     )}
                   </View>
 
-                  {/* Media indicators */}
-                  <View style={{ gap: 3, alignItems: 'flex-end' }}>
-                    {session.pdfUrl && (
-                      <View style={st.pdfBadge}>
-                        <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 10, fontWeight: '700' }}>PDF</AureakText>
-                      </View>
-                    )}
-                    {session.videoUrl && (
-                      <View style={[st.pdfBadge, { borderColor: '#4FC3F7' + '50', backgroundColor: '#4FC3F7' + '18' }]}>
-                        <AureakText variant="caption" style={{ color: '#4FC3F7', fontSize: 10, fontWeight: '700' }}>VID</AureakText>
-                      </View>
-                    )}
-                    {session.audioUrl && (
-                      <View style={[st.pdfBadge, { borderColor: '#CE93D8' + '50', backgroundColor: '#CE93D8' + '18' }]}>
-                        <AureakText variant="caption" style={{ color: '#CE93D8', fontSize: 10, fontWeight: '700' }}>AUDIO</AureakText>
-                      </View>
-                    )}
-                  </View>
+                  {/* Description tronquée */}
+                  {session.description && (
+                    <AureakText
+                      variant="caption"
+                      numberOfLines={1}
+                      style={{ color: colors.text.muted, fontSize: 11, marginTop: 4, overflow: 'hidden' } as any}
+                    >
+                      {session.description}
+                    </AureakText>
+                  )}
 
-                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 16 }}>›</AureakText>
+                  {/* Footer : blocs + date */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                    <AureakText variant="caption" style={{ color: colors.text.subtle, fontSize: 10 }}>
+                      {(session.sessionsCount ?? 0)} bloc{(session.sessionsCount ?? 0) !== 1 ? 's' : ''}
+                    </AureakText>
+                    <AureakText variant="caption" style={{ color: colors.text.subtle, fontSize: 10 }}>
+                      {dateShort}
+                    </AureakText>
+                  </View>
                 </Pressable>
 
-                {/* Supprimer — masqué si lié à une séance terrain (AC6) */}
+                {/* Supprimer — masqué si lié à une séance terrain */}
                 {!isLinked && (
                   <Pressable
-                    style={[st.deleteBtn, isDeleting && { opacity: 0.5 }]}
+                    style={[st.deleteBtn, isDeleting && { opacity: 0.5 }, { marginTop: 6, alignSelf: 'flex-start' }]}
                     onPress={() => setConfirmDeleteId(session.id)}
                     disabled={isDeleting}
                   >
-                    <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11, fontWeight: '600' }}>
+                    <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 10, fontWeight: '600' }}>
                       {isDeleting ? '…' : 'Supprimer'}
                     </AureakText>
                   </Pressable>
@@ -274,9 +270,16 @@ export default function SeancesPage() {
   )
 }
 
+// CSS grid — propriétés non reconnues par RN StyleSheet, déclarées séparément
+const gridStyle: React.CSSProperties = {
+  display            : 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+  gap                : space.sm,
+}
+
 const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, maxWidth: 900, alignSelf: 'center', width: '100%' },
+  content    : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
   header     : { gap: 4 },
   newBtn     : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   searchInput: {
@@ -292,15 +295,13 @@ const st = StyleSheet.create({
   filterRow: { flexDirection: 'row' },
   chip     : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   empty    : { padding: space.lg, alignItems: 'center' },
-  row      : {
-    flexDirection  : 'row',
-    alignItems     : 'center',
-    gap            : 12,
+  card: {
     backgroundColor: colors.light.surface,
     borderRadius   : 10,
     borderWidth    : 1,
     borderColor    : colors.border.light,
-    padding        : space.md,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
   },
   activeDot: { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
   pdfBadge : {
@@ -313,7 +314,7 @@ const st = StyleSheet.create({
   },
   deleteBtn: {
     paddingHorizontal: space.sm,
-    paddingVertical  : 5,
+    paddingVertical  : 4,
     borderRadius     : 6,
     borderWidth      : 1,
     borderColor      : colors.accent.red + '50',
