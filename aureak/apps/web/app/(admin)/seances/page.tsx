@@ -1,9 +1,10 @@
 'use client'
 // Page pilotage séances — vues Jour / Semaine / Mois / Année
 // Story 19.4 — Refonte UI/UX : cards visuelles, coaches sans N+1, calendrier mensuel
+// Story 47.3 — Hub séances unifié : tabs Séances | Présences | Évaluations
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, Modal, TextInput } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, usePathname } from 'expo-router'
 import {
   listImplantations,
   listAllGroups,
@@ -236,10 +237,19 @@ const gn = StyleSheet.create({
   btnPrimary: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 })
 
+// ── Hub tabs ────────────────────────────────────────────────────────────────────
+
+const HUB_TABS = [
+  { label: 'Séances',      route: '/(admin)/seances'     },
+  { label: 'Présences',    route: '/(admin)/presences'   },
+  { label: 'Évaluations',  route: '/(admin)/evaluations' },
+] as const
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function SeancesPage() {
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
 
   // ── Period ──────────────────────────────────────────────────────────────────
   const [period,  setPeriod]  = useState<PeriodType>('month')
@@ -379,6 +389,27 @@ export default function SeancesPage() {
             + Nouvelle séance
           </AureakText>
         </Pressable>
+      </View>
+
+      {/* ── Hub tabs : Séances | Présences | Évaluations ── */}
+      <View style={st.hubTabsRow}>
+        {HUB_TABS.map(tab => {
+          const active = pathname === tab.route || (tab.route === '/(admin)/seances' && pathname.startsWith('/seances'))
+          return (
+            <Pressable
+              key={tab.route}
+              style={[st.hubTab, active && st.hubTabActive]}
+              onPress={() => router.push(tab.route as never)}
+            >
+              <AureakText
+                variant="caption"
+                style={{ color: active ? colors.accent.gold : colors.text.muted, fontWeight: active ? '700' : '400' }}
+              >
+                {tab.label}
+              </AureakText>
+            </Pressable>
+          )
+        })}
       </View>
 
       {/* ── Period selector ── */}
@@ -620,4 +651,8 @@ const st = StyleSheet.create({
   skeletonCard: { height: 80, backgroundColor: colors.light.surface, borderRadius: 10, opacity: 0.5, borderWidth: 1, borderColor: colors.border.light },
 
   emptyState : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.xxl, alignItems: 'center', borderWidth: 1, borderColor: colors.border.light, boxShadow: shadows.sm },
+
+  hubTabsRow  : { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: colors.border.divider, marginBottom: space.xs },
+  hubTab      : { paddingHorizontal: space.md, paddingVertical: space.sm, marginBottom: -2 },
+  hubTabActive: { borderBottomWidth: 2, borderBottomColor: colors.accent.gold },
 })

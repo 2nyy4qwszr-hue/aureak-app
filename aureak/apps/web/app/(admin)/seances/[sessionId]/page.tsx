@@ -24,6 +24,20 @@ const STATUS_VARIANT: Record<string, 'gold' | 'present' | 'zinc' | 'attention'> 
   annulée: 'attention', reportée: 'gold',
 }
 
+// Story 47.3 — Styles actions rapides
+const actSt = StyleSheet.create({
+  quickBtn: {
+    flex: 1,
+    backgroundColor: colors.light.surface,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    borderRadius: radius.xs,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    alignItems: 'center' as never,
+  },
+})
+
 const styles = StyleSheet.create({
   container       : { flex: 1, backgroundColor: colors.light.primary },
   content         : { padding: space.xl, gap: space.lg },
@@ -559,6 +573,29 @@ export default function SessionDetailPage() {
             Aucune présence enregistrée
           </AureakText>
         )}
+      </View>
+
+      {/* Actions rapides (Story 47.3) — accès direct présences & évaluations */}
+      <View style={styles.card}>
+        <AureakText variant="label">Actions rapides</AureakText>
+        <View style={styles.row}>
+          <Pressable
+            style={actSt.quickBtn}
+            onPress={() => router.push(`/(admin)/presences?sessionId=${sessionId}` as never)}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' as never }}>
+              📋 Gérer les présences
+            </AureakText>
+          </Pressable>
+          <Pressable
+            style={actSt.quickBtn}
+            onPress={() => router.push(`/(admin)/evaluations?sessionId=${sessionId}` as never)}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' as never }}>
+              ⭐ Voir les évaluations
+            </AureakText>
+          </Pressable>
+        </View>
       </View>
 
       {/* Actions (Story 13.2) */}
