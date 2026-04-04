@@ -7,11 +7,12 @@ import {
   listSessionAttendees, addGuestToSession, removeGuestFromSession, listChildDirectory,
   postponeSession, cancelSessionWithShift, getChildDirectoryEntry,
   listSessionThemeBlocks, listSessionWorkshops,
+  listGroupMembersWithDetails,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -64,6 +65,8 @@ export default function SessionDetailPage() {
   const [themeBlocks,   setThemeBlocks]  = useState<SessionThemeBlock[]>([])
   // Story 21.3 — Workshops
   const [workshops,     setWorkshops]    = useState<SessionWorkshop[]>([])
+  // Story 46.1 — Group members
+  const [groupMembers,  setGroupMembers] = useState<GroupMemberWithDetails[]>([])
   const [guestSearch,   setGuestSearch]  = useState('')
   const [guestResults, setGuestResults]= useState<ChildDirectoryEntry[]>([])
   const [showGuestPicker, setShowGuestPicker] = useState(false)
@@ -102,6 +105,17 @@ export default function SessionDetailPage() {
       setAttendees(att.data)
       setThemeBlocks(tb)
       setWorkshops(ws)
+
+      // Story 46.1 — Load group members if group is set
+      if (s.data.groupId) {
+        const members = await listGroupMembersWithDetails(s.data.groupId)
+        const sorted = [...members].sort((a, b) =>
+          a.displayName.localeCompare(b.displayName, 'fr', { sensitivity: 'base' })
+        )
+        setGroupMembers(sorted)
+      } else {
+        setGroupMembers([])
+      }
 
       // Resolve coach names from profiles
       if (c.data.length > 0) {
@@ -234,6 +248,20 @@ export default function SessionDetailPage() {
   const sessionDate = new Date(session.scheduledAt).toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long',
   })
+
+  // Story 46.1 — Avatar initials helper
+  const initials = (name: string) =>
+    name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+
+  // Story 46.1 — Age from birth_date
+  const getAge = (birthDate: string | null): string => {
+    if (!birthDate) return ''
+    const birth = new Date(birthDate)
+    const today = new Date()
+    const age = today.getFullYear() - birth.getFullYear() -
+      (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
+    return `${age} ans`
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -401,6 +429,56 @@ export default function SessionDetailPage() {
           <AureakText variant="caption" style={{ color: colors.text.muted }}>
             Aucun coach assigné
           </AureakText>
+        )}
+      </View>
+
+      {/* Joueurs du groupe (Story 46.1) */}
+      <View style={styles.card}>
+        {session.groupId ? (
+          <>
+            <AureakText variant="label">
+              {`Joueurs du groupe (${groupMembers.length})`}
+            </AureakText>
+            {groupMembers.length === 0 ? (
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                Aucun joueur dans ce groupe
+              </AureakText>
+            ) : (
+              groupMembers.map(member => (
+                <View key={member.childId} style={[styles.row, { paddingVertical: 4 }]}>
+                  {/* Avatar initiales */}
+                  <View style={{
+                    width: 36, height: 36, borderRadius: 18,
+                    backgroundColor: colors.accent.gold + '30',
+                    borderWidth: 1, borderColor: colors.accent.gold + '60',
+                    alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <AureakText style={{ fontSize: 12, fontWeight: '700' as never, color: colors.accent.gold }}>
+                      {initials(member.displayName)}
+                    </AureakText>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AureakText variant="body" style={{ fontWeight: '600' as never }}>
+                      {member.displayName}
+                    </AureakText>
+                    {member.birthDate ? (
+                      <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                        {getAge(member.birthDate)}
+                      </AureakText>
+                    ) : null}
+                  </View>
+                </View>
+              ))
+            )}
+          </>
+        ) : (
+          <>
+            <AureakText variant="label">Joueurs du groupe</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+              Séance ponctuelle — aucun groupe fixe
+            </AureakText>
+          </>
         )}
       </View>
 
