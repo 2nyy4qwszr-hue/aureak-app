@@ -12,6 +12,11 @@ import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 
+function KeyboardHandler() {
+  useKeyboardShortcuts()
+  return null
+}
+
 type NavGroup = {
   label : string
   items : { label: string; href: string }[]
@@ -82,8 +87,6 @@ export default function AdminLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
   })
-  useKeyboardShortcuts()
-
   const toggleSidebar = () => setSidebarCollapsed(v => {
     const next = !v
     try { localStorage.setItem('sidebar-collapsed', String(next)) } catch { /* noop */ }
@@ -116,6 +119,7 @@ export default function AdminLayout() {
     <ToastProvider>
     <NotificationProvider>
     <SearchProvider>
+    <KeyboardHandler />
     <XStack flex={1} style={{ height: '100vh' as never }}>
 
       {/* ── Mobile overlay ── */}
