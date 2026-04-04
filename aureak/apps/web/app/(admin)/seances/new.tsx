@@ -92,7 +92,10 @@ function SearchableSelect({
   const selected = options.find(o => o.id === value)
 
   return (
-    <View style={[ss.wrap, { zIndex: open ? zBase + 100 : zBase }]}>
+    <View
+      style={[ss.wrap, { zIndex: open ? zBase + 100 : zBase }]}
+      {...(Platform.OS === 'web' ? { 'data-form-type': 'other' } as never : {})}
+    >
       <Pressable
         style={[ss.trigger, disabled && ss.triggerDisabled]}
         onPress={() => { if (!disabled) { setOpen(v => !v); setQ('') } }}
@@ -120,6 +123,7 @@ function SearchableSelect({
             autoComplete={'off' as never}
             autoCorrect={false}
             autoCapitalize="none"
+            textContentType="none"
             spellCheck={false}
             enterKeyHint="search"
             {...(Platform.OS === 'web' ? { type: 'search', 'data-form-type': 'other' } as never : {})}
@@ -188,7 +192,10 @@ function MultiSearchableSelect({
   const labelMap = useMemo(() => Object.fromEntries(options.map(o => [o.id, o.label])), [options])
 
   return (
-    <View style={[mss.wrap, { zIndex: open ? zBase + 100 : zBase }]}>
+    <View
+      style={[mss.wrap, { zIndex: open ? zBase + 100 : zBase }]}
+      {...(Platform.OS === 'web' ? { 'data-form-type': 'other' } as never : {})}
+    >
 
       {/* Chips des éléments sélectionnés */}
       {selected.length > 0 && (
@@ -232,6 +239,7 @@ function MultiSearchableSelect({
             autoComplete={'off' as never}
             autoCorrect={false}
             autoCapitalize="none"
+            textContentType="none"
             spellCheck={false}
             enterKeyHint="search"
             {...(Platform.OS === 'web' ? { type: 'search', 'data-form-type': 'other' } as never : {})}
