@@ -1264,6 +1264,7 @@ export type MethodologySession = {
   objective   : string | null
   level       : MethodologyLevel | null
   notes       : string | null
+  modules     : Array<{ num: number; titre: string; range: string }> | null  // Story 43.3 — Goal & Player
   isActive    : boolean
   deletedAt   : string | null
   createdAt   : string

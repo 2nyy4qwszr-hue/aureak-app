@@ -62,6 +62,7 @@ function mapSession(row: Record<string, unknown>): MethodologySession {
     objective    : str(row.objective),
     level        : str(row.level)        as MethodologyLevel       | null,
     notes        : str(row.notes),
+    modules      : (row.modules as Array<{ num: number; titre: string; range: string }> | null) ?? null,
     isActive     : row.is_active  as boolean,
     deletedAt    : str(row.deleted_at),
     createdAt    : row.created_at as string,
@@ -249,6 +250,8 @@ export async function toggleMethodologySituation(
 
 // ── Séances pédagogiques ──────────────────────────────────────────────────────
 
+export type MethodologyModule = { num: number; titre: string; range: string }
+
 export type CreateMethodologySessionParams = {
   tenantId    : string
   title       : string
@@ -263,6 +266,7 @@ export type CreateMethodologySessionParams = {
   audioUrl?   : string | null
   description?: string | null
   notes?      : string | null
+  modules?    : MethodologyModule[] | null
 }
 
 export async function listMethodologySessions(
@@ -321,6 +325,7 @@ export async function createMethodologySession(
       audio_url   : params.audioUrl    ?? null,
       description : params.description ?? null,
       notes       : params.notes       ?? null,
+      modules     : params.modules     ?? null,
     })
     .select()
     .single()
@@ -346,6 +351,7 @@ export async function updateMethodologySession(
   if (patch.audioUrl    !== undefined) u.audio_url    = patch.audioUrl
   if (patch.description !== undefined) u.description  = patch.description
   if (patch.notes       !== undefined) u.notes        = patch.notes
+  if (patch.modules     !== undefined) u.modules      = patch.modules
 
   const { error } = await supabase.from('methodology_sessions').update(u).eq('id', id)
   return { error: error ?? null }

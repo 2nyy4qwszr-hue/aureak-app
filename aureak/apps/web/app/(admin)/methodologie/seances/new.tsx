@@ -11,6 +11,7 @@ import {
   linkMethodologySessionSituation,
   listMethodologyThemes,
   listMethodologySituations,
+  type MethodologyModule,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
@@ -21,6 +22,16 @@ import {
   type MethodologyMethod, type MethodologyContextType,
   type MethodologyTheme, type MethodologySituation,
 } from '@aureak/types'
+
+// ── Constantes ────────────────────────────────────────────────────────────────
+
+const GOAL_AND_PLAYER_METHOD = 'Goal and Player' as const
+
+const DEFAULT_MODULES: MethodologyModule[] = [
+  { num: 1, titre: '', range: '1-5'   },
+  { num: 2, titre: '', range: '6-10'  },
+  { num: 3, titre: '', range: '11-15' },
+]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -318,6 +329,9 @@ export default function NewSeancePage() {
   const [selectedThemes, setSelectedThemes] = useState<SelectedTheme[]>([])
   const [selectedSituations, setSelectedSituations] = useState<string[]>([])
 
+  // Goal & Player modules
+  const [modules, setModules] = useState<MethodologyModule[]>(DEFAULT_MODULES)
+
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState<string | null>(null)
 
@@ -350,6 +364,7 @@ export default function NewSeancePage() {
     setError(null)
 
     try {
+      const isGoalAndPlayer = method === GOAL_AND_PLAYER_METHOD
       const { data, error: err } = await createMethodologySession({
         tenantId,
         title      : finalTitle.trim(),
@@ -361,6 +376,7 @@ export default function NewSeancePage() {
         pdfUrl     : pdfUrl.trim()    || null,
         videoUrl   : videoUrl.trim()  || null,
         audioUrl   : audioUrl.trim()  || null,
+        modules    : isGoalAndPlayer ? modules : null,
       })
 
       if (err || !data) {
@@ -417,6 +433,30 @@ export default function NewSeancePage() {
           label={c => METHODOLOGY_CONTEXT_LABELS[c]}
         />
       </SectionCard>
+
+      {/* ── 2b. Modules Goal & Player ── */}
+      {method === GOAL_AND_PLAYER_METHOD && (
+        <SectionCard title="Modules Goal & Player">
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginBottom: space.sm }}>
+            5 exercices par module — titres éditables, plages fixes.
+          </AureakText>
+          {modules.map((mod, idx) => (
+            <View key={mod.num} style={{ gap: 4, marginBottom: space.sm }}>
+              <Label>{`Module ${mod.num} (exercices ${mod.range})`}</Label>
+              <TextInput
+                style={s.input}
+                value={mod.titre}
+                onChangeText={text => {
+                  const next = modules.map((m, i) => i === idx ? { ...m, titre: text } : m)
+                  setModules(next)
+                }}
+                placeholder={`Titre du module ${mod.num}…`}
+                placeholderTextColor={colors.text.muted}
+              />
+            </View>
+          ))}
+        </SectionCard>
+      )}
 
       {/* ── 3. Module ── */}
       <SectionCard title="3. Module">

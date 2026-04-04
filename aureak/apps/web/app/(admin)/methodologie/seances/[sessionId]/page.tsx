@@ -516,6 +516,30 @@ export default function SeanceDetailPage() {
             )}
           </SectionCard>
 
+          {/* Modules Goal & Player */}
+          {session.method === 'Goal and Player' && session.modules && session.modules.length > 0 && (
+            <SectionCard style={{ marginTop: space.sm }}>
+              <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 0.8, fontSize: 10, textTransform: 'uppercase' as never, marginBottom: 8 }}>
+                MODULES GOAL & PLAYER
+              </AureakText>
+              {session.modules.map(mod => (
+                <View key={mod.num} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: colors.border.divider }}>
+                  <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent.gold + '20', borderWidth: 1, borderColor: colors.accent.gold, alignItems: 'center', justifyContent: 'center' }}>
+                    <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '900', fontSize: 12 }}>{mod.num}</AureakText>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AureakText variant="body" style={{ fontSize: 13, fontWeight: '600', color: colors.text.dark }}>
+                      {mod.titre || `Module ${mod.num}`}
+                    </AureakText>
+                    <AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>
+                      Exercices {mod.range}
+                    </AureakText>
+                  </View>
+                </View>
+              ))}
+            </SectionCard>
+          )}
+
           {/* Médias */}
           {(session.pdfUrl || session.videoUrl || session.audioUrl) && (
             <SectionCard>

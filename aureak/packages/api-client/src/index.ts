@@ -395,6 +395,7 @@ export type {
   CreateMethodologyThemeParams,
   CreateMethodologySituationParams,
   CreateMethodologySessionParams,
+  MethodologyModule,
 } from './methodology'
 
 // ── Résolution de profils (ARCH-1 : accès centralisé) ────────────────────────
