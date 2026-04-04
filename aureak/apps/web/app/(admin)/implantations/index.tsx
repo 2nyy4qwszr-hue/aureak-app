@@ -1,5 +1,6 @@
 'use client'
 // Story 9.4 — Implantations & Groupes — nommage standardisé automatique
+// Story 44.6 — Stats groupes + listing enfants expandable
 import { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -13,6 +14,7 @@ import {
   createGroup,
   updateGroup,
   deleteGroup,
+  listGroupMembersWithDetails,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import {
@@ -25,7 +27,7 @@ import {
 } from '@aureak/business-logic'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { Implantation, Group, GroupMethod } from '@aureak/types'
+import type { Implantation, Group, GroupMethod, GroupMemberWithDetails } from '@aureak/types'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -181,11 +183,16 @@ export default function ImplantationsPage() {
   const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
 
-  const [implantations, setImplantations] = useState<Implantation[]>([])
+  const [implantations, setImplantations]   = useState<Implantation[]>([])
   const [groups, setGroups]               = useState<Record<string, Group[]>>({})
   const [loading, setLoading]             = useState(true)
   const [loadError, setLoadError]         = useState<string | null>(null)
   const [expanded, setExpanded]           = useState<string | null>(null)
+
+  // Story 44.6 — stats enfants par groupe
+  const [membersByGroup, setMembersByGroup] = useState<Record<string, GroupMemberWithDetails[]>>({})
+  const [loadingMembers, setLoadingMembers] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   // Create implantation
   const [showCreate, setShowCreate] = useState(false)
@@ -226,6 +233,30 @@ export default function ImplantationsPage() {
   const loadGroups = async (implantationId: string) => {
     const { data } = await listGroupsByImplantation(implantationId)
     setGroups(prev => ({ ...prev, [implantationId]: data }))
+    // Charger les membres pour tous les groupes de cette implantation (parallèle)
+    await loadMembersForGroups(data.map(g => g.id))
+  }
+
+  // Story 44.6 — chargement parallèle des membres pour une liste de groupIds
+  const loadMembersForGroups = async (groupIds: string[]) => {
+    if (groupIds.length === 0) return
+    setLoadingMembers(true)
+    try {
+      const results = await Promise.all(
+        groupIds.map(gid => listGroupMembersWithDetails(gid).then(members => ({ gid, members })))
+      )
+      setMembersByGroup(prev => {
+        const next = { ...prev }
+        for (const { gid, members } of results) {
+          next[gid] = members
+        }
+        return next
+      })
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[Implantations] loadMembersForGroups error:', err)
+    } finally {
+      setLoadingMembers(false)
+    }
   }
 
   const handleExpand = (id: string) => {
@@ -320,6 +351,25 @@ export default function ImplantationsPage() {
     await loadGroups(implId)
   }
 
+  // Story 44.6 — toggle expansion liste enfants d'un groupe
+  const toggleGroupExpand = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+      }
+      return next
+    })
+  }
+
+  // Story 44.6 — compter le total d'enfants pour une implantation
+  const countChildrenForImplantation = (implId: string): number => {
+    const implGroups = groups[implId] ?? []
+    return implGroups.reduce((total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0)
+  }
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -385,7 +435,16 @@ export default function ImplantationsPage() {
             ) : (
               <View style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                  <AureakText variant="h3">{impl.name}</AureakText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <AureakText variant="h3">{impl.name}</AureakText>
+                    {groups[impl.id] !== undefined && countChildrenForImplantation(impl.id) > 0 && (
+                      <View style={styles.childrenBadge}>
+                        <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
+                          {countChildrenForImplantation(impl.id)} joueurs
+                        </AureakText>
+                      </View>
+                    )}
+                  </View>
                   {impl.address && (
                     <AureakText variant="caption" style={{ color: colors.text.muted }}>{impl.address}</AureakText>
                   )}
@@ -436,14 +495,92 @@ export default function ImplantationsPage() {
                     Aucun groupe — créez le premier ci-dessous.
                   </AureakText>
                 ) : (
-                  (groups[impl.id] ?? []).map(g => (
-                    <GroupRow
-                      key={g.id}
-                      group={g}
-                      onManage={() => router.push(`/groups/${g.id}` as never)}
-                      onDelete={() => handleDeleteGroup(impl.id, g.id)}
-                    />
-                  ))
+                  (groups[impl.id] ?? []).map(g => {
+                    const members      = membersByGroup[g.id] ?? []
+                    const memberCount  = members.length
+                    const isExpanded   = expandedGroups.has(g.id)
+                    const methodColor  = g.method ? METHOD_COLOR[g.method] : colors.text.muted
+                    return (
+                      <View key={g.id}>
+                        <View style={[styles.groupRow, { borderLeftColor: methodColor, borderLeftWidth: 3 }]}>
+                          <View style={{ flex: 1, gap: 2 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <AureakText variant="body" style={{ fontWeight: '600' }}>{g.name}</AureakText>
+                              {/* Badge nombre d'enfants (Story 44.6) */}
+                              <View style={styles.memberCountBadge}>
+                                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
+                                  {memberCount} joueur{memberCount !== 1 ? 's' : ''}
+                                </AureakText>
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                              {g.method && (
+                                <View style={methodBadgeStyle(g.method)}>
+                                  <AureakText variant="caption" style={{ color: methodColor, fontWeight: '600' }}>
+                                    {g.method}
+                                  </AureakText>
+                                </View>
+                              )}
+                              {g.dayOfWeek && g.startHour !== null && (
+                                <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                                  {g.dayOfWeek} · {formatTime(g.startHour!, g.startMinute ?? 0)}
+                                  {g.durationMinutes ? ` · ${g.durationMinutes} min` : ''}
+                                </AureakText>
+                              )}
+                            </View>
+                          </View>
+                          <View style={{ flexDirection: 'row', gap: 6 }}>
+                            {/* Toggle enfants (Story 44.6) */}
+                            <Pressable
+                              onPress={() => toggleGroupExpand(g.id)}
+                              style={[styles.deleteBtn, { borderColor: colors.border.light }]}
+                            >
+                              <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+                                {isExpanded ? '▴ Joueurs' : '▾ Joueurs'}
+                              </AureakText>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => router.push(`/groups/${g.id}` as never)}
+                              style={[styles.deleteBtn, { borderColor: colors.accent.gold + '60' }]}
+                            >
+                              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>Gérer →</AureakText>
+                            </Pressable>
+                            <Pressable onPress={() => handleDeleteGroup(impl.id, g.id)} style={styles.deleteBtn}>
+                              <AureakText variant="caption" style={{ color: colors.status.absent }}>Suppr.</AureakText>
+                            </Pressable>
+                          </View>
+                        </View>
+
+                        {/* Section expandable liste enfants (Story 44.6) */}
+                        {isExpanded && (
+                          <View style={styles.membersSection}>
+                            {members.length === 0 ? (
+                              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' }}>
+                                Aucun joueur inscrit
+                              </AureakText>
+                            ) : (
+                              members.map(m => (
+                                <Pressable
+                                  key={m.childId}
+                                  style={styles.memberRow}
+                                  onPress={() => router.push(`/children/${m.childId}` as never)}
+                                >
+                                  <AureakText variant="body" style={{ fontWeight: '500', flex: 1 }}>
+                                    {m.displayName}
+                                  </AureakText>
+                                  {m.currentClub && (
+                                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                                      {m.currentClub}
+                                    </AureakText>
+                                  )}
+                                </Pressable>
+                              ))
+                            )}
+                          </View>
+                        )}
+                      </View>
+                    )
+                  })
                 )}
 
                 {/* Add group form */}
@@ -616,5 +753,40 @@ const styles = StyleSheet.create({
     borderRadius     : 6,
     borderStyle      : 'dashed' as const,
     alignItems       : 'center',
+  },
+  // Story 44.6 — stats enfants
+  childrenBadge: {
+    backgroundColor  : colors.accent.gold + '18',
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold + '60',
+    borderRadius     : 12,
+    paddingHorizontal: 8,
+    paddingVertical  : 2,
+  },
+  memberCountBadge: {
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : 10,
+    paddingHorizontal: 7,
+    paddingVertical  : 1,
+  },
+  membersSection: {
+    backgroundColor  : colors.light.primary,
+    borderLeftWidth  : 2,
+    borderLeftColor  : colors.border.light,
+    marginLeft       : space.sm,
+    paddingLeft      : space.sm,
+    paddingVertical  : space.xs,
+    gap              : 2,
+  },
+  memberRow: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    justifyContent   : 'space-between',
+    paddingVertical  : 6,
+    paddingHorizontal: space.xs,
+    borderRadius     : 6,
+    gap              : space.sm,
   },
 })
