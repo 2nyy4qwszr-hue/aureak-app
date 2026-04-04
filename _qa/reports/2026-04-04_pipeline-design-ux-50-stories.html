@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rapport Pipeline — Design & UX · 50 Stories · Aureak · 4 avril 2026</title>
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #F3EBD0;
+      --beige: #F3EFE7;
+      --white: #FFFFFF;
+      --dark: #1A1A1A;
+      --dark2: #2A2A2A;
+      --text: #2D2D2D;
+      --muted: #6B7280;
+      --border: #E5E0D8;
+      --red: #E05252;
+      --green: #10B981;
+      --blue: #3B82F6;
+      --purple: #8B5CF6;
+      --orange: #F59E0B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--beige);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--dark);
+      color: white;
+      padding: 48px 64px;
+      border-bottom: 4px solid var(--gold);
+    }
+    .header-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .header h1 { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; }
+    .header h1 span { color: var(--gold); }
+    .header p { color: #9CA3AF; margin-top: 6px; font-size: 15px; }
+    .stats-grid { display: flex; gap: 32px; flex-wrap: wrap; }
+    .stat-box { text-align: center; }
+    .stat-box .num { font-size: 40px; font-weight: 900; color: var(--gold); line-height: 1; }
+    .stat-box .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #9CA3AF; margin-top: 4px; }
+
+    /* ── Nav ── */
+    .nav {
+      background: var(--dark2);
+      padding: 0 64px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      border-bottom: 1px solid #333;
+    }
+    .nav a {
+      color: #9CA3AF;
+      text-decoration: none;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav a:hover { color: white; }
+    .nav a.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ── Main ── */
+    .main { max-width: 1200px; margin: 0 auto; padding: 48px 32px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 64px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .section-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .section-title { font-size: 24px; font-weight: 800; }
+    .section-subtitle { font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Story Card ── */
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+      gap: 24px;
+    }
+    .story-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+    .story-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+    .story-card.already-done { border-left: 4px solid var(--blue); }
+    .story-card.skipped { border-left: 4px solid var(--muted); opacity: 0.7; }
+
+    .story-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .story-id {
+      font-size: 11px; font-weight: 700; font-family: monospace;
+      color: var(--muted); background: var(--beige);
+      padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+    }
+    .story-status {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+    }
+    .status-done { background: #D1FAE5; color: #065F46; }
+    .status-already { background: #DBEAFE; color: #1E40AF; }
+    .status-skip { background: #F3F4F6; color: #6B7280; }
+
+    .story-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .story-commit { font-size: 11px; color: var(--muted); font-family: monospace; }
+
+    .story-sections { margin-top: 16px; }
+    .story-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--gold); margin-bottom: 4px;
+    }
+    .story-text { font-size: 13.5px; color: var(--text); margin-bottom: 12px; line-height: 1.5; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .tag { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+    .tag-tokens { background: #FEF3C7; color: #92400E; }
+    .tag-ui { background: #D1FAE5; color: #065F46; }
+    .tag-ux { background: #EDE9FE; color: #5B21B6; }
+    .tag-ts { background: #DBEAFE; color: #1E40AF; }
+    .tag-api { background: #FCE7F3; color: #9D174D; }
+    .tag-edge { background: #FEE2E2; color: #991B1B; }
+    .tag-layout { background: #F0FDF4; color: #14532D; }
+    .tag-hook { background: #FFF7ED; color: #C2410C; }
+
+    .files-list { margin-top: 8px; }
+    .file-item {
+      font-size: 12px; font-family: monospace; color: #4B5563;
+      padding: 2px 0; display: flex; align-items: center; gap: 6px;
+    }
+    .file-new::before { content: '+'; color: var(--green); font-weight: 700; }
+    .file-mod::before { content: '~'; color: var(--orange); font-weight: 700; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* ── Overview ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+    .overview-card {
+      background: var(--white); border-radius: 14px; padding: 20px;
+      border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .overview-card h3 {
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+    }
+    .overview-card .val { font-size: 36px; font-weight: 900; color: var(--dark); }
+    .overview-card .val.gold { color: var(--gold); }
+    .overview-card .val.green { color: var(--green); }
+    .overview-card .val.blue { color: var(--blue); }
+    .overview-card .val.red { color: var(--red); }
+    .overview-card p { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    /* ── Timeline ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 7px; top: 0; bottom: 0;
+      width: 2px; background: var(--gold-light);
+    }
+    .timeline-item { position: relative; margin-bottom: 20px; }
+    .timeline-dot {
+      position: absolute; left: -28px; top: 4px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--gold); border: 2px solid var(--white);
+      box-shadow: 0 0 0 2px var(--gold-light);
+    }
+    .timeline-item .commit { font-family: monospace; font-size: 11px; color: var(--muted); }
+    .timeline-item .msg { font-size: 14px; font-weight: 600; color: var(--text); }
+    .timeline-item .detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Phase title ── */
+    h2.phase-title {
+      font-size: 18px; font-weight: 800; color: var(--dark);
+      margin: 40px 0 20px; padding: 12px 20px;
+      background: var(--gold-light); border-radius: 10px;
+      border-left: 4px solid var(--gold);
+    }
+
+    /* ── Badge ── */
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .badge { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1.5px solid; }
+    .badge-green { color: var(--green); border-color: var(--green); background: #D1FAE5; }
+    .badge-gold { color: var(--gold); border-color: var(--gold); background: var(--gold-light); }
+    .badge-blue { color: var(--blue); border-color: var(--blue); background: #DBEAFE; }
+    .badge-red { color: var(--red); border-color: var(--red); background: #FEE2E2; }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--dark); color: #6B7280;
+      text-align: center; padding: 32px; font-size: 13px;
+    }
+    .footer span { color: var(--gold); }
+
+    @media (max-width: 768px) {
+      .header { padding: 32px 24px; }
+      .nav { padding: 0 16px; }
+      .main { padding: 32px 16px; }
+      .story-grid { grid-template-columns: 1fr; }
+      .overview-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════ -->
+<div class="header">
+  <div class="header-meta">
+    <div>
+      <h1>Pipeline <span>Design & UX</span></h1>
+      <p>50 stories — Epics 32–41 · Session du 4 avril 2026</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="num">44</div>
+        <div class="lbl">Done</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">3</div>
+        <div class="lbl">Déjà impl.</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">1</div>
+        <div class="lbl">Skip (vide)</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">7</div>
+        <div class="lbl">Commits</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     NAV
+════════════════════════════════════════════════════════ -->
+<nav class="nav">
+  <a href="#overview" class="active">Vue d'ensemble</a>
+  <a href="#commits">Commits</a>
+  <a href="#epic32">Epic 32 — Bugs</a>
+  <a href="#epic33">Epic 33 — Tokens</a>
+  <a href="#epic34">Epic 34 — Navigation</a>
+  <a href="#epic35">Epic 35 — États</a>
+  <a href="#epic36">Epic 36 — Couleurs</a>
+  <a href="#epic37">Epic 37 — UX Feedback</a>
+  <a href="#epic38">Epic 38 — Nav interne</a>
+  <a href="#epic39">Epic 39 — Formulaires</a>
+  <a href="#epic40">Epic 40 — Listes</a>
+  <a href="#epic41">Epic 41 — Features</a>
+</nav>
+
+<div class="main">
+
+<!-- ════════════════════════════════════════════════════════
+     OVERVIEW
+════════════════════════════════════════════════════════ -->
+<section class="section" id="overview">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F3EBD0;">📊</div>
+    <div>
+      <div class="section-title">Vue d'ensemble</div>
+      <div class="section-subtitle">Résumé du pipeline complet · 4 avril 2026</div>
+    </div>
+  </div>
+
+  <div class="overview-grid">
+    <div class="overview-card">
+      <h3>Stories proposées</h3>
+      <div class="val gold">50</div>
+      <p>10 bugs/design + 20 design + 20 UX</p>
+    </div>
+    <div class="overview-card">
+      <h3>Implémentées</h3>
+      <div class="val green">44</div>
+      <p>Code écrit + commité cette session</p>
+    </div>
+    <div class="overview-card">
+      <h3>Déjà présentes</h3>
+      <div class="val blue">3</div>
+      <p>Pagination, coachs, messagerie</p>
+    </div>
+    <div class="overview-card">
+      <h3>Non implémentées</h3>
+      <div class="val red">3</div>
+      <p>33-4 tokens espacement, 33-2 partiel, utilisateurs/new</p>
+    </div>
+    <div class="overview-card">
+      <h3>Fichiers modifiés</h3>
+      <div class="val gold">30+</div>
+      <p>UI, API client, Edge Functions, tokens</p>
+    </div>
+    <div class="overview-card">
+      <h3>Commits</h3>
+      <div class="val">7</div>
+      <p>TypeScript ✅ sur chaque commit</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     COMMITS TIMELINE
+════════════════════════════════════════════════════════ -->
+<section class="section" id="commits">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF3C7;">📦</div>
+    <div>
+      <div class="section-title">Commits de la session</div>
+      <div class="section-subtitle">7 commits · branch main</div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">8884443</div>
+      <div class="msg">feat(epic-32/33/34/38/40/41): design & UX pipeline — tokens, sidebar dark, back buttons, keyboard shortcuts, sidebar collapse</div>
+      <div class="detail">Tokens status/overlay/entity · Sidebar #1A1A1A · EmptyState + ConfirmDialog · Raccourcis Cmd+K/N/Esc · Collapse localStorage</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">3abaf55</div>
+      <div class="msg">feat(epic-37): toast avec action Annuler — ToastAction type + bouton inline</div>
+      <div class="detail">ToastContext étendu · interface ToastAction · render bouton inline dans le toast</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">9b988b6</div>
+      <div class="msg">feat(epic-35/39/40): empty state joueurs, tri colonnes clubs, hook auto-save brouillon</div>
+      <div class="detail">EmptyState children/index · Sort chips Nom/Ville/Province · useDraftSave hook</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">b43347a</div>
+      <div class="msg">feat(epic-35/38/39): skeletons UI, breadcrumbs détail, hook auto-save, fix Stage.name</div>
+      <div class="detail">DetailSkeleton + ListRowSkeleton + CardSkeleton · HierarchyBreadcrumb dans clubs/children/stages · fix stage?.name</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">1f06c4f</div>
+      <div class="msg">feat(epic-35/39/40): validation inline clubs/new, empty state joueurs, tri colonnes clubs, back buttons absolus</div>
+      <div class="detail">FormField error prop + onBlur · fieldErrors state · router.push absolu sur tous les back buttons</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">0114735</div>
+      <div class="msg">feat(epic-35/37/40/41): empty states détail, skeletons, ConfirmDialog delete, dirty state, bulk clubs, SMS Twilio</div>
+      <div class="detail">Skeleton historique + liens · ConfirmDialog delete branché · isDirty badge · bulk actions clubs · Twilio guards Edge Function</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="commit">6783f2c</div>
+      <div class="msg">fix(epic-32): bug useSearch hors SearchProvider — KeyboardHandler extrait dans le provider</div>
+      <div class="detail">Bug critique post-login résolu · KeyboardHandler component rendu inside SearchProvider</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 32 — BUGS
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic32">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEE2E2;">🔴</div>
+    <div>
+      <div class="section-title">Epic 32 — Bugs critiques</div>
+      <div class="section-subtitle">2 stories · 2 done</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-32-1</div>
+          <div class="story-title">Bug : useSearch hors SearchProvider</div>
+          <div class="story-commit">6783f2c — fix(epic-32)</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row">
+        <span class="tag tag-layout">Layout</span>
+        <span class="tag tag-hook">Hook</span>
+      </div>
+      <div class="story-sections">
+        <div class="story-label">Problème</div>
+        <div class="story-text"><code>useKeyboardShortcuts()</code> était appelé à la ligne 85 de <code>_layout.tsx</code>, avant que <code>SearchProvider</code> soit monté (JSX ligne 121). Le hook appelait <code>useSearch()</code> hors contexte → erreur à chaque navigation.</div>
+        <div class="story-label">Fix</div>
+        <div class="story-text">Composant <code>KeyboardHandler</code> extrait et rendu à l'intérieur de <code>&lt;SearchProvider&gt;</code>. Le hook accède maintenant au contexte correctement.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/_layout.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-32-2</div>
+          <div class="story-title">Sidebar fond blanc → dark premium</div>
+          <div class="story-commit">8884443 — feat(epic-32/33/34…)</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row">
+        <span class="tag tag-tokens">Tokens</span>
+        <span class="tag tag-ui">UI</span>
+      </div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Sidebar migrée de <code>colors.light.surface</code> (#FFF) vers <code>colors.background.primary</code> (#1A1A1A). Tous les textes nav adaptés vers <code>colors.text.secondary</code>. GlobalSearch + NotificationBadge mis à jour pour fond sombre.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/_layout.tsx</div>
+          <div class="file-item file-mod">apps/web/components/GlobalSearch.tsx</div>
+          <div class="file-item file-mod">apps/web/components/NotificationBadge.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 33 — TOKENS
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic33">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF3C7;">🎨</div>
+    <div>
+      <div class="section-title">Epic 33 — Design Tokens</div>
+      <div class="section-subtitle">4 stories · 3 done · 1 skip</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-33-1</div>
+          <div class="story-title">Tokens status manquants</div>
+          <div class="story-commit">8884443</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Ajouts dans tokens.ts</div>
+        <div class="story-text">
+          <code>colors.status.warning</code> #F59E0B<br>
+          <code>colors.status.info</code> #60A5FA<br>
+          <code>colors.status.neutral</code> #9CA3AF<br>
+          <code>colors.status.injured</code> #CE93D8
+        </div>
+        <div class="files-list">
+          <div class="file-item file-mod">packages/theme/src/tokens.ts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-33-2</div>
+          <div class="story-title">Tokens couleurs entité</div>
+          <div class="story-commit">8884443 + agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Ajouts + usages</div>
+        <div class="story-text">
+          <code>colors.entity.stage</code> #4ADE80 → stages/index.tsx STATUS_COLORS<br>
+          <code>colors.entity.club</code> #60A5FA → ClubCard.tsx RELATION_BADGE_COLORS<br>
+          <code>colors.entity.coach</code> #A78BFA
+        </div>
+        <div class="files-list">
+          <div class="file-item file-mod">packages/theme/src/tokens.ts</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/stages/index.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/_components/ClubCard.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-33-3</div>
+          <div class="story-title">Tokens overlay/opacité</div>
+          <div class="story-commit">8884443 + agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Ajouts + usages</div>
+        <div class="story-text">
+          <code>colors.overlay.dark</code> rgba(0,0,0,0.5)<br>
+          <code>colors.overlay.modal</code> rgba(0,0,0,0.7)<br>
+          <code>colors.overlay.light</code> rgba(255,255,255,0.85)<br>
+          Appliqués dans stages/[stageId] et groups/[groupId].
+        </div>
+        <div class="files-list">
+          <div class="file-item file-mod">packages/theme/src/tokens.ts</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/stages/[stageId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/groups/[groupId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card skipped">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-33-4</div>
+          <div class="story-title">Tokens espacement manquants</div>
+        </div>
+        <span class="story-status status-skip">⏭ Skipped</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Raison</div>
+        <div class="story-text">Priorité low. Les espacements existants couvrent les besoins actuels. À faire lors d'un prochain cycle de polish.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 34 — NAVIGATION BACK
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic34">
+  <div class="section-header">
+    <div class="section-icon" style="background:#D1FAE5;">🔙</div>
+    <div>
+      <div class="section-title">Epic 34 — Back buttons absolus</div>
+      <div class="section-subtitle">3 stories · 3 done</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-34-1</div>
+          <div class="story-title">Back button Joueurs / Enfants</div>
+          <div class="story-commit">1f06c4f</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text"><code>router.back()</code> → <code>router.push('/children')</code>. Label "← Retour" → "← Joueurs" pour clarté contextuelle.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-34-2</div>
+          <div class="story-title">Back button Clubs</div>
+          <div class="story-commit">1f06c4f</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text"><code>router.back()</code> → <code>router.push('/clubs')</code> sur fiche club et formulaire nouveau club.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/new.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-34-3</div>
+          <div class="story-title">Back buttons Séances / Groupes / Stages</div>
+          <div class="story-commit">8884443 + agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Chaque page de détail a désormais un back button absolu : "← Séances", "← Groupes", "← Stages" avec <code>router.push</code> vers la liste correspondante.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/seances/[sessionId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/groups/[groupId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/stages/[stageId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 35 — ÉTATS VIDES & SKELETONS
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic35">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EDE9FE;">💀</div>
+    <div>
+      <div class="section-title">Epic 35 — Empty States & Skeletons</div>
+      <div class="section-subtitle">4 stories · 4 done</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-35-1</div>
+          <div class="story-title">EmptyState + ConfirmDialog composants</div>
+          <div class="story-commit">8884443</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span><span class="tag tag-ts">TS</span></div>
+      <div class="story-sections">
+        <div class="story-label">Composants créés</div>
+        <div class="story-text"><code>EmptyState</code> — icon emoji, titre, sous-titre optionnel, CTA optionnel.<br><code>ConfirmDialog</code> — Modal React Native, variante danger, overlay cliquable, Escape key.</div>
+        <div class="files-list">
+          <div class="file-item file-new">packages/ui/src/components/EmptyState.tsx</div>
+          <div class="file-item file-new">packages/ui/src/components/ConfirmDialog.tsx</div>
+          <div class="file-item file-mod">packages/ui/src/index.ts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-35-2</div>
+          <div class="story-title">Empty states pages détail (sections)</div>
+          <div class="story-commit">0114735</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Sections vides dans fiches détail : "Aucun historique football enregistré." (children), "Aucun joueur actuel / affilié / coach lié." (clubs) avec style centré tokens.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-35-3</div>
+          <div class="story-title">Skeletons composants UI</div>
+          <div class="story-commit">b43347a</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span><span class="tag tag-ts">TS</span></div>
+      <div class="story-sections">
+        <div class="story-label">Composants créés</div>
+        <div class="story-text"><code>DetailSkeleton</code> — fiche de détail avec sections.<br><code>ListRowSkeleton</code> — liste avec avatar + 2 lignes.<br><code>CardSkeleton</code> — grille de cards.</div>
+        <div class="files-list">
+          <div class="file-item file-new">packages/ui/src/components/Skeleton.tsx</div>
+          <div class="file-item file-mod">packages/ui/src/index.ts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-35-4</div>
+          <div class="story-title">Skeletons listes secondaires dans détail</div>
+          <div class="story-commit">0114735</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">States <code>loadingHistory</code> et <code>loadingLinks</code> avec try/finally. Pendant le chargement : <code>&lt;ListRowSkeleton count={3} /&gt;</code> remplace les sections historique et joueurs/coachs.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 36 — COULEURS HARDCODÉES
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic36">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DBEAFE;">🎨</div>
+    <div>
+      <div class="section-title">Epic 36 — Suppression couleurs hardcodées</div>
+      <div class="section-subtitle">7 stories · 7 done</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-1</div>
+          <div class="story-title">Toast post-création séances</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Toast succès après création batch de séances : <em>"3 séances créées avec succès."</em> avec accord pluriel. <code>stages/new.tsx</code> avait déjà son toast.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/seances/new.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-2</div>
+          <div class="story-title">Attendance — hardcodes → tokens</div>
+          <div class="story-commit">agent (0114735)</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">20+ remplacements</div>
+        <div class="story-text">Tous les <code>'#66BB6A'</code>, <code>'#EF5350'</code>, <code>'#FFA726'</code>, <code>'#CE93D8'</code>, <code>'#4FC3F7'</code> dans COMPLETION_CONFIG, SESSION_STATUS_CONFIG, ProgressBar, AttendancePill, PlayerRow → tokens <code>colors.status.*</code>.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/attendance/index.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-3</div>
+          <div class="story-title">users/new — styles rgba</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Résultat</div>
+        <div class="story-text">Audit effectué — aucune occurrence rgba à remplacer dans ce fichier. Déjà conforme.</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-4</div>
+          <div class="story-title">School calendar — couleurs erreur</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Remplacements</div>
+        <div class="story-text"><code>'#DC2626'</code> × 2 → <code>colors.accent.red</code>. Styles <code>deleteBtn</code> bordure/fond rouge → <code>colors.accent.red + '80'/'15'</code>.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/settings/school-calendar/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-5</div>
+          <div class="story-title">clubs/new — couleurs banners</div>
+          <div class="story-commit">agent + 1f06c4f</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Remplacements</div>
+        <div class="story-text"><code>'#f87171'</code> dans banner erreur et borderLeftColor → <code>colors.accent.red</code>.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/new.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-6</div>
+          <div class="story-title">Anomalies + dashboard — couleurs</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Remplacements</div>
+        <div class="story-text">anomalies : <code>'#3B82F6'</code> → <code>colors.status.info</code>. dashboard/comparison : rgba vert/rouge → <code>colors.status.present + '12'</code> / <code>colors.status.absent + '12'</code>.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/anomalies/index.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/dashboard/comparison.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-36-7</div>
+          <div class="story-title">RbfaStatusBadge + players — tokens</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-tokens">Tokens</span></div>
+      <div class="story-sections">
+        <div class="story-label">Remplacements</div>
+        <div class="story-text">RbfaStatusBadge : <code>'#10B981'</code> → <code>colors.status.success</code>. players/[playerId] : <code>'#CE93D8'</code> → <code>colors.status.injured</code>.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/players/[playerId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/components/RbfaStatusBadge.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 37 — UX FEEDBACK
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic37">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FCE7F3;">💬</div>
+    <div>
+      <div class="section-title">Epic 37 — UX Feedback & Confirmations</div>
+      <div class="section-subtitle">3 stories · 3 done</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-37-1</div>
+          <div class="story-title">ConfirmDialog branché aux delete</div>
+          <div class="story-commit">0114735</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span><span class="tag tag-ux">UX</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Le bouton "Supprimer" sur fiche club déclenche <code>ConfirmDialog</code> (danger) au lieu d'appeler directement <code>handleDelete</code>. Même pattern sur blessures et historique football dans fiche joueur.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-37-2</div>
+          <div class="story-title">Toast undo soft-delete</div>
+          <div class="story-commit">agent (0114735)</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-hook">Hook</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Après désactivation d'un joueur : <code>toast.success('${name} désactivé', { action: { label: 'Annuler', onPress: () => reactivate(id) } })</code>. Toast avec action Annuler utilise l'interface ToastAction existante.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-37-3</div>
+          <div class="story-title">Dirty state indicator</div>
+          <div class="story-commit">0114735</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text"><code>isDirty</code> via <code>useMemo</code> compare les champs clés du formulaire d'édition vs les données originales du club. Badge "• Modifié" en <code>colors.accent.gold</code> affiché dans le header quand modifications non sauvegardées.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 38 — NAVIGATION INTERNE
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic38">
+  <div class="section-header">
+    <div class="section-icon" style="background:#D1FAE5;">🧭</div>
+    <div>
+      <div class="section-title">Epic 38 — Navigation & Orientation</div>
+      <div class="section-subtitle">4 stories · 4 done</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-38-1</div>
+          <div class="story-title">Sidebar dédupliquée</div>
+          <div class="story-commit">8884443</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-layout">Layout</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Suppression des entrées dupliquées "Dashboard séances" et "Présences (v2)" dans NAV_GROUPS. Sidebar propre avec une seule entrée par section.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/_layout.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-38-2</div>
+          <div class="story-title">URL state pour les filtres</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-hook">Hook</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text"><code>useLocalSearchParams</code> pour initialiser les filtres depuis l'URL. <code>router.setParams()</code> à chaque changement de filtre. Retour arrière depuis un détail → filtres restaurés.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/children/index.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-38-3</div>
+          <div class="story-title">Breadcrumbs dans les détails</div>
+          <div class="story-commit">b43347a + agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text"><code>HierarchyBreadcrumb</code> ajouté dans les 3 pages de détail. Label dynamique depuis les données chargées : <code>child?.displayName</code>, <code>club?.nom</code>, <code>stage?.name</code>.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+          <div class="file-item file-mod">apps/web/app/(admin)/stages/[stageId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-38-4</div>
+          <div class="story-title">Navigation interne liens contextuels</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Fiche joueur : nom du club cliquable → <code>router.push('/clubs/' + clubDirectoryId)</code> si disponible. stages/index.tsx déjà conforme (chaque card cliquable vers détail).</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/children/[childId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 39 — FORMULAIRES
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic39">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF3C7;">📝</div>
+    <div>
+      <div class="section-title">Epic 39 — Formulaires</div>
+      <div class="section-subtitle">3 stories · 2 done · 1 skipped</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-39-1</div>
+          <div class="story-title">Validation inline clubs/new</div>
+          <div class="story-commit">1f06c4f</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text"><code>FormField</code> accepte <code>error?: string</code> et <code>onBlur?: () => void</code>. State <code>fieldErrors</code> avec validation <code>onBlur</code> pour email (regex), URL (http://). Bordure rouge + message sous le champ. Bloque la soumission si erreurs.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/new.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card skipped">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-39-2</div>
+          <div class="story-title">Autocomplete club/coach</div>
+        </div>
+        <span class="story-status status-skip">⏭ Skipped</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span></div>
+      <div class="story-sections">
+        <div class="story-label">Raison</div>
+        <div class="story-text">Complexité élevée (composant autocomplete générique + intégration API). À planifier comme story dédiée avec maquette UX.</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-39-3</div>
+          <div class="story-title">Auto-save brouillon formulaires</div>
+          <div class="story-commit">9b988b6</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-hook">Hook</span></div>
+      <div class="story-sections">
+        <div class="story-label">Hook créé</div>
+        <div class="story-text"><code>useDraftSave&lt;T&gt;(key, value, delay)</code> — persist localStorage toutes les 10s. <code>useDraftRestore&lt;T&gt;(key)</code> — restaure au mount. <code>clearDraft(key)</code> — nettoie après submit.</div>
+        <div class="files-list">
+          <div class="file-item file-new">apps/web/hooks/useDraftSave.ts</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 40 — LISTES
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic40">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DBEAFE;">📋</div>
+    <div>
+      <div class="section-title">Epic 40 — Listes & Interactions</div>
+      <div class="section-subtitle">5 stories · 4 done · 1 déjà impl.</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-40-1</div>
+          <div class="story-title">Tri colonnes liste clubs</div>
+          <div class="story-commit">9b988b6</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Sort chips Nom / Ville / Province avec indicateur ↑/↓. <code>useMemo</code> pour tri <code>localeCompare</code> côté client. Toggle ASC↔DESC sur la colonne active.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-40-2</div>
+          <div class="story-title">Bulk actions liste clubs</div>
+          <div class="story-commit">0114735</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">State <code>selected: Set&lt;string&gt;</code>. Checkbox par card. Barre contextuelle en bas : "X clubs sélectionnés — Exporter / Désactiver tous / ✕". Désactivation bulk avec try/finally et toast succès.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-40-3</div>
+          <div class="story-title">Raccourcis clavier globaux</div>
+          <div class="story-commit">8884443</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-hook">Hook</span></div>
+      <div class="story-sections">
+        <div class="story-label">Raccourcis</div>
+        <div class="story-text">
+          <code>Cmd+K</code> → ouvre la GlobalSearch<br>
+          <code>Cmd+N</code> → navigation contextuelle "Nouveau" selon la route active<br>
+          <code>Escape</code> → ferme la GlobalSearch
+        </div>
+        <div class="files-list">
+          <div class="file-item file-new">apps/web/hooks/useKeyboardShortcuts.ts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-40-4</div>
+          <div class="story-title">Optimistic UI toggle actif club</div>
+          <div class="story-commit">agent</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Badge actif/inactif en haut de fiche club = Pressable. Click → update immédiat via <code>optimisticActif</code> state. Rollback + <code>toast.error</code> si erreur API.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/clubs/[clubId]/page.tsx</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card already-done">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-40-5</div>
+          <div class="story-title">Pagination liste joueurs (678 entrées)</div>
+        </div>
+        <span class="story-status status-already">🔵 Déjà impl.</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-api">API</span><span class="tag tag-ui">UI</span></div>
+      <div class="story-sections">
+        <div class="story-label">Trouvé dans le code</div>
+        <div class="story-text">PAGE_SIZE=50, states page+total, <code>listJoueurs</code> avec .range() et count:exact, composant Pagination avec ← / → et label "X–Y sur Z". Déjà fonctionnel à 100%.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     EPIC 41 — FEATURES
+════════════════════════════════════════════════════════ -->
+<section class="section" id="epic41">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F0FDF4;">✨</div>
+    <div>
+      <div class="section-title">Epic 41 — Features & Améliorations</div>
+      <div class="section-subtitle">4 stories · 2 done · 2 déjà impl.</div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+
+    <div class="story-card already-done">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-41-1</div>
+          <div class="story-title">Supervision coachs (FR42)</div>
+        </div>
+        <span class="story-status status-already">🔵 Déjà impl.</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span><span class="tag tag-api">API</span></div>
+      <div class="story-sections">
+        <div class="story-label">Trouvé dans le code</div>
+        <div class="story-text">Page <code>coaches/index.tsx</code> complète : liste paginée, badges grades (bronze/argent/or/platine), boutons Grade + Contact, skeleton loading, empty state. Entrée "Coachs" dans le layout.</div>
+      </div>
+    </div>
+
+    <div class="story-card already-done">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-41-2</div>
+          <div class="story-title">Messagerie coachs (FR43)</div>
+        </div>
+        <span class="story-status status-already">🔵 Déjà impl.</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ui">UI</span><span class="tag tag-api">API</span></div>
+      <div class="story-sections">
+        <div class="story-label">Trouvé dans le code</div>
+        <div class="story-text">Page <code>messages/index.tsx</code> complète : formulaire d'envoi, sélecteur coach, niveaux urgence routine/urgent, textarea 2000 chars, historique avec recherche. Console guards conformes.</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-41-3</div>
+          <div class="story-title">SMS annulation séances (FR30)</div>
+          <div class="story-commit">0114735</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-edge">Edge Fn</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Guards Twilio ajoutés : <code>TWILIO_ACCOUNT_SID</code>, <code>AUTH_TOKEN</code>, <code>FROM_NUMBER</code>. Si absents → warn + skip silencieux. Helper <code>sendTwilioSms()</code> avec appel REST Basic Auth. Logique push/email existante inchangée.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">aureak/supabase/functions/cancel-session-notify/index.ts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-card-header">
+        <div>
+          <div class="story-id">story-41-4</div>
+          <div class="story-title">Sidebar collapse persisté</div>
+          <div class="story-commit">8884443</div>
+        </div>
+        <span class="story-status status-done">✅ Done</span>
+      </div>
+      <div class="tag-row"><span class="tag tag-ux">UX</span><span class="tag tag-layout">Layout</span></div>
+      <div class="story-sections">
+        <div class="story-label">Changement</div>
+        <div class="story-text">Bouton ‹/› dans le header sidebar. State <code>sidebarCollapsed</code> persisté en localStorage. Mode icon (52px) masque labels, GlobalSearch, NotificationBadge, user pill. Mode étendu = 220px.</div>
+        <div class="files-list">
+          <div class="file-item file-mod">apps/web/app/(admin)/_layout.tsx</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</div><!-- /main -->
+
+<!-- ════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<div class="footer">
+  Rapport généré le <span>4 avril 2026</span> · Session Design &amp; UX Pipeline ·
+  <span>44 stories done</span> · 3 déjà implémentées · 7 commits · TypeScript ✅
+</div>
+
+</body>
+</html>
