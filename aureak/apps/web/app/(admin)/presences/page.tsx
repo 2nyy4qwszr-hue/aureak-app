@@ -17,7 +17,7 @@ import type {
   TrialConversionSuggestion,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { colors, shadows, radius, transitions } from '@aureak/theme'
+import { colors, shadows, radius, space, transitions } from '@aureak/theme'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -36,22 +36,11 @@ const STATUS_COLORS: Record<string, string> = {
   absent : colors.status.absent,
   late   : colors.status.attention,
   injured: colors.accent.gold,
-  trial  : '#4FC3F7',
+  trial  : colors.status.info,
 }
 
 function statusColor(s: string | null): string {
   return s ? (STATUS_COLORS[s] ?? colors.text.subtle) : colors.text.subtle
-}
-
-function statusLabel(s: string | null): string {
-  return s ? (STATUS_LABELS[s] ?? s) : '—'
-}
-
-function sessionStatusColor(s: string): string {
-  if (s === 'réalisée' || s === 'terminée') return colors.status.present
-  if (s === 'annulée') return colors.status.absent
-  if (s === 'en_cours') return colors.accent.goldLight
-  return colors.text.muted
 }
 
 function fmtDate(iso: string): string {
@@ -60,6 +49,71 @@ function fmtDate(iso: string): string {
 
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
+}
+
+// ── Session Status Badge ───────────────────────────────────────────────────────
+
+function SessionStatusBadge({ status }: { status: string }) {
+  let badgeColor: string
+  let label: string
+
+  if (status === 'en_cours') {
+    badgeColor = colors.accent.gold
+    label = 'En cours'
+  } else if (status === 'terminée' || status === 'réalisée') {
+    badgeColor = colors.status.neutral
+    label = 'Terminée'
+  } else if (status === 'annulée') {
+    badgeColor = colors.status.absent
+    label = 'Annulée'
+  } else {
+    badgeColor = colors.text.subtle
+    label = status
+  }
+
+  return (
+    <span style={{
+      fontSize       : 10,
+      fontWeight     : 700,
+      color          : badgeColor,
+      background     : badgeColor + '18',
+      padding        : '2px 7px',
+      borderRadius   : radius.badge,
+      textTransform  : 'uppercase' as const,
+      letterSpacing  : 0.5,
+      fontFamily     : 'Montserrat',
+      whiteSpace     : 'nowrap' as const,
+    }}>
+      {label}
+    </span>
+  )
+}
+
+// ── Inline Progress Bar ────────────────────────────────────────────────────────
+
+function PresenceProgressBar({ rate }: { rate: number }) {
+  const barColor = rate >= 80
+    ? colors.status.present
+    : rate >= 60
+      ? colors.status.attention
+      : colors.status.absent
+
+  return (
+    <div style={{
+      height          : 4,
+      borderRadius    : 2,
+      background      : colors.border.divider,
+      overflow        : 'hidden' as const,
+    }}>
+      <div style={{
+        height          : 4,
+        borderRadius    : 2,
+        width           : `${Math.min(rate, 100)}%`,
+        background      : barColor,
+        transition      : `width ${transitions.normal}`,
+      }} />
+    </div>
+  )
 }
 
 // ── Presence Card ─────────────────────────────────────────────────────────────
@@ -71,9 +125,9 @@ function PresenceCard({
   groupName : string
   onClick   : () => void
 }) {
-  const total    = session.memberPresent + session.trialPresent + session.absentCount
-  const rate     = total > 0 ? Math.round((session.memberPresent / total) * 100) : null
-  const sColor   = sessionStatusColor(session.sessionStatus)
+  const presents = session.memberPresent + session.trialPresent
+  const total    = presents + session.absentCount
+  const rate     = total > 0 ? Math.round((presents / total) * 100) : 0
   const hasDebrief = session.closedAt != null
 
   return (
@@ -82,69 +136,63 @@ function PresenceCard({
       style={{
         background    : colors.light.surface,
         borderRadius  : radius.card,
-        padding       : '12px 14px',
+        padding       : `${space.sm}px 14px`,
         boxShadow     : shadows.sm,
         border        : `1px solid ${colors.border.divider}`,
         cursor        : 'pointer',
         transition    : `box-shadow ${transitions.fast}`,
+        fontFamily    : 'Montserrat',
       }}
       onMouseEnter={e => ((e.currentTarget as HTMLElement).style.boxShadow = shadows.md)}
       onMouseLeave={e => ((e.currentTarget as HTMLElement).style.boxShadow = shadows.sm)}
     >
-      {/* Date + statut */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: colors.text.dark }}>
+      {/* Row 1 : Date + badge statut */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: colors.text.muted, fontFamily: 'Montserrat' }}>
           {fmtDate(session.scheduledAt)} · {fmtTime(session.scheduledAt)}
         </span>
-        <span style={{
-          fontSize: 10, fontWeight: 700, color: sColor,
-          background: sColor + '18', padding: '2px 6px', borderRadius: radius.badge,
-          textTransform: 'uppercase',
-        }}>
-          {session.sessionStatus}
-        </span>
+        <SessionStatusBadge status={session.sessionStatus} />
       </div>
 
-      {/* Groupe */}
-      <div style={{ fontSize: 13, color: colors.text.muted, marginBottom: 8 }}>
+      {/* Row 2 : Nom du groupe */}
+      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginBottom: 6, fontFamily: 'Montserrat' }}>
         {groupName}
       </div>
 
-      {/* Compteurs présence */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        {session.memberPresent > 0 && (
-          <span style={{ fontSize: 11, color: colors.status.present }}>
-            ✓ {session.memberPresent} membres
-          </span>
-        )}
+      {/* Row 3 : ProgressBar inline */}
+      <div style={{ marginBottom: 6 }}>
+        <PresenceProgressBar rate={rate} />
+      </div>
+
+      {/* Row 4 : KPI compact ligne */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const }}>
+        <span style={{ fontSize: 12, color: colors.status.present, fontFamily: 'Montserrat' }}>
+          ✓ {session.memberPresent}
+        </span>
+        <span style={{ fontSize: 12, color: colors.status.absent, fontFamily: 'Montserrat' }}>
+          ✗ {session.absentCount}
+        </span>
         {session.trialPresent > 0 && (
-          <span style={{ fontSize: 11, color: '#4FC3F7' }}>
-            🔵 {session.trialPresent} essai{session.trialPresent > 1 ? 's' : ''}
-          </span>
-        )}
-        {session.absentCount > 0 && (
-          <span style={{ fontSize: 11, color: colors.status.absent }}>
-            ✗ {session.absentCount} absents
+          <span style={{ fontSize: 12, color: colors.status.info, fontFamily: 'Montserrat' }}>
+            ⊕ {session.trialPresent}
           </span>
         )}
         {session.unconfirmedCount > 0 && (
-          <span style={{ fontSize: 11, color: colors.text.subtle }}>
-            ? {session.unconfirmedCount} non renseignés
+          <span style={{ fontSize: 12, color: colors.text.subtle, fontFamily: 'Montserrat' }}>
+            ? {session.unconfirmedCount}
           </span>
         )}
-        {rate != null && (
-          <span style={{ fontSize: 11, color: rate >= 70 ? colors.status.present : rate >= 50 ? colors.status.attention : colors.status.absent, fontWeight: 600, marginLeft: 'auto' }}>
-            {rate}%
-          </span>
-        )}
-      </div>
-
-      {/* Débrief */}
-      <div style={{ marginTop: 6 }}>
         <span style={{
-          fontSize: 10, color: hasDebrief ? colors.status.present : colors.text.subtle,
+          marginLeft   : 'auto',
+          fontSize     : 12,
+          fontWeight   : 700,
+          color        : rate >= 80 ? colors.status.present : rate >= 60 ? colors.status.attention : colors.status.absent,
+          fontFamily   : 'Montserrat',
         }}>
-          {hasDebrief ? '✓ Débrief rempli' : '○ Débrief manquant'}
+          {total > 0 ? `${rate}%` : '—'}
+        </span>
+        <span style={{ fontSize: 10, color: hasDebrief ? colors.status.present : colors.text.subtle, fontFamily: 'Montserrat' }}>
+          {hasDebrief ? '✓' : '○'}
         </span>
       </div>
     </div>
@@ -290,7 +338,7 @@ function AttendanceDetailDrawer({
                       {a.displayName}
                     </span>
                     {a.attendanceType === 'trial' && (
-                      <span style={{ marginLeft: 6, fontSize: 10, color: '#4FC3F7', background: '#4FC3F718', padding: '1px 5px', borderRadius: radius.badge }}>
+                      <span style={{ marginLeft: 6, fontSize: 10, color: colors.status.info, background: colors.status.info + '18', padding: '1px 5px', borderRadius: radius.badge }}>
                         🔵 Essai
                       </span>
                     )}
@@ -365,11 +413,11 @@ function AttendanceDetailDrawer({
                 onClick={() => setShowTrial(!showTrial)}
                 style={{
                   padding      : '7px 14px',
-                  background   : '#4FC3F718',
-                  border       : '1px solid #4FC3F740',
+                  background   : colors.status.info + '18',
+                  border       : `1px solid ${colors.status.info}40`,
                   borderRadius : radius.xs,
                   fontSize     : 12,
-                  color        : '#4FC3F7',
+                  color        : colors.status.info,
                   cursor       : 'pointer',
                 }}
               >
@@ -597,10 +645,10 @@ export default function DashboardPresencesPage() {
           borderRadius : radius.card,
           padding      : 16,
           marginBottom : 24,
-          border       : `1px solid #4FC3F730`,
+          border       : `1px solid ${colors.status.info}30`,
           boxShadow    : shadows.sm,
         }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#4FC3F7', marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: colors.status.info, marginBottom: 10 }}>
             🔵 Suggestions conversion essai → membre
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
