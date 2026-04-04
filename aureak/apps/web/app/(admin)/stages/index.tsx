@@ -127,15 +127,13 @@ export default function StagesPage() {
         })}
       </View>
 
-      {/* Error */}
-      {error && (
+      {/* Error — affiché seul, sans état vide simultané */}
+      {error ? (
         <View style={{ backgroundColor: '#FEF2F2', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
           <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
         </View>
-      )}
-
-      {/* Grid */}
-      {loading ? (
+      ) : loading ? (
+        /* Skeleton */
         <View style={s.skeletonGrid}>
           {[0,1,2,3,4,5].map(i => <SkeletonCard key={i} height={150} />)}
         </View>

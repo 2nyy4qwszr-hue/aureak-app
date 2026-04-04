@@ -22,23 +22,40 @@ CREATE INDEX IF NOT EXISTS idx_inapp_notifications_user_unread
 -- RLS : chaque utilisateur ne voit que ses propres notifications
 ALTER TABLE inapp_notifications ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "own_notifications"
-  ON inapp_notifications
-  FOR ALL
-  USING (user_id = auth.uid());
+DO $rls_own$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'inapp_notifications' AND policyname = 'own_notifications'
+  ) THEN
+    CREATE POLICY "own_notifications"
+      ON inapp_notifications
+      FOR ALL
+      USING (user_id = auth.uid());
+  END IF;
+END $rls_own$;
 
 -- Les admins peuvent insérer des notifs pour n'importe quel utilisateur du même tenant
-CREATE POLICY "admin_insert_notifications"
-  ON inapp_notifications
-  FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid()
-        AND role = 'admin'
-        AND tenant_id = inapp_notifications.tenant_id
-    )
-  );
+-- Note: colonne user_role (pas role) dans la table profiles
+DO $rls_admin$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'inapp_notifications' AND policyname = 'admin_insert_notifications'
+  ) THEN
+    CREATE POLICY "admin_insert_notifications"
+      ON inapp_notifications
+      FOR INSERT
+      WITH CHECK (
+        EXISTS (
+          SELECT 1 FROM profiles
+          WHERE user_id = auth.uid()
+            AND user_role = 'admin'
+            AND tenant_id = inapp_notifications.tenant_id
+        )
+      );
+  END IF;
+END $rls_admin$;
 
 COMMENT ON TABLE inapp_notifications IS
   'Story tbd-notifs-inapp — Notifications in-app pour admin et coaches';
