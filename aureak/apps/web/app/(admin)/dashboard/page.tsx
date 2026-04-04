@@ -50,6 +50,18 @@ function DashboardSkeleton() {
       <style>{`
         @keyframes a-pulse{0%,100%{opacity:.12}50%{opacity:.25}}
         .a-skel{background:${colors.border.divider};animation:a-pulse 1.8s ease-in-out infinite}
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .bento-large  { grid-column: span 2; }
+        .bento-medium { grid-column: span 1; }
+        .bento-small  { grid-column: span 1; }
+        @media (max-width: 1024px) {
+          .bento-grid { grid-template-columns: repeat(2, 1fr); }
+          .bento-large { grid-column: span 1; }
+        }
+        @media (max-width: 768px) {
+          .bento-grid { grid-template-columns: 1fr; }
+          .bento-large { grid-column: span 1; }
+        }
       `}</style>
 
       {/* Header skeleton */}
@@ -61,13 +73,40 @@ function DashboardSkeleton() {
         <SkeletonBlock h={34} w="300px" r={8} />
       </div>
 
-      {/* KPI strip skeleton */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 24 }}>
-        {[0,1,2,3,4,5].map(i => <SkeletonBlock key={i} h={92} r={radius.card} />)}
+      {/* Bento KPI skeleton — 3 cols desktop */}
+      <div className="bento-grid">
+        {/* Large card — span 2 */}
+        <div className="bento-large">
+          <SkeletonBlock h={160} r={radius.card} />
+        </div>
+        {/* Medium card — span 1 */}
+        <div className="bento-medium">
+          <SkeletonBlock h={160} r={radius.card} />
+        </div>
+        {/* Medium card — span 1 */}
+        <div className="bento-medium">
+          <SkeletonBlock h={160} r={radius.card} />
+        </div>
+        {/* Large card — span 2 */}
+        <div className="bento-large">
+          <SkeletonBlock h={130} r={radius.card} />
+        </div>
+        {/* Small card */}
+        <div className="bento-small">
+          <SkeletonBlock h={130} r={radius.card} />
+        </div>
+        {/* Small card */}
+        <div className="bento-small">
+          <SkeletonBlock h={130} r={radius.card} />
+        </div>
+        {/* Small card */}
+        <div className="bento-small">
+          <SkeletonBlock h={130} r={radius.card} />
+        </div>
       </div>
 
       {/* Implantation cards skeleton */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 8 }}>
         <SkeletonBlock h={16} w="140px" r={4} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
@@ -77,21 +116,53 @@ function DashboardSkeleton() {
   )
 }
 
-// ── KPI Card ─────────────────────────────────────────────────────────────────
+// ── Bento KPI Card ───────────────────────────────────────────────────────────
+
+type BentoSize = 'large' | 'medium' | 'small'
 
 type KpiCardProps = {
-  label : string
-  value : string | number
-  sub  ?: string
-  accent: string
+  label       : string
+  value       : string | number
+  sub        ?: string
+  accent      : string
   borderAccent?: string
+  trend       ?: { value: string; positive: boolean }
+  size        ?: BentoSize
+  icon        ?: string
 }
 
-function KpiCard({ label, value, sub, accent, borderAccent }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'medium', icon }: KpiCardProps) {
+  const valueFontSize = size === 'large' ? 52 : size === 'medium' ? 38 : 28
+
   return (
-    <div style={{ ...S.kpiCard, borderTop: `3px solid ${borderAccent ?? accent}` }}>
-      <div style={S.kpiLabel}>{label}</div>
-      <div style={{ ...S.kpiValue, color: accent }}>{value}</div>
+    <div
+      className="aureak-card"
+      style={{
+        ...S.kpiCard,
+        borderTop: `3px solid ${borderAccent ?? accent}`,
+        ...(size === 'large' && S.kpiCardLarge),
+      }}
+    >
+      <div style={S.kpiCardTop}>
+        <div style={S.kpiLabel}>
+          {icon && <span style={{ marginRight: 5 }}>{icon}</span>}
+          {label}
+        </div>
+        {trend && (
+          <div style={{
+            fontSize    : 11,
+            fontWeight  : 700,
+            color       : trend.positive ? colors.status.present : colors.status.absent,
+            display     : 'flex',
+            alignItems  : 'center',
+            gap         : 2,
+            whiteSpace  : 'nowrap',
+          }}>
+            {trend.positive ? '↑' : '↓'} {trend.value}
+          </div>
+        )}
+      </div>
+      <div style={{ ...S.kpiValue, color: accent, fontSize: valueFontSize }}>{value}</div>
       {sub && <div style={S.kpiSub}>{sub}</div>}
     </div>
   )
@@ -247,15 +318,24 @@ export default function DashboardPage() {
 
   // ── Load KPI counts filtered by implantation ──
   useEffect(() => {
-    setLoadingCounts(true)
-
-    getDashboardKpiCounts(selectedImplantationId ?? undefined).then(({ data, error }) => {
-      if (error || !data) { setLoadingCounts(false); return }
-      setChildrenTotal(data.childrenTotal)
-      setCoachesTotal(data.coachesTotal)
-      setGroupsTotal(data.groupsTotal)
-      setLoadingCounts(false)
-    })
+    const loadCounts = async () => {
+      setLoadingCounts(true)
+      try {
+        const { data, error } = await getDashboardKpiCounts(selectedImplantationId ?? undefined)
+        if (error || !data) {
+          if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getDashboardKpiCounts error:', error)
+          return
+        }
+        setChildrenTotal(data.childrenTotal)
+        setCoachesTotal(data.coachesTotal)
+        setGroupsTotal(data.groupsTotal)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[dashboard] loadCounts error:', err)
+      } finally {
+        setLoadingCounts(false)
+      }
+    }
+    loadCounts()
   }, [selectedImplantationId])
 
   const handleResolve = async (id: string) => {
@@ -306,6 +386,26 @@ export default function DashboardPage() {
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
         .aureak-card:hover { box-shadow: ${shadows.md}; transform: translateY(-2px); }
         .aureak-qa-btn:hover { transform: translateY(-1px); box-shadow: ${shadows.sm}; }
+
+        /* ── Bento responsive ── */
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .bento-large  { grid-column: span 2; }
+        .bento-medium { grid-column: span 1; }
+        .bento-small  { grid-column: span 1; }
+
+        @media (max-width: 1024px) {
+          .bento-grid { grid-template-columns: repeat(2, 1fr); }
+          .bento-large  { grid-column: span 1; }
+          .bento-medium { grid-column: span 1; }
+          .bento-small  { grid-column: span 1; }
+        }
+
+        @media (max-width: 768px) {
+          .bento-grid { grid-template-columns: 1fr; }
+          .bento-large  { grid-column: span 1; }
+          .bento-medium { grid-column: span 1; }
+          .bento-small  { grid-column: span 1; }
+        }
       `}</style>
 
       {/* ── Page Header ── */}
@@ -379,46 +479,95 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Global KPI Strip ── */}
-      <div style={S.kpiStrip}>
-        <KpiCard
-          label="Joueurs actifs"
-          value={countVal(childrenTotal)}
-          sub={selectedName ? `dans ${selectedName}` : undefined}
-          accent={colors.accent.gold}
-        />
-        <KpiCard
-          label="Coachs"
-          value={countVal(coachesTotal)}
-          sub={selectedName ? `assignés` : undefined}
-          accent={colors.accent.gold}
-        />
-        <KpiCard
-          label="Groupes"
-          value={countVal(groupsTotal)}
-          sub={selectedName ? `dans ${selectedName}` : undefined}
-          accent={colors.accent.gold}
-        />
-        <KpiCard
-          label="Séances"
-          value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
-          sub="clôturées / total"
-          accent={colors.accent.gold}
-        />
-        <KpiCard
-          label="Taux de présence"
-          value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
-          sub={selectedName ? 'implantation' : 'moyenne globale'}
-          accent={rateColor(avgAttendance)}
-          borderAccent={colors.accent.gold}
-        />
-        <KpiCard
-          label="Taux de maîtrise"
-          value={avgMastery !== null ? `${avgMastery}%` : '—'}
-          sub={selectedName ? 'implantation' : 'moyenne globale'}
-          accent={rateColor(avgMastery)}
-          borderAccent={colors.accent.gold}
-        />
+      {/* ── Bento KPI Grid ── */}
+      <div className="bento-grid">
+
+        {/* LARGE — Joueurs actifs (span 2 cols) */}
+        <div className="bento-large">
+          <KpiCard
+            label="Joueurs actifs"
+            value={countVal(childrenTotal)}
+            sub={selectedName ? `dans ${selectedName}` : "inscrits à l'académie"}
+            accent={colors.accent.gold}
+            size="large"
+            icon="⚽"
+          />
+        </div>
+
+        {/* MEDIUM — Taux de présence (span 1 col) */}
+        <div className="bento-medium">
+          <KpiCard
+            label="Taux de présence"
+            value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
+            sub={selectedName ? 'implantation' : 'moyenne globale'}
+            accent={rateColor(avgAttendance)}
+            borderAccent={colors.accent.gold}
+            size="medium"
+            icon="📊"
+          />
+        </div>
+
+        {/* MEDIUM — Taux de maîtrise (span 1 col) */}
+        <div className="bento-medium">
+          <KpiCard
+            label="Taux de maîtrise"
+            value={avgMastery !== null ? `${avgMastery}%` : '—'}
+            sub={selectedName ? 'implantation' : 'moyenne globale'}
+            accent={rateColor(avgMastery)}
+            borderAccent={colors.accent.gold}
+            size="medium"
+            icon="🎯"
+          />
+        </div>
+
+        {/* LARGE — Séances (span 2 cols) */}
+        <div className="bento-large">
+          <KpiCard
+            label="Séances"
+            value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
+            sub="clôturées sur le total de la période"
+            accent={colors.accent.gold}
+            size="large"
+            icon="📅"
+          />
+        </div>
+
+        {/* SMALL — Coachs */}
+        <div className="bento-small">
+          <KpiCard
+            label="Coachs"
+            value={countVal(coachesTotal)}
+            sub={selectedName ? 'assignés' : 'actifs'}
+            accent={colors.text.dark}
+            size="small"
+            icon="🧢"
+          />
+        </div>
+
+        {/* SMALL — Groupes */}
+        <div className="bento-small">
+          <KpiCard
+            label="Groupes"
+            value={countVal(groupsTotal)}
+            sub={selectedName ? `dans ${selectedName}` : 'actifs'}
+            accent={colors.text.dark}
+            size="small"
+            icon="👥"
+          />
+        </div>
+
+        {/* SMALL — Anomalies critiques */}
+        <div className="bento-small">
+          <KpiCard
+            label="Anomalies"
+            value={criticalCount > 0 ? criticalCount : anomalies.length > 0 ? anomalies.length : '✓'}
+            sub={criticalCount > 0 ? 'critiques' : anomalies.length > 0 ? `dont ${criticalCount} critique` : 'aucune alerte'}
+            accent={criticalCount > 0 ? colors.status.absent : anomalies.length > 0 ? colors.status.attention : colors.status.present}
+            size="small"
+            icon={criticalCount > 0 ? '🚨' : anomalies.length > 0 ? '⚠️' : '✅'}
+          />
+        </div>
+
       </div>
 
       {/* ── Quick Actions ── */}
@@ -662,45 +811,51 @@ const S: Record<string, React.CSSProperties> = {
     alignSelf      : 'flex-end',
   },
 
-  // KPI Strip
-  kpiStrip        : {
-    display               : 'grid',
-    gridTemplateColumns   : 'repeat(6, 1fr)',
-    gap                   : 12,
-    marginBottom          : 24,
-  },
+  // KPI Card (bento)
   kpiCard         : {
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
-    padding        : '16px 18px',
+    padding        : '20px 24px',
     border         : `1px solid ${colors.border.light}`,
     boxShadow      : shadows.sm,
     display        : 'flex',
     flexDirection  : 'column',
     gap            : 0,
-    transition     : `box-shadow ${transitions.normal}`,
-  },
+    transition     : `box-shadow ${transitions.normal}, transform ${transitions.fast}`,
+    height         : '100%',
+    boxSizing      : 'border-box',
+  } as React.CSSProperties,
+  kpiCardLarge    : {
+    padding        : '28px 32px',
+  } as React.CSSProperties,
+  kpiCardTop      : {
+    display        : 'flex',
+    justifyContent : 'space-between',
+    alignItems     : 'center',
+    marginBottom   : 12,
+  } as React.CSSProperties,
   kpiLabel        : {
     fontSize       : 10,
-    fontWeight     : 600,
+    fontWeight     : 700,
     letterSpacing  : 1.1,
     textTransform  : 'uppercase',
     color          : colors.text.muted,
-    marginBottom   : 8,
-  },
+    display        : 'flex',
+    alignItems     : 'center',
+  } as React.CSSProperties,
   kpiValue        : {
-    fontSize       : 28,
-    fontWeight     : 700,
+    fontWeight     : 900,
     fontFamily     : 'Montserrat, sans-serif',
     lineHeight     : 1,
-    letterSpacing  : 0.5,
-  },
+    letterSpacing  : -0.5,
+  } as React.CSSProperties,
   kpiSub          : {
-    fontSize       : 11,
+    fontSize       : 12,
     color          : colors.text.muted,
-    marginTop      : 5,
-    lineHeight     : 1.3,
-  },
+    marginTop      : 8,
+    lineHeight     : 1.4,
+    letterSpacing  : 0.2,
+  } as React.CSSProperties,
 
   // Anomaly Panel
   anomalyPanel    : {
