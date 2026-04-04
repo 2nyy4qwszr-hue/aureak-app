@@ -20,8 +20,9 @@ function ok(body: unknown): Response {
   })
 }
 
-function err(status: number, message: string): Response {
-  return new Response(JSON.stringify({ error: message }), {
+function err(status: number, message: string, step?: string): Response {
+  const body = step ? { error: message, step } : { error: message }
+  return new Response(JSON.stringify(body), {
     status,
     headers: { ...CORS, 'Content-Type': 'application/json' },
   })
@@ -30,6 +31,8 @@ function err(status: number, message: string): Response {
 // ── Handler ────────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
+  console.log('[create-user-profile] step: 0 — request received', req.method)
+
   // Pre-flight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS })
@@ -41,6 +44,8 @@ Deno.serve(async (req: Request) => {
 
   // ── 1. Validate env ────────────────────────────────────────────────────────
 
+  console.log('[create-user-profile] step: 1 — validating env vars')
+
   const supabaseUrl        = Deno.env.get('SUPABASE_URL')
   const serviceRoleKey     = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const anonKey            = Deno.env.get('SUPABASE_ANON_KEY')
@@ -51,14 +56,19 @@ Deno.serve(async (req: Request) => {
       hasService: !!serviceRoleKey,
       hasAnon   : !!anonKey,
     })
-    return err(500, 'Server misconfiguration: missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL')
+    return err(500, 'Server misconfiguration: missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL', 'env-check')
   }
+
+  console.log('[create-user-profile] step: 1 — env vars OK')
 
   // ── 2. Authenticate the calling admin ─────────────────────────────────────
 
+  console.log('[create-user-profile] step: 2 — authenticating caller')
+
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
-    return err(401, 'Missing Authorization header')
+    console.error('[create-user-profile] step: 2 — missing Authorization header')
+    return err(401, 'Missing Authorization header', 'auth-header')
   }
 
   // Use anon client to validate the caller's JWT
@@ -67,41 +77,77 @@ Deno.serve(async (req: Request) => {
     auth  : { autoRefreshToken: false, persistSession: false },
   })
 
-  const { data: { user: callerUser }, error: authError } = await callerClient.auth.getUser()
+  let callerUser: Awaited<ReturnType<typeof callerClient.auth.getUser>>['data']['user']
 
-  if (authError || !callerUser) {
-    console.error('[create-user-profile] Auth error:', authError?.message)
-    return err(401, `Unauthorized: ${authError?.message ?? 'invalid token'}`)
+  try {
+    const { data: { user }, error: authError } = await callerClient.auth.getUser()
+    if (authError || !user) {
+      console.error('[create-user-profile] step: 2 — getUser error:', authError?.message)
+      return err(401, `Unauthorized: ${authError?.message ?? 'invalid token'}`, 'auth-getuser')
+    }
+    callerUser = user
+    console.log('[create-user-profile] step: 2 — caller authenticated, userId:', user.id)
+  } catch (e) {
+    console.error('[create-user-profile] step: 2 — unexpected getUser exception:', e)
+    return err(500, `Auth check failed: ${e instanceof Error ? e.message : String(e)}`, 'auth-exception')
   }
 
-  // Role check: getUser() reads auth.users.raw_app_meta_data (not JWT claims).
+  // ── 3. Role check ──────────────────────────────────────────────────────────
+  //
+  // getUser() reads auth.users.raw_app_meta_data (not JWT claims).
   // The custom-access-token-hook only enriches JWT claims, not raw_app_meta_data.
   // → If app_metadata.role is missing from getUser(), decode the JWT directly.
-  let callerRole = callerUser.app_metadata?.role as string | undefined
+  // → Also check user_metadata.role as a last resort (useful in local dev).
+
+  console.log('[create-user-profile] step: 3 — role check')
+  console.log('[create-user-profile] app_metadata:', JSON.stringify(callerUser!.app_metadata ?? {}))
+  console.log('[create-user-profile] user_metadata:', JSON.stringify(callerUser!.user_metadata ?? {}))
+
+  let callerRole: string | undefined = callerUser!.app_metadata?.role as string | undefined
 
   if (!callerRole) {
+    console.log('[create-user-profile] step: 3 — app_metadata.role missing, trying JWT decode')
     try {
       const token      = authHeader.replace(/^Bearer /i, '')
       const payloadB64 = token.split('.')[1]
       const payload    = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))) as Record<string, unknown>
+      console.log('[create-user-profile] step: 3 — JWT payload keys:', Object.keys(payload).join(', '))
       callerRole = (payload?.app_metadata as { role?: string } | undefined)?.role
-    } catch {
-      // JWT decode failed — callerRole stays undefined → 403 below
+        ?? (payload?.user_metadata as { role?: string } | undefined)?.role
+        ?? (payload?.role as string | undefined)
+    } catch (e) {
+      console.error('[create-user-profile] step: 3 — JWT decode failed:', e)
+      // callerRole stays undefined → 403 below
     }
   }
 
-  if (callerRole !== 'admin') {
-    console.error('[create-user-profile] Caller is not admin, role:', callerRole)
-    return err(403, `Forbidden: requires admin role (caller has '${callerRole ?? 'none'}')`)
+  if (!callerRole) {
+    // Last resort: check user_metadata from getUser() result
+    callerRole = callerUser!.user_metadata?.role as string | undefined
+    if (callerRole) {
+      console.log('[create-user-profile] step: 3 — role found in user_metadata:', callerRole)
+    }
   }
 
-  // ── 3. Parse body ─────────────────────────────────────────────────────────
+  console.log('[create-user-profile] callerRole:', callerRole ?? 'none')
+
+  if (callerRole !== 'admin') {
+    console.error('[create-user-profile] step: 3 — UNAUTHORIZED: callerRole=', callerRole)
+    return err(403, `Forbidden: requires admin role (caller has '${callerRole ?? 'none'}')`, 'role-check')
+  }
+
+  console.log('[create-user-profile] step: 3 — role check passed (admin)')
+
+  // ── 4. Parse body ─────────────────────────────────────────────────────────
+
+  console.log('[create-user-profile] step: 4 — parsing body')
 
   let body: Record<string, unknown>
   try {
     body = await req.json()
-  } catch {
-    return err(400, 'Invalid JSON body')
+  } catch (e) {
+    console.error('[create-user-profile] step: 4 — JSON parse error:', e)
+    return err(400, 'Invalid JSON body', 'body-parse')
   }
 
   const {
@@ -125,28 +171,34 @@ Deno.serve(async (req: Request) => {
     parent2FirstName, parent2LastName, parent2Email, parent2Phone,
   } = body
 
+  console.log('[create-user-profile] step: 4 — body parsed, mode:', mode, 'role:', role, 'tenantId:', tenantId)
+
   // Validate required fields
   if (!mode || (mode !== 'fiche' && mode !== 'invite')) {
-    return err(400, "mode must be 'fiche' or 'invite'")
+    return err(400, "mode must be 'fiche' or 'invite'", 'body-validate')
   }
-  if (!tenantId) return err(400, 'tenantId is required')
-  if (!role)     return err(400, 'role is required')
+  if (!tenantId) return err(400, 'tenantId is required', 'body-validate')
+  if (!role)     return err(400, 'role is required', 'body-validate')
   if (!firstName || !lastName) {
-    return err(400, 'firstName and lastName are required')
+    return err(400, 'firstName and lastName are required', 'body-validate')
   }
   if (mode === 'invite' && !email) {
-    return err(400, "email is required in 'invite' mode")
+    return err(400, "email is required in 'invite' mode", 'body-validate')
   }
 
   const displayName = `${firstName} ${lastName}`.trim()
 
-  // ── 4. Build admin Supabase client (service_role) ─────────────────────────
+  // ── 5. Build admin Supabase client (service_role) ─────────────────────────
+
+  console.log('[create-user-profile] step: 5 — building admin client')
 
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
-  // ── 5. Create auth user ───────────────────────────────────────────────────
+  // ── 6. Create auth user ───────────────────────────────────────────────────
+
+  console.log('[create-user-profile] step: 6 — creating auth user, mode:', mode)
 
   let userId: string
 
@@ -163,10 +215,11 @@ Deno.serve(async (req: Request) => {
         },
       )
       if (inviteErr || !inviteData?.user) {
-        console.error('[create-user-profile] inviteUserByEmail error:', inviteErr)
-        return err(400, `Auth invite failed: ${inviteErr?.message ?? 'unknown error'}`)
+        console.error('[create-user-profile] step: 6 — inviteUserByEmail error:', inviteErr)
+        return err(400, `Auth invite failed: ${inviteErr?.message ?? 'unknown error'}`, 'auth-invite')
       }
       userId = inviteData.user.id
+      console.log('[create-user-profile] step: 6 — invite sent, userId:', userId)
 
     } else {
       // Fiche mode — create a user record without sending any email
@@ -174,6 +227,8 @@ Deno.serve(async (req: Request) => {
       const syntheticEmail = email
         ? String(email)
         : `fiche-${crypto.randomUUID()}@no-email.aureak.internal`
+
+      console.log('[create-user-profile] step: 6 — createUser, syntheticEmail:', syntheticEmail ? '[provided]' : '[synthetic]')
 
       const { data: createData, error: createErr } = await admin.auth.admin.createUser({
         email        : syntheticEmail,
@@ -183,17 +238,20 @@ Deno.serve(async (req: Request) => {
       })
 
       if (createErr || !createData?.user) {
-        console.error('[create-user-profile] createUser error:', createErr)
-        return err(400, `Auth create failed: ${createErr?.message ?? 'unknown error'}`)
+        console.error('[create-user-profile] step: 6 — createUser error:', createErr)
+        return err(400, `Auth create failed: ${createErr?.message ?? 'unknown error'}`, 'auth-create')
       }
       userId = createData.user.id
+      console.log('[create-user-profile] step: 6 — user created, userId:', userId)
     }
   } catch (e) {
-    console.error('[create-user-profile] Unexpected auth error:', e)
-    return err(500, `Unexpected error during auth user creation: ${e instanceof Error ? e.message : String(e)}`)
+    console.error('[create-user-profile] step: 6 — unexpected auth error:', e)
+    return err(500, `Unexpected error during auth user creation: ${e instanceof Error ? e.message : String(e)}`, 'auth-exception')
   }
 
-  // ── 6. Insert profile row ─────────────────────────────────────────────────
+  // ── 7. Insert profile row ─────────────────────────────────────────────────
+
+  console.log('[create-user-profile] step: 7 — inserting profile row')
 
   const profilePayload: Record<string, unknown> = {
     user_id     : userId,
@@ -229,15 +287,18 @@ Deno.serve(async (req: Request) => {
   const { error: profileErr } = await admin.from('profiles').insert(profilePayload)
 
   if (profileErr) {
-    console.error('[create-user-profile] profiles insert error:', profileErr)
+    console.error('[create-user-profile] step: 7 — profiles insert error:', profileErr)
     // Roll back — delete the auth user we just created
     await admin.auth.admin.deleteUser(userId)
-    return err(500, `Profile creation failed: ${profileErr.message} (code: ${profileErr.code})`)
+    return err(500, `Profile creation failed: ${profileErr.message} (code: ${profileErr.code})`, 'profile-insert')
   }
 
-  // ── 7. Add child to group (if specified) ─────────────────────────────────
+  console.log('[create-user-profile] step: 7 — profile row inserted')
+
+  // ── 8. Add child to group (if specified) ─────────────────────────────────
 
   if (role === 'child' && groupId) {
+    console.log('[create-user-profile] step: 8 — adding child to group:', groupId)
     const { error: groupErr } = await admin.from('group_members').insert({
       group_id : groupId,
       child_id : userId,
@@ -246,15 +307,19 @@ Deno.serve(async (req: Request) => {
     })
     if (groupErr) {
       // Non-fatal — log but do not fail the whole request
-      console.warn('[create-user-profile] group_members insert warning:', groupErr.message)
+      console.warn('[create-user-profile] step: 8 — group_members insert warning:', groupErr.message)
+    } else {
+      console.log('[create-user-profile] step: 8 — child added to group')
     }
   }
 
-  // ── 8. Audit log ──────────────────────────────────────────────────────────
+  // ── 9. Audit log ──────────────────────────────────────────────────────────
+
+  console.log('[create-user-profile] step: 9 — writing audit log')
 
   await admin.from('audit_logs').insert({
     tenant_id  : tenantId,
-    user_id    : callerUser.id,
+    user_id    : callerUser!.id,
     entity_type: 'profile',
     entity_id  : userId,
     action     : mode === 'invite' ? 'user_invited' : 'user_fiche_created',
@@ -266,7 +331,7 @@ Deno.serve(async (req: Request) => {
     },
   })
 
-  console.log(`[create-user-profile] ✓ Created userId=${userId} role=${role} mode=${mode}`)
+  console.log(`[create-user-profile] step: 9 — done. userId=${userId} role=${role} mode=${mode}`)
 
   return ok({ data: { userId } })
 })

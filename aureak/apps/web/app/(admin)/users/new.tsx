@@ -122,6 +122,29 @@ export default function NewUserScreen() {
 
   // ── Soumission ───────────────────────────────────────────────────────────────
 
+  // ── Formatage lisible des erreurs Edge Function ─────────────────────────────
+  function formatEdgeFunctionError(rawMessage: string): string {
+    if (rawMessage.includes('requires admin role') || rawMessage.includes('Forbidden')) {
+      return 'Erreur d\'autorisation : votre compte n\'a pas le rôle admin requis. Reconnectez-vous et réessayez.'
+    }
+    if (rawMessage.includes('Missing Authorization') || rawMessage.includes('invalid token') || rawMessage.includes('Unauthorized')) {
+      return 'Session expirée ou non reconnue. Veuillez vous reconnecter.'
+    }
+    if (rawMessage.includes('Auth create failed') || rawMessage.includes('Auth invite failed')) {
+      return `Erreur lors de la création du compte : ${rawMessage.replace(/^Auth (create|invite) failed: /, '')}`
+    }
+    if (rawMessage.includes('Profile creation failed')) {
+      return `Erreur lors de l'enregistrement du profil : ${rawMessage.replace(/^Profile creation failed: /, '')}`
+    }
+    if (rawMessage.includes('Server misconfiguration')) {
+      return 'Erreur de configuration serveur. Contactez l\'administrateur technique.'
+    }
+    if (rawMessage.includes('EdgeFunctionReturned non-2xx') || rawMessage.includes('non-2xx')) {
+      return 'La fonction de création a retourné une erreur. Consultez les logs Supabase → Functions → create-user-profile pour le détail.'
+    }
+    return rawMessage
+  }
+
   async function handleSubmit() {
     if (!validate()) return
     if (!tenantId) { setResult({ ok: false, msg: 'Tenant non défini.' }); return }
@@ -163,7 +186,9 @@ export default function NewUserScreen() {
         : await inviteProfileUser(baseParams as InviteProfileUserParams)
 
       if (error) {
-        setResult({ ok: false, msg: (error as { message?: string }).message ?? 'Erreur inconnue' })
+        const rawMsg = (error as { message?: string }).message ?? 'Erreur inconnue'
+        if (process.env.NODE_ENV !== 'production') console.error('[users/new] edge function error:', rawMsg)
+        setResult({ ok: false, msg: formatEdgeFunctionError(rawMsg) })
       } else {
         setResult({
           ok: true,
@@ -174,7 +199,8 @@ export default function NewUserScreen() {
       }
     } catch (e: unknown) {
       if (process.env.NODE_ENV !== 'production') console.error('[users/new] handleSubmit error:', e)
-      setResult({ ok: false, msg: (e as Error)?.message ?? 'Erreur inattendue.' })
+      const rawMsg = (e as Error)?.message ?? 'Erreur inattendue.'
+      setResult({ ok: false, msg: formatEdgeFunctionError(rawMsg) })
     } finally {
       setSubmitting(false)
     }
