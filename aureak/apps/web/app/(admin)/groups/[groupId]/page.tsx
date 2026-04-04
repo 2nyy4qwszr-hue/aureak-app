@@ -563,6 +563,7 @@ function JoueursTab({
   tenantId          : string
   onRefresh         : () => void
 }) {
+  const router = useRouter()
   const [adding,     setAdding]     = useState(false)
   const [search,     setSearch]     = useState('')
   const [selectedId, setSelectedId] = useState('')
@@ -640,7 +641,15 @@ function JoueursTab({
             : 'Aucune séance'
 
           return (
-            <View key={m.childId} style={[jou.memberRow, idx % 2 === 1 && { backgroundColor: colors.light.muted }]}>
+            <Pressable
+              key={m.childId}
+              onPress={() => router.push(`/(admin)/children/${m.childId}` as never)}
+              style={({ pressed }) => [
+                jou.memberRow,
+                idx % 2 === 1 && { backgroundColor: colors.light.muted },
+                pressed && { backgroundColor: colors.light.hover },
+              ]}
+            >
               <View style={jou.memberAvatar}>
                 <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
                   {m.displayName.charAt(0).toUpperCase()}
@@ -658,16 +667,17 @@ function JoueursTab({
                   </AureakText>
                 </AureakText>
               </View>
+              <AureakText variant="caption" style={{ fontSize: 16, color: colors.text.secondary, marginRight: 4 }}>›</AureakText>
               <Pressable
                 style={jou.removeBtn}
-                onPress={() => handleRemove(m.childId)}
+                onPress={(e) => { e.stopPropagation?.(); handleRemove(m.childId) }}
                 disabled={removing === m.childId}
               >
                 <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
                   {removing === m.childId ? '…' : '✕'}
                 </AureakText>
               </Pressable>
-            </View>
+            </Pressable>
           )
         })
       )}
