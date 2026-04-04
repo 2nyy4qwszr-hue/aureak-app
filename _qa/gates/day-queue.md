@@ -56,6 +56,50 @@ next-morning-queue:
     gate2: pending
     note: "Dépend de story-34-1 done"
 
+  # ── Queue /morning 5 avril 2026 — feedback #2 Jeremy ──────────────────────
+
+  - story_id: story-44-1
+    title: "BUG — Edge Function non-2xx création coach"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-44-2
+    title: "BUG — Filtre saison actuelle retourne 0 joueurs"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-44-3
+    title: "UX — Création coach : rôle pré-sélectionné depuis /coaches"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-44-4
+    title: "Fiche joueur — parents liés + club actuel cliquable"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-44-5
+    title: "Mini stats joueur dans la fiche groupe"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+
+  - story_id: story-44-6
+    title: "Implantation enrichie — stats groupes + listing enfants"
+    priority: P3
+    status: pending
+    gate1: pending
+    gate2: pending
+
 # Stratégie d'exécution
 # Stories existantes → implémentées directement
 # Nouvelles stories → créées via Story Factory juste avant implémentation
