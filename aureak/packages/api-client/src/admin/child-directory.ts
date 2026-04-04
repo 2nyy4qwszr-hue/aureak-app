@@ -466,24 +466,24 @@ export async function listJoueurs(
     if (filteredIds.length === 0) return { data: [], count: 0 }
   }
 
-  // Phase 1b (optional): filter by academy history season
-  // Retourne les joueurs ayant une entrée dans child_directory_history pour la saison donnée
-  // avec club_nom correspondant à l'académie (ILIKE '%aureak%').
+  // Phase 1b (optional): filter by current academy season
+  // Utilise v_child_academy_status.in_current_season = true (source de vérité SQL unique).
+  // L'ancienne logique ILIKE '%aureak%' sur child_directory_history était incorrecte :
+  // elle excluait les joueurs dont club_nom était différent ("Goal & Player", etc.).
   if (academySaison) {
-    const { data: histRows } = await supabase
-      .from('child_directory_history')
+    const { data: currentSeasonRows } = await supabase
+      .from('v_child_academy_status')
       .select('child_id')
-      .eq('saison', academySaison)
-      .ilike('club_nom', '%aureak%')
+      .eq('in_current_season', true)
 
-    const histIds = ((histRows ?? []) as Record<string, unknown>[]).map(r => r.child_id as string)
-    if (histIds.length === 0) return { data: [], count: 0 }
+    const currentSeasonIds = ((currentSeasonRows ?? []) as Record<string, unknown>[]).map(r => r.child_id as string)
+    if (currentSeasonIds.length === 0) return { data: [], count: 0 }
 
     if (filteredIds !== null) {
-      const histSet = new Set(histIds)
-      filteredIds = filteredIds.filter(id => histSet.has(id))
+      const currentSeasonSet = new Set(currentSeasonIds)
+      filteredIds = filteredIds.filter(id => currentSeasonSet.has(id))
     } else {
-      filteredIds = histIds
+      filteredIds = currentSeasonIds
     }
     if (filteredIds.length === 0) return { data: [], count: 0 }
   }
