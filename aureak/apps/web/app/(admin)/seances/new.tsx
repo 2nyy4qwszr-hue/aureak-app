@@ -128,7 +128,7 @@ function SearchableSelect({
             enterKeyHint="search"
             {...(Platform.OS === 'web' ? { type: 'search', 'data-form-type': 'other' } as never : {})}
           />
-          <ScrollView style={{ maxHeight: 220 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+          <ScrollView style={[{ maxHeight: 220 }, Platform.OS === 'web' ? { overflow: 'auto' as never } : {}]} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
             {filtered.map(o => (
               <Pressable
                 key={o.id}
@@ -244,7 +244,7 @@ function MultiSearchableSelect({
             enterKeyHint="search"
             {...(Platform.OS === 'web' ? { type: 'search', 'data-form-type': 'other' } as never : {})}
           />
-          <ScrollView style={{ maxHeight: 220 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+          <ScrollView style={[{ maxHeight: 220 }, Platform.OS === 'web' ? { overflow: 'auto' as never } : {}]} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
             {filtered.map(o => {
               const isSel = selected.includes(o.id)
               return (
