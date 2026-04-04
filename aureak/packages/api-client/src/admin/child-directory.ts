@@ -695,3 +695,22 @@ export async function deleteChildHistoryEntry(id: string): Promise<void> {
     .eq('id', id)
   if (error) throw error
 }
+
+// ── Compteur saison courante ────────────────────────────────────────────────────
+
+/**
+ * Retourne le nombre de joueurs ayant un membership dans la saison académique courante.
+ * Source de vérité : `v_child_academy_status` WHERE `in_current_season = true`.
+ * Utilisé par le KPI "Joueurs actifs" du dashboard admin.
+ */
+export async function countActivePlayersCurrentSeason(): Promise<number> {
+  const { count, error } = await supabase
+    .from('v_child_academy_status')
+    .select('*', { count: 'exact', head: true })
+    .eq('in_current_season', true)
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[countActivePlayersCurrentSeason]', error)
+    return 0
+  }
+  return count ?? 0
+}

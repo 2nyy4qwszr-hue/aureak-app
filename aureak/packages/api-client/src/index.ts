@@ -321,6 +321,8 @@ export {
   listJoueurs,
   // Story 18.2 — gestion photos joueurs
   listChildPhotos, addChildPhoto, setCurrentPhoto, deleteChildPhoto,
+  // Story 42.3 — compteur joueurs actifs saison courante
+  countActivePlayersCurrentSeason,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,

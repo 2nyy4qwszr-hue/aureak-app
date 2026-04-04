@@ -2,6 +2,7 @@
 // Extrait les counts depuis Supabase (conformité ARCH-1 : accès centralisé).
 
 import { supabase } from '../supabase'
+import { countActivePlayersCurrentSeason } from './child-directory'
 
 export type DashboardKpiCounts = {
   childrenTotal: number
@@ -12,6 +13,11 @@ export type DashboardKpiCounts = {
 /**
  * Retourne les compteurs KPI globaux ou filtrés par implantation.
  * Appelé par dashboard/page.tsx à chaque changement de filtre.
+ *
+ * Mode global : `childrenTotal` = joueurs ayant un membership en saison courante
+ *   → source : `v_child_academy_status WHERE in_current_season = true` (Story 42.3)
+ * Mode par implantation : `childrenTotal` = enfants dans les groupes de l'implantation
+ *   (accès opérationnel — groupes auth, logique distincte de l'annuaire)
  */
 export async function getDashboardKpiCounts(
   implantationId?: string
@@ -19,13 +25,9 @@ export async function getDashboardKpiCounts(
   const empty: DashboardKpiCounts = { childrenTotal: 0, coachesTotal: 0, groupsTotal: 0 }
 
   if (!implantationId) {
-    // Compteurs globaux (3 requêtes HEAD en parallèle)
-    const [childRes, coachRes, groupRes] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('user_id', { count: 'exact', head: true })
-        .eq('user_role', 'child')
-        .is('deleted_at', null),
+    // Compteurs globaux — joueurs actifs via v_child_academy_status (saison courante)
+    const [activePlayersCount, coachRes, groupRes] = await Promise.all([
+      countActivePlayersCurrentSeason(),
       supabase
         .from('profiles')
         .select('user_id', { count: 'exact', head: true })
@@ -37,12 +39,12 @@ export async function getDashboardKpiCounts(
         .is('deleted_at', null),
     ])
 
-    const error = childRes.error ?? coachRes.error ?? groupRes.error
+    const error = coachRes.error ?? groupRes.error
     if (error) return { data: empty, error }
 
     return {
       data: {
-        childrenTotal: childRes.count  ?? 0,
+        childrenTotal: activePlayersCount,
         coachesTotal : coachRes.count  ?? 0,
         groupsTotal  : groupRes.count  ?? 0,
       },
