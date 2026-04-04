@@ -103,6 +103,10 @@ function DashboardSkeleton() {
         <div className="bento-small">
           <SkeletonBlock h={130} r={radius.card} />
         </div>
+        {/* Small card */}
+        <div className="bento-small">
+          <SkeletonBlock h={130} r={radius.card} />
+        </div>
       </div>
 
       {/* Implantation cards skeleton */}
@@ -129,9 +133,17 @@ type KpiCardProps = {
   trend       ?: { value: string; positive: boolean }
   size        ?: BentoSize
   icon        ?: string
+  /** Overrides de style pour la card elle-même (ex: gradient de fond) */
+  cardStyle   ?: React.CSSProperties
+  /** Overrides de couleur pour la valeur (ex: texte blanc sur fond sombre) */
+  valueColor  ?: string
+  /** Overrides de couleur pour le label */
+  labelColor  ?: string
+  /** Overrides de couleur pour le sous-texte */
+  subColor    ?: string
 }
 
-function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'medium', icon }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor }: KpiCardProps) {
   const valueFontSize = size === 'large' ? 52 : size === 'medium' ? 38 : 28
 
   return (
@@ -141,11 +153,28 @@ function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'mediu
         ...S.kpiCard,
         borderTop: `3px solid ${borderAccent ?? accent}`,
         ...(size === 'large' && S.kpiCardLarge),
+        ...cardStyle,
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Icône en haut à droite */}
+      {icon && (
+        <div style={{
+          position  : 'absolute',
+          top       : size === 'large' ? 24 : 16,
+          right     : size === 'large' ? 28 : 20,
+          fontSize  : 28,
+          opacity   : 0.7,
+          lineHeight: 1,
+          userSelect: 'none',
+        } as React.CSSProperties}>
+          {icon}
+        </div>
+      )}
+
       <div style={S.kpiCardTop}>
-        <div style={S.kpiLabel}>
-          {icon && <span style={{ marginRight: 5 }}>{icon}</span>}
+        <div style={{ ...S.kpiLabel, color: labelColor ?? (S.kpiLabel as React.CSSProperties).color }}>
           {label}
         </div>
         {trend && (
@@ -162,8 +191,8 @@ function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'mediu
           </div>
         )}
       </div>
-      <div style={{ ...S.kpiValue, color: accent, fontSize: valueFontSize }}>{value}</div>
-      {sub && <div style={S.kpiSub}>{sub}</div>}
+      <div style={{ ...S.kpiValue, color: valueColor ?? accent, fontSize: valueFontSize }}>{value}</div>
+      {sub && <div style={{ ...S.kpiSub, color: subColor ?? (S.kpiSub as React.CSSProperties).color }}>{sub}</div>}
     </div>
   )
 }
@@ -488,9 +517,9 @@ export default function DashboardPage() {
             label="Joueurs actifs"
             value={countVal(childrenTotal)}
             sub={selectedName ? `dans ${selectedName}` : "inscrits à l'académie"}
-            accent={colors.accent.gold}
+            accent={colors.status.present}
             size="large"
-            icon="⚽"
+            icon="👥"
           />
         </div>
 
@@ -503,7 +532,7 @@ export default function DashboardPage() {
             accent={rateColor(avgAttendance)}
             borderAccent={colors.accent.gold}
             size="medium"
-            icon="📊"
+            icon="✅"
           />
         </div>
 
@@ -538,9 +567,9 @@ export default function DashboardPage() {
             label="Coachs"
             value={countVal(coachesTotal)}
             sub={selectedName ? 'assignés' : 'actifs'}
-            accent={colors.text.dark}
+            accent={colors.entity.coach}
             size="small"
-            icon="🧢"
+            icon="👨‍🏫"
           />
         </div>
 
@@ -550,9 +579,30 @@ export default function DashboardPage() {
             label="Groupes"
             value={countVal(groupsTotal)}
             sub={selectedName ? `dans ${selectedName}` : 'actifs'}
-            accent={colors.text.dark}
+            accent={colors.entity.club}
             size="small"
-            icon="👥"
+            icon="🏆"
+          />
+        </div>
+
+        {/* SMALL — Implantations — card avec gradient vert terrain */}
+        <div className="bento-small">
+          <KpiCard
+            label="Implantations"
+            value={stats.length > 0 ? stats.length : '—'}
+            sub="sites actifs"
+            accent="#FFFFFF"
+            borderAccent="transparent"
+            size="small"
+            icon="🏟️"
+            cardStyle={{
+              background  : 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)' as string,
+              border      : 'none',
+              boxShadow   : shadows.md,
+            } as React.CSSProperties}
+            valueColor="#FFFFFF"
+            labelColor="rgba(255,255,255,0.75)"
+            subColor="rgba(255,255,255,0.6)"
           />
         </div>
 
