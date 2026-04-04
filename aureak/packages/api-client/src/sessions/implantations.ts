@@ -2,7 +2,7 @@
 import { supabase } from '../supabase'
 import type {
   Implantation, Group, GroupMember, AgeGroup, GroupMethod,
-  GroupWithMeta, GroupStaff, GroupStaffRole, GroupStaffWithName, GroupMemberWithName,
+  GroupWithMeta, GroupStaff, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, GroupMemberWithDetails,
 } from '@aureak/types'
 
 // ─── Implantation ─────────────────────────────────────────────────────────────
@@ -487,6 +487,50 @@ export async function listGroupMembersWithProfiles(
       childId    : r.child_id  as string,
       displayName: nameMap[r.child_id as string] ?? 'Joueur inconnu',
       joinedAt   : r.joined_at as string,
+    }
+  })
+}
+
+// ─── Members with details (birthDate + currentClub) — Story 44.5 ─────────────
+
+export async function listGroupMembersWithDetails(
+  groupId: string,
+): Promise<GroupMemberWithDetails[]> {
+  const { data: members } = await supabase
+    .from('group_members')
+    .select('*')
+    .eq('group_id', groupId)
+    .order('joined_at', { ascending: true })
+
+  if (!members || members.length === 0) return []
+
+  const childIds = members.map(m => (m as Record<string, unknown>).child_id as string)
+
+  const { data: children } = await supabase
+    .from('child_directory')
+    .select('id, display_name, birth_date, current_club')
+    .in('id', childIds)
+
+  const detailMap: Record<string, { displayName: string; birthDate: string | null; currentClub: string | null }> = {}
+  for (const c of children ?? []) {
+    const cr = c as Record<string, unknown>
+    detailMap[cr.id as string] = {
+      displayName: cr.display_name as string,
+      birthDate  : (cr.birth_date as string | null) ?? null,
+      currentClub: (cr.current_club as string | null) ?? null,
+    }
+  }
+
+  return members.map(m => {
+    const r      = m as Record<string, unknown>
+    const detail = detailMap[r.child_id as string]
+    return {
+      groupId    : r.group_id   as string,
+      childId    : r.child_id   as string,
+      displayName: detail?.displayName ?? 'Joueur inconnu',
+      joinedAt   : r.joined_at  as string,
+      birthDate  : detail?.birthDate   ?? null,
+      currentClub: detail?.currentClub ?? null,
     }
   })
 }

@@ -117,6 +117,7 @@ export {
   createGroup, createTransientGroup, updateGroup, deleteGroup, listGroupsByImplantation,
   getGroup, listAllGroups,
   addGroupMember, removeGroupMember, listGroupMembers, listGroupMembersWithProfiles,
+  listGroupMembersWithDetails,
   listGroupStaff, addGroupStaff, updateGroupStaffRole, removeGroupStaff, listGroupsByCoach,
   listAvailableCoaches, listAvailableChildren,
   listSessionsByGroup,
@@ -130,8 +131,9 @@ export {
   confirmCoachPresence as confirmCoachPresenceDb, checkinBlock,
   listSessionsWithAttendance, listPlayersWithAttendance,
   listSessionAttendeeRoster, batchResolveAttendeeNames,
+  listAttendanceStatsByGroup,
 } from './sessions/attendances'
-export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry } from './sessions/attendances'
+export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry, AttendanceStat } from './sessions/attendances'
 
 export {
   generateRecurrenceSessions, cancelRecurrenceSeries, cancelSessionRpc, modifySingleException,

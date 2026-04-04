@@ -6,12 +6,14 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable, Modal } from 'react
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getGroup, updateGroup,
-  listGroupMembersWithProfiles, addGroupMember, removeGroupMember,
+  listGroupMembersWithProfiles, listGroupMembersWithDetails, addGroupMember, removeGroupMember,
   listGroupStaff, addGroupStaff, removeGroupStaff,
   listAvailableCoaches, listAvailableChildren,
   listSessionsByGroup,
   generateYearSessions, listSchoolCalendarExceptions,
+  listAttendanceStatsByGroup,
 } from '@aureak/api-client'
+import type { AttendanceStat } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import {
   generateGroupName, GROUP_METHODS, DAYS_OF_WEEK, GROUP_DURATIONS, METHOD_COLOR,
@@ -21,7 +23,7 @@ import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type {
-  Group, GroupMethod, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, SchoolCalendarException, SessionType,
+  Group, GroupMethod, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, GroupMemberWithDetails, SchoolCalendarException, SessionType,
 } from '@aureak/types'
 import type { GenerateYearSessionsResult } from '@aureak/api-client'
 
@@ -525,26 +527,50 @@ const stf = StyleSheet.create({
   confirmBtn : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
 })
 
+// ── Helpers mini-stats ────────────────────────────────────────────────────────
+
+function formatBirthDate(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function attendanceRateColor(present: number, total: number): string {
+  if (total === 0) return colors.text.muted
+  const pct = (present / total) * 100
+  if (pct >= 80) return colors.status.present
+  if (pct >= 60) return colors.status.attention
+  return colors.status.absent
+}
+
 // ── Joueurs tab ───────────────────────────────────────────────────────────────
 
 function JoueursTab({
   groupId,
   members,
+  membersWithDetails,
+  attendanceStats,
   children,
   tenantId,
   onRefresh,
 }: {
-  groupId  : string
-  members  : GroupMemberWithName[]
-  children : Array<{ id: string; name: string }>
-  tenantId : string
-  onRefresh: () => void
+  groupId           : string
+  members           : GroupMemberWithName[]
+  membersWithDetails: GroupMemberWithDetails[]
+  attendanceStats   : AttendanceStat[]
+  children          : Array<{ id: string; name: string }>
+  tenantId          : string
+  onRefresh         : () => void
 }) {
   const [adding,     setAdding]     = useState(false)
   const [search,     setSearch]     = useState('')
   const [selectedId, setSelectedId] = useState('')
   const [saving,     setSaving]     = useState(false)
   const [removing,   setRemoving]   = useState<string | null>(null)
+
+  const detailsMap = new Map(membersWithDetails.map(m => [m.childId, m]))
+  const statsMap   = new Map(attendanceStats.map(s => [s.childId, s]))
 
   const enrolledIds      = new Set(members.map(m => m.childId))
   const availableChildren = children.filter(c =>
@@ -603,28 +629,47 @@ function JoueursTab({
           Aucun joueur dans ce groupe. Ajoutez le premier joueur.
         </AureakText>
       ) : (
-        members.map((m, idx) => (
-          <View key={m.childId} style={[jou.memberRow, idx % 2 === 1 && { backgroundColor: colors.light.muted }]}>
-            <View style={jou.memberAvatar}>
-              <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
-                {m.displayName.charAt(0).toUpperCase()}
-              </AureakText>
+        members.map((m, idx) => {
+          const detail = detailsMap.get(m.childId)
+          const stat   = statsMap.get(m.childId)
+          const rateColor = stat ? attendanceRateColor(stat.present, stat.total) : colors.text.muted
+          const rateLabel = stat
+            ? stat.total === 0
+              ? 'Aucune séance'
+              : `${Math.round((stat.present / stat.total) * 100)}% (${stat.present} présent${stat.present !== 1 ? 's' : ''} / ${stat.total} séance${stat.total !== 1 ? 's' : ''})`
+            : 'Aucune séance'
+
+          return (
+            <View key={m.childId} style={[jou.memberRow, idx % 2 === 1 && { backgroundColor: colors.light.muted }]}>
+              <View style={jou.memberAvatar}>
+                <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
+                  {m.displayName.charAt(0).toUpperCase()}
+                </AureakText>
+              </View>
+              <View style={{ flex: 1 }}>
+                <AureakText variant="body" style={{ fontSize: 13 }}>{m.displayName}</AureakText>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginTop: 1 }}>
+                  {formatBirthDate(detail?.birthDate ?? null)}
+                  {' · '}
+                  {detail?.currentClub ?? '—'}
+                  {' · '}
+                  <AureakText variant="caption" style={{ fontSize: 11, color: rateColor, fontWeight: '600' }}>
+                    {rateLabel}
+                  </AureakText>
+                </AureakText>
+              </View>
+              <Pressable
+                style={jou.removeBtn}
+                onPress={() => handleRemove(m.childId)}
+                disabled={removing === m.childId}
+              >
+                <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
+                  {removing === m.childId ? '…' : '✕'}
+                </AureakText>
+              </Pressable>
             </View>
-            <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{m.displayName}</AureakText>
-            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, marginRight: space.sm }}>
-              {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
-            </AureakText>
-            <Pressable
-              style={jou.removeBtn}
-              onPress={() => handleRemove(m.childId)}
-              disabled={removing === m.childId}
-            >
-              <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>
-                {removing === m.childId ? '…' : '✕'}
-              </AureakText>
-            </Pressable>
-          </View>
-        ))
+          )
+        })
       )}
 
       {adding && (
@@ -976,6 +1021,8 @@ export default function GroupDetailPage() {
   const [group,   setGroup]   = useState<GroupState>(null)
   const [staff,   setStaff]   = useState<GroupStaffWithName[]>([])
   const [members, setMembers] = useState<GroupMemberWithName[]>([])
+  const [membersWithDetails, setMembersWithDetails] = useState<GroupMemberWithDetails[]>([])
+  const [attendanceStats,    setAttendanceStats]    = useState<AttendanceStat[]>([])
   const [sessions, setSessions] = useState<Array<{ id: string; scheduledAt: string; status: string; durationMinutes: number }>>([])
   const [coaches,  setCoaches]  = useState<Array<{ id: string; name: string }>>([])
   const [children, setChildren] = useState<Array<{ id: string; name: string }>>([])
@@ -995,8 +1042,23 @@ export default function GroupDetailPage() {
 
   const loadMembers = useCallback(async () => {
     if (!groupId) return
-    const data = await listGroupMembersWithProfiles(groupId)
-    setMembers(data)
+    const [basic, detailed] = await Promise.all([
+      listGroupMembersWithProfiles(groupId),
+      listGroupMembersWithDetails(groupId),
+    ])
+    setMembers(basic)
+    setMembersWithDetails(detailed)
+  }, [groupId])
+
+  const loadAttendanceStats = useCallback(async () => {
+    if (!groupId) return
+    setAttendanceStats([])
+    try {
+      const data = await listAttendanceStatsByGroup(groupId)
+      setAttendanceStats(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] loadAttendanceStats error:', err)
+    }
   }, [groupId])
 
   const loadSessions = useCallback(async () => {
@@ -1009,11 +1071,12 @@ export default function GroupDetailPage() {
     if (!groupId) return
     setLoading(true)
     try {
-      const [_, __, ___, ____, coachList, childList] = await Promise.all([
+      const [_, __, ___, ____, _____, coachList, childList] = await Promise.all([
         loadGroup(),
         loadStaff(),
         loadMembers(),
         loadSessions(),
+        loadAttendanceStats(),
         listAvailableCoaches(),
         listAvailableChildren(),
       ])
@@ -1024,7 +1087,7 @@ export default function GroupDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [groupId, loadGroup, loadStaff, loadMembers, loadSessions])
+  }, [groupId, loadGroup, loadStaff, loadMembers, loadSessions, loadAttendanceStats])
 
   useEffect(() => { loadAll() }, [loadAll])
 
@@ -1149,9 +1212,11 @@ export default function GroupDetailPage() {
         <JoueursTab
           groupId={groupId!}
           members={members}
+          membersWithDetails={membersWithDetails}
+          attendanceStats={attendanceStats}
           children={children}
           tenantId={tenantId}
-          onRefresh={loadMembers}
+          onRefresh={async () => { await loadMembers(); await loadAttendanceStats() }}
         />
       )}
 

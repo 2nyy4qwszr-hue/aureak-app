@@ -447,6 +447,12 @@ export type GroupMemberWithName = {
   joinedAt   : string
 }
 
+/** GroupMemberWithDetails — membre enrichi avec birthDate + currentClub (Story 44.5) */
+export type GroupMemberWithDetails = GroupMemberWithName & {
+  birthDate  : string | null
+  currentClub: string | null
+}
+
 /** Implantation — site physique où se déroulent les séances */
 export type Implantation = {
   id        : string

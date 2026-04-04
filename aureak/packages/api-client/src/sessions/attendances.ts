@@ -461,6 +461,45 @@ export async function batchResolveAttendeeNames(
   return { profileMap, dirMap }
 }
 
+// ─── AttendanceStat par groupe — Story 44.5 ──────────────────────────────────
+
+export type AttendanceStat = {
+  childId: string
+  present: number
+  total  : number
+}
+
+/**
+ * Retourne les stats de présence par enfant pour toutes les séances d'un groupe.
+ * present = statuts present|late|trial / total = toutes entrées d'attendance
+ */
+export async function listAttendanceStatsByGroup(
+  groupId : string,
+): Promise<AttendanceStat[]> {
+  const { data: sessions } = await supabase
+    .from('sessions')
+    .select('id')
+    .eq('group_id', groupId)
+    .is('deleted_at', null)
+
+  const sessionIds = (sessions ?? []).map((s: { id: string }) => s.id)
+  if (sessionIds.length === 0) return []
+
+  const { data: attendances } = await supabase
+    .from('attendances')
+    .select('child_id, status')
+    .in('session_id', sessionIds)
+
+  const stats = new Map<string, { present: number; total: number }>()
+  for (const a of ((attendances ?? []) as { child_id: string; status: string }[])) {
+    const s = stats.get(a.child_id) ?? { present: 0, total: 0 }
+    s.total++
+    if (a.status === 'present' || a.status === 'late' || a.status === 'trial') s.present++
+    stats.set(a.child_id, s)
+  }
+  return Array.from(stats.entries()).map(([childId, s]) => ({ childId, ...s }))
+}
+
 export async function listSessionEvents(
   sessionId: string
 ): Promise<{ data: unknown[]; error: unknown }> {
