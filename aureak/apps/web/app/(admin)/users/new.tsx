@@ -3,7 +3,7 @@
 // Rôles : enfant, parent, coach, club
 
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import {
@@ -74,10 +74,15 @@ const AGE_CATEGORIES = [
 export default function NewUserScreen() {
   const router   = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
+  const params   = useLocalSearchParams<{ role?: string }>()
+
+  // Pré-sélection du rôle depuis l'URL (?role=coach, ?role=child, etc.)
+  const prefillRole   = params.role as ProfileRole | undefined
+  const skipRoleStep  = !!prefillRole
 
   const [step,   setStep]   = useState<1 | 2 | 3>(1)
   const [mode,   setMode]   = useState<Mode>('fiche')
-  const [role,   setRole]   = useState<ProfileRole>('child')
+  const [role,   setRole]   = useState<ProfileRole>(prefillRole ?? 'child')
   const [form,   setForm]   = useState<FormValues>(EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -244,12 +249,12 @@ export default function NewUserScreen() {
         <button style={s.backBtn} onClick={() => router.back()}>← Retour</button>
         <h1 style={s.title}>Nouveau profil</h1>
         <div style={s.steps}>
-          {([1, 2, 3] as const).map(n => (
+          {(skipRoleStep ? [1, 3] : [1, 2, 3] as const).map((n, idx, arr) => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ ...s.stepDot, ...(step >= n ? s.stepDotActive : {}) }}>
-                {step > n ? '✓' : n}
+                {step > n ? '✓' : idx + 1}
               </div>
-              {n < 3 && <div style={{ ...s.stepLine, ...(step > n ? s.stepLineActive : {}) }} />}
+              {idx < arr.length - 1 && <div style={{ ...s.stepLine, ...(step > n ? s.stepLineActive : {}) }} />}
             </div>
           ))}
         </div>
@@ -282,13 +287,13 @@ export default function NewUserScreen() {
               />
             </div>
             <div style={s.footer}>
-              <button style={s.btnPrimary} onClick={() => setStep(2)}>Continuer →</button>
+              <button style={s.btnPrimary} onClick={() => setStep(skipRoleStep ? 3 : 2)}>Continuer →</button>
             </div>
           </div>
         )}
 
         {/* ── ÉTAPE 2 : Rôle ──────────────────────────────────────────────── */}
-        {step === 2 && (
+        {step === 2 && !skipRoleStep && (
           <div>
             <p style={s.stepLabel}>Étape 2 — Rôle</p>
             <h2 style={s.stepTitle}>Quel est le rôle de cet utilisateur ?</h2>
@@ -505,7 +510,7 @@ export default function NewUserScreen() {
             </div>
 
             <div style={s.footer}>
-              <button style={s.btnSecondary} onClick={() => setStep(2)}>← Retour</button>
+              <button style={s.btnSecondary} onClick={() => setStep(skipRoleStep ? 1 : 2)}>← Retour</button>
               <button
                 style={{ ...s.btnPrimary, opacity: submitting ? 0.6 : 1 }}
                 onClick={handleSubmit}

@@ -118,7 +118,7 @@ export default function CoachesPage() {
         </View>
         <Pressable
           style={styles.inviteBtn}
-          onPress={() => router.push('/(admin)/users/new' as never)}
+          onPress={() => router.push('/(admin)/users/new?role=coach' as never)}
         >
           <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
             + Inviter un coach
