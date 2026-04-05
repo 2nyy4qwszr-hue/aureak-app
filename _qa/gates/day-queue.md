@@ -7,6 +7,23 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-2
+    title: "DESIGN — Dashboard KPI cards sparkline + delta"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-2_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-2_gate2.md"
+    warnings:
+      - "W1: rgba(76,175,80/244,67,54,0.10) dans DeltaPill — tokens colors.status.presentBg manquants (pré-existant)"
+      - "W2: TERRAIN_GRADIENT hex hardcodés (pré-existant story-49-5)"
+    fixed:
+      - "FIXED: SparklineSVG guard NaN (story-49-5 W5)"
+      - "FIXED: DeltaPill refactorisée — calcul delta depuis data[] (suppression delta prop hardcodé)"
+
   - story_id: story-50-1
     title: "DESIGN — Dashboard Hero Band salle de commandement"
     priority: P2

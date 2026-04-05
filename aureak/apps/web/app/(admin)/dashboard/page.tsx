@@ -242,33 +242,34 @@ function HeroBand({ implantationCount }: { implantationCount: number }) {
   )
 }
 
-// ── Sparkline SVG ─────────────────────────────────────────────────────────────
+// ── Sparkline SVG (AC1, AC5, AC6, AC7) ───────────────────────────────────────
+// SVG natif — aucune dépendance externe (polyline + circle uniquement)
 
-function SparklineSVG({ values, color }: { values: number[]; color: string }) {
+function SparklineSVG({ values, color, height = 36 }: { values: number[]; color: string; height?: number }) {
   if (!values || values.length < 2) return null
 
-  const W = 100  // viewBox width (percentage-based via preserveAspectRatio)
-  const H = 32
+  const W   = 100  // viewBox width (percentage-based via preserveAspectRatio)
+  const pad = 4
 
-  const min   = Math.min(...values)
-  const max   = Math.max(...values)
+  const safeValues = values.map(v => (isNaN(v) || !isFinite(v) ? 0 : v))
+  const min   = Math.min(...safeValues)
+  const max   = Math.max(...safeValues)
   const range = max - min || 1
 
-  const pts = values.map((v, i) => ({
-    x: (i / (values.length - 1)) * W,
-    y: H - ((v - min) / range) * (H - 6) - 3,  // padding 3px haut/bas
+  const pts = safeValues.map((v, i) => ({
+    x: pad + (i / (safeValues.length - 1)) * (W - pad * 2),
+    y: (height - pad) - ((v - min) / range) * (height - pad * 2),
   }))
 
   const pointsStr = pts.map(p => `${p.x},${p.y}`).join(' ')
-
-  const minIdx = values.indexOf(min)
-  const maxIdx = values.indexOf(max)
+  const last = pts[pts.length - 1]
 
   return (
     <svg
-      viewBox={`0 0 ${W} ${H}`}
+      viewBox={`0 0 ${W} ${height}`}
       preserveAspectRatio="none"
-      style={{ width: '100%', height: H, display: 'block', marginTop: 8 }}
+      style={{ width: '100%', height, display: 'block', marginTop: 8 }}
+      aria-hidden="true"
     >
       <polyline
         points={pointsStr}
@@ -277,34 +278,62 @@ function SparklineSVG({ values, color }: { values: number[]; color: string }) {
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
+        opacity={0.8}
       />
-      {/* Marqueur min — fond clair : utiliser la couleur d'accent pour la visibilité */}
-      <circle cx={pts[minIdx].x} cy={pts[minIdx].y} r="2" fill={colors.text.dark} />
-      {/* Marqueur max */}
-      <circle cx={pts[maxIdx].x} cy={pts[maxIdx].y} r="2" fill={colors.text.dark} />
+      {/* Marqueur dernier point — AC5 */}
+      <circle cx={last.x} cy={last.y} r={3} fill={color} />
     </svg>
   )
 }
 
-// ── Delta Pill ────────────────────────────────────────────────────────────────
+// ── Delta Pill (AC3) — calcule le delta depuis les données sparkline ───────────
 
-function DeltaPill({ value, positive }: { value: string; positive: boolean }) {
+function DeltaPill({ data }: { data: number[] }) {
+  if (!data || data.length < 2) return null
+
+  const first = data[0]
+  const last  = data[data.length - 1]
+  const delta = (first === 0 || isNaN(first)) ? 0 : ((last - first) / Math.abs(first)) * 100
+  const abs   = Math.abs(delta)
+
+  if (abs < 0.1) {
+    return (
+      <span style={{
+        display   : 'inline-flex',
+        alignItems: 'center',
+        fontSize  : 10,
+        color     : colors.text.muted,
+        fontFamily: 'Geist Mono, monospace',
+        marginTop : 4,
+      }}>
+        — stable
+      </span>
+    )
+  }
+
+  const positive = delta > 0
+  const symbol   = positive ? '▲' : '▼'
+  const sign     = positive ? '+' : ''
+
   return (
     <span style={{
       display        : 'inline-flex',
       alignItems     : 'center',
-      padding        : '2px 8px',
-      borderRadius   : radius.badge,
-      backgroundColor: positive
-        ? 'rgba(76,175,80,0.12)'
-        : 'rgba(244,67,54,0.12)',
+      gap            : 2,
+      backgroundColor: positive ? 'rgba(76,175,80,0.10)' : 'rgba(244,67,54,0.10)',
       color          : positive ? colors.status.present : colors.status.absent,
-      fontSize       : 11,
-      fontWeight     : 600,
-      fontFamily     : 'Montserrat, sans-serif',
+      borderRadius   : radius.badge,
+      paddingLeft    : 6,
+      paddingRight   : 6,
+      paddingTop     : 2,
+      paddingBottom  : 2,
+      fontSize       : 10,
+      fontWeight     : 700,
+      fontFamily     : 'Geist Mono, monospace',
+      marginTop      : 4,
       whiteSpace     : 'nowrap',
     }}>
-      {positive ? '▲' : '▼'} {value}
+      {symbol}{sign}{abs.toFixed(1)}%
     </span>
   )
 }
@@ -319,7 +348,7 @@ type KpiCardProps = {
   sub        ?: string
   accent      : string
   borderAccent?: string
-  delta       ?: { value: string; positive: boolean }
+  /** sparkline: 6 valeurs pour mini-graphique tendance (AC4) */
   sparkline   ?: number[]
   size        ?: BentoSize
   icon        ?: string
@@ -333,7 +362,7 @@ type KpiCardProps = {
   subColor    ?: string
 }
 
-function KpiCard({ label, value, sub, accent, borderAccent, delta, sparkline, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent, borderAccent, sparkline, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor }: KpiCardProps) {
   const valueFontSize = size === 'large' ? 52 : size === 'medium' ? 38 : 28
 
   return (
@@ -367,14 +396,16 @@ function KpiCard({ label, value, sub, accent, borderAccent, delta, sparkline, si
         <div style={{ ...S.kpiLabel, color: labelColor ?? (S.kpiLabel as React.CSSProperties).color }}>
           {label}
         </div>
-        {delta && <DeltaPill value={delta.value} positive={delta.positive} />}
       </div>
       <div style={{ ...S.kpiValue, color: valueColor ?? accent, fontSize: valueFontSize }}>{value}</div>
       {sub && <div style={{ ...S.kpiSub, color: subColor ?? (S.kpiSub as React.CSSProperties).color }}>{sub}</div>}
 
-      {/* Sparkline */}
+      {/* Sparkline + DeltaPill dérivée — AC4: si sparkline fourni, afficher les deux */}
       {sparkline && sparkline.length >= 2 && (
-        <SparklineSVG values={sparkline} color={accent} />
+        <>
+          <SparklineSVG values={sparkline} color={accent} />
+          <DeltaPill data={sparkline} />
+        </>
       )}
     </div>
   )
@@ -570,6 +601,17 @@ function NextSessionTile({
   )
 }
 
+// ── Données sparkline simulées (déterministes, sans Math.random) ──────────────
+// TODO(50.x): remplacer par données historiques réelles depuis l'API
+// Génère 6 points pseudo-aléatoires déterministes basés sur la valeur courante.
+// Utilise un seed fixe (pas de Math.random) pour éviter les hydration mismatches SSR/client.
+function simulateSpark(current: number, seed: number): number[] {
+  const base    = current || 1
+  const offsets = [0.82, 0.88, 0.91, 0.87, 0.95, 1.0]
+  const jitter  = [seed % 7, seed % 5, seed % 11, seed % 3, seed % 9, 0].map(j => j / 100)
+  return offsets.map((o, i) => Math.round(base * (o + jitter[i])))
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
@@ -735,9 +777,14 @@ export default function DashboardPage() {
   const countVal = (n: number | null) =>
     loadingCounts ? '…' : n !== null ? n : '—'
 
-  // ── Sparkline simulées (à remplacer par API historique — story future) ──
-  const SPARKLINE_JOUEURS = [42, 45, 41, 48, 47, childrenTotal ?? 50]
-  const SPARKLINE_SEANCES = [8, 10, 9, 12, 11, totalSessions]
+  // ── Sparkline simulées — données déterministes (AC2) ────────────────────────
+  // TODO(50.x): remplacer par données historiques réelles depuis l'API
+  const sparkSessions   = totalSessions   > 0          ? simulateSpark(totalSessions,  7)  : undefined
+  const sparkAttendance = avgAttendance   !== null      ? simulateSpark(avgAttendance,  3)  : undefined
+  const sparkMastery    = avgMastery      !== null      ? simulateSpark(avgMastery,     11) : undefined
+  const sparkChildren   = childrenTotal   !== null      ? simulateSpark(childrenTotal,  5)  : undefined
+  const sparkCoaches    = coachesTotal    !== null      ? simulateSpark(coachesTotal,   13) : undefined
+  const sparkGroups     = groupsTotal     !== null      ? simulateSpark(groupsTotal,    17) : undefined
 
   // ── Pending sessions (séances non clôturées) ──
   const pendingSessions = visibleStats.reduce(
@@ -850,8 +897,7 @@ export default function DashboardPage() {
             accent={colors.status.present}
             size="large"
             icon="👥"
-            sparkline={SPARKLINE_JOUEURS}
-            delta={{ value: '+5%', positive: true }}
+            sparkline={sparkChildren}
           />
         </div>
 
@@ -871,7 +917,7 @@ export default function DashboardPage() {
             borderAccent={colors.accent.gold}
             size="medium"
             icon="✅"
-            delta={{ value: '+3%', positive: true }}
+            sparkline={sparkAttendance}
           />
         </div>
 
@@ -891,7 +937,7 @@ export default function DashboardPage() {
             borderAccent={colors.accent.gold}
             size="medium"
             icon="🎯"
-            delta={{ value: '-2%', positive: false }}
+            sparkline={sparkMastery}
           />
         </div>
 
@@ -904,8 +950,7 @@ export default function DashboardPage() {
             accent={colors.accent.gold}
             size="large"
             icon="📅"
-            sparkline={SPARKLINE_SEANCES}
-            delta={{ value: '+2', positive: true }}
+            sparkline={sparkSessions}
           />
         </div>
 
@@ -918,6 +963,7 @@ export default function DashboardPage() {
             accent={colors.entity.coach}
             size="small"
             icon="👨‍🏫"
+            sparkline={sparkCoaches}
           />
         </div>
 
@@ -930,6 +976,7 @@ export default function DashboardPage() {
             accent={colors.entity.club}
             size="small"
             icon="🏆"
+            sparkline={sparkGroups}
           />
         </div>
 
