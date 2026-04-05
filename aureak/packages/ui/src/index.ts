@@ -83,6 +83,18 @@ export type { GroupOfMonthBadgeProps } from './GroupOfMonthBadge'
 export { CapacityIndicator, getCapacityStatus, getCapacityColor, getCapacityTooltip } from './CapacityIndicator'
 export type { CapacityIndicatorProps, CapacityStatus } from './CapacityIndicator'
 
+// Story 59-7 — Célébration milestone académie (confetti CSS pur)
+export { MilestoneCelebration } from './MilestoneCelebration'
+
+// Story 59-9 — Toast notification achievement badge temps réel
+export { AchievementToast } from './AchievementToast'
+export type { AchievementToastProps } from './AchievementToast'
+
+// Story 59-10 — Trophée de saison SVG paramétrique + export PNG
+export { SeasonTrophy } from './SeasonTrophy'
+export type { SeasonTrophyProps } from './SeasonTrophy'
+export { exportTrophyAsPng } from './utils/exportSvgToPng'
+
 // Story 59-2 — Level-up animation spring + flash doré
 export { LevelUpAnimation } from './LevelUpAnimation'
 export type { LevelUpAnimationProps, LevelTier } from './LevelUpAnimation'
