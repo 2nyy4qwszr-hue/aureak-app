@@ -25,12 +25,15 @@ import {
   // Story 58-8
   listSessionModules,
   upsertSessionModule,
+  // Story 61.5 — offline queue
+  enqueueAction,
+  useOfflineCache,
 } from '@aureak/api-client'
 import type { MethodologySituation } from '@aureak/types'
 import { MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
 import { SessionTimeline } from '../_components/SessionTimeline'
 import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
-import { AureakButton, AureakText, Badge, AttendanceToggle, BestSessionBadge } from '@aureak/ui'
+import { AureakButton, AureakText, Badge, AttendanceToggle, BestSessionBadge, SwipeableRow } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
@@ -928,13 +931,20 @@ function SquadStatusGrid({
             key={m.childId}
             style={{ width: colCount === 4 ? 'calc(25% - 12px)' : 'calc(50% - 8px)' } as never}
           >
-            <SquadCard
-              member   ={m}
-              status   ={attendanceMap[m.childId] ?? null}
-              toggling ={toggling.has(m.childId)}
-              streak   ={memberStreaks[m.childId]}
-              onStatus ={onStatusChange}
-            />
+            {/* Story 61.4 — SwipeableRow sur mobile : droite=présent, gauche=absent (AC1, AC2, AC5, AC7) */}
+            <SwipeableRow
+              isMobile   ={isMobile}
+              onSwipeRight={() => onStatusChange(m.childId, 'present')}
+              onSwipeLeft ={() => onStatusChange(m.childId, 'absent')}
+            >
+              <SquadCard
+                member   ={m}
+                status   ={attendanceMap[m.childId] ?? null}
+                toggling ={toggling.has(m.childId)}
+                streak   ={memberStreaks[m.childId]}
+                onStatus ={onStatusChange}
+              />
+            </SwipeableRow>
           </View>
         ))}
       </View>
@@ -1065,6 +1075,9 @@ export default function SessionDetailPage() {
   const [editingModule,   setEditingModule]   = useState<import('@aureak/types').MethodologyModuleType | null>(null)
   const [moduleDurations, setModuleDurations] = useState<Record<string, number>>({})
   const [savingModule,    setSavingModule]    = useState(false)
+
+  // Story 61.5 — Offline mode
+  const { isOnline } = useOfflineCache()
 
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -1492,6 +1505,14 @@ export default function SessionDetailPage() {
     setAttendanceToggling(prev => new Set([...prev, childId]))
     setAttendanceError(null)
     try {
+      // Story 61.5 — Si offline, mettre en queue et retour immédiat (AC3)
+      if (!isOnline) {
+        enqueueAction({
+          type   : 'update_attendance',
+          payload: { sessionId, childId, tenantId: session.tenantId, status: newStatus },
+        })
+        return
+      }
       const { error } = await recordAttendance({
         sessionId,
         childId,
