@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
-  listNextSessionForDashboard,
+  listNextSessionForDashboard, listGroupsByImplantation,
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
@@ -432,65 +432,14 @@ function ProgressBar({ pct, label }: { pct: number | null; label: string }) {
   )
 }
 
-// ── Implantation Card Header ──────────────────────────────────────────────────
+// ── Implantation Card (Story 50.4 — terrain premium) ─────────────────────────
 
-function ImplantationCardHeader({ stat }: { stat: ImplantationStats }) {
-  return (
-    <div style={{
-      borderRadius    : `${radius.card}px ${radius.card}px 0 0`,
-      height          : 72,
-      position        : 'relative',
-      overflow        : 'hidden',
-      marginBottom    : 0,
-      backgroundImage : `
-        ${TERRAIN_GRADIENT},
-        repeating-linear-gradient(
-          45deg,
-          rgba(255,255,255,0.03) 0px,
-          rgba(255,255,255,0.03) 1px,
-          transparent 1px,
-          transparent 8px
-        )
-      `,
-    }}>
-      {/* Nom implantation en bas à gauche */}
-      <div style={{
-        position     : 'absolute',
-        bottom       : 10,
-        left         : 14,
-        fontSize     : 15,
-        fontWeight   : 700,
-        fontFamily   : 'Montserrat, sans-serif',
-        color        : colors.text.primary,
-        lineHeight   : 1.2,
-        letterSpacing: 0.2,
-      }}>
-        {stat.implantation_name}
-      </div>
-
-      {/* Badge OR sessions en haut à droite */}
-      <div style={{
-        position       : 'absolute',
-        top            : 10,
-        right          : 12,
-        backgroundColor: colors.accent.gold,
-        color          : colors.text.dark,
-        fontSize       : 10,
-        fontWeight     : 600,
-        fontFamily     : 'Montserrat, sans-serif',
-        padding        : '3px 8px',
-        borderRadius   : radius.badge,
-        whiteSpace     : 'nowrap',
-      }}>
-        {stat.sessions_total} séance{stat.sessions_total !== 1 ? 's' : ''}
-      </div>
-    </div>
-  )
+type ImplantationCardProps = {
+  stat   : ImplantationStats
+  groups?: { id: string; name: string }[]
 }
 
-// ── Implantation Card ─────────────────────────────────────────────────────────
-
-function ImplantationCard({ stat }: { stat: ImplantationStats }) {
+function ImplantationCard({ stat, groups }: ImplantationCardProps) {
   const seancesRatio = stat.sessions_total > 0
     ? `${stat.sessions_closed}/${stat.sessions_total}`
     : '—'
@@ -504,14 +453,94 @@ function ImplantationCard({ stat }: { stat: ImplantationStats }) {
       padding : 0,
       overflow: 'hidden',
     }}>
-      {/* Header terrain */}
-      <ImplantationCardHeader stat={stat} />
+      {/* Header terrain premium — AC1, AC2, AC4 */}
+      <div
+        className="implant-card-header"
+        style={{
+          height        : 80,
+          background    : 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #40916C 100%)',
+          position      : 'relative',
+          display       : 'flex',
+          alignItems    : 'flex-end',
+          justifyContent: 'space-between',
+          padding       : '0 14px 12px 14px',
+        }}
+      >
+        {/* Nom implantation en bas à gauche — AC4 */}
+        <div style={{
+          fontFamily : 'Montserrat, sans-serif',
+          fontWeight : '700',
+          fontSize   : 16,
+          color      : '#FFFFFF',
+          textShadow : '0 1px 3px rgba(0,0,0,0.5)',
+          lineHeight : 1.2,
+        }}>
+          {stat.implantation_name}
+        </div>
+
+        {/* Badge or nombre de groupes en haut à droite — AC2 */}
+        {groups != null && (
+          <div style={{
+            backgroundColor: colors.accent.gold,
+            color          : '#1A1A1A',
+            borderRadius   : radius.badge,
+            paddingLeft    : 8,
+            paddingRight   : 8,
+            paddingTop     : 3,
+            paddingBottom  : 3,
+            fontSize       : 11,
+            fontWeight     : 700,
+            fontFamily     : 'Geist Mono, monospace',
+            position       : 'absolute',
+            top            : 10,
+            right          : 14,
+            whiteSpace     : 'nowrap',
+          }}>
+            {groups.length} groupe{groups.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
 
       {/* Corps avec padding */}
-      <div style={{ padding: '16px 16px 16px 16px' }}>
+      <div style={{ padding: '12px 14px 14px 14px' }}>
+
+        {/* Chips groupes scrollables — AC3 */}
+        {groups != null && (
+          groups.length > 0 ? (
+            <div className="groups-scroll" style={{
+              display     : 'flex',
+              gap         : 6,
+              overflowX   : 'auto',
+              marginBottom: 12,
+            }}>
+              {groups.map(g => (
+                <span key={g.id} style={{
+                  backgroundColor: colors.light.muted,
+                  color          : colors.text.dark,
+                  borderRadius   : radius.badge,
+                  paddingLeft    : 10,
+                  paddingRight   : 10,
+                  paddingTop     : 4,
+                  paddingBottom  : 4,
+                  fontSize       : 11,
+                  fontWeight     : 500,
+                  whiteSpace     : 'nowrap',
+                  flexShrink     : 0,
+                }}>
+                  {g.name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 11, color: colors.text.muted, marginBottom: 12 }}>Aucun groupe</div>
+          )
+        )}
+
+        {/* ProgressBars préservées — AC5 */}
         <ProgressBar pct={stat.attendance_rate_pct} label="Présence" />
         <ProgressBar pct={stat.mastery_rate_pct}    label="Maîtrise" />
 
+        {/* Footer séances clôturées — AC5 */}
         <div style={S.implantFooter}>
           <span style={{ fontSize: 11, color: colors.text.muted }}>Séances clôturées</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -750,6 +779,9 @@ export default function DashboardPage() {
   const [implantations,          setImplantations]          = useState<{ id: string; name: string }[]>([])
   const [selectedImplantationId, setSelectedImplantationId] = useState<string | null>(null)
 
+  // ── Groups map par implantation (Story 50.4) ──
+  const [implantationGroups, setImplantationGroups] = useState<Record<string, { id: string; name: string }[]>>({})
+
   // ── Upcoming session (countdown tile — Story 50.3) ──
   const [upcomingSession,  setUpcomingSession]  = useState<UpcomingSessionRow | null>(null)
   const [loadingUpcoming,  setLoadingUpcoming]  = useState(true)
@@ -809,6 +841,21 @@ export default function DashboardPage() {
       setStats(statsResult.data ?? [])
       setAnomalies(anomalyResult.data ?? [])
       setImplantations((implRes.data ?? []).map(i => ({ id: i.id, name: i.name })))
+
+      // ── Charger groupes par implantation en parallèle (AC7) ──
+      const groupsMap: Record<string, { id: string; name: string }[]> = {}
+      await Promise.all(
+        (statsResult.data ?? []).map(async (s) => {
+          try {
+            const { data } = await listGroupsByImplantation(s.implantation_id)
+            groupsMap[s.implantation_id] = (data ?? []).map(g => ({ id: g.id, name: g.name }))
+          } catch (gErr) {
+            if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listGroupsByImplantation error:', gErr)
+            groupsMap[s.implantation_id] = []
+          }
+        })
+      )
+      setImplantationGroups(groupsMap)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[dashboard] load error:', err)
     } finally {
@@ -934,6 +981,12 @@ export default function DashboardPage() {
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
         .aureak-card:hover { box-shadow: ${shadows.md}; transform: translateY(-2px); }
         .aureak-qa-btn:hover { transform: translateY(-1px); box-shadow: ${shadows.sm}; }
+
+        /* ── ImplantationCard terrain premium (Story 50.4) ── */
+        .implant-card-header { transition: box-shadow 0.2s ease; }
+        .aureak-card:hover .implant-card-header { box-shadow: 0 4px 20px rgba(64,145,108,0.3); }
+        .groups-scroll::-webkit-scrollbar { display: none; }
+        .groups-scroll { scrollbar-width: none; }
 
         /* ── Bento responsive ── */
         .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
@@ -1293,7 +1346,11 @@ export default function DashboardPage() {
       ) : (
         <div style={S.implantGrid}>
           {visibleStats.map(s => (
-            <ImplantationCard key={s.implantation_id} stat={s} />
+            <ImplantationCard
+              key={s.implantation_id}
+              stat={s}
+              groups={implantationGroups[s.implantation_id]}
+            />
           ))}
         </div>
       )}

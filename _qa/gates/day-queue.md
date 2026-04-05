@@ -7,6 +7,21 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-4
+    title: "DESIGN — Dashboard ImplantationCard terrain premium"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-4_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-4_gate2.md"
+    notes:
+      - "Header 80px gradient vert terrain — ImplantationCardHeader remplacée par header inline"
+      - "children_count absent de ImplantationStats → badge affiche groups.length"
+      - "listGroupsByImplantation() en parallèle après getImplantationStats"
+
   - story_id: story-50-3
     title: "FEATURE — Dashboard prochaine séance countdown tile"
     priority: P2
