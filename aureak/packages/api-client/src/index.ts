@@ -109,8 +109,10 @@ export {
   listSessionsAdminView, batchResolveCoachNames,
   // ARCH-1 wrappers for useSessionValidation
   getSessionValidationStatus, subscribeToSessionValidation,
+  // Story 50.3 — dashboard countdown tile
+  listNextSessionForDashboard,
 } from './sessions/sessions'
-export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin } from './sessions/sessions'
+export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow } from './sessions/sessions'
 
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,

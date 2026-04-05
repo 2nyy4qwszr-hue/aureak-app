@@ -7,6 +7,20 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-3
+    title: "FEATURE — Dashboard prochaine séance countdown tile"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-3_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-3_gate2.md"
+    notes:
+      - "listNextSessionForDashboard() — nouvelle fonction (listUpcomingSessions existante conservée)"
+      - "CountdownTile dans bento-medium, clearInterval dans useEffect return"
+
   - story_id: story-50-2
     title: "DESIGN — Dashboard KPI cards sparkline + delta"
     priority: P2

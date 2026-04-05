@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
+  listNextSessionForDashboard,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent } from '@aureak/api-client'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
@@ -601,6 +602,119 @@ function NextSessionTile({
   )
 }
 
+// ── Countdown Tile (Story 50.3) ───────────────────────────────────────────────
+
+function formatCountdown(totalSeconds: number): string {
+  const h   = Math.floor(totalSeconds / 3600)
+  const m   = Math.floor((totalSeconds % 3600) / 60)
+  const sec = totalSeconds % 60
+  return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+}
+
+function CountdownTile({
+  session,
+  loading,
+  onNavigate,
+}: {
+  session   : UpcomingSessionRow | null
+  loading   : boolean
+  onNavigate: (sessionId: string) => void
+}) {
+  const [secondsLeft, setSecondsLeft] = useState(0)
+
+  useEffect(() => {
+    if (!session) return
+    const calc = () => Math.max(0, Math.floor((new Date(session.scheduledAt).getTime() - Date.now()) / 1000))
+    setSecondsLeft(calc())
+    const timer = setInterval(() => setSecondsLeft(calc()), 1000)
+    return () => clearInterval(timer)
+  }, [session?.scheduledAt])
+
+  if (loading) return <SkeletonBlock h={120} r={radius.card} />
+
+  const isOngoing = session !== null && secondsLeft === 0
+
+  return (
+    <div
+      className="aureak-card"
+      style={{
+        background  : 'linear-gradient(135deg, #2A2827 0%, #1A1A1A 100%)',
+        borderTop   : `3px solid ${colors.accent.gold}`,
+        borderRadius: radius.card,
+        padding     : 20,
+        minHeight   : 120,
+        boxSizing   : 'border-box',
+      }}
+    >
+      <div style={{
+        fontSize      : 11,
+        color         : session ? colors.accent.goldLight : colors.text.muted,
+        fontWeight    : 600,
+        textTransform : 'uppercase',
+        letterSpacing : 1,
+        marginBottom  : 8,
+        fontFamily    : 'Montserrat, sans-serif',
+      }}>
+        Prochaine séance
+      </div>
+
+      {session ? (
+        <>
+          {isOngoing ? (
+            <div style={{ fontSize: 20, fontWeight: 700, color: colors.status.present, fontFamily: 'Montserrat, sans-serif' }}>
+              🟢 En cours
+            </div>
+          ) : (
+            <div style={{
+              fontFamily: 'Geist Mono, monospace',
+              fontWeight: 900,
+              fontSize  : 36,
+              color     : colors.accent.gold,
+              lineHeight: 1,
+            }}>
+              {formatCountdown(secondsLeft)}
+            </div>
+          )}
+
+          <div style={{ fontSize: 13, color: colors.text.secondary, marginTop: 8 }}>
+            {session.groupName}
+            {session.location && (
+              <span style={{ color: colors.text.muted }}> · {session.location}</span>
+            )}
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <button
+              onClick={() => onNavigate(session.id)}
+              style={{
+                background: 'none',
+                border    : 'none',
+                color     : colors.accent.gold,
+                fontSize  : 13,
+                fontWeight: 600,
+                fontFamily: 'Montserrat, sans-serif',
+                cursor    : 'pointer',
+                padding   : 0,
+              }}
+            >
+              → Voir la séance
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize: 16, color: colors.text.secondary, fontFamily: 'Geist, sans-serif' }}>
+            Aucune séance dans les 24h
+          </div>
+          <div style={{ fontSize: 12, color: colors.status.present, marginTop: 6, fontFamily: 'Geist, sans-serif' }}>
+            Tout est calme ✓
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Données sparkline simulées (déterministes, sans Math.random) ──────────────
 // TODO(50.x): remplacer par données historiques réelles depuis l'API
 // Génère 6 points pseudo-aléatoires déterministes basés sur la valeur courante.
@@ -635,6 +749,10 @@ export default function DashboardPage() {
   // ── Implantation selector ──
   const [implantations,          setImplantations]          = useState<{ id: string; name: string }[]>([])
   const [selectedImplantationId, setSelectedImplantationId] = useState<string | null>(null)
+
+  // ── Upcoming session (countdown tile — Story 50.3) ──
+  const [upcomingSession,  setUpcomingSession]  = useState<UpcomingSessionRow | null>(null)
+  const [loadingUpcoming,  setLoadingUpcoming]  = useState(true)
 
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
@@ -713,6 +831,23 @@ export default function DashboardPage() {
   }
 
   useEffect(() => { load() }, [])
+
+  // ── Load upcoming session for countdown tile (Story 50.3) ──
+  useEffect(() => {
+    const fetchUpcoming = async () => {
+      setLoadingUpcoming(true)
+      try {
+        const { data, error } = await listNextSessionForDashboard()
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listNextSessionForDashboard error:', error)
+        }
+        setUpcomingSession(data ?? null)
+      } finally {
+        setLoadingUpcoming(false)
+      }
+    }
+    fetchUpcoming()
+  }, [])
 
   // ── Load KPI counts filtered by implantation ──
   useEffect(() => {
@@ -1010,6 +1145,15 @@ export default function DashboardPage() {
             accent={criticalCount > 0 ? colors.status.absent : anomalies.length > 0 ? colors.status.attention : colors.status.present}
             size="small"
             icon={criticalCount > 0 ? '🚨' : anomalies.length > 0 ? '⚠️' : '✅'}
+          />
+        </div>
+
+        {/* MEDIUM — Countdown prochaine séance (Story 50.3) */}
+        <div className="bento-medium">
+          <CountdownTile
+            session={upcomingSession}
+            loading={loadingUpcoming}
+            onNavigate={id => router.push(`/seances/${id}` as never)}
           />
         </div>
 

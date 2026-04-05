@@ -143,6 +143,46 @@ export async function listUpcomingSessions(params?: {
   return { data: (data as Session[]) ?? [], error }
 }
 
+// ─── Dashboard countdown tile (Story 50.3) ────────────────────────────────────
+
+export type UpcomingSessionRow = {
+  id         : string
+  groupName  : string
+  scheduledAt: string  // ISO
+  location  ?: string
+}
+
+export async function listNextSessionForDashboard(
+  hoursAhead = 24
+): Promise<{ data: UpcomingSessionRow | null; error: unknown }> {
+  const now   = new Date().toISOString()
+  const limit = new Date(Date.now() + hoursAhead * 3_600_000).toISOString()
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('id, scheduled_at, location, groups(name)')
+    .gte('scheduled_at', now)
+    .lte('scheduled_at', limit)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: true })
+    .limit(1)
+
+  if (error) return { data: null, error }
+
+  const session = (data as Record<string, unknown>[] | null)?.[0]
+  if (!session) return { data: null, error: null }
+
+  return {
+    data: {
+      id         : session['id']           as string,
+      groupName  : (session['groups'] as { name?: string } | null)?.name ?? '—',
+      scheduledAt: session['scheduled_at'] as string,
+      location   : (session['location'] as string | null) ?? undefined,
+    },
+    error: null,
+  }
+}
+
 export type UpdateSessionParams = {
   scheduledAt?        : string
   durationMinutes?    : number
