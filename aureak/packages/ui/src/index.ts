@@ -75,6 +75,14 @@ export type { PlayerOfWeekTileProps } from './PlayerOfWeekTile'
 export { GroupCard } from './GroupCard'
 export type { GroupCardProps } from './GroupCard'
 
+// Story 56-5 — Badge "Groupe du mois" avec animation shimmer
+export { GroupOfMonthBadge } from './GroupOfMonthBadge'
+export type { GroupOfMonthBadgeProps } from './GroupOfMonthBadge'
+
+// Story 56-6 — Indicateur de capacité groupe
+export { CapacityIndicator, getCapacityStatus, getCapacityColor, getCapacityTooltip } from './CapacityIndicator'
+export type { CapacityIndicatorProps, CapacityStatus } from './CapacityIndicator'
+
 // Story 56-3 — Grille d'avatars compacts pour card groupe
 export { PlayerAvatarGrid } from './PlayerAvatarGrid'
 export type { PlayerAvatarGridProps, AvatarMember } from './PlayerAvatarGrid'

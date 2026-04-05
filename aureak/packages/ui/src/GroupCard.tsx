@@ -9,6 +9,8 @@ import type { GroupWithMeta, GroupMethod } from '@aureak/types'
 import { AureakText } from './components/Text'
 import { PlayerAvatarGrid } from './PlayerAvatarGrid'
 import type { AvatarMember } from './PlayerAvatarGrid'
+import { GroupOfMonthBadge } from './GroupOfMonthBadge'
+import { CapacityIndicator } from './CapacityIndicator'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,10 @@ export interface GroupCardProps {
   onDragOver? : (e: React.DragEvent) => void
   onDragLeave?: (e: React.DragEvent) => void
   onDrop?     : (e: React.DragEvent) => void
+  /** Story 56-5 — Badge "Groupe du mois" */
+  isGroupOfMonth?: boolean
+  /** Story 56-6 — Capacité max du groupe */
+  maxPlayers?: number
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -116,10 +122,12 @@ export function GroupCard({
   onDragOver,
   onDragLeave,
   onDrop,
+  isGroupOfMonth,
+  maxPlayers,
 }: GroupCardProps) {
   const methodColor    = getMethodColor(group.method)
-  const isOverCapacity = (group as GroupWithMeta & { maxPlayers?: number }).maxPlayers != null
-    && memberCount > ((group as GroupWithMeta & { maxPlayers?: number }).maxPlayers ?? Infinity)
+  const resolvedMax    = maxPlayers ?? (group as GroupWithMeta & { maxPlayers?: number }).maxPlayers
+  const isOverCapacity = resolvedMax != null && memberCount > resolvedMax
 
   return (
     <Pressable
@@ -137,6 +145,9 @@ export function GroupCard({
       accessibilityRole="button"
       accessibilityLabel={`Groupe ${group.name}, ${memberCount} joueurs`}
     >
+      {/* ── Badge "Groupe du mois" (Story 56-5) ── */}
+      {isGroupOfMonth && <GroupOfMonthBadge />}
+
       {/* ── Badge nombre de joueurs ── */}
       <View style={[s.memberBadge, isOverCapacity && s.memberBadgeOver]}>
         <AureakText
@@ -193,6 +204,10 @@ export function GroupCard({
               ? ` · ${String(group.startHour).padStart(2,'0')}h${String(group.startMinute ?? 0).padStart(2,'0')}`
               : ''}
           </AureakText>
+        )}
+        {/* Story 56-6 — Indicateur capacité compact */}
+        {resolvedMax != null && (
+          <CapacityIndicator memberCount={memberCount} maxPlayers={resolvedMax} compact />
         )}
         <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 10, marginLeft: 'auto' as never }}>
           Gérer →

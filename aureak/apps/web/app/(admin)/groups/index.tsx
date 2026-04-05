@@ -9,9 +9,10 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable, Modal } from 'react
 import { useRouter } from 'expo-router'
 import {
   listGroupsWithMembers, listImplantations, listAcademySeasons, createGroup,
-  transferGroupMember,
+  transferGroupMember, getTopGroupByAttendance,
 } from '@aureak/api-client'
 import type { GroupWithMembers } from '@aureak/api-client'
+import { GroupGeneratorModal } from './GroupGeneratorModal'
 import { AureakText } from '@aureak/ui'
 import { GroupCard } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
@@ -55,6 +56,11 @@ export default function GroupsPage() {
   const [implantFilter, setImplantFilter] = useState<string>('all')
   const [methodFilter,  setMethodFilter]  = useState<FilterMethod>('all')
 
+  // Story 56-5 — Badge groupe du mois
+  const [topGroupId,     setTopGroupId]     = useState<string | null>(null)
+  const [badgePeriod,    setBadgePeriod]    = useState<'month' | 'season'>('month')
+  const [badgeLoading,   setBadgeLoading]   = useState(false)
+
   // Modal génération groupes
   const [showGenModal, setShowGenModal] = useState(false)
   const [seasons,      setSeasons]      = useState<AcademySeason[]>([])
@@ -62,6 +68,9 @@ export default function GroupsPage() {
   const [genImplantId, setGenImplantId] = useState<string>('')
   const [generating,   setGenerating]   = useState(false)
   const [genResult,    setGenResult]    = useState<string | null>(null)
+
+  // Story 56-7 — Modal générateur par âge
+  const [showAgeModal, setShowAgeModal] = useState(false)
 
   // Drag-drop (Story 56-4)
   const [dragState,      setDragState]      = useState<DragState>(null)
@@ -94,6 +103,19 @@ export default function GroupsPage() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  // Story 56-5 — Charger le groupe du mois à chaque changement de période
+  useEffect(() => {
+    if (!tenantId) return
+    setBadgeLoading(true)
+    getTopGroupByAttendance(tenantId, badgePeriod)
+      .then(({ data }) => { setTopGroupId(data?.groupId ?? null) })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[GroupsPage] getTopGroupByAttendance:', err)
+        setTopGroupId(null)
+      })
+      .finally(() => { setBadgeLoading(false) })
+  }, [tenantId, badgePeriod])
 
   const handleOpenGenModal = () => {
     if (implantations.length > 0 && !genImplantId) {
@@ -238,11 +260,43 @@ export default function GroupsPage() {
             </AureakText>
           )}
         </View>
-        <Pressable style={s.genBtn} onPress={handleOpenGenModal}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
-            + Générer groupes
-          </AureakText>
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: space.xs }}>
+          {/* Story 56-7 — Générer par âge (admin only) */}
+          <Pressable style={s.genBtn} onPress={() => setShowAgeModal(true)}>
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+              👶 Par âge
+            </AureakText>
+          </Pressable>
+          <Pressable style={s.genBtn} onPress={handleOpenGenModal}>
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+              + Générer
+            </AureakText>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* ── Sélecteur période badge (Story 56-5) ── */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.5 }}>
+          🏆 Badge :
+        </AureakText>
+        {(['month', 'season'] as const).map(p => (
+          <Pressable
+            key={p}
+            style={[s.tab, badgePeriod === p && s.tabActive]}
+            onPress={() => setBadgePeriod(p)}
+          >
+            <AureakText variant="caption" style={{
+              color     : badgePeriod === p ? colors.accent.gold : colors.text.muted,
+              fontWeight: badgePeriod === p ? '700' : '400',
+            }}>
+              {p === 'month' ? 'Mois en cours' : 'Cette saison'}
+            </AureakText>
+          </Pressable>
+        ))}
+        {badgeLoading && (
+          <AureakText variant="caption" style={{ color: colors.text.subtle, fontSize: 10 }}>…</AureakText>
+        )}
       </View>
 
       {/* ── Search ── */}
@@ -338,6 +392,7 @@ export default function GroupsPage() {
               onDragOver={(e: React.DragEvent) => handleDragOver(e, group.id)}
               onDragLeave={() => handleDragLeave(group.id)}
               onDrop={(e: React.DragEvent) => handleDrop(e, group)}
+              isGroupOfMonth={topGroupId !== null && group.id === topGroupId}
             />
           ))}
         </View>
@@ -464,6 +519,18 @@ export default function GroupsPage() {
           </View>
         </Pressable>
       </Pressable>
+    )}
+
+    {/* ── Modal générateur par âge (Story 56-7) ── */}
+    {showAgeModal && (
+      <GroupGeneratorModal
+        visible={showAgeModal}
+        implantationId={genImplantId || (implantations[0]?.id ?? '')}
+        tenantId={tenantId}
+        seasonStartYear={new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1}
+        onClose={() => setShowAgeModal(false)}
+        onCreated={() => { setShowAgeModal(false); load() }}
+      />
     )}
 
     {/* ── Modal confirmation transfert (Story 56-4) ── */}

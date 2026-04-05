@@ -8,6 +8,7 @@ import type {
   CoachQualityMetrics,
   SessionAttendanceStats,
   ChildConsecutiveAbsence,
+  TopGroupResult,
 } from '@aureak/types'
 
 // ─── Filtres ──────────────────────────────────────────────────────────────────
@@ -290,6 +291,93 @@ export async function listChildConsecutiveAbsences(
       consecutiveAbsences : Number(r['consecutive_absences'] ?? 0),
       childName           : r['child_name']           as string,
     })),
+    error: null,
+  }
+}
+
+// ─── Top Group By Attendance (Story 56-5) ─────────────────────────────────────
+
+/**
+ * Retourne le groupe avec le meilleur taux de présence sur la période.
+ * Taux = nb présences "present" / nb total présences (séances non annulées).
+ * En cas d'égalité, le groupe le plus ancien (created_at ASC) est retourné.
+ * Retourne null si aucune donnée de présence dans la période.
+ */
+export async function getTopGroupByAttendance(
+  tenantId: string,
+  period  : 'month' | 'season',
+): Promise<{ data: TopGroupResult; error: unknown }> {
+  const now   = new Date()
+  let fromDate: string
+
+  if (period === 'month') {
+    // Premier jour du mois courant
+    fromDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  } else {
+    // Début de la saison académique courante : 1er septembre de l'année scolaire
+    const year = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1
+    fromDate   = new Date(year, 8, 1).toISOString()  // 1er sept
+  }
+
+  // Jointure attendances → sessions → groups pour calculer le taux par groupe
+  const { data, error } = await supabase
+    .from('attendances')
+    .select('status, sessions!inner(group_id, status, scheduled_at, groups!inner(id, name, created_at, tenant_id))')
+    .neq('sessions.status', 'annulée')
+    .gte('sessions.scheduled_at', fromDate)
+    .eq('sessions.groups.tenant_id', tenantId)
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getTopGroupByAttendance:', error)
+    return { data: null, error }
+  }
+
+  if (!data || data.length === 0) return { data: null, error: null }
+
+  // Agréger côté client : { groupId → { total, present, name, createdAt } }
+  type GroupAgg = { total: number; present: number; name: string; createdAt: string }
+  const agg = new Map<string, GroupAgg>()
+
+  for (const row of data as unknown as {
+    status: string
+    sessions: {
+      group_id: string
+      status  : string
+      scheduled_at: string
+      groups  : { id: string; name: string; created_at: string; tenant_id: string }
+    }
+  }[]) {
+    const g   = row.sessions?.groups
+    if (!g) continue
+    const gid = g.id
+    if (!agg.has(gid)) agg.set(gid, { total: 0, present: 0, name: g.name, createdAt: g.created_at })
+    const entry = agg.get(gid)!
+    entry.total++
+    if (row.status === 'present') entry.present++
+  }
+
+  if (agg.size === 0) return { data: null, error: null }
+
+  // Tri : taux DESC, createdAt ASC (tie-break)
+  const sorted = [...agg.entries()].sort(([, a], [, b]) => {
+    const rateA = a.total > 0 ? a.present / a.total : 0
+    const rateB = b.total > 0 ? b.present / b.total : 0
+    if (rateB !== rateA) return rateB - rateA
+    return a.createdAt < b.createdAt ? -1 : 1
+  })
+
+  const [bestId, bestAgg] = sorted[0]
+  const rate = bestAgg.total > 0 ? bestAgg.present / bestAgg.total : 0
+
+  // Ne retourner un badge que s'il y a au moins des données (rate > 0)
+  if (bestAgg.total === 0) return { data: null, error: null }
+
+  return {
+    data: {
+      groupId       : bestId,
+      groupName     : bestAgg.name,
+      attendanceRate: Math.round(rate * 1000) / 1000,
+    },
     error: null,
   }
 }

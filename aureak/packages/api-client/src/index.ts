@@ -135,8 +135,12 @@ export {
   listGroupsWithMembers,
   // Story 56-4 — Transfert joueur entre groupes
   transferGroupMember,
+  // Story 56-7 — Générateur groupes par âge
+  generateGroupsBySeason,
+  AGE_CATEGORY_RANGES,
 } from './sessions/implantations'
 export type {
+  UpdateGroupParams,
   CreateImplantationParams, CreateGroupParams, AddGroupStaffParams, CoachGroupEntry,
   // Story 56-3
   GroupWithMembers,
@@ -200,6 +204,7 @@ export {
   listSessionCards, getSessionDetail,
   listAdminAlerts, resolveAlert,
   getCoachQualityMetrics, listChildConsecutiveAbsences,
+  getTopGroupByAttendance,
 } from './sessions/dashboard'
 export type { SessionCardFilters, SessionDetailRow } from './sessions/dashboard'
 

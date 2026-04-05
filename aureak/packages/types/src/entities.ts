@@ -494,6 +494,8 @@ export type Group = {
   isTransient     : boolean
   /** Formation tactique persistée (migration 00121) */
   formationData   : FormationData | null
+  /** Capacité maximale du groupe (migration 00122) */
+  maxPlayers      : number | null
   deletedAt       : string | null
   createdAt       : string
 }
@@ -2001,5 +2003,38 @@ export interface PlayerOfWeek {
   score       : number       // note sur 10
   sessionName : string | null
   sessionDate : string       // ISO 8601
+}
+
+// ─── Story 56-5 — Badge groupe du mois ───────────────────────────────────────
+
+/**
+ * Groupe avec le meilleur taux de présence sur une période donnée.
+ * Retourné par getTopGroupByAttendance() dans @aureak/api-client/src/sessions/dashboard.ts.
+ * null si aucune donnée de présence dans la période.
+ */
+export type TopGroupResult = {
+  groupId       : string
+  groupName     : string
+  attendanceRate: number  // entre 0 et 1 (ex : 0.9 = 90%)
+} | null
+
+// ─── Story 56-7 — Générateur auto groupes par âge ────────────────────────────
+
+/**
+ * Proposition d'un groupe généré automatiquement par catégorie d'âge.
+ * Retourné par generateGroupsBySeason() — côté client, pas d'écriture en DB.
+ */
+export interface GroupProposalMember {
+  childId    : string
+  displayName: string
+  birthYear  : number
+}
+
+export interface GroupProposal {
+  name        : string
+  ageCategory : string
+  members     : GroupProposalMember[]
+  /** true = un groupe avec ce nom existe déjà dans l'implantation */
+  hasConflict?: boolean
 }
 
