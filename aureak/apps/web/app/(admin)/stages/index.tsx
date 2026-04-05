@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listStages } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
+import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
 import { SkeletonCard } from '../../../components/SkeletonCard'
@@ -138,12 +138,13 @@ export default function StagesPage() {
           {[0,1,2,3,4,5].map(i => <SkeletonCard key={i} height={150} />)}
         </View>
       ) : filtered.length === 0 ? (
-        <View style={s.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun stage</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
-            {search ? 'Aucun résultat.' : 'Créez votre premier stage.'}
-          </AureakText>
-        </View>
+        /* Story 62.2 — EmptyState illustré */
+        <EmptyStateIllustrated
+          variant="no-stages"
+          subtitle={search ? 'Aucun résultat pour cette recherche.' : undefined}
+          ctaLabel="+ Nouveau stage"
+          onCta={() => router.push('/stages/new' as never)}
+        />
       ) : (
         <View style={s.grid}>
           {filtered.map(stage => (

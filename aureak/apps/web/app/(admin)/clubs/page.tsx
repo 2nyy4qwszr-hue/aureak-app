@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions, Alert } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listClubDirectory, updateClubDirectoryEntry } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
+import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
@@ -340,12 +340,13 @@ export default function ClubsPage() {
           ))}
         </View>
       ) : sortedClubs.length === 0 ? (
-        <View style={styles.emptyState}>
-          <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucun club</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
-            Aucun club ne correspond aux critères sélectionnés.
-          </AureakText>
-        </View>
+        /* Story 62.2 — EmptyState illustré */
+        <EmptyStateIllustrated
+          variant="no-clubs"
+          subtitle="Aucun club ne correspond aux critères sélectionnés."
+          ctaLabel="+ Ajouter un club"
+          onCta={() => router.push('/clubs/new' as never)}
+        />
       ) : (
         <View style={styles.grid}>
           {sortedClubs.map(club => (

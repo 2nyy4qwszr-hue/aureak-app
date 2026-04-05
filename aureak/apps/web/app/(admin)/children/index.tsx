@@ -10,7 +10,7 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } f
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { ChildDetailInline, EmptyDetailState } from './_ChildDetail'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
-import { AureakText, Button, EmptyState, PlayerCard } from '@aureak/ui'
+import { AureakText, Button, EmptyState, EmptyStateIllustrated, PlayerCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG, computePlayerTier } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
@@ -1130,6 +1130,28 @@ export default function JoueursPage() {
     return joueurs.filter(j => selectedTiers.includes(computePlayerTier(j)))
   }, [joueurs, selectedTiers])
 
+  // ── Filtre "En danger" — Story 55-6 ─────────────────────────────────────────
+  const [dangerOnly,      setDangerOnly]      = useState(false)
+  const [dangerPlayerIds, setDangerPlayerIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    // Chargement asynchrone des joueurs en danger (uniquement pour le filtre client-side)
+    let cancelled = false
+    import('@aureak/api-client').then(({ listDangerousPlayers }) =>
+      listDangerousPlayers().then(({ data }) => {
+        if (!cancelled) setDangerPlayerIds(new Set(data.map(d => d.childId)))
+      }).catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[JoueursPage] danger filter error:', err)
+      })
+    )
+    return () => { cancelled = true }
+  }, [])
+
+  const filteredFinal = useMemo(() => {
+    if (!dangerOnly) return filteredByTier
+    return filteredByTier.filter(j => dangerPlayerIds.has(j.id))
+  }, [filteredByTier, dangerOnly, dangerPlayerIds])
+
   // ── CSV Import ──────────────────────────────────────────────────────────────
   const [showImportModal, setShowImportModal] = useState(false)
   const [csvPreview,      setCsvPreview]      = useState<Record<string, string>[]>([])
@@ -1359,6 +1381,28 @@ export default function JoueursPage() {
         counts={tierCounts}
       />
 
+      {/* ── Chip filtre "En danger" — Story 55-6 ── */}
+      {dangerPlayerIds.size > 0 && (
+        <Pressable
+          style={[
+            { paddingHorizontal: space.md, paddingVertical: 6, borderRadius: 14, borderWidth: 1, alignSelf: 'flex-start' as never },
+            dangerOnly
+              ? { backgroundColor: colors.accent.red, borderColor: colors.accent.red }
+              : { backgroundColor: colors.light.surface, borderColor: colors.accent.red + '60' },
+          ]}
+          onPress={() => setDangerOnly(v => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={dangerOnly ? 'Désactiver le filtre En danger' : 'Filtrer les joueurs en danger'}
+        >
+          <AureakText style={[
+            { fontSize: 12, fontWeight: '700' as never },
+            dangerOnly ? { color: '#fff' } : { color: colors.accent.red },
+          ] as never}>
+            En danger · {dangerPlayerIds.size}
+          </AureakText>
+        </Pressable>
+      )}
+
       {/* ── Filtres ── */}
       <View style={s.filtersBlock}>
 
@@ -1454,18 +1498,18 @@ export default function JoueursPage() {
             : [0,1,2,3,4,5].map(i => <PremiumSkeletonCard key={i} />)
           }
         </View>
-      ) : filteredByTier.length === 0 ? (
-        <EmptyState
-          icon="⚽"
-          title="Aucun joueur trouvé"
-          subtitle={search.trim() ? 'Modifiez votre recherche.' : 'Modifiez vos filtres ou ajoutez un nouveau joueur.'}
+      ) : filteredFinal.length === 0 ? (
+        /* Story 62.2 — EmptyState illustré SVG */
+        <EmptyStateIllustrated
+          variant="no-players"
+          subtitle={dangerOnly ? 'Aucun joueur en danger actuellement.' : search.trim() ? 'Modifiez votre recherche.' : 'Modifiez vos filtres ou ajoutez un nouveau joueur.'}
           ctaLabel="Ajouter un joueur"
           onCta={() => router.push('/children/new' as never)}
         />
       ) : viewMode === 'galerie' ? (
         /* Vue galerie — PlayerCard FUT-style 160×220px (story 52-4) */
         <View style={s.gridGalerie as never}>
-          {filteredByTier.map(item => (
+          {filteredFinal.map(item => (
             <PlayerCard
               key={item.id}
               joueur={item}
@@ -1483,7 +1527,7 @@ export default function JoueursPage() {
       ) : (
         /* Vue liste — PremiumJoueurCard (comportement pré-story-52, inchangé) */
         <View style={gridStyle as never}>
-          {filteredByTier.map(item => (
+          {filteredFinal.map(item => (
             <View key={item.id} style={{ position: 'relative' as never }}>
               {bulkMode && Platform.OS === 'web' && (
                 <Pressable
