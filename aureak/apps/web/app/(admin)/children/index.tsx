@@ -4,9 +4,11 @@
 // Story 18.2 : refonte UI cards + grille responsive + photos + filtres améliorés
 // UI v2 : infos gauche · avatar droite · filtres avancés repliables
 // Story 52-5 : filtres tier pills colorées
+// Story 52-12 : vue master-detail split-screen desktop ≥ 1024px
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
+import { ChildDetailInline, EmptyDetailState } from './_ChildDetail'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
 import { AureakText, Button, EmptyState, PlayerCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
@@ -470,18 +472,25 @@ const pPhoto = StyleSheet.create({
   },
 })
 
-const PremiumJoueurCard = React.memo(function PremiumJoueurCard({ item }: { item: JoueurListItem }) {
+const PremiumJoueurCard = React.memo(function PremiumJoueurCard({
+  item, onPress: onPressProp, isSelected,
+}: {
+  item      : JoueurListItem
+  onPress?  : () => void
+  isSelected?: boolean
+}) {
   const router = useRouter()
   const handlePress = useCallback(() => {
+    if (onPressProp) { onPressProp(); return }
     router.push(`/children/${item.id}` as never)
-  }, [router, item.id])
+  }, [router, item.id, onPressProp])
   const badgeAsset = BADGE_ASSETS[item.computedStatus ?? '']
   const prenomDisplay = item.prenom?.toUpperCase() ?? null
   const nomDisplay = (item.nom ?? item.displayName).toUpperCase()
 
   return (
     <Pressable
-      style={({ pressed }) => [pCard.container, pressed && pCard.pressed]}
+      style={({ pressed }) => [pCard.container, pressed && pCard.pressed, isSelected && pCard.selected]}
       onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`Voir la fiche de ${formatNomPrenom(item.nom, item.prenom, item.displayName)}`}
@@ -580,7 +589,12 @@ const pCard = StyleSheet.create({
     height      : 420,
     boxShadow: shadows.md,
   },
-  pressed: { opacity: 0.92 },
+  pressed : { opacity: 0.92 },
+  // Story 52-12 — highlight sélection split-screen
+  selected: {
+    borderWidth    : 3,
+    borderColor    : colors.accent.gold,
+  } as never,
 })
 
 const pZone = StyleSheet.create({
@@ -926,7 +940,22 @@ const tp = StyleSheet.create({
 
 export default function JoueursPage() {
   const router = useRouter()
-  const params = useLocalSearchParams<{ search?: string; status?: string; season?: string; stage?: string; birthYear?: string }>()
+  const params = useLocalSearchParams<{ search?: string; status?: string; season?: string; stage?: string; birthYear?: string; selected?: string }>()
+
+  // Story 52-12 — split-screen master-detail desktop
+  const [screenWidth,     setScreenWidth]     = useState<number>(
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  )
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(params.selected ?? null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleResize = () => setScreenWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isSplitScreen = Platform.OS === 'web' && screenWidth >= 1024
 
   const [viewMode,           setViewMode]           = useState<ViewMode>(loadViewMode)
   const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
@@ -1224,7 +1253,10 @@ export default function JoueursPage() {
     : s.gridFallback
 
   return (
-    <>
+    <View style={isSplitScreen ? ssp.splitContainer : { flex: 1 }}>
+
+    {/* ── Panneau gauche (ou layout normal) — contient la liste ── */}
+    <View style={isSplitScreen ? ssp.leftPanel : { flex: 1 }}>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
       {/* ── En-tête ── */}
@@ -1437,7 +1469,14 @@ export default function JoueursPage() {
             <PlayerCard
               key={item.id}
               joueur={item}
-              onPress={() => router.push(`/children/${item.id}` as never)}
+              onPress={() => {
+                if (isSplitScreen) {
+                  setSelectedChildId(item.id)
+                  router.replace(`/children?selected=${item.id}` as never)
+                } else {
+                  router.push(`/children/${item.id}` as never)
+                }
+              }}
             />
           ))}
         </View>
@@ -1458,6 +1497,11 @@ export default function JoueursPage() {
               )}
               <PremiumJoueurCard
                 item={item}
+                isSelected={isSplitScreen && selectedChildId === item.id}
+                onPress={isSplitScreen ? () => {
+                  setSelectedChildId(item.id)
+                  router.replace(`/children?selected=${item.id}` as never)
+                } : undefined}
               />
             </View>
           ))}
@@ -1568,9 +1612,41 @@ export default function JoueursPage() {
         </div>
       </div>
     )}
-    </>
+    </View>
+
+    {/* ── Panneau droit — fiche joueur sélectionné (split-screen uniquement) ── */}
+    {isSplitScreen && (
+      <View style={ssp.rightPanel}>
+        {selectedChildId
+          ? <ChildDetailInline childId={selectedChildId} />
+          : <EmptyDetailState />
+        }
+      </View>
+    )}
+
+    </View>
   )
 }
+
+const ssp = StyleSheet.create({
+  splitContainer: {
+    flexDirection: 'row',
+    height       : '100vh' as never,
+    overflow     : 'hidden' as never,
+  },
+  leftPanel: {
+    width          : 340,
+    borderRightWidth: 1,
+    borderColor    : colors.border.divider,
+    overflowY      : 'scroll' as never,
+    backgroundColor: colors.light.primary,
+  },
+  rightPanel: {
+    flex           : 1,
+    overflowY      : 'scroll' as never,
+    backgroundColor: colors.light.primary,
+  },
+})
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
