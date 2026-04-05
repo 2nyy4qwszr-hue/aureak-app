@@ -2,8 +2,9 @@
 // Story 9.4 — Implantations & Groupes — nommage standardisé automatique
 // Story 44.6 — Stats groupes + listing enfants expandable
 // Story 47.2 — Design card avec photo de couverture + chips groupes
+// Story 49-6 — Photo/logo implantation + redesign page détail (done)
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import {
@@ -11,6 +12,7 @@ import {
   createImplantation,
   updateImplantation,
   deleteImplantation,
+  uploadImplantationPhoto,
   listGroupsByImplantation,
   createGroup,
   listGroupMembersWithDetails,
@@ -143,6 +145,7 @@ function ImplantationCard({
   editName,
   editAddr,
   saving,
+  uploadingPhoto,
   onEditStart,
   onEditNameChange,
   onEditAddrChange,
@@ -151,24 +154,29 @@ function ImplantationCard({
   onDeactivate,
   onAddGroup,
   onManageGroup,
+  onPhotoUpload,
+  onSelect,
   router,
 }: {
-  impl           : Implantation
-  implGroups     : Group[]
-  membersByGroup : Record<string, GroupMemberWithDetails[]>
-  isEditing      : boolean
-  editName       : string
-  editAddr       : string
-  saving         : boolean
-  onEditStart    : () => void
+  impl            : Implantation
+  implGroups      : Group[]
+  membersByGroup  : Record<string, GroupMemberWithDetails[]>
+  isEditing       : boolean
+  editName        : string
+  editAddr        : string
+  saving          : boolean
+  uploadingPhoto  : boolean
+  onEditStart     : () => void
   onEditNameChange: (v: string) => void
   onEditAddrChange: (v: string) => void
-  onSave         : () => void
-  onCancelEdit   : () => void
-  onDeactivate   : () => void
-  onAddGroup     : () => void
-  onManageGroup  : (groupId: string) => void
-  router         : ReturnType<typeof useRouter>
+  onSave          : () => void
+  onCancelEdit    : () => void
+  onDeactivate    : () => void
+  onAddGroup      : () => void
+  onManageGroup   : (groupId: string) => void
+  onPhotoUpload   : (file: File) => void
+  onSelect        : () => void
+  router          : ReturnType<typeof useRouter>
 }) {
   const totalChildren = implGroups.reduce((total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0)
 
@@ -176,13 +184,19 @@ function ImplantationCard({
     <View style={styles.card}>
       {/* ── Photo de couverture ── */}
       <View style={styles.coverContainer}>
-        {/* Gradient vert terrain (systématique — pas de photo_url dans le type Implantation actuel) */}
-        <View
-          style={[
-            styles.coverGradient,
-            { background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)' } as any,
-          ]}
-        />
+        {impl.photoUrl ? (
+          <Image
+            source={{ uri: impl.photoUrl }}
+            style={[styles.coverGradient, { resizeMode: 'cover' } as any]}
+          />
+        ) : (
+          <View
+            style={[
+              styles.coverGradient,
+              { background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)' } as any,
+            ]}
+          />
+        )}
         {/* Badge joueurs en haut à droite */}
         {totalChildren > 0 && (
           <View style={styles.playersBadge}>
@@ -220,6 +234,33 @@ function ImplantationCard({
               placeholder="Adresse"
               placeholderTextColor={colors.text.muted}
             />
+
+            {/* Bouton changer photo — web uniquement (input type=file) */}
+            <View style={{ gap: space.xs }}>
+              <AureakText variant="label" style={{ color: colors.text.muted }}>PHOTO DU SITE</AureakText>
+              <Pressable
+                style={[styles.actionBtn, { borderColor: colors.accent.gold + '60', flexDirection: 'row', gap: space.xs, alignItems: 'center' }]}
+                onPress={() => {
+                  // web only
+                  const input = document.createElement('input')
+                  input.type = 'file'
+                  input.accept = 'image/*'
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0]
+                    if (file) onPhotoUpload(file)
+                  }
+                  input.click()
+                }}
+              >
+                <AureakText variant="caption" style={{ color: uploadingPhoto ? colors.text.muted : colors.accent.gold }}>
+                  {uploadingPhoto ? 'Upload en cours...' : impl.photoUrl ? 'Changer la photo' : '+ Ajouter une photo'}
+                </AureakText>
+              </Pressable>
+              {impl.photoUrl && (
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Photo actuelle enregistrée</AureakText>
+              )}
+            </View>
+
             <View style={{ flexDirection: 'row', gap: space.sm }}>
               <AureakButton label="Annuler" onPress={onCancelEdit} variant="secondary" />
               <AureakButton label={saving ? 'Enregistrement...' : 'Enregistrer'} onPress={onSave} loading={saving} fullWidth />
@@ -229,12 +270,12 @@ function ImplantationCard({
           <>
             {/* Nom + actions */}
             <View style={styles.cardTitleRow}>
-              <View style={{ flex: 1, gap: 2 }}>
+              <Pressable style={{ flex: 1, gap: 2 }} onPress={onSelect}>
                 <AureakText variant="h3" style={styles.cardTitle}>{impl.name}</AureakText>
                 {impl.address && (
                   <AureakText variant="caption" style={styles.cardAddress}>{impl.address}</AureakText>
                 )}
-              </View>
+              </Pressable>
               <View style={{ flexDirection: 'row', gap: space.xs }}>
                 <Pressable style={styles.actionBtn} onPress={onEditStart}>
                   <AureakText variant="caption" style={{ color: colors.accent.gold }}>Modifier</AureakText>
@@ -300,6 +341,145 @@ function ImplantationCard({
   )
 }
 
+// ── ImplantationDetail — panneau de détail premium ───────────────────────────
+
+function ImplantationDetail({
+  impl,
+  implGroups,
+  membersByGroup,
+  onBack,
+  onAddGroup,
+  router,
+}: {
+  impl           : Implantation
+  implGroups     : Group[]
+  membersByGroup : Record<string, GroupMemberWithDetails[]>
+  onBack         : () => void
+  onAddGroup     : () => void
+  router         : ReturnType<typeof useRouter>
+}) {
+  const totalChildren = implGroups.reduce(
+    (total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0
+  )
+
+  return (
+    <View style={detailStyles.container}>
+
+      {/* ── Header full-width premium ── */}
+      <View style={detailStyles.header}>
+        {impl.photoUrl ? (
+          <Image
+            source={{ uri: impl.photoUrl }}
+            style={detailStyles.headerBg as any}
+          />
+        ) : (
+          <View
+            style={[detailStyles.headerBg, {
+              background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)'
+            } as any]}
+          />
+        )}
+
+        {/* Overlay gradient bas */}
+        <View style={[detailStyles.headerOverlay,
+          { background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%)' } as any]}
+        />
+
+        {/* Bouton retour */}
+        <Pressable style={detailStyles.backBtn} onPress={onBack}>
+          <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '600' }}>← Retour</AureakText>
+        </Pressable>
+
+        {/* Badge joueurs */}
+        {totalChildren > 0 && (
+          <View style={detailStyles.playersBadge}>
+            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
+              {totalChildren} joueur{totalChildren !== 1 ? 's' : ''}
+            </AureakText>
+          </View>
+        )}
+
+        {/* Nom + adresse en bas-gauche */}
+        <View style={detailStyles.headerMeta}>
+          <AureakText
+            variant="h2"
+            style={{ color: '#FFFFFF', fontWeight: '900', textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 } as any}
+          >
+            {impl.name}
+          </AureakText>
+          {impl.address && (
+            <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+              {impl.address}
+            </AureakText>
+          )}
+        </View>
+      </View>
+
+      {/* ── Section Groupes ── */}
+      <View style={detailStyles.body}>
+        <View style={detailStyles.sectionHeader}>
+          <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 1 }}>
+            GROUPES
+          </AureakText>
+          <Pressable style={detailStyles.addGroupInlineBtn} onPress={onAddGroup}>
+            <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>+ Ajouter</AureakText>
+          </Pressable>
+        </View>
+
+        {implGroups.length === 0 ? (
+          <View style={detailStyles.emptyGroups}>
+            <AureakText variant="body" style={{ color: colors.text.muted, textAlign: 'center' }}>
+              Aucun groupe — créez le premier ci-dessus.
+            </AureakText>
+          </View>
+        ) : (
+          <View style={detailStyles.groupsList}>
+            {implGroups.map((g) => {
+              const methodColor = g.method ? METHOD_COLOR[g.method] : colors.accent.gold
+              const memberCount = membersByGroup[g.id]?.length ?? 0
+              return (
+                <Pressable
+                  key={g.id}
+                  style={detailStyles.groupCard}
+                  onPress={() => router.push(`/groups/${g.id}` as never)}
+                >
+                  {/* Dot méthode */}
+                  <View style={[detailStyles.groupCardDot, { backgroundColor: methodColor }]} />
+
+                  {/* Infos groupe */}
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <AureakText variant="body" style={{ fontWeight: '700', color: colors.text.dark }}>
+                      {g.name}
+                    </AureakText>
+                    {g.dayOfWeek && g.startHour !== null && (
+                      <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                        {g.dayOfWeek} · {formatTime(g.startHour!, g.startMinute ?? 0)}
+                        {g.durationMinutes ? ` · ${g.durationMinutes} min` : ''}
+                      </AureakText>
+                    )}
+                  </View>
+
+                  {/* Badge membres */}
+                  {memberCount > 0 && (
+                    <View style={[detailStyles.memberBadge, { backgroundColor: methodColor + '18', borderColor: methodColor + '40' }]}>
+                      <AureakText variant="caption" style={{ color: methodColor, fontWeight: '700', fontSize: 11 }}>
+                        {memberCount}
+                      </AureakText>
+                    </View>
+                  )}
+
+                  {/* Chevron */}
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 16 }}>›</AureakText>
+                </Pressable>
+              )
+            })}
+          </View>
+        )}
+      </View>
+    </View>
+  )
+}
+
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function ImplantationsPage() {
@@ -335,6 +515,10 @@ export default function ImplantationsPage() {
   const [addGroupFor, setAddGroupFor]   = useState<string | null>(null)
   const [groupForm, setGroupForm]       = useState<GroupFormState>(emptyForm())
   const [addingGroup, setAddingGroup]   = useState(false)
+
+  // Story 49-6 — upload photo + sélection détail
+  const [uploadingPhoto, setUploadingPhoto]   = useState<string | null>(null) // implantationId en cours d'upload
+  const [selectedImplantId, setSelectedImplantId] = useState<string | null>(null)
 
   // ── Data loading ───────────────────────────────────────────────────────────
 
@@ -441,6 +625,25 @@ export default function ImplantationsPage() {
     await load()
   }
 
+  // Story 49-6 — upload photo implantation
+  const handlePhotoUpload = async (implId: string, file: File) => {
+    setUploadingPhoto(implId)
+    try {
+      const { publicUrl, error } = await uploadImplantationPhoto(implId, file)
+      if (error) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[Implantations] handlePhotoUpload error:', error)
+        return
+      }
+      // Mise à jour optimiste locale
+      setImplantations(prev =>
+        prev.map(i => i.id === implId ? { ...i, photoUrl: publicUrl } : i)
+      )
+    } finally {
+      setUploadingPhoto(null)
+    }
+  }
+
   // ── Group CRUD ─────────────────────────────────────────────────────────────
 
   const getGroupName = (implId: string): string => {
@@ -537,6 +740,95 @@ export default function ImplantationsPage() {
         <AureakText variant="body" style={{ color: colors.text.muted }}>
           Aucune implantation. Créez la première.
         </AureakText>
+      ) : selectedImplantId !== null ? (
+        /* ── Vue détail implantation ── */
+        <>
+          <ImplantationDetail
+            impl={implantations.find(i => i.id === selectedImplantId)!}
+            implGroups={groups[selectedImplantId] ?? []}
+            membersByGroup={membersByGroup}
+            onBack={() => setSelectedImplantId(null)}
+            onAddGroup={() => { setAddGroupFor(selectedImplantId); setGroupForm(emptyForm()) }}
+            router={router}
+          />
+
+          {/* Formulaire d'ajout de groupe depuis la vue détail */}
+          {addGroupFor !== null && (
+            <View style={styles.addGroupPanel}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+                <AureakText variant="h3">
+                  Nouveau groupe — {implantations.find(i => i.id === addGroupFor)?.name}
+                </AureakText>
+                <Pressable onPress={() => { setAddGroupFor(null); setGroupForm(emptyForm()) }}>
+                  <AureakText variant="body" style={{ color: colors.text.muted }}>✕</AureakText>
+                </Pressable>
+              </View>
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginBottom: space.xs }}>
+                MÉTHODE
+              </AureakText>
+              <ChipRow
+                options={GROUP_METHODS}
+                value={groupForm.method}
+                onSelect={(m) => setGroupForm(f => ({ ...f, method: m }))}
+                color={(m) => METHOD_COLOR[m]}
+              />
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
+                JOUR
+              </AureakText>
+              <ChipRow
+                options={[...DAYS_OF_WEEK]}
+                value={groupForm.day}
+                onSelect={(d) => setGroupForm(f => ({ ...f, day: d }))}
+              />
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
+                HEURE DE DÉBUT
+              </AureakText>
+              <ChipRow
+                options={START_HOURS}
+                value={groupForm.startHour}
+                onSelect={(h) => setGroupForm(f => ({ ...f, startHour: h }))}
+                label={(h) => `${String(h).padStart(2, '0')}h`}
+              />
+              <View style={{ marginTop: 6 }}>
+                <ChipRow
+                  options={START_MINUTES}
+                  value={groupForm.startMinute}
+                  onSelect={(m) => setGroupForm(f => ({ ...f, startMinute: m }))}
+                  label={(m) => `h${String(m).padStart(2, '0')}`}
+                />
+              </View>
+
+              <AureakText variant="label" style={{ color: colors.text.muted, marginTop: space.sm, marginBottom: space.xs }}>
+                DURÉE
+              </AureakText>
+              <ChipRow
+                options={[...GROUP_DURATIONS]}
+                value={groupForm.durationMinutes}
+                onSelect={(d) => setGroupForm(f => ({ ...f, durationMinutes: d }))}
+                label={(d) => `${d} min`}
+              />
+
+              <NamePreview name={getGroupName(addGroupFor)} />
+
+              <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
+                <AureakButton
+                  label="Annuler"
+                  onPress={() => { setAddGroupFor(null); setGroupForm(emptyForm()) }}
+                  variant="secondary"
+                />
+                <AureakButton
+                  label={addingGroup ? 'Ajout...' : 'Créer le groupe'}
+                  onPress={handleAddGroup}
+                  loading={addingGroup}
+                  fullWidth
+                />
+              </View>
+            </View>
+          )}
+        </>
       ) : (
         <>
           {/* Grille de cards */}
@@ -551,6 +843,7 @@ export default function ImplantationsPage() {
                   editName={editName}
                   editAddr={editAddr}
                   saving={saving}
+                  uploadingPhoto={uploadingPhoto === impl.id}
                   onEditStart={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
                   onEditNameChange={setEditName}
                   onEditAddrChange={setEditAddr}
@@ -559,6 +852,8 @@ export default function ImplantationsPage() {
                   onDeactivate={() => handleDeactivate(impl.id)}
                   onAddGroup={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
                   onManageGroup={(groupId) => router.push(`/groups/${groupId}` as never)}
+                  onPhotoUpload={(file) => handlePhotoUpload(impl.id, file)}
+                  onSelect={() => setSelectedImplantId(impl.id)}
                   router={router}
                 />
               </View>
@@ -648,6 +943,92 @@ export default function ImplantationsPage() {
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
+
+// Story 49-6 — styles pour ImplantationDetail
+const detailStyles = StyleSheet.create({
+  container  : { flex: 1, backgroundColor: colors.light.primary },
+  header     : {
+    height                 : 200,
+    position               : 'relative',
+    overflow               : 'hidden',
+    borderBottomLeftRadius : radius.cardLg,
+    borderBottomRightRadius: radius.cardLg,
+  },
+  headerBg   : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, resizeMode: 'cover' },
+  headerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  backBtn    : {
+    position         : 'absolute',
+    top              : space.md,
+    left             : space.md,
+    backgroundColor  : 'rgba(0,0,0,0.35)',
+    borderRadius     : radius.badge,
+    paddingHorizontal: 12,
+    paddingVertical  : 6,
+    zIndex           : 3,
+  },
+  playersBadge: {
+    position         : 'absolute',
+    top              : space.md,
+    right            : space.md,
+    backgroundColor  : 'rgba(0,0,0,0.45)',
+    borderRadius     : radius.badge,
+    paddingHorizontal: 10,
+    paddingVertical  : 4,
+    zIndex           : 3,
+  },
+  headerMeta : {
+    position: 'absolute',
+    bottom  : space.md,
+    left    : space.md,
+    right   : space.lg,
+    zIndex  : 2,
+  },
+  body            : { padding: space.md, gap: space.md },
+  sectionHeader   : {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    justifyContent: 'space-between',
+  },
+  addGroupInlineBtn: {
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold + '50',
+    borderRadius     : radius.xs,
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.xs,
+  },
+  emptyGroups: {
+    padding        : space.xl,
+    alignItems     : 'center',
+    backgroundColor: colors.light.muted,
+    borderRadius   : radius.card,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+  },
+  groupsList  : { gap: space.sm },
+  groupCard   : {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    gap            : space.sm,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : space.md,
+    boxShadow      : shadows.sm,
+  } as any,
+  groupCardDot: {
+    width       : 10,
+    height      : 10,
+    borderRadius: 5,
+    flexShrink  : 0,
+  },
+  memberBadge: {
+    borderWidth      : 1,
+    borderRadius     : radius.badge,
+    paddingHorizontal: 8,
+    paddingVertical  : 2,
+  },
+})
 
 const styles = StyleSheet.create({
   container   : { flex: 1, backgroundColor: colors.light.primary },

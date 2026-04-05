@@ -462,6 +462,7 @@ export type Implantation = {
   gpsLat    : number | null
   gpsLon    : number | null
   gpsRadius : number
+  photoUrl  : string | null   // Story 49-6 — photo/logo du site (bucket implantation-photos)
   deletedAt : string | null
   createdAt : string
 }

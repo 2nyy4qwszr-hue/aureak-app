@@ -114,6 +114,7 @@ export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResu
 
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,
+  uploadImplantationPhoto,
   createGroup, createTransientGroup, updateGroup, deleteGroup, listGroupsByImplantation,
   getGroup, listAllGroups,
   addGroupMember, removeGroupMember, listGroupMembers, listGroupMembersWithProfiles,

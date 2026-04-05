@@ -25,6 +25,7 @@ function mapImplantation(row: Record<string, unknown>): Implantation {
     gpsLat   : (row.gps_lat    as number | null) ?? null,
     gpsLon   : (row.gps_lon    as number | null) ?? null,
     gpsRadius: (row.gps_radius as number | null) ?? 300,
+    photoUrl : (row.photo_url  as string | null) ?? null,   // Story 49-6
     deletedAt: (row.deleted_at as string | null) ?? null,
     createdAt: row.created_at  as string,
   }
@@ -63,7 +64,7 @@ export async function listImplantations(): Promise<{ data: Implantation[]; error
 
 export async function updateImplantation(
   id    : string,
-  params: Partial<Pick<Implantation, 'name' | 'address' | 'gpsLat' | 'gpsLon' | 'gpsRadius'>>
+  params: Partial<Pick<Implantation, 'name' | 'address' | 'gpsLat' | 'gpsLon' | 'gpsRadius' | 'photoUrl'>>
 ): Promise<{ error: unknown }> {
   const updates: Record<string, unknown> = {}
   if (params.name      !== undefined) updates['name']       = params.name
@@ -71,6 +72,7 @@ export async function updateImplantation(
   if (params.gpsLat    !== undefined) updates['gps_lat']    = params.gpsLat
   if (params.gpsLon    !== undefined) updates['gps_lon']    = params.gpsLon
   if (params.gpsRadius !== undefined) updates['gps_radius'] = params.gpsRadius
+  if (params.photoUrl  !== undefined) updates['photo_url']  = params.photoUrl  // Story 49-6
 
   const { error } = await supabase
     .from('implantations')
@@ -78,6 +80,43 @@ export async function updateImplantation(
     .eq('id', id)
 
   return { error }
+}
+
+/**
+ * Story 49-6 — Upload d'une photo vers Storage bucket 'implantation-photos'
+ * Retourne l'URL publique stockée en DB, ou une erreur.
+ */
+export async function uploadImplantationPhoto(
+  implantationId: string,
+  file          : File,
+): Promise<{ publicUrl: string | null; error: unknown }> {
+  const ext  = file.name.split('.').pop() ?? 'jpg'
+  const path = `${implantationId}/cover.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('implantation-photos')
+    .upload(path, file, { upsert: true, contentType: file.type })
+
+  if (uploadError) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[uploadImplantationPhoto] upload error:', uploadError)
+    return { publicUrl: null, error: uploadError }
+  }
+
+  const { data } = supabase.storage
+    .from('implantation-photos')
+    .getPublicUrl(path)
+
+  const publicUrl = data.publicUrl ?? null
+
+  const { error: dbError } = await updateImplantation(implantationId, { photoUrl: publicUrl })
+  if (dbError) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[uploadImplantationPhoto] DB update error:', dbError)
+    return { publicUrl: null, error: dbError }
+  }
+
+  return { publicUrl, error: null }
 }
 
 export async function deleteImplantation(id: string): Promise<{ error: unknown }> {
