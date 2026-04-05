@@ -1,0 +1,29 @@
+// @aureak/ui — Icônes SVG de navigation
+// Chaque icône est un composant React Native SVG (react-native-svg)
+// Taille recommandée : 16×16, strokeWidth=1.5, style outline
+
+export type { NavIconProps } from './types'
+
+export { HomeIcon }          from './HomeIcon'
+export { CalendarIcon }      from './CalendarIcon'
+export { CheckSquareIcon }   from './CheckSquareIcon'
+export { StarIcon }          from './StarIcon'
+export { BookOpenIcon }      from './BookOpenIcon'
+export { TagIcon }           from './TagIcon'
+export { LayersIcon }        from './LayersIcon'
+export { UsersIcon }         from './UsersIcon'
+export { UserCheckIcon }     from './UserCheckIcon'
+export { ShieldIcon }        from './ShieldIcon'
+export { GridIcon }          from './GridIcon'
+export { MapPinIcon }        from './MapPinIcon'
+export { TargetIcon }        from './TargetIcon'
+export { BarChartIcon }      from './BarChartIcon'
+export { PieChartIcon }      from './PieChartIcon'
+export { UserIcon }          from './UserIcon'
+export { KeyIcon }           from './KeyIcon'
+export { MessageSquareIcon } from './MessageSquareIcon'
+export { SearchIcon }        from './SearchIcon'
+export { CalendarDaysIcon }  from './CalendarDaysIcon'
+export { AlertTriangleIcon } from './AlertTriangleIcon'
+export { ChatIcon }          from './ChatIcon'
+export { LockIcon }          from './LockIcon'

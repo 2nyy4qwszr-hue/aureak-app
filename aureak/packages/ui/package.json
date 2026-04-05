@@ -24,6 +24,7 @@
   },
   "peerDependencies": {
     "react": ">=19",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-svg": "*"
   }
 }

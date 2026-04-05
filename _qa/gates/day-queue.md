@@ -318,13 +318,32 @@ next-morning-queue:
     gate2: pending
     commit: ""
 
+  - story_id: story-51-1
+    title: "DESIGN — Sidebar — icônes SVG custom + barre or active state"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-1_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-1_gate2.md"
+    notes:
+      - "23 composants icônes SVG react-native-svg dans @aureak/ui/src/icons/"
+      - "NavItem type: icon:string → Icon:NavIconComponent"
+      - "labels séparateurs: colors.text.secondary → colors.text.subtle"
+      - "hover: rgba(255,255,255,0.08) → rgba(255,255,255,0.06)"
+      - "tsc 0 erreur — zero emoji dans NAV_GROUPS"
+
   - story_id: story-47-1
     title: "DESIGN — Sidebar — icônes navigation manquantes"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
     commit: ""
+    notes:
+      - "Superseded by story-51-1 (implémentation complète)"
 
   - story_id: story-47-2
     title: "DESIGN — Implantation — visuel enrichi (photo + groupes style card)"

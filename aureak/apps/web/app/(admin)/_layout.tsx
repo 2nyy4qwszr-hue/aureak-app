@@ -1,9 +1,36 @@
+import React from 'react'
 import { useEffect, useState } from 'react'
 import { Pressable, useWindowDimensions } from 'react-native'
 import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
+import {
+  HomeIcon,
+  CalendarIcon,
+  CalendarDaysIcon,
+  CheckSquareIcon,
+  StarIcon,
+  BookOpenIcon,
+  TagIcon,
+  LayersIcon,
+  UsersIcon,
+  UserCheckIcon,
+  ShieldIcon,
+  GridIcon,
+  MapPinIcon,
+  TargetIcon,
+  BarChartIcon,
+  PieChartIcon,
+  UserIcon,
+  KeyIcon,
+  MessageSquareIcon,
+  SearchIcon,
+  AlertTriangleIcon,
+  ChatIcon,
+  LockIcon,
+} from '@aureak/ui'
+import type { NavIconProps } from '@aureak/ui'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { ToastProvider } from '../../components/ToastContext'
 import { NotificationProvider } from '../../components/NotificationContext'
@@ -17,7 +44,9 @@ function KeyboardHandler() {
   return null
 }
 
-type NavItem = { label: string; href: string; icon: string }
+type NavIconComponent = React.FC<NavIconProps>
+
+type NavItem = { label: string; href: string; Icon: NavIconComponent }
 type NavGroup = {
   label : string
   items : NavItem[]
@@ -27,54 +56,54 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Opérations',
     items: [
-      { label: 'Tableau de bord', href: '/dashboard',   icon: '🏠' },
-      { label: 'Séances',         href: '/seances',     icon: '📅' },
-      { label: 'Présences',       href: '/presences',   icon: '✅' },
-      { label: 'Évaluations',     href: '/evaluations', icon: '⭐' },
+      { label: 'Tableau de bord', href: '/dashboard',   Icon: HomeIcon },
+      { label: 'Séances',         href: '/seances',     Icon: CalendarIcon },
+      { label: 'Présences',       href: '/presences',   Icon: CheckSquareIcon },
+      { label: 'Évaluations',     href: '/evaluations', Icon: StarIcon },
     ],
   },
   {
     label: 'Méthodologie',
     items: [
-      { label: 'Entraînements', href: '/methodologie/seances',    icon: '📚' },
-      { label: 'Thèmes',        href: '/methodologie/themes',     icon: '📚' },
-      { label: 'Situations',    href: '/methodologie/situations', icon: '📚' },
+      { label: 'Entraînements', href: '/methodologie/seances',    Icon: BookOpenIcon },
+      { label: 'Thèmes',        href: '/methodologie/themes',     Icon: TagIcon },
+      { label: 'Situations',    href: '/methodologie/situations', Icon: LayersIcon },
     ],
   },
   {
     label: 'Gestion',
     items: [
-      { label: 'Joueurs',       href: '/children',      icon: '👥' },
-      { label: 'Coachs',        href: '/coaches',       icon: '👨‍🏫' },
-      { label: 'Clubs',         href: '/clubs',         icon: '🏅' },
-      { label: 'Groupes',       href: '/groups',        icon: '🏆' },
-      { label: 'Implantations', href: '/implantations', icon: '🏟️' },
+      { label: 'Joueurs',       href: '/children',      Icon: UsersIcon },
+      { label: 'Coachs',        href: '/coaches',       Icon: UserCheckIcon },
+      { label: 'Clubs',         href: '/clubs',         Icon: ShieldIcon },
+      { label: 'Groupes',       href: '/groups',        Icon: GridIcon },
+      { label: 'Implantations', href: '/implantations', Icon: MapPinIcon },
     ],
   },
   {
     label: 'Événements',
     items: [
-      { label: 'Stages', href: '/stages', icon: '🎯' },
+      { label: 'Stages', href: '/stages', Icon: TargetIcon },
     ],
   },
   {
     label: 'Analytics',
     items: [
-      { label: 'Comparaison',      href: '/analytics',               icon: '📊' },
-      { label: 'Par implantation', href: '/analytics/implantation',  icon: '📊' },
+      { label: 'Comparaison',      href: '/analytics',               Icon: BarChartIcon },
+      { label: 'Par implantation', href: '/analytics/implantation',  Icon: PieChartIcon },
     ],
   },
   {
     label: 'Administration',
     items: [
-      { label: 'Utilisateurs',        href: '/users',                    icon: '👤' },
-      { label: 'Accès temporaires',   href: '/access-grants',            icon: '🔐' },
-      { label: 'Tickets support',     href: '/tickets',                  icon: '🎫' },
-      { label: 'Journal d\'audit',    href: '/audit',                    icon: '🔍' },
-      { label: 'Calendrier scolaire', href: '/settings/school-calendar', icon: '📅' },
-      { label: 'Anomalies',           href: '/anomalies',                icon: '⚠️' },
-      { label: 'Messages coaches',    href: '/messages',                 icon: '💬' },
-      { label: 'Permissions grades',  href: '/grade-permissions',        icon: '🔐' },
+      { label: 'Utilisateurs',        href: '/users',                    Icon: UserIcon },
+      { label: 'Accès temporaires',   href: '/access-grants',            Icon: KeyIcon },
+      { label: 'Tickets support',     href: '/tickets',                  Icon: MessageSquareIcon },
+      { label: 'Journal d\'audit',    href: '/audit',                    Icon: SearchIcon },
+      { label: 'Calendrier scolaire', href: '/settings/school-calendar', Icon: CalendarDaysIcon },
+      { label: 'Anomalies',           href: '/anomalies',                Icon: AlertTriangleIcon },
+      { label: 'Messages coaches',    href: '/messages',                 Icon: ChatIcon },
+      { label: 'Permissions grades',  href: '/grade-permissions',        Icon: LockIcon },
     ],
   },
 ]
@@ -205,7 +234,7 @@ export default function AdminLayout() {
                   fontFamily="$body"
                   fontSize={9}
                   fontWeight="700"
-                  color={colors.text.secondary}
+                  color={colors.text.subtle}
                   letterSpacing={1.5}
                   paddingHorizontal={20}
                   paddingBottom={4}
@@ -217,8 +246,8 @@ export default function AdminLayout() {
               )}
 
               <YStack gap={1} paddingHorizontal={8}>
-                {group.items.map(({ label, href, icon }) => {
-                  // Exact match OR prefix match — but avoid short paths like '/' matching everything
+                {group.items.map(({ label, href, Icon }) => {
+                  // Exact match OR prefix match — avoid short paths like '/' matching everything
                   const isActive = pathname === href || (href.length > 1 && pathname.startsWith(href + '/'))
                   return (
                     <Pressable key={href} onPress={() => router.push(href as never)}>
@@ -234,7 +263,7 @@ export default function AdminLayout() {
                             (isActive
                               ? colors.accent.gold + '18'
                               : pressed
-                                ? 'rgba(255,255,255,0.08)'
+                                ? 'rgba(255,255,255,0.06)'
                                 : 'transparent') as never
                           }
                           style={{
@@ -242,20 +271,25 @@ export default function AdminLayout() {
                           } as never}
                         >
                           {sidebarCollapsed ? (
-                            <Text
-                              fontSize={18}
-                              style={{ opacity: isActive ? 1 : 0.55 } as never}
-                            >
-                              {icon}
-                            </Text>
+                            <YStack alignItems="center" justifyContent="center">
+                              <Icon
+                                color={isActive ? colors.accent.gold : colors.text.secondary}
+                                size={18}
+                                strokeWidth={1.5}
+                              />
+                            </YStack>
                           ) : (
                             <XStack alignItems="center">
-                              <Text
-                                fontSize={16}
-                                style={{ marginRight: 8, opacity: isActive ? 1 : 0.55 } as never}
+                              <YStack
+                                marginRight={8}
+                                style={{ opacity: isActive ? 1 : 0.6 } as never}
                               >
-                                {icon}
-                              </Text>
+                                <Icon
+                                  color={isActive ? colors.accent.gold : colors.text.secondary}
+                                  size={16}
+                                  strokeWidth={1.5}
+                                />
+                              </YStack>
                               <Text
                                 fontFamily="$body"
                                 fontSize={13}

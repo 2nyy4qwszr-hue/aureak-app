@@ -30,3 +30,31 @@ export { SyncStatusBanner } from './components/SyncStatusBanner'
 export { EmptyState } from './components/EmptyState'
 export { ConfirmDialog } from './components/ConfirmDialog'
 export { DetailSkeleton, ListRowSkeleton, CardSkeleton } from './components/Skeleton'
+
+// Icônes SVG de navigation
+export type { NavIconProps } from './icons'
+export {
+  HomeIcon,
+  CalendarIcon,
+  CheckSquareIcon,
+  StarIcon,
+  BookOpenIcon,
+  TagIcon,
+  LayersIcon,
+  UsersIcon,
+  UserCheckIcon,
+  ShieldIcon,
+  GridIcon,
+  MapPinIcon,
+  TargetIcon,
+  BarChartIcon,
+  PieChartIcon,
+  UserIcon,
+  KeyIcon,
+  MessageSquareIcon,
+  SearchIcon,
+  CalendarDaysIcon,
+  AlertTriangleIcon,
+  ChatIcon,
+  LockIcon,
+} from './icons'
