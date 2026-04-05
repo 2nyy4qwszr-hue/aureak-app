@@ -74,14 +74,16 @@ const HoverablePressable = Pressable as React.ComponentType<HoverablePressablePr
 
 // ── Hints sidebar : href → chord affiché en mode expanded (Story 51.6) ────────
 const ITEM_SHORTCUTS: Record<string, string> = {
-  '/dashboard'  : 'G D',
-  '/seances'    : 'G S',
-  '/presences'  : 'G P',
-  '/evaluations': 'G E',
-  '/children'   : 'G J',
-  '/clubs'      : 'G C',
-  '/methodologie': 'G M',
-  '/stages'     : 'G T',
+  '/dashboard'                 : 'G D',
+  '/seances'                   : 'G S',
+  '/presences'                 : 'G P',
+  '/evaluations'               : 'G E',
+  '/children'                  : 'G J',
+  '/clubs'                     : 'G C',
+  '/methodologie/seances'      : 'G A',   // Académie
+  '/evenements'                : 'G V',   // Évènements
+  '/analytics'                 : 'G R',   // peRformance
+  '/developpement/prospection' : 'G X',
 }
 
 function KeyboardHandler() {
@@ -104,16 +106,21 @@ type NavGroup = {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Opérations',
+    label: 'Dashboard',
     items: [
-      { label: 'Tableau de bord', href: '/dashboard',   Icon: HomeIcon },
-      { label: 'Séances',         href: '/seances',     Icon: CalendarIcon },
-      { label: 'Présences',       href: '/presences',   Icon: CheckSquareIcon },
-      { label: 'Évaluations',     href: '/evaluations', Icon: StarIcon },
+      { label: 'Tableau de bord', href: '/dashboard', Icon: HomeIcon },
     ],
   },
   {
-    label: 'Méthodologie',
+    label: 'Activité',
+    items: [
+      { label: 'Séances',     href: '/seances',     Icon: CalendarIcon },
+      { label: 'Présences',   href: '/presences',   Icon: CheckSquareIcon },
+      { label: 'Évaluations', href: '/evaluations', Icon: StarIcon },
+    ],
+  },
+  {
+    label: 'Académie',
     items: [
       { label: 'Entraînements', href: '/methodologie/seances',    Icon: BookOpenIcon },
       { label: 'Thèmes',        href: '/methodologie/themes',     Icon: TagIcon },
@@ -121,41 +128,48 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Gestion',
+    label: 'Structure',
     items: [
       { label: 'Joueurs',       href: '/children',      Icon: UsersIcon },
       { label: 'Coachs',        href: '/coaches',       Icon: UserCheckIcon },
-      { label: 'Clubs',         href: '/clubs',         Icon: ShieldIcon },
       { label: 'Groupes',       href: '/groups',        Icon: GridIcon },
       { label: 'Implantations', href: '/implantations', Icon: MapPinIcon },
+      { label: 'Clubs',         href: '/clubs',         Icon: ShieldIcon },
     ],
   },
   {
-    label: 'Événements',
+    label: 'Évènements',
     items: [
-      { label: 'Stages', href: '/stages', Icon: TargetIcon },
+      { label: 'Tous les évènements', href: '/evenements', Icon: TargetIcon },
     ],
   },
   {
-    label: 'Analytics',
+    label: 'Développement',
     items: [
-      { label: 'Stats Room',       href: '/analytics',               Icon: BarChartIcon },
-      { label: 'Par implantation', href: '/analytics/implantation',  Icon: PieChartIcon },
+      { label: 'Prospection',  href: '/developpement/prospection',  Icon: SearchIcon },
+      { label: 'Marketing',    href: '/developpement/marketing',    Icon: BarChartIcon },
+      { label: 'Partenariats', href: '/developpement/partenariats', Icon: ShieldIcon },
     ],
   },
   {
-    label: 'Administration',
+    label: 'Performance',
     items: [
-      { label: 'Utilisateurs',        href: '/users',                    Icon: UserIcon },
-      { label: 'Accès temporaires',   href: '/access-grants',            Icon: KeyIcon },
-      { label: 'Tickets support',     href: '/tickets',                  Icon: MessageSquareIcon },
-      { label: 'Journal d\'audit',    href: '/audit',                    Icon: SearchIcon },
-      { label: 'Calendrier scolaire', href: '/settings/school-calendar', Icon: CalendarDaysIcon },
-      { label: 'Anomalies',           href: '/anomalies',                Icon: AlertTriangleIcon },
-      { label: 'Messages coaches',    href: '/messages',                 Icon: ChatIcon },
-      { label: 'Permissions grades',  href: '/grade-permissions',        Icon: LockIcon },
+      { label: 'Stats globales',   href: '/analytics',              Icon: BarChartIcon },
+      { label: 'Par implantation', href: '/analytics/implantation', Icon: PieChartIcon },
     ],
   },
+]
+
+// Séparé — accessible via ⚙️ uniquement (Story 63.1)
+const ADMIN_ITEMS: NavItem[] = [
+  { label: 'Utilisateurs',        href: '/users',                    Icon: UserIcon },
+  { label: 'Accès temporaires',   href: '/access-grants',            Icon: KeyIcon },
+  { label: 'Tickets support',     href: '/tickets',                  Icon: MessageSquareIcon },
+  { label: 'Journal d\'audit',    href: '/audit',                    Icon: SearchIcon },
+  { label: 'Calendrier scolaire', href: '/settings/school-calendar', Icon: CalendarDaysIcon },
+  { label: 'Anomalies',           href: '/anomalies',                Icon: AlertTriangleIcon },
+  { label: 'Messages coaches',    href: '/messages',                 Icon: ChatIcon },
+  { label: 'Permissions grades',  href: '/grade-permissions',        Icon: LockIcon },
 ]
 
 // ── AdminLayout wrappé dans ThemeProvider + ActiveSessionProvider ─────────────
@@ -207,7 +221,9 @@ function AdminLayoutInner() {
   const { role, isLoading, signOut, user } = useAuthStore()
   const { theme, toggleTheme } = useTheme()
   const themeColors = useThemeColors()
-  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [mobileOpen,      setMobileOpen]      = useState(false)
+  // Story 63.1 — panneau Administration caché derrière ⚙️
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false)
 
   // ── Story 61.5 — Offline cache + banner ──────────────────────────────────
   const { isOnline, cacheTimestamp, isSyncing, syncResult } = useOfflineCache()
@@ -401,6 +417,8 @@ function AdminLayoutInner() {
 
   useEffect(() => {
     if (isMobile) setMobileOpen(false)
+    // Story 63.1 — fermer le panneau admin au changement de route
+    setAdminPanelOpen(false)
   }, [pathname, isMobile])
 
   useEffect(() => {
@@ -827,6 +845,118 @@ function AdminLayoutInner() {
               </YStack>
             )}
           </Pressable>
+
+          {/* ── Story 63.1 — Bouton ⚙️ Admin caché ── */}
+          <HoverablePressable
+            onPress={() => setAdminPanelOpen(v => !v)}
+            style={{
+              padding        : 0,
+              borderRadius   : radius.xs,
+              marginBottom   : 2,
+              backgroundColor: 'transparent',
+            }}
+          >
+            {({ pressed }: { pressed: boolean }) => (
+              <YStack
+                paddingVertical={7}
+                paddingHorizontal={12}
+                borderRadius={radius.xs}
+                backgroundColor={
+                  (adminPanelOpen || pressed ? 'rgba(255,255,255,0.08)' : 'transparent') as never
+                }
+                style={{ transition: `background-color ${transitions.fast}` } as never}
+              >
+                {sidebarCollapsed ? (
+                  <YStack alignItems="center" justifyContent="center">
+                    <KeyIcon color={adminPanelOpen ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
+                  </YStack>
+                ) : (
+                  <XStack alignItems="center" gap={8}>
+                    <KeyIcon color={adminPanelOpen ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
+                    <Text
+                      fontFamily="$body"
+                      fontSize={13}
+                      color={adminPanelOpen ? colors.accent.gold : colors.text.secondary}
+                      style={{ opacity: labelsVisible ? 1 : 0, transition: 'opacity 0.1s ease' } as never}
+                    >
+                      Administration
+                    </Text>
+                  </XStack>
+                )}
+              </YStack>
+            )}
+          </HoverablePressable>
+
+          {/* ── Story 63.1 — Panneau Admin flottant ── */}
+          {adminPanelOpen && (
+            <>
+              {/* Overlay transparent pour fermer au clic extérieur */}
+              <Pressable
+                onPress={() => setAdminPanelOpen(false)}
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 } as never}
+              />
+              {/* Panneau */}
+              <YStack
+                style={{
+                  position       : 'absolute',
+                  bottom         : 120,
+                  left           : sidebarWidth + 8,
+                  backgroundColor: colors.background.surface,
+                  borderRadius   : radius.cardLg,
+                  borderWidth    : 1,
+                  borderColor    : colors.border.gold,
+                  padding        : 8,
+                  minWidth       : 220,
+                  zIndex         : 100,
+                  boxShadow      : shadows.md,
+                } as never}
+              >
+                {ADMIN_ITEMS.map(item => {
+                  const isItemActive = pathname === item.href || (item.href.length > 1 && pathname.startsWith(item.href + '/'))
+                  return (
+                    <HoverablePressable
+                      key={item.href}
+                      onPress={() => { router.push(item.href as never); setAdminPanelOpen(false) }}
+                    >
+                      {({ pressed }: { pressed: boolean }) => (
+                        <YStack
+                          paddingVertical={8}
+                          paddingHorizontal={12}
+                          borderRadius={radius.xs}
+                          borderLeftWidth={3}
+                          borderLeftColor={isItemActive ? colors.accent.gold : 'transparent' as never}
+                          backgroundColor={
+                            (isItemActive
+                              ? colors.accent.gold + '18'
+                              : pressed
+                                ? 'rgba(255,255,255,0.06)'
+                                : 'transparent') as never
+                          }
+                          style={{ transition: `all ${transitions.fast}` } as never}
+                        >
+                          <XStack alignItems="center" gap={8}>
+                            <item.Icon
+                              color={isItemActive ? colors.accent.gold : colors.text.secondary}
+                              size={15}
+                              strokeWidth={1.5}
+                            />
+                            <Text
+                              fontFamily="$body"
+                              fontSize={13}
+                              fontWeight={isItemActive ? '700' : '400'}
+                              color={isItemActive ? colors.accent.gold : colors.text.secondary}
+                            >
+                              {item.label}
+                            </Text>
+                          </XStack>
+                        </YStack>
+                      )}
+                    </HoverablePressable>
+                  )
+                })}
+              </YStack>
+            </>
+          )}
 
           {/* ── Story 51.8 — Toggle thème (soleil / lune) ── */}
           <Pressable onPress={toggleTheme}>
