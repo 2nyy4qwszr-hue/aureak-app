@@ -26,18 +26,26 @@ next-morning-queue:
   - story_id: story-49-2
     title: "UX — Blocs thèmes éditables depuis fiche séance"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
-    commit: ""
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "b4c8d5e"
 
   - story_id: story-49-3
     title: "BUG — Joueurs liés au club non visibles (annuaire)"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
     commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-49-3_gate1.md"
+      - "_qa/reports/2026-04-05_story-49-3_gate2.md"
+    warnings:
+      - "W1: #a78bfa hardcodé — token colors.accent.violet manquant dans @aureak/theme"
+      - "W2: linksRes.data sans optional chaining (pre-existant)"
+      - "W3: label sections 'actuellement' vs 'affilié' ambigu (UX future)"
+      - "W4: erreur listChildrenByClubDirectoryId absorbée silencieusement"
 
   - story_id: story-49-4
     title: "UX — Présences — liste enfants groupe pré-chargée avec toggle"
