@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Modal, Pressable, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
@@ -10,11 +10,14 @@ import {
   listGroupMembersWithDetails,
   addSessionThemeBlock, removeSessionThemeBlock, listMethodologyThemes,
   recordAttendance, updateSessionIntensity,
+  listEvaluationsBySession,
+  // Story 53-7
+  listSessionsAdminView,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -253,6 +256,206 @@ const ip = StyleSheet.create({
   label: { fontSize: 11, color: colors.text.muted },
 })
 
+// ── Story 53-6 — SessionSummaryCard ──────────────────────────────────────────
+
+type SessionSummaryData = {
+  presenceRate : number
+  presentCount : number
+  totalCount   : number
+  avgScore     : number | null
+  topEval      : Evaluation | null
+}
+
+/** Dérive un score numérique (0–10) depuis les signaux d'évaluation */
+function evalToScore(e: Evaluation): number {
+  const signalVal = (s: string) => s === 'positive' ? 1 : s === 'none' ? 0.5 : 0
+  return ((signalVal(e.receptivite) + signalVal(e.goutEffort) + signalVal(e.attitude)) / 3) * 10
+}
+
+function SessionSummaryCard({
+  summary, childNameMap,
+}: {
+  summary      : SessionSummaryData
+  childNameMap : Record<string, string>
+}) {
+  const { presenceRate, presentCount, totalCount, avgScore, topEval } = summary
+  const topScore = topEval ? evalToScore(topEval) : null
+  const topName  = topEval ? (childNameMap[topEval.childId] ?? topEval.childId.slice(0, 8) + '…') : null
+  const topInits = topName ? topName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'
+
+  const presenceColor =
+    presenceRate >= 80 ? '#10B981' :
+    presenceRate >= 60 ? '#F59E0B' : '#E05252'
+
+  return (
+    <View style={ssc.card}>
+      {/* Title */}
+      <AureakText style={ssc.title}>Résumé de séance</AureakText>
+
+      {/* Metrics row */}
+      <View style={ssc.metricsRow}>
+        {/* Taux de présence */}
+        <View style={ssc.metric}>
+          <AureakText style={[ssc.bigNum, { color: presenceColor }] as never}>{presenceRate}%</AureakText>
+          <AureakText style={ssc.metricLabel}>PRÉSENTS</AureakText>
+          <AureakText style={ssc.metricSub}>{presentCount} / {totalCount} joueurs</AureakText>
+        </View>
+
+        {/* Note moyenne */}
+        <View style={ssc.metric}>
+          {avgScore !== null ? (
+            <>
+              <AureakText style={ssc.bigNum}>{avgScore.toFixed(1)}/10</AureakText>
+              <AureakText style={ssc.metricLabel}>NOTE MOY.</AureakText>
+            </>
+          ) : (
+            <>
+              <AureakText style={[ssc.bigNum, { color: colors.text.muted }] as never}>—</AureakText>
+              <AureakText style={ssc.metricLabel}>NOTE MOY.</AureakText>
+              <AureakText style={[ssc.metricSub, { color: colors.text.muted }] as never}>Non évalué</AureakText>
+            </>
+          )}
+        </View>
+
+        {/* Top joueur */}
+        <View style={ssc.metric}>
+          {topEval && topName ? (
+            <>
+              <View style={ssc.avatarRow}>
+                <View style={ssc.avatar}>
+                  <AureakText style={ssc.avatarText}>{topInits}</AureakText>
+                </View>
+              </View>
+              <AureakText style={ssc.bigNumSm} numberOfLines={1}>{topName}</AureakText>
+              <View style={ssc.topBadge}>
+                <AureakText style={ssc.topBadgeText}>⭐ Top joueur</AureakText>
+              </View>
+              {topScore !== null && (
+                <AureakText style={ssc.metricSub}>{topScore.toFixed(1)}/10</AureakText>
+              )}
+            </>
+          ) : (
+            <>
+              <AureakText style={[ssc.bigNum, { color: colors.text.muted }] as never}>—</AureakText>
+              <AureakText style={ssc.metricLabel}>TOP JOUEUR</AureakText>
+              <AureakText style={[ssc.metricSub, { color: colors.text.muted }] as never}>Non évalué</AureakText>
+            </>
+          )}
+        </View>
+      </View>
+
+      {/* Barre de progression présence */}
+      <View style={ssc.progressBg}>
+        <View style={[ssc.progressBar, { width: `${Math.min(presenceRate, 100)}%` as never, backgroundColor: presenceColor }]} />
+      </View>
+      <AureakText style={ssc.progressLabel}>{presenceRate}%</AureakText>
+    </View>
+  )
+}
+
+const ssc = StyleSheet.create({
+  card       : {
+    backgroundColor: colors.light.surface,
+    borderWidth    : 1.5,
+    borderColor    : colors.border.gold,
+    borderRadius   : 12,
+    padding        : space.md,
+    gap            : space.sm,
+    boxShadow      : shadows.md,
+  } as never,
+  title      : { fontSize: 14, fontWeight: '700' as never, color: colors.accent.gold, letterSpacing: 0.5 },
+  metricsRow : { flexDirection: 'row', gap: space.sm },
+  metric     : { flex: 1, alignItems: 'center' as never, gap: 4, paddingVertical: space.xs },
+  bigNum     : { fontSize: 26, fontWeight: '900' as never, color: colors.text.dark, lineHeight: 32 },
+  bigNumSm   : { fontSize: 13, fontWeight: '700' as never, color: colors.text.dark, textAlign: 'center' as never, maxWidth: 90 },
+  metricLabel: { fontSize: 9, fontWeight: '700' as never, color: colors.text.muted, letterSpacing: 0.8, textTransform: 'uppercase' as never },
+  metricSub  : { fontSize: 10, color: colors.text.muted },
+  avatarRow  : { flexDirection: 'row', justifyContent: 'center' as never },
+  avatar     : {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.accent.gold + '30',
+    borderWidth: 1, borderColor: colors.accent.gold,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText : { fontSize: 13, fontWeight: '700' as never, color: colors.accent.gold },
+  topBadge   : {
+    backgroundColor: colors.accent.gold + '20',
+    borderWidth: 1, borderColor: colors.accent.gold + '60',
+    borderRadius: 12, paddingHorizontal: 6, paddingVertical: 2,
+  },
+  topBadgeText: { fontSize: 10, fontWeight: '700' as never, color: colors.accent.gold },
+  progressBg  : { height: 8, backgroundColor: colors.light.muted, borderRadius: 4, overflow: 'hidden' as never },
+  progressBar : { height: 8, borderRadius: 4 },
+  progressLabel: { fontSize: 9, color: colors.text.muted, textAlign: 'right' as never },
+})
+
+// ── Story 53-7 — StreakBadgeSection ──────────────────────────────────────────
+
+function StreakBadgeSection({
+  streaks, childNameMap,
+}: {
+  streaks      : { childId: string; streak: number }[]
+  childNameMap : Record<string, string>
+}) {
+  const eligible = streaks.filter(s => s.streak >= 5).sort((a, b) => b.streak - a.streak)
+  if (eligible.length === 0) return null
+
+  const initials = (name: string) =>
+    name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+
+  return (
+    <View style={str.card}>
+      <AureakText style={str.title}>Séries d'assiduité 🔥</AureakText>
+      {eligible.map((s, i) => {
+        const name   = childNameMap[s.childId] ?? s.childId.slice(0, 8) + '…'
+        const isExcp = s.streak >= 10
+        const badge  = isExcp ? '🔥🔥 Série exceptionnelle' : '🔥 Série active'
+        const bColor = isExcp ? (colors.accent.red ?? '#E05252') : colors.accent.gold
+        return (
+          <View
+            key={s.childId}
+            style={[str.row, i < eligible.length - 1 && str.rowBorder]}
+          >
+            <View style={str.avatar}>
+              <AureakText style={[str.avatarText, { color: colors.accent.gold }] as never}>{initials(name)}</AureakText>
+            </View>
+            <View style={{ flex: 1 }}>
+              <AureakText style={str.name}>{name}</AureakText>
+              <AureakText style={[str.sub, { color: colors.text.muted }] as never}>{s.streak} présences consécutives</AureakText>
+            </View>
+            <View style={[str.badge, { borderColor: bColor + '60', backgroundColor: bColor + '18' }]}>
+              <AureakText style={[str.badgeText, { color: bColor }] as never}>{badge}</AureakText>
+            </View>
+          </View>
+        )
+      })}
+    </View>
+  )
+}
+
+const str = StyleSheet.create({
+  card      : {
+    backgroundColor: colors.light.surface,
+    borderWidth: 1, borderColor: colors.border.light,
+    borderRadius: 12, padding: space.md, gap: space.sm,
+    boxShadow: shadows.sm,
+  } as never,
+  title     : { fontSize: 14, fontWeight: '700' as never, color: colors.text.dark },
+  row       : { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs },
+  rowBorder : { borderBottomWidth: 1, borderBottomColor: colors.border.divider },
+  avatar    : {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.accent.gold + '20',
+    borderWidth: 1, borderColor: colors.accent.gold + '50',
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  avatarText: { fontSize: 12, fontWeight: '700' as never },
+  name      : { fontSize: 13, fontWeight: '600' as never, color: colors.text.dark },
+  sub       : { fontSize: 10 },
+  badge     : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeText : { fontSize: 10, fontWeight: '700' as never },
+})
+
 // Story 47.3 — Styles actions rapides
 const actSt = StyleSheet.create({
   quickBtn: {
@@ -310,6 +513,70 @@ function buildDuplicatePrefill(
   }
 }
 
+// ── Story 53-7 — Calcul des streaks de présence (côté TS) ────────────────────
+
+async function computePresenceStreaks(
+  sessionId: string,
+  groupId  : string,
+  sessionDate: string
+): Promise<{ childId: string; streak: number }[]> {
+  try {
+    // Récupérer les 15 dernières séances du groupe jusqu'à la séance courante
+    const endDate   = new Date(sessionDate)
+    const startDate = new Date(endDate)
+    startDate.setFullYear(startDate.getFullYear() - 1)
+
+    const { data: sessions } = await listSessionsAdminView({
+      start      : startDate.toISOString(),
+      end        : endDate.toISOString(),
+      groupId,
+      withCoaches: false,
+    })
+
+    // Trier par date desc, limiter à 15
+    const recentSessions = [...sessions]
+      .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+      .filter(s => s.status === 'réalisée')
+      .slice(0, 15)
+
+    if (recentSessions.length === 0) return []
+
+    // Pour chaque séance, récupérer les présences
+    const attendancesBySession: Record<string, Set<string>> = {}
+    await Promise.all(
+      recentSessions.map(async s => {
+        const { data } = await listAttendancesBySession(s.id)
+        attendancesBySession[s.id] = new Set(
+          (data ?? []).filter((a: { status: string }) => a.status === 'present').map((a: { childId: string }) => a.childId)
+        )
+      })
+    )
+
+    // Collecter tous les joueurs présents dans au moins 1 séance
+    const allPlayerIds = new Set<string>()
+    Object.values(attendancesBySession).forEach(set => set.forEach(id => allPlayerIds.add(id)))
+
+    // Calculer la streak pour chaque joueur (sessions triées desc = les plus récentes en premier)
+    const result: { childId: string; streak: number }[] = []
+    for (const childId of allPlayerIds) {
+      let streak = 0
+      for (const s of recentSessions) {
+        if (attendancesBySession[s.id]?.has(childId)) {
+          streak++
+        } else {
+          break // série brisée
+        }
+      }
+      if (streak > 0) result.push({ childId, streak })
+    }
+
+    return result
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] computePresenceStreaks error:', err)
+    return []
+  }
+}
+
 export default function SessionDetailPage() {
   const { sessionId, updated } = useLocalSearchParams<{ sessionId: string; updated?: string }>()
   const router = useRouter()
@@ -352,6 +619,10 @@ export default function SessionDetailPage() {
   const [intensityLevel,  setIntensityLevel]  = useState<number | null>(null)
   const [intensitySaving, setIntensitySaving] = useState(false)
   const [intensityError,  setIntensityError]  = useState<string | null>(null)
+  // Story 53-6 — Évaluations pour résumé
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([])
+  // Story 53-7 — Streaks d'assiduité
+  const [presenceStreaks, setPresenceStreaks] = useState<{ childId: string; streak: number }[]>([])
 
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -361,6 +632,26 @@ export default function SessionDetailPage() {
   const [showPostponeDialog, setShowPostponeDialog] = useState(false)
   const [postponeDate,       setPostponeDate      ] = useState('')
   const [postponeError,      setPostponeError     ] = useState('')
+
+  // Story 53-6 — useMemo résumé de séance
+  const sessionSummary = useMemo((): SessionSummaryData | null => {
+    if (!session || session.status !== 'réalisée') return null
+    const presentCount = Object.values(attendanceMap).filter(s => s === 'present').length
+    const totalCount   = groupMembers.length || 1
+    const presenceRate = Math.round((presentCount / totalCount) * 100)
+    const scoredEvals  = evaluations.map(e => ({ ...e, _score: evalToScore(e) }))
+    const avgScore     = scoredEvals.length
+      ? scoredEvals.reduce((sum, e) => sum + e._score, 0) / scoredEvals.length
+      : null
+    const topEval      = scoredEvals.length
+      ? [...scoredEvals].sort((a, b) =>
+          b._score !== a._score
+            ? b._score - a._score
+            : (childNameMap[a.childId] ?? a.childId).localeCompare(childNameMap[b.childId] ?? b.childId)
+        )[0] ?? null
+      : null
+    return { presenceRate, presentCount, totalCount, avgScore, topEval: topEval ?? null }
+  }, [session, attendanceMap, groupMembers, evaluations, childNameMap])
 
   const load = async () => {
     if (!sessionId) {
@@ -407,6 +698,18 @@ export default function SessionDetailPage() {
       sortedMembers.forEach(m => { map[m.childId] = null })
       ;(a.data as Attendance[]).forEach(att => { map[att.childId] = att.status as AttendanceStatus })
       setAttendanceMap(map)
+
+      // Story 53-6 + 53-7 — Charger évaluations et streaks si séance réalisée
+      if (s.data.status === 'réalisée') {
+        // Évaluations
+        const evalResult = await listEvaluationsBySession(sessionId)
+        if (!evalResult.error) setEvaluations(evalResult.data)
+        // Streaks d'assiduité (calcul TS côté client)
+        if (s.data.groupId) {
+          const streaksData = await computePresenceStreaks(sessionId, s.data.groupId, s.data.scheduledAt)
+          setPresenceStreaks(streaksData)
+        }
+      }
 
       // Resolve coach names from profiles
       if (c.data.length > 0) {
@@ -719,6 +1022,16 @@ export default function SessionDetailPage() {
         groupName ={session.label ?? sessionDate}
         isMobile  ={isMobile}
       />
+
+      {/* Story 53-6 — Résumé post-entraînement (visible seulement si réalisée) */}
+      {session.status === 'réalisée' && sessionSummary && (
+        <SessionSummaryCard summary={sessionSummary} childNameMap={childNameMap} />
+      )}
+
+      {/* Story 53-7 — Séries d'assiduité (visible seulement si réalisée) */}
+      {session.status === 'réalisée' && presenceStreaks.length > 0 && (
+        <StreakBadgeSection streaks={presenceStreaks} childNameMap={childNameMap} />
+      )}
 
       {/* Story 53-3 — Indicateur d'intensité */}
       <View style={[styles.card, session.status === 'annulée' && { opacity: 0.5 }]}>
