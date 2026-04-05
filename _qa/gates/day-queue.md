@@ -93,10 +93,19 @@ next-morning-queue:
   - story_id: story-49-7
     title: "FEATURE — Affiliation automatique joueurs → club par saison"
     priority: P3
-    status: pending
-    gate1: pending
-    gate2: pending
-    commit: ""
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "d121507"
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-49-7_gate1.md"
+      - "_qa/reports/2026-04-05_story-49-7_gate2.md"
+    warnings:
+      - "W1: fontSize 13/12 hardcodés (3 lignes nouvelles) — tech debt pré-existant fichier"
+      - "W2: gap migration 00114/00115 pré-existant — vérifier branches"
+      - "W3: layout shift section autoClub (chargement async) — optionnel skeleton"
+      - "W4: setState async sans isMounted guard — tech debt global"
+      - "W5: saison non affichée dans l'UI — UX enhancement hors scope"
 
   # ── BUGS P1 ───────────────────────────────────────────────────────────────
 
