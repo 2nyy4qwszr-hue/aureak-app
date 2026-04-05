@@ -3,16 +3,41 @@
 // Terminologie officielle : joueur = enfant = child
 // Story 18.2 : refonte UI cards + grille responsive + photos + filtres améliorés
 // UI v2 : infos gauche · avatar droite · filtres avancés repliables
+// Story 52-5 : filtres tier pills colorées
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
 import { AureakText, Button, EmptyState, PlayerCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
+import { ACADEMY_STATUS_CONFIG, computePlayerTier } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
-import type { AcademyStatus } from '@aureak/types'
+import type { AcademyStatus, PlayerTier } from '@aureak/types'
 import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
+
+// ── Tier pills config ──────────────────────────────────────────────────────────
+
+type TierFilterKey = PlayerTier | 'Tous'
+
+const TIER_PILLS_CONFIG: { key: TierFilterKey; bg: string; textColor: string; borderColor: string }[] = [
+  { key: 'Tous',        bg: colors.light.muted,    textColor: colors.text.dark,  borderColor: colors.border.light },
+  { key: 'Prospect',    bg: '#E8E8E8',             textColor: '#555555',          borderColor: '#CCCCCC'           },
+  { key: 'Académicien', bg: colors.light.surface,  textColor: colors.text.dark,  borderColor: colors.border.light },
+  { key: 'Confirmé',    bg: '#FFF8E8',             textColor: '#8A6800',          borderColor: 'rgba(193,172,92,0.4)' },
+  { key: 'Elite',       bg: '#2A2006',             textColor: '#FFE566',          borderColor: '#C1AC5C'           },
+]
+
+const TIER_FILTER_STORAGE_KEY = 'aureak_players_tier_filter'
+
+function loadTierFilter(): PlayerTier[] {
+  if (typeof localStorage === 'undefined') return []
+  try {
+    const stored = localStorage.getItem(TIER_FILTER_STORAGE_KEY)
+    if (!stored) return []
+    const parsed = JSON.parse(stored)
+    return Array.isArray(parsed) ? parsed as PlayerTier[] : []
+  } catch { return [] }
+}
 
 // ── View mode — galerie vs liste ───────────────────────────────────────────────
 
@@ -840,6 +865,63 @@ const fr = StyleSheet.create({
   tabActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
 })
 
+// ── TierPills ─────────────────────────────────────────────────────────────────
+
+function TierPills({
+  selectedTiers, onToggle, counts,
+}: {
+  selectedTiers: PlayerTier[]
+  onToggle: (tier: TierFilterKey) => void
+  counts: Record<TierFilterKey, number>
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={tp.row}
+    >
+      {TIER_PILLS_CONFIG.map(cfg => {
+        const isTous   = cfg.key === 'Tous'
+        const isActive = isTous
+          ? selectedTiers.length === 0
+          : selectedTiers.includes(cfg.key as PlayerTier)
+        return (
+          <Pressable
+            key={cfg.key}
+            style={[
+              tp.pill,
+              {
+                backgroundColor: cfg.bg,
+                borderColor    : isActive ? (cfg.key === 'Elite' ? '#FFE566' : cfg.borderColor) : cfg.borderColor,
+                borderWidth    : isActive ? 2 : 1,
+                opacity        : isActive ? 1 : 0.75,
+              },
+            ]}
+            onPress={() => onToggle(cfg.key)}
+            accessibilityRole="button"
+            accessibilityLabel={`Filtre ${cfg.key}`}
+          >
+            <AureakText
+              style={[tp.label, { color: cfg.textColor, fontWeight: isActive ? '700' : '500' }] as never}
+            >
+              {cfg.key === 'Tous'
+                ? `${cfg.key} (${counts['Tous']})`
+                : `${cfg.key} (${counts[cfg.key as PlayerTier] ?? 0})`
+              }
+            </AureakText>
+          </Pressable>
+        )
+      })}
+    </ScrollView>
+  )
+}
+
+const tp = StyleSheet.create({
+  row  : { flexDirection: 'row', gap: 8, paddingVertical: 4, paddingHorizontal: 2 },
+  pill : { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  label: { fontSize: 12, letterSpacing: 0.2 },
+})
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 export default function JoueursPage() {
@@ -852,6 +934,26 @@ export default function JoueursPage() {
   const [page,               setPage]               = useState(0)
   const [loading,            setLoading]            = useState(true)
   const [showAdvFilters,     setShowAdvFilters]     = useState(false)
+
+  // ── Tier filter — Story 52-5 ────────────────────────────────────────────────
+  const [selectedTiers, setSelectedTiers] = useState<PlayerTier[]>(loadTierFilter)
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(TIER_FILTER_STORAGE_KEY, JSON.stringify(selectedTiers))
+    }
+  }, [selectedTiers])
+
+  const handleToggleTier = (key: TierFilterKey) => {
+    if (key === 'Tous') {
+      setSelectedTiers([])
+      return
+    }
+    const tier = key as PlayerTier
+    setSelectedTiers(prev =>
+      prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
+    )
+  }
 
   // Persistance viewMode dans localStorage
   useEffect(() => {
@@ -978,6 +1080,26 @@ export default function JoueursPage() {
     setStageFilter('all')
     setBirthYear('all')
   }
+
+  // ── Tier pills — Story 52-5 ─────────────────────────────────────────────────
+
+  // `joueurs` est déjà la liste filtrée côté serveur (statut, saison, etc.)
+  // Les compteurs tier se calculent sur cette base.
+  const tierCounts = useMemo(() => {
+    const counts: Record<TierFilterKey, number> = {
+      Tous: joueurs.length, Prospect: 0, Académicien: 0, Confirmé: 0, Elite: 0,
+    }
+    joueurs.forEach(j => {
+      const tier = computePlayerTier(j)
+      counts[tier]++
+    })
+    return counts
+  }, [joueurs])
+
+  const filteredByTier = useMemo(() => {
+    if (selectedTiers.length === 0) return joueurs
+    return joueurs.filter(j => selectedTiers.includes(computePlayerTier(j)))
+  }, [joueurs, selectedTiers])
 
   // ── CSV Import ──────────────────────────────────────────────────────────────
   const [showImportModal, setShowImportModal] = useState(false)
@@ -1198,6 +1320,13 @@ export default function JoueursPage() {
         )}
       </View>
 
+      {/* ── Pills tier — Story 52-5 ── */}
+      <TierPills
+        selectedTiers={selectedTiers}
+        onToggle={handleToggleTier}
+        counts={tierCounts}
+      />
+
       {/* ── Filtres ── */}
       <View style={s.filtersBlock}>
 
@@ -1293,7 +1422,7 @@ export default function JoueursPage() {
             : [0,1,2,3,4,5].map(i => <PremiumSkeletonCard key={i} />)
           }
         </View>
-      ) : joueurs.length === 0 ? (
+      ) : filteredByTier.length === 0 ? (
         <EmptyState
           icon="⚽"
           title="Aucun joueur trouvé"
@@ -1304,7 +1433,7 @@ export default function JoueursPage() {
       ) : viewMode === 'galerie' ? (
         /* Vue galerie — PlayerCard FUT-style 160×220px (story 52-4) */
         <View style={s.gridGalerie as never}>
-          {joueurs.map(item => (
+          {filteredByTier.map(item => (
             <PlayerCard
               key={item.id}
               joueur={item}
@@ -1315,7 +1444,7 @@ export default function JoueursPage() {
       ) : (
         /* Vue liste — PremiumJoueurCard (comportement pré-story-52, inchangé) */
         <View style={gridStyle as never}>
-          {joueurs.map(item => (
+          {filteredByTier.map(item => (
             <View key={item.id} style={{ position: 'relative' as never }}>
               {bulkMode && Platform.OS === 'web' && (
                 <Pressable
