@@ -83,6 +83,11 @@ export type { GroupOfMonthBadgeProps } from './GroupOfMonthBadge'
 export { CapacityIndicator, getCapacityStatus, getCapacityColor, getCapacityTooltip } from './CapacityIndicator'
 export type { CapacityIndicatorProps, CapacityStatus } from './CapacityIndicator'
 
+// Story 59-2 — Level-up animation spring + flash doré
+export { LevelUpAnimation } from './LevelUpAnimation'
+export type { LevelUpAnimationProps, LevelTier } from './LevelUpAnimation'
+export { useLevelUp } from './hooks/useLevelUp'
+
 // Story 56-3 — Grille d'avatars compacts pour card groupe
 export { PlayerAvatarGrid } from './PlayerAvatarGrid'
 export type { PlayerAvatarGridProps, AvatarMember } from './PlayerAvatarGrid'
