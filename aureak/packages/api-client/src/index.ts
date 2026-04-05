@@ -118,6 +118,8 @@ export {
   getActiveSession,
   // Story 53-3 — intensité séance
   updateSessionIntensity,
+  // Story 61.2 — séance active du jour pour le coach
+  getActiveSessionForCoach,
 } from './sessions/sessions'
 export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow } from './sessions/sessions'
 export type { ActiveSessionInfo } from '@aureak/types'
@@ -589,4 +591,12 @@ export type { StatsRoomKpis } from './analytics'
 // Story 60.8 — Live counters Realtime
 export { useLiveSessionCounts } from './realtime/liveSessionCounts'
 export type { LiveSessionCounts } from './realtime/liveSessionCounts'
+
+// Story 61.5 — Offline mode : cache + queue
+export {
+  setCacheItem, getCacheItem, invalidateCache, getCacheTimestamp, isCacheStale, CACHE_KEYS,
+  enqueueAction, getQueue, dequeueAction, processQueue,
+  useOfflineCache,
+} from './offline'
+export type { OfflineQueueItem } from './offline'
 

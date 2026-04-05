@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Pressable, useWindowDimensions } from 'react-native'
+import { Animated, Platform, Pressable, useWindowDimensions } from 'react-native'
 import type { PressableProps, ViewStyle } from 'react-native'
 import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
@@ -8,7 +8,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext'
 import { useThemeColors } from '../hooks/useThemeColors'
-import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase } from '@aureak/api-client'
+import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase, useOfflineCache } from '@aureak/api-client'
 import type { ActiveSessionInfo, NavBadgeCounts, AchievementToastData } from '@aureak/api-client'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
@@ -39,6 +39,9 @@ import {
   LockIcon,
   SunIcon,
   MoonIcon,
+  ActiveSessionHUD,
+  PWAInstallBanner,
+  OfflineBanner,
 } from '@aureak/ui'
 import type { NavIconProps } from '@aureak/ui'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
@@ -54,6 +57,10 @@ import { ShortcutsHelp } from '../../components/ShortcutsHelp'
 import { KeyboardPrefixHint } from '../../components/KeyboardPrefixHint'
 import { BreadcrumbProvider } from '../contexts/BreadcrumbContext'
 import { Breadcrumb } from '../../components/Breadcrumb'
+// Story 61.2 — ActiveSessionContext
+import { ActiveSessionProvider, useActiveSession } from './contexts/ActiveSessionContext'
+// Story 61.6 — SplashScreen
+import { SplashScreen, SPLASH_MIN_MS, SPLASH_TIMEOUT_MS } from './SplashScreen'
 
 // ── Story 51.7 — HoverablePressable : Pressable avec onMouseEnter/Leave (RN Web) ─
 // Les props hover ne sont pas dans les types RN natifs — cast via interface étendue.
@@ -150,12 +157,14 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
-// ── AdminLayout wrappé dans ThemeProvider ────────────────────────────────────
+// ── AdminLayout wrappé dans ThemeProvider + ActiveSessionProvider ─────────────
 // ThemeProvider doit être au-dessus de AdminLayoutInner pour que useTheme() fonctionne.
 export default function AdminLayout() {
   return (
     <ThemeProvider>
-      <AdminLayoutInner />
+      <ActiveSessionProvider>
+        <AdminLayoutInner />
+      </ActiveSessionProvider>
     </ThemeProvider>
   )
 }
@@ -168,6 +177,41 @@ function AdminLayoutInner() {
   const { theme, toggleTheme } = useTheme()
   const themeColors = useThemeColors()
   const [mobileOpen,   setMobileOpen]   = useState(false)
+
+  // ── Story 61.5 — Offline cache + banner ──────────────────────────────────
+  const { isOnline, cacheTimestamp, isSyncing, syncResult } = useOfflineCache()
+
+  // ── Story 61.2 — HUD séance active ───────────────────────────────────────
+  const { activeSession, presentCount, totalCount } = useActiveSession()
+
+  // ── Story 61.6 — Splash screen ───────────────────────────────────────────
+  // isAppReady: false au départ → SplashScreen affiché
+  const [isAppReady,    setIsAppReady]    = useState(false)
+  const [splashDismiss, setSplashDismiss] = useState(false)
+
+  useEffect(() => {
+    let minTimer   : ReturnType<typeof setTimeout> | null = null
+    let maxTimer   : ReturnType<typeof setTimeout> | null = null
+    let dismissed  = false
+
+    const dismiss = () => {
+      if (dismissed) return
+      dismissed = true
+      setSplashDismiss(true)
+      setTimeout(() => setIsAppReady(true), 350) // attendre le fade-out
+    }
+
+    // Délai minimum 1.5s (AC6)
+    minTimer = setTimeout(dismiss, SPLASH_MIN_MS)
+
+    // Timeout maximum 5s (AC6)
+    maxTimer = setTimeout(dismiss, SPLASH_TIMEOUT_MS)
+
+    return () => {
+      if (minTimer) clearTimeout(minTimer)   // BLOCKER cleanup
+      if (maxTimer) clearTimeout(maxTimer)   // BLOCKER cleanup
+    }
+  }, [])
 
   // ── Story 51.7 — Sidebar collapse avec animation smooth ──────────────────
   // État initial chargé depuis localStorage sans déclencher d'animation (AC6)
@@ -350,6 +394,11 @@ function AdminLayoutInner() {
 
   return (
     <>
+    {/* Story 61.6 — Splash screen (web uniquement, avant isAppReady) */}
+    {Platform.OS === 'web' && !isAppReady && (
+      <SplashScreen dismiss={splashDismiss} />
+    )}
+
     <BreadcrumbProvider>
     <ToastProvider>
     <NotificationProvider>
@@ -851,6 +900,25 @@ function AdminLayoutInner() {
           </XStack>
         )}
 
+        {/* ── Story 61.5 — Offline banner ── */}
+        <OfflineBanner
+          isOnline      ={isOnline}
+          cacheTimestamp={cacheTimestamp}
+          isSyncing     ={isSyncing}
+          syncResult    ={syncResult}
+        />
+
+        {/* ── Story 61.2 — HUD séance active (mobile uniquement) ── */}
+        {isMobile && activeSession && (
+          <ActiveSessionHUD
+            session     ={activeSession}
+            presentCount={presentCount}
+            totalCount  ={totalCount}
+            isMobile    ={isMobile}
+            onPress     ={() => router.push(`/seances/${activeSession.sessionId}` as never)}
+          />
+        )}
+
         {/* ── Story 51.2 — Topbar séance active (desktop uniquement) ── */}
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
@@ -881,6 +949,9 @@ function AdminLayoutInner() {
         }}
       />
     )}
+
+    {/* Story 61.3 — PWA install banner (web + mobile uniquement) */}
+    <PWAInstallBanner />
     </>
   )
 }

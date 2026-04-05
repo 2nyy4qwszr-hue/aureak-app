@@ -131,6 +131,23 @@ export type { BarChartProps } from './BarChart'
 export { LiveCounter } from './LiveCounter'
 export type { LiveCounterProps } from './LiveCounter'
 
+// Story 61.2 — HUD séance active mobile
+export { ActiveSessionHUD } from './ActiveSessionHUD'
+export type { ActiveSessionHUDProps } from './ActiveSessionHUD'
+
+// Story 61.3 — PWA install prompt banner mobile
+export { PWAInstallBanner } from './PWAInstallBanner'
+
+// Story 61.4 — Swipe gestures présences
+export { SwipeableRow } from './SwipeableRow'
+export type { SwipeableRowProps } from './SwipeableRow'
+export { useSwipeGesture } from './hooks/useSwipeGesture'
+export type { UseSwipeGestureResult, SwipeGestureBindings } from './hooks/useSwipeGesture'
+
+// Story 61.5 — Offline mode banner
+export { OfflineBanner } from './OfflineBanner'
+export type { OfflineBannerProps } from './OfflineBanner'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {

@@ -1195,6 +1195,71 @@ export async function getActiveSession(): Promise<ActiveSessionInfo[]> {
   return active
 }
 
+// ── Story 61.2 — Séance active du jour pour un coach donné ───────────────────
+
+/**
+ * Retourne la séance en cours du jour pour le coach connecté.
+ * Critères : session_date = TODAY, status != 'cancelled', non supprimée.
+ * Filtre côté client : fenêtre active [start - 30min .. start + duration + 15min].
+ * Retourne null si aucune séance active.
+ */
+export async function getActiveSessionForCoach(): Promise<ActiveSessionInfo | null> {
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const now   = new Date()
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(`
+      id,
+      scheduled_at,
+      duration_minutes,
+      status,
+      groups ( name ),
+      session_attendees ( status )
+    `)
+    .neq('status', 'cancelled')
+    .gte('scheduled_at', `${today}T00:00:00`)
+    .lte('scheduled_at', `${today}T23:59:59`)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: true })
+    .limit(10)
+
+  if (error || !data) return null
+
+  type Row = {
+    id               : string
+    scheduled_at     : string
+    duration_minutes : number
+    status           : string
+    groups           : Array<{ name: string }> | { name: string } | null
+    session_attendees: Array<{ status: string }> | null
+  }
+
+  const rows = data as unknown as Row[]
+
+  for (const r of rows) {
+    const start     = new Date(r.scheduled_at)
+    const preWindow = new Date(start.getTime() - 30 * 60 * 1000)
+    const endWindow = new Date(start.getTime() + (r.duration_minutes + 15) * 60 * 1000)
+    if (now >= preWindow && now <= endWindow) {
+      const attendees    = r.session_attendees ?? []
+      const presentCount = attendees.filter(a => a.status === 'présent').length
+      const totalCount   = attendees.length
+      const groupObj     = Array.isArray(r.groups) ? r.groups[0] : r.groups
+      return {
+        sessionId      : r.id,
+        groupName      : groupObj?.name ?? 'Groupe inconnu',
+        presentCount,
+        totalCount,
+        scheduledAt    : r.scheduled_at,
+        durationMinutes: r.duration_minutes,
+      }
+    }
+  }
+
+  return null
+}
+
 // ── Story 53-3 — Intensité séance ────────────────────────────────────────────
 
 /**
