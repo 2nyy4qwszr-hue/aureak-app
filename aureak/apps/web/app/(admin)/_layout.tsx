@@ -1,3 +1,4 @@
+// Story 62.5 — Page transitions CSS + Story 62.6 — PWA head tags
 import React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Platform, Pressable, useWindowDimensions } from 'react-native'
@@ -169,10 +170,40 @@ export default function AdminLayout() {
   )
 }
 
+// ── Story 62.5 — Injection CSS page transitions (une seule fois) ─────────────
+let pageTransitionCSSInjected = false
+function injectPageTransitionCSS() {
+  if (pageTransitionCSSInjected || typeof document === 'undefined') return
+  pageTransitionCSSInjected = true
+  const style = document.createElement('style')
+  style.textContent = `
+@keyframes page-enter {
+  from {
+    opacity  : 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity  : 1;
+    transform: translateX(0);
+  }
+}
+.page-enter {
+  animation: page-enter 200ms ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+}
+`
+  document.head.appendChild(style)
+}
+
 function AdminLayoutInner() {
   const router   = useRouter()
   const pathname = usePathname()
   const { width } = useWindowDimensions()
+
+  // ── Story 62.5 — Référence au conteneur de contenu pour la transition de page ─
+  const contentAreaRef = useRef<HTMLDivElement>(null)
   const { role, isLoading, signOut, user } = useAuthStore()
   const { theme, toggleTheme } = useTheme()
   const themeColors = useThemeColors()
@@ -382,6 +413,21 @@ function AdminLayoutInner() {
   useEffect(() => {
     isInitialRender.current = false
   }, [])
+
+  // ── Story 62.5 — Transition de page au changement de pathname ────────────
+  useEffect(() => {
+    injectPageTransitionCSS()
+    const el = contentAreaRef.current
+    if (!el) return
+    if (typeof window === 'undefined') return
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) return
+    el.classList.remove('page-enter')
+    void el.offsetHeight // force reflow
+    el.classList.add('page-enter')
+    const timeout = setTimeout(() => el.classList.remove('page-enter'), 200)
+    return () => clearTimeout(timeout) // BLOCKER cleanup
+  }, [pathname])
 
   if (isLoading || role !== 'admin') return null
 
@@ -925,9 +971,12 @@ function AdminLayoutInner() {
         {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
         {!isMobile && <Breadcrumb />}
 
-        <ErrorBoundary>
-          <Slot />
-        </ErrorBoundary>
+        {/* Story 62.5 — conteneur page-enter animation */}
+        <div ref={contentAreaRef} style={{ flex: 1 }}>
+          <ErrorBoundary>
+            <Slot />
+          </ErrorBoundary>
+        </div>
       </YStack>
     </XStack>
     </SearchProvider>
