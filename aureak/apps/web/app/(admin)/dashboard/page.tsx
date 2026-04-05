@@ -2,13 +2,15 @@
 // Admin Dashboard — vue de contrôle multi-implantations (Light Premium DA)
 // Story 49-5 — Design : Dashboard Admin — Game Manager Premium
 // Story 50-1 — Hero Band salle de commandement
+// Story 50-5 — Live activity feed
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
+  fetchActivityFeed, supabase,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow } from '@aureak/api-client'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
@@ -755,6 +757,97 @@ function simulateSpark(current: number, seed: number): number[] {
   return offsets.map((o, i) => Math.round(base * (o + jitter[i])))
 }
 
+// ── Activity Feed (Story 50-5) ────────────────────────────────────────────────
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1)  return "À l'instant"
+  if (mins < 60) return `il y a ${mins} min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `il y a ${hours}h`
+  const days = Math.floor(hours / 24)
+  return `il y a ${days}j`
+}
+
+function ActivityFeed({ events, tick }: { events: ActivityEventItem[]; tick: number }) {
+  // tick est utilisé pour forcer le recalcul des timestamps relatifs chaque minute
+  void tick
+
+  const TYPE_ICON: Record<ActivityEventItem['type'], string> = {
+    presence  : '✅',
+    new_player: '👤',
+    badge     : '🏅',
+  }
+
+  return (
+    <div style={{
+      backgroundColor: colors.light.surface,
+      borderRadius   : radius.card,
+      border         : `1px solid ${colors.border.light}`,
+      overflow       : 'hidden',
+      boxShadow      : shadows.sm,
+    }}>
+      <div style={{
+        padding      : '14px 16px',
+        borderBottom : `1px solid ${colors.border.divider}`,
+        fontSize     : 12,
+        fontWeight   : 600,
+        color        : colors.text.muted,
+        textTransform: 'uppercase' as React.CSSProperties['textTransform'],
+        letterSpacing: 0.8,
+        fontFamily   : 'Montserrat, sans-serif',
+      }}>
+        Activité récente
+      </div>
+
+      <div
+        className="aside-scroll"
+        style={{ maxHeight: 420, overflowY: 'auto' }}
+      >
+        {events.length === 0 && (
+          <div style={{ padding: 20, fontSize: 13, color: colors.text.muted, textAlign: 'center' }}>
+            Aucune activité récente
+          </div>
+        )}
+        {events.map(evt => (
+          <div
+            key={evt.id}
+            className={`feed-item${evt.isNew ? ' feed-item-new' : ''}`}
+            style={{
+              display    : 'flex',
+              alignItems : 'flex-start',
+              gap        : 10,
+              padding    : '10px 16px',
+              borderBottom: `1px solid ${colors.border.divider}`,
+            }}
+          >
+            <span style={{ fontSize: 16, lineHeight: 1.4, flexShrink: 0 }}>{TYPE_ICON[evt.type]}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize     : 13,
+                fontWeight   : 500,
+                color        : colors.text.dark,
+                overflow     : 'hidden',
+                textOverflow : 'ellipsis',
+                whiteSpace   : 'nowrap',
+              }}>
+                {evt.playerName}
+              </div>
+              <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 1 }}>
+                {evt.description}
+              </div>
+            </div>
+            <div style={{ fontSize: 10, color: colors.text.subtle, flexShrink: 0, marginTop: 2 }}>
+              {relativeTime(evt.createdAt)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
@@ -785,6 +878,10 @@ export default function DashboardPage() {
   // ── Upcoming session (countdown tile — Story 50.3) ──
   const [upcomingSession,  setUpcomingSession]  = useState<UpcomingSessionRow | null>(null)
   const [loadingUpcoming,  setLoadingUpcoming]  = useState(true)
+
+  // ── Activity feed (Story 50-5) ──
+  const [activityEvents, setActivityEvents] = useState<ActivityEventItem[]>([])
+  const [tickMinute,     setTickMinute]     = useState(0)
 
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
@@ -918,6 +1015,62 @@ export default function DashboardPage() {
     loadCounts()
   }, [selectedImplantationId])
 
+  // ── Load activity feed initial data (Story 50-5) ──
+  useEffect(() => {
+    const loadFeed = async () => {
+      try {
+        const { data } = await fetchActivityFeed()
+        setActivityEvents(data ?? [])
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[dashboard] fetchActivityFeed error:', err)
+      }
+    }
+    loadFeed()
+  }, [])
+
+  // ── Realtime subscription — attendance_records INSERT (Story 50-5, AC4) ──
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-activity')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'attendance_records' },
+        (payload) => {
+          const record = payload.new as { id: string; child_id?: string; created_at: string }
+          const event: ActivityEventItem = {
+            id         : `presence-${record.id}`,
+            type       : 'presence',
+            playerName : 'Joueur',
+            description: 'Présence validée en séance',
+            createdAt  : record.created_at,
+            isNew      : true,
+          }
+          setActivityEvents(prev => [event, ...prev].slice(0, 20))
+          // Retirer le flag isNew après 5s
+          setTimeout(() => {
+            setActivityEvents(prev =>
+              prev.map(e => e.id === event.id ? { ...e, isNew: false } : e)
+            )
+          }, 5000)
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          if (process.env.NODE_ENV !== 'production')
+            console.error('[dashboard] Realtime channel error — affichage statique uniquement')
+        }
+      })
+
+    return () => { channel.unsubscribe() }
+  }, [])
+
+  // ── Timer minute pour recalculer les timestamps relatifs (Story 50-5, AC5) ──
+  useEffect(() => {
+    const timer = setInterval(() => setTickMinute(t => t + 1), 60_000)
+    return () => clearInterval(timer)
+  }, [])
+
   const handleResolve = async (id: string) => {
     setResolving(id)
     try {
@@ -1009,10 +1162,34 @@ export default function DashboardPage() {
           .hero-band { height: 120px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px; padding-top: 16px !important; padding-bottom: 16px !important; }
           .hero-date { text-align: left !important; }
         }
+
+        /* ── Page layout 2 colonnes (Story 50-5) ── */
+        .page-layout { display: flex; gap: 24px; align-items: flex-start; }
+        .main-col    { flex: 1 1 0; min-width: 0; }
+        .aside-col   { width: 280px; flex-shrink: 0; position: sticky; top: 24px; }
+
+        /* ── Activity feed (Story 50-5) ── */
+        @keyframes feed-slide-in {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0);    }
+        }
+        .feed-item     { animation: feed-slide-in 0.25s ease forwards; }
+        .feed-item-new { background: rgba(193,172,92,0.08); }
+        .aside-scroll::-webkit-scrollbar { display: none; }
+        .aside-scroll  { scrollbar-width: none; }
+
+        @media (max-width: 1024px) {
+          .page-layout { flex-direction: column; }
+          .aside-col   { width: 100%; position: static; }
+        }
       `}</style>
 
-      {/* ── Hero Band ── */}
+      {/* ── Hero Band (full width, avant le layout 2 cols) ── */}
       <HeroBand implantationCount={stats.length} />
+
+      {/* ── Layout 2 colonnes : main + aside activity feed ── */}
+      <div className="page-layout">
+      <div className="main-col">
 
       {/* ── Filters ── */}
       <div style={S.filterRow}>
@@ -1354,6 +1531,17 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      {/* ── Fin main-col ── */}
+      </div>
+
+      {/* ── Aside : Activity Feed ── */}
+      <div className="aside-col">
+        <ActivityFeed events={activityEvents} tick={tickMinute} />
+      </div>
+
+      {/* ── Fin page-layout ── */}
+      </div>
     </div>
   )
 }

@@ -1,8 +1,79 @@
-// Admin Dashboard — compteurs KPI
+// Admin Dashboard — compteurs KPI + activity feed
 // Extrait les counts depuis Supabase (conformité ARCH-1 : accès centralisé).
 
 import { supabase } from '../supabase'
 import { countActivePlayersCurrentSeason } from './child-directory'
+
+// ── Activity Feed (Story 50.5) ────────────────────────────────────────────────
+
+export type ActivityEventType = 'presence' | 'new_player' | 'badge'
+
+export type ActivityEventItem = {
+  id         : string
+  type       : ActivityEventType
+  playerName : string
+  description: string
+  createdAt  : string  // ISO
+  isNew     ?: boolean
+}
+
+/**
+ * Charge les événements initiaux du feed d'activité :
+ * - 5 dernières présences validées (attendance_records WHERE status='present')
+ * - 5 derniers nouveaux joueurs (child_directory ORDER BY created_at DESC)
+ * Fusionné et trié par date DESC, limité à 10.
+ */
+export async function fetchActivityFeed(): Promise<{ data: ActivityEventItem[]; error: unknown }> {
+  const [attendanceRes, playersRes] = await Promise.all([
+    supabase
+      .from('attendance_records')
+      .select('id, child_id, created_at, session_id')
+      .eq('status', 'present')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('child_directory')
+      .select('id, display_name, created_at')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ])
+
+  if (attendanceRes.error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[dashboard] fetchActivityFeed attendance error:', attendanceRes.error)
+  }
+  if (playersRes.error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[dashboard] fetchActivityFeed players error:', playersRes.error)
+  }
+
+  const presenceEvents: ActivityEventItem[] = ((attendanceRes.data ?? []) as {
+    id: string; child_id: string; created_at: string; session_id: string
+  }[]).map(r => ({
+    id         : `presence-${r.id}`,
+    type       : 'presence' as ActivityEventType,
+    playerName : r.child_id ? `Joueur` : 'Joueur',
+    description: 'Présence validée en séance',
+    createdAt  : r.created_at,
+  }))
+
+  const playerEvents: ActivityEventItem[] = ((playersRes.data ?? []) as {
+    id: string; display_name: string; created_at: string
+  }[]).map(r => ({
+    id         : `new_player-${r.id}`,
+    type       : 'new_player' as ActivityEventType,
+    playerName : r.display_name ?? 'Joueur',
+    description: 'Nouveau joueur inscrit',
+    createdAt  : r.created_at,
+  }))
+
+  const merged = [...presenceEvents, ...playerEvents]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 10)
+
+  return { data: merged, error: attendanceRes.error ?? playersRes.error ?? null }
+}
 
 export type DashboardKpiCounts = {
   childrenTotal: number

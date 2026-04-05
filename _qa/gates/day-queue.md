@@ -7,6 +7,22 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-5
+    title: "FEATURE — Dashboard Live Activity Feed"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-5_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-5_gate2.md"
+    notes:
+      - "Layout 2 colonnes : main-col (flex:1) + aside-col (280px sticky)"
+      - "fetchActivityFeed() dans api-client/admin/dashboard.ts : 5 presences + 5 new_players"
+      - "Realtime channel 'dashboard-activity' sur attendance_records INSERT"
+      - "unsubscribe() dans useEffect cleanup — AC7 fallback CHANNEL_ERROR géré"
+
   - story_id: story-50-4
     title: "DESIGN — Dashboard ImplantationCard terrain premium"
     priority: P2
