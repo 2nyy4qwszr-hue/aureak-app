@@ -222,3 +222,24 @@ grep -n "catch(() => {})" aureak/apps/web/app/(admin)/dashboard/page.tsx
 ```
 fix(epic-49): story 49-8 — créer fn SQL get_implantation_stats + fallback UI dashboard
 ```
+
+## Dev Agent Record
+
+### Code Review — 2026-04-05
+
+**Reviewer :** Code Review Agent (adversarial)
+**Verdict :** PASS après correction
+
+**Problèmes trouvés et corrigés :**
+
+- **MEDIUM — AC4 non pleinement implémenté** : la section "Implantations" (cards du bas) n'opérait aucune distinction entre "erreur technique" (`statsError === true`) et "données manquantes" — affichait le même message "Aucune donnée disponible". Corrigé : section vide conditionne désormais le titre, l'icône et le sous-texte à `statsError`.
+  - Fichier : `aureak/apps/web/app/(admin)/dashboard/page.tsx` (bloc empty state lignes ~748-761)
+
+**Aucune violation des règles Aureak dans le périmètre de la story :**
+- try/finally : OK (setLoading, setLoadingCounts, setResolving tous protégés)
+- Console guards : OK (tous les console.error passent par `NODE_ENV !== 'production'`)
+- Accès Supabase : OK (via `@aureak/api-client` uniquement)
+- Couleurs hardcodées : les hardcodes existants (#1a472a, #FFFFFF) datent de la story 42.4 et sont hors scope
+
+**Fichiers modifiés par la review :**
+- `aureak/apps/web/app/(admin)/dashboard/page.tsx` — empty state Implantations distingue erreur/vide

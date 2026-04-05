@@ -1,112 +1,333 @@
-date: 2026-04-03
+date: 2026-04-05
 status: in-progress
 
 # ── Queue /morning 5 avril 2026 — feedback Jeremy ─────────────────────────────
 
 next-morning-queue:
 
-  - story_id: story-45-1
-    title: "Design System — Montserrat + tokens gamification (XP/niveaux/badges)"
+  # ── EPIC 49 — Feedback #3 Jeremy (créées 2026-04-05) ─────────────────────
+
+  - story_id: story-49-8
+    title: "BUG P1 — Dashboard getImplantationStats erreur 400 (fn SQL manquante)"
     priority: P1
     status: in-progress
     gate1: pending
     gate2: pending
+    commit: ""
+
+  - story_id: story-49-1
+    title: "BUG P1 — Création coach — Edge Function non-2xx persistant"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-49-2
+    title: "UX — Blocs thèmes éditables depuis fiche séance"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-49-3
+    title: "BUG — Joueurs liés au club non visibles (annuaire)"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-49-4
+    title: "UX — Présences — liste enfants groupe pré-chargée avec toggle"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-49-5
+    title: "DESIGN — Dashboard game manager premium (sparklines + hero band)"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-49-6
+    title: "DESIGN — Implantations — photo/logo upload + redesign détail"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-49-7
+    title: "FEATURE — Affiliation automatique joueurs → club par saison"
+    priority: P3
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── BUGS P1 ───────────────────────────────────────────────────────────────
+
+  - story_id: story-44-7
+    title: "BUG — Edge Function create-user-profile — déploiement + secrets"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-46-1
+    title: "BUG — Fiche séance — joueurs du groupe non affichés"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-46-2
+    title: "BUG — Création séance — Safari autocomplete déclenche popup mot de passe"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── BUGS P2 ───────────────────────────────────────────────────────────────
+
+  - story_id: story-46-3
+    title: "BUG — Création séance — sélecteur coach scroll broken"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-42-3
+    title: "BUG — Dashboard — compteur joueurs actifs incorrect"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-43-4
+    title: "BUG — Méthodologie thèmes — cards trop grandes (5 cols)"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── DESIGN ────────────────────────────────────────────────────────────────
+
+  - story_id: story-42-4
+    title: "DESIGN — Dashboard bento — photos implantations + icônes KPI"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-47-1
+    title: "DESIGN — Sidebar — icônes navigation manquantes"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-47-2
+    title: "DESIGN — Implantation — visuel enrichi (photo + groupes style card)"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── UX ────────────────────────────────────────────────────────────────────
+
+  - story_id: story-44-8
+    title: "UX — Groupe — clic joueur → fiche éditable /children/:id"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-47-3
+    title: "UX — Hub séances unifié (séances + présences + évaluations)"
+    priority: P3
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── FEATURE ───────────────────────────────────────────────────────────────
+
+  - story_id: story-47-4
+    title: "FEATURE — Liaisons joueurs-clubs auto-affiliation par saison"
+    priority: P3
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── PATROL 2026-04-05 — nouvelles findings ────────────────────────────────
+
+  - story_id: story-47-5
+    title: "BUG — Sidebar lien Groupes → 404"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-46-4
+    title: "BUG — Séances — Unexpected text node erreurs React"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-48-1
+    title: "BUG — Page /stages — Erreur 400 + bannière rouge"
+    priority: P1
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  - story_id: story-48-2
+    title: "BUG — Vue SQL v_club_gardien_stats manquante"
+    priority: P2
+    status: pending
+    gate1: pending
+    gate2: pending
+    commit: ""
+
+  # ── LEGACY (preserved from previous morning queue) ────────────────────────
+
+  - story_id: story-45-1
+    title: "Design System — Montserrat + tokens gamification (XP/niveaux/badges)"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "f243df0"
     note: "Prérequis de tout le redesign — passe en premier"
 
   - story_id: story-43-1
     title: "BUG — Supprimer un entraînement pédagogique"
     priority: P1
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "7a0e396"
 
   - story_id: story-42-1
     title: "Dashboard admin — refonte bento visuel"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "198cd96"
 
   - story_id: story-42-2
     title: "Page Présences — redesign visuel compact"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "acd8b70"
 
   - story_id: story-43-2
     title: "Méthodologie — cards entraînements compactes"
     priority: P3
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "0d8c36c"
 
   - story_id: story-43-3
     title: "Modules structurés entraînement Goal & Player"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "6c66b49"
 
   - story_id: story-34-1
     title: "Architecture Programme pédagogique — formulaire intelligent"
     priority: P1
-    status: pending
+    status: blocked
     gate1: pending
     gate2: pending
-    note: "Story existante ready-for-dev — concept Programme à implémenter"
+    note: "Epic 34 = back-button (conflit ID). Besoin création nouveaux fichiers epic 46+"
 
   - story_id: story-34-2
     title: "Navigation Programme — UX bibliothèque"
     priority: P1
-    status: pending
+    status: blocked
     gate1: pending
     gate2: pending
-    note: "Dépend de story-34-1 done"
+    note: "Dépend de story-34-1 (bloquée — même conflit epic)"
 
   # ── Queue /morning 5 avril 2026 — feedback #2 Jeremy ──────────────────────
 
   - story_id: story-44-1
     title: "BUG — Edge Function non-2xx création coach"
     priority: P1
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "b9c6508"
 
   - story_id: story-44-2
     title: "BUG — Filtre saison actuelle retourne 0 joueurs"
     priority: P1
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "84d101e"
 
   - story_id: story-44-3
     title: "UX — Création coach : rôle pré-sélectionné depuis /coaches"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "ef33ce3"
 
   - story_id: story-44-4
     title: "Fiche joueur — parents liés + club actuel cliquable"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "ca845fe"
+    note: "Déjà implémentée — vérification only"
 
   - story_id: story-44-5
     title: "Mini stats joueur dans la fiche groupe"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "a454565"
 
   - story_id: story-44-6
     title: "Implantation enrichie — stats groupes + listing enfants"
     priority: P3
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "3a1409a"
 
 # Stratégie d'exécution
 # Stories existantes → implémentées directement

@@ -628,7 +628,7 @@ export default function DashboardPage() {
           <KpiCard
             label="Anomalies"
             value={criticalCount > 0 ? criticalCount : anomalies.length > 0 ? anomalies.length : '✓'}
-            sub={criticalCount > 0 ? 'critiques' : anomalies.length > 0 ? `dont ${criticalCount} critique` : 'aucune alerte'}
+            sub={criticalCount > 0 ? 'critiques' : anomalies.length > 0 ? 'aucune critique' : 'aucune alerte'}
             accent={criticalCount > 0 ? colors.status.absent : anomalies.length > 0 ? colors.status.attention : colors.status.present}
             size="small"
             icon={criticalCount > 0 ? '🚨' : anomalies.length > 0 ? '⚠️' : '✅'}
@@ -747,14 +747,16 @@ export default function DashboardPage() {
 
       {visibleStats.length === 0 ? (
         <div style={S.emptyState}>
-          <div style={{ fontSize: 36, marginBottom: 14 }}>📊</div>
+          <div style={{ fontSize: 36, marginBottom: 14 }}>{statsError ? '⚠️' : '📊'}</div>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
-            Aucune donnée disponible
+            {statsError ? 'Données indisponibles' : 'Aucune donnée disponible'}
           </div>
           <div style={{ fontSize: 13, color: colors.text.muted, maxWidth: 320, textAlign: 'center', lineHeight: 1.5 }}>
-            {selectedName
-              ? `Aucune séance enregistrée pour ${selectedName} sur cette période.`
-              : 'Ajustez la période de filtrage ou vérifiez que des séances ont été enregistrées.'
+            {statsError
+              ? 'Impossible de charger les statistiques. Vérifiez votre connexion ou contactez le support.'
+              : selectedName
+                ? `Aucune séance enregistrée pour ${selectedName} sur cette période.`
+                : 'Ajustez la période de filtrage ou vérifiez que des séances ont été enregistrées.'
             }
           </div>
         </div>

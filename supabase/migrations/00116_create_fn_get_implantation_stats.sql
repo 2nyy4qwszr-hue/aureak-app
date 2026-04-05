@@ -35,7 +35,7 @@ AS $$
     i.tenant_id                                               AS tenant_id,
     COUNT(DISTINCT s.id)                                      AS sessions_total,
     COUNT(DISTINCT s.id) FILTER (
-      WHERE s.status = 'closed'
+      WHERE s.status IN ('réalisée', 'terminée')
     )                                                         AS sessions_closed,
     -- Taux de présence : présents / total enregistrés
     ROUND(
@@ -75,11 +75,7 @@ AS $$
   LEFT JOIN evaluations ev
     ON ev.session_id = s.id
   WHERE i.deleted_at IS NULL
-    AND i.tenant_id  = (
-      SELECT tenant_id FROM profiles
-      WHERE user_id = auth.uid()
-      LIMIT 1
-    )
+    AND i.tenant_id  = current_tenant_id()
   GROUP BY i.id, i.name, i.tenant_id
   ORDER BY i.name
 $$;
