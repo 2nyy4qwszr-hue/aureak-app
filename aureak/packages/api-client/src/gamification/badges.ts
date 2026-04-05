@@ -78,3 +78,45 @@ export async function listPlayerBadges(
     return { data: [], error: err }
   }
 }
+
+// ── getAchievementDetails — fetch joueur+badge pour un INSERT Realtime (Story 59-9) ──
+
+export type AchievementToastData = {
+  playerName   : string
+  badgeLabel   : string
+  badgeIconUrl : string | null
+}
+
+export async function getAchievementDetails(
+  childId : string,
+  badgeId : string,
+): Promise<{ data: AchievementToastData | null; error: unknown }> {
+  try {
+    const [playerResult, badgeResult] = await Promise.all([
+      supabase.from('profiles').select('display_name').eq('id', childId).single(),
+      supabase.from('badge_definitions').select('label, icon_url').eq('id', badgeId).single(),
+    ])
+
+    if (playerResult.error) {
+      if (process.env.NODE_ENV !== 'production') console.error('[badges] getAchievementDetails player error:', playerResult.error)
+      return { data: null, error: playerResult.error }
+    }
+
+    if (badgeResult.error) {
+      if (process.env.NODE_ENV !== 'production') console.error('[badges] getAchievementDetails badge error:', badgeResult.error)
+      return { data: null, error: badgeResult.error }
+    }
+
+    return {
+      data: {
+        playerName  : playerResult.data?.display_name ?? 'Joueur',
+        badgeLabel  : badgeResult.data?.label         ?? 'Badge',
+        badgeIconUrl: badgeResult.data?.icon_url      ?? null,
+      },
+      error: null,
+    }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[badges] getAchievementDetails exception:', err)
+    return { data: null, error: err }
+  }
+}
