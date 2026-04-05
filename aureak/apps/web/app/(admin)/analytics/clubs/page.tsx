@@ -5,7 +5,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { getImplantationRankings } from '@aureak/api-client'
 import type { ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
-import { BarChart } from '@aureak/ui'
+import { BarChart, SkeletonBase } from '@aureak/ui'
 import type { BarChartItem } from '@aureak/types'
 import { colors, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
 
@@ -114,7 +114,8 @@ export default function ClubsAnalyticsPage() {
         <View style={s.card}>
           <Text style={s.cardTitle}>{currentMetricOpt.label} · {periodLabel}</Text>
           {loading ? (
-            <View style={s.skeleton} />
+            /* Story 62.3 — Skeleton shimmer */
+            <SkeletonBase width="100%" height={300} borderRadius={12} />
           ) : (
             <BarChart
               data={barItems}

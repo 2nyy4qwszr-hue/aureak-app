@@ -5,7 +5,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listImplantations, getAttendanceByGroupMonth } from '@aureak/api-client'
 import type { AttendanceMonthlyData } from '@aureak/types'
-import { LineChart, SERIES_COLORS } from '@aureak/ui'
+import { LineChart, SERIES_COLORS, SkeletonBase } from '@aureak/ui'
 import type { Implantation } from '@aureak/types'
 import { colors, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 
@@ -120,7 +120,8 @@ export default function PresencesAnalyticsPage() {
         {/* Chart */}
         <View style={s.chartCard}>
           {loading ? (
-            <View style={s.skeleton} />
+            /* Story 62.3 — Skeleton shimmer uniforme */
+            <SkeletonBase width="100%" height={300} borderRadius={12} />
           ) : series.length === 0 ? (
             <View style={s.emptyState}>
               <Text style={s.emptyText}>Aucune donnée de présence sur cette période</Text>
