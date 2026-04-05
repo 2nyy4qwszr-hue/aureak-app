@@ -470,6 +470,13 @@ export type Implantation = {
 /** Méthode pédagogique associée à un groupe */
 export type GroupMethod = 'Goal and Player' | 'Technique' | 'Situationnel' | 'Décisionnel'
 
+/**
+ * FormationData — formation tactique persistée en JSON dans groups.formation_data (migration 00121)
+ * Format : { position_key → childId | null }
+ * Positions : GK, LB, DC_L, DC_R, RB, CM_L, CM_R, LW, CAM, RW, ST
+ */
+export type FormationData = Record<string, string | null>
+
 /** Group — groupe d'enfants dans une implantation (nom généré automatiquement) */
 export type Group = {
   id              : string
@@ -485,6 +492,8 @@ export type Group = {
   method          : GroupMethod | null
   /** true = groupe technique auto-créé pour une séance ponctuelle (migration 00061) */
   isTransient     : boolean
+  /** Formation tactique persistée (migration 00121) */
+  formationData   : FormationData | null
   deletedAt       : string | null
   createdAt       : string
 }
@@ -495,6 +504,16 @@ export type GroupMember = {
   childId  : string
   tenantId : string
   joinedAt : string
+}
+
+/**
+ * AvatarMember — données minimales pour afficher un avatar joueur (Story 56-3)
+ * avgScore : note moyenne des évaluations (optionnel — tier calculé côté client)
+ */
+export type AvatarMember = {
+  childId    : string
+  displayName: string
+  avgScore?  : number
 }
 
 // ============================================================

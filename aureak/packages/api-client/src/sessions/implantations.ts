@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import type {
   Implantation, Group, GroupMember, AgeGroup, GroupMethod,
   GroupWithMeta, GroupStaff, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, GroupMemberWithDetails,
+  FormationData, AvatarMember,
 } from '@aureak/types'
 
 // ─── Implantation ─────────────────────────────────────────────────────────────
@@ -155,6 +156,7 @@ function mapGroupRow(row: Record<string, unknown>): Group {
     durationMinutes: (row.duration_minutes as number | null) ?? null,
     method         : (row.method         as GroupMethod | null) ?? null,
     isTransient    : (row.is_transient   as boolean) ?? false,
+    formationData  : (row.formation_data as FormationData | null) ?? null,
     deletedAt      : (row.deleted_at     as string  | null) ?? null,
     createdAt      : row.created_at      as string,
   }
@@ -600,6 +602,163 @@ export async function listAvailableChildren(): Promise<Array<{ id: string; name:
     const r = p as Record<string, unknown>
     return { id: r.id as string, name: r.display_name as string }
   })
+}
+
+// ─── Formation tactique (Story 56-2) ─────────────────────────────────────────
+
+/** Sauvegarde la formation tactique d'un groupe (positions → childIds) */
+export async function updateGroupFormation(
+  groupId      : string,
+  formationData: FormationData,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('groups')
+    .update({ formation_data: formationData })
+    .eq('id', groupId)
+  if (error && process.env.NODE_ENV !== 'production') {
+    console.error('[updateGroupFormation] error:', error)
+  }
+  return { error }
+}
+
+// ─── Groups with members (Story 56-3 — évite N+1 sur la liste groupes) ────────
+
+export type GroupWithMembers = GroupWithMeta & {
+  memberAvatars: AvatarMember[]
+}
+
+/**
+ * Charge tous les groupes + membres + note moyenne évaluation en une passe.
+ * Évite le problème N+1 de la page groupes/index.tsx.
+ */
+export async function listGroupsWithMembers(
+  implantationId?: string
+): Promise<GroupWithMembers[]> {
+  let q = supabase
+    .from('groups')
+    .select('*, implantations(name)')
+    .eq('is_transient', false)
+    .is('deleted_at', null)
+    .order('name', { ascending: true })
+
+  if (implantationId) {
+    q = q.eq('implantation_id', implantationId)
+  }
+
+  const { data: groupsData } = await q
+  if (!groupsData || groupsData.length === 0) return []
+
+  const groupIds = groupsData.map(g => (g as Record<string, unknown>).id as string)
+
+  // Charger membres en une requête
+  const { data: membersData } = await supabase
+    .from('group_members')
+    .select('group_id, child_id')
+    .in('group_id', groupIds)
+
+  if (!membersData || membersData.length === 0) {
+    return groupsData.map(row => {
+      const r = row as Record<string, unknown>
+      return {
+        ...mapGroupRow(r),
+        implantationName: (r.implantations as { name: string } | null)?.name ?? '—',
+        memberCount     : 0,
+        memberAvatars   : [],
+      }
+    })
+  }
+
+  // Charger noms depuis child_directory
+  const childIds = [...new Set(membersData.map(m => (m as Record<string, unknown>).child_id as string))]
+  const { data: childrenData } = await supabase
+    .from('child_directory')
+    .select('id, display_name')
+    .in('id', childIds)
+
+  const childNameMap: Record<string, string> = {}
+  for (const c of childrenData ?? []) {
+    const cr = c as Record<string, unknown>
+    childNameMap[cr.id as string] = cr.display_name as string
+  }
+
+  // Grouper membres par group_id
+  const membersByGroup: Record<string, AvatarMember[]> = {}
+  for (const m of membersData) {
+    const mr      = m as Record<string, unknown>
+    const gid     = mr.group_id as string
+    const cid     = mr.child_id as string
+    if (!membersByGroup[gid]) membersByGroup[gid] = []
+    membersByGroup[gid].push({
+      childId    : cid,
+      displayName: childNameMap[cid] ?? 'Joueur',
+    })
+  }
+
+  // Compteur membres
+  const countMap: Record<string, number> = {}
+  for (const gid of groupIds) {
+    countMap[gid] = membersByGroup[gid]?.length ?? 0
+  }
+
+  return groupsData.map(row => {
+    const r   = row as Record<string, unknown>
+    const gid = r.id as string
+    return {
+      ...mapGroupRow(r),
+      implantationName: (r.implantations as { name: string } | null)?.name ?? '—',
+      memberCount     : countMap[gid] ?? 0,
+      memberAvatars   : membersByGroup[gid] ?? [],
+    }
+  })
+}
+
+// ─── Transfer joueur entre groupes (Story 56-4) ───────────────────────────────
+
+/**
+ * Transfert atomique d'un joueur d'un groupe à un autre.
+ * Opération : DELETE from fromGroupId + INSERT into toGroupId.
+ * En cas d'erreur lors de l'insert, l'état DB peut être incohérent — rollback manuel côté client.
+ */
+export async function transferGroupMember(
+  childId    : string,
+  fromGroupId: string,
+  toGroupId  : string,
+  tenantId   : string,
+): Promise<{ error: unknown }> {
+  // 1. Supprimer du groupe source
+  const { error: deleteError } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_id', fromGroupId)
+    .eq('child_id', childId)
+
+  if (deleteError) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[transferGroupMember] delete error:', deleteError)
+    }
+    return { error: deleteError }
+  }
+
+  // 2. Insérer dans le groupe cible
+  const { error: insertError } = await supabase
+    .from('group_members')
+    .insert({ group_id: toGroupId, child_id: childId, tenant_id: tenantId })
+
+  if (insertError) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[transferGroupMember] insert error (rollback needed):', insertError)
+    }
+    // Rollback : re-insérer dans le groupe source
+    const { error: rollbackError } = await supabase
+      .from('group_members')
+      .insert({ group_id: fromGroupId, child_id: childId, tenant_id: tenantId })
+    if (rollbackError && process.env.NODE_ENV !== 'production') {
+      console.error('[transferGroupMember] rollback error:', rollbackError)
+    }
+    return { error: insertError }
+  }
+
+  return { error: null }
 }
 
 // ─── Sessions by group ────────────────────────────────────────────────────────

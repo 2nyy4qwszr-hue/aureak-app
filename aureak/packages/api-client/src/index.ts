@@ -129,9 +129,17 @@ export {
   listGroupStaff, addGroupStaff, updateGroupStaffRole, removeGroupStaff, listGroupsByCoach,
   listAvailableCoaches, listAvailableChildren,
   listSessionsByGroup,
+  // Story 56-2 — Formation tactique
+  updateGroupFormation,
+  // Story 56-3 — Groupes + membres sans N+1
+  listGroupsWithMembers,
+  // Story 56-4 — Transfert joueur entre groupes
+  transferGroupMember,
 } from './sessions/implantations'
 export type {
   CreateImplantationParams, CreateGroupParams, AddGroupStaffParams, CoachGroupEntry,
+  // Story 56-3
+  GroupWithMembers,
 } from './sessions/implantations'
 export {
   prefillSessionAttendees,

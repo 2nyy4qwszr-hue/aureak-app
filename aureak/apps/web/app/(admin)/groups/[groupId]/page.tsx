@@ -12,6 +12,9 @@ import {
   listSessionsByGroup,
   generateYearSessions, listSchoolCalendarExceptions,
   listAttendanceStatsByGroup,
+  updateGroupFormation,
+  transferGroupMember,
+  listGroupsWithMembers,
 } from '@aureak/api-client'
 import type { AttendanceStat } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
@@ -19,12 +22,15 @@ import {
   generateGroupName, GROUP_METHODS, DAYS_OF_WEEK, GROUP_DURATIONS, METHOD_COLOR,
   buildGroupBaseName,
 } from '@aureak/business-logic'
-import { AureakText, Badge } from '@aureak/ui'
+import { AureakText, Badge, TacticalBoard } from '@aureak/ui'
+import type { FormationData } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type {
   Group, GroupMethod, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, GroupMemberWithDetails, SchoolCalendarException, SessionType,
 } from '@aureak/types'
+// Story 56-2 : import FormationData depuis @aureak/ui (re-export du composant TacticalBoard)
+// FormationData est aussi dans @aureak/types mais importée localement depuis ui pour éviter circularité
 import type { GenerateYearSessionsResult } from '@aureak/api-client'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -53,7 +59,7 @@ const SESSION_STATUS_COLOR: Record<string, string> = {
 
 // ── Tab types ──────────────────────────────────────────────────────────────────
 
-type Tab = 'infos' | 'joueurs' | 'staff' | 'seances'
+type Tab = 'infos' | 'joueurs' | 'staff' | 'seances' | 'formation'
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -548,6 +554,7 @@ function attendanceRateColor(present: number, total: number): string {
 
 function JoueursTab({
   groupId,
+  groupName,
   members,
   membersWithDetails,
   attendanceStats,
@@ -556,6 +563,7 @@ function JoueursTab({
   onRefresh,
 }: {
   groupId           : string
+  groupName         : string
   members           : GroupMemberWithName[]
   membersWithDetails: GroupMemberWithDetails[]
   attendanceStats   : AttendanceStat[]
@@ -569,6 +577,12 @@ function JoueursTab({
   const [selectedId, setSelectedId] = useState('')
   const [saving,     setSaving]     = useState(false)
   const [removing,   setRemoving]   = useState<string | null>(null)
+  // Story 56-4 — Bouton Transférer (alternative mobile)
+  const [transferMember, setTransferMember] = useState<GroupMemberWithName | null>(null)
+  const [allGroups,      setAllGroups]      = useState<Array<{ id: string; name: string }>>([])
+  const [transferTargetId, setTransferTargetId] = useState<string>('')
+  const [loadingGroups,    setLoadingGroups]    = useState(false)
+  const [transferring,     setTransferring]     = useState(false)
 
   const detailsMap = new Map(membersWithDetails.map(m => [m.childId, m]))
   const statsMap   = new Map(attendanceStats.map(s => [s.childId, s]))
@@ -607,7 +621,55 @@ function JoueursTab({
     }
   }
 
+  // Story 56-4 — Transfert mobile : ouvrir sélecteur de groupe cible
+  const handleOpenTransfer = async (member: GroupMemberWithName) => {
+    setTransferMember(member)
+    setTransferTargetId('')
+    setLoadingGroups(true)
+    try {
+      const allG = await listGroupsWithMembers()
+      setAllGroups(
+        allG
+          .filter(g => g.id !== groupId)
+          .map(g => ({ id: g.id, name: g.name }))
+      )
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] handleOpenTransfer error:', err)
+    } finally {
+      setLoadingGroups(false)
+    }
+  }
+
+  const handleConfirmTransfer = async () => {
+    if (!transferMember || !transferTargetId) return
+    setTransferring(true)
+    try {
+      const { error } = await transferGroupMember(
+        transferMember.childId, groupId, transferTargetId, tenantId
+      )
+      if (error && process.env.NODE_ENV !== 'production') {
+        console.error('[groups/detail] handleConfirmTransfer error:', error)
+      }
+      setTransferMember(null)
+      onRefresh()
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] handleConfirmTransfer error:', err)
+    } finally {
+      setTransferring(false)
+    }
+  }
+
+  // Story 56-4 — Drag start : mettre les données dans dataTransfer
+  function handleDragStart(e: React.DragEvent, member: GroupMemberWithName) {
+    e.dataTransfer.setData('childId',      member.childId)
+    e.dataTransfer.setData('displayName',  member.displayName)
+    e.dataTransfer.setData('fromGroupId',  groupId)
+    e.dataTransfer.setData('fromGroupName', groupName)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
   return (
+    <>
     <SectionCard>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
         <View>
@@ -649,7 +711,14 @@ function JoueursTab({
                 idx % 2 === 1 && { backgroundColor: colors.light.muted },
                 pressed && { backgroundColor: colors.light.hover },
               ]}
+              // @ts-ignore — draggable HTML5 (web only, Story 56-4)
+              draggable={true}
+              onDragStart={(e: React.DragEvent) => handleDragStart(e, m)}
             >
+              {/* Drag handle */}
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 12, marginRight: 2, cursor: 'grab' as never }}>
+                ⋮⋮
+              </AureakText>
               <View style={jou.memberAvatar}>
                 <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 12 }}>
                   {m.displayName.charAt(0).toUpperCase()}
@@ -667,6 +736,15 @@ function JoueursTab({
                   </AureakText>
                 </AureakText>
               </View>
+              {/* Bouton Transférer (alternative mobile, AC6 Story 56-4) */}
+              <Pressable
+                style={jou.transferBtn}
+                onPress={(e) => { e.stopPropagation?.(); handleOpenTransfer(m) }}
+              >
+                <AureakText variant="caption" style={{ color: colors.entity.club, fontSize: 10, fontWeight: '700' }}>
+                  ⇄
+                </AureakText>
+              </Pressable>
               <AureakText variant="caption" style={{ fontSize: 16, color: colors.text.secondary, marginRight: 4 }}>›</AureakText>
               <Pressable
                 style={jou.removeBtn}
@@ -727,6 +805,65 @@ function JoueursTab({
         </View>
       )}
     </SectionCard>
+
+    {/* ── Modal Transférer joueur (AC6 Story 56-4 — alternative mobile) ── */}
+    <Modal visible={!!transferMember} transparent animationType="fade">
+      <Pressable
+        style={jou.overlay}
+        onPress={() => { if (!transferring) setTransferMember(null) }}
+      >
+        <Pressable style={jou.modal} onPress={e => e.stopPropagation?.()}>
+          <AureakText variant="h3" style={{ color: colors.text.dark, marginBottom: space.sm, fontSize: 15 }}>
+            Transférer vers un autre groupe
+          </AureakText>
+          {transferMember && (
+            <>
+              <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.sm }}>
+                Joueur : <AureakText variant="caption" style={{ fontWeight: '700', color: colors.text.dark }}>{transferMember.displayName}</AureakText>
+              </AureakText>
+
+              {loadingGroups ? (
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement des groupes…</AureakText>
+              ) : allGroups.length === 0 ? (
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+                  Aucun autre groupe disponible.
+                </AureakText>
+              ) : (
+                <View style={jou.groupList}>
+                  {allGroups.map(g => (
+                    <Pressable
+                      key={g.id}
+                      style={[jou.groupOption, transferTargetId === g.id && jou.groupOptionActive]}
+                      onPress={() => setTransferTargetId(g.id)}
+                    >
+                      <AureakText variant="caption" style={{ color: transferTargetId === g.id ? colors.accent.gold : colors.text.dark, fontSize: 12 }}>
+                        {g.name}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+
+              <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end', marginTop: space.sm }}>
+                <Pressable style={jou.cancelBtn} onPress={() => setTransferMember(null)}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
+                </Pressable>
+                <Pressable
+                  style={[jou.confirmBtn, (!transferTargetId || transferring) && { opacity: 0.4 }]}
+                  onPress={handleConfirmTransfer}
+                  disabled={!transferTargetId || transferring}
+                >
+                  <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                    {transferring ? 'Transfert…' : 'Transférer'}
+                  </AureakText>
+                </Pressable>
+              </View>
+            </>
+          )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+    </>
   )
 }
 
@@ -742,6 +879,14 @@ const jou = StyleSheet.create({
   childOptionActive: { backgroundColor: colors.light.muted },
   cancelBtn    : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center' },
   confirmBtn   : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
+  // Story 56-4 — Bouton Transférer
+  transferBtn  : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.entity.club + '60', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.entity.club + '10' },
+  // Modal transfert mobile
+  overlay      : { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center', padding: space.xl },
+  modal        : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.md, width: '100%', maxWidth: 400 },
+  groupList    : { backgroundColor: colors.light.primary, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, maxHeight: 200, overflow: 'hidden' as never, marginTop: space.xs },
+  groupOption  : { paddingHorizontal: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border.divider + '30' },
+  groupOptionActive: { backgroundColor: colors.light.muted },
 })
 
 // ── Séances tab ───────────────────────────────────────────────────────────────
@@ -1037,6 +1182,8 @@ export default function GroupDetailPage() {
   const [coaches,  setCoaches]  = useState<Array<{ id: string; name: string }>>([])
   const [children, setChildren] = useState<Array<{ id: string; name: string }>>([])
   const [loading,  setLoading]  = useState(true)
+  // Story 56-2 — Formation tactique
+  const [formationSaving, setFormationSaving] = useState(false)
 
   const loadGroup = useCallback(async () => {
     if (!groupId) return
@@ -1102,10 +1249,11 @@ export default function GroupDetailPage() {
   useEffect(() => { loadAll() }, [loadAll])
 
   const TABS: { key: Tab; label: string; count?: number }[] = [
-    { key: 'infos',   label: 'Infos'   },
-    { key: 'joueurs', label: 'Joueurs', count: members.length  },
-    { key: 'staff',   label: 'Staff',   count: staff.length    },
-    { key: 'seances', label: 'Séances', count: sessions.length },
+    { key: 'infos',     label: 'Infos'     },
+    { key: 'joueurs',   label: 'Joueurs',   count: members.length  },
+    { key: 'staff',     label: 'Staff',     count: staff.length    },
+    { key: 'seances',   label: 'Séances',   count: sessions.length },
+    { key: 'formation', label: 'Formation'  },
   ]
 
   if (loading) {
@@ -1221,6 +1369,7 @@ export default function GroupDetailPage() {
       {tab === 'joueurs' && (
         <JoueursTab
           groupId={groupId!}
+          groupName={group.name}
           members={members}
           membersWithDetails={membersWithDetails}
           attendanceStats={attendanceStats}
@@ -1247,6 +1396,26 @@ export default function GroupDetailPage() {
           sessions={sessions}
           onNewSession={() => router.push('/seances' as never)}
           onRefresh={loadSessions}
+        />
+      )}
+
+      {/* ── Formation tactique tab (Story 56-2) ── */}
+      {tab === 'formation' && group && (
+        <TacticalBoard
+          members={members}
+          formationData={group.formationData ?? undefined}
+          saving={formationSaving}
+          onSave={async (data: FormationData) => {
+            setFormationSaving(true)
+            try {
+              await updateGroupFormation(group.id, data)
+              await loadGroup()
+            } catch (err) {
+              if (process.env.NODE_ENV !== 'production') console.error('[groups/detail] handleSaveFormation error:', err)
+            } finally {
+              setFormationSaving(false)
+            }
+          }}
         />
       )}
 
