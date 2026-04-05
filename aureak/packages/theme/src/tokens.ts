@@ -214,8 +214,64 @@ export function resolveLevel(xp: number): keyof typeof gamification.levels {
 }
 
 // =============================================================================
+// Player Cards FUT-style — Tiers visuels (Epic 52 — Story 52-1)
+// Palette spécifique aux cartes joueurs, séparée des tokens globaux
+// =============================================================================
+
+export const playerTiers = {
+  /**
+   * Prospect — joueur en attente ou stagiaire
+   * Fond gris neutre, texte sombre, bordure argent
+   */
+  prospect: {
+    bg        : '#E8E8E8',
+    border    : '#C0C0C0',
+    badgeBg   : '#D4D4D4',
+    badgeText : '#71717A',  // = colors.text.muted
+    overlay   : 'transparent',
+  },
+  /**
+   * Académicien — joueur actif en académie
+   * Fond blanc, texte sombre, accent bleu
+   */
+  academicien: {
+    bg        : '#FFFFFF',  // = colors.light.surface
+    border    : '#E5E7EB',  // = colors.border.light
+    badgeBg   : '#EFF6FF',
+    badgeText : '#3B82F6',
+    overlay   : 'transparent',
+  },
+  /**
+   * Confirmé — ancien joueur (ANCIEN statut)
+   * Fond or clair, bordure dorée, accent gold
+   */
+  confirme: {
+    bg        : '#FFF8E8',
+    border    : 'rgba(193,172,92,0.25)',  // = colors.border.gold
+    badgeBg   : '#FEF3C7',
+    badgeText : '#C1AC5C',               // = colors.accent.gold
+    overlay   : 'transparent',
+  },
+  /**
+   * Elite — tier supérieur (calculé via stats en story 52-2)
+   * Fond sombre or-noir, texte clair, bordure or solid
+   */
+  elite: {
+    bg        : '#2A2006',
+    border    : '#C1AC5C',               // = colors.accent.gold solid
+    badgeBg   : '#C1AC5C',               // = colors.accent.gold
+    badgeText : '#1A1600',               // contraste sur badgeBg gold
+    overlay   : 'rgba(74,58,10,0.3)',    // dégradé simulé top de card
+  },
+  /**
+   * Palette couleurs avatar (initiales) — partagée avec PhotoAvatar
+   */
+  avatarPalette: ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4'] as string[],
+} as const
+
+// =============================================================================
 // Export agrégé
 // =============================================================================
 
-const tokens = { colors, fonts, typography, space, radius, shadows, layout, transitions, methodologyMethodColors, gamification }
+const tokens = { colors, fonts, typography, space, radius, shadows, layout, transitions, methodologyMethodColors, gamification, playerTiers }
 export default tokens

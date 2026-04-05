@@ -498,6 +498,31 @@ next-morning-queue:
     gate2: pending
     commit: ""
 
+  # ── EPIC 52 — Player Cards Ultimate Squad ────────────────────────────────
+
+  - story_id: story-52-1
+    title: "DESIGN — PlayerCard FUT-style 160×220px avec tiers visuels"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-1_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-1_gate2.md"
+    notes:
+      - "PlayerCard.tsx dans @aureak/ui — 4 tiers : Prospect/Académicien/Confirmé/Elite"
+      - "playerTiers tokens ajoutés dans @aureak/theme/tokens.ts + exportés depuis index.ts"
+      - "PLAYER_TIER_LABELS dans @aureak/types/enums.ts (mapping AcademyStatus → PlayerTier)"
+      - "PhotoAvatar interne : photo Supabase + fallback initiales avatarBgColor(id)"
+      - "size='normal' (160×220) / size='compact' (140×193) — props JoueurListItem + tier + onPress"
+      - "AC6 : zéro couleur hardcodée — tout via playerTiers.* et colors.* tokens"
+      - "tsc 0 erreur — Playwright skipped (app non démarrée)"
+    warnings:
+      - "W1: paddingVertical:3 badge non-token (delta 1px vs space.xs=4)"
+      - "W2: borderWidth:1.5 non-token (FUT spec)"
+      - "W6: marginTop:space.md=16px vs spec 20px (token le plus proche)"
+
   # ── PATROL 2026-04-05 — nouvelles findings ────────────────────────────────
 
   - story_id: story-47-5

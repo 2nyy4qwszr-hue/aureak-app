@@ -31,6 +31,9 @@ export { EmptyState } from './components/EmptyState'
 export { ConfirmDialog } from './components/ConfirmDialog'
 export { DetailSkeleton, ListRowSkeleton, CardSkeleton } from './components/Skeleton'
 
+export { PlayerCard, avatarBgColor } from './PlayerCard'
+export type { PlayerCardProps, PlayerTier } from './PlayerCard'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {

@@ -237,3 +237,24 @@ export const CLUB_RELATION_TYPE_LABELS: Record<ClubRelationType, string> = {
   associe   : 'Club associé',
   normal    : 'Club normal',
 }
+
+// ── Epic 52 — Player Cards FUT-style (Story 52-1) ────────────────────────────
+
+/**
+ * PlayerTier — tier visuel FUT-style d'un joueur
+ * 'Elite' est réservé pour story 52-2 (calcul automatique via stats)
+ */
+export type PlayerTier = 'Prospect' | 'Académicien' | 'Confirmé' | 'Elite'
+
+/**
+ * PLAYER_TIER_LABELS — mapping AcademyStatus → PlayerTier
+ * Utilisé pour dériver le tier visuel FUT depuis le statut académie calculé.
+ * Note : 'Elite' non assigné ici — story 52-2 le calculera via les stats.
+ */
+export const PLAYER_TIER_LABELS: Record<string, PlayerTier> = {
+  NOUVEAU_ACADÉMICIEN: 'Prospect',
+  ACADÉMICIEN        : 'Académicien',
+  ANCIEN             : 'Confirmé',
+  STAGE_UNIQUEMENT   : 'Prospect',
+  PROSPECT           : 'Prospect',
+}
