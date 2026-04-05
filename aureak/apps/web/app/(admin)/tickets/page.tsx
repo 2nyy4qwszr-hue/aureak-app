@@ -9,7 +9,7 @@ import { colors, space } from '@aureak/theme'
 
 const STATUS_COLORS: Record<TicketStatus, string> = {
   open       : colors.accent.gold,
-  in_progress: '#3B82F6',
+  in_progress: colors.status.info,
   resolved   : colors.status.present,
   closed     : colors.text.muted,
 }

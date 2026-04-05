@@ -97,7 +97,16 @@ function getInitials(displayName: string, nom?: string | null, prenom?: string |
 }
 
 function avatarBgColor(id: string): string {
-  const COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4']
+  // Palette conforme design system AUREAK — tokens uniquement (or, vert, rouge, ardoise, beige, lilas, teal)
+  const COLORS = [
+    colors.accent.gold,         // or AUREAK  #C1AC5C
+    colors.status.success,      // émeraude   #10B981
+    colors.accent.red,          // rouge CTA  #E05252
+    colors.status.warning,      // ambre      #F59E0B
+    colors.text.muted,          // zinc       #71717A
+    colors.status.injured,      // lilas      #CE93D8
+    colors.status.info,         // bleu ciel  #60A5FA
+  ]
   let hash = 0
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
   return COLORS[Math.abs(hash) % COLORS.length]

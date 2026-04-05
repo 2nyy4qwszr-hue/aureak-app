@@ -132,8 +132,8 @@ const RELATION_BADGE_VARIANTS: Record<Exclude<ClubRelationType, 'normal'>, 'gold
 
 const STATUT_COLORS: Record<string, string> = {
   'Académicien': colors.accent.gold,
-  'Nouveau'    : '#4ade80',
-  'Stagiaire'  : '#60a5fa',
+  'Nouveau'    : colors.entity.stage,
+  'Stagiaire'  : colors.status.info,
   'Ancien'     : colors.text.muted,
 }
 
@@ -274,7 +274,7 @@ const pp = StyleSheet.create({
 function CoachRow({ name, onRemove }: { name: string; onRemove: () => void }) {
   return (
     <View style={pr.row}>
-      <View style={[pr.avatar, { backgroundColor: '#60a5fa' }]}>
+      <View style={[pr.avatar, { backgroundColor: colors.status.info }]}>
         <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 11 }}>
           {name.charAt(0).toUpperCase()}
         </AureakText>
@@ -292,7 +292,7 @@ function CoachRow({ name, onRemove }: { name: string; onRemove: () => void }) {
 function AnnuairePlayerRow({ player }: { player: { id: string; displayName: string; statut: string | null; niveauClub: string | null } }) {
   return (
     <View style={pr.row}>
-      <View style={[pr.avatar, { backgroundColor: '#a78bfa' }]}>
+      <View style={[pr.avatar, { backgroundColor: colors.status.injured }]}>
         <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 11 }}>
           {player.displayName.charAt(0).toUpperCase()}
         </AureakText>
@@ -972,7 +972,7 @@ export default function ClubDetailPage() {
       <Section
         title="Joueurs affiliés au club"
         count={affiliatedPlayers.length}
-        accent="#60a5fa"
+        accent={colors.status.info}
       >
         <View style={s.sectionNote}>
           <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, fontStyle: 'italic' as never }}>
@@ -1003,7 +1003,7 @@ export default function ClubDetailPage() {
             players={allPlayers}
             excludeIds={affiliatedIds}
             onSelect={p => linkPlayer(p, 'affiliated')}
-            accent="#60a5fa"
+            accent={colors.status.info}
           />
         </View>
       </Section>
@@ -1012,7 +1012,7 @@ export default function ClubDetailPage() {
       <Section
         title="Joueurs via annuaire (auto-match)"
         count={annuairePlayersDeduped.length}
-        accent="#a78bfa"
+        accent={colors.status.injured}
       >
         <View style={s.sectionNote}>
           <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, fontStyle: 'italic' as never }}>
@@ -1071,7 +1071,7 @@ export default function ClubDetailPage() {
                   onPress={() => linkCoach(c.id, c.name)}
                 >
                   <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{c.name}</AureakText>
-                  <View style={[pp.addDot, { backgroundColor: '#60a5fa' }]}>
+                  <View style={[pp.addDot, { backgroundColor: colors.status.info }]}>
                     <AureakText variant="caption" style={{ color: colors.text.dark, fontSize: 14, lineHeight: 18 }}>+</AureakText>
                   </View>
                 </Pressable>

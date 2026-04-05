@@ -66,9 +66,9 @@ const BADGE_SEQ: React.CSSProperties = {
 
 const BADGE_META: React.CSSProperties = {
   fontSize: 11, fontWeight: 600,
-  backgroundColor: '#6366f115',
-  color: '#6366f1',
-  border: '1px solid #6366f140',
+  backgroundColor: colors.status.info + '20',
+  color: colors.status.info,
+  border: `1px solid ${colors.status.info}40`,
   borderRadius: 999, padding: '3px 10px',
 }
 

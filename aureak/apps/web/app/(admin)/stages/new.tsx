@@ -216,7 +216,7 @@ export default function NewStagePage() {
 
         {error && (
           <View style={s.errorBox}>
-            <AureakText variant="caption" style={{ color: '#f87171' }}>{error}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
           </View>
         )}
 
@@ -258,7 +258,7 @@ const s = StyleSheet.create({
   chip     : { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
   chipActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
 
-  errorBox: { backgroundColor: '#f8717120', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: '#f87171' },
+  errorBox: { backgroundColor: colors.accent.red + '20', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: colors.accent.red },
 
   saveBtn: {
     backgroundColor: colors.accent.gold,

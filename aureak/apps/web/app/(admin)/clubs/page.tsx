@@ -447,7 +447,6 @@ const styles = StyleSheet.create({
     paddingVertical  : space.xs + 2,
     color            : colors.text.dark,
     fontSize         : 13,
-    fontFamily       : 'System',
   },
   searchBtn  : {
     backgroundColor  : colors.light.muted,

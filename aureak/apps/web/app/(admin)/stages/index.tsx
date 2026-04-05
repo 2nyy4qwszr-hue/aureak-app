@@ -129,7 +129,7 @@ export default function StagesPage() {
 
       {/* Error — affiché seul, sans état vide simultané */}
       {error ? (
-        <View style={{ backgroundColor: '#FEF2F2', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
+        <View style={{ backgroundColor: colors.accent.red + '15', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
           <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
         </View>
       ) : loading ? (
