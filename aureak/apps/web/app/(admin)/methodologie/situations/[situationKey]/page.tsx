@@ -11,12 +11,20 @@ import {
   unlinkSituationFromTheme,
   listThemes,
   updateSituationGradeLevel,
+  getMethodologySituation,
+  updateMethodologySituation,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import type { Situation, SituationCriterion, SituationThemeLink, Theme, CoachGradeLevel } from '@aureak/types'
+import type { Situation, SituationCriterion, SituationThemeLink, Theme, CoachGradeLevel, MethodologySituation, DiagramData } from '@aureak/types'
+import TacticalEditor from '../../_components/TacticalEditor'
+
+// Détecte si le param ressemble à un UUID (MethodologySituation) ou une situationKey (ancien système)
+function isUUID(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) || /^[a-z0-9]{20,}$/i.test(s)
+}
 
 const GRADE_OPTIONS: { value: CoachGradeLevel; label: string }[] = [
   { value: 'bronze',   label: 'Bronze' },
@@ -70,10 +78,22 @@ export default function SituationDetailPage() {
   const [gradeLevel, setGradeLevel] = useState<CoachGradeLevel>('bronze')
   const [gradeSaving, setGradeSaving] = useState(false)
 
+  // Story 58-2 — Schéma tactique pour MethodologySituation
+  const [methodologySituation, setMethodologySituation] = useState<MethodologySituation | null>(null)
+  const [diagramData,          setDiagramData]          = useState<DiagramData | null>(null)
+  const [savingDiagram,        setSavingDiagram]        = useState(false)
+
   const fetchData = async () => {
     if (!situationKey) return
     setLoading(true)
     try {
+      // Story 58-2 — chargement MethodologySituation si param est un UUID
+      if (isUUID(situationKey)) {
+        const ms = await getMethodologySituation(situationKey)
+        setMethodologySituation(ms)
+        setDiagramData(ms?.diagramJson ?? null)
+        return
+      }
       const { data: s } = await getSituationByKey(situationKey)
       setSituation(s)
       if (s) {
@@ -90,6 +110,18 @@ export default function SituationDetailPage() {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveDiagram = async (data: DiagramData) => {
+    if (!methodologySituation) return
+    setSavingDiagram(true)
+    try {
+      const { error } = await updateMethodologySituation(methodologySituation.id, { diagramJson: data })
+      if (error && process.env.NODE_ENV !== 'production')
+        console.error('[SituationPage] saveDiagram error:', error)
+    } finally {
+      setSavingDiagram(false)
     }
   }
 
@@ -150,6 +182,33 @@ export default function SituationDetailPage() {
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
       </View>
+    )
+  }
+
+  // Story 58-2 — Vue MethodologySituation (UUID route)
+  if (methodologySituation) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
+        <AureakText variant="h2">{methodologySituation.title}</AureakText>
+        {methodologySituation.description && (
+          <AureakText variant="body" style={{ color: colors.text.muted }}>{methodologySituation.description}</AureakText>
+        )}
+
+        {/* Section schéma tactique */}
+        <View style={styles.section}>
+          <AureakText variant="label">Schéma tactique</AureakText>
+          <TacticalEditor
+            value={diagramData}
+            onChange={d => setDiagramData(d)}
+          />
+          <AureakButton
+            label={savingDiagram ? 'Enregistrement...' : 'Enregistrer le schéma'}
+            onPress={() => { if (diagramData) handleSaveDiagram(diagramData) }}
+            variant="primary"
+          />
+        </View>
+      </ScrollView>
     )
   }
 

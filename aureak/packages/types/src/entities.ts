@@ -1298,6 +1298,29 @@ export type MethodologyTheme = {
   updatedAt     : string
 }
 
+// ── Story 58-2 — Éditeur terrain schématique SVG ─────────────────────────────
+
+/** Joueur sur le schéma tactique — coordonnées en % du terrain */
+export type DiagramPlayer = {
+  id   : string      // UUID
+  team : 'A' | 'B'
+  x    : number      // 0–100 (% largeur terrain)
+  y    : number      // 0–100 (% hauteur terrain)
+}
+
+/** Flèche de déplacement sur le schéma tactique */
+export type DiagramArrow = {
+  id : string
+  x1 : number; y1: number
+  x2 : number; y2: number
+}
+
+/** Données du schéma tactique — sérialisées dans methodology_situations.diagram_json */
+export type DiagramData = {
+  players : DiagramPlayer[]
+  arrows  : DiagramArrow[]
+}
+
 /** Situation pédagogique — situation de jeu/entraînement concrète (ex: 1c1, centre) */
 export type MethodologySituation = {
   id            : string
@@ -1308,6 +1331,7 @@ export type MethodologySituation = {
   corrections   : string | null
   commonMistakes: string | null
   themeId       : string | null             // lien optionnel vers un thème
+  diagramJson   : DiagramData | null        // Story 58-2 — schéma tactique SVG
   isActive      : boolean
   deletedAt     : string | null
   createdAt     : string

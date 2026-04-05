@@ -5,6 +5,7 @@ import { supabase } from './supabase'
 import type {
   MethodologyTheme, MethodologySituation, MethodologySession,
   MethodologyMethod, MethodologyContextType, MethodologyLevel,
+  DiagramData,
 } from '@aureak/types'
 
 // ── Row mappers ───────────────────────────────────────────────────────────────
@@ -38,6 +39,7 @@ function mapSituation(row: Record<string, unknown>): MethodologySituation {
     corrections   : str(row.corrections),
     commonMistakes: str(row.common_mistakes),
     themeId       : str(row.theme_id),
+    diagramJson   : (row.diagram_json as DiagramData | null) ?? null,   // Story 58-2
     isActive      : row.is_active as boolean,
     deletedAt     : str(row.deleted_at),
     createdAt     : row.created_at as string,
@@ -169,6 +171,7 @@ export type CreateMethodologySituationParams = {
   corrections?   : string | null
   commonMistakes?: string | null
   themeId?       : string | null
+  diagramJson?   : DiagramData | null   // Story 58-2
 }
 
 export async function listMethodologySituations(
@@ -232,6 +235,7 @@ export async function updateMethodologySituation(
   if (patch.corrections    !== undefined) u.corrections     = patch.corrections
   if (patch.commonMistakes !== undefined) u.common_mistakes = patch.commonMistakes
   if (patch.themeId        !== undefined) u.theme_id        = patch.themeId
+  if (patch.diagramJson    !== undefined) u.diagram_json    = patch.diagramJson   // Story 58-2
 
   const { error } = await supabase.from('methodology_situations').update(u).eq('id', id)
   return { error: error ?? null }
