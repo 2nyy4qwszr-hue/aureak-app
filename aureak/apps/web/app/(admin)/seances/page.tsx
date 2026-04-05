@@ -384,11 +384,22 @@ export default function SeancesPage() {
             </AureakText>
           )}
         </View>
-        <Pressable style={st.newBtn} onPress={() => router.push('/seances/new' as never)}>
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            + Nouvelle séance
-          </AureakText>
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: space.xs }}>
+          {/* Story 53-8 — Season Planner */}
+          <Pressable
+            style={[st.newBtn, { backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light }]}
+            onPress={() => router.push('/seances/planner' as never)}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              📅 Planner
+            </AureakText>
+          </Pressable>
+          <Pressable style={st.newBtn} onPress={() => router.push('/seances/new' as never)}>
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              + Nouvelle séance
+            </AureakText>
+          </Pressable>
+        </View>
       </View>
 
       {/* ── Hub tabs : Séances | Présences | Évaluations ── */}
