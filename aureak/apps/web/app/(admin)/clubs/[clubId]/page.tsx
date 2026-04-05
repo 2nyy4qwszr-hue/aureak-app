@@ -8,6 +8,7 @@ import {
   listChildDirectory,
   listAvailableCoaches,
   uploadClubLogo, deleteClubLogo,
+  listChildrenByClubDirectoryId,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge, HierarchyBreadcrumb, ConfirmDialog, ListRowSkeleton } from '@aureak/ui'
@@ -286,6 +287,37 @@ function CoachRow({ name, onRemove }: { name: string; onRemove: () => void }) {
   )
 }
 
+// ── Annuaire player row (read-only — liaison implicite club_directory_id) ─────
+
+function AnnuairePlayerRow({ player }: { player: { id: string; displayName: string; statut: string | null; niveauClub: string | null } }) {
+  return (
+    <View style={pr.row}>
+      <View style={[pr.avatar, { backgroundColor: '#a78bfa' }]}>
+        <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '800', fontSize: 11 }}>
+          {player.displayName.charAt(0).toUpperCase()}
+        </AureakText>
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <AureakText variant="body" style={{ fontSize: 13, fontWeight: '600' }}>
+          {player.displayName}
+        </AureakText>
+        <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          {player.statut && <StatutBadge statut={player.statut} />}
+          {player.niveauClub && (
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
+              {player.niveauClub}
+            </AureakText>
+          )}
+        </View>
+      </View>
+      {/* Read-only — pas de bouton Retirer */}
+      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontStyle: 'italic' as never }}>
+        via annuaire
+      </AureakText>
+    </View>
+  )
+}
+
 // ── EditForm type ────────────────────────────────────────────────────────────
 
 type EditForm = {
@@ -342,6 +374,9 @@ export default function ClubDetailPage() {
   const [allPlayers, setAllPlayers] = useState<PlayerOption[]>([])
   const [allCoaches, setAllCoaches] = useState<{ id: string; name: string }[]>([])
 
+  // Annuaire players (implicit link via club_directory_id)
+  const [annuairePlayers, setAnnuairePlayers] = useState<Array<{ id: string; displayName: string; statut: string | null; niveauClub: string | null }>>([])
+
   // Coach picker search
   const [coachSearch, setCoachSearch] = useState('')
 
@@ -349,6 +384,12 @@ export default function ClubDetailPage() {
   const currentIds    = useMemo(() => new Set(currentPlayers.map(p => p.childId)),    [currentPlayers])
   const affiliatedIds = useMemo(() => new Set(affiliatedPlayers.map(p => p.childId)), [affiliatedPlayers])
   const coachIds      = useMemo(() => new Set(coaches.map(c => c.coachId)),            [coaches])
+
+  // Déduplication : exclure les joueurs déjà liés via les sections explicit (current ou affiliated)
+  const annuairePlayersDeduped = useMemo(() => {
+    const linkedIds = new Set([...currentIds, ...affiliatedIds])
+    return annuairePlayers.filter(p => !linkedIds.has(p.id))
+  }, [annuairePlayers, currentIds, affiliatedIds])
 
   const filteredCoaches = useMemo(() => {
     const q = coachSearch.toLowerCase()
@@ -372,12 +413,13 @@ export default function ClubDetailPage() {
     setLoading(true)
     setLoadingLinks(true)
     try {
-      const [clubRes, linksRes, coachesRes, playersRes, coachListRes] = await Promise.all([
+      const [clubRes, linksRes, coachesRes, playersRes, coachListRes, annuaireRes] = await Promise.all([
         getClubDirectoryEntry(clubId),
         listChildrenOfClub(clubId),           // all links for this club
         listCoachesOfClub(clubId),
         listChildDirectory({ page: 0, pageSize: 500, actif: true }),
         listAvailableCoaches(),
+        listChildrenByClubDirectoryId(clubId), // liaison implicite via club_directory_id
       ])
       if (clubRes.data) {
         setClub(clubRes.data)
@@ -393,6 +435,7 @@ export default function ClubDetailPage() {
         niveauClub : p.niveauClub,
       })))
       setAllCoaches(coachListRes)
+      setAnnuairePlayers(annuaireRes.data)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[clubs/detail] load error:', err)
     } finally {
@@ -965,7 +1008,34 @@ export default function ClubDetailPage() {
         </View>
       </Section>
 
-      {/* ── Section 3 : Coachs liés ── */}
+      {/* ── Section 3 : Joueurs via annuaire (auto-match) ── */}
+      <Section
+        title="Joueurs via annuaire (auto-match)"
+        count={annuairePlayersDeduped.length}
+        accent="#a78bfa"
+      >
+        <View style={s.sectionNote}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11, fontStyle: 'italic' as never }}>
+            Joueurs dont le profil annuaire pointe vers ce club (champ club_directory_id).
+            Ces liens sont créés automatiquement à l'import Notion. Pour les modifier,
+            ouvrir la fiche du joueur.
+          </AureakText>
+        </View>
+
+        {loadingLinks ? (
+          <ListRowSkeleton count={3} />
+        ) : annuairePlayersDeduped.length === 0 ? (
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center', paddingVertical: space.md }}>
+            Aucun joueur lié via l'annuaire.
+          </AureakText>
+        ) : (
+          annuairePlayersDeduped.map(p => (
+            <AnnuairePlayerRow key={p.id} player={p} />
+          ))
+        )}
+      </Section>
+
+      {/* ── Section 4 : Coachs liés ── */}
       <Section title="Coachs liés" count={coaches.length}>
         {loadingLinks ? (
           <ListRowSkeleton count={3} />

@@ -696,6 +696,37 @@ export async function deleteChildHistoryEntry(id: string): Promise<void> {
   if (error) throw error
 }
 
+// ── Joueurs par club (liaison implicite via club_directory_id) ─────────────────
+
+/**
+ * Liste les joueurs de l'annuaire rattachés à un club via club_directory_id.
+ * Résultat : joueurs actifs uniquement (deleted_at IS NULL, actif = true).
+ * Utilisé dans la fiche club pour afficher la liaison implicite (auto-match Notion).
+ */
+export async function listChildrenByClubDirectoryId(
+  clubId: string,
+): Promise<{ data: Array<{ id: string; displayName: string; statut: string | null; niveauClub: string | null }>; error: unknown }> {
+  const { data, error } = await supabase
+    .from('child_directory')
+    .select('id, display_name, statut, niveau_club')
+    .eq('club_directory_id', clubId)
+    .eq('actif', true)
+    .is('deleted_at', null)
+    .order('display_name', { ascending: true })
+
+  if (error) return { data: [], error }
+
+  const rows = (data as Array<{ id: string; display_name: string; statut: string | null; niveau_club: string | null }>)
+    .map(r => ({
+      id         : r.id,
+      displayName: r.display_name,
+      statut     : r.statut,
+      niveauClub : r.niveau_club,
+    }))
+
+  return { data: rows, error: null }
+}
+
 // ── Compteur saison courante ────────────────────────────────────────────────────
 
 /**

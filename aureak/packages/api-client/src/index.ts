@@ -323,6 +323,8 @@ export {
   listChildPhotos, addChildPhoto, setCurrentPhoto, deleteChildPhoto,
   // Story 42.3 — compteur joueurs actifs saison courante
   countActivePlayersCurrentSeason,
+  // Story 49-3 — joueurs via annuaire (liaison implicite club_directory_id)
+  listChildrenByClubDirectoryId,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,
