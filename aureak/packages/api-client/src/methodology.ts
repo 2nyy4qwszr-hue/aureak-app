@@ -464,6 +464,42 @@ export async function listMethodologySessionSituations(
   })
 }
 
+// ── Story 58-4 — Thème de la semaine (rotation cyclique ISO week) ─────────────
+
+/**
+ * Calcule le numéro de semaine ISO pour une date donnée.
+ * Semaine 1 = semaine contenant le premier jeudi de l'année.
+ */
+function getISOWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+}
+
+/**
+ * Retourne le thème pédagogique recommandé pour la semaine ISO courante.
+ * Rotation cyclique sur la liste des thèmes actifs triés par titre.
+ */
+export async function getThemeOfWeek(): Promise<{
+  data      : MethodologyTheme | null
+  weekNumber: number
+  error     : unknown
+}> {
+  try {
+    const themes = await listMethodologyThemes({ activeOnly: true })
+    if (!themes || themes.length === 0) return { data: null, weekNumber: 0, error: null }
+    const weekNumber = getISOWeekNumber(new Date())
+    const themeIndex = (weekNumber - 1) % themes.length
+    return { data: themes[themeIndex], weekNumber, error: null }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[getThemeOfWeek] error:', err)
+    return { data: null, weekNumber: 0, error: err }
+  }
+}
+
 // ── Story 58-3 — Drag situation vers séance pédagogique ───────────────────────
 
 /**

@@ -446,6 +446,7 @@ export {
   linkMethodologySessionTheme, unlinkMethodologySessionTheme, listMethodologySessionThemes,
   linkMethodologySessionSituation, unlinkMethodologySessionSituation, listMethodologySessionSituations,
   addSituationToSession,
+  getThemeOfWeek,
 } from './methodology'
 export type {
   CreateMethodologyThemeParams,
