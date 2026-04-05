@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, Image, Platform } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSituationByKey,
@@ -17,9 +17,10 @@ import {
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakButton, Input } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Situation, SituationCriterion, SituationThemeLink, Theme, CoachGradeLevel, MethodologySituation, DiagramData } from '@aureak/types'
 import TacticalEditor from '../../_components/TacticalEditor'
+import { generateQRCode } from '../../_components/qr-utils'
 
 // Détecte si le param ressemble à un UUID (MethodologySituation) ou une situationKey (ancien système)
 function isUUID(s: string): boolean {
@@ -60,6 +61,26 @@ const styles = StyleSheet.create({
   },
   themeChipLinked: { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
   chipsRow: { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' },
+  // Story 58-5 — Modal QR code
+  modalBackdrop: {
+    position: 'absolute' as never,
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  qrModal: {
+    backgroundColor: colors.light.surface,
+    borderRadius: radius.cardLg,
+    padding: space.xl,
+    alignItems: 'center',
+    gap: space.sm,
+    ...(Platform.OS === 'web' ? { boxShadow: shadows.lg } as never : {}),
+    maxWidth: 340,
+    width: '90%' as never,
+  },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 })
 
 export default function SituationDetailPage() {
@@ -82,6 +103,29 @@ export default function SituationDetailPage() {
   const [methodologySituation, setMethodologySituation] = useState<MethodologySituation | null>(null)
   const [diagramData,          setDiagramData]          = useState<DiagramData | null>(null)
   const [savingDiagram,        setSavingDiagram]        = useState(false)
+
+  // Story 58-5 — QR code
+  const [qrDataUrl,    setQrDataUrl]    = useState<string | null>(null)
+  const [generatingQR, setGeneratingQR] = useState(false)
+  const [showQRModal,  setShowQRModal]  = useState(false)
+
+  const handleGenerateQR = async () => {
+    const appUrl = process.env.EXPO_PUBLIC_APP_URL ?? 'https://app.aureak.be'
+    const url    = `${appUrl}/methodologie/situations/${situationKey}`
+    if (process.env.NODE_ENV !== 'production')
+      console.log('[SituationPage] QR code URL:', url)
+    setGeneratingQR(true)
+    try {
+      const dataUrl = await generateQRCode(url)
+      setQrDataUrl(dataUrl)
+      setShowQRModal(true)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production')
+        console.error('[SituationPage] QR generation error:', err)
+    } finally {
+      setGeneratingQR(false)
+    }
+  }
 
   const fetchData = async () => {
     if (!situationKey) return
@@ -187,28 +231,77 @@ export default function SituationDetailPage() {
 
   // Story 58-2 — Vue MethodologySituation (UUID route)
   if (methodologySituation) {
+    const qrUrl = `${process.env.EXPO_PUBLIC_APP_URL ?? 'https://app.aureak.be'}/methodologie/situations/${situationKey}`
     return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
-        <AureakText variant="h2">{methodologySituation.title}</AureakText>
-        {methodologySituation.description && (
-          <AureakText variant="body" style={{ color: colors.text.muted }}>{methodologySituation.description}</AureakText>
-        )}
+      <View style={{ flex: 1 }}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+          {/* Barre d'actions */}
+          <View style={styles.actionRow}>
+            <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
+            {/* Story 58-5 — Bouton QR code (web only) */}
+            {Platform.OS === 'web' && (
+              <AureakButton
+                variant="ghost"
+                label={generatingQR ? 'Génération...' : 'QR code'}
+                onPress={handleGenerateQR}
+                disabled={generatingQR}
+              />
+            )}
+          </View>
 
-        {/* Section schéma tactique */}
-        <View style={styles.section}>
-          <AureakText variant="label">Schéma tactique</AureakText>
-          <TacticalEditor
-            value={diagramData}
-            onChange={d => setDiagramData(d)}
-          />
-          <AureakButton
-            label={savingDiagram ? 'Enregistrement...' : 'Enregistrer le schéma'}
-            onPress={() => { if (diagramData) handleSaveDiagram(diagramData) }}
-            variant="primary"
-          />
-        </View>
-      </ScrollView>
+          <AureakText variant="h2">{methodologySituation.title}</AureakText>
+          {methodologySituation.description && (
+            <AureakText variant="body" style={{ color: colors.text.muted }}>{methodologySituation.description}</AureakText>
+          )}
+
+          {/* Section schéma tactique */}
+          <View style={styles.section}>
+            <AureakText variant="label">Schéma tactique</AureakText>
+            <TacticalEditor
+              value={diagramData}
+              onChange={d => setDiagramData(d)}
+            />
+            <AureakButton
+              label={savingDiagram ? 'Enregistrement...' : 'Enregistrer le schéma'}
+              onPress={() => { if (diagramData) handleSaveDiagram(diagramData) }}
+              variant="primary"
+            />
+          </View>
+        </ScrollView>
+
+        {/* Story 58-5 — Modal QR code */}
+        {showQRModal && qrDataUrl && (
+          <View style={styles.modalBackdrop}>
+            <View style={styles.qrModal}>
+              <AureakText variant="h3" style={{ fontWeight: '700', color: colors.text.dark, textAlign: 'center' }}>
+                Scanner pour ouvrir l'exercice
+              </AureakText>
+              <Image source={{ uri: qrDataUrl }} style={{ width: 200, height: 200, alignSelf: 'center' }} />
+              <AureakText
+                variant="caption"
+                style={{ color: colors.text.muted, marginTop: space.xs, textAlign: 'center' }}
+                numberOfLines={2}
+              >
+                {qrUrl}
+              </AureakText>
+              <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm, justifyContent: 'center' }}>
+                {Platform.OS === 'web' && (
+                  <AureakButton
+                    variant="ghost"
+                    label="Imprimer"
+                    onPress={() => { if (typeof window !== 'undefined') window.print() }}
+                  />
+                )}
+                <AureakButton
+                  variant="primary"
+                  label="Fermer"
+                  onPress={() => setShowQRModal(false)}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
     )
   }
 
