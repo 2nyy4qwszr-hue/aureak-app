@@ -29,6 +29,24 @@ import YearView  from './_components/YearView'
 
 type PeriodType = 'day' | 'week' | 'month' | 'year'
 
+// Story 53-9 — Présets filtres enregistrables
+type SeancePreset = {
+  id        : string
+  label     : string
+  period    : PeriodType
+  implantId : string
+  groupId   : string
+  status    : string
+  isDefault : boolean
+}
+
+const DEFAULT_PRESETS: SeancePreset[] = [
+  { id: '__this_week__', label: 'Cette semaine', period: 'week', implantId: '', groupId: '', status: '', isDefault: true },
+  { id: '__planifiees__', label: 'Planifiées', period: 'month', implantId: '', groupId: '', status: 'planifiée', isDefault: true },
+]
+
+const PRESETS_STORAGE_KEY = 'aureak_seances_presets'
+
 const PERIOD_OPTIONS: { key: PeriodType; label: string }[] = [
   { key: 'day',   label: 'Jour'    },
   { key: 'week',  label: 'Semaine' },
@@ -269,6 +287,12 @@ export default function SeancesPage() {
   const [toast,        setToast]        = useState<string | null>(null)
   const [genGroup,     setGenGroup]     = useState<GroupRef | null>(null)
 
+  // Story 53-9 — Présets filtres
+  const [presets,          setPresets]          = useState<SeancePreset[]>([])
+  const [showPresetSave,   setShowPresetSave]   = useState(false)
+  const [presetNameInput,  setPresetNameInput]  = useState('')
+  const [presetNameError,  setPresetNameError]  = useState<string | null>(null)
+
   // ── Bootstrap ────────────────────────────────────────────────────────────────
   useEffect(() => {
     listImplantations().then(({ data }) => setImplantations(data ?? []))
@@ -280,7 +304,27 @@ export default function SeancesPage() {
         tenantId      : g.tenantId,
       })))
     )
+    // Story 53-9 — Charger présets depuis localStorage
+    try {
+      const stored = localStorage.getItem(PRESETS_STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as SeancePreset[]
+        setPresets(parsed.filter(p => !p.isDefault))
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances/page] presets load error:', err)
+    }
   }, [])
+
+  // Story 53-9 — Sauvegarder présets utilisateurs dans localStorage
+  useEffect(() => {
+    try {
+      const userPresets = presets.filter(p => !p.isDefault)
+      localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(userPresets))
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances/page] presets save error:', err)
+    }
+  }, [presets])
 
   // ── Groups for filter cascade ────────────────────────────────────────────────
   const filterGroups = useMemo(
@@ -341,6 +385,50 @@ export default function SeancesPage() {
     () => filterStatus ? sessions.filter(s => s.status === filterStatus) : sessions,
     [sessions, filterStatus]
   )
+
+  // Story 53-9 — Détection préset actif
+  const allPresets = useMemo(() => [...DEFAULT_PRESETS, ...presets], [presets])
+  const activePresetId = useMemo(() => {
+    const match = allPresets.find(p =>
+      p.period    === period          &&
+      p.implantId === filterImplantId &&
+      p.groupId   === filterGroupId   &&
+      p.status    === filterStatus
+    )
+    return match?.id ?? null
+  }, [allPresets, period, filterImplantId, filterGroupId, filterStatus])
+
+  const applyPreset = (preset: SeancePreset) => {
+    setPeriod(preset.period)
+    setFilterImplantId(preset.implantId)
+    setFilterGroupId(preset.groupId)
+    setFilterStatus(preset.status)
+    if (preset.period === 'week') setRefDate(new Date())
+  }
+
+  const handleSavePreset = () => {
+    if (!presetNameInput.trim()) {
+      setPresetNameError('Le nom est requis')
+      return
+    }
+    const newPreset: SeancePreset = {
+      id       : Date.now().toString(),
+      label    : presetNameInput.trim(),
+      period   : period,
+      implantId: filterImplantId,
+      groupId  : filterGroupId,
+      status   : filterStatus,
+      isDefault: false,
+    }
+    setPresets(prev => [...prev, newPreset])
+    setPresetNameInput('')
+    setPresetNameError(null)
+    setShowPresetSave(false)
+  }
+
+  const handleDeletePreset = (id: string) => {
+    setPresets(prev => prev.filter(p => p.id !== id))
+  }
 
   // ── Nav helpers ──────────────────────────────────────────────────────────────
   const goPrev      = () => setRefDate(d => navigatePeriod(d, period, -1))
@@ -442,6 +530,77 @@ export default function SeancesPage() {
             </Pressable>
           )
         })}
+      </View>
+
+      {/* ── Story 53-9 — Section Présets ── */}
+      <View style={st.presetsSection}>
+        <View style={st.presetsRow}>
+          {allPresets.map(preset => {
+            const isActive = preset.id === activePresetId
+            return (
+              <View key={preset.id} style={[st.presetPill, isActive && st.presetPillActive]}>
+                <Pressable onPress={() => applyPreset(preset)}>
+                  <AureakText style={[st.presetPillText, isActive && st.presetPillTextActive] as never}
+                    numberOfLines={1}
+                  >
+                    {preset.label}
+                  </AureakText>
+                </Pressable>
+                {!preset.isDefault && (
+                  <Pressable onPress={() => handleDeletePreset(preset.id)} style={st.presetDeleteBtn}>
+                    <AureakText style={st.presetDeleteText}>✕</AureakText>
+                  </Pressable>
+                )}
+              </View>
+            )
+          })}
+          <Pressable
+            style={st.presetSaveBtn}
+            onPress={() => { setPresetNameInput(''); setPresetNameError(null); setShowPresetSave(true) }}
+          >
+            <AureakText style={st.presetSaveBtnText}>+ Sauvegarder</AureakText>
+          </Pressable>
+        </View>
+
+        {/* Modal sauvegarde préset */}
+        <Modal visible={showPresetSave} transparent animationType="fade">
+          <View style={st.presetOverlay}>
+            <View style={st.presetModal}>
+              <AureakText variant="body" style={{ fontWeight: '700', marginBottom: space.sm }}>
+                Nommer ce préset
+              </AureakText>
+              <TextInput
+                style={st.presetInput}
+                value={presetNameInput}
+                onChangeText={t => { setPresetNameInput(t); setPresetNameError(null) }}
+                placeholder="Ex: U12 cette semaine…"
+                placeholderTextColor={colors.text.muted}
+                autoFocus
+              />
+              {presetNameError && (
+                <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: 4 }}>
+                  {presetNameError}
+                </AureakText>
+              )}
+              <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
+                <Pressable
+                  style={[st.presetModalBtn, st.presetModalBtnPrimary]}
+                  onPress={handleSavePreset}
+                >
+                  <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                    Sauvegarder
+                  </AureakText>
+                </Pressable>
+                <Pressable
+                  style={st.presetModalBtn}
+                  onPress={() => setShowPresetSave(false)}
+                >
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
 
       {/* ── Filters ── */}
@@ -666,4 +825,30 @@ const st = StyleSheet.create({
   hubTabsRow  : { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: colors.border.divider, marginBottom: space.xs },
   hubTab      : { paddingHorizontal: space.md, paddingVertical: space.sm, marginBottom: -2 },
   hubTabActive: { borderBottomWidth: 2, borderBottomColor: colors.accent.gold },
+
+  // Story 53-9 — Présets
+  presetsSection  : { gap: space.xs },
+  presetsRow      : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, alignItems: 'center' },
+  presetPill      : {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: space.sm, paddingVertical: 4,
+    borderRadius: 20, borderWidth: 1, borderColor: colors.border.light,
+    backgroundColor: colors.light.surface, gap: 4, maxWidth: 180,
+  },
+  presetPillActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '20' },
+  presetPillText  : { fontSize: 11, color: colors.text.muted, flexShrink: 1 },
+  presetPillTextActive: { color: colors.text.dark, fontWeight: '700' as never },
+  presetDeleteBtn : { padding: 2 },
+  presetDeleteText: { fontSize: 9, color: colors.text.muted },
+  presetSaveBtn   : {
+    paddingHorizontal: space.sm, paddingVertical: 4,
+    borderRadius: 20, borderWidth: 1, borderColor: colors.border.light,
+    backgroundColor: colors.light.surface,
+  },
+  presetSaveBtnText: { fontSize: 11, color: colors.accent.gold, fontWeight: '600' as never },
+  presetOverlay   : { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: space.xl },
+  presetModal     : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.lg, width: '100%', maxWidth: 360 },
+  presetInput     : { borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs, padding: space.sm, color: colors.text.dark, backgroundColor: colors.light.primary },
+  presetModalBtn  : { flex: 1, paddingVertical: space.sm, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center' },
+  presetModalBtnPrimary: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 })
