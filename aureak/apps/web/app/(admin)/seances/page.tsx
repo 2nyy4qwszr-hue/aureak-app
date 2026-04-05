@@ -12,7 +12,11 @@ import {
   listSchoolCalendarExceptions,
   listSessionsAdminView,
   batchResolveCoachNames,
+  listAttendancesBySession,
+  listChildDirectory,
 } from '@aureak/api-client'
+import { buildPresenceReportHTML, printReport } from './_utils/generatePresenceReport'
+import type { PresenceReportData } from './_utils/generatePresenceReport'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
@@ -292,6 +296,8 @@ export default function SeancesPage() {
   const [showPresetSave,   setShowPresetSave]   = useState(false)
   const [presetNameInput,  setPresetNameInput]  = useState('')
   const [presetNameError,  setPresetNameError]  = useState<string | null>(null)
+  // Story 54-8 — Export PDF hebdomadaire
+  const [exportLoading,    setExportLoading]    = useState(false)
 
   // ── Bootstrap ────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -430,6 +436,54 @@ export default function SeancesPage() {
     setPresets(prev => prev.filter(p => p.id !== id))
   }
 
+  // Story 54-8 — Export PDF présences hebdomadaires
+  const handleExportPDF = async () => {
+    if (exportLoading || filteredSessions.length === 0) return
+    setExportLoading(true)
+    try {
+      // 1. Pour chaque séance, charger les présences
+      const attendanceResults = await Promise.all(
+        filteredSessions.map(s => listAttendancesBySession(s.id))
+      )
+
+      // 2. Collecter tous les child_ids uniques
+      const allChildIds = [...new Set(
+        attendanceResults.flatMap(r => (r.data ?? []).map(a => a.childId))
+      )]
+
+      // 3. Résoudre les noms depuis child_directory (batch)
+      const childNameMap: Record<string, string> = {}
+      if (allChildIds.length > 0) {
+        const { data: dirEntries } = await listChildDirectory({ pageSize: allChildIds.length + 10 })
+        dirEntries.forEach(e => { childNameMap[e.id] = e.displayName })
+      }
+
+      // 4. Construire les PresenceReportData
+      const reportData: PresenceReportData[] = filteredSessions.map((s, i) => {
+        const atts  = attendanceResults[i]?.data ?? []
+        const grpId = s.groupId ?? ''
+        const grpName = groupMap.get(grpId) ?? ''
+        return {
+          session    : s,
+          groupName  : grpName,
+          attendances: atts.map(a => ({
+            name  : childNameMap[a.childId] ?? a.childId.slice(0, 8) + '…',
+            status: a.status,
+          })),
+        }
+      })
+
+      // 5. Générer + imprimer
+      const html = buildPresenceReportHTML(range.label, reportData)
+      printReport(html)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances/page] handleExportPDF error:', err)
+      showToast('Erreur lors du chargement du rapport')
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   // ── Nav helpers ──────────────────────────────────────────────────────────────
   const goPrev      = () => setRefDate(d => navigatePeriod(d, period, -1))
   const goNext      = () => setRefDate(d => navigatePeriod(d, period,  1))
@@ -473,6 +527,23 @@ export default function SeancesPage() {
           )}
         </View>
         <View style={{ flexDirection: 'row', gap: space.xs }}>
+          {/* Story 54-8 — Export PDF (visible uniquement en vue Semaine) */}
+          {period === 'week' && (
+            <Pressable
+              style={[st.newBtn, {
+                backgroundColor: colors.light.surface,
+                borderWidth: 1,
+                borderColor: colors.border.light,
+                opacity: (exportLoading || filteredSessions.length === 0) ? 0.5 : 1,
+              }]}
+              onPress={handleExportPDF}
+              disabled={exportLoading || filteredSessions.length === 0}
+            >
+              <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                {exportLoading ? 'Chargement…' : '⬇ Exporter PDF'}
+              </AureakText>
+            </Pressable>
+          )}
           {/* Story 53-8 — Season Planner */}
           <Pressable
             style={[st.newBtn, { backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light }]}
