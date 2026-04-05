@@ -91,6 +91,10 @@ export type { PlayerAvatarGridProps, AvatarMember } from './PlayerAvatarGrid'
 export { TacticalBoard } from './TacticalBoard'
 export type { TacticalBoardProps, FormationData } from './TacticalBoard'
 
+// Story 58-1 — Card situation pédagogique style Hearthstone
+export { SituationCard } from './SituationCard'
+export type { SituationCardProps } from './SituationCard'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
