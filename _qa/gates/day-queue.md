@@ -5,6 +5,24 @@ status: in-progress
 
 next-morning-queue:
 
+  # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
+
+  - story_id: story-50-1
+    title: "DESIGN — Dashboard Hero Band salle de commandement"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-1_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-1_gate2.md"
+    warnings:
+      - "W1: TERRAIN_GRADIENT hex hardcodés #1a472a/#2d6a4f (pré-existant story-49-5)"
+      - "W2: rgba() hardcodés DeltaPill/NextSessionTile (pré-existant story-49-5 W3)"
+      - "W3: rgba(255,255,255,0.75/0.6) KpiCard implantations (pré-existant story-49-5 W3)"
+      - "W4: paddingLeft/Right/marginBottom HeroBand numériques — devrait utiliser space.xl/lg (mineur)"
+
   # ── EPIC 49 — Feedback #3 Jeremy (créées 2026-04-05) ─────────────────────
 
   - story_id: story-49-8
