@@ -7,6 +7,22 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-7
+    title: "FEATURE — Dashboard anomalies inline compactes"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-7_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-7_gate2.md"
+    notes:
+      - "AnomalyPill + AnomalyModal + Toast — 3 composants inline dans dashboard/page.tsx"
+      - "handleResolve optimiste : filter local + setSelectedAnomaly(null) + toast — plus de reload"
+      - "Escape cleanup useEffect — try/finally setResolving dans AnomalyModal"
+      - "Empty state fond vert — résumé critique/warning/info — tsc 0 erreur"
+
   - story_id: story-50-6
     title: "FEATURE — Dashboard Forme du moment tile"
     priority: P2

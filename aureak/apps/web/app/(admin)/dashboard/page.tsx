@@ -969,6 +969,175 @@ function StreakTile({ players, loading }: { players: StreakPlayer[]; loading: bo
   )
 }
 
+// ── Anomaly Pills & Modal (Story 50-7) ───────────────────────────────────────
+
+function AnomalyPill({ anomaly, onClick }: { anomaly: AnomalyEvent; onClick: () => void }) {
+  const color  = SEV_COLOR[anomaly.severity] ?? colors.status.info
+  const bgAlpha = anomaly.severity === 'critical' ? 'rgba(244,67,54,0.10)'
+                : anomaly.severity === 'warning'  ? 'rgba(255,193,7,0.10)'
+                :                                   'rgba(193,172,92,0.10)'
+
+  return (
+    <button
+      onClick={onClick}
+      className="aureak-anomaly-pill"
+      style={{
+        display        : 'inline-flex',
+        alignItems     : 'center',
+        gap            : 6,
+        backgroundColor: bgAlpha,
+        border         : `1px solid ${color}`,
+        borderRadius   : radius.badge,
+        paddingLeft    : 12,
+        paddingRight   : 12,
+        paddingTop     : 6,
+        paddingBottom  : 6,
+        cursor         : 'pointer',
+        fontSize       : 12,
+        fontWeight     : 600,
+        color          : color,
+        transition     : 'opacity 0.15s ease',
+        fontFamily     : 'Geist, sans-serif',
+      } as React.CSSProperties}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
+      {anomalyLabel(anomaly.anomalyType)}
+      {anomaly.metadata?.entity_name && (
+        <span style={{ opacity: 0.7, fontSize: 11 }}>· {String(anomaly.metadata.entity_name)}</span>
+      )}
+    </button>
+  )
+}
+
+function AnomalyModal({
+  anomaly,
+  onClose,
+  onResolve,
+}: {
+  anomaly   : AnomalyEvent | null
+  onClose   : () => void
+  onResolve : (id: string) => Promise<void>
+}) {
+  const [resolving, setResolving] = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!anomaly) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [anomaly, onClose])
+
+  if (!anomaly) return null
+
+  const handleResolveInModal = async () => {
+    setResolving(true)
+    setError(null)
+    try {
+      await onResolve(anomaly.id)
+    } catch (err) {
+      setError('Erreur lors de la résolution')
+      if (process.env.NODE_ENV !== 'production') console.error('[AnomalyModal] resolve error:', err)
+    } finally {
+      setResolving(false)
+    }
+  }
+
+  const sevColor = SEV_COLOR[anomaly.severity] ?? colors.status.info
+  const description = anomaly.metadata?.description ? String(anomaly.metadata.description) : null
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, backgroundColor: colors.overlay.dark, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' } as React.CSSProperties}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{
+        backgroundColor: colors.light.surface,
+        borderRadius   : radius.card,
+        padding        : 28,
+        width          : 440,
+        maxWidth       : 'calc(100vw - 32px)',
+        boxShadow      : shadows.lg,
+        fontFamily     : 'Geist, sans-serif',
+      }}>
+        {/* Title row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <span style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: sevColor, flexShrink: 0 }} />
+          <div style={{ flex: 1, fontSize: 16, fontWeight: 700, color: colors.text.dark, fontFamily: 'Montserrat, sans-serif' }}>
+            {anomalyLabel(anomaly.anomalyType)}
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 600, color: sevColor, backgroundColor: `${sevColor}1A`, borderRadius: radius.badge, padding: '3px 8px' }}>
+            {SEV_LABEL[anomaly.severity] ?? anomaly.severity}
+          </span>
+        </div>
+
+        {/* Entity */}
+        {anomaly.resourceId && (
+          <div style={{ fontSize: 12, color: colors.text.muted, marginBottom: 8 }}>
+            Ressource : <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11 }}>{anomaly.resourceType} / {anomaly.resourceId}</span>
+          </div>
+        )}
+
+        {/* Description from metadata */}
+        {description && (
+          <div style={{ fontSize: 14, color: colors.text.muted, marginBottom: 16, lineHeight: 1.6 }}>
+            {description}
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div style={{ fontSize: 12, color: colors.status.absent, marginBottom: 12 }}>{error}</div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button
+            onClick={onClose}
+            style={{ padding: '8px 16px', borderRadius: radius.button, border: `1px solid ${colors.border.light}`, background: 'transparent', cursor: 'pointer', fontSize: 13, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}
+          >
+            Fermer
+          </button>
+          <button
+            onClick={handleResolveInModal}
+            disabled={resolving}
+            style={{ padding: '8px 16px', borderRadius: radius.button, border: 'none', background: colors.status.success, cursor: resolving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: '#FFFFFF', opacity: resolving ? 0.6 : 1, fontFamily: 'Geist, sans-serif' }}
+          >
+            {resolving ? 'Résolution…' : 'Marquer résolu ✓'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 2000)
+    return () => clearTimeout(t)
+  }, [onDismiss])
+
+  return (
+    <div style={{
+      position       : 'fixed',
+      bottom         : 24,
+      right          : 24,
+      backgroundColor: colors.status.success,
+      color          : '#FFFFFF',
+      borderRadius   : radius.button,
+      padding        : '10px 18px',
+      fontSize       : 13,
+      fontWeight     : 600,
+      boxShadow      : shadows.md,
+      zIndex         : 2000,
+      animation      : 'feed-slide-in 0.2s ease',
+      fontFamily     : 'Geist, sans-serif',
+    } as React.CSSProperties}>
+      {message}
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
@@ -983,11 +1152,12 @@ export default function DashboardPage() {
   const router = useRouter()
 
   // ── Stats & anomalies ──
-  const [stats,         setStats]         = useState<ImplantationStats[]>([])
-  const [anomalies,     setAnomalies]     = useState<AnomalyEvent[]>([])
-  const [loading,       setLoading]       = useState(true)
-  const [resolving,     setResolving]     = useState<string | null>(null)
-  const [statsError,    setStatsError]    = useState(false)
+  const [stats,            setStats]            = useState<ImplantationStats[]>([])
+  const [anomalies,        setAnomalies]        = useState<AnomalyEvent[]>([])
+  const [loading,          setLoading]          = useState(true)
+  const [statsError,       setStatsError]       = useState(false)
+  const [selectedAnomaly,  setSelectedAnomaly]  = useState<AnomalyEvent | null>(null)
+  const [toastMessage,     setToastMessage]     = useState<string | null>(null)
 
   // ── Implantation selector ──
   const [implantations,          setImplantations]          = useState<{ id: string; name: string }[]>([])
@@ -1215,15 +1385,11 @@ export default function DashboardPage() {
   }, [])
 
   const handleResolve = async (id: string) => {
-    setResolving(id)
-    try {
-      await resolveAnomaly(id)
-      await load()
-    } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('[dashboard] handleResolve error:', err)
-    } finally {
-      setResolving(null)
-    }
+    // throws si erreur — laisse AnomalyModal gérer le try/finally
+    await resolveAnomaly(id)
+    setAnomalies(prev => prev.filter(a => a.id !== id))
+    setSelectedAnomaly(null)
+    setToastMessage('Anomalie résolue ✓')
   }
 
   if (loading) return <DashboardSkeleton />
@@ -1247,7 +1413,9 @@ export default function DashboardPage() {
     ? Math.round(visibleStats.reduce((s, i) => s + (i.mastery_rate_pct ?? 0), 0) / visibleStats.length)
     : null
 
-  const criticalCount = anomalies.filter(a => a.severity === 'critical').length
+  const criticalCount   = anomalies.filter(a => a.severity === 'critical').length
+  const warningCount    = anomalies.filter(a => a.severity === 'warning').length
+  const infoCount       = anomalies.filter(a => a.severity === 'info').length
   const sortedAnomalies = [...anomalies].sort(
     (a, b) => (SEV_ORDER[a.severity] ?? 3) - (SEV_ORDER[b.severity] ?? 3)
   )
@@ -1275,6 +1443,7 @@ export default function DashboardPage() {
       <style>{`
         .aureak-resolve-btn:hover { opacity: 0.85; }
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
+        .aureak-anomaly-pill:hover { opacity: 0.8; }
         .aureak-card:hover { box-shadow: ${shadows.md}; transform: translateY(-2px); }
         .aureak-qa-btn:hover { transform: translateY(-1px); box-shadow: ${shadows.sm}; }
 
@@ -1560,88 +1729,69 @@ export default function DashboardPage() {
         onNavigate={() => router.push('/seances' as never)}
       />
 
-      {/* ── Anomaly Panel ── */}
-      {anomalies.length > 0 && (
-        <div style={{
-          ...S.anomalyPanel,
-          borderLeft: `3px solid ${criticalCount > 0 ? colors.status.absent : colors.status.attention}`,
-        }}>
-          {/* Panel header */}
-          <div style={S.anomalyPanelHeader}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>{criticalCount > 0 ? '🚨' : '⚠️'}</span>
-              <span style={{
-                fontSize  : 13,
-                fontWeight: 700,
-                color     : criticalCount > 0 ? colors.status.absent : colors.status.attention,
-                fontFamily: 'Montserrat, sans-serif',
-                letterSpacing: 0.3,
-              }}>
-                {anomalies.length} anomalie{anomalies.length > 1 ? 's' : ''} non résolue{anomalies.length > 1 ? 's' : ''}
+      {/* ── Anomaly Panel (Story 50-7 — pills inline) ── */}
+      <div style={{
+        ...S.anomalyPanel,
+        borderLeft: anomalies.length === 0
+          ? `3px solid ${colors.status.success}`
+          : `3px solid ${criticalCount > 0 ? colors.status.absent : colors.status.attention}`,
+      }}>
+        {/* Summary row */}
+        <div style={S.anomalyPanelHeader}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {anomalies.length === 0 ? (
+              <span style={{ fontSize: 13, fontWeight: 700, color: colors.status.success, fontFamily: 'Montserrat, sans-serif' }}>
+                Aucune anomalie ✓
               </span>
-              {criticalCount > 0 && (
-                <span style={{ fontSize: 11, color: colors.text.muted }}>
-                  dont {criticalCount} critique{criticalCount > 1 ? 's' : ''}
-                </span>
-              )}
-            </div>
-            {selectedName && (
-              <span style={{ fontSize: 11, color: colors.text.muted, fontStyle: 'italic' }}>
-                Anomalies non filtrables par implantation
-              </span>
+            ) : (
+              <>
+                {criticalCount > 0 && (
+                  <span style={{ fontSize: 12, color: colors.status.absent }}>
+                    🔴 {criticalCount} critique{criticalCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                {warningCount > 0 && (
+                  <span style={{ fontSize: 12, color: colors.status.warning }}>
+                    🟡 {warningCount} avertissement{warningCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                {infoCount > 0 && (
+                  <span style={{ fontSize: 12, color: criticalCount === 0 && warningCount === 0 ? colors.text.muted : colors.accent.gold }}>
+                    🔵 {infoCount} info{infoCount > 1 ? 's' : ''}
+                  </span>
+                )}
+              </>
             )}
           </div>
+          {selectedName && anomalies.length > 0 && (
+            <span style={{ fontSize: 11, color: colors.text.muted, fontStyle: 'italic' }}>
+              Anomalies non filtrables par implantation
+            </span>
+          )}
+        </div>
 
-          {/* Anomaly rows */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Pills */}
+        {anomalies.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {sortedAnomalies.map(a => (
-              <div key={a.id} style={S.anomalyRow}>
-                {/* Severity dot */}
-                <div style={{
-                  width          : 7,
-                  height         : 7,
-                  borderRadius   : 4,
-                  backgroundColor: SEV_COLOR[a.severity] ?? colors.text.muted,
-                  flexShrink     : 0,
-                }} />
-
-                {/* Type */}
-                <div style={{ flex: 1, fontSize: 13, color: colors.text.dark }}>
-                  {anomalyLabel(a.anomalyType)}
-                </div>
-
-                {/* Severity badge */}
-                <span style={{
-                  fontSize       : 10,
-                  fontWeight     : 600,
-                  letterSpacing  : 0.8,
-                  textTransform  : 'uppercase',
-                  padding        : '2px 8px',
-                  borderRadius   : 4,
-                  backgroundColor: colors.light.muted,
-                  color          : SEV_COLOR[a.severity] ?? colors.text.muted,
-                }}>
-                  {SEV_LABEL[a.severity] ?? a.severity}
-                </span>
-
-                {/* Resolve button */}
-                <button
-                  className="aureak-resolve-btn"
-                  style={{
-                    ...S.resolveBtn,
-                    opacity: resolving === a.id ? 0.5 : 1,
-                    cursor : resolving === a.id ? 'wait' : 'pointer',
-                  }}
-                  onClick={() => handleResolve(a.id)}
-                  disabled={resolving === a.id}
-                >
-                  {resolving === a.id ? '...' : 'Résoudre'}
-                </button>
-              </div>
+              <AnomalyPill key={a.id} anomaly={a} onClick={() => setSelectedAnomaly(a)} />
             ))}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Empty state fond vert léger */}
+        {anomalies.length === 0 && (
+          <div style={{
+            backgroundColor: 'rgba(16,185,129,0.06)',
+            borderRadius   : radius.xs,
+            padding        : '8px 12px',
+            fontSize       : 12,
+            color          : colors.status.success,
+          }}>
+            Toutes les anomalies ont été résolues — aucune alerte active.
+          </div>
+        )}
+      </div>
 
       {/* ── Implantations Section ── */}
       <div style={S.sectionHeader}>
@@ -1690,6 +1840,18 @@ export default function DashboardPage() {
 
       {/* ── Fin page-layout ── */}
       </div>
+
+      {/* ── Anomaly Modal (Story 50-7) ── */}
+      <AnomalyModal
+        anomaly={selectedAnomaly}
+        onClose={() => setSelectedAnomaly(null)}
+        onResolve={handleResolve}
+      />
+
+      {/* ── Toast feedback (Story 50-7) ── */}
+      {toastMessage && (
+        <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
+      )}
     </div>
   )
 }
