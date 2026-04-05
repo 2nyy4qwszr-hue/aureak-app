@@ -21,7 +21,7 @@ import {
   listActiveAbsenceAlerts,
 } from '@aureak/api-client'
 import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
-import { AureakButton, AureakText, Badge, AttendanceToggle } from '@aureak/ui'
+import { AureakButton, AureakText, Badge, AttendanceToggle, BestSessionBadge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
@@ -340,6 +340,10 @@ function SessionSummaryCard({
               </View>
               {topScore !== null && (
                 <AureakText style={ssc.metricSub}>{topScore.toFixed(1)}/10</AureakText>
+              )}
+              {/* Story 55-4 — Badge "Meilleure séance" si topSeance = star */}
+              {topEval?.topSeance === 'star' && (
+                <BestSessionBadge size="sm" />
               )}
             </>
           ) : (
