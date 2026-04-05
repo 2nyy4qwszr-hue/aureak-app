@@ -11,10 +11,11 @@ import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
   fetchActivityFeed, getTopStreakPlayers, getPlayerOfWeek, supabase,
+  getXPLeaderboard,
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer } from '@aureak/api-client'
-import type { PlayerOfWeek } from '@aureak/types'
-import { colors, shadows, radius, transitions } from '@aureak/theme'
+import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
+import { colors, shadows, radius, transitions, gamification } from '@aureak/theme'
 import { PlayerOfWeekTile } from '@aureak/ui'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
@@ -1407,6 +1408,147 @@ function WeatherWidget() {
   )
 }
 
+// ── Leaderboard Tile (Story 59-3) ─────────────────────────────────────────────
+
+function LeaderboardTile({
+  entries,
+  loading,
+  onRowClick,
+}: {
+  entries: LeaderboardEntry[]
+  loading: boolean
+  onRowClick: (childId: string) => void
+}) {
+  const PODIUM_BG: Record<number, string> = {
+    1: gamification.levels.gold.color,
+    2: gamification.levels.silver.color,
+    3: gamification.levels.bronze.color,
+  }
+
+  const EVOLUTION_ICON: Record<string, { icon: string; color: string }> = {
+    up    : { icon: '▲', color: colors.status.success },
+    down  : { icon: '▼', color: colors.accent.red },
+    stable: { icon: '—', color: colors.text.subtle },
+  }
+
+  return (
+    <div
+      style={{
+        background  : colors.light.surface,
+        borderRadius: radius.card,
+        boxShadow   : shadows.sm,
+        padding     : 20,
+        minHeight   : 320,
+      }}
+    >
+      {/* Titre */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <span style={{ fontSize: 18 }}>🏆</span>
+        <span style={{ fontSize: 15, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
+          Classement XP — Saison
+        </span>
+      </div>
+
+      {/* Chargement */}
+      {loading && (
+        <div>
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              style={{
+                height      : 40,
+                borderRadius: radius.card,
+                background  : colors.light.muted,
+                marginBottom: 8,
+                animation   : 'a-pulse 1.8s ease-in-out infinite',
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* État vide */}
+      {!loading && entries.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px 0', color: colors.text.subtle, fontSize: 13, fontFamily: 'Montserrat, sans-serif' }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🏆</div>
+          Aucun joueur classé cette saison
+        </div>
+      )}
+
+      {/* Lignes classement */}
+      {!loading && entries.map(entry => {
+        const isPodium   = entry.rank <= 3
+        const podiumBg   = PODIUM_BG[entry.rank]
+        const evo        = EVOLUTION_ICON[entry.evolution] ?? EVOLUTION_ICON.stable
+
+        return (
+          <div
+            key={entry.childId}
+            onClick={() => onRowClick(entry.childId)}
+            style={{
+              display        : 'flex',
+              alignItems     : 'center',
+              gap            : 10,
+              padding        : '7px 10px',
+              borderRadius   : 8,
+              marginBottom   : 4,
+              cursor         : 'pointer',
+              background     : isPodium ? `${podiumBg}18` : colors.light.surface,
+              borderLeft     : isPodium ? `3px solid ${podiumBg}` : `3px solid transparent`,
+              transition     : 'background 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = colors.light.hover }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = isPodium ? `${podiumBg}18` : colors.light.surface }}
+          >
+            {/* Rang */}
+            <span style={{
+              width     : 24,
+              fontSize  : isPodium ? 16 : 13,
+              fontWeight: 700,
+              fontFamily: 'Geist Mono, monospace',
+              color     : isPodium ? podiumBg : colors.text.muted,
+              textAlign : 'center',
+              flexShrink: 0,
+            }}>
+              {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : entry.rank}
+            </span>
+
+            {/* Nom */}
+            <span style={{
+              flex      : 1,
+              fontSize  : 13,
+              fontWeight: isPodium ? 700 : 500,
+              fontFamily: 'Montserrat, sans-serif',
+              color     : colors.text.dark,
+              overflow  : 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {entry.displayName}
+            </span>
+
+            {/* Évolution */}
+            <span style={{ fontSize: 11, color: evo.color, fontWeight: 700, flexShrink: 0 }}>
+              {evo.icon}
+            </span>
+
+            {/* XP total */}
+            <span style={{
+              fontSize  : 12,
+              fontWeight: 700,
+              fontFamily: 'Geist Mono, monospace',
+              color     : isPodium ? podiumBg : colors.text.dark,
+              flexShrink: 0,
+            }}>
+              {entry.totalXp.toLocaleString('fr-BE')} XP
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
@@ -1449,6 +1591,10 @@ export default function DashboardPage() {
 
   // ── Joueur de la semaine (Story 55-8) ──
   const [playerOfWeek,   setPlayerOfWeek]   = useState<PlayerOfWeek | null>(null)
+
+  // ── Leaderboard XP (Story 59-3) ──
+  const [leaderboard,    setLeaderboard]    = useState<LeaderboardEntry[]>([])
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true)
 
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
@@ -1706,6 +1852,27 @@ export default function DashboardPage() {
       }
     }
     loadPlayerOfWeek()
+  }, [])
+
+  // ── Load leaderboard XP (Story 59-3) ──
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      setLoadingLeaderboard(true)
+      try {
+        const { data, error } = await getXPLeaderboard(10)
+        if (error) {
+          if (process.env.NODE_ENV !== 'production')
+            console.error('[dashboard] getXPLeaderboard error:', error)
+        }
+        setLeaderboard(data ?? [])
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[dashboard] getXPLeaderboard exception:', err)
+      } finally {
+        setLoadingLeaderboard(false)
+      }
+    }
+    loadLeaderboard()
   }, [])
 
   // ── Realtime subscription — attendance_records INSERT (Story 50-5, AC4) ──
@@ -2199,6 +2366,15 @@ export default function DashboardPage() {
             />
           </div>
         )}
+
+        {/* LARGE — Leaderboard XP (Story 59-3) */}
+        <div className="bento-large">
+          <LeaderboardTile
+            entries={leaderboard}
+            loading={loadingLeaderboard}
+            onRowClick={(childId) => router.push(`/(admin)/children/${childId}` as never)}
+          />
+        </div>
 
       </div>
 
