@@ -266,6 +266,7 @@ export default function DashboardPage() {
   const [anomalies,     setAnomalies]     = useState<AnomalyEvent[]>([])
   const [loading,       setLoading]       = useState(true)
   const [resolving,     setResolving]     = useState<string | null>(null)
+  const [statsError,    setStatsError]    = useState(false)
 
   // ── Implantation selector ──
   const [implantations,          setImplantations]          = useState<{ id: string; name: string }[]>([])
@@ -309,6 +310,7 @@ export default function DashboardPage() {
 
   // ── Load stats + implantations list ──
   const load = async (f = from, t = to) => {
+    setStatsError(false)
     setLoading(true)
     try {
       const [statsResult, anomalyResult, implRes] = await Promise.all([
@@ -316,7 +318,10 @@ export default function DashboardPage() {
         listAnomalies(),
         listImplantations(),
       ])
-      if (statsResult.error)   { if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getImplantationStats error:', statsResult.error) }
+      if (statsResult.error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getImplantationStats error:', statsResult.error)
+        setStatsError(true)
+      }
       if (anomalyResult.error) { if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listAnomalies error:', anomalyResult.error) }
       if (implRes.error)       { if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listImplantations error:', implRes.error) }
       setStats(statsResult.data ?? [])
@@ -528,8 +533,14 @@ export default function DashboardPage() {
           <KpiCard
             label="Taux de présence"
             value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
-            sub={selectedName ? 'implantation' : 'moyenne globale'}
-            accent={rateColor(avgAttendance)}
+            sub={
+              statsError
+                ? 'Données indisponibles'
+                : avgAttendance === null
+                  ? 'Aucune donnée sur la période'
+                  : selectedName ? 'implantation' : 'moyenne globale'
+            }
+            accent={statsError ? colors.text.muted : rateColor(avgAttendance)}
             borderAccent={colors.accent.gold}
             size="medium"
             icon="✅"
@@ -541,8 +552,14 @@ export default function DashboardPage() {
           <KpiCard
             label="Taux de maîtrise"
             value={avgMastery !== null ? `${avgMastery}%` : '—'}
-            sub={selectedName ? 'implantation' : 'moyenne globale'}
-            accent={rateColor(avgMastery)}
+            sub={
+              statsError
+                ? 'Données indisponibles'
+                : avgMastery === null
+                  ? 'Aucune donnée sur la période'
+                  : selectedName ? 'implantation' : 'moyenne globale'
+            }
+            accent={statsError ? colors.text.muted : rateColor(avgMastery)}
             borderAccent={colors.accent.gold}
             size="medium"
             icon="🎯"
@@ -554,7 +571,7 @@ export default function DashboardPage() {
           <KpiCard
             label="Séances"
             value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
-            sub="clôturées sur le total de la période"
+            sub={statsError ? 'Données indisponibles' : 'clôturées sur le total de la période'}
             accent={colors.accent.gold}
             size="large"
             icon="📅"
