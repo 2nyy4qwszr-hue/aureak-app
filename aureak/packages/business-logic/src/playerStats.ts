@@ -1,10 +1,11 @@
 // playerStats.ts — Calcul des 6 attributs gardien et du tier gamifié
 // Story 52-2 : PLO/TIR/TEC/TAC/PHY/MEN calculés depuis JoueurListItem
 // Story 52-7 : computePlayerXP — score proxy XP basé sur saisons/stages/saison courante
+// Story 52-9 : computePlayerBadges — 10 badges gamifiés
 // Source de vérité couleurs : gamification.statBands dans @aureak/theme
 
 import type { JoueurListItem } from '@aureak/api-client'
-import type { PlayerTier } from '@aureak/types'
+import type { PlayerTier, BadgeItem } from '@aureak/types'
 
 // ── Type commun minimal pour computePlayerXP ──────────────────────────────────
 
@@ -124,4 +125,116 @@ export function computePlayerXP(joueur: XPInputFields): number {
   const currentBonus = joueur.inCurrentSeason ? 100 : 0
   const seniorBonus  = joueur.totalAcademySeasons >= 5 ? 300 : 0
   return base + stageBonus + currentBonus + seniorBonus
+}
+
+// ── computePlayerBadges — Story 52-9 ─────────────────────────────────────────
+
+/**
+ * Type minimal pour le calcul des badges gamifiés.
+ * Compatible avec JoueurListItem et les champs de ChildAcademyStatusData.
+ */
+type BadgeInputFields = {
+  totalAcademySeasons: number
+  totalStages        : number
+  inCurrentSeason    : boolean
+  computedStatus     : string | null
+}
+
+/** Définition interne d'un badge avec sa condition de déclenchement */
+type BadgeDefinition = {
+  id         : string
+  label      : string
+  description: string
+  icon       : string
+  isUnlocked : (j: BadgeInputFields, tier: PlayerTier) => boolean
+}
+
+/** 10 badges statiques (data future table story 59-4) */
+const BADGE_DEFINITIONS: BadgeDefinition[] = [
+  {
+    id         : 'premiere-saison',
+    label      : 'Première saison',
+    description: 'A participé à au moins 1 saison à l\'académie',
+    icon       : '🏆',
+    isUnlocked : (j) => j.totalAcademySeasons >= 1,
+  },
+  {
+    id         : 'veteran-3',
+    label      : 'Vétéran 3 saisons',
+    description: 'A participé à au moins 3 saisons à l\'académie',
+    icon       : '🌟',
+    isUnlocked : (j) => j.totalAcademySeasons >= 3,
+  },
+  {
+    id         : 'veteran-5',
+    label      : 'Vétéran 5 saisons',
+    description: 'A participé à au moins 5 saisons à l\'académie',
+    icon       : '👑',
+    isUnlocked : (j) => j.totalAcademySeasons >= 5,
+  },
+  {
+    id         : 'premier-stage',
+    label      : 'Premier stage',
+    description: 'A participé à au moins 1 stage',
+    icon       : '⛺',
+    isUnlocked : (j) => j.totalStages >= 1,
+  },
+  {
+    id         : 'stagiaire-confirme',
+    label      : 'Stagiaire confirmé',
+    description: 'A participé à au moins 3 stages',
+    icon       : '🎯',
+    isUnlocked : (j) => j.totalStages >= 3,
+  },
+  {
+    id         : 'academicien',
+    label      : 'Académicien',
+    description: 'Académicien ou ancien de l\'académie Aureak',
+    icon       : '🎓',
+    isUnlocked : (j) =>
+      j.computedStatus === 'ACADÉMICIEN' || j.computedStatus === 'ANCIEN',
+  },
+  {
+    id         : 'capitaine',
+    label      : 'Capitaine',
+    description: 'Au moins 4 saisons et 2 stages à l\'académie',
+    icon       : '🦁',
+    isUnlocked : (j) => j.totalAcademySeasons >= 4 && j.totalStages >= 2,
+  },
+  {
+    id         : 'assidu',
+    label      : 'Assidu',
+    description: 'Présent cette saison et au moins 2 saisons d\'expérience',
+    icon       : '✅',
+    isUnlocked : (j) => j.inCurrentSeason && j.totalAcademySeasons >= 2,
+  },
+  {
+    id         : 'elite',
+    label      : 'Élite',
+    description: 'A atteint le tier Élite',
+    icon       : '⚡',
+    isUnlocked : (_j, tier) => tier === 'Elite',
+  },
+  {
+    id         : 'legende',
+    label      : 'Légende',
+    description: 'A participé à au moins 7 saisons à l\'académie',
+    icon       : '🏅',
+    isUnlocked : (j) => j.totalAcademySeasons >= 7,
+  },
+]
+
+/**
+ * Calcule les 10 badges gamifiés d'un joueur.
+ * Story 52-9 — données statiques, remplacées par table player_badges en story 59-4.
+ */
+export function computePlayerBadges(joueur: BadgeInputFields): BadgeItem[] {
+  const tier = computePlayerTier(joueur as JoueurListItem)
+  return BADGE_DEFINITIONS.map(def => ({
+    id         : def.id,
+    label      : def.label,
+    description: def.description,
+    icon       : def.icon,
+    unlocked   : def.isUnlocked(joueur, tier),
+  }))
 }

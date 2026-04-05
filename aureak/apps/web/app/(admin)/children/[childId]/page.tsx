@@ -42,10 +42,11 @@ const FOOTBALL_SEASONS = [
   '2021-2022', '2020-2021', '2019-2020', '2018-2019', '2017-2018',
   '2016-2017', '2015-2016', '2014-2015',
 ]
-import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, computePlayerXP } from '@aureak/business-logic'
+import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, computePlayerXP, computePlayerBadges, computePlayerStats } from '@aureak/business-logic'
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
-import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar } from '@aureak/ui'
+import { exportCardToPng } from '../exportCardToPng'
+import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import type { PlayerTier } from '@aureak/types'
@@ -1608,6 +1609,10 @@ export default function ChildDetailPage() {
   // Story 52-6 — tabs navigation
   const [activeTab, setActiveTab] = useState<PlayerTab>('Profil')
 
+  // Story 52-11 — export carte PNG
+  const cardExportRef = useRef<View>(null)
+  const [isExporting, setIsExporting] = useState(false)
+
   // Story 52-8 — animation tier upgrade
   const prevTierRef   = useRef<PlayerTier | null>(null)
   const flashOpacity  = useRef(new Animated.Value(0)).current
@@ -1694,6 +1699,24 @@ export default function ChildDetailPage() {
     setEditSection(section)
     setDraft({ ...child })
     setSaveError(null)
+  }
+
+  // Story 52-11 — export carte PNG
+  const handleExport = async () => {
+    if (isExporting || !child) return
+    setIsExporting(true)
+    try {
+      const domNode = (cardExportRef.current as unknown as { getDOMNode?: () => HTMLElement | null })?.getDOMNode?.()
+      if (!domNode) return
+      const safeName = child.displayName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')
+      const date     = new Date().toISOString().split('T')[0]
+      const filename = `aureak-card-${safeName}-${date}.png`
+      await exportCardToPng(domNode, filename)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ChildDetailPage] exportCardToPng error:', err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   const cancelEdit = () => {
@@ -1943,8 +1966,78 @@ export default function ChildDetailPage() {
           >
             <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>Exporter PDF</AureakText>
           </Pressable>
+          {/* Partager — Story 52-11 — web uniquement */}
+          {Platform.OS === 'web' && (
+            <Pressable
+              style={[
+                { paddingHorizontal: space.md, paddingVertical: 5, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.gold + '60', backgroundColor: colors.accent.gold + '15' },
+                isExporting && { opacity: 0.5 },
+              ]}
+              onPress={handleExport}
+              disabled={isExporting}
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+                {isExporting ? '…' : 'Partager ↗'}
+              </AureakText>
+            </Pressable>
+          )}
         </View>
       </View>
+
+      {/* ── Conteneur off-screen export PNG — Story 52-11 ── */}
+      {Platform.OS === 'web' && (
+        <View
+          ref={cardExportRef}
+          style={{
+            position      : 'absolute' as never,
+            top           : -9999,
+            left          : -9999,
+            width         : 320,
+            backgroundColor: tierCfg.bg,
+            borderWidth   : 2,
+            borderColor   : tierCfg.borderColor,
+            borderRadius  : 16,
+            padding       : 20,
+            gap           : 12,
+            pointerEvents : 'none' as never,
+          }}
+          pointerEvents="none"
+        >
+          {/* Photo / avatar */}
+          <View style={{ alignItems: 'center' }}>
+            {(currentPhoto?.photoUrl)
+              ? <Image source={{ uri: currentPhoto.photoUrl }} style={{ width: 80, height: 80, borderRadius: 40 }} />
+              : (
+                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: avatarBgColor(child.id), alignItems: 'center', justifyContent: 'center' }}>
+                  <AureakText style={{ color: '#fff', fontSize: 28, fontWeight: '700' } as never}>
+                    {displayName.trim().split(/\s+/).slice(0,2).map((w:string)=>w[0]?.toUpperCase()??'').join('')}
+                  </AureakText>
+                </View>
+              )
+            }
+          </View>
+          {/* Nom + tier */}
+          <View style={{ alignItems: 'center', gap: 4 }}>
+            <AureakText style={{ fontSize: 18, fontWeight: '800', color: tierCfg.textColor } as never}>{displayName}</AureakText>
+            <View style={{ paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, backgroundColor: tierCfg.borderColor }}>
+              <AureakText style={{ fontSize: 11, fontWeight: '700', color: tierCfg.textColor } as never}>{tier}</AureakText>
+            </View>
+          </View>
+          {/* Stats */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 8, borderTopWidth: 1, borderTopColor: tierCfg.borderColor }}>
+            {joueurForTier && Object.entries(computePlayerStats(joueurForTier)).map(([key, val]) => (
+              <View key={key} style={{ alignItems: 'center', gap: 2 }}>
+                <AureakText style={{ fontSize: 18, fontWeight: '900', color: tierCfg.textColor } as never}>{val}</AureakText>
+                <AureakText style={{ fontSize: 9, color: tierCfg.textColor, opacity: 0.7 } as never}>{key}</AureakText>
+              </View>
+            ))}
+          </View>
+          {/* Logo Aureak */}
+          <View style={{ alignItems: 'flex-end', paddingTop: 4 }}>
+            <AureakText style={{ fontSize: 10, fontWeight: '900', color: colors.accent.gold, letterSpacing: 2 } as never}>AUREAK</AureakText>
+          </View>
+        </View>
+      )}
 
       {/* ── Header photo 280px fullwidth — Story 52-6 ── */}
       <View style={{ position: 'relative' as never }}>
@@ -2039,6 +2132,20 @@ export default function ChildDetailPage() {
           )}
         </View>
 
+        {/* ── Profil technique — Story 52-10 ── */}
+        {joueurForTier && (
+          <View style={s.card}>
+            <SectionTitle>Profil technique</SectionTitle>
+            <View style={{ marginTop: space.sm, alignItems: 'center' }}>
+              <RadarChart
+                stats={computePlayerStats(joueurForTier)}
+                tier={tier}
+                size={200}
+              />
+            </View>
+          </View>
+        )}
+
         {/* Fin tab Profil */}
         </>
         )}
@@ -2079,7 +2186,26 @@ export default function ChildDetailPage() {
           )
         })()}
 
-        {/* ── [B] Historique : académie + stages ── */}
+        {/* ── [B] Badges collection — Story 52-9 ── */}
+        {(() => {
+          const badgeInput = {
+            totalAcademySeasons: memberships.length,
+            totalStages        : stages_.length,
+            inCurrentSeason    : academyData?.inCurrentSeason ?? false,
+            computedStatus     : child.statut ?? academyData?.computedStatus ?? null,
+          }
+          const badges = computePlayerBadges(badgeInput)
+          return (
+            <View style={[s.card, { marginBottom: space.xs }]}>
+              <SectionTitle>Collection de badges</SectionTitle>
+              <View style={{ marginTop: space.sm }}>
+                <BadgeGrid badges={badges} size="md" />
+              </View>
+            </View>
+          )
+        })()}
+
+        {/* ── [C] Historique : académie + stages ── */}
         {tenantId && (
           <HistoriqueSection
             childId={childId!}

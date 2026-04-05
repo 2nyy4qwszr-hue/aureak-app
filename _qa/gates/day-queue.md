@@ -61,6 +61,80 @@ next-morning-queue:
       - "setPage(0) sur changement viewMode"
       - "tsc: 0 erreur"
 
+  - story_id: story-52-9
+    title: "FEATURE — Badges collection fiche joueur"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-9_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-9_gate2.md"
+    notes:
+      - "BadgeItem type dans @aureak/types/entities.ts"
+      - "BadgeGrid composant dans @aureak/ui — gamification.badge.* tokens exclusivement"
+      - "computePlayerBadges + BADGE_DEFINITIONS (10 badges) dans @aureak/business-logic/playerStats.ts"
+      - "BadgeGrid positionné dans tab Académie sous XPBar avec SectionTitle"
+      - "Tooltip web via title HTML attribute"
+      - "tsc: 0 erreur"
+
+  - story_id: story-52-10
+    title: "FEATURE — Radar chart 6 axes SVG pur"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-10_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-10_gate2.md"
+    notes:
+      - "RadarChart composant dans @aureak/ui — SVG JSX natif web + barres fallback native"
+      - "polarToCartesian + computePolygonPoints + computeGridPoints helpers purs"
+      - "TIER_FILL couleurs par tier, fill +4D (30% opacité)"
+      - "Grille 3 niveaux concentriques 33%/66%/100% radius"
+      - "Labels axes avec valeurs via <tspan>"
+      - "Positionné dans tab Profil sous identité avec SectionTitle"
+      - "tsc: 0 erreur"
+
+  - story_id: story-52-11
+    title: "FEATURE — Export card joueur PNG"
+    priority: P3
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-11_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-11_gate2.md"
+    notes:
+      - "exportCardToPng.ts : html2canvas(scale:2, useCORS) + Web Share API + download fallback"
+      - "Bouton Partager ↗ dans header page.tsx — Platform.OS === 'web' uniquement"
+      - "Conteneur off-screen (top:-9999) avec photo/nom/tier/stats/logo AUREAK"
+      - "try/finally sur isExporting — console guard sur catch"
+      - "html2canvas v1.4.1 installé dans apps/web"
+      - "tsc: 0 erreur"
+
+  - story_id: story-52-12
+    title: "FEATURE — Vue master-detail joueurs split-screen"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-12_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-12_gate2.md"
+    notes:
+      - "isSplitScreen = Platform.OS === 'web' && screenWidth >= 1024"
+      - "screenWidth state + window.addEventListener('resize') avec cleanup"
+      - "selectedChildId initialisé depuis params.selected"
+      - "_ChildDetail.tsx : ChildDetailInline (iframe) + EmptyDetailState"
+      - "PremiumJoueurCard : props onPress? isSelected? ajoutés (retro-compatible)"
+      - "ssp StyleSheet : splitContainer/leftPanel(340px)/rightPanel(flex:1)"
+      - "tsc: 0 erreur"
+
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
   - story_id: story-50-10

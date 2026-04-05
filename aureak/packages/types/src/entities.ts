@@ -635,6 +635,18 @@ export type ChildAcademyStatusData = {
   lastStageDate       : string | null
 }
 
+/**
+ * BadgeItem — badge gamifié affiché dans la collection joueur (Story 52-9)
+ * Débloqué/verrouillé selon les conditions calculées par computePlayerBadges().
+ */
+export type BadgeItem = {
+  id         : string
+  label      : string
+  description: string
+  icon       : string   // emoji
+  unlocked   : boolean
+}
+
 /** SessionBlock — bloc de séances d'une journée */
 export type SessionBlock = {
   id             : string

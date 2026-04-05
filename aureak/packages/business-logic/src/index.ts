@@ -39,5 +39,5 @@ export {
   hasAcademyHistory,
 } from './groups/academyStatus'
 
-export { computePlayerStats, computePlayerTier, computePlayerXP } from './playerStats'
+export { computePlayerStats, computePlayerTier, computePlayerXP, computePlayerBadges } from './playerStats'
 export type { PlayerStats } from './playerStats'

@@ -37,6 +37,12 @@ export type { PlayerCardProps, PlayerTier } from './PlayerCard'
 export { XPBar } from './XPBar'
 export type { XPBarProps } from './XPBar'
 
+export { BadgeGrid } from './BadgeGrid'
+export type { BadgeGridProps, BadgeItem } from './BadgeGrid'
+
+export { RadarChart } from './RadarChart'
+export type { RadarChartProps } from './RadarChart'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
