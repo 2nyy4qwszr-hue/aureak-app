@@ -1,5 +1,6 @@
 'use client'
 // Admin Dashboard — vue de contrôle multi-implantations (Light Premium DA)
+// Story 49-5 — Design : Dashboard Admin — Game Manager Premium
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
@@ -7,6 +8,11 @@ import {
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
+
+// ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
+
+const HERO_BG          = '#2A2827'
+const TERRAIN_GRADIENT = 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 60%, #1a472a 100%)'
 
 // ── Design tokens (local helpers) ─────────────────────────────────────────────
 
@@ -64,12 +70,12 @@ function DashboardSkeleton() {
         }
       `}</style>
 
-      {/* Header skeleton */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <SkeletonBlock h={28} w="180px" r={5} />
-          <SkeletonBlock h={14} w="240px" r={4} />
-        </div>
+      {/* Hero band skeleton */}
+      <SkeletonBlock h={140} r={radius.card} />
+      <div style={{ height: 20 }} />
+
+      {/* Filters skeleton */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
         <SkeletonBlock h={34} w="300px" r={8} />
       </div>
 
@@ -109,14 +115,181 @@ function DashboardSkeleton() {
         </div>
       </div>
 
+      {/* Next session tile skeleton */}
+      <SkeletonBlock h={72} r={radius.card} />
+      <div style={{ height: 20 }} />
+
       {/* Implantation cards skeleton */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 8 }}>
         <SkeletonBlock h={16} w="140px" r={4} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-        {[0,1,2].map(i => <SkeletonBlock key={i} h={188} r={radius.card} />)}
+        {[0,1,2].map(i => <SkeletonBlock key={i} h={260} r={radius.card} />)}
       </div>
     </div>
+  )
+}
+
+// ── Hero Band ─────────────────────────────────────────────────────────────────
+
+function HeroBand({
+  selectedName,
+  statsCount,
+}: {
+  selectedName: string | null
+  statsCount: number
+}) {
+  const today = new Date().toLocaleDateString('fr-BE', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+
+  return (
+    <div style={{
+      background    : HERO_BG,
+      borderRadius  : radius.card,
+      padding       : '28px 32px',
+      marginBottom  : 20,
+      position      : 'relative',
+      overflow      : 'hidden',
+      minHeight     : 140,
+      display       : 'flex',
+      flexDirection : 'column',
+      justifyContent: 'flex-end',
+      boxShadow     : shadows.lg,
+    }}>
+      {/* Icône décorative fond */}
+      <div style={{
+        position  : 'absolute',
+        right     : 24,
+        top       : '50%',
+        transform : 'translateY(-50%)',
+        fontSize  : 120,
+        opacity   : 0.06,
+        lineHeight: 1,
+        userSelect: 'none',
+      }}>🏟</div>
+
+      {/* Gradient overlay bas */}
+      <div style={{
+        position    : 'absolute',
+        inset       : 0,
+        background  : 'linear-gradient(to top, rgba(10,10,12,0.7) 0%, transparent 60%)',
+        borderRadius: radius.card,
+      }} />
+
+      {/* Contenu texte */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Badge académie */}
+        <div style={{
+          display        : 'inline-flex',
+          alignItems     : 'center',
+          padding        : '3px 10px',
+          borderRadius   : radius.badge,
+          backgroundColor: colors.accent.gold,
+          color          : colors.text.dark,
+          fontSize       : 9,
+          fontWeight     : 700,
+          fontFamily     : 'Montserrat, sans-serif',
+          letterSpacing  : 1.4,
+          textTransform  : 'uppercase',
+          marginBottom   : 8,
+        }}>
+          ACADÉMIE
+        </div>
+
+        <h1 style={{
+          fontSize     : 28,
+          fontWeight   : 900,
+          fontFamily   : 'Montserrat, sans-serif',
+          color        : colors.text.primary,
+          margin       : 0,
+          lineHeight   : 1.1,
+          letterSpacing: 0.3,
+        }}>
+          Académie Aureak
+        </h1>
+        <div style={{
+          fontSize  : 12,
+          color     : 'rgba(255,255,255,0.55)',
+          marginTop : 6,
+          fontFamily: 'Montserrat, sans-serif',
+        }}>
+          {selectedName
+            ? <><span>Vue filtrée · </span><span style={{ color: colors.accent.gold }}>{selectedName}</span></>
+            : `Vue globale · ${statsCount} implantation${statsCount !== 1 ? 's' : ''}`
+          }
+          <span style={{ margin: '0 8px', opacity: 0.4 }}>·</span>
+          {today}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Sparkline SVG ─────────────────────────────────────────────────────────────
+
+function SparklineSVG({ values, color }: { values: number[]; color: string }) {
+  if (!values || values.length < 2) return null
+
+  const W = 100  // viewBox width (percentage-based via preserveAspectRatio)
+  const H = 32
+
+  const min   = Math.min(...values)
+  const max   = Math.max(...values)
+  const range = max - min || 1
+
+  const pts = values.map((v, i) => ({
+    x: (i / (values.length - 1)) * W,
+    y: H - ((v - min) / range) * (H - 6) - 3,  // padding 3px haut/bas
+  }))
+
+  const pointsStr = pts.map(p => `${p.x},${p.y}`).join(' ')
+
+  const minIdx = values.indexOf(min)
+  const maxIdx = values.indexOf(max)
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      style={{ width: '100%', height: H, display: 'block', marginTop: 8 }}
+    >
+      <polyline
+        points={pointsStr}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Marqueur min — fond clair : utiliser la couleur d'accent pour la visibilité */}
+      <circle cx={pts[minIdx].x} cy={pts[minIdx].y} r="2" fill={colors.text.dark} />
+      {/* Marqueur max */}
+      <circle cx={pts[maxIdx].x} cy={pts[maxIdx].y} r="2" fill={colors.text.dark} />
+    </svg>
+  )
+}
+
+// ── Delta Pill ────────────────────────────────────────────────────────────────
+
+function DeltaPill({ value, positive }: { value: string; positive: boolean }) {
+  return (
+    <span style={{
+      display        : 'inline-flex',
+      alignItems     : 'center',
+      padding        : '2px 8px',
+      borderRadius   : radius.badge,
+      backgroundColor: positive
+        ? 'rgba(76,175,80,0.12)'
+        : 'rgba(244,67,54,0.12)',
+      color          : positive ? colors.status.present : colors.status.absent,
+      fontSize       : 11,
+      fontWeight     : 600,
+      fontFamily     : 'Montserrat, sans-serif',
+      whiteSpace     : 'nowrap',
+    }}>
+      {positive ? '▲' : '▼'} {value}
+    </span>
   )
 }
 
@@ -130,7 +303,8 @@ type KpiCardProps = {
   sub        ?: string
   accent      : string
   borderAccent?: string
-  trend       ?: { value: string; positive: boolean }
+  delta       ?: { value: string; positive: boolean }
+  sparkline   ?: number[]
   size        ?: BentoSize
   icon        ?: string
   /** Overrides de style pour la card elle-même (ex: gradient de fond) */
@@ -143,7 +317,7 @@ type KpiCardProps = {
   subColor    ?: string
 }
 
-function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent, borderAccent, delta, sparkline, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor }: KpiCardProps) {
   const valueFontSize = size === 'large' ? 52 : size === 'medium' ? 38 : 28
 
   return (
@@ -177,22 +351,15 @@ function KpiCard({ label, value, sub, accent, borderAccent, trend, size = 'mediu
         <div style={{ ...S.kpiLabel, color: labelColor ?? (S.kpiLabel as React.CSSProperties).color }}>
           {label}
         </div>
-        {trend && (
-          <div style={{
-            fontSize    : 11,
-            fontWeight  : 700,
-            color       : trend.positive ? colors.status.present : colors.status.absent,
-            display     : 'flex',
-            alignItems  : 'center',
-            gap         : 2,
-            whiteSpace  : 'nowrap',
-          }}>
-            {trend.positive ? '↑' : '↓'} {trend.value}
-          </div>
-        )}
+        {delta && <DeltaPill value={delta.value} positive={delta.positive} />}
       </div>
       <div style={{ ...S.kpiValue, color: valueColor ?? accent, fontSize: valueFontSize }}>{value}</div>
       {sub && <div style={{ ...S.kpiSub, color: subColor ?? (S.kpiSub as React.CSSProperties).color }}>{sub}</div>}
+
+      {/* Sparkline */}
+      {sparkline && sparkline.length >= 2 && (
+        <SparklineSVG values={sparkline} color={accent} />
+      )}
     </div>
   )
 }
@@ -217,33 +384,172 @@ function ProgressBar({ pct, label }: { pct: number | null; label: string }) {
   )
 }
 
+// ── Implantation Card Header ──────────────────────────────────────────────────
+
+function ImplantationCardHeader({ stat }: { stat: ImplantationStats }) {
+  return (
+    <div style={{
+      borderRadius    : `${radius.card}px ${radius.card}px 0 0`,
+      height          : 72,
+      position        : 'relative',
+      overflow        : 'hidden',
+      marginBottom    : 0,
+      backgroundImage : `
+        ${TERRAIN_GRADIENT},
+        repeating-linear-gradient(
+          45deg,
+          rgba(255,255,255,0.03) 0px,
+          rgba(255,255,255,0.03) 1px,
+          transparent 1px,
+          transparent 8px
+        )
+      `,
+    }}>
+      {/* Nom implantation en bas à gauche */}
+      <div style={{
+        position     : 'absolute',
+        bottom       : 10,
+        left         : 14,
+        fontSize     : 15,
+        fontWeight   : 700,
+        fontFamily   : 'Montserrat, sans-serif',
+        color        : colors.text.primary,
+        lineHeight   : 1.2,
+        letterSpacing: 0.2,
+      }}>
+        {stat.implantation_name}
+      </div>
+
+      {/* Badge OR sessions en haut à droite */}
+      <div style={{
+        position       : 'absolute',
+        top            : 10,
+        right          : 12,
+        backgroundColor: colors.accent.gold,
+        color          : colors.text.dark,
+        fontSize       : 10,
+        fontWeight     : 600,
+        fontFamily     : 'Montserrat, sans-serif',
+        padding        : '3px 8px',
+        borderRadius   : radius.badge,
+        whiteSpace     : 'nowrap',
+      }}>
+        {stat.sessions_total} séance{stat.sessions_total !== 1 ? 's' : ''}
+      </div>
+    </div>
+  )
+}
+
 // ── Implantation Card ─────────────────────────────────────────────────────────
 
 function ImplantationCard({ stat }: { stat: ImplantationStats }) {
-  const attendanceColor  = rateColor(stat.attendance_rate_pct)
-  const seancesRatio     = stat.sessions_total > 0
+  const seancesRatio = stat.sessions_total > 0
     ? `${stat.sessions_closed}/${stat.sessions_total}`
     : '—'
-  const seancesPct       = stat.sessions_total > 0
+  const seancesPct   = stat.sessions_total > 0
     ? Math.round((stat.sessions_closed / stat.sessions_total) * 100)
     : null
 
   return (
-    <div className="aureak-card" style={{ ...S.implantCard, borderTop: `3px solid ${attendanceColor}` }}>
-      <div style={S.implantName}>{stat.implantation_name}</div>
+    <div className="aureak-card" style={{
+      ...S.implantCard,
+      padding : 0,
+      overflow: 'hidden',
+    }}>
+      {/* Header terrain */}
+      <ImplantationCardHeader stat={stat} />
 
-      <ProgressBar pct={stat.attendance_rate_pct} label="Présence" />
-      <ProgressBar pct={stat.mastery_rate_pct} label="Maîtrise" />
+      {/* Corps avec padding */}
+      <div style={{ padding: '16px 16px 16px 16px' }}>
+        <ProgressBar pct={stat.attendance_rate_pct} label="Présence" />
+        <ProgressBar pct={stat.mastery_rate_pct}    label="Maîtrise" />
 
-      <div style={S.implantFooter}>
-        <span style={{ fontSize: 11, color: colors.text.muted }}>Séances clôturées</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={S.implantSeances}>{seancesRatio}</span>
-          {seancesPct !== null && (
-            <span style={{ fontSize: 10, color: colors.text.muted }}>({seancesPct}%)</span>
-          )}
+        <div style={S.implantFooter}>
+          <span style={{ fontSize: 11, color: colors.text.muted }}>Séances clôturées</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={S.implantSeances}>{seancesRatio}</span>
+            {seancesPct !== null && (
+              <span style={{ fontSize: 10, color: colors.text.muted }}>({seancesPct}%)</span>
+            )}
+          </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── Next Session Tile ─────────────────────────────────────────────────────────
+
+function NextSessionTile({
+  pendingSessions,
+  onNavigate,
+}: {
+  pendingSessions: number
+  onNavigate: () => void
+}) {
+  if (pendingSessions === 0) return null
+
+  return (
+    <div className="aureak-card" style={{
+      ...S.kpiCard,
+      borderTop    : `3px solid ${colors.accent.gold}`,
+      flexDirection: 'row',
+      alignItems   : 'center',
+      gap          : 16,
+      padding      : '14px 20px',
+      marginBottom : 20,
+    }}>
+      <span style={{ fontSize: 22 }}>⏱</span>
+      <div style={{ flex: 1 }}>
+        <div style={{
+          fontSize     : 10,
+          fontWeight   : 700,
+          letterSpacing: 1.1,
+          textTransform: 'uppercase',
+          color        : colors.text.muted,
+          marginBottom : 4,
+          fontFamily   : 'Montserrat, sans-serif',
+        }}>
+          Séances en attente de clôture
+        </div>
+        <div style={{
+          fontSize  : 18,
+          fontWeight: 700,
+          color     : colors.text.dark,
+          fontFamily: 'Montserrat, sans-serif',
+        }}>
+          {pendingSessions} séance{pendingSessions > 1 ? 's' : ''} ouvertes
+        </div>
+      </div>
+      <span style={{
+        display        : 'inline-flex',
+        alignItems     : 'center',
+        padding        : '3px 10px',
+        borderRadius   : radius.badge,
+        backgroundColor: 'rgba(244,67,54,0.12)',
+        color          : colors.status.absent,
+        fontSize       : 10,
+        fontWeight     : 600,
+        fontFamily     : 'Montserrat, sans-serif',
+        letterSpacing  : 0.8,
+        textTransform  : 'uppercase',
+      }}>EN RETARD</span>
+      <button
+        onClick={onNavigate}
+        style={{
+          background: 'none',
+          border    : 'none',
+          color     : colors.accent.gold,
+          fontSize  : 13,
+          fontWeight: 600,
+          fontFamily: 'Montserrat, sans-serif',
+          cursor    : 'pointer',
+          whiteSpace: 'nowrap',
+          padding   : 0,
+        }}
+      >
+        Voir →
+      </button>
     </div>
   )
 }
@@ -413,6 +719,16 @@ export default function DashboardPage() {
   const countVal = (n: number | null) =>
     loadingCounts ? '…' : n !== null ? n : '—'
 
+  // ── Sparkline simulées (à remplacer par API historique — story future) ──
+  const SPARKLINE_JOUEURS = [42, 45, 41, 48, 47, childrenTotal ?? 50]
+  const SPARKLINE_SEANCES = [8, 10, 9, 12, 11, totalSessions]
+
+  // ── Pending sessions (séances non clôturées) ──
+  const pendingSessions = visibleStats.reduce(
+    (acc, s) => acc + Math.max(0, (s.sessions_total ?? 0) - (s.sessions_closed ?? 0)),
+    0
+  )
+
   return (
     <div style={S.container}>
       <style>{`
@@ -439,78 +755,75 @@ export default function DashboardPage() {
           .bento-large  { grid-column: span 1; }
           .bento-medium { grid-column: span 1; }
           .bento-small  { grid-column: span 1; }
+          .aureak-hero { min-height: 100px !important; }
         }
       `}</style>
 
-      {/* ── Page Header ── */}
-      <div style={S.pageHeader}>
-        <div>
-          <h1 style={S.pageTitle}>Tableau de bord</h1>
-          <div style={S.pageSubtitle}>
-            {selectedName
-              ? <>Vue filtrée · <span style={{ color: colors.accent.gold, fontWeight: 600 }}>{selectedName}</span></>
-              : `Vue globale · ${stats.length} implantation${stats.length !== 1 ? 's' : ''}`
-            }
-          </div>
+      {/* ── Hero Band ── */}
+      <div className="aureak-hero">
+        <HeroBand
+          selectedName={selectedName}
+          statsCount={stats.length}
+        />
+      </div>
+
+      {/* ── Filters ── */}
+      <div style={S.filterRow}>
+        {/* ── Implantation selector ── */}
+        <div style={S.dateGroup}>
+          <label style={S.dateLabel}>Implantation</label>
+          <select
+            value={selectedImplantationId ?? ''}
+            onChange={e => setSelectedImplantationId(e.target.value || null)}
+            style={S.implantSelect}
+          >
+            <option value="">Toutes les implantations</option>
+            {implantations.map(i => (
+              <option key={i.id} value={i.id}>{i.name}</option>
+            ))}
+          </select>
         </div>
 
-        <div style={S.filterRow}>
-          {/* ── Implantation selector ── */}
+        {/* Preset selector */}
+        <div style={{ ...S.dateGroup, marginLeft: 8 }}>
+          <label style={S.dateLabel}>Période</label>
+          <select
+            value={preset}
+            onChange={e => handlePresetChange(e.target.value as Preset)}
+            style={S.implantSelect}
+          >
+            <option value="this-week">Semaine en cours</option>
+            <option value="last-week">Semaine passée</option>
+            <option value="4-weeks">4 dernières semaines</option>
+            <option value="custom">Personnalisé</option>
+          </select>
+        </div>
+
+        {/* Custom date pickers — only shown in custom mode */}
+        {preset === 'custom' && (<>
           <div style={S.dateGroup}>
-            <label style={S.dateLabel}>Implantation</label>
-            <select
-              value={selectedImplantationId ?? ''}
-              onChange={e => setSelectedImplantationId(e.target.value || null)}
-              style={S.implantSelect}
-            >
-              <option value="">Toutes les implantations</option>
-              {implantations.map(i => (
-                <option key={i.id} value={i.id}>{i.name}</option>
-              ))}
-            </select>
+            <label style={S.dateLabel}>Du</label>
+            <input
+              type="date"
+              value={customFrom}
+              onChange={e => setCustomFrom(e.target.value)}
+              style={S.dateInput}
+            />
           </div>
-
-          {/* Preset selector */}
-          <div style={{ ...S.dateGroup, marginLeft: 8 }}>
-            <label style={S.dateLabel}>Période</label>
-            <select
-              value={preset}
-              onChange={e => handlePresetChange(e.target.value as Preset)}
-              style={S.implantSelect}
-            >
-              <option value="this-week">Semaine en cours</option>
-              <option value="last-week">Semaine passée</option>
-              <option value="4-weeks">4 dernières semaines</option>
-              <option value="custom">Personnalisé</option>
-            </select>
+          <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
+          <div style={S.dateGroup}>
+            <label style={S.dateLabel}>Au</label>
+            <input
+              type="date"
+              value={customTo}
+              onChange={e => setCustomTo(e.target.value)}
+              style={S.dateInput}
+            />
           </div>
-
-          {/* Custom date pickers — only shown in custom mode */}
-          {preset === 'custom' && (<>
-            <div style={S.dateGroup}>
-              <label style={S.dateLabel}>Du</label>
-              <input
-                type="date"
-                value={customFrom}
-                onChange={e => setCustomFrom(e.target.value)}
-                style={S.dateInput}
-              />
-            </div>
-            <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
-            <div style={S.dateGroup}>
-              <label style={S.dateLabel}>Au</label>
-              <input
-                type="date"
-                value={customTo}
-                onChange={e => setCustomTo(e.target.value)}
-                style={S.dateInput}
-              />
-            </div>
-            <button style={S.applyBtn} onClick={handleApplyCustom}>
-              Appliquer
-            </button>
-          </>)}
-        </div>
+          <button style={S.applyBtn} onClick={handleApplyCustom}>
+            Appliquer
+          </button>
+        </>)}
       </div>
 
       {/* ── Bento KPI Grid ── */}
@@ -525,6 +838,8 @@ export default function DashboardPage() {
             accent={colors.status.present}
             size="large"
             icon="👥"
+            sparkline={SPARKLINE_JOUEURS}
+            delta={{ value: '+5%', positive: true }}
           />
         </div>
 
@@ -544,6 +859,7 @@ export default function DashboardPage() {
             borderAccent={colors.accent.gold}
             size="medium"
             icon="✅"
+            delta={{ value: '+3%', positive: true }}
           />
         </div>
 
@@ -563,6 +879,7 @@ export default function DashboardPage() {
             borderAccent={colors.accent.gold}
             size="medium"
             icon="🎯"
+            delta={{ value: '-2%', positive: false }}
           />
         </div>
 
@@ -575,6 +892,8 @@ export default function DashboardPage() {
             accent={colors.accent.gold}
             size="large"
             icon="📅"
+            sparkline={SPARKLINE_SEANCES}
+            delta={{ value: '+2', positive: true }}
           />
         </div>
 
@@ -608,16 +927,16 @@ export default function DashboardPage() {
             label="Implantations"
             value={stats.length > 0 ? stats.length : '—'}
             sub="sites actifs"
-            accent="#FFFFFF"
+            accent={colors.text.primary}
             borderAccent="transparent"
             size="small"
             icon="🏟️"
             cardStyle={{
-              background  : 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)' as string,
-              border      : 'none',
-              boxShadow   : shadows.md,
+              background: TERRAIN_GRADIENT,
+              border    : 'none',
+              boxShadow : shadows.md,
             } as React.CSSProperties}
-            valueColor="#FFFFFF"
+            valueColor={colors.text.primary}
             labelColor="rgba(255,255,255,0.75)"
             subColor="rgba(255,255,255,0.6)"
           />
@@ -654,6 +973,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Next Session Tile ── */}
+      <NextSessionTile
+        pendingSessions={pendingSessions}
+        onNavigate={() => router.push('/seances' as never)}
+      />
+
       {/* ── Anomaly Panel ── */}
       {anomalies.length > 0 && (
         <div style={{
@@ -665,9 +990,9 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 14 }}>{criticalCount > 0 ? '🚨' : '⚠️'}</span>
               <span style={{
-                fontSize: 13,
+                fontSize  : 13,
                 fontWeight: 700,
-                color: criticalCount > 0 ? colors.status.absent : colors.status.attention,
+                color     : criticalCount > 0 ? colors.status.absent : colors.status.attention,
                 fontFamily: 'Montserrat, sans-serif',
                 letterSpacing: 0.3,
               }}>
@@ -692,9 +1017,11 @@ export default function DashboardPage() {
               <div key={a.id} style={S.anomalyRow}>
                 {/* Severity dot */}
                 <div style={{
-                  width: 7, height: 7, borderRadius: 4,
+                  width          : 7,
+                  height         : 7,
+                  borderRadius   : 4,
                   backgroundColor: SEV_COLOR[a.severity] ?? colors.text.muted,
-                  flexShrink: 0,
+                  flexShrink     : 0,
                 }} />
 
                 {/* Type */}
@@ -704,14 +1031,14 @@ export default function DashboardPage() {
 
                 {/* Severity badge */}
                 <span style={{
-                  fontSize     : 10,
-                  fontWeight   : 600,
-                  letterSpacing: 0.8,
-                  textTransform: 'uppercase',
-                  padding      : '2px 8px',
-                  borderRadius : 4,
+                  fontSize       : 10,
+                  fontWeight     : 600,
+                  letterSpacing  : 0.8,
+                  textTransform  : 'uppercase',
+                  padding        : '2px 8px',
+                  borderRadius   : 4,
                   backgroundColor: colors.light.muted,
-                  color        : SEV_COLOR[a.severity] ?? colors.text.muted,
+                  color          : SEV_COLOR[a.severity] ?? colors.text.muted,
                 }}>
                   {SEV_LABEL[a.severity] ?? a.severity}
                 </span>
@@ -783,35 +1110,13 @@ const S: Record<string, React.CSSProperties> = {
     boxSizing      : 'border-box',
   },
 
-  // Header
-  pageHeader      : {
-    display        : 'flex',
-    justifyContent : 'space-between',
-    alignItems     : 'flex-end',
-    marginBottom   : 24,
-    flexWrap       : 'wrap',
-    gap            : 16,
-  },
-  pageTitle       : {
-    fontSize       : 26,
-    fontWeight     : 900,
-    fontFamily     : 'Montserrat, sans-serif',
-    letterSpacing  : 0.4,
-    margin         : 0,
-    color          : colors.accent.gold,
-    lineHeight     : 1.1,
-  },
-  pageSubtitle    : {
-    fontSize       : 12,
-    color          : colors.text.muted,
-    marginTop      : 4,
-    letterSpacing  : 0.3,
-  },
+  // Filter row (was pageHeader — hero replaced the title)
   filterRow       : {
     display        : 'flex',
     alignItems     : 'flex-end',
     gap            : 8,
     flexWrap       : 'wrap',
+    marginBottom   : 20,
   },
   dateGroup       : {
     display        : 'flex',
@@ -954,7 +1259,7 @@ const S: Record<string, React.CSSProperties> = {
     borderRadius   : 5,
     border         : 'none',
     backgroundColor: colors.status.present,
-    color          : '#FFFFFF',
+    color          : colors.text.primary,
     fontSize       : 12,
     fontWeight     : 600,
     fontFamily     : 'Geist, sans-serif',
@@ -993,19 +1298,10 @@ const S: Record<string, React.CSSProperties> = {
   implantCard     : {
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
-    padding        : '20px',
     border         : `1px solid ${colors.border.light}`,
     boxShadow      : shadows.sm,
     transition     : `all ${transitions.normal}`,
     cursor         : 'default',
-  },
-  implantName     : {
-    fontSize       : 16,
-    fontWeight     : 700,
-    fontFamily     : 'Montserrat, sans-serif',
-    letterSpacing  : 0.3,
-    color          : colors.text.dark,
-    marginBottom   : 14,
   },
   progressTrack   : {
     height         : 4,

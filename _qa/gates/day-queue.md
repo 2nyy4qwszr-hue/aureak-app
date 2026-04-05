@@ -66,10 +66,21 @@ next-morning-queue:
   - story_id: story-49-5
     title: "DESIGN — Dashboard game manager premium (sparklines + hero band)"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
     commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-49-5_gate1.md"
+      - "_qa/reports/2026-04-05_story-49-5_gate2.md"
+    warnings:
+      - "W1: colors.text.primary sémantique trompeuse HeroBand h1 (token OK, contexte ambigu)"
+      - "W2: colors.text.primary sur ImplantationCardHeader (idem W1)"
+      - "W3: rgba() hardcodés DeltaPill/NextSessionTile — à extraire en tokens"
+      - "W4: NextSessionTile label EN RETARD systématique — logique temporelle manquante"
+      - "W5: SparklineSVG sans guard NaN — à ajouter"
+    blocker_fixed:
+      - "BLOCKER: SparklineSVG markers fill colors.text.primary (#FFFFFF) sur fond blanc — corrigé → colors.text.dark"
 
   - story_id: story-49-6
     title: "DESIGN — Implantations — photo/logo upload + redesign détail"
