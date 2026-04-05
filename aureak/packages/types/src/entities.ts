@@ -1835,3 +1835,19 @@ export type PlayerQuest = {
   createdAt    : string
 }
 
+// ─── Story 49-7 — Club calculé automatiquement depuis l'historique football ───
+
+/**
+ * Résultat de la vue v_child_current_club.
+ * Retourne le club de la saison académique courante (is_current = true)
+ * pour un joueur donné, déduit de child_directory_history.
+ * Lecture seule — ne jamais écrire dans current_club depuis ce type.
+ */
+export type ChildCurrentClubFromHistory = {
+  childId          : string
+  saison           : string        // ex: '2025-2026'
+  clubNom          : string        // depuis child_directory_history.club_nom
+  clubDirectoryId  : string | null // FK vers club_directory (nullable)
+  clubNomAnnuaire  : string | null // nom officiel depuis club_directory.nom (nullable)
+}
+

@@ -326,6 +326,8 @@ export {
   countActivePlayersCurrentSeason,
   // Story 49-3 — joueurs via annuaire (liaison implicite club_directory_id)
   listChildrenByClubDirectoryId,
+  // Story 49-7 — club calculé depuis l'historique football (vue v_child_current_club)
+  getChildCurrentClubFromHistory,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,

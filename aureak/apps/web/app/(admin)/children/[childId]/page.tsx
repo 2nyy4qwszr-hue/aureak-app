@@ -23,6 +23,8 @@ import {
   listChildPhotos, addChildPhoto, setCurrentPhoto, deleteChildPhoto,
   // Story tbd-historique-versions-joueur
   listAuditLogs,
+  // Story 49-7 — club calculé depuis l'historique football
+  getChildCurrentClubFromHistory,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
   type AddChildPhotoParams,
@@ -56,6 +58,7 @@ import type {
   ChildStageParticipation,
   AcademySeason,
   Stage,
+  ChildCurrentClubFromHistory,
 } from '@aureak/types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -873,14 +876,17 @@ const mst = StyleSheet.create({
 // ── Affiliation section ────────────────────────────────────────────────────────
 
 function AffiliationSection({
-  childId, tenantId, child, history, onRefresh,
+  childId, tenantId, child, history, onRefresh, autoClub, autoClubDone,
 }: {
-  childId  : string
-  tenantId : string
-  child    : ChildDirectoryEntry
-  history  : ChildDirectoryHistory[]
-  onRefresh: () => void
+  childId      : string
+  tenantId     : string
+  child        : ChildDirectoryEntry
+  history      : ChildDirectoryHistory[]
+  onRefresh    : () => void
+  autoClub     : ChildCurrentClubFromHistory | null
+  autoClubDone : boolean
 }) {
+  const router = useRouter()
   const currentSaison = getCurrentFootballSeason()
 
   // Affiliations = entrées history avec affilie = true
@@ -967,6 +973,37 @@ function AffiliationSection({
           </AureakText>
         </Pressable>
       </View>
+
+      {/* Club calculé automatiquement depuis l'historique football (Story 49-7) */}
+      {autoClubDone && (
+        <View style={ir.wrap}>
+          <AureakText variant="caption" style={ir.label}>
+            Club (saison courante)
+          </AureakText>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {autoClub ? (
+              <>
+                {autoClub.clubDirectoryId ? (
+                  <Pressable onPress={() => router.push(`/(admin)/clubs/${autoClub.clubDirectoryId}` as never)}>
+                    <AureakText variant="body" style={{ fontSize: 13, color: colors.accent.gold, textDecorationLine: 'underline' }}>
+                      {autoClub.clubNomAnnuaire ?? autoClub.clubNom}
+                    </AureakText>
+                  </Pressable>
+                ) : (
+                  <AureakText variant="body" style={{ fontSize: 13 }}>
+                    {autoClub.clubNom}
+                  </AureakText>
+                )}
+                <Badge variant="goldOutline" label="AUTO" />
+              </>
+            ) : (
+              <AureakText variant="caption" style={{ fontSize: 12, color: colors.text.muted, fontStyle: 'italic' }}>
+                Non renseigné pour la saison courante
+              </AureakText>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* Club actuel (champ texte libre) */}
       <InfoRow label="Club actuel" value={child.currentClub} />
@@ -1377,6 +1414,9 @@ export default function ChildDetailPage() {
   const [injuries,     setInjuries]     = useState<ChildDirectoryInjury[]>([])
   const [photos,       setPhotos]       = useState<ChildDirectoryPhoto[]>([])
   const [auditLogs,    setAuditLogs]    = useState<AuditLog[]>([])
+  // Story 49-7 — club calculé depuis l'historique (non bloquant)
+  const [autoClub,     setAutoClub]     = useState<ChildCurrentClubFromHistory | null>(null)
+  const [autoClubDone, setAutoClubDone] = useState(false)
   const [loading,        setLoading]        = useState(true)
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [showAddHist,    setShowAddHist]    = useState(false)
@@ -1438,6 +1478,24 @@ export default function ChildDetailPage() {
   }, [childId])
 
   useEffect(() => { loadChild() }, [loadChild])
+
+  // Story 49-7 — chargement non bloquant du club calculé depuis l'historique
+  useEffect(() => {
+    if (!childId) return
+    setAutoClubDone(false)
+    ;(async () => {
+      try {
+        const result = await getChildCurrentClubFromHistory(childId)
+        setAutoClub(result)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[ChildDetailPage] getChildCurrentClubFromHistory error:', err)
+        // Silencieux — ne pas bloquer la fiche si la vue est indisponible
+      } finally {
+        setAutoClubDone(true)
+      }
+    })()
+  }, [childId])
 
   // ── Edit helpers ────────────────────────────────────────────────────────────
 
@@ -1798,6 +1856,8 @@ export default function ChildDetailPage() {
             child={child}
             history={history}
             onRefresh={loadChild}
+            autoClub={autoClub}
+            autoClubDone={autoClubDone}
           />
         )}
 

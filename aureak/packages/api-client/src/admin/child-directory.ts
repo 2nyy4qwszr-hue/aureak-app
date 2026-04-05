@@ -4,7 +4,7 @@
 
 import { supabase } from '../supabase'
 import { getCachedUrl, setCachedUrl } from '../utils/signed-url-cache'
-import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory } from '@aureak/types'
+import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory } from '@aureak/types'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -744,4 +744,35 @@ export async function countActivePlayersCurrentSeason(): Promise<number> {
     return 0
   }
   return count ?? 0
+}
+
+// ── Story 49-7 — Club calculé depuis l'historique football (vue v_child_current_club) ──
+
+/**
+ * Retourne le club de la saison académique courante pour un joueur,
+ * calculé automatiquement depuis child_directory_history via la vue v_child_current_club.
+ * Retourne null si aucune entrée pour la saison courante ou en cas d'erreur.
+ */
+export async function getChildCurrentClubFromHistory(
+  childId: string,
+): Promise<ChildCurrentClubFromHistory | null> {
+  const { data, error } = await supabase
+    .from('v_child_current_club')
+    .select('child_id, saison, club_nom, club_directory_id, club_nom_annuaire')
+    .eq('child_id', childId)
+    .maybeSingle()
+  if (error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[getChildCurrentClubFromHistory] error:', error)
+    return null
+  }
+  if (!data) return null
+  const row = data as Record<string, unknown>
+  return {
+    childId         : row.child_id           as string,
+    saison          : row.saison             as string,
+    clubNom         : row.club_nom           as string,
+    clubDirectoryId : (row.club_directory_id as string | null) ?? null,
+    clubNomAnnuaire : (row.club_nom_annuaire as string | null) ?? null,
+  }
 }
