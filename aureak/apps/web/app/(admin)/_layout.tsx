@@ -5,6 +5,9 @@ import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
+import { getActiveSession } from '@aureak/api-client'
+import type { ActiveSessionInfo } from '@aureak/api-client'
+import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import {
   HomeIcon,
   CalendarIcon,
@@ -125,6 +128,31 @@ export default function AdminLayout() {
   const sidebarWidth = sidebarCollapsed ? 52 : 220
 
   const isMobile = width < 768
+
+  // ── Story 51.2 — Topbar séance active — polling 60s ──────────────────────
+  const [activeSessions, setActiveSessions] = useState<ActiveSessionInfo[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchActive = async () => {
+      try {
+        const sessions = await getActiveSession()
+        if (!cancelled) setActiveSessions(sessions)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[AdminLayout] getActiveSession error:', err)
+        // dégradation silencieuse — barre reste absente
+      }
+    }
+
+    fetchActive()
+    const intervalId = setInterval(fetchActive, 60_000)
+
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+    }
+  }, [])
 
   useEffect(() => {
     if (isMobile) setMobileOpen(false)
@@ -448,6 +476,9 @@ export default function AdminLayout() {
             </Text>
           </XStack>
         )}
+
+        {/* ── Story 51.2 — Topbar séance active (desktop uniquement) ── */}
+        {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
         <ErrorBoundary>
           <Slot />

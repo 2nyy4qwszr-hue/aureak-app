@@ -335,6 +335,25 @@ next-morning-queue:
       - "hover: rgba(255,255,255,0.08) → rgba(255,255,255,0.06)"
       - "tsc 0 erreur — zero emoji dans NAV_GROUPS"
 
+  - story_id: story-51-2
+    title: "FEATURE — Topbar séance active permanente"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-2_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-2_gate2.md"
+    notes:
+      - "ActiveSessionInfo interface dans @aureak/types/entities.ts"
+      - "getActiveSession() dans api-client/sessions/sessions.ts — fenêtre -30min/+duration+15min côté client"
+      - "ActiveSessionBar composant — PulsingDot Animated.loop + lien Voir → + (+N autres)"
+      - "polling 60s dans _layout.tsx avec clearInterval cleanup + flag cancelled (anti-setState-leak)"
+      - "guard !isMobile — non rendu sur < 768px (AC7)"
+      - "console guard NODE_ENV production — try/catch dégradation silencieuse (AC5)"
+      - "tsc 0 erreur — fix groups[] Supabase array vs object"
+
   - story_id: story-47-1
     title: "DESIGN — Sidebar — icônes navigation manquantes"
     priority: P2

@@ -1851,3 +1851,19 @@ export type ChildCurrentClubFromHistory = {
   clubNomAnnuaire  : string | null // nom officiel depuis club_directory.nom (nullable)
 }
 
+// ─── Story 51.2 — Topbar séance active permanente ────────────────────────────
+
+/**
+ * Informations d'une séance actuellement active (dans la fenêtre temporelle).
+ * Retourné par getActiveSession() dans @aureak/api-client.
+ * La fenêtre active = [scheduled_at - 30min .. scheduled_at + duration + 15min]
+ */
+export interface ActiveSessionInfo {
+  sessionId       : string
+  groupName       : string
+  presentCount    : number
+  totalCount      : number
+  scheduledAt     : string
+  durationMinutes : number
+}
+

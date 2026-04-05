@@ -2,11 +2,13 @@
 // Story 13.1 — Sessions v2 : sessionType, contentRef, guest management
 // Story 13.2 — Calendrier, auto-génération & gestion des exceptions
 // Story 13.3 — Mode séance coach, clôture, notes, absence
+// Story 51.2 — Topbar séance active permanente
 import { supabase } from '../supabase'
 import type {
   Session, SessionCoach, SessionTheme, SessionSituation, SessionAttendee,
   CoachRole, SessionType, SessionContentRef, SchoolCalendarException,
   GPContentRef, TechniqueAcademieContentRef, SituationnelContentRef, EmptyContentRef,
+  ActiveSessionInfo,
 } from '@aureak/types'
 import type { Group } from '@aureak/types'
 import { SITUATIONAL_BLOC_CODES } from '@aureak/types'
@@ -1121,4 +1123,72 @@ export function getActiveSessionsForCoach(
     const endWindow  = new Date(start.getTime() + (s.durationMinutes + 15) * 60 * 1000)
     return now >= preWindow && now <= endWindow
   })
+}
+
+// ─── Story 51.2 — Topbar séance active permanente ────────────────────────────
+
+/**
+ * Retourne les séances actuellement actives (fenêtre [now-30min .. now+duration+15min])
+ * avec statut 'planifiée', enrichies du nom du groupe et du compteur de présents.
+ * Retourne un tableau vide si aucune séance n'est active.
+ * Le filtrage précis de la fenêtre est fait côté client après le fetch Supabase.
+ */
+export async function getActiveSession(): Promise<ActiveSessionInfo[]> {
+  const now        = new Date()
+  const windowStart = new Date(now.getTime() - 30 * 60 * 1000).toISOString()
+  // Buffer max : 90min de durée + 15min post-session = 105min
+  const windowEnd   = new Date(now.getTime() + 105 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(`
+      id,
+      scheduled_at,
+      duration_minutes,
+      groups ( name ),
+      session_attendees ( status )
+    `)
+    .eq('status', 'planifiée')
+    .gte('scheduled_at', windowStart)
+    .lte('scheduled_at', windowEnd)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: true })
+    .limit(5)
+
+  if (error || !data) return []
+
+  // Supabase retourne groups comme un tableau (one-to-many)
+  const rows = (data as unknown) as Array<{
+    id               : string
+    scheduled_at     : string
+    duration_minutes : number
+    groups           : Array<{ name: string }> | { name: string } | null
+    session_attendees: Array<{ status: string }> | null
+  }>
+
+  // Filtrage précis côté client : [scheduled_at - 30min .. scheduled_at + duration + 15min]
+  const active: ActiveSessionInfo[] = rows
+    .filter(r => {
+      const start      = new Date(r.scheduled_at)
+      const preWindow  = new Date(start.getTime() - 30 * 60 * 1000)
+      const endWindow  = new Date(start.getTime() + (r.duration_minutes + 15) * 60 * 1000)
+      return now >= preWindow && now <= endWindow
+    })
+    .map(r => {
+      const attendees    = r.session_attendees ?? []
+      const presentCount = attendees.filter(a => a.status === 'présent').length
+      const totalCount   = attendees.length
+      // groups peut être un objet ou un tableau selon la version du client Supabase
+      const groupObj = Array.isArray(r.groups) ? r.groups[0] : r.groups
+      return {
+        sessionId      : r.id,
+        groupName      : groupObj?.name ?? 'Groupe inconnu',
+        presentCount,
+        totalCount,
+        scheduledAt    : r.scheduled_at,
+        durationMinutes: r.duration_minutes,
+      }
+    })
+
+  return active
 }

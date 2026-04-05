@@ -111,8 +111,11 @@ export {
   getSessionValidationStatus, subscribeToSessionValidation,
   // Story 50.3 — dashboard countdown tile
   listNextSessionForDashboard,
+  // Story 51.2 — topbar séance active permanente
+  getActiveSession,
 } from './sessions/sessions'
 export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow } from './sessions/sessions'
+export type { ActiveSessionInfo } from '@aureak/types'
 
 export {
   createImplantation, listImplantations, updateImplantation, deleteImplantation,
