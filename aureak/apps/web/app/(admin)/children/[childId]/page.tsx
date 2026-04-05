@@ -30,12 +30,15 @@ import {
   listAttendancesByChild,
   // Story 55-3 — GrowthChart timeline croissance
   listRecentEvaluationsForChild,
+  // Story 59-4 — badges système
+  listBadgeDefinitions, listPlayerBadges,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
   type AddChildPhotoParams,
   type AuditLog,
   type AttendanceHistoryRow,
 } from '@aureak/api-client'
+import type { BadgeDefinition, PlayerBadge } from '@aureak/types'
 import type { EvaluationPoint } from '@aureak/types'
 
 // ── Niveaux de compétition ───────────────────────────────────────────────────
@@ -1612,6 +1615,11 @@ export default function ChildDetailPage() {
   const [showAddHist,    setShowAddHist]    = useState(false)
   const [deletingId,   setDeletingId]   = useState<string | null>(null)
 
+  // Story 59-4 — badges système
+  const [badgeDefinitions, setBadgeDefinitions] = useState<BadgeDefinition[]>([])
+  const [playerBadges,     setPlayerBadges]     = useState<PlayerBadge[]>([])
+  const [loadingBadges,    setLoadingBadges]    = useState(false)
+
   // Story 52-6 — tabs navigation
   const [activeTab, setActiveTab] = useState<PlayerTab>('Profil')
 
@@ -1627,6 +1635,10 @@ export default function ChildDetailPage() {
   // Story 52-11 — export carte PNG
   const cardExportRef = useRef<View>(null)
   const [isExporting, setIsExporting] = useState(false)
+
+  // Story 55-7 — export PDF scouting
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  const [pdfError,        setPdfError]        = useState<string | null>(null)
 
   // Story 52-8 — animation tier upgrade
   const prevTierRef   = useRef<PlayerTier | null>(null)
@@ -1707,6 +1719,27 @@ export default function ChildDetailPage() {
     })()
   }, [childId])
 
+  // Story 59-4 — Chargement badges système (non bloquant)
+  useEffect(() => {
+    if (!childId) return
+    setLoadingBadges(true)
+    ;(async () => {
+      try {
+        const [defsResult, playerResult] = await Promise.allSettled([
+          listBadgeDefinitions(),
+          listPlayerBadges(childId),
+        ])
+        if (defsResult.status === 'fulfilled') setBadgeDefinitions(defsResult.value.data)
+        if (playerResult.status === 'fulfilled') setPlayerBadges(playerResult.value.data)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[ChildDetailPage] badges load error:', err)
+      } finally {
+        setLoadingBadges(false)
+      }
+    })()
+  }, [childId])
+
   // Story 54-6 — Chargement des données heatmap (12 mois glissants depuis heatmapRef)
   useEffect(() => {
     if (!childId) return
@@ -1762,6 +1795,46 @@ export default function ChildDetailPage() {
     } finally {
       setIsExporting(false)
     }
+  }
+
+  // Story 55-7 — Génération PDF scouting
+  const handleScoutingPDF = async () => {
+    if (isGeneratingPDF || !child) return
+    setPdfError(null)
+    if (growthData.length === 0) {
+      setPdfError('Pas assez d\'évaluations pour générer un scouting.')
+      return
+    }
+    const { generateAndDownloadScoutingPDF } = await import('../../../../utils/generateScoutingPDF')
+    const { getAverageEvaluationsByPlayer } = await import('@aureak/api-client')
+
+    const { data: radarData } = await getAverageEvaluationsByPlayer(childId, 10)
+    const scores = growthData.map(d => d.score)
+
+    const { error } = await generateAndDownloadScoutingPDF({
+      playerName : formatNomPrenom(child.nom, child.prenom, child.displayName),
+      birthDate  : child.birthDate ?? null,
+      currentClub: child.currentClub ?? null,
+      groupName  : null,
+      season     : null,
+      photoUrl   : currentPhoto?.photoUrl ?? null,
+      radarData,
+      growthData,
+      avgScore   : scores.length > 0 ? Math.round((scores.reduce((s, v) => s + v, 0) / scores.length) * 10) / 10 : null,
+      bestScore  : scores.length > 0 ? Math.max(...scores) : null,
+      evalCount  : growthData.length,
+      progression: growthData.length >= 2
+        ? Math.round(((growthData[growthData.length - 1]?.score ?? 0) - (growthData[0]?.score ?? 0)) * 10) / 10
+        : null,
+      recentEvals: growthData.slice().reverse().map(d => ({
+        date       : d.date,
+        sessionName: d.sessionName ?? null,
+        score      : d.score,
+        note       : null,
+      })),
+    }, setIsGeneratingPDF)
+
+    if (error) setPdfError(error)
   }
 
   const cancelEdit = () => {
@@ -2011,6 +2084,26 @@ export default function ChildDetailPage() {
           >
             <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>Exporter PDF</AureakText>
           </Pressable>
+          {/* Story 55-7 — Scouting PDF */}
+          {Platform.OS === 'web' && (
+            <Pressable
+              style={[
+                { paddingHorizontal: space.md, paddingVertical: 5, borderRadius: 6, borderWidth: 1, borderColor: colors.accent.gold + '80', backgroundColor: colors.accent.gold + '15' },
+                isGeneratingPDF && { opacity: 0.55 },
+              ]}
+              onPress={handleScoutingPDF}
+              disabled={isGeneratingPDF}
+              accessibilityRole="button"
+              accessibilityLabel="Exporter PDF scouting"
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' as never }}>
+                {isGeneratingPDF ? 'Génération en cours...' : 'Scouting PDF'}
+              </AureakText>
+            </Pressable>
+          )}
+          {pdfError && (
+            <AureakText variant="caption" style={{ color: colors.accent.red, maxWidth: 200 }}>{pdfError}</AureakText>
+          )}
           {/* Partager — Story 52-11 — web uniquement */}
           {Platform.OS === 'web' && (
             <Pressable
@@ -2263,6 +2356,97 @@ export default function ChildDetailPage() {
             </View>
           )
         })()}
+
+        {/* ── [B2] Badges & Achievements système — Story 59-4 ── */}
+        {Platform.OS === 'web' && (
+          <View style={[s.card, { marginBottom: space.xs }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm }}>
+              <SectionTitle>Badges &amp; Achievements</SectionTitle>
+              {!loadingBadges && (
+                <AureakText
+                  variant="caption"
+                  style={{
+                    color     : playerBadges.length >= 10 ? colors.accent.gold : colors.text.muted,
+                    fontWeight: '700',
+                  } as never}
+                >
+                  {playerBadges.length} / {badgeDefinitions.length} débloqués
+                </AureakText>
+              )}
+            </View>
+            {loadingBadges ? (
+              <View style={{ gap: space.xs }}>
+                {[0, 1, 2].map(i => (
+                  <View key={i} style={{ height: 40, borderRadius: radius.card, backgroundColor: colors.light.muted }} />
+                ))}
+              </View>
+            ) : badgeDefinitions.length === 0 ? (
+              <AureakText variant="caption" style={{ color: colors.text.subtle } as never}>
+                Aucun badge système défini.
+              </AureakText>
+            ) : (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
+                {[
+                  // Badges débloqués en premier
+                  ...badgeDefinitions.filter(def => playerBadges.some(pb => pb.badgeId === def.id)),
+                  // Badges verrouillés ensuite
+                  ...badgeDefinitions.filter(def => !playerBadges.some(pb => pb.badgeId === def.id)),
+                ].map(def => {
+                  const isUnlocked = playerBadges.some(pb => pb.badgeId === def.id)
+                  const unlockedBadge = playerBadges.find(pb => pb.badgeId === def.id)
+                  return (
+                    <View
+                      key={def.id}
+                      style={{
+                        alignItems    : 'center',
+                        width         : gamification.badge.size.lg + 16,
+                        opacity       : isUnlocked ? 1 : gamification.badge.lockedOpacity,
+                      }}
+                      accessibilityLabel={`${def.label}${isUnlocked ? ' (débloqué)' : ' (verrouillé)'}`}
+                    >
+                      <View
+                        style={[
+                          {
+                            width         : gamification.badge.size.lg,
+                            height        : gamification.badge.size.lg,
+                            borderRadius  : gamification.badge.size.lg / 2,
+                            alignItems    : 'center',
+                            justifyContent: 'center',
+                            backgroundColor: isUnlocked ? `${colors.accent.gold}22` : colors.light.muted,
+                          },
+                          isUnlocked
+                            ? (Platform.OS === 'web' ? { boxShadow: gamification.badge.unlockedShadow } as never : {})
+                            : {},
+                        ]}
+                        {...(Platform.OS === 'web' ? {
+                          title: isUnlocked
+                            ? `${def.label} — ${def.description ?? ''} · ${def.points} pts · Débloqué le ${unlockedBadge ? new Date(unlockedBadge.awardedAt).toLocaleDateString('fr-BE') : ''}`
+                            : `${def.label} — ${def.description ?? ''} (verrouillé)`,
+                        } : {})}
+                      >
+                        <AureakText style={{ fontSize: 28 } as never}>
+                          {def.iconUrl ? '🏅' : def.code.slice(0, 2)}
+                        </AureakText>
+                      </View>
+                      <AureakText
+                        variant="caption"
+                        numberOfLines={2}
+                        style={{
+                          textAlign: 'center',
+                          marginTop: 4,
+                          color    : isUnlocked ? colors.text.dark : colors.text.subtle,
+                          fontStyle: isUnlocked ? 'normal' : 'italic',
+                        } as never}
+                      >
+                        {def.label}
+                      </AureakText>
+                    </View>
+                  )
+                })}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* ── [C] Historique : académie + stages ── */}
         {tenantId && (
