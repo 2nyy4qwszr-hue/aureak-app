@@ -507,6 +507,48 @@ export async function getThemeOfWeek(): Promise<{
   }
 }
 
+// ── Story 58-7 — Recommandations d'exercices pour un groupe ──────────────────
+
+/**
+ * Calcule le niveau moyen du groupe (via RPC `get_group_avg_level`) et retourne
+ * toutes les situations actives avec `isRecommended: true` pour celles dont
+ * `difficultyLevel` est dans [avgLevel-1, avgLevel, avgLevel+1].
+ * Les recommandées sont triées en tête.
+ */
+export async function getRecommendedSituations(
+  groupId: string,
+): Promise<{ data: (MethodologySituation & { isRecommended: boolean })[]; error: unknown }> {
+  // 1. Récupérer le niveau moyen du groupe
+  const { data: levelData, error: levelError } = await supabase
+    .rpc('get_group_avg_level', { p_group_id: groupId })
+  if (levelError && process.env.NODE_ENV !== 'production')
+    console.error('[getRecommendedSituations] avgLevel error:', levelError)
+
+  const avgLevel = Math.round((levelData as number | null) ?? 3)
+  const minLevel = Math.max(1, avgLevel - 1)
+  const maxLevel = Math.min(5, avgLevel + 1)
+
+  // 2. Récupérer toutes les situations actives
+  let situations: MethodologySituation[]
+  try {
+    situations = await listMethodologySituations({ activeOnly: true })
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[getRecommendedSituations] situations error:', err)
+    return { data: [], error: err }
+  }
+
+  // 3. Marquer recommandées et trier (recommandées en tête)
+  const result = (situations ?? [])
+    .map(s => ({
+      ...s,
+      isRecommended: s.difficultyLevel >= minLevel && s.difficultyLevel <= maxLevel,
+    }))
+    .sort((a, b) => (b.isRecommended ? 1 : 0) - (a.isRecommended ? 1 : 0))
+
+  return { data: result, error: null }
+}
+
 // ── Story 58-3 — Drag situation vers séance pédagogique ───────────────────────
 
 /**

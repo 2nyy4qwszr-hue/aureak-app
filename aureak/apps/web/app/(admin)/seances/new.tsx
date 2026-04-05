@@ -10,6 +10,7 @@ import {
   listAvailableCoaches, createSession, assignCoach,
   prefillSessionAttendees, createTransientGroup, computeContentRef,
   addSessionThemeBlock, addSessionWorkshop, uploadWorkshopPdf, uploadWorkshopCard,
+  getRecommendedSituations,
 } from '@aureak/api-client'
 import CoachDndBoard from './_components/CoachDndBoard'
 import ThemeBlockPicker from './_components/ThemeBlockPicker'
@@ -20,7 +21,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { TYPE_COLOR } from './_components/constants'
-import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode } from '@aureak/types'
+import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode, MethodologySituation } from '@aureak/types'
 import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
 import { generateSessionLabel } from './_utils'
 import { useToast } from '../../../components/ToastContext'
@@ -821,6 +822,10 @@ export default function NewSessionPage() {
   // Story 21.3 — Ateliers (Step 4)
   const [workshops,     setWorkshops]     = useState<SessionWorkshopDraft[]>([])
 
+  // Story 58-7 — Recommandations exercices pour un groupe (cache par groupId)
+  const [recommendations,        setRecommendations]        = useState<Record<string, (MethodologySituation & { isRecommended: boolean })[]>>({})
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false)
+
   // ── Result ───────────────────────────────────────────────────
   const [creating,       setCreating]       = useState(false)
   const [result,         setResult]         = useState<{ created: number; failed: number; linkWarnings?: number } | null>(null)
@@ -926,6 +931,23 @@ export default function NewSessionPage() {
     setGpEntNumber(1)
     setSessionTitle('')
   }, [sessionType])
+
+  // Story 58-7 — Charger les recommandations quand groupId change (cache par groupId)
+  useEffect(() => {
+    if (!groupId || recommendations[groupId]) return
+    setLoadingRecommendations(true)
+    getRecommendedSituations(groupId)
+      .then(res => {
+        if (res.data.length > 0)
+          setRecommendations(prev => ({ ...prev, [groupId]: res.data }))
+      })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[SeancesNew] recommendations error:', err)
+      })
+      .finally(() => setLoadingRecommendations(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId])
 
   // ── Date toggle ────────────────────────────────────────────────────────────
   const toggleDate = useCallback((dateStr: string) => {
@@ -1762,6 +1784,61 @@ export default function NewSessionPage() {
           ═══════════════════════════════════════════════════════════ */}
       {step === 3 && (
         <View style={p.stepWrap}>
+
+          {/* Story 58-7 — Section recommandations exercices pour ce groupe */}
+          {(() => {
+            const groupRecs = groupId ? (recommendations[groupId] ?? []) : []
+            const recommended = groupRecs.filter(s => s.isRecommended).slice(0, 6)
+            const others      = groupRecs.filter(s => !s.isRecommended)
+            if (groupId && (loadingRecommendations || recommended.length > 0)) {
+              return (
+                <View style={p.card}>
+                  <SectionLabel title="Recommandés pour ce groupe" hint="Basé sur le niveau moyen des joueurs (90 jours)" />
+                  {loadingRecommendations ? (
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>Analyse du groupe en cours…</AureakText>
+                  ) : (
+                    <>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+                        {recommended.map(s => (
+                          <View
+                            key={s.id}
+                            style={{
+                              paddingHorizontal: space.sm,
+                              paddingVertical: space.xs,
+                              borderRadius: 8,
+                              borderWidth: 1,
+                              borderColor: colors.accent.gold,
+                              backgroundColor: colors.accent.gold + '15',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: space.xs,
+                            }}
+                          >
+                            <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontWeight: '700' as never }}>✦</AureakText>
+                            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' as never }}>
+                              {s.title}
+                            </AureakText>
+                            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                              {'★'.repeat(s.difficultyLevel ?? 3)}
+                            </AureakText>
+                          </View>
+                        ))}
+                      </View>
+                      {others.length > 0 && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.sm }}>
+                          <View style={{ flex: 1, height: 1, backgroundColor: colors.border.divider }} />
+                          <AureakText variant="caption" style={{ color: colors.text.muted }}>Autres exercices</AureakText>
+                          <View style={{ flex: 1, height: 1, backgroundColor: colors.border.divider }} />
+                        </View>
+                      )}
+                    </>
+                  )}
+                </View>
+              )
+            }
+            return null
+          })()}
+
           <View style={[p.card, p.cardWithDropdown]}>
             <SectionLabel title="Thèmes pédagogiques" hint="Optionnel — 0 à N thèmes par séance" />
             <ThemeBlockPicker
