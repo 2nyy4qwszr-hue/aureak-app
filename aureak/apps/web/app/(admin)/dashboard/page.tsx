@@ -1138,6 +1138,184 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
   )
 }
 
+// ── Weather Widget (Story 50-8) ───────────────────────────────────────────────
+
+// Constante localisation — modifier ici pour changer la ville cible
+const WEATHER_COORDS    = { lat: 50.85, lon: 4.35, label: 'Bruxelles' }
+const WEATHER_CACHE_KEY = 'aureak_weather_cache'
+const WEATHER_CACHE_TTL = 60 * 60 * 1000  // 1h en ms
+
+type WeatherData = {
+  temperature : number  // °C
+  windSpeed   : number  // km/h
+  weatherCode : number  // WMO code
+  fetchedAt   : number  // Date.now()
+}
+
+const WMO_EMOJI: Record<number, string> = {
+  0: '☀️', 1: '🌤️', 2: '⛅', 3: '🌥️',
+  45: '🌫️', 48: '🌫️',
+  51: '🌦️', 53: '🌦️', 55: '🌧️',
+  61: '🌧️', 63: '🌧️', 65: '🌧️',
+  71: '🌨️', 73: '🌨️', 75: '🌨️', 77: '🌨️',
+  80: '🌦️', 81: '🌦️', 82: '🌦️',
+  85: '🌨️', 86: '🌨️',
+  95: '⛈️', 96: '⛈️', 99: '⛈️',
+}
+
+function wmoEmoji(code: number): string {
+  return WMO_EMOJI[code] ?? '🌡️'
+}
+
+function wmoLabel(code: number): string {
+  if (code === 0)  return 'Dégagé'
+  if (code <= 3)   return 'Partiellement nuageux'
+  if (code <= 48)  return 'Brouillard'
+  if (code <= 55)  return 'Bruine'
+  if (code <= 65)  return 'Pluie'
+  if (code <= 77)  return 'Neige'
+  if (code <= 82)  return 'Averses'
+  if (code <= 99)  return 'Orage'
+  return 'Variable'
+}
+
+function outdoorRecommendation(w: WeatherData): { ok: boolean; label: string; reason?: string } {
+  if (w.temperature < 5)  return { ok: false, label: 'Extérieur ✗', reason: 'Trop froid' }
+  if (w.windSpeed > 40)   return { ok: false, label: 'Extérieur ✗', reason: 'Vent fort' }
+  if (w.weatherCode >= 61 && w.weatherCode <= 82)
+                          return { ok: false, label: 'Extérieur ✗', reason: 'Pluie' }
+  if (w.weatherCode >= 95) return { ok: false, label: 'Extérieur ✗', reason: 'Orage' }
+  return { ok: true, label: 'Extérieur ✓' }
+}
+
+function loadWeatherCache(): WeatherData | null {
+  try {
+    const raw = localStorage.getItem(WEATHER_CACHE_KEY)
+    if (!raw) return null
+    const data = JSON.parse(raw) as WeatherData
+    if (Date.now() - data.fetchedAt > WEATHER_CACHE_TTL) return null
+    return data
+  } catch {
+    return null
+  }
+}
+
+function saveWeatherCache(data: WeatherData) {
+  try {
+    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(data))
+  } catch { /* quota exceeded — ignore */ }
+}
+
+async function fetchWeatherData(signal: AbortSignal): Promise<WeatherData> {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_COORDS.lat}&longitude=${WEATHER_COORDS.lon}&current=temperature_2m,wind_speed_10m,weather_code&wind_speed_unit=kmh`
+  const res  = await fetch(url, { signal })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json() as {
+    current: { temperature_2m: number; wind_speed_10m: number; weather_code: number }
+  }
+  return {
+    temperature: json.current.temperature_2m,
+    windSpeed  : json.current.wind_speed_10m,
+    weatherCode: json.current.weather_code,
+    fetchedAt  : Date.now(),
+  }
+}
+
+function WeatherWidget() {
+  const [weather,        setWeather]        = useState<WeatherData | null>(null)
+  const [loadingWeather, setLoadingWeather] = useState(true)
+  const [errorWeather,   setErrorWeather]   = useState(false)
+
+  const load = (force = false) => {
+    const controller = new AbortController()
+    setLoadingWeather(true)
+    setErrorWeather(false)
+    ;(async () => {
+      try {
+        if (!force) {
+          const cached = loadWeatherCache()
+          if (cached) { setWeather(cached); return }
+        } else {
+          try { localStorage.removeItem(WEATHER_CACHE_KEY) } catch { /* ignore */ }
+        }
+        const data = await fetchWeatherData(controller.signal)
+        saveWeatherCache(data)
+        setWeather(data)
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') return
+        setErrorWeather(true)
+        if (process.env.NODE_ENV !== 'production') console.error('[WeatherWidget] fetch error:', err)
+      } finally {
+        setLoadingWeather(false)
+      }
+    })()
+    return controller
+  }
+
+  useEffect(() => {
+    const controller = load()
+    return () => { controller?.abort() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (loadingWeather) return <SkeletonBlock h={80} r={radius.card} />
+
+  if (errorWeather || !weather) {
+    return (
+      <div className="aureak-card" style={{ ...S.kpiCard, minHeight: 80, justifyContent: 'center', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: colors.text.muted }}>Météo indisponible</span>
+      </div>
+    )
+  }
+
+  const rec = outdoorRecommendation(weather)
+
+  return (
+    <div className="aureak-card" style={{ ...S.kpiCard, borderTop: `3px solid ${colors.status.info}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: 'Montserrat, sans-serif' }}>
+          Météo terrain
+        </div>
+        <button
+          onClick={() => load(true)}
+          title="Forcer le rafraîchissement"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: colors.text.muted, padding: 0 }}
+        >
+          ↻
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+        <span style={{ fontSize: 28, lineHeight: 1 }}>{wmoEmoji(weather.weatherCode)}</span>
+        <div>
+          <div style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 700, fontSize: 22, color: colors.text.dark, lineHeight: 1 }}>
+            {Math.round(weather.temperature)}°C
+          </div>
+          <div style={{ fontSize: 11, color: colors.text.muted }}>
+            {wmoLabel(weather.weatherCode)} · {Math.round(weather.windSpeed)} km/h
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        marginTop : 10,
+        fontSize  : 12,
+        fontWeight: 600,
+        color     : rec.ok ? colors.status.present : colors.status.absent,
+      }}>
+        {rec.label}
+        {rec.reason && (
+          <span style={{ fontWeight: 400, color: colors.text.muted }}> — {rec.reason}</span>
+        )}
+      </div>
+
+      <div style={{ fontSize: 10, color: colors.text.subtle, marginTop: 4 }}>
+        {WEATHER_COORDS.label}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
@@ -1688,6 +1866,11 @@ export default function DashboardPage() {
             size="small"
             icon={criticalCount > 0 ? '🚨' : anomalies.length > 0 ? '⚠️' : '✅'}
           />
+        </div>
+
+        {/* SMALL — Météo terrain (Story 50-8) */}
+        <div className="bento-small">
+          <WeatherWidget />
         </div>
 
         {/* MEDIUM — Countdown prochaine séance (Story 50.3) */}
