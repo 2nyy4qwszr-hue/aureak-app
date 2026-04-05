@@ -7,6 +7,23 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-9
+    title: "FEATURE — Dashboard Focus mode plein écran"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-9_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-9_gate2.md"
+    notes:
+      - "bouton ⛶ dans HeroBand (prop onEnterFocusMode) — tooltip 'Mode plein écran'"
+      - "containerStyle fixed/inset:0/z-index:500 + animation focus-enter 0.3s"
+      - "body.focus-mode-active styles injectés dynamiquement via createElement('style')"
+      - "data-sidebar + data-topbar ajoutés dans _layout.tsx"
+      - "Escape cleanup useEffect + unmount cleanup — tsc 0 erreur"
+
   - story_id: story-50-7
     title: "FEATURE — Dashboard anomalies inline compactes"
     priority: P2

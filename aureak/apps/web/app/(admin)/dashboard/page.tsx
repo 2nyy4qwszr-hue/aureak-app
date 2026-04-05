@@ -136,7 +136,7 @@ function DashboardSkeleton() {
 
 // ── Hero Band ─────────────────────────────────────────────────────────────────
 
-function HeroBand({ implantationCount }: { implantationCount: number }) {
+function HeroBand({ implantationCount, onEnterFocusMode }: { implantationCount: number; onEnterFocusMode: () => void }) {
   const [currentTime, setCurrentTime] = useState(() => new Date())
 
   useEffect(() => {
@@ -220,7 +220,7 @@ function HeroBand({ implantationCount }: { implantationCount: number }) {
       </div>
 
       {/* Date & heure droite */}
-      <div className="hero-date" style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
+      <div className="hero-date" style={{ position: 'relative', zIndex: 1, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
         <div style={{
           fontFamily: 'Geist Mono, monospace',
           fontWeight: '600',
@@ -235,11 +235,31 @@ function HeroBand({ implantationCount }: { implantationCount: number }) {
           fontWeight   : '600',
           fontSize     : 15,
           color        : colors.accent.ivory,
-          marginTop    : 8,
           letterSpacing: 0.3,
         }}>
           {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
         </div>
+
+        {/* ⛶ Focus Mode toggle (Story 50-9) */}
+        <button
+          className="aureak-focus-toggle"
+          onClick={onEnterFocusMode}
+          title="Mode plein écran"
+          style={{
+            background   : 'none',
+            border       : `1px solid rgba(255,255,255,0.25)`,
+            borderRadius : radius.xs,
+            padding      : '4px 8px',
+            cursor       : 'pointer',
+            fontSize     : 16,
+            color        : colors.accent.ivory,
+            lineHeight   : 1,
+            transition   : `all ${transitions.fast}`,
+            marginTop    : 4,
+          }}
+        >
+          ⛶
+        </button>
       </div>
     </div>
   )
@@ -1362,6 +1382,39 @@ export default function DashboardPage() {
   const [groupsTotal,   setGroupsTotal]   = useState<number | null>(null)
   const [loadingCounts, setLoadingCounts] = useState(false)
 
+  // ── Focus Mode (Story 50-9) ──
+  const [focusMode, setFocusMode] = useState(false)
+
+  // Focus Mode — body class + global styles injection
+  useEffect(() => {
+    if (!focusMode) return
+    document.body.classList.add('focus-mode-active')
+
+    // Injecter les styles globaux ciblant la sidebar et la topbar
+    const styleEl = document.createElement('style')
+    styleEl.id = 'focus-mode-styles'
+    styleEl.textContent = `
+      body.focus-mode-active [data-sidebar] { display: none !important; }
+      body.focus-mode-active [data-topbar]  { display: none !important; }
+    `
+    document.head.appendChild(styleEl)
+
+    return () => {
+      document.body.classList.remove('focus-mode-active')
+      document.getElementById('focus-mode-styles')?.remove()
+    }
+  }, [focusMode])
+
+  // Focus Mode — Escape key listener
+  useEffect(() => {
+    if (!focusMode) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFocusMode(false)
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [focusMode])
+
   // ── Date range ──
   type Preset = 'this-week' | 'last-week' | '4-weeks' | 'custom'
 
@@ -1616,8 +1669,22 @@ export default function DashboardPage() {
     0
   )
 
+  // ── Focus Mode container style (Story 50-9) ──
+  const containerStyle: React.CSSProperties = focusMode
+    ? {
+        ...S.container,
+        position : 'fixed',
+        inset    : 0,
+        zIndex   : 500,
+        background: colors.light.primary,
+        overflowY: 'auto',
+        padding  : 24,
+        animation: 'focus-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      }
+    : S.container
+
   return (
-    <div style={S.container}>
+    <div style={containerStyle} className={focusMode ? 'focus-mode-enter' : undefined}>
       <style>{`
         .aureak-resolve-btn:hover { opacity: 0.85; }
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
@@ -1672,10 +1739,64 @@ export default function DashboardPage() {
           .page-layout { flex-direction: column; }
           .aside-col   { width: 100%; position: static; }
         }
+
+        /* ── Focus Mode (Story 50-9) ── */
+        @keyframes focus-enter {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        .focus-mode-enter { animation: focus-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .aureak-focus-toggle:hover { border-color: ${colors.accent.gold} !important; color: ${colors.accent.gold} !important; }
+        .aureak-focus-quit:hover   { border-color: ${colors.accent.gold} !important; }
       `}</style>
 
+      {/* ── Focus Mode — Badge + Bouton Quitter (Story 50-9) ── */}
+      {focusMode && (
+        <div style={{
+          position       : 'fixed',
+          top            : 12,
+          left           : 12,
+          zIndex         : 501,
+          backgroundColor: 'rgba(0,0,0,0.4)',
+          color          : '#FFF',
+          borderRadius   : radius.badge,
+          padding        : '4px 10px',
+          fontSize       : 11,
+          fontWeight     : 600,
+          fontFamily     : 'Geist, system-ui, sans-serif',
+          pointerEvents  : 'none',
+        }}>
+          🎯 Focus
+        </div>
+      )}
+      {focusMode && (
+        <button
+          className="aureak-focus-quit"
+          onClick={() => setFocusMode(false)}
+          style={{
+            position       : 'fixed',
+            top            : 12,
+            right          : 12,
+            zIndex         : 501,
+            backgroundColor: colors.light.surface,
+            border         : `1px solid ${colors.border.light}`,
+            borderRadius   : radius.badge,
+            padding        : '6px 14px',
+            cursor         : 'pointer',
+            fontSize       : 13,
+            fontWeight     : 600,
+            color          : colors.text.dark,
+            boxShadow      : shadows.sm,
+            fontFamily     : 'Geist, system-ui, sans-serif',
+            transition     : `all ${transitions.fast}`,
+          }}
+        >
+          ✕ Quitter
+        </button>
+      )}
+
       {/* ── Hero Band (full width, avant le layout 2 cols) ── */}
-      <HeroBand implantationCount={stats.length} />
+      <HeroBand implantationCount={stats.length} onEnterFocusMode={() => setFocusMode(true)} />
 
       {/* ── Layout 2 colonnes : main + aside activity feed ── */}
       <div className="page-layout">

@@ -136,6 +136,7 @@ export default function AdminLayout() {
 
       {/* ── Sidebar — Dark Premium ── */}
       <YStack
+        data-sidebar="true"
         width={sidebarWidth}
         backgroundColor={colors.background.primary}
         borderRightWidth={1}
@@ -374,6 +375,7 @@ export default function AdminLayout() {
         {/* Mobile top bar */}
         {isMobile && (
           <XStack
+            data-topbar="true"
             height={52}
             backgroundColor={colors.light.surface}
             borderBottomWidth={1}
