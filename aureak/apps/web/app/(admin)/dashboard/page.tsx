@@ -8,9 +8,9 @@ import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
-  fetchActivityFeed, supabase,
+  fetchActivityFeed, getTopStreakPlayers, supabase,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem } from '@aureak/api-client'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer } from '@aureak/api-client'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
@@ -848,6 +848,127 @@ function ActivityFeed({ events, tick }: { events: ActivityEventItem[]; tick: num
   )
 }
 
+// ── Streak Tile (Story 50.6) ──────────────────────────────────────────────────
+
+function InitialsAvatar({ name, rank }: { name: string; rank: number }) {
+  const initials = name
+    .split(' ')
+    .map(w => w[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+  const bg = rank === 1
+    ? colors.accent.gold
+    : rank === 2
+      ? colors.text.secondary
+      : colors.border.dark
+
+  return (
+    <div style={{
+      width          : 36,
+      height         : 36,
+      borderRadius   : radius.badge,
+      backgroundColor: bg,
+      display        : 'flex',
+      alignItems     : 'center',
+      justifyContent : 'center',
+      fontFamily     : 'Montserrat, sans-serif',
+      fontWeight     : '700',
+      fontSize       : 13,
+      color          : rank === 1 ? '#1A1A1A' : '#FFFFFF',
+      flexShrink     : 0,
+    }}>
+      {initials}
+    </div>
+  )
+}
+
+function StreakTile({ players, loading }: { players: StreakPlayer[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="aureak-card" style={S.kpiCard}>
+        <div style={{
+          fontSize      : 12,
+          fontWeight    : 600,
+          color         : colors.text.muted,
+          textTransform : 'uppercase',
+          letterSpacing : 0.8,
+          marginBottom  : 12,
+        }}>
+          Forme du moment 🔥
+        </div>
+        {[0, 1, 2].map(i => <SkeletonBlock key={i} h={40} r={8} />)}
+      </div>
+    )
+  }
+
+  return (
+    <div className="aureak-card" style={{ ...S.kpiCard, borderTop: `3px solid ${colors.accent.gold}` }}>
+      <div style={{
+        fontSize      : 12,
+        fontWeight    : 600,
+        color         : colors.text.muted,
+        textTransform : 'uppercase' as React.CSSProperties['textTransform'],
+        letterSpacing : 0.8,
+        marginBottom  : 14,
+      }}>
+        Forme du moment 🔥
+      </div>
+
+      {players.length === 0 ? (
+        <div>
+          <div style={{ fontSize: 14, color: colors.text.dark, fontWeight: 500 }}>
+            Aucune streak active
+          </div>
+          <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 4, lineHeight: 1.4 }}>
+            Les streaks apparaissent après 5 présences consécutives
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {players.map((p, i) => (
+            <div key={p.childId} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <InitialsAvatar name={p.displayName} rank={i + 1} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize    : i === 0 ? 14 : 13,
+                  fontWeight  : i === 0 ? 700 : 500,
+                  color       : colors.text.dark,
+                  overflow    : 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace  : 'nowrap',
+                }}>
+                  {i === 0 && (
+                    <span style={{
+                      color        : colors.accent.gold,
+                      marginRight  : 4,
+                      fontSize     : 11,
+                      fontWeight   : 700,
+                      fontFamily   : 'Geist Mono, monospace',
+                    }}>
+                      #1
+                    </span>
+                  )}
+                  {p.displayName}
+                </div>
+              </div>
+              <div style={{
+                fontSize  : 12,
+                fontWeight: 700,
+                color     : colors.text.muted,
+                fontFamily: 'Geist Mono, monospace',
+                flexShrink: 0,
+              }}>
+                {p.streak}{p.streak >= 10 ? ' 🔥' : ''}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
@@ -882,6 +1003,10 @@ export default function DashboardPage() {
   // ── Activity feed (Story 50-5) ──
   const [activityEvents, setActivityEvents] = useState<ActivityEventItem[]>([])
   const [tickMinute,     setTickMinute]     = useState(0)
+
+  // ── Streak players (Story 50-6) ──
+  const [streakPlayers,  setStreakPlayers]  = useState<StreakPlayer[]>([])
+  const [loadingStreaks,  setLoadingStreaks]  = useState(true)
 
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
@@ -1027,6 +1152,24 @@ export default function DashboardPage() {
       }
     }
     loadFeed()
+  }, [])
+
+  // ── Load streak players (Story 50-6) ──
+  useEffect(() => {
+    const loadStreaks = async () => {
+      setLoadingStreaks(true)
+      try {
+        const { data, error } = await getTopStreakPlayers(3)
+        if (error) {
+          if (process.env.NODE_ENV !== 'production')
+            console.error('[dashboard] getTopStreakPlayers error:', error)
+        }
+        setStreakPlayers(data ?? [])
+      } finally {
+        setLoadingStreaks(false)
+      }
+    }
+    loadStreaks()
   }, [])
 
   // ── Realtime subscription — attendance_records INSERT (Story 50-5, AC4) ──
@@ -1385,6 +1528,11 @@ export default function DashboardPage() {
             loading={loadingUpcoming}
             onNavigate={id => router.push(`/seances/${id}` as never)}
           />
+        </div>
+
+        {/* MEDIUM — Forme du moment (Story 50.6) */}
+        <div className="bento-medium">
+          <StreakTile players={streakPlayers} loading={loadingStreaks} />
         </div>
 
       </div>

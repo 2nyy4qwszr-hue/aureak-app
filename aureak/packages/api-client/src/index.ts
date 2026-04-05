@@ -412,9 +412,9 @@ export type {
 // ── Résolution de profils (ARCH-1 : accès centralisé) ────────────────────────
 export { getProfileDisplayName, resolveProfileDisplayNames } from './profiles'
 
-// ── Admin — Dashboard KPI counts + Activity Feed (Story 50.5) ────────────────
-export { getDashboardKpiCounts, fetchActivityFeed } from './admin/dashboard'
-export type { DashboardKpiCounts, ActivityEventItem, ActivityEventType } from './admin/dashboard'
+// ── Admin — Dashboard KPI counts + Activity Feed (Story 50.5) + Streaks (Story 50.6) ──
+export { getDashboardKpiCounts, fetchActivityFeed, getTopStreakPlayers } from './admin/dashboard'
+export type { DashboardKpiCounts, ActivityEventItem, ActivityEventType, StreakPlayer } from './admin/dashboard'
 
 // ── Admin — Évaluations (vue admin) ──────────────────────────────────────────
 export { listEvaluationsAdmin } from './admin/evaluations'

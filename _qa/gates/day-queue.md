@@ -7,6 +7,22 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-6
+    title: "FEATURE — Dashboard Forme du moment tile"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-6_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-6_gate2.md"
+    notes:
+      - "getTopStreakPlayers() dans api-client/admin/dashboard.ts : 90j attendance, streak JS, seuil >=5"
+      - "StreakTile + InitialsAvatar dans dashboard/page.tsx — bento-medium"
+      - "try/finally setLoadingStreaks — console guards NODE_ENV — tsc 0 erreur"
+      - "Égalité de score résolue par childId.localeCompare() — déterministe"
+
   - story_id: story-50-5
     title: "FEATURE — Dashboard Live Activity Feed"
     priority: P2

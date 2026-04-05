@@ -1,8 +1,100 @@
-// Admin Dashboard — compteurs KPI + activity feed
+// Admin Dashboard — compteurs KPI + activity feed + streak players
 // Extrait les counts depuis Supabase (conformité ARCH-1 : accès centralisé).
 
 import { supabase } from '../supabase'
 import { countActivePlayersCurrentSeason } from './child-directory'
+
+// ── Streak Players (Story 50.6) ───────────────────────────────────────────────
+
+export type StreakPlayer = {
+  childId    : string
+  displayName: string
+  streak     : number  // nombre de présences consécutives
+}
+
+/**
+ * Retourne les `limit` joueurs ayant la plus longue streak de présences consécutives.
+ * Calcul JS côté client : récupère 90 jours d'attendance, groupe par child_id,
+ * remonte depuis la séance la plus récente jusqu'au premier absent.
+ * Seuls les joueurs avec streak >= 5 sont inclus (AC2).
+ */
+export async function getTopStreakPlayers(
+  limit = 3
+): Promise<{ data: StreakPlayer[] | null; error: unknown }> {
+  const since = new Date(Date.now() - 90 * 24 * 3600_000).toISOString()
+
+  const { data: records, error: recordsError } = await supabase
+    .from('attendance_records')
+    .select('child_id, status, sessions(scheduled_at)')
+    .gte('sessions.scheduled_at', since)
+    .in('status', ['present', 'absent'])
+    .order('child_id')
+
+  if (recordsError) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[dashboard] getTopStreakPlayers attendance error:', recordsError)
+    return { data: null, error: recordsError }
+  }
+
+  // Grouper par child_id
+  // Note: Supabase retourne sessions comme array (résultat de join) — accès via [0]
+  const byChild = new Map<string, { status: string; date: string }[]>()
+  for (const row of (records ?? []) as unknown as { child_id: string; status: string; sessions: { scheduled_at: string }[] | null }[]) {
+    const childId = row.child_id
+    if (!childId) continue
+    const arr = byChild.get(childId) ?? []
+    const scheduledAt = Array.isArray(row.sessions) ? (row.sessions[0]?.scheduled_at ?? '') : ''
+    arr.push({ status: row.status, date: scheduledAt })
+    byChild.set(childId, arr)
+  }
+
+  // Calculer streak pour chaque enfant
+  const streaks: Array<{ childId: string; streak: number }> = []
+  for (const [childId, recs] of byChild.entries()) {
+    // Trier DESC par date (le plus récent en premier)
+    const sorted = recs
+      .filter(r => r.date !== '')
+      .sort((a, b) => b.date.localeCompare(a.date))
+    let streak = 0
+    for (const r of sorted) {
+      if (r.status === 'present') streak++
+      else break
+    }
+    if (streak >= 5) streaks.push({ childId, streak })
+  }
+
+  // Trier DESC par streak, résoudre les égalités par childId (stable, déterministe)
+  streaks.sort((a, b) => b.streak - a.streak || a.childId.localeCompare(b.childId))
+  const top = streaks.slice(0, limit)
+
+  if (top.length === 0) return { data: [], error: null }
+
+  // Récupérer les noms depuis profiles
+  const ids = top.map(t => t.childId)
+  const { data: profilesData, error: profilesError } = await supabase
+    .from('profiles')
+    .select('user_id, display_name')
+    .in('user_id', ids)
+
+  if (profilesError) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[dashboard] getTopStreakPlayers profiles error:', profilesError)
+  }
+
+  const nameMap = new Map(
+    ((profilesData ?? []) as { user_id: string; display_name: string | null }[])
+      .map(p => [p.user_id, p.display_name ?? 'Joueur'])
+  )
+
+  return {
+    data: top.map(t => ({
+      childId    : t.childId,
+      displayName: nameMap.get(t.childId) ?? 'Joueur',
+      streak     : t.streak,
+    })),
+    error: null,
+  }
+}
 
 // ── Activity Feed (Story 50.5) ────────────────────────────────────────────────
 
