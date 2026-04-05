@@ -1,4 +1,6 @@
-// useKeyboardShortcuts — Cmd+K (search), Cmd+N (new), Escape (close)
+// useKeyboardShortcuts — Cmd+N (new), Escape (close GlobalSearch)
+// Note : Cmd+K est maintenant géré par useCommandPalette (Story 51.3, capture phase)
+
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'expo-router'
 import { useSearch } from '../components/SearchContext'
@@ -24,13 +26,6 @@ export function useKeyboardShortcuts() {
       const isMac  = navigator.platform.toUpperCase().includes('MAC')
       const modKey = isMac ? e.metaKey : e.ctrlKey
 
-      // Cmd/Ctrl+K — ouvre GlobalSearch
-      if (modKey && e.key === 'k') {
-        e.preventDefault()
-        setOpen(true)
-        return
-      }
-
       // Cmd/Ctrl+N — route "nouveau" contextuelle
       if (modKey && e.key === 'n') {
         const newRoute = Object.entries(NEW_ROUTES).find(([base]) =>
@@ -43,7 +38,7 @@ export function useKeyboardShortcuts() {
         return
       }
 
-      // Escape — ferme la search
+      // Escape — ferme la GlobalSearch sidebar
       if (e.key === 'Escape') {
         setOpen(false)
       }

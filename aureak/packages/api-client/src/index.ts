@@ -381,6 +381,10 @@ export {
   listFaultsByTheme,
 } from './referentiel/theme-dossier'
 
+// ── Story 51.3 — Recherche unifiée Command Palette ────────────────────────────
+export { searchUnified } from './admin/search'
+export type { UnifiedSearchResult, SearchPlayerResult, SearchClubResult, SearchSessionResult } from './admin/search'
+
 // ── RBFA enrichissement clubs (migration 00081/00082) — Story 28-1 ───────────
 export { searchRbfaClubs }                    from './admin/rbfa-search'
 export type { RbfaRawClub }                   from './admin/rbfa-search'

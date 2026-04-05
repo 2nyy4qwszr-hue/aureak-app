@@ -335,6 +335,26 @@ next-morning-queue:
       - "hover: rgba(255,255,255,0.08) → rgba(255,255,255,0.06)"
       - "tsc 0 erreur — zero emoji dans NAV_GROUPS"
 
+  - story_id: story-51-3
+    title: "FEATURE — Command palette ⌘K recherche unifiée"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-3_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-3_gate2.md"
+    notes:
+      - "CommandResult/CommandResultType types dans @aureak/types/entities.ts"
+      - "searchUnified() dans api-client/admin/search.ts — 3 requêtes parallèles Promise.allSettled"
+      - "NAV_COMMANDS (14 routes) + DEFAULT_COMMANDS (top 6) + filterNavCommands() dans constants/navCommands.ts"
+      - "useCommandPalette hook — capture phase keyboard listener, debounce 150ms, try/finally"
+      - "CommandPalette composant — overlay fixed, Pressable backdrop, groupResults, empty state, footer hints"
+      - "useKeyboardShortcuts : Cmd+K retiré (délégué à useCommandPalette capture phase)"
+      - "_layout.tsx : <CommandPalette /> hors du flux principal"
+      - "tsc 0 erreur — Playwright skipped (app non démarrée)"
+
   - story_id: story-51-2
     title: "FEATURE — Topbar séance active permanente"
     priority: P2

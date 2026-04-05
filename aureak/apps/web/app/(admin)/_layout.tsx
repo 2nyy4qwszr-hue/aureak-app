@@ -41,6 +41,7 @@ import { SearchProvider } from '../../components/SearchContext'
 import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
+import { CommandPalette } from '../../components/CommandPalette'
 
 function KeyboardHandler() {
   useKeyboardShortcuts()
@@ -178,6 +179,8 @@ export default function AdminLayout() {
     <NotificationProvider>
     <SearchProvider>
     <KeyboardHandler />
+    {/* Story 51.3 — Command Palette ⌘K (overlay, hors du flux) */}
+    <CommandPalette />
     <XStack flex={1} style={{ height: '100vh' as never }}>
 
       {/* ── Mobile overlay ── */}

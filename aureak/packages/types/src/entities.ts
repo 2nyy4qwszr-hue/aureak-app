@@ -1851,6 +1851,31 @@ export type ChildCurrentClubFromHistory = {
   clubNomAnnuaire  : string | null // nom officiel depuis club_directory.nom (nullable)
 }
 
+// ─── Story 51.3 — Command Palette ⌘K ─────────────────────────────────────────
+
+/**
+ * Type de résultat dans la command palette.
+ * 'navigation' : action/page statique
+ * 'player'     : joueur depuis child_directory
+ * 'club'       : club depuis club_directory
+ * 'session'    : séance terrain
+ */
+export type CommandResultType = 'navigation' | 'player' | 'club' | 'session'
+
+/**
+ * Résultat affiché dans la command palette ⌘K.
+ * Peut porter soit un `href` (navigation router), soit une `action` (callback impératif).
+ */
+export interface CommandResult {
+  id      : string
+  type    : CommandResultType
+  label   : string
+  sublabel?: string
+  href?   : string
+  action? : () => void
+  icon?   : string   // emoji ou caractère court affiché à gauche du label
+}
+
 // ─── Story 51.2 — Topbar séance active permanente ────────────────────────────
 
 /**
