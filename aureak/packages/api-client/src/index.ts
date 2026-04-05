@@ -345,6 +345,21 @@ export {
 } from './gamification/quests'
 export type { QuestStatus, PlayerQuest } from './gamification/quests'
 
+// Story 59-1 + 59-3 — XP étendu + leaderboard
+export {
+  awardXp, getXpLedger, getXpProgression, getXPLeaderboard, XP_RATES,
+} from './gamification/xp'
+
+// Story 59-4 — Badges définitions
+export {
+  listBadgeDefinitions, listPlayerBadges,
+} from './gamification/badges'
+
+// Story 59-5 — Quêtes coaches
+export {
+  getCoachWeeklyQuests, assignCoachWeeklyQuests, updateCoachQuestProgress,
+} from './gamification/coach-quests'
+
 export {
   listPartnerships, createPartnership, updatePartnership, listPartnerAccessStats,
 } from './admin/partnerships'

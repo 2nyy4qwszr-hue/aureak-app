@@ -2115,3 +2115,98 @@ export type UpcomingSession = {
   groupMethod : string | null
 }
 
+// ============================================================
+// Story 59-1 — Gamification XP étendu (xp_ledger + player_xp_progression)
+// ============================================================
+
+/** XpEventType — 5 types d'événements créditant des XP */
+export type XpEventType =
+  | 'ATTENDANCE'
+  | 'NOTE_HIGH'
+  | 'BADGE_EARNED'
+  | 'STAGE_PARTICIPATION'
+  | 'SESSION_STREAK_5'
+
+/** XpLedgerEntry — ligne dans xp_ledger (ledger append-only) */
+export type XpLedgerEntry = {
+  id        : string
+  tenantId  : string
+  childId   : string
+  eventType : XpEventType
+  refId     : string | null
+  xpDelta   : number
+  createdAt : string   // ISO 8601
+}
+
+/** PlayerXpSnapshot — snapshot mensuel XP par joueur */
+export type PlayerXpSnapshot = {
+  id            : string
+  tenantId      : string
+  childId       : string
+  seasonId      : string | null
+  snapshotMonth : string   // ISO date — 1er du mois
+  xpTotal       : number
+  xpDeltaMonth  : number
+  levelTier     : string   // 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'legend'
+  computedAt    : string   // ISO 8601
+}
+
+/** XpEvent — payload envoyé à la Edge Function award-xp */
+export type XpEvent = {
+  childId     : string
+  eventType   : XpEventType
+  refId?      : string
+  xpOverride? : number
+  operationId?: string
+}
+
+// ============================================================
+// Story 59-3 — Leaderboard académie top 10
+// ============================================================
+
+/** LeaderboardEntry — entrée dans le classement XP de l'académie */
+export type LeaderboardEntry = {
+  rank        : number
+  childId     : string
+  displayName : string
+  avatarUrl   : string | null
+  totalXp     : number
+  xpThisWeek  : number
+  levelTier   : string
+  evolution   : 'up' | 'down' | 'stable'
+}
+
+// ============================================================
+// Story 59-5 — Quêtes hebdomadaires coaches
+// ============================================================
+
+/** CoachQuestStatus — statut d'une quête coach */
+export type CoachQuestStatus = 'active' | 'completed' | 'expired'
+
+/** CoachQuest — instance de quête hebdomadaire pour un coach */
+export type CoachQuest = {
+  id                 : string
+  tenantId           : string
+  coachId            : string
+  questDefinitionId  : string
+  status             : CoachQuestStatus
+  currentValue       : number
+  targetValue        : number
+  periodStart        : string   // ISO date
+  periodEnd          : string   // ISO date
+  completedAt        : string | null
+  createdAt          : string
+}
+
+/** CoachQuestWithDefinition — quête avec sa définition jointe */
+export type CoachQuestWithDefinition = CoachQuest & {
+  questDefinition: {
+    code        : string
+    name        : string
+    description : string | null
+    iconUrl     : string | null
+    questType   : string
+    xpReward    : number
+  } | null
+}
+
