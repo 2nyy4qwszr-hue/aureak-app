@@ -3,7 +3,11 @@
 // Story 44.6 — Stats groupes + listing enfants expandable
 // Story 47.2 — Design card avec photo de couverture + chips groupes
 // Story 49-6 — Photo/logo implantation + redesign page détail (done)
-import { useEffect, useState } from 'react'
+// Story 57-1 — Drag & drop + preview + compression 800px
+// Story 57-2 — Header detail 280px + badge capacité + bouton éditer
+// Story 57-3 — Barre de capacité colorée sur card
+// Story 57-4 — Mini-carte Leaflet dans panneau détail
+import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 
@@ -16,6 +20,7 @@ import {
   listGroupsByImplantation,
   createGroup,
   listGroupMembersWithDetails,
+  compressImage,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import {
@@ -57,6 +62,20 @@ function methodBadgeStyle(method: GroupMethod) {
     paddingVertical  : 3,
   }
 }
+
+// Story 57-2/57-3 — Couleur badge/barre capacité selon taux de remplissage
+function getCapacityColor(current: number, max: number | null): string {
+  if (!max || max <= 0) return colors.accent.gold
+  const ratio = current / max
+  if (ratio >= 0.90) return colors.accent.red
+  if (ratio >= 0.70) return colors.accent.gold
+  return colors.status.success
+}
+
+// Story 57-4 — Lazy import mini-carte Leaflet (web only, évite erreur SSR)
+const LazyImplantationMap = React.lazy(() =>
+  import('./_components/ImplantationMap').then(m => ({ default: m.ImplantationMap }))
+)
 
 // ── Group form state ──────────────────────────────────────────────────────────
 
@@ -146,6 +165,10 @@ function ImplantationCard({
   editAddr,
   saving,
   uploadingPhoto,
+  previewUrl,
+  isDragOver,
+  currentMemberCount,
+  photoErrorMsg,
   onEditStart,
   onEditNameChange,
   onEditAddrChange,
@@ -155,38 +178,56 @@ function ImplantationCard({
   onAddGroup,
   onManageGroup,
   onPhotoUpload,
+  onDragOver,
+  onDragLeave,
+  onDrop,
   onSelect,
   router,
 }: {
-  impl            : Implantation
-  implGroups      : Group[]
-  membersByGroup  : Record<string, GroupMemberWithDetails[]>
-  isEditing       : boolean
-  editName        : string
-  editAddr        : string
-  saving          : boolean
-  uploadingPhoto  : boolean
-  onEditStart     : () => void
-  onEditNameChange: (v: string) => void
-  onEditAddrChange: (v: string) => void
-  onSave          : () => void
-  onCancelEdit    : () => void
-  onDeactivate    : () => void
-  onAddGroup      : () => void
-  onManageGroup   : (groupId: string) => void
-  onPhotoUpload   : (file: File) => void
-  onSelect        : () => void
-  router          : ReturnType<typeof useRouter>
+  impl              : Implantation
+  implGroups        : Group[]
+  membersByGroup    : Record<string, GroupMemberWithDetails[]>
+  isEditing         : boolean
+  editName          : string
+  editAddr          : string
+  saving            : boolean
+  uploadingPhoto    : boolean
+  previewUrl        : string | null         // Story 57-1 — aperçu local avant upload
+  isDragOver        : boolean               // Story 57-1 — état hover drag
+  currentMemberCount: number               // Story 57-3 — total joueurs pour barre capacité
+  photoErrorMsg     : string | null         // Story 57-1 — erreur upload inline
+  onEditStart       : () => void
+  onEditNameChange  : (v: string) => void
+  onEditAddrChange  : (v: string) => void
+  onSave            : () => void
+  onCancelEdit      : () => void
+  onDeactivate      : () => void
+  onAddGroup        : () => void
+  onManageGroup     : (groupId: string) => void
+  onPhotoUpload     : (file: File) => void
+  onDragOver        : (e: React.DragEvent) => void  // Story 57-1
+  onDragLeave       : () => void                    // Story 57-1
+  onDrop            : (e: React.DragEvent) => void  // Story 57-1
+  onSelect          : () => void
+  router            : ReturnType<typeof useRouter>
 }) {
   const totalChildren = implGroups.reduce((total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0)
 
   return (
     <View style={styles.card}>
-      {/* ── Photo de couverture ── */}
-      <View style={styles.coverContainer}>
-        {impl.photoUrl ? (
+      {/* ── Photo de couverture — Story 57-1 : drag & drop + preview ── */}
+      <View
+        style={styles.coverContainer}
+        {...({
+          onDragOver : onDragOver,
+          onDragLeave: onDragLeave,
+          onDrop     : onDrop,
+        } as any)}
+      >
+        {/* Afficher preview locale ou photo DB */}
+        {(previewUrl ?? impl.photoUrl) ? (
           <Image
-            source={{ uri: impl.photoUrl }}
+            source={{ uri: previewUrl ?? impl.photoUrl! }}
             style={[styles.coverGradient, { resizeMode: 'cover' } as any]}
           />
         ) : (
@@ -212,6 +253,29 @@ function ImplantationCard({
             { background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 60%)' } as any,
           ]}
         />
+        {/* Story 57-1 — Overlay hover drag & drop (bordure or pulsante) */}
+        {isDragOver && (
+          <View style={{
+            position       : 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            borderWidth    : 2,
+            borderColor    : colors.accent.gold,
+            borderStyle    : 'dashed',
+            borderRadius   : radius.card,
+            backgroundColor: colors.accent.gold + '10',
+            zIndex         : 10,
+          } as any} />
+        )}
+        {/* Story 57-1 — Barre de progression upload (fine, or, bas de zone) */}
+        {uploadingPhoto && (
+          <View style={{
+            position       : 'absolute',
+            bottom: 0, left: 0, right: 0,
+            height         : 3,
+            backgroundColor: colors.accent.gold,
+            opacity        : 0.9,
+          }} />
+        )}
       </View>
 
       {/* ── Contenu card ── */}
@@ -235,13 +299,13 @@ function ImplantationCard({
               placeholderTextColor={colors.text.muted}
             />
 
-            {/* Bouton changer photo — web uniquement (input type=file) */}
+            {/* Bouton changer photo — web only (input type=file) + Story 57-1 drag & drop */}
             <View style={{ gap: space.xs }}>
               <AureakText variant="label" style={{ color: colors.text.muted }}>PHOTO DU SITE</AureakText>
               <Pressable
                 style={[styles.actionBtn, { borderColor: colors.accent.gold + '60', flexDirection: 'row', gap: space.xs, alignItems: 'center' }]}
                 onPress={() => {
-                  // web only
+                  // web only — partage le même handler que le drag & drop (AC8)
                   const input = document.createElement('input')
                   input.type = 'file'
                   input.accept = 'image/*'
@@ -256,8 +320,16 @@ function ImplantationCard({
                   {uploadingPhoto ? 'Upload en cours...' : impl.photoUrl ? 'Changer la photo' : '+ Ajouter une photo'}
                 </AureakText>
               </Pressable>
-              {impl.photoUrl && (
-                <AureakText variant="caption" style={{ color: colors.text.muted }}>Photo actuelle enregistrée</AureakText>
+              {(previewUrl ?? impl.photoUrl) && !photoErrorMsg && (
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                  {previewUrl ? 'Aperçu local — upload en cours...' : 'Photo actuelle enregistrée'}
+                </AureakText>
+              )}
+              {/* Story 57-1 — Erreur upload inline (AC6 / AC7) */}
+              {photoErrorMsg && (
+                <AureakText variant="caption" style={{ color: colors.accent.red }}>
+                  {photoErrorMsg}
+                </AureakText>
               )}
             </View>
 
@@ -330,6 +402,31 @@ function ImplantationCard({
               </View>
             )}
 
+            {/* Story 57-3 — Barre de capacité colorée (si maxPlayers défini) */}
+            {impl.maxPlayers != null && impl.maxPlayers > 0 && (
+              <View style={{ gap: space.xs, marginTop: space.xs }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                    {currentMemberCount} / {impl.maxPlayers} joueurs
+                  </AureakText>
+                </View>
+                <View style={{
+                  height         : 4,
+                  backgroundColor: colors.border.light,
+                  borderRadius   : radius.xs,
+                  overflow       : 'hidden',
+                }}>
+                  <View style={{
+                    height         : '100%',
+                    width          : `${Math.min((currentMemberCount / impl.maxPlayers) * 100, 100)}%`,
+                    backgroundColor: getCapacityColor(currentMemberCount, impl.maxPlayers),
+                    borderRadius   : radius.xs,
+                    transition     : 'width 0.3s ease',
+                  } as any} />
+                </View>
+              </View>
+            )}
+
             {/* Bouton ajouter un groupe */}
             <Pressable style={styles.addGroupBtn} onPress={onAddGroup}>
               <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un groupe</AureakText>
@@ -341,6 +438,9 @@ function ImplantationCard({
   )
 }
 
+// Constante hauteur header détail — Story 57-2
+const DETAIL_HEADER_HEIGHT = 280
+
 // ── ImplantationDetail — panneau de détail premium ───────────────────────────
 
 function ImplantationDetail({
@@ -348,6 +448,7 @@ function ImplantationDetail({
   implGroups,
   membersByGroup,
   onBack,
+  onEdit,
   onAddGroup,
   router,
 }: {
@@ -355,34 +456,43 @@ function ImplantationDetail({
   implGroups     : Group[]
   membersByGroup : Record<string, GroupMemberWithDetails[]>
   onBack         : () => void
+  onEdit         : () => void   // Story 57-2 — accès rapide mode édition
   onAddGroup     : () => void
   router         : ReturnType<typeof useRouter>
 }) {
   const totalChildren = implGroups.reduce(
     (total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0
   )
+  const capacityColor = getCapacityColor(totalChildren, impl.maxPlayers)
 
   return (
     <View style={detailStyles.container}>
 
-      {/* ── Header full-width premium ── */}
-      <View style={detailStyles.header}>
+      {/* ── Header full-width premium — Story 57-2 (280px) ── */}
+      <View style={[detailStyles.header, { height: DETAIL_HEADER_HEIGHT }]}>
         {impl.photoUrl ? (
           <Image
             source={{ uri: impl.photoUrl }}
             style={detailStyles.headerBg as any}
           />
         ) : (
-          <View
-            style={[detailStyles.headerBg, {
-              background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)'
-            } as any]}
-          />
+          /* Story 57-2 — fallback gradient terrain enrichi avec lignes */
+          <View style={[detailStyles.headerBg, { overflow: 'hidden' } as any]}>
+            <View style={[detailStyles.headerBg, {
+              background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 50%, #1a472a 100%)'
+            } as any]} />
+            {/* Lignes terrain SVG inline via CSS */}
+            <View style={{
+              position       : 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(255,255,255,0.05) 38px, rgba(255,255,255,0.05) 40px)',
+            } as any} />
+          </View>
         )}
 
-        {/* Overlay gradient bas */}
+        {/* Story 57-2 — Overlay gradient enrichi couvrant 60% bas */}
         <View style={[detailStyles.headerOverlay,
-          { background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%)' } as any]}
+          { background: 'linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.20) 60%, transparent 100%)' } as any]}
         />
 
         {/* Bouton retour */}
@@ -390,26 +500,48 @@ function ImplantationDetail({
           <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '600' }}>← Retour</AureakText>
         </Pressable>
 
-        {/* Badge joueurs */}
-        {totalChildren > 0 && (
-          <View style={detailStyles.playersBadge}>
+        {/* Story 57-2 — Badge capacité + bouton Modifier en haut-droite */}
+        <View style={{ position: 'absolute', top: space.md, right: space.md, zIndex: 3, flexDirection: 'row', gap: space.xs, alignItems: 'center' }}>
+          {/* Bouton Modifier */}
+          <Pressable
+            onPress={onEdit}
+            style={{
+              backgroundColor  : 'rgba(0,0,0,0.45)',
+              borderRadius     : radius.badge,
+              paddingHorizontal: 10,
+              paddingVertical  : 4,
+            }}
+          >
+            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 11 }}>✏ Modifier</AureakText>
+          </Pressable>
+          {/* Badge capacité — couleur selon taux */}
+          <View style={[detailStyles.playersBadge, { backgroundColor: capacityColor + 'CC', position: 'relative', top: 0, right: 0 }]}>
             <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
-              {totalChildren} joueur{totalChildren !== 1 ? 's' : ''}
+              {impl.maxPlayers != null && impl.maxPlayers > 0
+                ? `${totalChildren} / ${impl.maxPlayers}`
+                : `${totalChildren} joueur${totalChildren !== 1 ? 's' : ''}`
+              }
             </AureakText>
           </View>
-        )}
+        </View>
 
-        {/* Nom + adresse en bas-gauche */}
+        {/* Story 57-2 — Nom + adresse en bas-gauche, typo premium */}
         <View style={detailStyles.headerMeta}>
           <AureakText
             variant="h2"
-            style={{ color: '#FFFFFF', fontWeight: '900', textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 } as any}
+            style={{
+              color           : '#FFFFFF',
+              fontWeight      : '900',
+              fontSize        : 28,
+              textShadowColor : 'rgba(0,0,0,0.6)',
+              textShadowRadius: 8,
+            } as any}
           >
             {impl.name}
           </AureakText>
           {impl.address && (
-            <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
-              {impl.address}
+            <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.80)', marginTop: 2, fontSize: 13 }}>
+              📍 {impl.address}
             </AureakText>
           )}
         </View>
@@ -475,6 +607,33 @@ function ImplantationDetail({
             })}
           </View>
         )}
+
+        {/* Story 57-4 — Section mini-carte Leaflet */}
+        <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 1, marginTop: space.md }}>
+          LOCALISATION
+        </AureakText>
+        {impl.gpsLat != null && impl.gpsLon != null ? (
+          <Pressable
+            onPress={() => {
+              const url = `https://www.google.com/maps?q=${impl.gpsLat},${impl.gpsLon}`
+              if (typeof window !== 'undefined') window.open(url, '_blank')
+            }}
+            style={detailStyles.mapContainer}
+          >
+            <React.Suspense fallback={<View style={detailStyles.mapSkeleton} />}>
+              <LazyImplantationMap lat={impl.gpsLat} lon={impl.gpsLon} name={impl.name} />
+            </React.Suspense>
+            <View style={detailStyles.mapBadge}>
+              <AureakText variant="caption" style={{ color: '#FFFFFF', fontSize: 10 }}>Ouvrir dans Maps ↗</AureakText>
+            </View>
+          </Pressable>
+        ) : (
+          <View style={detailStyles.mapPlaceholder}>
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+              📍 Aucune coordonnée GPS — modifier l'implantation pour en ajouter
+            </AureakText>
+          </View>
+        )}
       </View>
     </View>
   )
@@ -517,8 +676,13 @@ export default function ImplantationsPage() {
   const [addingGroup, setAddingGroup]   = useState(false)
 
   // Story 49-6 — upload photo + sélection détail
-  const [uploadingPhoto, setUploadingPhoto]   = useState<string | null>(null) // implantationId en cours d'upload
+  const [uploadingPhoto, setUploadingPhoto]       = useState<string | null>(null) // implantationId en cours d'upload
   const [selectedImplantId, setSelectedImplantId] = useState<string | null>(null)
+
+  // Story 57-1 — drag & drop + preview + erreurs inline
+  const [previewUrls,  setPreviewUrls]  = useState<Record<string, string>>({})
+  const [dragOverId,   setDragOverId]   = useState<string | null>(null)
+  const [photoErrors,  setPhotoErrors]  = useState<Record<string, string>>({})
 
   // ── Data loading ───────────────────────────────────────────────────────────
 
@@ -625,23 +789,51 @@ export default function ImplantationsPage() {
     await load()
   }
 
-  // Story 49-6 — upload photo implantation
+  // Story 49-6 + 57-1 — handler partagé pour upload photo (compression + upload)
   const handlePhotoUpload = async (implId: string, file: File) => {
+    // Story 57-1 — AC7 : vérifier type image
+    if (!file.type.startsWith('image/')) {
+      setPhotoErrors(prev => ({ ...prev, [implId]: 'Format non supporté (PNG, JPG, WebP uniquement)' }))
+      return
+    }
+    setPhotoErrors(prev => { const n = { ...prev }; delete n[implId]; return n })
+    // Story 57-1 — AC4 : preview locale immédiate
+    const previewUrl = URL.createObjectURL(file)
+    setPreviewUrls(prev => ({ ...prev, [implId]: previewUrl }))
     setUploadingPhoto(implId)
     try {
-      const { publicUrl, error } = await uploadImplantationPhoto(implId, file)
+      // Story 57-1 — AC3 : compression 800px max
+      const compressed     = await compressImage(file)
+      const compressedFile = new File([compressed], file.name, { type: 'image/jpeg' })
+      const { publicUrl, error } = await uploadImplantationPhoto(implId, compressedFile)
       if (error) {
         if (process.env.NODE_ENV !== 'production')
           console.error('[Implantations] handlePhotoUpload error:', error)
+        // AC6 : retirer preview + afficher erreur inline
+        setPreviewUrls(prev => { const n = { ...prev }; delete n[implId]; return n })
+        setPhotoErrors(prev => ({ ...prev, [implId]: 'Échec de l\'upload — veuillez réessayer' }))
+        URL.revokeObjectURL(previewUrl)
         return
       }
-      // Mise à jour optimiste locale
+      // Mise à jour optimiste locale + retirer preview
       setImplantations(prev =>
         prev.map(i => i.id === implId ? { ...i, photoUrl: publicUrl } : i)
       )
+      setPreviewUrls(prev => { const n = { ...prev }; delete n[implId]; return n })
+      URL.revokeObjectURL(previewUrl)
     } finally {
       setUploadingPhoto(null)
     }
+  }
+
+  // Story 57-1 — handler drop (drag & drop natif)
+  const handleDrop = async (implId: string, e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOverId(null)
+    const file = e.dataTransfer.files?.[0]
+    if (!file) return
+    // Réutiliser le même handler que le clic (AC8 : chemins partagés)
+    await handlePhotoUpload(implId, file)
   }
 
   // ── Group CRUD ─────────────────────────────────────────────────────────────
@@ -748,6 +940,12 @@ export default function ImplantationsPage() {
             implGroups={groups[selectedImplantId] ?? []}
             membersByGroup={membersByGroup}
             onBack={() => setSelectedImplantId(null)}
+            onEdit={() => {
+              // Story 57-2 — bouton éditer dans header détail
+              const impl = implantations.find(i => i.id === selectedImplantId)
+              if (impl) { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }
+              setSelectedImplantId(null)
+            }}
             onAddGroup={() => { setAddGroupFor(selectedImplantId); setGroupForm(emptyForm()) }}
             router={router}
           />
@@ -833,31 +1031,43 @@ export default function ImplantationsPage() {
         <>
           {/* Grille de cards */}
           <View style={[styles.grid, { gap: colGap }]}>
-            {implantations.map((impl) => (
-              <View key={impl.id} style={{ width: colWidth }}>
-                <ImplantationCard
-                  impl={impl}
-                  implGroups={groups[impl.id] ?? []}
-                  membersByGroup={membersByGroup}
-                  isEditing={editId === impl.id}
-                  editName={editName}
-                  editAddr={editAddr}
-                  saving={saving}
-                  uploadingPhoto={uploadingPhoto === impl.id}
-                  onEditStart={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
-                  onEditNameChange={setEditName}
-                  onEditAddrChange={setEditAddr}
-                  onSave={handleSave}
-                  onCancelEdit={() => setEditId(null)}
-                  onDeactivate={() => handleDeactivate(impl.id)}
-                  onAddGroup={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
-                  onManageGroup={(groupId) => router.push(`/groups/${groupId}` as never)}
-                  onPhotoUpload={(file) => handlePhotoUpload(impl.id, file)}
-                  onSelect={() => setSelectedImplantId(impl.id)}
-                  router={router}
-                />
-              </View>
-            ))}
+            {implantations.map((impl) => {
+              const currentMemberCount = (groups[impl.id] ?? []).reduce(
+                (total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0
+              )
+              return (
+                <View key={impl.id} style={{ width: colWidth }}>
+                  <ImplantationCard
+                    impl={impl}
+                    implGroups={groups[impl.id] ?? []}
+                    membersByGroup={membersByGroup}
+                    isEditing={editId === impl.id}
+                    editName={editName}
+                    editAddr={editAddr}
+                    saving={saving}
+                    uploadingPhoto={uploadingPhoto === impl.id}
+                    previewUrl={previewUrls[impl.id] ?? null}
+                    isDragOver={dragOverId === impl.id}
+                    currentMemberCount={currentMemberCount}
+                    photoErrorMsg={photoErrors[impl.id] ?? null}
+                    onEditStart={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
+                    onEditNameChange={setEditName}
+                    onEditAddrChange={setEditAddr}
+                    onSave={handleSave}
+                    onCancelEdit={() => setEditId(null)}
+                    onDeactivate={() => handleDeactivate(impl.id)}
+                    onAddGroup={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
+                    onManageGroup={(groupId) => router.push(`/groups/${groupId}` as never)}
+                    onPhotoUpload={(file) => handlePhotoUpload(impl.id, file)}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverId(impl.id) }}
+                    onDragLeave={() => setDragOverId(null)}
+                    onDrop={(e) => handleDrop(impl.id, e)}
+                    onSelect={() => setSelectedImplantId(impl.id)}
+                    router={router}
+                  />
+                </View>
+              )
+            })}
           </View>
 
           {/* Formulaire d'ajout de groupe — panneau flottant */}
@@ -944,11 +1154,11 @@ export default function ImplantationsPage() {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-// Story 49-6 — styles pour ImplantationDetail
+// Story 49-6 + 57-2 — styles pour ImplantationDetail
 const detailStyles = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   header     : {
-    height                 : 200,
+    // hauteur gérée via prop (DETAIL_HEADER_HEIGHT = 280 — Story 57-2)
     position               : 'relative',
     overflow               : 'hidden',
     borderBottomLeftRadius : radius.cardLg,
@@ -1027,6 +1237,39 @@ const detailStyles = StyleSheet.create({
     borderRadius     : radius.badge,
     paddingHorizontal: 8,
     paddingVertical  : 2,
+  },
+  // Story 57-4 — mini-carte Leaflet
+  mapContainer: {
+    height      : 180,
+    borderRadius: radius.card,
+    overflow    : 'hidden',
+    borderWidth : 1,
+    borderColor : colors.border.light,
+    position    : 'relative',
+    marginTop   : space.xs,
+  },
+  mapSkeleton : {
+    height          : 180,
+    backgroundColor : colors.light.muted,
+    borderRadius    : radius.card,
+  },
+  mapBadge    : {
+    position         : 'absolute',
+    bottom           : space.xs,
+    right            : space.xs,
+    backgroundColor  : 'rgba(0,0,0,0.55)',
+    borderRadius     : radius.xs,
+    paddingHorizontal: 8,
+    paddingVertical  : 3,
+    zIndex           : 10,
+  },
+  mapPlaceholder: {
+    padding        : space.md,
+    backgroundColor: colors.light.muted,
+    borderRadius   : radius.card,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    marginTop      : space.xs,
   },
 })
 

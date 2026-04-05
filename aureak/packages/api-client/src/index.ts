@@ -2,6 +2,9 @@
 // RÈGLE : Ce package est le SEUL autorisé à importer @supabase/supabase-js
 
 export { supabase } from './supabase'
+
+// Story 57-1 — utilitaire compression image côté client (web only)
+export { compressImage } from './utils/compress-image'
 export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
 export {
