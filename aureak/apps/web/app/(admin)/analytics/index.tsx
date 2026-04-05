@@ -1,2 +1,2 @@
-// Story 9.3 — Analytics : comparaison inter-implantations
-export { default } from '../dashboard/comparison'
+// Story 60.1 — Stats Room hub (re-export pattern Expo Router)
+export { default } from './page'

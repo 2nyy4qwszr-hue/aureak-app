@@ -575,3 +575,12 @@ export {
 } from './notifications'
 export type { InAppNotification } from './notifications'
 
+// ── Analytics (Epic 60) ───────────────────────────────────────────────────────
+export {
+  getStatsRoomKpis,
+  getAttendanceByGroupMonth,
+  getSessionHeatmap,
+  getImplantationRankings,
+} from './analytics'
+export type { StatsRoomKpis } from './analytics'
+

@@ -131,7 +131,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Analytics',
     items: [
-      { label: 'Comparaison',      href: '/analytics',               Icon: BarChartIcon },
+      { label: 'Stats Room',       href: '/analytics',               Icon: BarChartIcon },
       { label: 'Par implantation', href: '/analytics/implantation',  Icon: PieChartIcon },
     ],
   },
