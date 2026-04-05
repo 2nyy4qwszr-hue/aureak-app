@@ -15,8 +15,11 @@ import {
   listSessionsAdminView,
   // Story 53-10
   listAvailableCoaches, assignCoach, removeCoach,
+  // Story 54-3
+  getGroupMembersRecentStreaks,
 } from '@aureak/api-client'
-import { AureakButton, AureakText, Badge } from '@aureak/ui'
+import type { PlayerRecentStreak } from '@aureak/api-client'
+import { AureakButton, AureakText, Badge, AttendanceToggle } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
@@ -580,6 +583,344 @@ async function computePresenceStreaks(
   }
 }
 
+// ── Stories 54-1/54-2/54-3/54-4 — Squad Status Board ────────────────────────
+
+const SQUAD_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
+  present   : { bg: '#10B981' + '40', text: '#059669', label: '✓ Présent'     },
+  absent    : { bg: '#E05252' + '40', text: '#DC2626', label: '✗ Absent'      },
+  late      : { bg: '#F59E0B' + '40', text: '#D97706', label: '⏱ En retard'   },
+  injured   : { bg: '#F59E0B' + '40', text: '#D97706', label: '🩹 Blessé'     },
+  trial     : { bg: '#6366F1' + '40', text: '#4F46E5', label: '👀 Essai'      },
+  unconfirmed: { bg: '#9CA3AF' + '40', text: '#6B7280', label: '? Non confirmé'},
+}
+const SQUAD_STATUS_UNKNOWN = { bg: colors.accent.gold + '33', text: colors.accent.gold, label: '?' }
+
+const SQUAD_STATUS_OPTIONS: Array<{ status: AttendanceStatus; label: string }> = [
+  { status: 'present',    label: '✓ Présent'      },
+  { status: 'absent',     label: '✗ Absent'       },
+  { status: 'late',       label: '⏱ Retard'       },
+  { status: 'injured',    label: '🩹 Blessé'      },
+  { status: 'trial',      label: '👀 Essai'        },
+]
+
+type SquadCardProps = {
+  member      : GroupMemberWithDetails
+  status      : AttendanceStatus | null
+  toggling    : boolean
+  streak     ?: PlayerRecentStreak
+  onStatus    : (childId: string, status: AttendanceStatus) => void
+}
+
+function SquadCard({ member, status, toggling, streak, onStatus }: SquadCardProps) {
+  const [showMenu, setShowMenu] = useState(false)
+
+  const inits = member.displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const sc    = status ? (SQUAD_STATUS_COLORS[status] ?? SQUAD_STATUS_UNKNOWN) : SQUAD_STATUS_UNKNOWN
+
+  // Streak sub-text (Story 54-3)
+  let streakLabel: string | null = null
+  let streakColor: string | null = null
+  if (streak) {
+    if (streak.consecutivePresences >= 10) {
+      streakLabel = `🔥🔥 ${streak.consecutivePresences} consécutives`
+      streakColor = colors.status.success
+    } else if (streak.consecutivePresences >= 5) {
+      streakLabel = `🔥 ${streak.consecutivePresences} consécutives`
+      streakColor = colors.status.success
+    } else if (streak.recentAbsences >= 2 && streak.consecutivePresences < 3) {
+      streakLabel = `⚠️ ${streak.recentAbsences} abs. récentes`
+      streakColor = '#F59E0B'
+    }
+  }
+
+  const isSimpleStatus = status === 'present' || status === 'absent' || status === null
+
+  return (
+    <View style={[sc54.card, { opacity: toggling ? 0.6 : 1 }]}>
+      {/* Avatar + nom + streak */}
+      <Pressable onPress={() => setShowMenu(v => !v)} style={sc54.cardInner}>
+        <View style={[sc54.avatar, { backgroundColor: sc.bg, borderColor: sc.text + '80' }]}>
+          <AureakText style={[sc54.avatarText, { color: sc.text }] as never}>{inits}</AureakText>
+        </View>
+        <AureakText style={sc54.name} numberOfLines={1}>{member.displayName}</AureakText>
+        {/* Streak sub-text (Story 54-3) */}
+        {streakLabel && streakColor && (
+          <AureakText style={[sc54.streak, { color: streakColor }] as never}>{streakLabel}</AureakText>
+        )}
+        {/* Status badge for advanced statuses */}
+        {!isSimpleStatus && (
+          <View style={[sc54.badge, { backgroundColor: sc.bg, borderColor: sc.text + '60' }]}>
+            <AureakText style={[sc54.badgeText, { color: sc.text }] as never}>{sc.label}</AureakText>
+          </View>
+        )}
+      </Pressable>
+      {/* Story 54-2 — AttendanceToggle neumorphique pour présent/absent (statuts simples) */}
+      {isSimpleStatus && (
+        <View style={sc54.toggleWrap}>
+          <AttendanceToggle
+            status   ={status as 'present' | 'absent' | null}
+            onToggle ={() => onStatus(member.childId, status === 'present' ? 'absent' : 'present')}
+            disabled ={toggling}
+            size     ="sm"
+          />
+        </View>
+      )}
+
+      {/* Micro-menu statut (Story 54-1 AC5) */}
+      {showMenu && (
+        <View style={sc54.menu}>
+          {SQUAD_STATUS_OPTIONS.map(opt => (
+            <Pressable
+              key={opt.status}
+              style={[
+                sc54.menuItem,
+                status === opt.status && sc54.menuItemActive,
+              ]}
+              onPress={() => {
+                onStatus(member.childId, opt.status)
+                setShowMenu(false)
+              }}
+            >
+              <AureakText style={[
+                sc54.menuItemText,
+                status === opt.status && sc54.menuItemTextActive,
+              ] as never}>{opt.label}</AureakText>
+            </Pressable>
+          ))}
+          <Pressable style={sc54.menuClose} onPress={() => setShowMenu(false)}>
+            <AureakText style={sc54.menuCloseText}>✕</AureakText>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  )
+}
+
+const sc54 = StyleSheet.create({
+  card      : {
+    backgroundColor : colors.light.surface,
+    borderWidth     : 1,
+    borderColor     : colors.border.light,
+    borderRadius    : 12,
+    overflow        : 'visible' as never,
+    position        : 'relative' as never,
+  },
+  cardInner : {
+    alignItems: 'center' as never,
+    padding   : space.sm,
+    gap       : 6,
+  },
+  avatar    : {
+    width        : 44, height: 44, borderRadius: 22,
+    borderWidth  : 1.5,
+    alignItems   : 'center' as never,
+    justifyContent: 'center' as never,
+  },
+  avatarText: { fontSize: 14, fontWeight: '700' as never },
+  name      : { fontSize: 12, fontWeight: '700' as never, color: colors.text.dark, textAlign: 'center' as never, maxWidth: 100 },
+  streak    : { fontSize: 10, fontWeight: '600' as never, textAlign: 'center' as never },
+  badge     : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'center' as never },
+  badgeText : { fontSize: 10, fontWeight: '700' as never },
+  menu      : {
+    position        : 'absolute' as never,
+    top             : 0,
+    left            : 0,
+    right           : 0,
+    zIndex          : 10,
+    backgroundColor : colors.light.surface,
+    borderWidth     : 1.5,
+    borderColor     : colors.accent.gold,
+    borderRadius    : 12,
+    padding         : space.xs,
+    gap             : 4,
+    boxShadow       : shadows.md,
+  } as never,
+  menuItem  : {
+    paddingVertical  : 4,
+    paddingHorizontal: space.xs,
+    borderRadius     : 6,
+  },
+  menuItemActive: {
+    backgroundColor: colors.accent.gold + '20',
+  },
+  menuItemText  : { fontSize: 11, color: colors.text.dark },
+  menuItemTextActive: { fontWeight: '700' as never, color: colors.accent.gold },
+  menuClose : { alignItems: 'center' as never, paddingTop: 2 },
+  menuCloseText: { fontSize: 10, color: colors.text.muted },
+  toggleWrap: { padding: space.xs, paddingTop: 0, alignItems: 'stretch' as never },
+})
+
+type SquadStatusGridProps = {
+  members      : GroupMemberWithDetails[]
+  attendanceMap: Record<string, AttendanceStatus | null>
+  memberStreaks : Record<string, PlayerRecentStreak>
+  onStatusChange: (childId: string, status: AttendanceStatus) => void
+  toggling     : Set<string>
+  isMobile     : boolean
+}
+
+function SquadStatusGrid({
+  members, attendanceMap, memberStreaks, onStatusChange, toggling, isMobile,
+}: SquadStatusGridProps) {
+  // Story 54-4 — Séparer late / main
+  const lateMembers = useMemo(
+    () => members.filter(m => attendanceMap[m.childId] === 'late'),
+    [members, attendanceMap]
+  )
+  const mainMembers = useMemo(
+    () => members.filter(m => attendanceMap[m.childId] !== 'late'),
+    [members, attendanceMap]
+  )
+
+  // Story 54-1 AC7 — Tri : enregistrés (alpha) puis non enregistrés (alpha)
+  const sortedMain = useMemo(() => {
+    const registered   = mainMembers.filter(m => attendanceMap[m.childId] !== null)
+      .sort((a, b) => a.displayName.localeCompare(b.displayName, 'fr', { sensitivity: 'base' }))
+    const unregistered = mainMembers.filter(m => attendanceMap[m.childId] === null)
+      .sort((a, b) => a.displayName.localeCompare(b.displayName, 'fr', { sensitivity: 'base' }))
+    return [...registered, ...unregistered]
+  }, [mainMembers, attendanceMap])
+
+  // Story 54-1 AC6 + 54-4 AC6 — Compteur global
+  const presentCount    = useMemo(() => members.filter(m => attendanceMap[m.childId] === 'present').length, [members, attendanceMap])
+  const absentCount     = useMemo(() => members.filter(m => attendanceMap[m.childId] === 'absent').length, [members, attendanceMap])
+  const lateCount       = lateMembers.length
+  const unknownCount    = useMemo(() => members.filter(m => attendanceMap[m.childId] === null).length, [members, attendanceMap])
+
+  // Largeur de carte : 4 colonnes desktop / 2 colonnes mobile
+  const colCount = isMobile ? 2 : 4
+
+  return (
+    <View style={{ gap: space.md }}>
+      {/* Compteur global */}
+      <View style={ssgSt.counter}>
+        <AureakText style={[ssgSt.counterItem, { color: colors.status.success }] as never}>
+          {presentCount} présents
+        </AureakText>
+        <AureakText style={ssgSt.counterDot}>·</AureakText>
+        <AureakText style={[ssgSt.counterItem, { color: colors.accent.red ?? '#E05252' }] as never}>
+          {absentCount} absents
+        </AureakText>
+        {lateCount > 0 && (
+          <>
+            <AureakText style={ssgSt.counterDot}>·</AureakText>
+            <AureakText style={[ssgSt.counterItem, { color: '#F59E0B' }] as never}>
+              {lateCount} retardataires
+            </AureakText>
+          </>
+        )}
+        <AureakText style={ssgSt.counterDot}>·</AureakText>
+        <AureakText style={[ssgSt.counterItem, { color: colors.accent.gold }] as never}>
+          {unknownCount} non enregistrés
+        </AureakText>
+      </View>
+
+      {/* Story 54-4 — Zone Retardataires */}
+      {lateMembers.length > 0 && (
+        <View style={ssgSt.lateZone}>
+          <View style={ssgSt.lateHeader}>
+            <AureakText style={ssgSt.lateTitle}>⏱ Retardataires ({lateMembers.length})</AureakText>
+          </View>
+          <View style={ssgSt.lateList}>
+            {lateMembers.map(m => (
+              <View key={m.childId} style={ssgSt.lateRow}>
+                <View style={ssgSt.lateAvatar}>
+                  <AureakText style={ssgSt.lateAvatarText}>
+                    {m.displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </AureakText>
+                </View>
+                <AureakText style={ssgSt.lateName} numberOfLines={1}>{m.displayName}</AureakText>
+                <View style={ssgSt.lateBadge}>
+                  <AureakText style={ssgSt.lateBadgeText}>⏱ En retard</AureakText>
+                </View>
+                <Pressable
+                  style={ssgSt.lateBtn}
+                  onPress={() => onStatusChange(m.childId, 'present')}
+                  disabled={toggling.has(m.childId)}
+                >
+                  <AureakText style={ssgSt.lateBtnText}>→ Présent</AureakText>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Grille principale */}
+      {lateMembers.length > 0 && (
+        <View style={ssgSt.mainHeader}>
+          <AureakText style={ssgSt.mainTitle}>Joueurs ({mainMembers.length})</AureakText>
+        </View>
+      )}
+      <View style={[ssgSt.grid, { flexDirection: 'row' as never, flexWrap: 'wrap' as never, gap: space.sm }]}>
+        {sortedMain.map(m => (
+          <View
+            key={m.childId}
+            style={{ width: colCount === 4 ? 'calc(25% - 12px)' : 'calc(50% - 8px)' } as never}
+          >
+            <SquadCard
+              member   ={m}
+              status   ={attendanceMap[m.childId] ?? null}
+              toggling ={toggling.has(m.childId)}
+              streak   ={memberStreaks[m.childId]}
+              onStatus ={onStatusChange}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  )
+}
+
+const ssgSt = StyleSheet.create({
+  counter    : { flexDirection: 'row' as never, flexWrap: 'wrap' as never, alignItems: 'center' as never, gap: 6 },
+  counterItem: { fontSize: 12, fontWeight: '700' as never },
+  counterDot : { fontSize: 12, color: colors.text.muted },
+  // Late zone
+  lateZone   : {
+    backgroundColor: '#F59E0B' + '18',
+    borderWidth    : 1.5,
+    borderColor    : '#F59E0B' + '60',
+    borderRadius   : 10,
+    overflow       : 'hidden' as never,
+  },
+  lateHeader : {
+    backgroundColor: '#F59E0B' + '30',
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.xs + 2,
+  },
+  lateTitle  : { fontSize: 13, fontWeight: '700' as never, color: '#D97706' },
+  lateList   : { padding: space.sm, gap: 8 },
+  lateRow    : { flexDirection: 'row' as never, alignItems: 'center' as never, gap: space.xs },
+  lateAvatar : {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: '#F59E0B' + '30',
+    borderWidth: 1, borderColor: '#F59E0B' + '80',
+    alignItems: 'center' as never, justifyContent: 'center' as never,
+    flexShrink: 0,
+  },
+  lateAvatarText: { fontSize: 11, fontWeight: '700' as never, color: '#D97706' },
+  lateName   : { flex: 1, fontSize: 12, fontWeight: '600' as never, color: colors.text.dark },
+  lateBadge  : {
+    backgroundColor: '#F59E0B' + '30', borderWidth: 1, borderColor: '#F59E0B' + '60',
+    borderRadius: 12, paddingHorizontal: 6, paddingVertical: 2,
+  },
+  lateBadgeText: { fontSize: 10, fontWeight: '700' as never, color: '#D97706' },
+  lateBtn    : {
+    backgroundColor: colors.status.success + '20',
+    borderWidth: 1, borderColor: colors.status.success + '60',
+    borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
+  },
+  lateBtnText: { fontSize: 11, fontWeight: '700' as never, color: '#059669' },
+  // Main section label (quand lateZone visible)
+  mainHeader : {
+    borderTopWidth: 1.5, borderTopColor: colors.border.light,
+    paddingTop: space.xs,
+  },
+  mainTitle  : { fontSize: 12, fontWeight: '700' as never, color: colors.text.muted, textTransform: 'uppercase' as never, letterSpacing: 0.6 },
+  grid       : {},
+})
+
 export default function SessionDetailPage() {
   const { sessionId, updated } = useLocalSearchParams<{ sessionId: string; updated?: string }>()
   const router = useRouter()
@@ -615,6 +956,8 @@ export default function SessionDetailPage() {
   const [attendanceMap,      setAttendanceMap]      = useState<Record<string, AttendanceStatus | null>>({})
   const [attendanceToggling, setAttendanceToggling] = useState<Set<string>>(new Set())
   const [attendanceError,    setAttendanceError]    = useState<string | null>(null)
+  // Story 54-3 — Streaks récentes par joueur
+  const [memberStreaks, setMemberStreaks] = useState<Record<string, PlayerRecentStreak>>({})
   const [guestSearch,   setGuestSearch]  = useState('')
   const [guestResults, setGuestResults]= useState<ChildDirectoryEntry[]>([])
   const [showGuestPicker, setShowGuestPicker] = useState(false)
@@ -706,6 +1049,15 @@ export default function SessionDetailPage() {
       sortedMembers.forEach(m => { map[m.childId] = null })
       ;(a.data as Attendance[]).forEach(att => { map[att.childId] = att.status as AttendanceStatus })
       setAttendanceMap(map)
+
+      // Story 54-3 — Charger les streaks récentes si groupe défini (silent fail)
+      if (s.data.groupId) {
+        getGroupMembersRecentStreaks(s.data.groupId, sessionId)
+          .then(streaks => setMemberStreaks(streaks))
+          .catch(err => {
+            if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] getGroupMembersRecentStreaks error:', err)
+          })
+      }
 
       // Story 53-10 — Charger coaches disponibles pour DnD board
       listAvailableCoaches()
@@ -882,6 +1234,38 @@ export default function SessionDetailPage() {
       setPostponeDate('')
       setPostponeError('')
       load()
+    }
+  }
+
+  // Story 54-1/54-4 — Changer statut avec optimistic update (multi-statut)
+  const handleStatusChange = async (childId: string, newStatus: AttendanceStatus) => {
+    if (!session || !sessionId) return
+    if (attendanceToggling.has(childId)) return // debounce
+    const prevStatus = attendanceMap[childId] ?? null
+    // Optimistic update
+    setAttendanceMap(prev => ({ ...prev, [childId]: newStatus }))
+    setAttendanceToggling(prev => new Set([...prev, childId]))
+    setAttendanceError(null)
+    try {
+      const { error } = await recordAttendance({
+        sessionId,
+        childId,
+        tenantId  : session.tenantId,
+        status    : newStatus,
+        recordedBy: '',
+      })
+      if (error) {
+        setAttendanceMap(prev => ({ ...prev, [childId]: prevStatus }))
+        setAttendanceError('Erreur lors de la mise à jour — réessayez')
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] recordAttendance error:', error)
+        setTimeout(() => setAttendanceError(null), 4000)
+      }
+    } finally {
+      setAttendanceToggling(prev => {
+        const next = new Set([...prev])
+        next.delete(childId)
+        return next
+      })
     }
   }
 
@@ -1481,16 +1865,13 @@ export default function SessionDetailPage() {
         </View>
       )}
 
-      {/* Présences (Story 49-4) */}
+      {/* Présences — Stories 54-1/54-2/54-3/54-4 Squad Status Board */}
       <View style={styles.card}>
         {session.groupId ? (
           <>
-            {/* Compteur AC6 */}
-            <AureakText variant="label">
-              {`Présences (${groupMembers.filter(m => attendanceMap[m.childId] === 'present').length} présents / ${groupMembers.length} joueurs)`}
-            </AureakText>
+            <AureakText variant="label">Présences</AureakText>
 
-            {/* Message d'erreur rollback AC5 */}
+            {/* Message d'erreur rollback */}
             {attendanceError && (
               <View style={{
                 backgroundColor: colors.status.warning + '25', borderRadius: 6, padding: space.sm,
@@ -1507,77 +1888,15 @@ export default function SessionDetailPage() {
                 Aucun joueur dans ce groupe
               </AureakText>
             ) : (
-              groupMembers.map(member => {
-                const status = attendanceMap[member.childId] ?? null
-                const isToggling = attendanceToggling.has(member.childId)
-                const advancedStatuses: Array<AttendanceStatus> = ['late', 'trial', 'injured', 'unconfirmed']
-                const isAdvanced = status !== null && advancedStatuses.includes(status)
-                const isPresent = status === 'present'
-                const advancedLabel: Record<string, string> = {
-                  late: 'En retard', trial: 'Essai', injured: 'Blessé', unconfirmed: 'Non confirmé',
-                }
-                return (
-                  <View
-                    key={member.childId}
-                    style={[styles.row, { paddingVertical: 6, opacity: isToggling ? 0.6 : 1, justifyContent: 'space-between' as never }]}
-                  >
-                    {/* Avatar + nom */}
-                    <View style={[styles.row, { flex: 1 }]}>
-                      <View style={{
-                        width: 36, height: 36, borderRadius: 18,
-                        backgroundColor: colors.accent.gold + '30',
-                        borderWidth: 1, borderColor: colors.accent.gold + '60',
-                        alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0,
-                      }}>
-                        <AureakText style={{ fontSize: 12, fontWeight: '700' as never, color: colors.accent.gold }}>
-                          {initials(member.displayName)}
-                        </AureakText>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <AureakText variant="body" style={{ fontWeight: '600' as never }}>
-                          {member.displayName}
-                        </AureakText>
-                        {member.birthDate ? (
-                          <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                            {getAge(member.birthDate)}
-                          </AureakText>
-                        ) : null}
-                      </View>
-                    </View>
-
-                    {/* Toggle ou badge statut avancé */}
-                    {isAdvanced ? (
-                      <View style={{
-                        paddingHorizontal: space.sm, paddingVertical: 4,
-                        backgroundColor: colors.accent.gold + '20',
-                        borderWidth: 1, borderColor: colors.accent.gold + '70',
-                        borderRadius: radius.xs,
-                        minWidth: 80, alignItems: 'center',
-                      }}>
-                        <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' as never }}>
-                          {advancedLabel[status as string] ?? status}
-                        </AureakText>
-                      </View>
-                    ) : (
-                      <Pressable
-                        onPress={() => handleTogglePresence(member.childId)}
-                        disabled={isToggling}
-                        style={{
-                          paddingHorizontal: space.sm, paddingVertical: 4,
-                          backgroundColor: isPresent ? colors.status.success : colors.accent.red,
-                          borderRadius: radius.xs,
-                          minWidth: 80, alignItems: 'center',
-                        }}
-                      >
-                        <AureakText variant="caption" style={{ color: colors.light.surface, fontWeight: '600' as never }}>
-                          {isPresent ? '✓ Présent' : '✗ Absent'}
-                        </AureakText>
-                      </Pressable>
-                    )}
-                  </View>
-                )
-              })
+              // Story 54-1 — Squad Overview Grid + 54-4 — Zone Retardataires
+              <SquadStatusGrid
+                members       ={groupMembers}
+                attendanceMap ={attendanceMap}
+                memberStreaks  ={memberStreaks}
+                onStatusChange={handleStatusChange}
+                toggling      ={attendanceToggling}
+                isMobile      ={isMobile}
+              />
             )}
           </>
         ) : (
