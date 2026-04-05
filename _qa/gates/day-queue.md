@@ -18,10 +18,10 @@ next-morning-queue:
   - story_id: story-49-1
     title: "BUG P1 — Création coach — Edge Function non-2xx persistant"
     priority: P1
-    status: in-progress
-    gate1: pending
-    gate2: pending
-    commit: ""
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "93317f9"
 
   - story_id: story-49-2
     title: "UX — Blocs thèmes éditables depuis fiche séance"

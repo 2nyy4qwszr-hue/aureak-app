@@ -83,8 +83,9 @@ export default function SessionDetailPage() {
   const [availableThemes, setAvailableThemes] = useState<MethodologyTheme[]>([])
   const [addingTheme,     setAddingTheme]     = useState(false)
   const [themeAddError,   setThemeAddError]   = useState<string | null>(null)
-  const [removingThemeId, setRemovingThemeId] = useState<string | null>(null)
-  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
+  const [removingThemeId,  setRemovingThemeId]  = useState<string | null>(null)
+  const [confirmRemoveId,  setConfirmRemoveId]  = useState<string | null>(null)
+  const [themeRemoveError, setThemeRemoveError] = useState<string | null>(null)
   // Story 21.3 — Workshops
   const [workshops,     setWorkshops]    = useState<SessionWorkshop[]>([])
   // Story 46.1 — Group members
@@ -190,8 +191,17 @@ export default function SessionDetailPage() {
   const handleOpenThemePicker = async () => {
     setThemeAddError(null)
     if (availableThemes.length === 0) {
-      const all = await listMethodologyThemes({ activeOnly: true })
-      setAvailableThemes(all)
+      setAddingTheme(true)
+      try {
+        const all = await listMethodologyThemes({ activeOnly: true })
+        setAvailableThemes(all)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] listMethodologyThemes error:', err)
+        setThemeAddError('Impossible de charger la liste des thèmes.')
+        return
+      } finally {
+        setAddingTheme(false)
+      }
     }
     setShowThemePicker(true)
   }
@@ -221,6 +231,7 @@ export default function SessionDetailPage() {
 
   const handleRemoveTheme = async (blockId: string) => {
     setRemovingThemeId(blockId)
+    setThemeRemoveError(null)
     const snapshot = [...themeBlocks]
     setThemeBlocks(prev => prev.filter(b => b.id !== blockId)) // optimistic
     try {
@@ -228,6 +239,7 @@ export default function SessionDetailPage() {
       if (error) {
         if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] removeThemeBlock error:', error)
         setThemeBlocks(snapshot) // rollback
+        setThemeRemoveError(error)
       }
     } finally {
       setRemovingThemeId(null)
@@ -597,7 +609,7 @@ export default function SessionDetailPage() {
                 {/* Bouton Retirer */}
                 {removingThemeId !== b.id && confirmRemoveId !== b.id && (
                   <Pressable onPress={() => setConfirmRemoveId(b.id)}>
-                    <AureakText variant="caption" style={{ color: colors.accent.red ?? '#E05252' }}>Retirer</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.accent.red }}>Retirer</AureakText>
                   </Pressable>
                 )}
                 {removingThemeId === b.id && (
@@ -608,23 +620,23 @@ export default function SessionDetailPage() {
               {confirmRemoveId === b.id && removingThemeId !== b.id && (
                 <View style={{
                   flexDirection: 'row', alignItems: 'center', gap: space.xs,
-                  backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.xs,
+                  backgroundColor: colors.accent.red + '18', borderRadius: 6, padding: space.xs,
                   marginLeft: 22,
                 }}>
-                  <AureakText variant="caption" style={{ color: '#DC2626', flex: 1 }}>
+                  <AureakText variant="caption" style={{ color: colors.accent.red, flex: 1 }}>
                     Retirer ce thème ?
                   </AureakText>
                   <Pressable
-                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, backgroundColor: '#DC2626', borderRadius: 4 }}
+                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, backgroundColor: colors.accent.red, borderRadius: 4 }}
                     onPress={() => handleRemoveTheme(b.id)}
                   >
-                    <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700' as never }}>Confirmer</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.light.surface, fontWeight: '700' as never }}>Confirmer</AureakText>
                   </Pressable>
                   <Pressable
-                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, borderWidth: 1, borderColor: '#DC2626', borderRadius: 4 }}
+                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, borderWidth: 1, borderColor: colors.accent.red, borderRadius: 4 }}
                     onPress={() => setConfirmRemoveId(null)}
                   >
-                    <AureakText variant="caption" style={{ color: '#DC2626' }}>Annuler</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.accent.red }}>Annuler</AureakText>
                   </Pressable>
                 </View>
               )}
@@ -701,8 +713,14 @@ export default function SessionDetailPage() {
 
           {/* Erreur ajout */}
           {themeAddError && (
-            <AureakText variant="caption" style={{ color: colors.accent.red ?? '#E05252', marginTop: space.xs }}>
+            <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
               {themeAddError}
+            </AureakText>
+          )}
+          {/* Erreur suppression (AC4 — rollback visible) */}
+          {themeRemoveError && (
+            <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
+              Erreur lors du retrait : {themeRemoveError}
             </AureakText>
           )}
         </View>
