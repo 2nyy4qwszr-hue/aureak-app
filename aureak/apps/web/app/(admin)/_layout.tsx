@@ -1,6 +1,7 @@
 import React from 'react'
-import { useEffect, useState } from 'react'
-import { Pressable, useWindowDimensions } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { Animated, Pressable, useWindowDimensions } from 'react-native'
+import type { PressableProps, ViewStyle } from 'react-native'
 import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
@@ -9,6 +10,7 @@ import { getActiveSession, getNavBadgeCounts } from '@aureak/api-client'
 import type { ActiveSessionInfo, NavBadgeCounts } from '@aureak/api-client'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
+import { NavTooltip } from '../../components/NavTooltip'
 import {
   HomeIcon,
   CalendarIcon,
@@ -47,6 +49,15 @@ import { ShortcutsHelp } from '../../components/ShortcutsHelp'
 import { KeyboardPrefixHint } from '../../components/KeyboardPrefixHint'
 import { BreadcrumbProvider } from '../contexts/BreadcrumbContext'
 import { Breadcrumb } from '../../components/Breadcrumb'
+
+// ── Story 51.7 — HoverablePressable : Pressable avec onMouseEnter/Leave (RN Web) ─
+// Les props hover ne sont pas dans les types RN natifs — cast via interface étendue.
+interface HoverablePressableProps extends PressableProps {
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
+  style?        : ViewStyle | ((state: { pressed: boolean }) => ViewStyle)
+}
+const HoverablePressable = Pressable as React.ComponentType<HoverablePressableProps>
 
 // ── Hints sidebar : href → chord affiché en mode expanded (Story 51.6) ────────
 const ITEM_SHORTCUTS: Record<string, string> = {
@@ -140,17 +151,76 @@ export default function AdminLayout() {
   const { width } = useWindowDimensions()
   const { role, isLoading, signOut, user } = useAuthStore()
   const [mobileOpen,   setMobileOpen]   = useState(false)
+
+  // ── Story 51.7 — Sidebar collapse avec animation smooth ──────────────────
+  // État initial chargé depuis localStorage sans déclencher d'animation (AC6)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
   })
-  const toggleSidebar = () => setSidebarCollapsed(v => {
-    const next = !v
-    try { localStorage.setItem('sidebar-collapsed', String(next)) } catch { /* noop */ }
-    return next
+
+  // labelsVisible séparé de sidebarCollapsed pour contrôle d'opacity avec timing décalé (AC2/AC3)
+  const [labelsVisible, setLabelsVisible] = useState<boolean>(() => {
+    try { return localStorage.getItem('sidebar-collapsed') !== 'true' } catch { return true }
   })
+
+  // hoveredHref : tooltip visible uniquement en mode collapsed (AC4)
+  const [hoveredHref, setHoveredHref] = useState<string | null>(null)
+
+  // isInitialRender : guard pour ne pas déclencher l'animation Animated.Value au mount (AC6)
+  const isInitialRender = useRef(true)
+
+  // Animated.Value pour rotation du bouton toggle (0 = expanded ‹, 1 = collapsed ›) (AC7)
+  const toggleRotation = useRef(
+    new Animated.Value(
+      (() => { try { return localStorage.getItem('sidebar-collapsed') === 'true' ? 1 : 0 } catch { return 0 } })()
+    )
+  ).current
+
   const sidebarWidth = sidebarCollapsed ? 52 : 220
 
   const isMobile = width < 768
+
+  /**
+   * toggleSidebar — Story 51.7
+   * Séquence temporelle :
+   * - Collapse : labels → opacity 0 immédiatement, largeur réduite après 80ms
+   * - Expand   : largeur augmentée immédiatement, labels → opacity 1 après 180ms
+   * Rotation bouton synchronisée 280ms ease dans les deux cas (AC7).
+   */
+  const toggleSidebar = () => {
+    const next = !sidebarCollapsed
+
+    // Animation rotation bouton toggle synchronisée avec l'animation largeur (AC7)
+    Animated.timing(toggleRotation, {
+      toValue        : next ? 1 : 0,
+      duration       : 280,
+      useNativeDriver: true,
+    }).start()
+
+    if (next) {
+      // ── Collapse ──
+      // 1. Masquer labels immédiatement (transition CSS opacity 0.1s)
+      setLabelsVisible(false)
+      // 2. Réduire la largeur après 80ms (labels déjà invisibles → pas de débordement)
+      setTimeout(() => {
+        setSidebarCollapsed(true)
+        try { localStorage.setItem('sidebar-collapsed', 'true') } catch { /* noop */ }
+      }, 80)
+    } else {
+      // ── Expand ──
+      // 1. Élargir la sidebar immédiatement (transition CSS width 0.28s)
+      setSidebarCollapsed(false)
+      try { localStorage.setItem('sidebar-collapsed', 'false') } catch { /* noop */ }
+      // 2. Afficher labels après 180ms (largeur quasi-finale → pas de clignotement)
+      setTimeout(() => setLabelsVisible(true), 180)
+    }
+  }
+
+  // Interpolation rotation : 0 → '0deg' (expanded ‹), 1 → '180deg' (collapsed ›)
+  const rotateInterp = toggleRotation.interpolate({
+    inputRange : [0, 1],
+    outputRange: ['0deg', '180deg'],
+  })
 
   // ── Story 51.2 — Topbar séance active — polling 60s ──────────────────────
   const [activeSessions, setActiveSessions] = useState<ActiveSessionInfo[]>([])
@@ -212,6 +282,11 @@ export default function AdminLayout() {
     }
   }, [role, isLoading, router])
 
+  // Marquer que le premier rendu est terminé — guard animation initiale (AC6)
+  useEffect(() => {
+    isInitialRender.current = false
+  }, [])
+
   if (isLoading || role !== 'admin') return null
 
   const handleSignOut = async () => {
@@ -250,18 +325,21 @@ export default function AdminLayout() {
         borderRightWidth={1}
         borderRightColor={colors.border.dark}
         style={{
-          flexShrink     : 0,
-          display        : 'flex',
-          flexDirection  : 'column',
-          height         : '100vh',
-          boxShadow      : shadows.sm,
+          flexShrink    : 0,
+          display       : 'flex',
+          flexDirection : 'column',
+          height        : '100vh',
+          boxShadow     : shadows.sm,
+          // Story 51.7 — animation smooth largeur (AC1, AC8)
+          transition    : 'width 0.28s ease',
+          overflow      : 'hidden',
           ...(isMobile ? {
-            position   : 'fixed',
-            top        : 0,
-            left       : mobileOpen ? 0 : -sidebarWidth,
-            transition : `left ${transitions.normal}`,
-            zIndex     : 50,
-            boxShadow  : mobileOpen ? shadows.lg : 'none',
+            position  : 'fixed',
+            top       : 0,
+            left      : mobileOpen ? 0 : -sidebarWidth,
+            transition: `left ${transitions.normal}`,
+            zIndex    : 50,
+            boxShadow : mobileOpen ? shadows.lg : 'none',
           } : {}),
         } as never}
       >
@@ -280,35 +358,80 @@ export default function AdminLayout() {
           borderBottomWidth={1}
           borderBottomColor={colors.border.dark}
           marginBottom={8}
+          style={{ flexShrink: 0 } as never}
         >
           <XStack alignItems="center" justifyContent="space-between">
-            {!sidebarCollapsed && (
-              <YStack>
-                <Text fontFamily="$heading" fontSize={22} fontWeight="800" color={colors.accent.gold} letterSpacing={4}>
-                  AUREAK
-                </Text>
-                <Text fontFamily="$body" fontSize={10} color={colors.text.secondary} letterSpacing={1.8} marginTop={2} style={{ textTransform: 'uppercase' as never }}>
-                  Administration
-                </Text>
-              </YStack>
-            )}
-            <Pressable onPress={toggleSidebar} style={{ padding: 4, borderRadius: 4, marginLeft: sidebarCollapsed ? 'auto' : 0 } as never}>
-              <Text fontSize={12} color={colors.text.secondary}>{sidebarCollapsed ? '›' : '‹'}</Text>
+            {/* Story 51.7 — AUREAK label avec opacity animée (AC2, AC3) */}
+            <YStack
+              style={{
+                opacity   : labelsVisible ? 1 : 0,
+                transition: 'opacity 0.1s ease',
+                overflow  : 'hidden',
+                flexShrink: 1,
+              } as never}
+            >
+              <Text fontFamily="$heading" fontSize={22} fontWeight="800" color={colors.accent.gold} letterSpacing={4}>
+                AUREAK
+              </Text>
+              <Text fontFamily="$body" fontSize={10} color={colors.text.secondary} letterSpacing={1.8} marginTop={2} style={{ textTransform: 'uppercase' as never }}>
+                Administration
+              </Text>
+            </YStack>
+
+            {/* Story 51.7 — bouton toggle avec rotation animée (AC7) */}
+            <Pressable
+              onPress={toggleSidebar}
+              style={{
+                padding     : 4,
+                borderRadius: 4,
+                marginLeft  : sidebarCollapsed ? 'auto' : 0,
+                flexShrink  : 0,
+              } as never}
+            >
+              <Animated.View style={{ transform: [{ rotate: rotateInterp }] }}>
+                <Text fontSize={12} color={colors.text.secondary}>‹</Text>
+              </Animated.View>
             </Pressable>
           </XStack>
         </YStack>
 
-        {/* ── Global search ── */}
-        {!sidebarCollapsed && <GlobalSearch />}
+        {/* ── Global search — masqué en collapsed (opacity animée) ── */}
+        <YStack
+          style={{
+            opacity   : labelsVisible ? 1 : 0,
+            transition: 'opacity 0.1s ease',
+            overflow  : 'hidden',
+            maxHeight : labelsVisible ? 200 : 0,
+          } as never}
+        >
+          <GlobalSearch />
+        </YStack>
 
-        {/* ── Notification badge ── */}
-        {!sidebarCollapsed && <NotificationBadge />}
+        {/* ── Notification badge — masqué en collapsed (opacity animée) ── */}
+        <YStack
+          style={{
+            opacity   : labelsVisible ? 1 : 0,
+            transition: 'opacity 0.1s ease',
+            overflow  : 'hidden',
+            maxHeight : labelsVisible ? 80 : 0,
+          } as never}
+        >
+          <NotificationBadge />
+        </YStack>
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
           {NAV_GROUPS.map((group, gi) => (
             <YStack key={group.label} marginBottom={4}>
-              {!sidebarCollapsed && (
+              {/* Story 51.7 — label groupe avec opacity animée (AC2, AC3) */}
+              <YStack
+                style={{
+                  opacity   : labelsVisible ? 1 : 0,
+                  transition: 'opacity 0.1s ease',
+                  overflow  : 'hidden',
+                  maxHeight : labelsVisible ? 40 : 0,
+                } as never}
+              >
                 <Text
                   fontFamily="$body"
                   fontSize={9}
@@ -322,93 +445,116 @@ export default function AdminLayout() {
                 >
                   {group.label}
                 </Text>
-              )}
+              </YStack>
 
               <YStack gap={1} paddingHorizontal={8}>
                 {group.items.map(({ label, href, Icon }) => {
                   // Exact match OR prefix match — avoid short paths like '/' matching everything
                   const isActive = pathname === href || (href.length > 1 && pathname.startsWith(href + '/'))
+                  const isHovered = hoveredHref === href
                   return (
-                    <Pressable key={href} onPress={() => router.push(href as never)}>
-                      {({ pressed }) => (
-                        <YStack
-                          paddingVertical={8}
-                          paddingLeft={12}
-                          paddingRight={12}
-                          borderRadius={radius.xs}
-                          borderLeftWidth={3}
-                          borderLeftColor={isActive ? colors.accent.gold : 'transparent' as never}
-                          backgroundColor={
-                            (isActive
-                              ? colors.accent.gold + '18'
-                              : pressed
-                                ? 'rgba(255,255,255,0.06)'
-                                : 'transparent') as never
-                          }
-                          style={{
-                            transition: `all ${transitions.fast}`,
-                          } as never}
-                        >
-                          {sidebarCollapsed ? (
-                            <YStack alignItems="center" justifyContent="center">
-                              <YStack style={{ position: 'relative' } as never}>
-                                <Icon
-                                  color={isActive ? colors.accent.gold : colors.text.secondary}
-                                  size={18}
-                                  strokeWidth={1.5}
-                                />
-                                {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
-                                  <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
-                                )}
-                                {href === '/seances' && navBadges?.sessionsUpcoming24h && (
-                                  <NavBadge dot color={colors.accent.gold} />
-                                )}
+                    // Story 51.7 — NavTooltip wrappant chaque item (AC4, AC5)
+                    <NavTooltip
+                      key={href}
+                      label={label}
+                      visible={sidebarCollapsed && isHovered}
+                    >
+                      {/* Story 51.7 — HoverablePressable pour onMouseEnter/Leave (AC4) */}
+                      <HoverablePressable
+                        onPress={() => router.push(href as never)}
+                        onMouseEnter={() => setHoveredHref(href)}
+                        onMouseLeave={() => setHoveredHref(null)}
+                      >
+                        {({ pressed }) => (
+                          <YStack
+                            paddingVertical={8}
+                            paddingLeft={12}
+                            paddingRight={12}
+                            borderRadius={radius.xs}
+                            borderLeftWidth={3}
+                            borderLeftColor={isActive ? colors.accent.gold : 'transparent' as never}
+                            backgroundColor={
+                              (isActive
+                                ? colors.accent.gold + '18'
+                                : pressed
+                                  ? 'rgba(255,255,255,0.06)'
+                                  : 'transparent') as never
+                            }
+                            style={{
+                              transition: `all ${transitions.fast}`,
+                            } as never}
+                          >
+                            {sidebarCollapsed ? (
+                              <YStack alignItems="center" justifyContent="center">
+                                <YStack style={{ position: 'relative' } as never}>
+                                  <Icon
+                                    color={isActive ? colors.accent.gold : colors.text.secondary}
+                                    size={18}
+                                    strokeWidth={1.5}
+                                  />
+                                  {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
+                                    <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
+                                  )}
+                                  {href === '/seances' && navBadges?.sessionsUpcoming24h && (
+                                    <NavBadge dot color={colors.accent.gold} />
+                                  )}
+                                </YStack>
                               </YStack>
-                            </YStack>
-                          ) : (
-                            <XStack alignItems="center">
-                              <YStack
-                                marginRight={8}
-                                style={{ position: 'relative', opacity: isActive ? 1 : 0.6 } as never}
-                              >
-                                <Icon
-                                  color={isActive ? colors.accent.gold : colors.text.secondary}
-                                  size={16}
-                                  strokeWidth={1.5}
-                                />
-                                {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
-                                  <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
-                                )}
-                                {href === '/seances' && navBadges?.sessionsUpcoming24h && (
-                                  <NavBadge dot color={colors.accent.gold} />
-                                )}
-                              </YStack>
-                              <Text
-                                fontFamily="$body"
-                                fontSize={13}
-                                fontWeight={isActive ? '700' : '400'}
-                                color={isActive ? colors.accent.gold : colors.text.secondary}
-                                style={isActive ? { letterSpacing: 0.1, flex: 1 } as never : { flex: 1 } as never}
-                                numberOfLines={1}
-                              >
-                                {label}
-                              </Text>
-                              {/* Story 51.6 — hint raccourci (mode expanded uniquement) */}
-                              {ITEM_SHORTCUTS[href] && (
+                            ) : (
+                              <XStack alignItems="center">
+                                <YStack
+                                  marginRight={8}
+                                  style={{ position: 'relative', opacity: isActive ? 1 : 0.6 } as never}
+                                >
+                                  <Icon
+                                    color={isActive ? colors.accent.gold : colors.text.secondary}
+                                    size={16}
+                                    strokeWidth={1.5}
+                                  />
+                                  {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
+                                    <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
+                                  )}
+                                  {href === '/seances' && navBadges?.sessionsUpcoming24h && (
+                                    <NavBadge dot color={colors.accent.gold} />
+                                  )}
+                                </YStack>
+                                {/* Story 51.7 — label nav avec opacity animée (AC2, AC3) */}
                                 <Text
                                   fontFamily="$body"
-                                  fontSize={9}
-                                  color={colors.text.subtle}
-                                  style={{ marginLeft: 4, flexShrink: 0 } as never}
+                                  fontSize={13}
+                                  fontWeight={isActive ? '700' : '400'}
+                                  color={isActive ? colors.accent.gold : colors.text.secondary}
+                                  style={
+                                    isActive
+                                      ? { letterSpacing: 0.1, flex: 1, opacity: labelsVisible ? 1 : 0, transition: 'opacity 0.1s ease' } as never
+                                      : { flex: 1, opacity: labelsVisible ? 1 : 0, transition: 'opacity 0.1s ease' } as never
+                                  }
+                                  numberOfLines={1}
                                 >
-                                  {ITEM_SHORTCUTS[href]}
+                                  {label}
                                 </Text>
-                              )}
-                            </XStack>
-                          )}
-                        </YStack>
-                      )}
-                    </Pressable>
+                                {/* Story 51.6 — hint raccourci (mode expanded uniquement) */}
+                                {ITEM_SHORTCUTS[href] && (
+                                  <Text
+                                    fontFamily="$body"
+                                    fontSize={9}
+                                    color={colors.text.subtle}
+                                    style={{
+                                      marginLeft: 4,
+                                      flexShrink: 0,
+                                      opacity   : labelsVisible ? 1 : 0,
+                                      transition: 'opacity 0.1s ease',
+                                    } as never}
+                                  >
+                                    {ITEM_SHORTCUTS[href]}
+                                  </Text>
+                                )}
+                              </XStack>
+                            )}
+                          </YStack>
+                        )}
+                      </HoverablePressable>
+                    </NavTooltip>
                   )
                 })}
               </YStack>
@@ -418,7 +564,10 @@ export default function AdminLayout() {
                   borderColor={colors.border.dark}
                   marginTop={10}
                   marginHorizontal={20}
-                  opacity={0.4}
+                  style={{
+                    opacity   : labelsVisible ? 0.4 : 0,
+                    transition: 'opacity 0.1s ease',
+                  } as never}
                 />
               )}
             </YStack>
@@ -426,65 +575,74 @@ export default function AdminLayout() {
         </YStack>
 
         {/* ── Admin info + sign out ── */}
-        <YStack paddingHorizontal={12} paddingTop={8}>
+        <YStack paddingHorizontal={12} paddingTop={8} style={{ flexShrink: 0 } as never}>
           <Separator borderColor={colors.border.dark} opacity={0.4} marginBottom={10} />
 
-          {/* Admin user pill */}
-          {user && !sidebarCollapsed && (
-            <XStack
-              alignItems="center"
-              gap={10}
-              paddingHorizontal={8}
-              paddingVertical={8}
-              marginBottom={4}
-              borderRadius={8}
-              backgroundColor='rgba(255,255,255,0.08)'
+          {/* Admin user pill — masqué en collapsed avec opacity animée */}
+          {user && (
+            <YStack
+              style={{
+                opacity   : labelsVisible ? 1 : 0,
+                transition: 'opacity 0.1s ease',
+                overflow  : 'hidden',
+                maxHeight : labelsVisible ? 80 : 0,
+              } as never}
             >
-              {/* Avatar initial */}
-              <YStack
-                width={30}
-                height={30}
-                borderRadius={15}
-                backgroundColor={colors.accent.gold}
+              <XStack
                 alignItems="center"
-                justifyContent="center"
-                style={{ flexShrink: 0 } as never}
+                gap={10}
+                paddingHorizontal={8}
+                paddingVertical={8}
+                marginBottom={4}
+                borderRadius={8}
+                backgroundColor='rgba(255,255,255,0.08)'
               >
-                <Text
-                  fontFamily="$heading"
-                  fontSize={13}
-                  fontWeight="800"
-                  color={colors.text.dark}
+                {/* Avatar initial */}
+                <YStack
+                  width={30}
+                  height={30}
+                  borderRadius={15}
+                  backgroundColor={colors.accent.gold}
+                  alignItems="center"
+                  justifyContent="center"
+                  style={{ flexShrink: 0 } as never}
                 >
-                  {adminInitial}
-                </Text>
-              </YStack>
+                  <Text
+                    fontFamily="$heading"
+                    fontSize={13}
+                    fontWeight="800"
+                    color={colors.text.dark}
+                  >
+                    {adminInitial}
+                  </Text>
+                </YStack>
 
-              <YStack flex={1} style={{ overflow: 'hidden' } as never}>
-                <Text
-                  fontFamily="$body"
-                  fontSize={11}
-                  fontWeight="600"
-                  color={colors.text.primary}
-                  numberOfLines={1}
-                  style={{
-                    overflow    : 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace  : 'nowrap',
-                  } as never}
-                >
-                  {user.email ?? 'Administrateur'}
-                </Text>
-                <Text
-                  fontFamily="$body"
-                  fontSize={9}
-                  color={colors.text.secondary}
-                  style={{ textTransform: 'uppercase' as never, letterSpacing: 1 }}
-                >
-                  Admin
-                </Text>
-              </YStack>
-            </XStack>
+                <YStack flex={1} style={{ overflow: 'hidden' } as never}>
+                  <Text
+                    fontFamily="$body"
+                    fontSize={11}
+                    fontWeight="600"
+                    color={colors.text.primary}
+                    numberOfLines={1}
+                    style={{
+                      overflow    : 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace  : 'nowrap',
+                    } as never}
+                  >
+                    {user.email ?? 'Administrateur'}
+                  </Text>
+                  <Text
+                    fontFamily="$body"
+                    fontSize={9}
+                    color={colors.text.secondary}
+                    style={{ textTransform: 'uppercase' as never, letterSpacing: 1 }}
+                  >
+                    Admin
+                  </Text>
+                </YStack>
+              </XStack>
+            </YStack>
           )}
 
           {/* Sign out */}

@@ -431,6 +431,27 @@ next-morning-queue:
       - "console guard NODE_ENV production — try/catch dégradation silencieuse (AC5)"
       - "tsc 0 erreur — fix groups[] Supabase array vs object"
 
+  - story_id: story-51-7
+    title: "FEATURE — Sidebar collapse smooth animation + tooltips"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-7_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-7_gate2.md"
+    notes:
+      - "transition: 'width 0.28s ease' dans YStack sidebar (overflow:hidden) — AC1"
+      - "labelsVisible state séparé : setLabelsVisible(false) immédiat → setSidebarCollapsed(true) après 80ms — AC2"
+      - "Expand : setSidebarCollapsed(false) immédiat → setLabelsVisible(true) après 180ms — AC3"
+      - "NavTooltip composant (position:absolute, left:36, zIndex:100) — AC4/AC5"
+      - "HoverablePressable wrapper typé (extends PressableProps) pour onMouseEnter/Leave — AC4"
+      - "Animated.Value + Animated.timing 280ms ease rotation bouton toggle ‹/› — AC7"
+      - "isInitialRender.current = false dans useEffect — guard animation initiale (AC6)"
+      - "localStorage déjà implémenté — vérifié intact (AC6)"
+      - "tsc 0 erreur — HoverablePressable cast ComponentType résout onMouseEnter RN typings"
+
   - story_id: story-47-1
     title: "DESIGN — Sidebar — icônes navigation manquantes"
     priority: P2
