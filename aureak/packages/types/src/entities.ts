@@ -1940,3 +1940,47 @@ export interface NavBadgeCounts {
   sessionsUpcoming24h  : boolean  // true si au moins 1 séance planifiée dans 24h
 }
 
+// ─── Story 55-5 — Comparaison biais coach-à-coach ────────────────────────────
+
+/**
+ * Rapport de biais de notation pour un coach.
+ * Le delta est calculé par rapport à la médiane de tous les scores de la période.
+ * Seuils : < 0.5 = neutre (vert), 0.5–1.5 = modéré (orange), > 1.5 = fort (rouge).
+ */
+export interface CoachBiasReport {
+  coachId        : string
+  coachName      : string
+  evalCount      : number
+  avgScore       : number | null   // null si evalCount < MIN_EVAL_THRESHOLD
+  deltaVsMedian  : number | null   // null si données insuffisantes
+  biasLevel      : 'neutral' | 'moderate' | 'strong' | 'insufficient'
+}
+
+// ─── Story 55-6 — Filtre joueurs en danger ────────────────────────────────────
+
+/**
+ * Joueur avec 3+ évaluations consécutives sous le seuil de danger (< 5.0).
+ * Utilisé dans la section "Alertes" de evaluations/index.tsx et le filtre de children/index.tsx.
+ */
+export interface DangerousPlayer {
+  childId     : string
+  displayName : string
+  lastScore   : number   // score de la dernière évaluation (0–10)
+  streakCount : number   // nombre de séances consécutives sous le seuil
+}
+
+// ─── Story 55-8 — Joueur de la semaine ───────────────────────────────────────
+
+/**
+ * Joueur ayant obtenu la meilleure note lors d'une séance dans les 7 derniers jours.
+ * Retourné par getPlayerOfWeek() dans @aureak/api-client/src/admin/dashboard.ts.
+ */
+export interface PlayerOfWeek {
+  childId     : string
+  displayName : string
+  photoUrl    : string | null
+  score       : number       // note sur 10
+  sessionName : string | null
+  sessionDate : string       // ISO 8601
+}
+
