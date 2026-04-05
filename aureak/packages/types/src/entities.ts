@@ -2039,3 +2039,40 @@ export interface GroupProposal {
   hasConflict?: boolean
 }
 
+// ============================================================
+// Story 57-5 — Stats hover implantation
+// ============================================================
+
+export type ImplantationHoverStats = {
+  attendanceRatePct    : number   // 0–100
+  masteryRatePct       : number   // 0–100 (ajouté story 57-6)
+  sessionCountThisMonth: number
+  activeGroupCount     : number
+}
+
+// ============================================================
+// Story 57-7 — Score de santé implantation
+// ============================================================
+
+export type HealthLevel = 'green' | 'gold' | 'red'
+
+export type HealthScore = {
+  score : number       // 0–100
+  level : HealthLevel
+  label : string       // 'Excellent' | 'Correct' | 'À surveiller'
+}
+
+// ============================================================
+// Story 57-8 — Mini-timeline prochaines séances
+// ============================================================
+
+export type UpcomingSession = {
+  id          : string
+  date        : string       // ISO date
+  startHour   : number | null
+  startMinute : number | null
+  groupId     : string
+  groupName   : string
+  groupMethod : string | null
+}
+

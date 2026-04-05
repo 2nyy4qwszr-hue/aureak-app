@@ -7,8 +7,11 @@
 // Story 57-2 — Header detail 280px + badge capacité + bouton éditer
 // Story 57-3 — Barre de capacité colorée sur card
 // Story 57-4 — Mini-carte Leaflet dans panneau détail
+// Story 57-5 — Overlay stats au survol de card
+// Story 57-7 — Score de santé vert/or/rouge
+// Story 57-8 — Mini-timeline prochaines séances sur card
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions, Image } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions, Image, Animated } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import {
@@ -21,8 +24,10 @@ import {
   createGroup,
   listGroupMembersWithDetails,
   compressImage,
+  getImplantationHoverStats,
+  listUpcomingSessionsByImplantation,
 } from '@aureak/api-client'
-import { useAuthStore } from '@aureak/business-logic'
+import { useAuthStore, computeImplantationHealth } from '@aureak/business-logic'
 import {
   generateGroupName,
   GROUP_METHODS,
@@ -32,7 +37,7 @@ import {
 } from '@aureak/business-logic'
 import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
-import type { Implantation, Group, GroupMethod, GroupMemberWithDetails } from '@aureak/types'
+import type { Implantation, Group, GroupMethod, GroupMemberWithDetails, ImplantationHoverStats, UpcomingSession, HealthLevel } from '@aureak/types'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -70,6 +75,20 @@ function getCapacityColor(current: number, max: number | null): string {
   if (ratio >= 0.90) return colors.accent.red
   if (ratio >= 0.70) return colors.accent.gold
   return colors.status.success
+}
+
+// Story 57-7 — Couleur badge santé selon niveau
+function healthLevelColor(level: HealthLevel): string {
+  if (level === 'green') return colors.status.success
+  if (level === 'gold')  return colors.accent.gold
+  return colors.accent.red
+}
+
+// Story 57-8 — Formatage date séance
+function formatUpcomingDate(isoDate: string): string {
+  const d    = new Date(isoDate)
+  const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+  return `${days[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
 // Story 57-4 — Lazy import mini-carte Leaflet (web only, évite erreur SSR)
@@ -169,6 +188,10 @@ function ImplantationCard({
   isDragOver,
   currentMemberCount,
   photoErrorMsg,
+  hoverStats,
+  loadingHoverStats,
+  upcomingSessions,
+  loadingUpcoming,
   onEditStart,
   onEditNameChange,
   onEditAddrChange,
@@ -182,6 +205,8 @@ function ImplantationCard({
   onDragLeave,
   onDrop,
   onSelect,
+  onHoverIn,
+  onHoverOut,
   router,
 }: {
   impl              : Implantation
@@ -196,6 +221,10 @@ function ImplantationCard({
   isDragOver        : boolean               // Story 57-1 — état hover drag
   currentMemberCount: number               // Story 57-3 — total joueurs pour barre capacité
   photoErrorMsg     : string | null         // Story 57-1 — erreur upload inline
+  hoverStats        : ImplantationHoverStats | null  // Story 57-5 — stats hover
+  loadingHoverStats : boolean                        // Story 57-5 — chargement stats hover
+  upcomingSessions  : UpcomingSession[]              // Story 57-8 — prochaines séances
+  loadingUpcoming   : boolean                        // Story 57-8 — chargement séances
   onEditStart       : () => void
   onEditNameChange  : (v: string) => void
   onEditAddrChange  : (v: string) => void
@@ -209,12 +238,42 @@ function ImplantationCard({
   onDragLeave       : () => void                    // Story 57-1
   onDrop            : (e: React.DragEvent) => void  // Story 57-1
   onSelect          : () => void
+  onHoverIn         : () => void   // Story 57-5
+  onHoverOut        : () => void   // Story 57-5
   router            : ReturnType<typeof useRouter>
 }) {
   const totalChildren = implGroups.reduce((total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0)
 
+  // Story 57-7 — Score de santé (calculé si stats dispo)
+  const health = hoverStats
+    ? computeImplantationHealth(hoverStats.attendanceRatePct, hoverStats.masteryRatePct)
+    : null
+
+  // Story 57-5 — État local animation overlay hover
+  const [overlayVisible, setOverlayVisible] = React.useState(false)
+  const overlayAnim = React.useRef(new Animated.Value(120)).current
+
+  const handleHoverInLocal = () => {
+    setOverlayVisible(true)
+    Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: false }).start()
+    onHoverIn()
+  }
+  const handleHoverOutLocal = () => {
+    Animated.timing(overlayAnim, { toValue: 120, duration: 200, useNativeDriver: false }).start(() => {
+      setOverlayVisible(false)
+    })
+    onHoverOut()
+  }
+
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={onSelect}
+      {...({
+        onMouseEnter: handleHoverInLocal,
+        onMouseLeave: handleHoverOutLocal,
+      } as any)}
+    >
       {/* ── Photo de couverture — Story 57-1 : drag & drop + preview ── */}
       <View
         style={styles.coverContainer}
@@ -238,6 +297,14 @@ function ImplantationCard({
             ]}
           />
         )}
+        {/* Story 57-7 — Badge santé haut-gauche (si stats en cache) */}
+        {health && (
+          <View style={[styles.healthBadge, { backgroundColor: healthLevelColor(health.level) }]}>
+            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
+              {health.label}
+            </AureakText>
+          </View>
+        )}
         {/* Badge joueurs en haut à droite */}
         {totalChildren > 0 && (
           <View style={styles.playersBadge}>
@@ -245,6 +312,33 @@ function ImplantationCard({
               {totalChildren} joueur{totalChildren !== 1 ? 's' : ''}
             </AureakText>
           </View>
+        )}
+        {/* Story 57-5 — Overlay stats hover (bas de la zone couverture) */}
+        {overlayVisible && (
+          <Animated.View style={[styles.hoverOverlay, { transform: [{ translateY: overlayAnim }] }]}>
+            {loadingHoverStats ? (
+              <>
+                <View style={styles.hoverSkeleton} />
+                <View style={styles.hoverSkeleton} />
+                <View style={styles.hoverSkeleton} />
+              </>
+            ) : hoverStats ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
+                <View style={styles.hoverMetric}>
+                  <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>Présence</AureakText>
+                  <AureakText variant="body" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{hoverStats.attendanceRatePct}%</AureakText>
+                </View>
+                <View style={styles.hoverMetric}>
+                  <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>Séances</AureakText>
+                  <AureakText variant="body" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{hoverStats.sessionCountThisMonth}</AureakText>
+                </View>
+                <View style={styles.hoverMetric}>
+                  <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>Groupes</AureakText>
+                  <AureakText variant="body" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{hoverStats.activeGroupCount}</AureakText>
+                </View>
+              </View>
+            ) : null}
+          </Animated.View>
         )}
         {/* Overlay sombre subtil en bas pour lisibilité */}
         <View
@@ -427,6 +521,38 @@ function ImplantationCard({
               </View>
             )}
 
+            {/* Story 57-8 — Mini-timeline prochaines séances */}
+            {(upcomingSessions.length > 0 || loadingUpcoming) && (
+              <>
+                <View style={{ height: 1, backgroundColor: colors.border.divider, marginVertical: space.xs }} />
+                {loadingUpcoming
+                  ? [0, 1, 2].map(i => <View key={i} style={styles.upcomingSkeleton} />)
+                  : upcomingSessions.map(session => (
+                    <Pressable
+                      key={session.id}
+                      style={styles.upcomingRow}
+                      onPress={() => router.push(`/seances/${session.id}` as never)}
+                    >
+                      <View style={[styles.upcomingDot, {
+                        backgroundColor: session.groupMethod
+                          ? METHOD_COLOR[session.groupMethod as GroupMethod] ?? colors.accent.gold
+                          : colors.accent.gold,
+                      }]} />
+                      <AureakText variant="caption" style={{ flex: 1, color: colors.text.dark }}>
+                        {formatUpcomingDate(session.date)}{session.startHour !== null ? ` · ${formatTime(session.startHour, session.startMinute ?? 0)}` : ''}
+                      </AureakText>
+                      <AureakText variant="caption" style={{ color: colors.text.muted }} numberOfLines={1}>
+                        {session.groupName}
+                      </AureakText>
+                    </Pressable>
+                  ))
+                }
+              </>
+            )}
+            {upcomingSessions.length === 0 && !loadingUpcoming && (
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>Aucune séance planifiée</AureakText>
+            )}
+
             {/* Bouton ajouter un groupe */}
             <Pressable style={styles.addGroupBtn} onPress={onAddGroup}>
               <AureakText variant="caption" style={{ color: colors.accent.gold }}>+ Ajouter un groupe</AureakText>
@@ -434,7 +560,7 @@ function ImplantationCard({
           </>
         )}
       </View>
-    </View>
+    </Pressable>
   )
 }
 
@@ -447,6 +573,7 @@ function ImplantationDetail({
   impl,
   implGroups,
   membersByGroup,
+  hoverStats,
   onBack,
   onEdit,
   onAddGroup,
@@ -455,6 +582,7 @@ function ImplantationDetail({
   impl           : Implantation
   implGroups     : Group[]
   membersByGroup : Record<string, GroupMemberWithDetails[]>
+  hoverStats     : ImplantationHoverStats | null  // Story 57-7 — score santé
   onBack         : () => void
   onEdit         : () => void   // Story 57-2 — accès rapide mode édition
   onAddGroup     : () => void
@@ -464,6 +592,10 @@ function ImplantationDetail({
     (total, g) => total + (membersByGroup[g.id]?.length ?? 0), 0
   )
   const capacityColor = getCapacityColor(totalChildren, impl.maxPlayers)
+  // Story 57-7 — Score de santé
+  const health = hoverStats
+    ? computeImplantationHealth(hoverStats.attendanceRatePct, hoverStats.masteryRatePct)
+    : null
 
   return (
     <View style={detailStyles.container}>
@@ -608,6 +740,48 @@ function ImplantationDetail({
           </View>
         )}
 
+        {/* Story 57-7 — Section score de santé */}
+        {health && (
+          <>
+            <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 1, marginTop: space.md }}>
+              SCORE DE SANTÉ
+            </AureakText>
+            <View style={[detailStyles.healthCard, { borderColor: healthLevelColor(health.level) + '40' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+                <AureakText style={{ fontSize: 36, fontWeight: '900', color: healthLevelColor(health.level) }}>
+                  {health.score}%
+                </AureakText>
+                <View style={{ flex: 1, gap: space.xs }}>
+                  <AureakText variant="body" style={{ color: healthLevelColor(health.level), fontWeight: '700' }}>
+                    {health.label}
+                  </AureakText>
+                  <View style={{ height: 6, backgroundColor: colors.border.light, borderRadius: radius.xs, overflow: 'hidden' }}>
+                    <View style={{
+                      height         : '100%',
+                      width          : `${health.score}%`,
+                      backgroundColor: healthLevelColor(health.level),
+                      borderRadius   : radius.xs,
+                    } as any} />
+                  </View>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                    Présence × 60% + Maîtrise × 40%
+                  </AureakText>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', gap: space.md, marginTop: space.sm }}>
+                <View style={detailStyles.healthComponent}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>Présence</AureakText>
+                  <AureakText variant="body" style={{ fontWeight: '700', color: colors.text.dark }}>{hoverStats!.attendanceRatePct}%</AureakText>
+                </View>
+                <View style={detailStyles.healthComponent}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>Maîtrise</AureakText>
+                  <AureakText variant="body" style={{ fontWeight: '700', color: colors.text.dark }}>{hoverStats!.masteryRatePct}%</AureakText>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+
         {/* Story 57-4 — Section mini-carte Leaflet */}
         <AureakText variant="label" style={{ color: colors.text.muted, letterSpacing: 1, marginTop: space.md }}>
           LOCALISATION
@@ -684,6 +858,14 @@ export default function ImplantationsPage() {
   const [dragOverId,   setDragOverId]   = useState<string | null>(null)
   const [photoErrors,  setPhotoErrors]  = useState<Record<string, string>>({})
 
+  // Story 57-5 — Stats hover
+  const [hoverStats,        setHoverStats]        = useState<Record<string, ImplantationHoverStats>>({})
+  const [loadingHoverStats, setLoadingHoverStats] = useState<Record<string, boolean>>({})
+
+  // Story 57-8 — Prochaines séances
+  const [upcomingSessions, setUpcomingSessions] = useState<Record<string, UpcomingSession[]>>({})
+  const [loadingUpcoming,  setLoadingUpcoming]  = useState(false)
+
   // ── Data loading ───────────────────────────────────────────────────────────
 
   const load = async () => {
@@ -751,6 +933,42 @@ export default function ImplantationsPage() {
   }
 
   useEffect(() => { load() }, [])
+
+  // Story 57-8 — Charger prochaines séances en batch dès que les implantations sont chargées
+  useEffect(() => {
+    if (implantations.length === 0) return
+    setLoadingUpcoming(true)
+    Promise.all(
+      implantations.map(impl =>
+        listUpcomingSessionsByImplantation(impl.id, 3)
+          .then(res => ({ id: impl.id, sessions: res.data }))
+      )
+    )
+      .then(results => {
+        const map: Record<string, UpcomingSession[]> = {}
+        results.forEach(r => { map[r.id] = r.sessions })
+        setUpcomingSessions(map)
+      })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[Implantations] loadingUpcoming error:', err)
+      })
+      .finally(() => setLoadingUpcoming(false))
+  }, [implantations])
+
+  // Story 57-5 — Handler hover in : charge stats différées et met en cache
+  const handleHoverIn = async (implId: string) => {
+    if (hoverStats[implId]) return // déjà en cache
+    setLoadingHoverStats(prev => ({ ...prev, [implId]: true }))
+    try {
+      const { data } = await getImplantationHoverStats(implId)
+      if (data) setHoverStats(prev => ({ ...prev, [implId]: data }))
+    } finally {
+      setLoadingHoverStats(prev => ({ ...prev, [implId]: false }))
+    }
+  }
+
+  const handleHoverOut = (_implId: string) => { /* overlay géré localement dans la card */ }
 
   // ── Implantation CRUD ──────────────────────────────────────────────────────
 
@@ -890,11 +1108,19 @@ export default function ImplantationsPage() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <AureakText variant="h2" color={colors.accent.gold}>Implantations</AureakText>
-        <AureakButton
-          label="+ Nouvelle implantation"
-          onPress={() => setShowCreate(true)}
-          variant="primary"
-        />
+        <View style={{ flexDirection: 'row', gap: space.sm }}>
+          {/* Story 57-6 — Bouton Comparer */}
+          <AureakButton
+            label="Comparer"
+            onPress={() => router.push('/implantations/compare' as never)}
+            variant="ghost"
+          />
+          <AureakButton
+            label="+ Nouvelle implantation"
+            onPress={() => setShowCreate(true)}
+            variant="primary"
+          />
+        </View>
       </View>
 
       {/* Create implantation form */}
@@ -939,6 +1165,7 @@ export default function ImplantationsPage() {
             impl={implantations.find(i => i.id === selectedImplantId)!}
             implGroups={groups[selectedImplantId] ?? []}
             membersByGroup={membersByGroup}
+            hoverStats={hoverStats[selectedImplantId] ?? null}
             onBack={() => setSelectedImplantId(null)}
             onEdit={() => {
               // Story 57-2 — bouton éditer dans header détail
@@ -1050,6 +1277,10 @@ export default function ImplantationsPage() {
                     isDragOver={dragOverId === impl.id}
                     currentMemberCount={currentMemberCount}
                     photoErrorMsg={photoErrors[impl.id] ?? null}
+                    hoverStats={hoverStats[impl.id] ?? null}
+                    loadingHoverStats={loadingHoverStats[impl.id] ?? false}
+                    upcomingSessions={upcomingSessions[impl.id] ?? []}
+                    loadingUpcoming={loadingUpcoming}
                     onEditStart={() => { setEditId(impl.id); setEditName(impl.name); setEditAddr(impl.address ?? '') }}
                     onEditNameChange={setEditName}
                     onEditAddrChange={setEditAddr}
@@ -1063,6 +1294,8 @@ export default function ImplantationsPage() {
                     onDragLeave={() => setDragOverId(null)}
                     onDrop={(e) => handleDrop(impl.id, e)}
                     onSelect={() => setSelectedImplantId(impl.id)}
+                    onHoverIn={() => handleHoverIn(impl.id)}
+                    onHoverOut={() => handleHoverOut(impl.id)}
                     router={router}
                   />
                 </View>
@@ -1238,6 +1471,23 @@ const detailStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical  : 2,
   },
+  // Story 57-7 — Score de santé
+  healthCard    : {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    borderWidth    : 1,
+    padding        : space.md,
+    gap            : space.xs,
+    marginTop      : space.xs,
+  },
+  healthComponent: {
+    flex           : 1,
+    backgroundColor: colors.light.muted,
+    borderRadius   : radius.xs,
+    padding        : space.sm,
+    alignItems     : 'center',
+    gap            : 2,
+  },
   // Story 57-4 — mini-carte Leaflet
   mapContainer: {
     height      : 180,
@@ -1401,6 +1651,61 @@ const styles = StyleSheet.create({
     borderRadius     : radius.xs,
     borderStyle      : 'dashed' as const,
     alignItems       : 'center',
+  },
+  // ── Story 57-7 — Badge santé ──
+  healthBadge   : {
+    position         : 'absolute',
+    top              : space.sm,
+    left             : space.sm,
+    borderRadius     : radius.badge,
+    paddingHorizontal: 10,
+    paddingVertical  : 4,
+    zIndex           : 5,
+  },
+  // ── Story 57-5 — Overlay hover stats ──
+  hoverOverlay  : {
+    position        : 'absolute',
+    bottom          : 0,
+    left            : 0,
+    right           : 0,
+    height          : 120,
+    backgroundColor : 'rgba(0,0,0,0.75)',
+    borderBottomLeftRadius : radius.card,
+    borderBottomRightRadius: radius.card,
+    zIndex          : 10,
+    padding         : space.sm,
+    alignItems      : 'center',
+    justifyContent  : 'center',
+  },
+  hoverMetric   : {
+    alignItems: 'center',
+    gap       : 2,
+  },
+  hoverSkeleton : {
+    height         : 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius   : radius.xs,
+    width          : '80%',
+    marginVertical : 4,
+  },
+  // ── Story 57-8 — Mini-timeline séances ──
+  upcomingRow    : {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    gap           : space.xs,
+    paddingVertical: 3,
+  },
+  upcomingDot    : {
+    width       : 6,
+    height      : 6,
+    borderRadius: 3,
+    flexShrink  : 0,
+  },
+  upcomingSkeleton: {
+    height         : 14,
+    borderRadius   : radius.xs,
+    backgroundColor: colors.border.light,
+    marginVertical : 3,
   },
   // ── Panneau ajout groupe ──
   addGroupPanel : {

@@ -4,6 +4,7 @@ import type {
   Implantation, Group, GroupMember, AgeGroup, GroupMethod,
   GroupWithMeta, GroupStaff, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, GroupMemberWithDetails,
   FormationData, AvatarMember, GroupProposal,
+  ImplantationHoverStats, UpcomingSession,
 } from '@aureak/types'
 
 // ─── Implantation ─────────────────────────────────────────────────────────────
@@ -874,6 +875,119 @@ export async function generateGroupsBySeason(
 
   return { data: proposals, error: null }
 }
+
+// ─── Story 57-5 — Stats hover implantation ───────────────────────────────────
+
+export async function getImplantationHoverStats(
+  implantationId: string,
+): Promise<{ data: ImplantationHoverStats | null; error: unknown }> {
+  const now        = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString()
+
+  const { data, error } = await supabase.rpc('get_implantation_hover_stats', {
+    p_implantation_id: implantationId,
+    p_month_start    : monthStart,
+    p_month_end      : monthEnd,
+  })
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[getImplantationHoverStats] error:', error)
+    return { data: null, error }
+  }
+
+  const row = (data as any)?.[0]
+  if (!row) return {
+    data : { attendanceRatePct: 0, masteryRatePct: 0, sessionCountThisMonth: 0, activeGroupCount: 0 },
+    error: null,
+  }
+
+  return {
+    data: {
+      attendanceRatePct    : Math.round(row.attendance_rate_pct ?? 0),
+      masteryRatePct       : Math.round(row.mastery_rate_pct ?? 0),
+      sessionCountThisMonth: row.session_count_this_month ?? 0,
+      activeGroupCount     : row.active_group_count ?? 0,
+    },
+    error: null,
+  }
+}
+
+// ─── Story 57-6 — Comparaison deux implantations ─────────────────────────────
+
+export async function compareImplantations(
+  id1: string,
+  id2: string,
+): Promise<{
+  data: { impl1: ImplantationHoverStats; impl2: ImplantationHoverStats } | null
+  error: unknown
+}> {
+  const [res1, res2] = await Promise.all([
+    getImplantationHoverStats(id1),
+    getImplantationHoverStats(id2),
+  ])
+  if (res1.error || res2.error) {
+    const err = res1.error ?? res2.error
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[compareImplantations] error:', err)
+    return { data: null, error: err }
+  }
+  return {
+    data : { impl1: res1.data!, impl2: res2.data! },
+    error: null,
+  }
+}
+
+// ─── Story 57-8 — Prochaines séances par implantation ────────────────────────
+
+export async function listUpcomingSessionsByImplantation(
+  implantationId: string,
+  limit         = 3,
+): Promise<{ data: UpcomingSession[]; error: unknown }> {
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(`
+      id,
+      date,
+      start_hour,
+      start_minute,
+      groups!inner (
+        id,
+        name,
+        method,
+        implantation_id
+      )
+    `)
+    .eq('groups.implantation_id', implantationId)
+    .gte('date', today)
+    .is('deleted_at', null)
+    .order('date', { ascending: true })
+    .limit(limit)
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[listUpcomingSessionsByImplantation] error:', error)
+    return { data: [], error }
+  }
+
+  return {
+    data: ((data ?? []) as any[]).map((row) => ({
+      id         : row.id,
+      date       : row.date,
+      startHour  : row.start_hour  ?? null,
+      startMinute: row.start_minute ?? null,
+      groupId    : row.groups.id,
+      groupName  : row.groups.name,
+      groupMethod: row.groups.method ?? null,
+    })),
+    error: null,
+  }
+}
+
+// ─── Sessions by group ────────────────────────────────────────────────────────
 
 export async function listSessionsByGroup(
   groupId: string,

@@ -141,6 +141,12 @@ export {
   // Story 56-7 — Générateur groupes par âge
   generateGroupsBySeason,
   AGE_CATEGORY_RANGES,
+  // Story 57-5 — Stats hover implantation
+  getImplantationHoverStats,
+  // Story 57-6 — Comparaison deux implantations
+  compareImplantations,
+  // Story 57-8 — Prochaines séances par implantation
+  listUpcomingSessionsByImplantation,
 } from './sessions/implantations'
 export type {
   UpdateGroupParams,
