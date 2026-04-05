@@ -38,3 +38,6 @@ export {
   isActiveAcademician,
   hasAcademyHistory,
 } from './groups/academyStatus'
+
+export { computePlayerStats, computePlayerTier } from './playerStats'
+export type { PlayerStats } from './playerStats'

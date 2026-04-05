@@ -186,6 +186,12 @@ export const gamification = {
     trackColor : '#E5E7EB',               // gris clair
     glowColor  : 'rgba(193,172,92,0.4)',  // halo gold actif
   },
+  statBands: {
+    high  : '#22C55E',  // >= 75 — vert performance
+    medium: '#C1AC5C',  // 60-74 — or standard
+    low   : '#EF4444',  // < 60  — rouge amélioration
+  },
+  statLabels: ['PLO', 'TIR', 'TEC', 'TAC', 'PHY', 'MEN'] as const,
   levels: {
     bronze  : { color: '#CD7F32', label: 'Bronze',  min: 0,     max: 499    },
     silver  : { color: '#9BA0A7', label: 'Argent',  min: 500,   max: 1499   },
