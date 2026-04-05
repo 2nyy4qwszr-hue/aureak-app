@@ -581,6 +581,12 @@ export {
   getAttendanceByGroupMonth,
   getSessionHeatmap,
   getImplantationRankings,
+  getPlayerRankings,
+  getMonthlyReportData,
 } from './analytics'
 export type { StatsRoomKpis } from './analytics'
+
+// Story 60.8 — Live counters Realtime
+export { useLiveSessionCounts } from './realtime/liveSessionCounts'
+export type { LiveSessionCounts } from './realtime/liveSessionCounts'
 

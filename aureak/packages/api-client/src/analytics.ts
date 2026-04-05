@@ -3,7 +3,7 @@
 // RÈGLE : accès Supabase UNIQUEMENT via supabase client — zéro logique métier dans ce fichier
 
 import { supabase } from './supabase'
-import type { AttendanceMonthlyData, HeatmapCell, HeatmapPeriod, ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
+import type { AttendanceMonthlyData, HeatmapCell, HeatmapPeriod, ImplantationRankingItem, BarChartPeriod, RankingMetric, PlayerRankingItem, MonthlyReportData } from '@aureak/types'
 
 // ── KPIs globaux Stats Room (Story 60.1) ──────────────────────────────────────
 
@@ -328,6 +328,204 @@ export async function getImplantationRankings(
     return { data: sorted2, error: null }
   } catch (err) {
     if (process.env.NODE_ENV !== 'production') console.error('[analytics] getImplantationRankings exception:', err)
+    return { data: null, error: err }
+  }
+}
+
+// ── Classement joueurs (Story 60.6) ──────────────────────────────────────────
+
+export async function getPlayerRankings(
+  metric       : RankingMetric,
+  limit        : number = 10,
+  implantationId?: string,
+): Promise<{ data: PlayerRankingItem[] | null; error: unknown }> {
+  try {
+    const viewName = metric === 'xp' ? 'v_player_xp_ranking' : 'v_player_attendance_ranking'
+
+    let query = supabase
+      .from(viewName)
+      .select('child_id, display_name, group_name, value, rank, weekly_delta')
+      .order('rank', { ascending: true })
+      .limit(limit)
+
+    // Filtre implantation — jointure indirecte via group membership
+    // Note : les vues ne supportent pas de filtre implantation directement
+    // On filtre post-requête si nécessaire (à enrichir avec une vue paramétrée dans une story future)
+    void implantationId
+
+    const { data, error } = await query
+
+    if (error) {
+      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getPlayerRankings error:', error)
+      return { data: null, error }
+    }
+
+    const result: PlayerRankingItem[] = (data ?? []).map((row: {
+      child_id    : string
+      display_name: string
+      group_name  : string
+      value       : number
+      rank        : number
+      weekly_delta: number
+    }) => ({
+      childId    : row.child_id,
+      displayName: row.display_name,
+      groupName  : row.group_name,
+      value      : row.value,
+      rank       : row.rank,
+      weeklyDelta: row.weekly_delta,
+    }))
+
+    return { data: result, error: null }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getPlayerRankings exception:', err)
+    return { data: null, error: err }
+  }
+}
+
+// ── Données rapport mensuel (Story 60.7) ─────────────────────────────────────
+
+export async function getMonthlyReportData(
+  month         : string,          // 'YYYY-MM'
+  implantationId?: string | null,
+): Promise<{ data: MonthlyReportData | null; error: unknown }> {
+  try {
+    const since = `${month}-01`
+    const nextMonth = new Date(`${month}-01`)
+    nextMonth.setMonth(nextMonth.getMonth() + 1)
+    const until = nextMonth.toISOString().slice(0, 10)
+
+    // Récupérer les séances du mois
+    let sessQuery = supabase
+      .from('sessions')
+      .select('id, group_id, groups!inner(id, name, implantation_id)')
+      .gte('scheduled_at', since)
+      .lt('scheduled_at', until)
+      .neq('status', 'cancelled')
+
+    if (implantationId) {
+      sessQuery = sessQuery.eq('groups.implantation_id', implantationId)
+    }
+
+    const { data: sessions, error: sessErr } = await sessQuery
+
+    if (sessErr) {
+      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getMonthlyReportData sessions error:', sessErr)
+      return { data: null, error: sessErr }
+    }
+
+    if (!sessions || sessions.length === 0) {
+      // Retourner une structure vide valide
+      return {
+        data: {
+          month,
+          implantationName : implantationId ? 'Implantation' : 'Toutes',
+          totalSessions    : 0,
+          activePlayers    : 0,
+          avgAttendanceRate: 0,
+          groups           : [],
+          topPlayers       : [],
+        },
+        error: null,
+      }
+    }
+
+    const sessionIds = sessions.map(s => s.id)
+
+    // Récupérer les présences
+    const { data: attendances, error: attErr } = await supabase
+      .from('attendance_records')
+      .select('session_id, child_id, status')
+      .in('session_id', sessionIds)
+
+    if (attErr) {
+      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getMonthlyReportData attendance error:', attErr)
+      return { data: null, error: attErr }
+    }
+
+    const attRecords = (attendances ?? []) as { session_id: string; child_id: string; status: string }[]
+
+    // Calculer stats globales
+    const totalPresent = attRecords.filter(a => a.status === 'present').length
+    const totalAll     = attRecords.length
+    const avgAttendanceRate = totalAll > 0 ? Math.round((totalPresent / totalAll) * 100) : 0
+    const activePlayers     = new Set(attRecords.map(a => a.child_id)).size
+
+    // Agréger par groupe
+    type GroupKey = string
+    const groupAgg = new Map<GroupKey, { groupId: string; groupName: string; sessionCount: number; present: number; total: number }>()
+
+    for (const s of sessions as unknown as { id: string; group_id: string; groups: { id: string; name: string } | { id: string; name: string }[] }[]) {
+      const grp = Array.isArray(s.groups) ? s.groups[0] : s.groups
+      if (!grp) continue
+      const att   = attRecords.filter(a => a.session_id === s.id)
+      const entry = groupAgg.get(grp.id) ?? { groupId: grp.id, groupName: grp.name, sessionCount: 0, present: 0, total: 0 }
+      entry.sessionCount++
+      entry.present += att.filter(a => a.status === 'present').length
+      entry.total   += att.length
+      groupAgg.set(grp.id, entry)
+    }
+
+    const groups = Array.from(groupAgg.values()).map(g => ({
+      groupId      : g.groupId,
+      groupName    : g.groupName,
+      sessionCount : g.sessionCount,
+      attendanceRate: g.total > 0 ? Math.round((g.present / g.total) * 100) : 0,
+      masteryAvg   : 0,  // à enrichir via evaluation_records dans une story future
+    }))
+
+    // Top 5 joueurs par présence
+    const playerAgg = new Map<string, { childId: string; displayName: string; groupName: string; present: number; total: number }>()
+
+    for (const s of sessions as unknown as { id: string; groups: { name: string } | { name: string }[] }[]) {
+      const grp = Array.isArray(s.groups) ? s.groups[0] : s.groups
+      for (const a of attRecords.filter(r => r.session_id === s.id)) {
+        const e = playerAgg.get(a.child_id) ?? { childId: a.child_id, displayName: a.child_id, groupName: grp?.name ?? '', present: 0, total: 0 }
+        e.total++
+        if (a.status === 'present') e.present++
+        playerAgg.set(a.child_id, e)
+      }
+    }
+
+    // Enrichir les noms depuis child_directory si possible
+    const childIds = Array.from(playerAgg.keys())
+    if (childIds.length > 0) {
+      const { data: children } = await supabase
+        .from('child_directory')
+        .select('id, display_name')
+        .in('id', childIds)
+
+      for (const c of (children ?? []) as { id: string; display_name: string }[]) {
+        const e = playerAgg.get(c.id)
+        if (e) { e.displayName = c.display_name; playerAgg.set(c.id, e) }
+      }
+    }
+
+    const topPlayers = Array.from(playerAgg.values())
+      .map(p => ({ ...p, rate: p.total > 0 ? Math.round((p.present / p.total) * 100) : 0 }))
+      .sort((a, b) => b.rate - a.rate)
+      .slice(0, 5)
+      .map((p, idx) => ({
+        rank       : idx + 1,
+        displayName: p.displayName,
+        groupName  : p.groupName,
+        rate       : p.rate,
+      }))
+
+    return {
+      data: {
+        month,
+        implantationName : implantationId ? 'Implantation' : 'Toutes',
+        totalSessions    : sessions.length,
+        activePlayers,
+        avgAttendanceRate,
+        groups,
+        topPlayers,
+      },
+      error: null,
+    }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getMonthlyReportData exception:', err)
     return { data: null, error: err }
   }
 }

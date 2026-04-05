@@ -50,3 +50,50 @@ export interface ImplantationRankingItem {
   rank        : number
   sessionCount: number
 }
+
+// ── Player Rankings (Story 60.6) ──────────────────────────────────────────────
+
+export type RankingMetric = 'attendance' | 'progression' | 'xp'
+
+export interface PlayerRankingItem {
+  childId     : string
+  displayName : string
+  groupName   : string
+  value       : number   // % pour attendance/progression, points pour xp
+  rank        : number
+  weeklyDelta : number   // positif = monté, négatif = descendu, 0 = stable
+}
+
+// ── Monthly Report (Story 60.7) ───────────────────────────────────────────────
+
+export interface MonthlyReportGroupRow {
+  groupId      : string
+  groupName    : string
+  sessionCount : number
+  attendanceRate: number   // 0–100
+  masteryAvg   : number   // 0–5
+}
+
+export interface MonthlyReportTopPlayer {
+  rank       : number
+  displayName: string
+  groupName  : string
+  rate       : number   // taux de présence 0–100
+}
+
+export interface MonthlyReportData {
+  month             : string   // 'YYYY-MM'
+  implantationName  : string   // 'Toutes' si null
+  totalSessions     : number
+  activePlayers     : number
+  avgAttendanceRate : number   // 0–100
+  groups            : MonthlyReportGroupRow[]
+  topPlayers        : MonthlyReportTopPlayer[]
+}
+
+export interface ReportOptions {
+  month          : string        // 'YYYY-MM'
+  implantationId : string | null // null = toutes
+  sections       : { presences: boolean; progression: boolean; topPlayers: boolean }
+  filename       : string
+}
