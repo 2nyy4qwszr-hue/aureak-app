@@ -393,6 +393,25 @@ next-morning-queue:
       - "BreadcrumbProvider wrappé dans _layout.tsx (outermost), <Breadcrumb /> avant ErrorBoundary"
       - "tsc 0 erreur — Playwright skipped (app non démarrée)"
 
+  - story_id: story-51-6
+    title: "FEATURE — Raccourcis clavier navigation (chord style Linear)"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-6_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-6_gate2.md"
+    notes:
+      - "CHORD_MAP exportée : G→8 routes, N→3 routes créations"
+      - "useKeyboardShortcuts enrichi : prefixKey state + chordTimerRef 1s + isInputFocused guard"
+      - "ShortcutsHelp.tsx : overlay dark card radius=16 shadows.gold + 3 sections (Naviguer/Créer/Général)"
+      - "KeyboardPrefixHint.tsx : badge fixed bottom-right gold avec clé active + ellipsis"
+      - "ITEM_SHORTCUTS map + hints fontSize=9 en mode expanded uniquement (_layout.tsx)"
+      - "AC7 compat ⌘K : CommandPalette TextInput focusé → isInputFocused=true → chords bloqués"
+      - "Bug corrigé : $mono → $body (token absent Tamagui config) — tsc 0 erreur"
+
   - story_id: story-51-2
     title: "FEATURE — Topbar séance active permanente"
     priority: P2

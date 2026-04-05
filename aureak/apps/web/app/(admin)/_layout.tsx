@@ -43,12 +43,31 @@ import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { CommandPalette } from '../../components/CommandPalette'
+import { ShortcutsHelp } from '../../components/ShortcutsHelp'
+import { KeyboardPrefixHint } from '../../components/KeyboardPrefixHint'
 import { BreadcrumbProvider } from '../contexts/BreadcrumbContext'
 import { Breadcrumb } from '../../components/Breadcrumb'
 
+// ── Hints sidebar : href → chord affiché en mode expanded (Story 51.6) ────────
+const ITEM_SHORTCUTS: Record<string, string> = {
+  '/dashboard'  : 'G D',
+  '/seances'    : 'G S',
+  '/presences'  : 'G P',
+  '/evaluations': 'G E',
+  '/children'   : 'G J',
+  '/clubs'      : 'G C',
+  '/methodologie': 'G M',
+  '/stages'     : 'G T',
+}
+
 function KeyboardHandler() {
-  useKeyboardShortcuts()
-  return null
+  const { prefixActive, prefixKey, shortcutsHelpOpen, setShortcutsHelpOpen } = useKeyboardShortcuts()
+  return (
+    <>
+      <ShortcutsHelp isOpen={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} />
+      <KeyboardPrefixHint prefixActive={prefixActive} prefixKey={prefixKey} />
+    </>
+  )
 }
 
 type NavIconComponent = React.FC<NavIconProps>
@@ -369,10 +388,22 @@ export default function AdminLayout() {
                                 fontSize={13}
                                 fontWeight={isActive ? '700' : '400'}
                                 color={isActive ? colors.accent.gold : colors.text.secondary}
-                                style={isActive ? { letterSpacing: 0.1 } as never : undefined}
+                                style={isActive ? { letterSpacing: 0.1, flex: 1 } as never : { flex: 1 } as never}
+                                numberOfLines={1}
                               >
                                 {label}
                               </Text>
+                              {/* Story 51.6 — hint raccourci (mode expanded uniquement) */}
+                              {ITEM_SHORTCUTS[href] && (
+                                <Text
+                                  fontFamily="$body"
+                                  fontSize={9}
+                                  color={colors.text.subtle}
+                                  style={{ marginLeft: 4, flexShrink: 0 } as never}
+                                >
+                                  {ITEM_SHORTCUTS[href]}
+                                </Text>
+                              )}
                             </XStack>
                           )}
                         </YStack>

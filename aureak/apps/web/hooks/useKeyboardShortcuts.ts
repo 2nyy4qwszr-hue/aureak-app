@@ -1,32 +1,102 @@
-// useKeyboardShortcuts — Cmd+N (new), Escape (close GlobalSearch)
-// Note : Cmd+K est maintenant géré par useCommandPalette (Story 51.3, capture phase)
+// useKeyboardShortcuts — Raccourcis clavier chord style Linear (Story 51.6)
+// + Cmd+N contextuel + Escape GlobalSearch (comportements précédents conservés)
+// Note : Cmd+K est géré par useCommandPalette (Story 51.3, capture phase avec stopImmediatePropagation).
+// AC7 : quand CommandPalette est ouverte, son TextInput est focalisé → isInputFocused() = true → chords bloqués.
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'expo-router'
 import { useSearch } from '../components/SearchContext'
 
+// ── Constantes ────────────────────────────────────────────────────────────────
+
 const NEW_ROUTES: Record<string, string> = {
-  '/clubs'     : '/clubs/new',
-  '/children'  : '/children/new',
-  '/stages'    : '/stages/new',
-  '/seances'   : '/seances/new',
-  '/groups'    : '/groups/new',
-  '/users'     : '/users/new',
-  '/methodologie/themes'    : '/methodologie/themes/new',
-  '/methodologie/situations': '/methodologie/situations/new',
+  '/clubs'                      : '/clubs/new',
+  '/children'                   : '/children/new',
+  '/stages'                     : '/stages/new',
+  '/seances'                    : '/seances/new',
+  '/groups'                     : '/groups/new',
+  '/users'                      : '/users/new',
+  '/methodologie/themes'        : '/methodologie/themes/new',
+  '/methodologie/situations'    : '/methodologie/situations/new',
 }
 
-export function useKeyboardShortcuts() {
+// Map chord : G X → route, N X → route (exportée pour ShortcutsHelp)
+export const CHORD_MAP: Record<string, Record<string, string>> = {
+  'G': {
+    'J': '/children',
+    'S': '/seances',
+    'C': '/clubs',
+    'P': '/presences',
+    'E': '/evaluations',
+    'M': '/methodologie',
+    'T': '/stages',
+    'D': '/dashboard',
+  },
+  'N': {
+    'S': '/seances/new',
+    'J': '/children/new',
+    'C': '/clubs/new',
+  },
+}
+
+const PREFIX_KEYS = new Set(['G', 'N'])
+const CHORD_TIMEOUT_MS = 1000
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function isInputFocused(): boolean {
+  const el = document.activeElement
+  if (!el) return false
+  const tag = el.tagName.toUpperCase()
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    tag === 'SELECT' ||
+    (el as HTMLElement).isContentEditable
+  )
+}
+
+// ── Hook ──────────────────────────────────────────────────────────────────────
+
+export interface KeyboardShortcutsReturn {
+  prefixActive         : boolean
+  prefixKey            : string | null
+  shortcutsHelpOpen    : boolean
+  setShortcutsHelpOpen : (open: boolean) => void
+}
+
+export function useKeyboardShortcuts(): KeyboardShortcutsReturn {
   const router   = useRouter()
   const pathname = usePathname()
-  const { setOpen } = useSearch()
+  const { setOpen: setSearchOpen } = useSearch()
+
+  const [prefixKey,         setPrefixKey]         = useState<string | null>(null)
+  const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false)
+
+  const chordTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Reset du chord timer
+  const clearChordTimer = useCallback(() => {
+    if (chordTimerRef.current) {
+      clearTimeout(chordTimerRef.current)
+      chordTimerRef.current = null
+    }
+  }, [])
+
+  const resetPrefix = useCallback(() => {
+    clearChordTimer()
+    setPrefixKey(null)
+  }, [clearChordTimer])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Guard : input / textarea / select / contentEditable (inclut CommandPalette TextInput — AC3 + AC7)
+      if (isInputFocused()) return
+
       const isMac  = navigator.platform.toUpperCase().includes('MAC')
       const modKey = isMac ? e.metaKey : e.ctrlKey
 
-      // Cmd/Ctrl+N — route "nouveau" contextuelle
+      // Cmd/Ctrl+N — route "nouveau" contextuelle (comportement historique)
       if (modKey && e.key === 'n') {
         const newRoute = Object.entries(NEW_ROUTES).find(([base]) =>
           pathname === base || pathname.startsWith(base + '/'),
@@ -38,13 +108,70 @@ export function useKeyboardShortcuts() {
         return
       }
 
-      // Escape — ferme la GlobalSearch sidebar
+      // Escape — ferme la GlobalSearch sidebar + reset préfixe chord
       if (e.key === 'Escape') {
-        setOpen(false)
+        setSearchOpen(false)
+        if (prefixKey) resetPrefix()
+        return
+      }
+
+      // ? — overlay aide raccourcis (AC5) — hors modificateurs
+      if (e.key === '?' && !modKey) {
+        e.preventDefault()
+        setShortcutsHelpOpen(true)
+        resetPrefix()
+        return
+      }
+
+      const key = e.key.toUpperCase()
+
+      // Pas de chord avec modificateurs (Ctrl, Meta, Alt) → reset préfixe
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        if (prefixKey) resetPrefix()
+        return
+      }
+
+      // Phase 1 : enregistrement premier préfixe G ou N
+      if (!prefixKey && PREFIX_KEYS.has(key)) {
+        clearChordTimer()
+        setPrefixKey(key)
+        // Timer reset automatique 1s sans 2ème touche (AC4)
+        chordTimerRef.current = setTimeout(() => {
+          setPrefixKey(null)
+          chordTimerRef.current = null
+        }, CHORD_TIMEOUT_MS)
+        return
+      }
+
+      // Phase 2 : seconde touche après préfixe → navigation
+      if (prefixKey) {
+        const route = CHORD_MAP[prefixKey]?.[key]
+        if (route) {
+          e.preventDefault()
+          clearChordTimer()
+          router.push(route as never)
+          setPrefixKey(null)
+        } else {
+          // Touche non reconnue → reset silencieux
+          resetPrefix()
+        }
+        return
       }
     }
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [pathname, router, setOpen])
+  }, [pathname, router, setSearchOpen, prefixKey, resetPrefix, clearChordTimer])
+
+  // Cleanup timer au démontage
+  useEffect(() => {
+    return () => clearChordTimer()
+  }, [clearChordTimer])
+
+  return {
+    prefixActive        : prefixKey !== null,
+    prefixKey,
+    shortcutsHelpOpen,
+    setShortcutsHelpOpen,
+  }
 }
