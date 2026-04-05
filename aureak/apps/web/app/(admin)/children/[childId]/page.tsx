@@ -42,11 +42,11 @@ const FOOTBALL_SEASONS = [
   '2021-2022', '2020-2021', '2019-2020', '2018-2019', '2017-2018',
   '2016-2017', '2015-2016', '2014-2015',
 ]
-import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier } from '@aureak/business-logic'
+import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, computePlayerXP } from '@aureak/business-logic'
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
-import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog } from '@aureak/ui'
-import { colors, space, shadows, radius } from '@aureak/theme'
+import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar } from '@aureak/ui'
+import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import type { PlayerTier } from '@aureak/types'
 import { computeTeamLevelStars } from '@aureak/business-logic'
@@ -1966,6 +1966,39 @@ export default function ChildDetailPage() {
         {/* ── Tab : Académie — statut, memberships, stages ── */}
         {activeTab === 'Académie' && (
         <>
+
+        {/* ── XP Bar — Story 52-7 ── */}
+        {(() => {
+          const xpInput = {
+            totalAcademySeasons: memberships.length,
+            totalStages        : stages_.length,
+            inCurrentSeason    : academyData?.inCurrentSeason ?? false,
+          }
+          const xp        = computePlayerXP(xpInput)
+          const levelKey  = resolveLevel(xp)
+          const levelData = gamification.levels[levelKey]
+          const fillPercent = levelData.max > levelData.min
+            ? Math.min(100, Math.max(0, ((xp - levelData.min) / (levelData.max - levelData.min)) * 100))
+            : 100
+          return (
+            <View style={[s.card, { marginBottom: space.xs }]}>
+              <XPBar
+                xp={xp}
+                maxXp={levelData.max}
+                level={levelData.label}
+                levelColor={levelData.color}
+                animated
+              />
+              <AureakText
+                variant="caption"
+                style={{ color: colors.text.muted, fontSize: 10, marginTop: 4, textAlign: 'right' as never } as never}
+              >
+                {Math.round(fillPercent)}% vers le prochain niveau
+              </AureakText>
+            </View>
+          )
+        })()}
+
         {/* ── [B] Historique : académie + stages ── */}
         {tenantId && (
           <HistoriqueSection

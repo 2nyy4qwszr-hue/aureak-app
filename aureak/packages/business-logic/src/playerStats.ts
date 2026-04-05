@@ -1,9 +1,18 @@
 // playerStats.ts — Calcul des 6 attributs gardien et du tier gamifié
 // Story 52-2 : PLO/TIR/TEC/TAC/PHY/MEN calculés depuis JoueurListItem
+// Story 52-7 : computePlayerXP — score proxy XP basé sur saisons/stages/saison courante
 // Source de vérité couleurs : gamification.statBands dans @aureak/theme
 
 import type { JoueurListItem } from '@aureak/api-client'
 import type { PlayerTier } from '@aureak/types'
+
+// ── Type commun minimal pour computePlayerXP ──────────────────────────────────
+
+type XPInputFields = {
+  totalAcademySeasons: number
+  totalStages        : number
+  inCurrentSeason    : boolean
+}
 
 // ── Types exportés ─────────────────────────────────────────────────────────────
 
@@ -95,4 +104,24 @@ export function computePlayerTier(joueur: JoueurListItem): PlayerTier {
     default:
       return 'Prospect'
   }
+}
+
+// ── computePlayerXP ───────────────────────────────────────────────────────────
+
+/**
+ * Calcule un score XP proxy depuis les données disponibles.
+ * Story 52-7 — remplacé par vraie table player_xp_events en story 59-1.
+ *
+ * Formule :
+ *  - Base : totalAcademySeasons × 200
+ *  - Bonus stage : totalStages × 50
+ *  - Bonus saison courante : inCurrentSeason ? 100 : 0
+ *  - Bonus ancienneté ≥ 5 saisons : 300
+ */
+export function computePlayerXP(joueur: XPInputFields): number {
+  const base         = joueur.totalAcademySeasons * 200
+  const stageBonus   = joueur.totalStages * 50
+  const currentBonus = joueur.inCurrentSeason ? 100 : 0
+  const seniorBonus  = joueur.totalAcademySeasons >= 5 ? 300 : 0
+  return base + stageBonus + currentBonus + seniorBonus
 }

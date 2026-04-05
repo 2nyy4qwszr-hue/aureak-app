@@ -34,6 +34,9 @@ export { DetailSkeleton, ListRowSkeleton, CardSkeleton } from './components/Skel
 export { PlayerCard, avatarBgColor } from './PlayerCard'
 export type { PlayerCardProps, PlayerTier } from './PlayerCard'
 
+export { XPBar } from './XPBar'
+export type { XPBarProps } from './XPBar'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
