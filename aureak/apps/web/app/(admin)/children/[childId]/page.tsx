@@ -2,8 +2,9 @@
 // Fiche joueur/enfant — child_directory
 // Vue admin : statut calculé, badges, historique académie + stages
 // Édition inline par section (identité, club, adresse, parent1, parent2, notes)
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput, Switch } from 'react-native'
+// Story 52-6 : header photo 280px fullwidth + tabs navigation
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, Switch, Image, Platform, Animated } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getChildDirectoryEntry, updateChildDirectoryEntry,
@@ -41,12 +42,13 @@ const FOOTBALL_SEASONS = [
   '2021-2022', '2020-2021', '2019-2020', '2018-2019', '2017-2018',
   '2016-2017', '2015-2016', '2014-2015',
 ]
-import { ACADEMY_STATUS_CONFIG, generateAcademyBadges } from '@aureak/business-logic'
+import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier } from '@aureak/business-logic'
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
 import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
+import type { PlayerTier } from '@aureak/types'
 import { computeTeamLevelStars } from '@aureak/business-logic'
 import type {
   ChildDirectoryEntry,
@@ -311,6 +313,183 @@ const ns = StyleSheet.create({
   wrap     : { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingVertical: 4 },
   pill     : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
   pillActive: { borderColor: colors.accent.gold, backgroundColor: colors.light.primary },
+})
+
+// ── Avatar bg color (duplicated from index — local helper) ───────────────────
+
+function avatarBgColor(id: string): string {
+  const PALETTE = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4']
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
+  return PALETTE[Math.abs(hash) % PALETTE.length]
+}
+
+// ── Tier badge colors ─────────────────────────────────────────────────────────
+
+const TIER_HEADER_CONFIG: Record<PlayerTier, { bg: string; textColor: string; borderColor: string }> = {
+  Prospect   : { bg: '#E8E8E8', textColor: '#555555', borderColor: '#CCCCCC' },
+  Académicien: { bg: colors.light.surface, textColor: colors.text.dark, borderColor: colors.border.light },
+  Confirmé   : { bg: '#FFF8E8', textColor: '#8A6800', borderColor: 'rgba(193,172,92,0.4)' },
+  Elite      : { bg: '#2A2006', textColor: '#FFE566', borderColor: '#C1AC5C' },
+}
+
+// ── PlayerHeader — 280px fullwidth avec photo/avatar + overlay + tabs ─────────
+
+type PlayerHeaderProps = {
+  joueur     : { id: string; displayName: string }
+  displayName: string
+  photoUrl   : string | null
+  tier       : PlayerTier
+  onBack     : () => void
+}
+
+function PlayerHeader({ joueur, displayName, photoUrl, tier, onBack }: PlayerHeaderProps) {
+  const [imgError, setImgError] = useState(false)
+  const showPhoto = photoUrl && !imgError
+  const tierCfg = TIER_HEADER_CONFIG[tier]
+  const initials = displayName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
+
+  return (
+    <View style={ph2.container}>
+      {/* Background — photo ou couleur tier */}
+      {showPhoto ? (
+        <Image
+          source={{ uri: photoUrl }}
+          style={ph2.bgImage}
+          resizeMode="cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <View style={[ph2.bgGradient, { backgroundColor: tierCfg.bg }]} />
+      )}
+
+      {/* Overlay gradient — assombrit le bas pour lisibilité */}
+      <View
+        style={[ph2.overlay, Platform.OS === 'web' ? {
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%)',
+        } as never : { backgroundColor: 'rgba(0,0,0,0.3)' }]}
+        pointerEvents="none"
+      />
+
+      {/* Avatar initiales — si pas de photo */}
+      {!showPhoto && (
+        <View style={[ph2.avatarCircle, { backgroundColor: avatarBgColor(joueur.id) }]}>
+          <AureakText style={ph2.avatarText as never}>{initials}</AureakText>
+        </View>
+      )}
+
+      {/* Bouton retour — top-left */}
+      <Pressable style={ph2.backBtn} onPress={onBack} accessibilityRole="button" accessibilityLabel="Retour">
+        <AureakText style={ph2.backBtnText as never}>← Retour</AureakText>
+      </Pressable>
+
+      {/* Nom + badge tier — bas du header */}
+      <View style={ph2.bottomInfo}>
+        <AureakText
+          style={[ph2.name, Platform.OS === 'web' ? { textShadow: '0 1px 3px rgba(0,0,0,0.8)' } as never : {}] as never}
+          numberOfLines={1}
+        >
+          {displayName}
+        </AureakText>
+        <View style={[ph2.tierBadge, { backgroundColor: tierCfg.bg, borderColor: tierCfg.borderColor }]}>
+          <AureakText style={[ph2.tierText, { color: tierCfg.textColor }] as never}>{tier}</AureakText>
+        </View>
+      </View>
+    </View>
+  )
+}
+
+// ph2 styles en objets simples (évite l'inférence union de StyleSheet avec TextStyle)
+const ph2 = {
+  container  : { width: '100%', height: 280, position: 'relative', overflow: 'hidden', marginBottom: 0 } as never,
+  bgImage    : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: 280 } as never,
+  bgGradient : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as never,
+  overlay    : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as never,
+  avatarCircle: {
+    position      : 'absolute',
+    top           : '50%',
+    left          : '50%',
+    transform     : 'translate(-50%, -50%)',
+    width         : 100,
+    height        : 100,
+    borderRadius  : 50,
+    alignItems    : 'center',
+    justifyContent: 'center',
+  } as never,
+  avatarText: { color: '#fff', fontSize: 40, fontWeight: '700' } as never,
+  backBtn: {
+    position        : 'absolute',
+    top             : 16,
+    left            : 16,
+    backgroundColor : 'rgba(0,0,0,0.4)',
+    borderRadius    : 20,
+    paddingHorizontal: 12,
+    paddingVertical : 6,
+  } as never,
+  backBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' } as never,
+  bottomInfo: {
+    position: 'absolute',
+    bottom  : 20,
+    left    : 16,
+    right   : 16,
+    gap     : 6,
+  } as never,
+  name: {
+    fontSize  : 28,
+    fontWeight: '700',
+    color     : '#ffffff',
+    lineHeight: 34,
+  } as never,
+  tierBadge: {
+    alignSelf       : 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical : 3,
+    borderRadius    : 12,
+    borderWidth     : 1,
+  } as never,
+  tierText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4 } as never,
+}
+
+// ── PlayerTabs ────────────────────────────────────────────────────────────────
+
+const PLAYER_TABS = ['Profil', 'Académie', 'Stages', 'Historique', 'Photos'] as const
+type PlayerTab = typeof PLAYER_TABS[number]
+
+function PlayerTabsNav({
+  activeTab, onSelect, tierColor,
+}: {
+  activeTab: PlayerTab
+  onSelect : (tab: PlayerTab) => void
+  tierColor: string
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={ptn.container}
+      contentContainerStyle={ptn.row}
+    >
+      {PLAYER_TABS.map(tab => {
+        const isActive = tab === activeTab
+        return (
+          <Pressable key={tab} style={ptn.tab} onPress={() => onSelect(tab)}>
+            <AureakText style={[ptn.tabLabel, isActive && { color: tierColor, fontWeight: '700' }] as never}>
+              {tab}
+            </AureakText>
+            {isActive && <View style={[ptn.underline, { backgroundColor: tierColor }]} />}
+          </Pressable>
+        )
+      })}
+    </ScrollView>
+  )
+}
+
+const ptn = StyleSheet.create({
+  container: { backgroundColor: colors.light.surface, borderBottomWidth: 1, borderBottomColor: colors.border.light },
+  row      : { flexDirection: 'row', paddingHorizontal: 8 },
+  tab      : { paddingHorizontal: 16, paddingVertical: 12, position: 'relative' as never },
+  tabLabel : { fontSize: 13, color: colors.text.muted },
+  underline: { position: 'absolute' as never, bottom: 0, left: 8, right: 8, height: 2, borderRadius: 1 },
 })
 
 // ── Academy Status Header ─────────────────────────────────────────────────────
@@ -1422,6 +1601,9 @@ export default function ChildDetailPage() {
   const [showAddHist,    setShowAddHist]    = useState(false)
   const [deletingId,   setDeletingId]   = useState<string | null>(null)
 
+  // Story 52-6 — tabs navigation
+  const [activeTab, setActiveTab] = useState<PlayerTab>('Profil')
+
   // ── Edit state ──────────────────────────────────────────────────────────────
   const [editSection, setEditSection] = useState<EditSection | null>(null)
   const [draft,       setDraft]       = useState<Partial<ChildDirectoryEntry>>({})
@@ -1617,6 +1799,33 @@ export default function ChildDetailPage() {
     }
   }
 
+  // ── Tier calculé pour header — avant early returns (règle hooks) — Story 52-6 ──
+  const joueurForTier = useMemo(() => {
+    if (!child) return null
+    return {
+      id                : child.id,
+      displayName       : child.displayName,
+      nom               : child.nom,
+      prenom            : child.prenom,
+      computedStatus    : child.statut ?? academyData?.computedStatus ?? null,
+      totalAcademySeasons: memberships.length,
+      totalStages       : stages_.length,
+      inCurrentSeason   : academyData?.inCurrentSeason ?? false,
+      birthDate         : child.birthDate,
+      currentClub       : child.currentClub,
+      niveauClub        : child.niveauClub,
+      clubDirectoryId   : child.clubDirectoryId,
+      isClubPartner     : false,
+      currentSeasonLabel: null,
+      currentPhotoUrl   : null,
+      ageCategory       : child.ageCategory ?? null,
+      playerType        : null,
+      teamLevelStars    : null,
+      clubLogoUrl       : null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any
+  }, [child, academyData, memberships.length, stages_.length])
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -1642,102 +1851,59 @@ export default function ChildDetailPage() {
 
   const currentPhoto = photos.find(p => p.isCurrent) ?? photos[0] ?? null
 
+  const tier = computePlayerTier(joueurForTier!)
+  const tierCfg = TIER_HEADER_CONFIG[tier]
+
+  const displayName = formatNomPrenom(child.nom, child.prenom, child.displayName)
+
   return (
     <>
-      <ScrollView style={s.container} contentContainerStyle={s.content}>
-
-        {/* ── Navigation ── */}
-        <View style={[s.pageHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Pressable onPress={() => router.push('/children' as never)} style={s.backBtn}>
-            <AureakText variant="caption" style={{ color: colors.text.muted }}>← Joueurs</AureakText>
-          </Pressable>
-          <HierarchyBreadcrumb items={[
-            { label: 'Joueurs', onPress: () => router.push('/children' as never) },
-            { label: child?.displayName ?? 'Joueur' },
-          ]} />
-          <Pressable
-            style={{
-              paddingHorizontal: space.md,
-              paddingVertical  : 5,
-              borderRadius     : 6,
-              borderWidth      : 1,
-              borderColor      : colors.border.light,
-              backgroundColor  : colors.light.surface,
-            }}
-            onPress={() => { if (typeof window !== 'undefined') window.print() }}
-          >
-            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
-              Exporter PDF
+      {/* ── Navigation barre au-dessus du header ── */}
+      <View style={[s.pageHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xs, backgroundColor: colors.light.primary }]}>
+        <HierarchyBreadcrumb items={[
+          { label: 'Joueurs', onPress: () => router.push('/children' as never) },
+          { label: displayName },
+        ]} />
+        <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center' }}>
+          {/* Toggle actif/inactif */}
+          <Pressable onPress={handleToggleActif} disabled={togglingActif} style={s.actifToggle}>
+            <View style={[s.actifDot, { backgroundColor: child.actif ? '#10B981' : '#9E9E9E' }]} />
+            <AureakText variant="caption" style={{ color: child.actif ? '#10B981' : colors.text.muted, fontSize: 11, fontWeight: '600' }}>
+              {child.actif ? 'Actif' : 'Inactif'}
             </AureakText>
           </Pressable>
+          <Pressable
+            style={{ paddingHorizontal: space.md, paddingVertical: 5, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.surface }}
+            onPress={() => { if (typeof window !== 'undefined') window.print() }}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>Exporter PDF</AureakText>
+          </Pressable>
         </View>
+      </View>
 
-        {/* ── Hero : photo + NOM Prénom + statut + club + toggle actif ── */}
-        <View style={s.heroCard}>
-          <View style={{ flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
+      {/* ── Header photo 280px fullwidth — Story 52-6 ── */}
+      <PlayerHeader
+        joueur={child}
+        displayName={displayName}
+        photoUrl={currentPhoto?.photoUrl ?? null}
+        tier={tier}
+        onBack={() => router.push('/children' as never)}
+      />
 
-            {/* Photo joueur 120px */}
-            {currentPhoto?.photoUrl ? (
-              // web-only — Expo Router admin (pas de rendu natif)
-              <img
-                src={currentPhoto.photoUrl}
-                alt={formatNomPrenom(child.nom, child.prenom, child.displayName)}
-                style={{ width: 120, height: 120, borderRadius: 60, objectFit: 'cover' }}
-              />
-            ) : (
-              <View style={s.heroPicFallback}>
-                <AureakText style={s.heroInitials}>
-                  {formatNomPrenom(child.nom, child.prenom, child.displayName)
-                    .split(' ')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map(w => w[0]?.toUpperCase() ?? '')
-                    .join('')}
-                </AureakText>
-              </View>
-            )}
+      {/* ── Tabs sticky — Story 52-6 ── */}
+      <View style={Platform.OS === 'web' ? { position: 'sticky' as never, top: 0, zIndex: 10 } : {}}>
+        <PlayerTabsNav
+          activeTab={activeTab}
+          onSelect={setActiveTab}
+          tierColor={tierCfg.textColor === '#FFE566' ? '#C1AC5C' : tierCfg.textColor}
+        />
+      </View>
 
-            {/* Infos joueur */}
-            <View style={{ flex: 1, gap: 6 }}>
-              <AureakText variant="h2" color={colors.accent.gold}>
-                {formatNomPrenom(child.nom, child.prenom, child.displayName)}
-              </AureakText>
-              {child.currentClub && (
-                child.clubDirectoryId ? (
-                  <Pressable onPress={() => router.push(`/clubs/${child.clubDirectoryId}` as never)}>
-                    <AureakText variant="caption" style={{ color: colors.accent.gold }}>{child.currentClub} →</AureakText>
-                  </Pressable>
-                ) : (
-                  <AureakText variant="caption" style={{ color: colors.text.muted }}>{child.currentClub}</AureakText>
-                )
-              )}
-              {academyData ? (
-                <AcademyStatusHeader data={academyData} />
-              ) : (
-                child.statut && <Badge label={child.statut} variant="zinc" />
-              )}
-            </View>
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
 
-            {/* Toggle actif/inactif */}
-            <Pressable onPress={handleToggleActif} disabled={togglingActif} style={s.actifToggle}>
-              <View style={[s.actifDot, { backgroundColor: child.actif ? '#10B981' : '#9E9E9E' }]} />
-              <AureakText variant="caption" style={{ color: child.actif ? '#10B981' : colors.text.muted, fontSize: 11, fontWeight: '600' }}>
-                {child.actif ? 'Actif' : 'Inactif'}
-              </AureakText>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* ── Photos ── */}
-        {tenantId && (
-          <ChildPhotosSection
-            childId={childId!}
-            tenantId={tenantId}
-            photos={photos}
-            onRefresh={loadChild}
-          />
-        )}
-
+        {/* ── Tab : Profil — identité, club, adresse, parents, notes ── */}
+        {activeTab === 'Profil' && (
+        <>
         {/* ── [A] Identité ── */}
         <View style={s.card}>
           <SectionHeader title="Identité" onEdit={() => startEdit('identite')} isEditing={isEditing('identite')} />
@@ -1793,6 +1959,13 @@ export default function ChildDetailPage() {
           )}
         </View>
 
+        {/* Fin tab Profil */}
+        </>
+        )}
+
+        {/* ── Tab : Académie — statut, memberships, stages ── */}
+        {activeTab === 'Académie' && (
+        <>
         {/* ── [B] Historique : académie + stages ── */}
         {tenantId && (
           <HistoriqueSection
@@ -1806,6 +1979,13 @@ export default function ChildDetailPage() {
           />
         )}
 
+        {/* Fin tab Académie */}
+        </>
+        )}
+
+        {/* ── Tab : Profil (suite) — club, affiliations, niveau, adresse, parents, notes ── */}
+        {activeTab === 'Profil' && (
+        <>
         {/* ── [C] Club actuel ── */}
         <View style={s.card}>
           <SectionHeader title="Club actuel" onEdit={() => startEdit('club')} isEditing={isEditing('club')} />
@@ -1989,6 +2169,13 @@ export default function ChildDetailPage() {
           )}
         </View>
 
+        {/* Fin tab Profil suite */}
+        </>
+        )}
+
+        {/* ── Tab : Historique — parcours football ── */}
+        {activeTab === 'Historique' && (
+        <>
         {/* ── [D] Parcours football ── */}
         <View style={s.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
@@ -2043,6 +2230,13 @@ export default function ChildDetailPage() {
           />
         )}
 
+        {/* Fin tab Historique */}
+        </>
+        )}
+
+        {/* ── Tab : Profil (adresse, parents, notes) ── */}
+        {activeTab === 'Profil' && (
+        <>
         {/* ── [F] Adresse ── */}
         <View style={s.card}>
           <SectionHeader title="Adresse" onEdit={() => startEdit('adresse')} isEditing={isEditing('adresse')} />
@@ -2207,6 +2401,52 @@ export default function ChildDetailPage() {
           <InfoRow label="Créé le"    value={child.createdAt ? new Date(child.createdAt).toLocaleDateString('fr-FR') : null} />
           <InfoRow label="Mis à jour" value={child.updatedAt ? new Date(child.updatedAt).toLocaleDateString('fr-FR') : null} />
         </View>
+
+        {/* Fin tab Profil tail */}
+        </>
+        )}
+
+        {/* ── Tab : Photos ── */}
+        {activeTab === 'Photos' && tenantId && (
+          <ChildPhotosSection
+            childId={childId!}
+            tenantId={tenantId}
+            photos={photos}
+            onRefresh={loadChild}
+          />
+        )}
+
+        {/* ── Tab : Stages — participations ── */}
+        {activeTab === 'Stages' && (
+          <View style={s.card}>
+            <AureakText variant="label" style={{ color: colors.accent.gold, letterSpacing: 1, fontSize: 11, marginBottom: space.sm }}>
+              STAGES
+            </AureakText>
+            {stages_.length === 0 ? (
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+                Aucune participation à un stage enregistrée.
+              </AureakText>
+            ) : (
+              <View style={{ gap: 4 }}>
+                {[...stages_]
+                  .sort((a, b) => (b.stage?.startDate ?? '').localeCompare(a.stage?.startDate ?? ''))
+                  .map(p => (
+                    <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border.divider }}>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#4FC3F7', flexShrink: 0 }} />
+                      <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>
+                        {p.stage?.name ?? p.stageId}
+                        {p.stage?.startDate && (
+                          <AureakText style={{ color: colors.text.muted, fontSize: 11 }}>
+                            {' '}· {new Date(p.stage.startDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                          </AureakText>
+                        )}
+                      </AureakText>
+                    </View>
+                  ))}
+              </View>
+            )}
+          </View>
+        )}
 
       </ScrollView>
 
