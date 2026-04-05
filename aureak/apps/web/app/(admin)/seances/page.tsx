@@ -219,11 +219,11 @@ function GenerateModal({
             </View>
           )}
 
-          {error && (
+          {error ? (
             <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
               <AureakText variant="caption" style={{ color: '#DC2626' }}>{error}</AureakText>
             </View>
-          )}
+          ) : null}
 
           <View style={gn.btnRow}>
             <Pressable
@@ -510,21 +510,21 @@ export default function SeancesPage() {
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
       {/* Toast */}
-      {toast && (
+      {toast ? (
         <View style={st.toast}>
           <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' }}>{toast}</AureakText>
         </View>
-      )}
+      ) : null}
 
       {/* ── Header ── */}
       <View style={st.header}>
         <View>
           <AureakText variant="h2" color={colors.accent.gold}>Séances</AureakText>
-          {!loading && (
+          {!loading ? (
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {filteredSessions.length}{filterStatus ? `/${sessions.length}` : ''} séance{filteredSessions.length !== 1 ? 's' : ''} sur la période
+              {filteredSessions.length}{filterStatus ? `/${sessions.length}` : null} séance{filteredSessions.length !== 1 ? 's' : null} sur la période
             </AureakText>
-          )}
+          ) : null}
         </View>
         <View style={{ flexDirection: 'row', gap: space.xs }}>
           {/* Story 54-8 — Export PDF (visible uniquement en vue Semaine) */}
@@ -648,11 +648,11 @@ export default function SeancesPage() {
                 placeholderTextColor={colors.text.muted}
                 autoFocus
               />
-              {presetNameError && (
+              {presetNameError ? (
                 <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: 4 }}>
                   {presetNameError}
                 </AureakText>
-              )}
+              ) : null}
               <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
                 <Pressable
                   style={[st.presetModalBtn, st.presetModalBtnPrimary]}

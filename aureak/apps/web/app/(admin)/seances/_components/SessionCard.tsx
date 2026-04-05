@@ -77,13 +77,13 @@ export default function SessionCard({
       <View style={st.topRow}>
         <AureakText style={st.time}>{time}</AureakText>
         <AureakText style={st.duration}>· {fmtDuration(session.durationMinutes)}</AureakText>
-        {session.sessionType && (
+        {session.sessionType ? (
           <View style={[st.typeTag, { borderColor: typeColor + '80', backgroundColor: typeColor + '18' }]}>
             <AureakText style={StyleSheet.flatten([st.typeTagText, { color: typeColor }]) as TextStyle}>
               {SESSION_TYPE_LABELS[session.sessionType as SessionType] ?? session.sessionType}
             </AureakText>
           </View>
-        )}
+        ) : null}
         <View style={{ flex: 1 }} />
         <Badge
           label={STATUS_LABEL[session.status] ?? session.status}
@@ -123,7 +123,7 @@ export default function SessionCard({
       )}
 
       {/* ── Motif annulation ── */}
-      {isCancelled && session.cancellationReason && (
+      {isCancelled && !!session.cancellationReason && (
         <AureakText style={st.cancelText} numberOfLines={1}>
           Motif : {session.cancellationReason}
         </AureakText>
