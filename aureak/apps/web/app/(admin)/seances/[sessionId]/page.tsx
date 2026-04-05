@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Modal, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Modal, Pressable, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   resolveProfileDisplayNames,
@@ -9,12 +9,12 @@ import {
   listSessionThemeBlocks, listSessionWorkshops,
   listGroupMembersWithDetails,
   addSessionThemeBlock, removeSessionThemeBlock, listMethodologyThemes,
-  recordAttendance,
+  recordAttendance, updateSessionIntensity,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -25,6 +25,233 @@ const STATUS_VARIANT: Record<string, 'gold' | 'present' | 'zinc' | 'attention'> 
   planifiée: 'gold', en_cours: 'present', réalisée: 'zinc',
   annulée: 'attention', reportée: 'gold',
 }
+
+// ── Story 53-2 — MatchReportHeader ───────────────────────────────────────────
+
+// Couleurs locales nommées (pas inline)
+const HEADER_BG    = '#1A1A1A'
+const HEADER_WHITE = '#FFFFFF'
+
+const SESSION_TYPE_ICON: Partial<Record<string, string>> = {
+  goal_and_player : '⚽',
+  technique       : '🎯',
+  situationnel    : '📐',
+  decisionnel     : '🧠',
+  perfectionnement: '💎',
+  integration     : '🔗',
+}
+
+const DAYS_LONG_FR = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
+const MONTHS_LONG_FR = [
+  'janvier','février','mars','avril','mai','juin',
+  'juillet','août','septembre','octobre','novembre','décembre',
+]
+
+function formatDateLong(scheduledAt: string): string {
+  const d = new Date(scheduledAt)
+  const weekday = DAYS_LONG_FR[d.getDay()]
+  const day     = d.getDate()
+  const month   = MONTHS_LONG_FR[d.getMonth()]
+  const year    = d.getFullYear()
+  const hh      = String(d.getHours()).padStart(2, '0')
+  const mm      = String(d.getMinutes()).padStart(2, '0')
+  return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${day} ${month} ${year} · ${hh}h${mm}`
+}
+
+function MatchReportHeader({
+  session, groupName, isMobile,
+}: {
+  session   : Session
+  groupName : string
+  isMobile? : boolean
+}) {
+  const typeColor   = session.sessionType
+    ? ((methodologyMethodColors as Record<string, string>)[
+        session.sessionType === 'goal_and_player'  ? 'Goal and Player'  :
+        session.sessionType === 'technique'         ? 'Technique'         :
+        session.sessionType === 'situationnel'      ? 'Situationnel'      :
+        session.sessionType === 'decisionnel'       ? 'Décisionnel'       :
+        session.sessionType === 'perfectionnement'  ? 'Perfectionnement'  :
+        session.sessionType === 'integration'       ? 'Intégration'       :
+        session.sessionType
+      ] ?? colors.accent.gold)
+    : colors.accent.gold
+
+  const typeLabel   = session.sessionType ? (SESSION_TYPE_LABELS[session.sessionType as SessionType] ?? session.sessionType) : null
+  const typeIcon    = session.sessionType ? (SESSION_TYPE_ICON[session.sessionType] ?? '📋') : null
+  const dateLong    = formatDateLong(session.scheduledAt)
+  const isCancelled = session.status === 'annulée'
+
+  return (
+    <View style={[mrh.header, isCancelled && { opacity: 0.7 }, Platform.OS === 'web' && { overflow: 'hidden' as never }]}>
+      {/* Stripe or */}
+      <View style={mrh.stripe} />
+
+      {/* Badge statut top-right */}
+      <View style={mrh.statusPill}>
+        <Badge
+          label={STATUS_LABEL[session.status] ?? session.status}
+          variant={STATUS_VARIANT[session.status] ?? 'zinc'}
+        />
+      </View>
+
+      {/* Badge méthode */}
+      {typeLabel && typeIcon && (
+        <View style={[mrh.methodBadge, isMobile && mrh.methodBadgeMobile, { backgroundColor: typeColor + '20', borderColor: typeColor }]}>
+          <AureakText style={{ fontSize: 16 }}>{typeIcon}</AureakText>
+          <AureakText style={[mrh.methodLabel, { color: typeColor }] as never}>{typeLabel}</AureakText>
+        </View>
+      )}
+
+      {/* Nom groupe */}
+      <AureakText style={mrh.groupName}>{groupName}</AureakText>
+
+      {/* Date */}
+      <AureakText style={mrh.dateText}>
+        {dateLong} · {session.durationMinutes} min
+      </AureakText>
+
+      {/* Overlay annulée */}
+      {isCancelled && (
+        <View style={mrh.cancelledOverlay} pointerEvents="none">
+          <AureakText style={mrh.cancelledText}>ANNULÉE</AureakText>
+        </View>
+      )}
+    </View>
+  )
+}
+
+import { Platform } from 'react-native'
+
+const mrh = StyleSheet.create({
+  header: {
+    backgroundColor      : HEADER_BG,
+    borderBottomLeftRadius : 12,
+    borderBottomRightRadius: 12,
+    padding              : space.lg,
+    paddingTop           : space.md + 3,   // room for stripe
+    gap                  : space.xs,
+    position             : 'relative' as never,
+    marginBottom         : space.sm,
+  },
+  stripe: {
+    position        : 'absolute' as never,
+    top             : 0,
+    left            : 0,
+    right           : 0,
+    height          : 3,
+    backgroundColor : colors.accent.gold,
+    borderTopLeftRadius : 12,
+    borderTopRightRadius: 12,
+  },
+  statusPill: {
+    position : 'absolute' as never,
+    top      : 16,
+    right    : 16,
+  },
+  methodBadge: {
+    flexDirection  : 'row',
+    alignSelf      : 'flex-start' as never,
+    alignItems     : 'center',
+    gap            : 6,
+    borderWidth    : 1,
+    borderRadius   : 8,
+    paddingHorizontal: space.md,
+    height         : 36,
+    marginBottom   : 4,
+  },
+  methodBadgeMobile: { alignSelf: 'stretch' as never },
+  methodLabel: {
+    fontSize  : 13,
+    fontWeight: '700' as never,
+  },
+  groupName: {
+    fontSize  : 28,
+    fontWeight: '900' as never,
+    color     : HEADER_WHITE,
+    lineHeight: 34,
+    paddingRight: 100,   // éviter overlap avec le status pill
+  },
+  dateText: {
+    fontSize: 13,
+    color   : colors.text.muted,
+    marginTop: 2,
+  },
+  cancelledOverlay: {
+    position   : 'absolute' as never,
+    top        : 0,
+    left       : 0,
+    right      : 0,
+    bottom     : 0,
+    alignItems : 'center',
+    justifyContent: 'center',
+  },
+  cancelledText: {
+    fontSize  : 42,
+    fontWeight: '900' as never,
+    color     : HEADER_WHITE,
+    opacity   : 0.12,
+    transform : [{ rotate: '-30deg' }],
+    letterSpacing: 8,
+  },
+})
+
+// ── Story 53-3 — IntensityPicker ─────────────────────────────────────────────
+
+const INTENSITY_LABELS: Record<number, string> = {
+  1: 'Récupération active',
+  2: 'Charge légère',
+  3: 'Charge standard',
+  4: 'Charge élevée',
+  5: 'Haute intensité',
+}
+
+function IntensityPicker({
+  value, onChange, disabled = false, saving = false,
+}: {
+  value   : number | null
+  onChange: (level: number) => void
+  disabled?: boolean
+  saving?  : boolean
+}) {
+  return (
+    <View style={ip.container}>
+      <View style={ip.circles}>
+        {[1, 2, 3, 4, 5].map(i => {
+          const filled    = value !== null && i <= value
+          const isGold    = i <= 3
+          const fillColor = filled
+            ? (isGold ? colors.accent.gold : (colors.accent.red ?? '#E05252'))
+            : colors.border.light
+          return (
+            <Pressable
+              key={i}
+              style={[ip.circle, { backgroundColor: fillColor, borderColor: filled ? fillColor : colors.border.light }]}
+              onPress={() => { if (!disabled && !saving) onChange(i) }}
+              disabled={disabled || saving}
+            />
+          )
+        })}
+        {saving && <AureakText style={{ fontSize: 10, color: colors.text.muted, marginLeft: 6 }}>…</AureakText>}
+      </View>
+      {value && (
+        <AureakText style={ip.label}>{INTENSITY_LABELS[value] ?? `Niveau ${value}`}</AureakText>
+      )}
+    </View>
+  )
+}
+
+const ip = StyleSheet.create({
+  container: { gap: 6 },
+  circles  : { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  circle   : {
+    width        : 28,
+    height       : 28,
+    borderRadius : 14,
+    borderWidth  : 1.5,
+  },
+  label: { fontSize: 11, color: colors.text.muted },
+})
 
 // Story 47.3 — Styles actions rapides
 const actSt = StyleSheet.create({
@@ -62,9 +289,32 @@ const styles = StyleSheet.create({
   },
 })
 
+// ── Story 53-5 — Duplication rapide ───────────────────────────────────────────
+
+function buildDuplicatePrefill(
+  session  : Session,
+  coachIds : string[],
+): string {
+  const payload = {
+    groupId       : session.groupId,
+    implantationId: session.implantationId ?? '',
+    sessionType   : session.sessionType ?? '',
+    duration      : session.durationMinutes,
+    terrain       : session.location ?? '',
+    coachIds,
+  }
+  try {
+    return btoa(JSON.stringify(payload))
+  } catch {
+    return ''
+  }
+}
+
 export default function SessionDetailPage() {
   const { sessionId, updated } = useLocalSearchParams<{ sessionId: string; updated?: string }>()
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width < 768
   const [session,     setSession]     = useState<Session | null>(null)
   const [coaches,     setCoaches]     = useState<SessionCoach[]>([])
   const [attendances, setAttendances] = useState<Attendance[]>([])
@@ -98,6 +348,11 @@ export default function SessionDetailPage() {
   const [guestSearch,   setGuestSearch]  = useState('')
   const [guestResults, setGuestResults]= useState<ChildDirectoryEntry[]>([])
   const [showGuestPicker, setShowGuestPicker] = useState(false)
+  // Story 53-3 — Intensité
+  const [intensityLevel,  setIntensityLevel]  = useState<number | null>(null)
+  const [intensitySaving, setIntensitySaving] = useState(false)
+  const [intensityError,  setIntensityError]  = useState<string | null>(null)
+
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -128,6 +383,7 @@ export default function SessionDetailPage() {
         return
       }
       setSession(s.data)
+      setIntensityLevel(s.data.intensityLevel ?? null)
       setCoaches(c.data)
       setAttendances(a.data)
       setAttendees(att.data)
@@ -349,6 +605,24 @@ export default function SessionDetailPage() {
     }
   }
 
+  // Story 53-3 — Handler intensité avec optimistic update + rollback
+  const handleIntensityChange = async (level: number) => {
+    if (!sessionId || session?.status === 'annulée') return
+    const prev = intensityLevel
+    setIntensityLevel(level)
+    setIntensityError(null)
+    setIntensitySaving(true)
+    try {
+      await updateSessionIntensity(sessionId, level)
+    } catch (err) {
+      setIntensityLevel(prev) // rollback
+      setIntensityError('Erreur lors de la mise à jour de l\'intensité')
+      if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] updateSessionIntensity error:', err)
+    } finally {
+      setIntensitySaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -439,29 +713,31 @@ export default function SessionDetailPage() {
         <AureakText variant="caption" style={{ color: colors.text.muted }}>← Séances</AureakText>
       </Pressable>
 
-      {/* Story 21.1 — titre auto-généré s'il existe (AC8 : h1), sinon date */}
-      <AureakText variant="h1">{session.label ?? sessionDate}</AureakText>
-      {session.label && (
-        <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: -space.xs }}>
-          {sessionDate}
-        </AureakText>
-      )}
+      {/* Story 53-2 — Header Match Report premium */}
+      <MatchReportHeader
+        session   ={session}
+        groupName ={session.label ?? sessionDate}
+        isMobile  ={isMobile}
+      />
+
+      {/* Story 53-3 — Indicateur d'intensité */}
+      <View style={[styles.card, session.status === 'annulée' && { opacity: 0.5 }]}>
+        <AureakText variant="label">Intensité de la séance</AureakText>
+        <IntensityPicker
+          value   ={intensityLevel}
+          onChange={handleIntensityChange}
+          disabled={session.status === 'annulée'}
+          saving  ={intensitySaving}
+        />
+        {intensityError && (
+          <AureakText variant="caption" style={{ color: colors.accent.red ?? '#E05252', marginTop: space.xs }}>
+            {intensityError}
+          </AureakText>
+        )}
+      </View>
 
       {/* Infos session */}
       <View style={styles.card}>
-        <View style={styles.row}>
-          <AureakText variant="label">Statut :</AureakText>
-          <Badge
-            label={STATUS_LABEL[session.status] ?? session.status}
-            variant={STATUS_VARIANT[session.status] ?? 'zinc'}
-          />
-          {session.sessionType && (
-            <Badge
-              label={SESSION_TYPE_LABELS[session.sessionType]}
-              variant="goldOutline"
-            />
-          )}
-        </View>
         {session.sessionType && (
           <AureakText variant="body" style={{ color: colors.accent.gold }}>
             Contenu : {contentRefLabel(session)}
@@ -928,7 +1204,7 @@ export default function SessionDetailPage() {
         )}
       </View>
 
-      {/* Actions rapides (Story 47.3) — accès direct présences & évaluations */}
+      {/* Actions rapides (Story 47.3 + 53-5) — accès direct présences & évaluations & duplication */}
       <View style={styles.card}>
         <AureakText variant="label">Actions rapides</AureakText>
         <View style={styles.row}>
@@ -949,6 +1225,20 @@ export default function SessionDetailPage() {
             </AureakText>
           </Pressable>
         </View>
+        {/* Story 53-5 — Bouton Dupliquer (masqué si annulée) */}
+        {session.status !== 'annulée' && (
+          <Pressable
+            style={[actSt.quickBtn, { marginTop: space.xs }]}
+            onPress={() => {
+              const prefill = buildDuplicatePrefill(session, coaches.map(c => c.coachId))
+              if (prefill) router.push(`/seances/new?prefill=${prefill}` as never)
+            }}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' as never }}>
+              ↻ Dupliquer cette séance
+            </AureakText>
+          </Pressable>
+        )}
       </View>
 
       {/* Actions (Story 13.2) */}
