@@ -816,10 +816,10 @@ export default function SessionDetailPage() {
             {/* Message d'erreur rollback AC5 */}
             {attendanceError && (
               <View style={{
-                backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm,
-                borderWidth: 1, borderColor: '#FDE68A',
+                backgroundColor: colors.status.warning + '25', borderRadius: 6, padding: space.sm,
+                borderWidth: 1, borderColor: colors.status.warning + '60',
               }}>
-                <AureakText variant="caption" style={{ color: '#D97706' }}>
+                <AureakText variant="caption" style={{ color: colors.status.warning }}>
                   ⚠ {attendanceError}
                 </AureakText>
               </View>

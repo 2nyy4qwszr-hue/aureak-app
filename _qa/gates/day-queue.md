@@ -50,10 +50,18 @@ next-morning-queue:
   - story_id: story-49-4
     title: "UX — Présences — liste enfants groupe pré-chargée avec toggle"
     priority: P2
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
     commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-49-4_gate1.md"
+      - "_qa/reports/2026-04-05_story-49-4_gate2.md"
+    warnings:
+      - "W1: 'unconfirmed' absent de l'enum DB attendance_status — désynchronisation DB↔TS"
+      - "W2: handleCancel/handlePostpone sans try/catch (pré-existant)"
+      - "W3: handleAddGuest double-clic possible sans loading guard (pré-existant)"
+      - "W4: setTimeout orphelin possible lors d'un retry après erreur rollback"
 
   - story_id: story-49-5
     title: "DESIGN — Dashboard game manager premium (sparklines + hero band)"
