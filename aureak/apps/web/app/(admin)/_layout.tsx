@@ -43,6 +43,8 @@ import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { CommandPalette } from '../../components/CommandPalette'
+import { BreadcrumbProvider } from '../contexts/BreadcrumbContext'
+import { Breadcrumb } from '../../components/Breadcrumb'
 
 function KeyboardHandler() {
   useKeyboardShortcuts()
@@ -201,6 +203,7 @@ export default function AdminLayout() {
   const adminInitial = (user?.email ?? 'A').charAt(0).toUpperCase()
 
   return (
+    <BreadcrumbProvider>
     <ToastProvider>
     <NotificationProvider>
     <SearchProvider>
@@ -523,6 +526,9 @@ export default function AdminLayout() {
         {/* ── Story 51.2 — Topbar séance active (desktop uniquement) ── */}
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
+        {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
+        {!isMobile && <Breadcrumb />}
+
         <ErrorBoundary>
           <Slot />
         </ErrorBoundary>
@@ -531,5 +537,6 @@ export default function AdminLayout() {
     </SearchProvider>
     </NotificationProvider>
     </ToastProvider>
+    </BreadcrumbProvider>
   )
 }

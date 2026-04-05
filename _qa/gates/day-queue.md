@@ -374,6 +374,25 @@ next-morning-queue:
       - "console guards NODE_ENV production — tsc 0 erreur"
       - "Playwright skipped — app non démarrée"
 
+  - story_id: story-51-5
+    title: "FEATURE — Breadcrumb animé cliquable"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-5_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-5_gate2.md"
+    notes:
+      - "BreadcrumbContext (labels map + setLabel callback) dans app/contexts/"
+      - "parseBreadcrumbs() + ROUTE_LABELS (25+ routes) dans app/utils/breadcrumbs.ts"
+      - "Breadcrumb composant — HIDDEN_PATHS, isMobile guard, items.length<=1 guard"
+      - "BreadcrumbAnimated — key={pathname} + Animated.parallel opacity+translateX 200ms"
+      - "Pressable segments cliquables, Text segment actif non-pressable"
+      - "BreadcrumbProvider wrappé dans _layout.tsx (outermost), <Breadcrumb /> avant ErrorBoundary"
+      - "tsc 0 erreur — Playwright skipped (app non démarrée)"
+
   - story_id: story-51-2
     title: "FEATURE — Topbar séance active permanente"
     priority: P2
