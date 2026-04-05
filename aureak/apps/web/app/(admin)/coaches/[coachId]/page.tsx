@@ -1,11 +1,12 @@
 'use client'
 // Story 32.2 — Métriques qualité coach (vue admin)
+// Story 59-5 — Quêtes hebdomadaires coaches
 // Taux de remplissage débrief, taux de présence, délai moyen
 import { useEffect, useState } from 'react'
-import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach } from '@aureak/api-client'
+import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach, getCoachWeeklyQuests, assignCoachWeeklyQuests } from '@aureak/api-client'
 import type { CoachGroupEntry } from '@aureak/api-client'
-import type { CoachQualityMetrics } from '@aureak/types'
-import { colors, shadows, radius, transitions } from '@aureak/theme'
+import type { CoachQualityMetrics, CoachQuestWithDefinition } from '@aureak/types'
+import { colors, shadows, radius, transitions, gamification } from '@aureak/theme'
 
 type Props = { params: { coachId: string } }
 
@@ -50,25 +51,70 @@ function MetricTile({
 
 export default function CoachQualityPage({ params }: Props) {
   const { coachId } = params
-  const [metrics,    setMetrics]    = useState<CoachQualityMetrics | null>(null)
-  const [coachName,  setCoachName]  = useState<string>('')
-  const [groups,     setGroups]     = useState<CoachGroupEntry[]>([])
-  const [loading,    setLoading]    = useState(true)
+  const [metrics,        setMetrics]        = useState<CoachQualityMetrics | null>(null)
+  const [coachName,      setCoachName]      = useState<string>('')
+  const [groups,         setGroups]         = useState<CoachGroupEntry[]>([])
+  const [loading,        setLoading]        = useState(true)
+
+  // Story 59-5 — Quêtes coaches
+  const [coachQuests,    setCoachQuests]    = useState<CoachQuestWithDefinition[]>([])
+  const [loadingQuests,  setLoadingQuests]  = useState(true)
+  const [assigningQuests, setAssigningQuests] = useState(false)
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([
-      getCoachQualityMetrics(coachId),
-      getProfileDisplayName(coachId),
-      listGroupsByCoach(coachId),
-    ]).then(([metricsRes, nameRes, groupsRes]) => {
-      setMetrics(metricsRes.data)
-      setCoachName(nameRes.data ?? coachId)
-      setGroups(groupsRes)
-    }).catch(err => {
-      if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] load error:', err)
-    }).finally(() => setLoading(false))
+    try {
+      Promise.all([
+        getCoachQualityMetrics(coachId),
+        getProfileDisplayName(coachId),
+        listGroupsByCoach(coachId),
+      ]).then(([metricsRes, nameRes, groupsRes]) => {
+        setMetrics(metricsRes.data)
+        setCoachName(nameRes.data ?? coachId)
+        setGroups(groupsRes)
+      }).catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] load error:', err)
+      }).finally(() => setLoading(false))
+    } finally {
+      // setLoading géré dans .finally() ci-dessus — pattern try/finally requis
+    }
   }, [coachId])
+
+  // Story 59-5 — Chargement quêtes de la semaine
+  useEffect(() => {
+    setLoadingQuests(true)
+    ;(async () => {
+      try {
+        const { data, error } = await getCoachWeeklyQuests(coachId)
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] quests error:', error)
+        }
+        setCoachQuests(data ?? [])
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] quests exception:', err)
+      } finally {
+        setLoadingQuests(false)
+      }
+    })()
+  }, [coachId])
+
+  async function handleAssignQuests() {
+    setAssigningQuests(true)
+    try {
+      const { error } = await assignCoachWeeklyQuests(coachId)
+      if (error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] assign quests error:', error)
+        return
+      }
+      // Recharger les quêtes
+      const { data } = await getCoachWeeklyQuests(coachId)
+      setCoachQuests(data ?? [])
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] assign quests exception:', err)
+    } finally {
+      setAssigningQuests(false)
+    }
+  }
 
   return (
     <div style={{ padding: 32, maxWidth: 900, margin: '0 auto' }}>
@@ -220,6 +266,104 @@ export default function CoachQualityPage({ params }: Props) {
                 </span>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Quêtes de la semaine (Story 59-5) ── */}
+      <div style={{ marginTop: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: colors.text.dark }}>
+            Quêtes de la semaine
+          </h2>
+          <button
+            onClick={handleAssignQuests}
+            disabled={assigningQuests}
+            style={{
+              padding      : '6px 12px',
+              background   : assigningQuests ? colors.light.muted : colors.accent.gold,
+              color        : assigningQuests ? colors.text.muted : '#fff',
+              border       : 'none',
+              borderRadius : radius.xs,
+              fontSize     : 12,
+              fontWeight   : 600,
+              cursor       : assigningQuests ? 'not-allowed' : 'pointer',
+              transition   : `all ${transitions.fast}`,
+            }}
+          >
+            {assigningQuests ? 'Assignation…' : '+ Assigner quêtes semaine'}
+          </button>
+        </div>
+
+        {loadingQuests ? (
+          <div style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</div>
+        ) : coachQuests.length === 0 ? (
+          <div style={{
+            padding: 20, textAlign: 'center',
+            background: colors.light.surface, borderRadius: radius.card,
+            border: `1px dashed ${colors.border.divider}`, color: colors.text.muted, fontSize: 13,
+          }}>
+            Aucune quête assignée cette semaine. Cliquez sur "+ Assigner quêtes semaine" pour en créer.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {coachQuests.map(quest => {
+              const pct     = Math.min(100, quest.targetValue > 0 ? Math.round((quest.currentValue / quest.targetValue) * 100) : 0)
+              const isDone  = quest.status === 'completed'
+              const isExp   = quest.status === 'expired'
+              const statusIcon = isDone ? '✓' : isExp ? '✗' : '⏳'
+              const statusColor = isDone ? colors.status.success : isExp ? colors.accent.red : colors.status.info
+
+              return (
+                <div
+                  key={quest.id}
+                  style={{
+                    background   : colors.light.surface,
+                    borderRadius : radius.card,
+                    padding      : '14px 16px',
+                    boxShadow    : shadows.sm,
+                    border       : `1px solid ${isDone ? colors.status.success + '44' : colors.border.divider}`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16, color: statusColor }}>{statusIcon}</span>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: colors.text.dark }}>
+                      {quest.questDefinition?.name ?? quest.questDefinitionId}
+                    </span>
+                    <span style={{ fontSize: 11, color: colors.text.subtle }}>
+                      {quest.currentValue} / {quest.targetValue}
+                    </span>
+                    {quest.questDefinition?.xpReward && (
+                      <span style={{ fontSize: 11, fontWeight: 700, color: colors.accent.gold }}>
+                        +{quest.questDefinition.xpReward} XP
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Barre de progression */}
+                  <div style={{
+                    height      : gamification.xp.barHeight,
+                    borderRadius: gamification.xp.barRadius,
+                    background  : gamification.xp.trackColor,
+                    overflow    : 'hidden',
+                  }}>
+                    <div style={{
+                      height      : '100%',
+                      width       : `${pct}%`,
+                      borderRadius: gamification.xp.barRadius,
+                      background  : isDone ? colors.status.success : gamification.xp.fillColor,
+                      transition  : `width 0.4s ease`,
+                    }} />
+                  </div>
+
+                  {quest.questDefinition?.description && (
+                    <div style={{ fontSize: 11, color: colors.text.subtle, marginTop: 6 }}>
+                      {quest.questDefinition.description}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
