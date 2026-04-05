@@ -3,7 +3,8 @@
 // Story 49-5 — Design : Dashboard Admin — Game Manager Premium
 // Story 50-1 — Hero Band salle de commandement
 // Story 50-5 — Live activity feed
-import { useEffect, useState } from 'react'
+// Story 50-10 — KPI tiles réorganisables drag-drop
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
@@ -766,6 +767,73 @@ function CountdownTile({
   )
 }
 
+// ── KPI Tile DnD — Story 50-10 ────────────────────────────────────────────────
+
+type KpiTileId = 'sessions' | 'attendance' | 'mastery' | 'children' | 'coaches' | 'groups'
+
+const KPI_DEFAULT_ORDER: KpiTileId[] = ['children', 'attendance', 'mastery', 'sessions', 'coaches', 'groups']
+
+const KPI_ORDER_KEY = 'aureak_kpi_order'
+
+function loadKpiOrder(): KpiTileId[] {
+  try {
+    const raw = localStorage.getItem(KPI_ORDER_KEY)
+    if (!raw) return KPI_DEFAULT_ORDER
+    const parsed = JSON.parse(raw) as KpiTileId[]
+    if (!Array.isArray(parsed)) return KPI_DEFAULT_ORDER
+    const isValid = KPI_DEFAULT_ORDER.every(id => parsed.includes(id))
+    return isValid ? parsed : KPI_DEFAULT_ORDER
+  } catch {
+    return KPI_DEFAULT_ORDER
+  }
+}
+
+function DraggableKpiCard({
+  id,
+  draggedId,
+  dragOverId,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  children,
+}: {
+  id         : KpiTileId
+  draggedId  : KpiTileId | null
+  dragOverId : KpiTileId | null
+  onDragStart: (id: KpiTileId) => void
+  onDragOver : (e: React.DragEvent, id: KpiTileId) => void
+  onDrop     : (id: KpiTileId) => void
+  onDragEnd  : () => void
+  children   : React.ReactNode
+}) {
+  const isDragging   = draggedId  === id
+  const isDropTarget = dragOverId === id && draggedId !== id
+
+  return (
+    <div
+      draggable
+      onDragStart={() => onDragStart(id)}
+      onDragOver={(e) => onDragOver(e, id)}
+      onDrop={() => onDrop(id)}
+      onDragEnd={onDragEnd}
+      style={{
+        opacity     : isDragging ? 0.5 : 1,
+        cursor      : isDragging ? 'grabbing' : 'grab',
+        outline     : isDropTarget ? `2px dashed ${colors.accent.gold}` : 'none',
+        outlineOffset: isDropTarget ? 2 : 0,
+        background  : isDropTarget ? 'rgba(214,201,142,0.08)' : undefined,
+        borderRadius: radius.card,
+        transition  : 'opacity 0.15s ease, outline 0.1s ease',
+        height      : '100%',
+        userSelect  : 'none',
+      } as React.CSSProperties}
+    >
+      {children}
+    </div>
+  )
+}
+
 // ── Données sparkline simulées (déterministes, sans Math.random) ──────────────
 // TODO(50.x): remplacer par données historiques réelles depuis l'API
 // Génère 6 points pseudo-aléatoires déterministes basés sur la valeur courante.
@@ -1385,6 +1453,49 @@ export default function DashboardPage() {
   // ── Focus Mode (Story 50-9) ──
   const [focusMode, setFocusMode] = useState(false)
 
+  // ── KPI order DnD (Story 50-10) ──
+  const [kpiOrder,   setKpiOrder]   = useState<KpiTileId[]>(loadKpiOrder)
+  const [draggedId,  setDraggedId]  = useState<KpiTileId | null>(null)
+  const [dragOverId, setDragOverId] = useState<KpiTileId | null>(null)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(KPI_ORDER_KEY, JSON.stringify(kpiOrder))
+    } catch { /* quota exceeded — ignore */ }
+  }, [kpiOrder])
+
+  const handleDragStart = (id: KpiTileId) => setDraggedId(id)
+
+  const handleDragOver = (e: React.DragEvent, id: KpiTileId) => {
+    e.preventDefault()
+    if (id !== draggedId) setDragOverId(id)
+  }
+
+  const handleDrop = (targetId: KpiTileId) => {
+    if (!draggedId || draggedId === targetId) return
+    setKpiOrder(prev => {
+      const next    = [...prev]
+      const fromIdx = next.indexOf(draggedId)
+      const toIdx   = next.indexOf(targetId)
+      if (fromIdx === -1 || toIdx === -1) return prev
+      next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, draggedId)
+      return next
+    })
+    setDraggedId(null)
+    setDragOverId(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedId(null)
+    setDragOverId(null)
+  }
+
+  const resetKpiOrder = () => {
+    try { localStorage.removeItem(KPI_ORDER_KEY) } catch { /* ignore */ }
+    setKpiOrder(KPI_DEFAULT_ORDER)
+  }
+
   // Focus Mode — body class + global styles injection
   useEffect(() => {
     if (!focusMode) return
@@ -1669,6 +1780,12 @@ export default function DashboardPage() {
     0
   )
 
+  // ── KPI order changed check (Story 50-10) ──
+  const isOrderDefault = useMemo(
+    () => JSON.stringify(kpiOrder) === JSON.stringify(KPI_DEFAULT_ORDER),
+    [kpiOrder]
+  )
+
   // ── Focus Mode container style (Story 50-9) ──
   const containerStyle: React.CSSProperties = focusMode
     ? {
@@ -1748,6 +1865,10 @@ export default function DashboardPage() {
         .focus-mode-enter { animation: focus-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .aureak-focus-toggle:hover { border-color: ${colors.accent.gold} !important; color: ${colors.accent.gold} !important; }
         .aureak-focus-quit:hover   { border-color: ${colors.accent.gold} !important; }
+
+        /* ── Drag & Drop KPI tiles (Story 50-10) ── */
+        [draggable="true"] { user-select: none; }
+        [draggable="true"]:active { cursor: grabbing; }
       `}</style>
 
       {/* ── Focus Mode — Badge + Bouton Quitter (Story 50-9) ── */}
@@ -1861,100 +1982,137 @@ export default function DashboardPage() {
         </>)}
       </div>
 
-      {/* ── Bento KPI Grid ── */}
+      {/* ── Bento KPI Grid — draggable (Story 50-10) ── */}
       <div className="bento-grid">
 
-        {/* LARGE — Joueurs actifs (span 2 cols) */}
-        <div className="bento-large">
-          <KpiCard
-            label="Joueurs actifs"
-            value={countVal(childrenTotal)}
-            sub={selectedName ? `dans ${selectedName}` : "inscrits à l'académie"}
-            accent={colors.status.present}
-            size="large"
-            icon="👥"
-            sparkline={sparkChildren}
-          />
-        </div>
+        {/* Draggable KPI tiles — ordre contrôlé par kpiOrder */}
+        {kpiOrder.map(id => {
+          if (id === 'children') return (
+            <div key="children" className="bento-large">
+              <DraggableKpiCard id="children" draggedId={draggedId} dragOverId={dragOverId}
+                onDragStart={handleDragStart} onDragOver={handleDragOver}
+                onDrop={handleDrop} onDragEnd={handleDragEnd}
+              >
+                <KpiCard
+                  label="Joueurs actifs"
+                  value={countVal(childrenTotal)}
+                  sub={selectedName ? `dans ${selectedName}` : "inscrits à l'académie"}
+                  accent={colors.status.present}
+                  size="large"
+                  icon="👥"
+                  sparkline={sparkChildren}
+                />
+              </DraggableKpiCard>
+            </div>
+          )
+          if (id === 'attendance') return (
+            <div key="attendance" className="bento-medium">
+              <DraggableKpiCard id="attendance" draggedId={draggedId} dragOverId={dragOverId}
+                onDragStart={handleDragStart} onDragOver={handleDragOver}
+                onDrop={handleDrop} onDragEnd={handleDragEnd}
+              >
+                <KpiCard
+                  label="Taux de présence"
+                  value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
+                  sub={
+                    statsError
+                      ? 'Données indisponibles'
+                      : avgAttendance === null
+                        ? 'Aucune donnée sur la période'
+                        : selectedName ? 'implantation' : 'moyenne globale'
+                  }
+                  accent={statsError ? colors.text.muted : rateColor(avgAttendance)}
+                  borderAccent={colors.accent.gold}
+                  size="medium"
+                  icon="✅"
+                  sparkline={sparkAttendance}
+                />
+              </DraggableKpiCard>
+            </div>
+          )
+          if (id === 'mastery') return (
+            <div key="mastery" className="bento-medium">
+              <DraggableKpiCard id="mastery" draggedId={draggedId} dragOverId={dragOverId}
+                onDragStart={handleDragStart} onDragOver={handleDragOver}
+                onDrop={handleDrop} onDragEnd={handleDragEnd}
+              >
+                <KpiCard
+                  label="Taux de maîtrise"
+                  value={avgMastery !== null ? `${avgMastery}%` : '—'}
+                  sub={
+                    statsError
+                      ? 'Données indisponibles'
+                      : avgMastery === null
+                        ? 'Aucune donnée sur la période'
+                        : selectedName ? 'implantation' : 'moyenne globale'
+                  }
+                  accent={statsError ? colors.text.muted : rateColor(avgMastery)}
+                  borderAccent={colors.accent.gold}
+                  size="medium"
+                  icon="🎯"
+                  sparkline={sparkMastery}
+                />
+              </DraggableKpiCard>
+            </div>
+          )
+          if (id === 'sessions') return (
+            <div key="sessions" className="bento-large">
+              <DraggableKpiCard id="sessions" draggedId={draggedId} dragOverId={dragOverId}
+                onDragStart={handleDragStart} onDragOver={handleDragOver}
+                onDrop={handleDrop} onDragEnd={handleDragEnd}
+              >
+                <KpiCard
+                  label="Séances"
+                  value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
+                  sub={statsError ? 'Données indisponibles' : 'clôturées sur le total de la période'}
+                  accent={colors.accent.gold}
+                  size="large"
+                  icon="📅"
+                  sparkline={sparkSessions}
+                />
+              </DraggableKpiCard>
+            </div>
+          )
+          if (id === 'coaches') return (
+            <div key="coaches" className="bento-small">
+              <DraggableKpiCard id="coaches" draggedId={draggedId} dragOverId={dragOverId}
+                onDragStart={handleDragStart} onDragOver={handleDragOver}
+                onDrop={handleDrop} onDragEnd={handleDragEnd}
+              >
+                <KpiCard
+                  label="Coachs"
+                  value={countVal(coachesTotal)}
+                  sub={selectedName ? 'assignés' : 'actifs'}
+                  accent={colors.entity.coach}
+                  size="small"
+                  icon="👨‍🏫"
+                  sparkline={sparkCoaches}
+                />
+              </DraggableKpiCard>
+            </div>
+          )
+          if (id === 'groups') return (
+            <div key="groups" className="bento-small">
+              <DraggableKpiCard id="groups" draggedId={draggedId} dragOverId={dragOverId}
+                onDragStart={handleDragStart} onDragOver={handleDragOver}
+                onDrop={handleDrop} onDragEnd={handleDragEnd}
+              >
+                <KpiCard
+                  label="Groupes"
+                  value={countVal(groupsTotal)}
+                  sub={selectedName ? `dans ${selectedName}` : 'actifs'}
+                  accent={colors.entity.club}
+                  size="small"
+                  icon="🏆"
+                  sparkline={sparkGroups}
+                />
+              </DraggableKpiCard>
+            </div>
+          )
+          return null
+        })}
 
-        {/* MEDIUM — Taux de présence (span 1 col) */}
-        <div className="bento-medium">
-          <KpiCard
-            label="Taux de présence"
-            value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
-            sub={
-              statsError
-                ? 'Données indisponibles'
-                : avgAttendance === null
-                  ? 'Aucune donnée sur la période'
-                  : selectedName ? 'implantation' : 'moyenne globale'
-            }
-            accent={statsError ? colors.text.muted : rateColor(avgAttendance)}
-            borderAccent={colors.accent.gold}
-            size="medium"
-            icon="✅"
-            sparkline={sparkAttendance}
-          />
-        </div>
-
-        {/* MEDIUM — Taux de maîtrise (span 1 col) */}
-        <div className="bento-medium">
-          <KpiCard
-            label="Taux de maîtrise"
-            value={avgMastery !== null ? `${avgMastery}%` : '—'}
-            sub={
-              statsError
-                ? 'Données indisponibles'
-                : avgMastery === null
-                  ? 'Aucune donnée sur la période'
-                  : selectedName ? 'implantation' : 'moyenne globale'
-            }
-            accent={statsError ? colors.text.muted : rateColor(avgMastery)}
-            borderAccent={colors.accent.gold}
-            size="medium"
-            icon="🎯"
-            sparkline={sparkMastery}
-          />
-        </div>
-
-        {/* LARGE — Séances (span 2 cols) */}
-        <div className="bento-large">
-          <KpiCard
-            label="Séances"
-            value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
-            sub={statsError ? 'Données indisponibles' : 'clôturées sur le total de la période'}
-            accent={colors.accent.gold}
-            size="large"
-            icon="📅"
-            sparkline={sparkSessions}
-          />
-        </div>
-
-        {/* SMALL — Coachs */}
-        <div className="bento-small">
-          <KpiCard
-            label="Coachs"
-            value={countVal(coachesTotal)}
-            sub={selectedName ? 'assignés' : 'actifs'}
-            accent={colors.entity.coach}
-            size="small"
-            icon="👨‍🏫"
-            sparkline={sparkCoaches}
-          />
-        </div>
-
-        {/* SMALL — Groupes */}
-        <div className="bento-small">
-          <KpiCard
-            label="Groupes"
-            value={countVal(groupsTotal)}
-            sub={selectedName ? `dans ${selectedName}` : 'actifs'}
-            accent={colors.entity.club}
-            size="small"
-            icon="🏆"
-            sparkline={sparkGroups}
-          />
-        </div>
+        {/* Tiles fixes non réorganisables (AC7) */}
 
         {/* SMALL — Implantations — card avec gradient vert terrain */}
         <div className="bento-small">
@@ -2009,6 +2167,27 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {/* ── Bouton Réinitialiser l'ordre (Story 50-10) — visible si ordre modifié ── */}
+      {!isOrderDefault && (
+        <div style={{ textAlign: 'right', marginTop: -16, marginBottom: 16 }}>
+          <button
+            onClick={resetKpiOrder}
+            style={{
+              background     : 'none',
+              border         : 'none',
+              cursor         : 'pointer',
+              fontSize       : 11,
+              color          : colors.text.muted,
+              textDecoration : 'underline',
+              fontFamily     : 'Geist, sans-serif',
+              padding        : 0,
+            }}
+          >
+            Réinitialiser l'ordre
+          </button>
+        </div>
+      )}
 
       {/* ── Quick Actions ── */}
       <div style={S.qaBar}>

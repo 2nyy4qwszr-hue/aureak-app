@@ -7,6 +7,26 @@ next-morning-queue:
 
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
+  - story_id: story-50-10
+    title: "FEATURE — Dashboard KPI tiles réorganisables drag-drop"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-50-10_gate1.md"
+      - "_qa/reports/2026-04-05_story-50-10_gate2.md"
+    notes:
+      - "KpiTileId type + KPI_DEFAULT_ORDER + KPI_ORDER_KEY constants"
+      - "loadKpiOrder() avec validation Array + every() + try/catch fallback"
+      - "DraggableKpiCard composant HTML5 DnD natif (draggable, onDragStart/Over/Drop/End)"
+      - "kpiOrder state + useEffect persistance localStorage (quota-safe)"
+      - "isOrderDefault via useMemo — bouton réinitialiser conditionnel"
+      - "6 tiles draggables (children/attendance/mastery/sessions/coaches/groups)"
+      - "5 tiles fixes non réorganisables (implantations/anomalies/météo/countdown/streak)"
+      - "CSS [draggable=true] user-select: none — tsc 0 erreur"
+
   - story_id: story-50-9
     title: "FEATURE — Dashboard Focus mode plein écran"
     priority: P2
