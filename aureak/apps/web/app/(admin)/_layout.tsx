@@ -6,6 +6,8 @@ import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext'
+import { useThemeColors } from '../hooks/useThemeColors'
 import { getActiveSession, getNavBadgeCounts } from '@aureak/api-client'
 import type { ActiveSessionInfo, NavBadgeCounts } from '@aureak/api-client'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
@@ -35,6 +37,8 @@ import {
   AlertTriangleIcon,
   ChatIcon,
   LockIcon,
+  SunIcon,
+  MoonIcon,
 } from '@aureak/ui'
 import type { NavIconProps } from '@aureak/ui'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
@@ -145,11 +149,23 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
+// ── AdminLayout wrappé dans ThemeProvider ────────────────────────────────────
+// ThemeProvider doit être au-dessus de AdminLayoutInner pour que useTheme() fonctionne.
 export default function AdminLayout() {
+  return (
+    <ThemeProvider>
+      <AdminLayoutInner />
+    </ThemeProvider>
+  )
+}
+
+function AdminLayoutInner() {
   const router   = useRouter()
   const pathname = usePathname()
   const { width } = useWindowDimensions()
   const { role, isLoading, signOut, user } = useAuthStore()
+  const { theme, toggleTheme } = useTheme()
+  const themeColors = useThemeColors()
   const [mobileOpen,   setMobileOpen]   = useState(false)
 
   // ── Story 51.7 — Sidebar collapse avec animation smooth ──────────────────
@@ -645,6 +661,49 @@ export default function AdminLayout() {
             </YStack>
           )}
 
+          {/* ── Story 51.8 — Toggle thème (soleil / lune) ── */}
+          <Pressable onPress={toggleTheme}>
+            {({ pressed }) => (
+              <YStack
+                paddingVertical={7}
+                paddingHorizontal={12}
+                borderRadius={radius.xs}
+                marginBottom={2}
+                backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : 'transparent'}
+                style={{ transition: `background-color ${transitions.fast}` } as never}
+              >
+                {sidebarCollapsed ? (
+                  /* Collapsed : icône seule, centrée */
+                  <YStack alignItems="center" justifyContent="center">
+                    {theme === 'light'
+                      ? <MoonIcon color={colors.text.secondary} size={16} strokeWidth={1.5} />
+                      : <SunIcon  color={colors.text.secondary} size={16} strokeWidth={1.5} />
+                    }
+                  </YStack>
+                ) : (
+                  /* Expanded : icône + label */
+                  <XStack alignItems="center" gap={8}>
+                    {theme === 'light'
+                      ? <MoonIcon color={colors.text.secondary} size={16} strokeWidth={1.5} />
+                      : <SunIcon  color={colors.text.secondary} size={16} strokeWidth={1.5} />
+                    }
+                    <Text
+                      fontFamily="$body"
+                      fontSize={13}
+                      color={colors.text.secondary}
+                      style={{
+                        opacity   : labelsVisible ? 1 : 0,
+                        transition: 'opacity 0.1s ease',
+                      } as never}
+                    >
+                      {theme === 'light' ? 'Mode sombre' : 'Mode clair'}
+                    </Text>
+                  </XStack>
+                )}
+              </YStack>
+            )}
+          </Pressable>
+
           {/* Sign out */}
           <Pressable onPress={handleSignOut}>
             {({ pressed }) => (
@@ -663,24 +722,30 @@ export default function AdminLayout() {
         </YStack>
       </YStack>
 
-      {/* ── Main content area — LIGHT BEIGE background ── */}
+      {/* ── Main content area — theme-aware background (Story 51.8) ── */}
       <YStack
         flex={1}
-        backgroundColor={colors.light.primary}
-        style={{ overflowY: 'auto' } as never}
+        style={{
+          backgroundColor: themeColors.bg,
+          overflowY      : 'auto',
+          transition     : 'background-color 0.2s ease',
+        } as never}
       >
         {/* Mobile top bar */}
         {isMobile && (
           <XStack
             data-topbar="true"
             height={52}
-            backgroundColor={colors.light.surface}
             borderBottomWidth={1}
-            borderBottomColor={colors.border.divider}
             alignItems="center"
             paddingHorizontal={16}
             gap={12}
-            style={{ flexShrink: 0 } as never}
+            style={{
+              backgroundColor: themeColors.surface,
+              borderBottomColor: themeColors.divider,
+              flexShrink  : 0,
+              transition  : 'background-color 0.2s ease, border-color 0.2s ease',
+            } as never}
           >
             <Pressable onPress={() => setMobileOpen(v => !v)}>
               {({ pressed }) => (
@@ -688,11 +753,13 @@ export default function AdminLayout() {
                   width={36}
                   height={36}
                   borderRadius={7}
-                  backgroundColor={pressed ? colors.light.hover : colors.light.muted}
                   borderWidth={1}
-                  borderColor={colors.border.light}
                   alignItems="center"
                   justifyContent="center"
+                  style={{
+                    backgroundColor: pressed ? themeColors.hover : themeColors.muted,
+                    borderColor    : themeColors.border,
+                  } as never}
                 >
                   <Text fontSize={14} color={colors.accent.gold}>
                     {mobileOpen ? '✕' : '☰'}

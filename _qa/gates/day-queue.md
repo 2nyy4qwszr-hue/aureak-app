@@ -972,3 +972,17 @@ queue:
     gate1: pending
     gate2: pending
     commit: ""
+
+  # ── EPIC 51 — Navigation & Shell ─────────────────────────────────────────
+
+  - story_id: story-51-8
+    title: "Dark mode complet + toggle persistant"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-8_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-8_gate2.md"
+    notes: "Playwright skipped — app non démarrée"

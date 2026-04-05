@@ -21,6 +21,14 @@ export const colors = {
     hover   : '#EDE9DF',  // beige légèrement plus foncé pour hover
     muted   : '#F8F6F1',  // surface atténuée (table headers, panels)
   },
+  // ── Dark theme (admin web dark mode — Story 51.8) ─────────────────────────
+  dark: {
+    primary : '#1A1A1A',  // noir chaud — fond principal dark mode admin
+    surface : '#242424',  // cards sur fond dark
+    elevated: '#2C2C2C',  // modals, drawers, overlays dark
+    hover   : '#2E2E2E',  // hover state dark
+    muted   : '#1E1E1E',  // surface atténuée dark (table headers, panels)
+  },
   accent: {
     gold     : '#C1AC5C',  // or champagne AUREAK — signature, accents, badges
     goldLight: '#D6C98E',  // or clair — featured sections, highlight doux

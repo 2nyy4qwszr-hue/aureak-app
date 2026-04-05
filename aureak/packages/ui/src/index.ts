@@ -57,4 +57,6 @@ export {
   AlertTriangleIcon,
   ChatIcon,
   LockIcon,
+  SunIcon,
+  MoonIcon,
 } from './icons'
