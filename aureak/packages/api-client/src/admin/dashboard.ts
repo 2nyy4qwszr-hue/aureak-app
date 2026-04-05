@@ -1,9 +1,10 @@
 // Admin Dashboard — compteurs KPI + activity feed + streak players
 // Extrait les counts depuis Supabase (conformité ARCH-1 : accès centralisé).
+// Story 55-8 — Joueur de la semaine
 
 import { supabase } from '../supabase'
 import { countActivePlayersCurrentSeason } from './child-directory'
-import type { NavBadgeCounts } from '@aureak/types'
+import type { NavBadgeCounts, PlayerOfWeek } from '@aureak/types'
 
 // ── Streak Players (Story 50.6) ───────────────────────────────────────────────
 
@@ -304,5 +305,123 @@ export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
   return {
     presencesUnvalidated : unvalidatedIds.size,
     sessionsUpcoming24h  : (upcoming24hRes.count ?? 0) > 0,
+  }
+}
+
+// ── Story 55-8 — Joueur de la semaine ─────────────────────────────────────────
+
+/** Signal qualitatif → score numérique 0–10 */
+function evalSignalToScore(receptivite: string, goutEffort: string, attitude: string): number {
+  const sv = (s: string) => s === 'positive' ? 10 : s === 'none' ? 5 : 0
+  return (sv(receptivite) + sv(goutEffort) + sv(attitude)) / 3
+}
+
+/**
+ * Retourne le joueur avec la meilleure note lors d'une séance des 7 derniers jours.
+ * En cas d'égalité : le plus jeune (birth_date la plus récente).
+ * Retourne null si aucune évaluation cette semaine.
+ */
+export async function getPlayerOfWeek(): Promise<{ data: PlayerOfWeek | null; error: unknown }> {
+  const since7d = new Date(Date.now() - 7 * 24 * 3600_000).toISOString()
+
+  // 1. Évaluations de la semaine
+  const { data: rawEvals, error: evalError } = await supabase
+    .from('evaluations')
+    .select('id, child_id, receptivite, gout_effort, attitude, session_id, updated_at')
+    .gte('updated_at', since7d)
+
+  if (evalError) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[getPlayerOfWeek] evalError:', evalError)
+    return { data: null, error: evalError }
+  }
+
+  const evals = (rawEvals ?? []) as {
+    id          : string
+    child_id    : string
+    receptivite : string
+    gout_effort : string
+    attitude    : string
+    session_id  : string
+    updated_at  : string
+  }[]
+
+  if (evals.length === 0) return { data: null, error: null }
+
+  // 2. Meilleure note parmi tous les joueurs de la semaine
+  const scoredEvals = evals.map(e => ({
+    childId  : e.child_id,
+    sessionId: e.session_id,
+    date     : e.updated_at,
+    score    : evalSignalToScore(e.receptivite, e.gout_effort, e.attitude),
+  }))
+
+  const maxScore = Math.max(...scoredEvals.map(e => e.score))
+  const topEvals = scoredEvals.filter(e => e.score === maxScore)
+
+  // En cas d'égalité : prendre le plus jeune (birth_date la plus récente)
+  // Si plusieurs évals du même joueur avec le même score max, garder la plus récente
+  const uniqueChildIds = [...new Set(topEvals.map(e => e.childId))]
+
+  let winnerId   = uniqueChildIds[0] ?? ''
+  let winnerEval = topEvals.find(e => e.childId === winnerId)!
+
+  if (uniqueChildIds.length > 1) {
+    // Récupérer les dates de naissance
+    const { data: birthData } = await supabase
+      .from('child_directory')
+      .select('id, birth_date')
+      .in('id', uniqueChildIds)
+
+    const birthMap = new Map(
+      ((birthData ?? []) as { id: string; birth_date: string | null }[])
+        .map(c => [c.id, c.birth_date ?? ''])
+    )
+
+    // Plus jeune = birth_date la plus récente (DESC)
+    const sorted = uniqueChildIds.slice().sort((a, b) =>
+      (birthMap.get(b) ?? '').localeCompare(birthMap.get(a) ?? '')
+    )
+    winnerId   = sorted[0] ?? winnerId
+    winnerEval = topEvals.find(e => e.childId === winnerId) ?? winnerEval
+  }
+
+  // 3. Infos joueur (child_directory)
+  const { data: childData } = await supabase
+    .from('child_directory')
+    .select('id, display_name')
+    .eq('id', winnerId)
+    .maybeSingle()
+
+  // 4. Infos séance
+  const { data: sessionData } = await supabase
+    .from('sessions')
+    .select('name, scheduled_at')
+    .eq('id', winnerEval.sessionId)
+    .maybeSingle()
+
+  // 5. Photo depuis child_directory_photos
+  const { data: photoData } = await supabase
+    .from('child_directory_photos')
+    .select('photo_url')
+    .eq('child_id', winnerId)
+    .eq('is_current', true)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  const child   = childData   as { id: string; display_name: string } | null
+  const session = sessionData as { name: string; scheduled_at: string } | null
+  const photo   = photoData   as { photo_url: string } | null
+
+  return {
+    data: {
+      childId    : winnerId,
+      displayName: child?.display_name ?? 'Joueur',
+      photoUrl   : photo?.photo_url    ?? null,
+      score      : Math.round(maxScore * 10) / 10,
+      sessionName: session?.name ?? null,
+      sessionDate: winnerEval.date,
+    },
+    error: null,
   }
 }

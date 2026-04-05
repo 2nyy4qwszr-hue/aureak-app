@@ -4,15 +4,18 @@
 // Story 50-1 — Hero Band salle de commandement
 // Story 50-5 — Live activity feed
 // Story 50-10 — KPI tiles réorganisables drag-drop
+// Story 55-8 — Joueur de la semaine tile
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
-  fetchActivityFeed, getTopStreakPlayers, supabase,
+  fetchActivityFeed, getTopStreakPlayers, getPlayerOfWeek, supabase,
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer } from '@aureak/api-client'
+import type { PlayerOfWeek } from '@aureak/types'
 import { colors, shadows, radius, transitions } from '@aureak/theme'
+import { PlayerOfWeekTile } from '@aureak/ui'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
 
@@ -1444,6 +1447,9 @@ export default function DashboardPage() {
   const [streakPlayers,  setStreakPlayers]  = useState<StreakPlayer[]>([])
   const [loadingStreaks,  setLoadingStreaks]  = useState(true)
 
+  // ── Joueur de la semaine (Story 55-8) ──
+  const [playerOfWeek,   setPlayerOfWeek]   = useState<PlayerOfWeek | null>(null)
+
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
   const [coachesTotal,  setCoachesTotal]  = useState<number | null>(null)
@@ -1682,6 +1688,24 @@ export default function DashboardPage() {
       }
     }
     loadStreaks()
+  }, [])
+
+  // ── Load joueur de la semaine (Story 55-8) ──
+  useEffect(() => {
+    const loadPlayerOfWeek = async () => {
+      try {
+        const { data, error } = await getPlayerOfWeek()
+        if (error) {
+          if (process.env.NODE_ENV !== 'production')
+            console.error('[dashboard] getPlayerOfWeek error:', error)
+        }
+        setPlayerOfWeek(data ?? null)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[dashboard] getPlayerOfWeek exception:', err)
+      }
+    }
+    loadPlayerOfWeek()
   }, [])
 
   // ── Realtime subscription — attendance_records INSERT (Story 50-5, AC4) ──
@@ -2165,6 +2189,16 @@ export default function DashboardPage() {
         <div className="bento-medium">
           <StreakTile players={streakPlayers} loading={loadingStreaks} />
         </div>
+
+        {/* MEDIUM — Joueur de la semaine (Story 55-8) */}
+        {playerOfWeek && (
+          <div className="bento-medium">
+            <PlayerOfWeekTile
+              player={playerOfWeek}
+              onPress={() => router.push(`/(admin)/children/${playerOfWeek.childId}` as never)}
+            />
+          </div>
+        )}
 
       </div>
 

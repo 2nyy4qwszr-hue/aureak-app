@@ -67,6 +67,10 @@ export type { GrowthChartProps } from './GrowthChart'
 export { BestSessionBadge } from './BestSessionBadge'
 export type { BestSessionBadgeProps } from './BestSessionBadge'
 
+// Story 55-8 — Tile "Joueur de la semaine"
+export { PlayerOfWeekTile } from './PlayerOfWeekTile'
+export type { PlayerOfWeekTileProps } from './PlayerOfWeekTile'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
