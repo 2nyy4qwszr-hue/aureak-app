@@ -351,14 +351,36 @@ export {
 } from './gamification/xp'
 
 // Story 59-4 — Badges définitions
+// Story 59-9 — getAchievementDetails (fetch joueur+badge pour toast Realtime)
 export {
-  listBadgeDefinitions, listPlayerBadges,
+  listBadgeDefinitions, listPlayerBadges, getAchievementDetails,
 } from './gamification/badges'
+export type { AchievementToastData } from './gamification/badges'
 
 // Story 59-5 — Quêtes coaches
 export {
   getCoachWeeklyQuests, assignCoachWeeklyQuests, updateCoachQuestProgress,
 } from './gamification/coach-quests'
+
+// Story 59-6 — Score académie global KPI
+export { getAcademyScore } from './gamification/academy-score'
+export type { AcademyScoreResult } from './gamification/academy-score'
+
+// Story 59-7 — Milestones académie
+export {
+  getUnceledbratedMilestones, checkAcademyMilestones, markMilestoneCelebrated,
+} from './gamification/milestones'
+export type { AcademyMilestone } from './gamification/milestones'
+
+// Story 59-8 — Profil admin gamifié
+export {
+  getAdminProfile, getAdminActivityStats,
+} from './gamification/admin-profile'
+export type { AdminProfile, AdminActivityStats } from './gamification/admin-profile'
+
+// Story 59-10 — Trophée de saison
+export { getSeasonTrophyData } from './gamification/season-trophy'
+export type { SeasonTrophyData } from './gamification/season-trophy'
 
 export {
   listPartnerships, createPartnership, updatePartnership, listPartnerAccessStats,

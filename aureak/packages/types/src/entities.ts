@@ -2161,6 +2161,78 @@ export type XpEvent = {
 }
 
 // ============================================================
+// Story 59-6 — Score académie global KPI
+// ============================================================
+
+/** AcademyScoreResult — score composite 0–100 de l'académie */
+export type AcademyScoreResult = {
+  score      : number   // 0–100, entier
+  level      : 'Débutante' | 'En développement' | 'Confirmée' | 'Excellence' | 'Élite'
+  components : {
+    presenceRate    : number  // 0–100
+    progressionScore: number  // 0–100
+    activityScore   : number  // 0–100
+  }
+  trend      : number   // delta vs semaine précédente (peut être négatif)
+  computedAt : string   // ISO 8601
+}
+
+// ============================================================
+// Story 59-10 — Trophée de saison SVG paramétrique
+// ============================================================
+
+/** SeasonTrophyData — données pour le rendu du trophée de saison */
+export type SeasonTrophyData = {
+  season: {
+    id        : string
+    label     : string
+    startDate : string  // ISO date
+    endDate   : string  // ISO date
+  }
+  badgeCount: number
+}
+
+// ============================================================
+// Story 59-8 — Profil admin avec XP + stats activité
+// ============================================================
+
+/** AdminProfile — profil d'un administrateur avec XP gamification */
+export type AdminProfile = {
+  id          : string
+  tenantId    : string
+  displayName : string
+  avatarUrl   : string | null
+  role        : 'admin'
+  memberSince : string   // ISO 8601
+  totalXp     : number
+}
+
+/** AdminActivityStats — KPI d'activité de l'administrateur */
+export type AdminActivityStats = {
+  sessionsCreated     : number
+  playersManaged      : number
+  badgesAwarded       : number
+  evaluationsValidated: number
+}
+
+// ============================================================
+// Story 59-7 — Milestones académie collectifs
+// ============================================================
+
+/** AcademyMilestone — jalons collectifs de l'académie (SESSION_100, PLAYER_500, etc.) */
+export type AcademyMilestone = {
+  id             : string
+  tenantId       : string
+  milestoneCode  : string   // ex: 'SESSION_100'
+  milestoneLabel : string   // ex: '100 séances validées'
+  thresholdValue : number
+  currentValue   : number
+  reachedAt      : string | null  // null = pas encore atteint
+  celebrated     : boolean        // false = pas encore célébré
+  createdAt      : string
+}
+
+// ============================================================
 // Story 59-3 — Leaderboard académie top 10
 // ============================================================
 

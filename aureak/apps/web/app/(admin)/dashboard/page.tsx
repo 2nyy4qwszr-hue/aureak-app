@@ -5,18 +5,21 @@
 // Story 50-5 — Live activity feed
 // Story 50-10 — KPI tiles réorganisables drag-drop
 // Story 55-8 — Joueur de la semaine tile
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
   fetchActivityFeed, getTopStreakPlayers, getPlayerOfWeek, supabase,
   getXPLeaderboard,
+  getAcademyScore,
+  checkAcademyMilestones, markMilestoneCelebrated,
+  getSeasonTrophyData,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer } from '@aureak/api-client'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
 import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
-import { colors, shadows, radius, transitions, gamification } from '@aureak/theme'
-import { PlayerOfWeekTile } from '@aureak/ui'
+import { colors, shadows, radius, transitions, gamification, typography } from '@aureak/theme'
+import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng } from '@aureak/ui'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
 
@@ -1408,6 +1411,318 @@ function WeatherWidget() {
   )
 }
 
+// ── Season Trophy Tile (Story 59-10) ─────────────────────────────────────────
+
+function SeasonTrophyTileInner({
+  trophyData,
+  academyScore,
+  top3,
+  loading,
+  svgRef,
+}: {
+  trophyData   : SeasonTrophyData
+  academyScore : number
+  top3         : LeaderboardEntry[]
+  loading      : boolean
+  svgRef       : React.RefObject<SVGSVGElement>
+}) {
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExport = async () => {
+    if (!svgRef.current) return
+    setIsExporting(true)
+    try {
+      await exportTrophyAsPng(svgRef.current, `trophee-${trophyData.season.label.replace(/\s+/g, '-')}`)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[dashboard] exportTrophyAsPng error:', err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const top3Mapped = top3.slice(0, 3).map(e => ({
+    rank: e.rank,
+    name: e.displayName,
+    xp  : e.totalXp,
+  }))
+
+  if (loading) return (
+    <div style={{
+      backgroundColor: colors.light.surface,
+      borderRadius   : radius.card,
+      border         : `1px solid ${colors.border.light}`,
+      boxShadow      : shadows.sm,
+      padding        : 20,
+    }}>
+      <div style={{
+        height         : 200,
+        backgroundColor: colors.light.muted,
+        borderRadius   : radius.xs,
+        animation      : 'a-pulse 1.8s ease-in-out infinite',
+      }} />
+    </div>
+  )
+
+  return (
+    <div style={{
+      backgroundColor: colors.light.surface,
+      borderRadius   : radius.card,
+      border         : `1px solid ${colors.border.light}`,
+      boxShadow      : shadows.sm,
+      padding        : 20,
+    }}>
+      {/* Titre */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 18 }}>🏆</span>
+          <span style={{ fontSize: 15, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
+            Trophée de saison
+          </span>
+        </div>
+
+        {/* Bouton export */}
+        <button
+          onClick={handleExport}
+          disabled={isExporting}
+          style={{
+            padding        : '6px 14px',
+            borderRadius   : radius.button,
+            border         : `1px solid ${colors.border.light}`,
+            backgroundColor: colors.light.surface,
+            color          : colors.text.muted,
+            fontSize       : 12,
+            fontWeight     : 600,
+            cursor         : isExporting ? 'wait' : 'pointer',
+            fontFamily     : 'Montserrat, sans-serif',
+            display        : 'flex',
+            alignItems     : 'center',
+            gap            : 6,
+            transition     : `all ${transitions.fast}`,
+            opacity        : isExporting ? 0.7 : 1,
+          }}
+        >
+          {isExporting ? '⏳' : '⬇'} Télécharger
+        </button>
+      </div>
+
+      {/* Trophy SVG preview (50% via transform scale) */}
+      <div style={{
+        display        : 'flex',
+        justifyContent : 'center',
+        overflow       : 'hidden',
+        height         : 200,
+        alignItems     : 'flex-start',
+      }}>
+        <div style={{
+          transform      : 'scale(0.5)',
+          transformOrigin: 'top center',
+          flexShrink     : 0,
+        }}>
+          <SeasonTrophy
+            ref={svgRef}
+            season={trophyData.season}
+            academyScore={academyScore}
+            top3={top3Mapped}
+            badgeCount={trophyData.badgeCount}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Academy Score Tile (Story 59-6) ──────────────────────────────────────────
+
+const ACADEMY_LEVEL_COLORS: Record<string, string> = {
+  'Débutante'      : gamification.levels.bronze.color,
+  'En développement': gamification.levels.silver.color,
+  'Confirmée'      : gamification.levels.gold.color,
+  'Excellence'     : gamification.levels.platinum.color,
+  'Élite'          : gamification.levels.diamond.color,
+}
+
+function AcademyScoreTile({
+  score,
+  loading,
+  error,
+  onRetry,
+}: {
+  score   : AcademyScoreResult | null
+  loading : boolean
+  error   : boolean
+  onRetry : () => void
+}) {
+  const levelColor = score ? (ACADEMY_LEVEL_COLORS[score.level] ?? gamification.levels.bronze.color) : gamification.levels.bronze.color
+  const pct        = score ? Math.min(100, Math.max(0, score.score)) : 0
+
+  return (
+    <div
+      style={{
+        backgroundColor: colors.light.surface,
+        borderRadius   : radius.card,
+        border         : `1px solid ${colors.border.light}`,
+        boxShadow      : shadows.sm,
+        padding        : 24,
+      }}
+    >
+      <style>{`
+        @keyframes academy-score-fill {
+          from { width: 0%; }
+          to   { width: ${pct}%; }
+        }
+        @keyframes academy-pulse {
+          0%,100% { opacity: .12 }
+          50%     { opacity: .25 }
+        }
+        .academy-score-bar-fill {
+          animation: academy-score-fill ${gamification.animations.xpFill} forwards;
+        }
+        .academy-skel { background: ${colors.light.muted}; animation: academy-pulse 1.8s ease-in-out infinite; border-radius: 6px; }
+      `}</style>
+
+      {/* Titre */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <span style={{ fontSize: 18 }}>🎓</span>
+        <span style={{ fontSize: 15, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
+          Niveau Académie
+        </span>
+      </div>
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div>
+          <div className="academy-skel" style={{ height: 56, marginBottom: 12 }} />
+          <div className="academy-skel" style={{ height: 12, marginBottom: 16 }} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} className="academy-skel" style={{ height: 32, flex: 1 }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {!loading && error && (
+        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          <div style={{ fontSize: 13, color: colors.text.muted, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
+            Score indisponible
+          </div>
+          <button
+            onClick={onRetry}
+            style={{
+              background: 'none',
+              border: `1px solid ${colors.border.light}`,
+              borderRadius: radius.button,
+              padding: '6px 14px',
+              fontSize: 12,
+              color: colors.text.muted,
+              cursor: 'pointer',
+              fontFamily: 'Montserrat, sans-serif',
+            }}
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+
+      {/* Score */}
+      {!loading && !error && score && (
+        <>
+          {/* Hero score + niveau */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 16 }}>
+            <div style={{
+              fontFamily  : 'Geist Mono, monospace',
+              fontWeight  : 900,
+              fontSize    : 48,
+              color       : levelColor,
+              lineHeight  : 1,
+            }}>
+              {score.score}
+            </div>
+            <div style={{ paddingBottom: 8 }}>
+              <div style={{
+                fontFamily  : 'Montserrat, sans-serif',
+                fontWeight  : 600,
+                fontSize    : 18,
+                color       : colors.text.dark,
+              }}>
+                {score.level}
+              </div>
+              <div style={{
+                fontSize  : 12,
+                color     : score.trend >= 0 ? colors.status.success : colors.accent.red,
+                fontWeight: 600,
+                fontFamily: 'Montserrat, sans-serif',
+                marginTop : 2,
+              }}>
+                {score.trend >= 0 ? `+${score.trend}` : `${score.trend}`} pts cette semaine
+              </div>
+            </div>
+          </div>
+
+          {/* Jauge linéaire animée */}
+          <div style={{
+            height         : gamification.xp.barHeight,
+            backgroundColor: gamification.xp.trackColor,
+            borderRadius   : gamification.xp.barRadius,
+            overflow       : 'hidden',
+            marginBottom   : 16,
+          }}>
+            <div
+              className="academy-score-bar-fill"
+              style={{
+                height         : '100%',
+                backgroundColor: levelColor,
+                borderRadius   : gamification.xp.barRadius,
+                width          : `${pct}%`,
+              }}
+            />
+          </div>
+
+          {/* Mini-stats composantes */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { label: 'Présence',   value: score.components.presenceRate,     icon: '📅' },
+              { label: 'Progression', value: score.components.progressionScore, icon: '📈' },
+              { label: 'Activité',   value: score.components.activityScore,     icon: '✓'  },
+            ].map(({ label, value, icon }) => (
+              <div
+                key={label}
+                style={{
+                  flex           : 1,
+                  backgroundColor: colors.light.muted,
+                  border         : `1px solid ${colors.border.light}`,
+                  borderRadius   : radius.xs,
+                  padding        : '8px 10px',
+                  textAlign      : 'center',
+                }}
+              >
+                <div style={{ fontSize: 14 }}>{icon}</div>
+                <div style={{
+                  fontFamily: 'Geist Mono, monospace',
+                  fontWeight: 700,
+                  fontSize  : 14,
+                  color     : colors.text.dark,
+                }}>
+                  {value}%
+                </div>
+                <div style={{
+                  fontSize  : typography.caption.size,
+                  color     : colors.text.muted,
+                  fontFamily: 'Montserrat, sans-serif',
+                  lineHeight : `${typography.caption.lineHeight}px`,
+                }}>
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Leaderboard Tile (Story 59-3) ─────────────────────────────────────────────
 
 function LeaderboardTile({
@@ -1595,6 +1910,19 @@ export default function DashboardPage() {
   // ── Leaderboard XP (Story 59-3) ──
   const [leaderboard,    setLeaderboard]    = useState<LeaderboardEntry[]>([])
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true)
+
+  // ── Score académie (Story 59-6) ──
+  const [academyScore,        setAcademyScore]        = useState<AcademyScoreResult | null>(null)
+  const [loadingAcademyScore, setLoadingAcademyScore] = useState(true)
+  const [academyScoreError,   setAcademyScoreError]   = useState(false)
+
+  // ── Milestones célébration (Story 59-7) ──
+  const [celebrationMilestone, setCelebrationMilestone] = useState<AcademyMilestone | null>(null)
+
+  // ── Trophée de saison (Story 59-10) ──
+  const [trophyData,        setTrophyData]        = useState<SeasonTrophyData | null>(null)
+  const [loadingTrophy,     setLoadingTrophy]     = useState(true)
+  const trophySvgRef = useRef<SVGSVGElement>(null)
 
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
@@ -1875,6 +2203,71 @@ export default function DashboardPage() {
     loadLeaderboard()
   }, [])
 
+  // ── Load score académie (Story 59-6) ──
+  useEffect(() => {
+    const loadScore = async () => {
+      setLoadingAcademyScore(true)
+      setAcademyScoreError(false)
+      try {
+        const { data, error } = await getAcademyScore()
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getAcademyScore error:', error)
+          setAcademyScoreError(true)
+        }
+        setAcademyScore(data ?? null)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getAcademyScore exception:', err)
+        setAcademyScoreError(true)
+      } finally {
+        setLoadingAcademyScore(false)
+      }
+    }
+    loadScore()
+  }, [])
+
+  // ── Load trophée de saison (Story 59-10) ──
+  useEffect(() => {
+    const loadTrophy = async () => {
+      setLoadingTrophy(true)
+      try {
+        const { data, error } = await getSeasonTrophyData()
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getSeasonTrophyData error:', error)
+        }
+        setTrophyData(data ?? null)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getSeasonTrophyData exception:', err)
+      } finally {
+        setLoadingTrophy(false)
+      }
+    }
+    loadTrophy()
+  }, [])
+
+  // ── Check milestones au montage (Story 59-7) ──
+  // Marque celebrated=true AVANT de lancer l'animation (évite re-affichage navigation rapide)
+  useEffect(() => {
+    const checkMilestones = async () => {
+      try {
+        const { data, error } = await checkAcademyMilestones()
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[dashboard] checkAcademyMilestones error:', error)
+          return
+        }
+        if (data.length > 0) {
+          // Prendre le premier (plus ancien par reached_at)
+          const first = data[0]
+          // Marquer comme célébré immédiatement pour éviter le re-affichage
+          await markMilestoneCelebrated(first.id)
+          setCelebrationMilestone(first)
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[dashboard] checkMilestones exception:', err)
+      }
+    }
+    checkMilestones()
+  }, [])
+
   // ── Realtime subscription — attendance_records INSERT (Story 50-5, AC4) ──
   useEffect(() => {
     const channel = supabase
@@ -1993,6 +2386,14 @@ export default function DashboardPage() {
 
   return (
     <div style={containerStyle} className={focusMode ? 'focus-mode-enter' : undefined}>
+      {/* ── Célébration milestone (Story 59-7) ── */}
+      {celebrationMilestone && (
+        <MilestoneCelebration
+          label={celebrationMilestone.milestoneLabel}
+          date={celebrationMilestone.reachedAt ?? undefined}
+          onDismiss={() => setCelebrationMilestone(null)}
+        />
+      )}
       <style>{`
         .aureak-resolve-btn:hover { opacity: 0.85; }
         .aureak-refresh-btn:hover { border-color: ${colors.accent.gold}; color: ${colors.accent.gold}; }
@@ -2367,6 +2768,25 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* MEDIUM — Score Académie (Story 59-6) */}
+        <div className="bento-medium">
+          <AcademyScoreTile
+            score={academyScore}
+            loading={loadingAcademyScore}
+            error={academyScoreError}
+            onRetry={async () => {
+              setLoadingAcademyScore(true)
+              setAcademyScoreError(false)
+              try {
+                const { data, error } = await getAcademyScore()
+                if (error) { setAcademyScoreError(true) }
+                setAcademyScore(data ?? null)
+              } catch { setAcademyScoreError(true) }
+              finally { setLoadingAcademyScore(false) }
+            }}
+          />
+        </div>
+
         {/* LARGE — Leaderboard XP (Story 59-3) */}
         <div className="bento-large">
           <LeaderboardTile
@@ -2375,6 +2795,36 @@ export default function DashboardPage() {
             onRowClick={(childId) => router.push(`/(admin)/children/${childId}` as never)}
           />
         </div>
+
+        {/* MEDIUM — Trophée de saison (Story 59-10 — visible seulement si saison terminée) */}
+        {(trophyData !== null || loadingTrophy) && (
+          <div className="bento-medium">
+            {trophyData ? (
+              <SeasonTrophyTileInner
+                trophyData={trophyData}
+                academyScore={academyScore?.score ?? 0}
+                top3={leaderboard}
+                loading={loadingTrophy}
+                svgRef={trophySvgRef as React.RefObject<SVGSVGElement>}
+              />
+            ) : (
+              <div style={{
+                backgroundColor: colors.light.surface,
+                borderRadius   : radius.card,
+                border         : `1px solid ${colors.border.light}`,
+                boxShadow      : shadows.sm,
+                padding        : 20,
+              }}>
+                <div style={{
+                  height         : 200,
+                  backgroundColor: colors.light.muted,
+                  borderRadius   : radius.xs,
+                  animation      : 'a-pulse 1.8s ease-in-out infinite',
+                }} />
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 
