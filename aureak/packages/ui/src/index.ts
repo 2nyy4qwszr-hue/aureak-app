@@ -71,6 +71,18 @@ export type { BestSessionBadgeProps } from './BestSessionBadge'
 export { PlayerOfWeekTile } from './PlayerOfWeekTile'
 export type { PlayerOfWeekTileProps } from './PlayerOfWeekTile'
 
+// Story 56-1 — Card team sheet groupe avec mini-terrain SVG
+export { GroupCard } from './GroupCard'
+export type { GroupCardProps } from './GroupCard'
+
+// Story 56-3 — Grille d'avatars compacts pour card groupe
+export { PlayerAvatarGrid } from './PlayerAvatarGrid'
+export type { PlayerAvatarGridProps, AvatarMember } from './PlayerAvatarGrid'
+
+// Story 56-2 — Tableau tactique terrain (positions + assignation joueurs)
+export { TacticalBoard } from './TacticalBoard'
+export type { TacticalBoardProps, FormationData } from './TacticalBoard'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {

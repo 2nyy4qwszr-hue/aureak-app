@@ -1,65 +1,81 @@
 'use client'
 // Annuaire des groupes — vue globale tous groupes/implantations
+// Story 56-1 : GroupCard team sheet avec mini-terrain SVG
+// Story 56-3 : Avatars joueurs sur la card (listGroupsWithMembers sans N+1)
+// Story 56-4 : Drag-drop transfert joueur entre groupes
 // Hiérarchie : Implantation → Groupe → Séances → Présences / Évaluations
-import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, Modal } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listAllGroups, listImplantations, listAcademySeasons, createGroup } from '@aureak/api-client'
+import {
+  listGroupsWithMembers, listImplantations, listAcademySeasons, createGroup,
+  transferGroupMember,
+} from '@aureak/api-client'
+import type { GroupWithMembers } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
+import { GroupCard } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import {
   GROUP_METHODS, METHOD_COLOR,
 } from '@aureak/business-logic'
-import type { GroupWithMeta, GroupMethod, Implantation, AcademySeason } from '@aureak/types'
+import { useAuthStore } from '@aureak/business-logic'
+import type { GroupMethod, Implantation, AcademySeason } from '@aureak/types'
 
-// ── Method badge ───────────────────────────────────────────────────────────────
-
-function MethodBadge({ method }: { method: GroupMethod | null }) {
-  if (!method) return null
-  const color = METHOD_COLOR[method]
-  return (
-    <View style={{
-      backgroundColor  : color + '18',
-      borderColor      : color,
-      borderWidth      : 1,
-      borderRadius     : 20,
-      paddingHorizontal: 9,
-      paddingVertical  : 2,
-    }}>
-      <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 10 }}>
-        {method}
-      </AureakText>
-    </View>
-  )
-}
-
-// ── Main ───────────────────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
 
 type FilterMethod = GroupMethod | 'all'
 
+// Drag-drop state
+type DragState = {
+  childId    : string
+  displayName: string
+  fromGroupId: string
+  fromGroupName: string
+} | null
+
+type TransferConfirm = {
+  childId      : string
+  displayName  : string
+  fromGroupId  : string
+  fromGroupName: string
+  toGroupId    : string
+  toGroupName  : string
+} | null
+
+// ── Main ───────────────────────────────────────────────────────────────────────
+
 export default function GroupsPage() {
-  const router = useRouter()
+  const router   = useRouter()
+  const tenantId = useAuthStore(s => s.tenantId) ?? ''
 
-  const [groups,         setGroups]         = useState<GroupWithMeta[]>([])
-  const [implantations,  setImplantations]  = useState<Implantation[]>([])
-  const [loading,        setLoading]        = useState(true)
-  const [search,         setSearch]         = useState('')
-  const [implantFilter,  setImplantFilter]  = useState<string>('all')
-  const [methodFilter,   setMethodFilter]   = useState<FilterMethod>('all')
+  const [groups,        setGroups]        = useState<GroupWithMembers[]>([])
+  const [implantations, setImplantations] = useState<Implantation[]>([])
+  const [loading,       setLoading]       = useState(true)
+  const [search,        setSearch]        = useState('')
+  const [implantFilter, setImplantFilter] = useState<string>('all')
+  const [methodFilter,  setMethodFilter]  = useState<FilterMethod>('all')
 
-  // ── Modal génération ──────────────────────────────────────────────────────
-  const [showGenModal,   setShowGenModal]   = useState(false)
-  const [seasons,        setSeasons]        = useState<AcademySeason[]>([])
-  const [genSeasonId,    setGenSeasonId]    = useState<string>('')
-  const [genImplantId,   setGenImplantId]   = useState<string>('')
-  const [generating,     setGenerating]     = useState(false)
-  const [genResult,      setGenResult]      = useState<string | null>(null)
+  // Modal génération groupes
+  const [showGenModal, setShowGenModal] = useState(false)
+  const [seasons,      setSeasons]      = useState<AcademySeason[]>([])
+  const [genSeasonId,  setGenSeasonId]  = useState<string>('')
+  const [genImplantId, setGenImplantId] = useState<string>('')
+  const [generating,   setGenerating]   = useState(false)
+  const [genResult,    setGenResult]    = useState<string | null>(null)
+
+  // Drag-drop (Story 56-4)
+  const [dragState,      setDragState]      = useState<DragState>(null)
+  const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null)
+  const [transferConfirm, setTransferConfirm] = useState<TransferConfirm>(null)
+  const [transferring,    setTransferring]    = useState(false)
+  const [transferError,   setTransferError]   = useState<string | null>(null)
+  const dragStateRef = useRef<DragState>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const [allGroups, { data: impls }, { data: seas }] = await Promise.all([
-        listAllGroups(),
+        listGroupsWithMembers(),
         listImplantations(),
         listAcademySeasons(),
       ])
@@ -125,12 +141,88 @@ export default function GroupsPage() {
     return true
   })
 
-  function formatTime(h: number | null, m: number | null): string {
-    if (h === null) return ''
-    return `${String(h).padStart(2, '0')}h${String(m ?? 0).padStart(2, '0')}`
+  const genImplant = implantations.find(i => i.id === genImplantId)
+
+  // ── Drag-drop handlers (Story 56-4) ────────────────────────────────────────
+
+  function handleDragOver(e: React.DragEvent, groupId: string) {
+    e.preventDefault()
+    // Ne pas permettre de droper dans le même groupe
+    if (dragStateRef.current?.fromGroupId === groupId) return
+    setDragOverGroupId(groupId)
   }
 
-  const genImplant = implantations.find(i => i.id === genImplantId)
+  function handleDragLeave(groupId: string) {
+    setDragOverGroupId(prev => prev === groupId ? null : prev)
+  }
+
+  function handleDrop(e: React.DragEvent, group: GroupWithMembers) {
+    e.preventDefault()
+    setDragOverGroupId(null)
+    const drag = dragStateRef.current
+    if (!drag) return
+    if (drag.fromGroupId === group.id) return
+
+    // Ouvrir modal de confirmation
+    setTransferConfirm({
+      childId      : drag.childId,
+      displayName  : drag.displayName,
+      fromGroupId  : drag.fromGroupId,
+      fromGroupName: drag.fromGroupName,
+      toGroupId    : group.id,
+      toGroupName  : group.name,
+    })
+    setTransferError(null)
+  }
+
+  function handleDragEnd() {
+    dragStateRef.current = null
+    setDragState(null)
+    setDragOverGroupId(null)
+  }
+
+  const handleConfirmTransfer = async () => {
+    if (!transferConfirm) return
+    setTransferring(true)
+    setTransferError(null)
+
+    // Optimistic update
+    const { childId, fromGroupId, toGroupId } = transferConfirm
+    const prevGroups = [...groups]
+
+    setGroups(prev => prev.map(g => {
+      if (g.id === fromGroupId) {
+        return {
+          ...g,
+          memberCount  : Math.max(0, g.memberCount - 1),
+          memberAvatars: g.memberAvatars.filter(m => m.childId !== childId),
+        }
+      }
+      if (g.id === toGroupId) {
+        const moved = prevGroups.find(pg => pg.id === fromGroupId)?.memberAvatars.find(m => m.childId === childId)
+        return {
+          ...g,
+          memberCount  : g.memberCount + 1,
+          memberAvatars: moved ? [...g.memberAvatars, moved] : g.memberAvatars,
+        }
+      }
+      return g
+    }))
+
+    try {
+      const { error } = await transferGroupMember(childId, fromGroupId, toGroupId, tenantId)
+      if (error) {
+        // Rollback optimiste
+        setGroups(prevGroups)
+        setTransferError('Erreur lors du transfert. Veuillez réessayer.')
+        if (process.env.NODE_ENV !== 'production') console.error('[GroupsPage] transferGroupMember error:', error)
+      } else {
+        setTransferConfirm(null)
+      }
+    } finally {
+      setTransferring(false)
+    }
+  }
 
   return (
     <>
@@ -164,7 +256,6 @@ export default function GroupsPage() {
 
       {/* ── Filters ── */}
       <View style={s.filterRow}>
-
         {/* Implantation filter */}
         <View style={s.filterGroup}>
           <Pressable
@@ -236,64 +327,19 @@ export default function GroupsPage() {
         </View>
       ) : (
         <View style={s.grid}>
-          {filtered.map(group => {
-            const methodColor = group.method ? METHOD_COLOR[group.method] : colors.border.light
-            return (
-              <Pressable
-                key={group.id}
-                style={[s.card, { borderTopColor: methodColor }]}
-                onPress={() => router.push(`/groups/${group.id}` as never)}
-              >
-                {/* Header */}
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space.xs }}>
-                  <AureakText variant="body" style={{ fontWeight: '700', flex: 1, fontSize: 14 }}>
-                    {group.name}
-                  </AureakText>
-                  <MethodBadge method={group.method} />
-                </View>
-
-                {/* Implantation */}
-                <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
-                  {group.implantationName}
-                </AureakText>
-
-                {/* Schedule */}
-                {group.dayOfWeek && (
-                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                    <View style={s.chip}>
-                      <AureakText variant="caption" style={{ fontSize: 11 }}>{group.dayOfWeek}</AureakText>
-                    </View>
-                    {group.startHour !== null && (
-                      <View style={s.chip}>
-                        <AureakText variant="caption" style={{ fontSize: 11 }}>
-                          {formatTime(group.startHour, group.startMinute)}
-                        </AureakText>
-                      </View>
-                    )}
-                    {group.durationMinutes && (
-                      <View style={s.chip}>
-                        <AureakText variant="caption" style={{ fontSize: 11 }}>{group.durationMinutes} min</AureakText>
-                      </View>
-                    )}
-                  </View>
-                )}
-
-                {/* Footer */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.sm }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <View style={s.memberBadge}>
-                      <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                        {group.memberCount} joueur{group.memberCount !== 1 ? 's' : ''}
-                      </AureakText>
-                    </View>
-                  </View>
-                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
-                    Gérer →
-                  </AureakText>
-                </View>
-              </Pressable>
-            )
-          })}
+          {filtered.map(group => (
+            <GroupCard
+              key={group.id}
+              group={group}
+              memberCount={group.memberCount}
+              members={group.memberAvatars}
+              onPress={() => router.push(`/groups/${group.id}` as never)}
+              isDragOver={dragOverGroupId === group.id}
+              onDragOver={(e: React.DragEvent) => handleDragOver(e, group.id)}
+              onDragLeave={() => handleDragLeave(group.id)}
+              onDrop={(e: React.DragEvent) => handleDrop(e, group)}
+            />
+          ))}
         </View>
       )}
     </ScrollView>
@@ -403,10 +449,7 @@ export default function GroupsPage() {
 
           {/* Actions */}
           <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
-            <Pressable
-              style={[s2.cancelBtn]}
-              onPress={() => setShowGenModal(false)}
-            >
+            <Pressable style={[s2.cancelBtn]} onPress={() => setShowGenModal(false)}>
               <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>Annuler</AureakText>
             </Pressable>
             <Pressable
@@ -422,6 +465,66 @@ export default function GroupsPage() {
         </Pressable>
       </Pressable>
     )}
+
+    {/* ── Modal confirmation transfert (Story 56-4) ── */}
+    <Modal visible={!!transferConfirm} transparent animationType="fade">
+      <Pressable
+        style={s.overlay}
+        onPress={() => { if (!transferring) setTransferConfirm(null) }}
+      >
+        <Pressable style={s.modal} onPress={e => e.stopPropagation?.()}>
+          <AureakText variant="h3" style={{ color: colors.text.dark, marginBottom: space.sm }}>
+            Confirmer le transfert
+          </AureakText>
+          {transferConfirm && (
+            <>
+              <AureakText variant="body" style={{ color: colors.text.dark, marginBottom: space.sm }}>
+                Transférer{' '}
+                <AureakText variant="body" style={{ fontWeight: '700', color: colors.accent.gold }}>
+                  {transferConfirm.displayName}
+                </AureakText>
+                {' '}du groupe{' '}
+                <AureakText variant="body" style={{ fontWeight: '700' }}>
+                  {transferConfirm.fromGroupName}
+                </AureakText>
+                {' '}vers{' '}
+                <AureakText variant="body" style={{ fontWeight: '700' }}>
+                  {transferConfirm.toGroupName}
+                </AureakText>
+                {' '}?
+              </AureakText>
+
+              {transferError && (
+                <AureakText variant="caption" style={{ color: colors.status.absent, marginBottom: space.sm }}>
+                  {transferError}
+                </AureakText>
+              )}
+
+              <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' }}>
+                <Pressable
+                  style={s.cancelBtn}
+                  onPress={() => setTransferConfirm(null)}
+                  disabled={transferring}
+                >
+                  <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+                    Annuler
+                  </AureakText>
+                </Pressable>
+                <Pressable
+                  style={[s.confirmBtn, transferring && { opacity: 0.6 }]}
+                  onPress={handleConfirmTransfer}
+                  disabled={transferring}
+                >
+                  <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                    {transferring ? 'Transfert…' : 'Confirmer le transfert'}
+                  </AureakText>
+                </Pressable>
+              </View>
+            </>
+          )}
+        </Pressable>
+      </Pressable>
+    </Modal>
     </>
   )
 }
@@ -492,36 +595,10 @@ const s = StyleSheet.create({
     flexWrap     : 'wrap',
     gap          : space.md,
   },
-  card       : {
-    backgroundColor : colors.light.surface,
-    borderRadius    : 10,
-    borderWidth     : 1,
-    borderColor     : colors.border.light,
-    borderTopWidth  : 3,
-    padding         : space.md,
-    width           : '100%' as never,
-    maxWidth        : 340,
-    minWidth        : 260,
-    gap             : 2,
-  },
-  chip       : {
-    backgroundColor: colors.light.muted,
-    borderRadius   : 12,
-    paddingHorizontal: 8,
-    paddingVertical  : 2,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-  },
-  memberBadge: {
-    backgroundColor: colors.light.muted,
-    borderRadius   : 10,
-    paddingHorizontal: 8,
-    paddingVertical  : 2,
-  },
 
   skeletonBox : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   skeletonCard: {
-    width  : 280, height : 130,
+    width  : 280, height : 200,
     backgroundColor: colors.light.surface,
     borderRadius   : 10, opacity: 0.5,
     borderWidth    : 1, borderColor: colors.border.light,
@@ -533,5 +610,34 @@ const s = StyleSheet.create({
     alignItems     : 'center',
     borderWidth    : 1,
     borderColor    : colors.border.light,
+  },
+
+  // Modal transfert
+  overlay: {
+    flex           : 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent : 'center',
+    alignItems     : 'center',
+    padding        : space.xl,
+  },
+  modal: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : 12,
+    padding        : space.lg,
+    width          : '100%',
+    maxWidth       : 460,
+  },
+  cancelBtn: {
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    borderRadius     : 8,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  confirmBtn: {
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    borderRadius     : 8,
+    backgroundColor  : colors.accent.gold,
   },
 })
