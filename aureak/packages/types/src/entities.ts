@@ -455,16 +455,17 @@ export type GroupMemberWithDetails = GroupMemberWithName & {
 
 /** Implantation — site physique où se déroulent les séances */
 export type Implantation = {
-  id        : string
-  tenantId  : string
-  name      : string
-  address   : string | null
-  gpsLat    : number | null
-  gpsLon    : number | null
-  gpsRadius : number
-  photoUrl  : string | null   // Story 49-6 — photo/logo du site (bucket implantation-photos)
-  deletedAt : string | null
-  createdAt : string
+  id         : string
+  tenantId   : string
+  name       : string
+  address    : string | null
+  gpsLat     : number | null
+  gpsLon     : number | null
+  gpsRadius  : number
+  photoUrl   : string | null   // Story 49-6 — photo/logo du site (bucket implantation-photos)
+  maxPlayers : number | null   // Story 57-2 — capacité maximale de joueurs simultanés
+  deletedAt  : string | null
+  createdAt  : string
 }
 
 /** Méthode pédagogique associée à un groupe */

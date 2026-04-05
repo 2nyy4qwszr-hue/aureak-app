@@ -19,16 +19,17 @@ export type CreateImplantationParams = {
 
 function mapImplantation(row: Record<string, unknown>): Implantation {
   return {
-    id       : row.id        as string,
-    tenantId : row.tenant_id as string,
-    name     : row.name      as string,
-    address  : (row.address    as string | null) ?? null,
-    gpsLat   : (row.gps_lat    as number | null) ?? null,
-    gpsLon   : (row.gps_lon    as number | null) ?? null,
-    gpsRadius: (row.gps_radius as number | null) ?? 300,
-    photoUrl : (row.photo_url  as string | null) ?? null,   // Story 49-6
-    deletedAt: (row.deleted_at as string | null) ?? null,
-    createdAt: row.created_at  as string,
+    id         : row.id          as string,
+    tenantId   : row.tenant_id   as string,
+    name       : row.name        as string,
+    address    : (row.address    as string | null) ?? null,
+    gpsLat     : (row.gps_lat    as number | null) ?? null,
+    gpsLon     : (row.gps_lon    as number | null) ?? null,
+    gpsRadius  : (row.gps_radius as number | null) ?? 300,
+    photoUrl   : (row.photo_url  as string | null) ?? null,   // Story 49-6
+    maxPlayers : (row.max_players as number | null) ?? null,  // Story 57-2
+    deletedAt  : (row.deleted_at as string | null) ?? null,
+    createdAt  : row.created_at  as string,
   }
 }
 
