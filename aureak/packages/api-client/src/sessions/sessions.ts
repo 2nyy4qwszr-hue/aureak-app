@@ -42,6 +42,8 @@ function mapSession(row: Record<string, unknown>): Session {
     // Story 21.1
     contextType           : (row['context_type']          as 'academie' | 'stage' | null) ?? null,
     label                 : (row['label']                 as string | null) ?? null,
+    // Story 53-3
+    intensityLevel        : (row['intensity_level']       as number | null) ?? null,
   }
 }
 
@@ -1191,4 +1193,21 @@ export async function getActiveSession(): Promise<ActiveSessionInfo[]> {
     })
 
   return active
+}
+
+// ── Story 53-3 — Intensité séance ────────────────────────────────────────────
+
+/**
+ * Met à jour le niveau d'intensité d'une séance (1–5).
+ * Mise à jour optimiste côté UI — cette fonction ne retourne que l'erreur éventuelle.
+ */
+export async function updateSessionIntensity(
+  sessionId: string,
+  level    : number,
+): Promise<void> {
+  const { error } = await supabase
+    .from('sessions')
+    .update({ intensity_level: level })
+    .eq('id', sessionId)
+  if (error) throw error
 }

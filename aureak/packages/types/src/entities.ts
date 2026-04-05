@@ -697,6 +697,8 @@ export type Session = {
   // Story 21.1 — Training Builder : contexte global + titre auto-généré (migration 00071)
   contextType           : 'academie' | 'stage' | null   // contexte pédagogique global
   label                 : string | null                  // titre lisible, ex: "Goal & Player – Module 2 – ENT 7"
+  // Story 53-3 — Indicateur d'intensité (migration 00119)
+  intensityLevel        : number | null                  // 1–5 ou null si non défini
 }
 
 /** SessionCoach — coach assigné à une séance */

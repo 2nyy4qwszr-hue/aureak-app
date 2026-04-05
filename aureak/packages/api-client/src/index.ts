@@ -113,6 +113,8 @@ export {
   listNextSessionForDashboard,
   // Story 51.2 — topbar séance active permanente
   getActiveSession,
+  // Story 53-3 — intensité séance
+  updateSessionIntensity,
 } from './sessions/sessions'
 export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow } from './sessions/sessions'
 export type { ActiveSessionInfo } from '@aureak/types'
