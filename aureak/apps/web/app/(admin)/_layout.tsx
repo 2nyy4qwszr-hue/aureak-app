@@ -8,8 +8,8 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext'
 import { useThemeColors } from '../hooks/useThemeColors'
-import { getActiveSession, getNavBadgeCounts } from '@aureak/api-client'
-import type { ActiveSessionInfo, NavBadgeCounts } from '@aureak/api-client'
+import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase } from '@aureak/api-client'
+import type { ActiveSessionInfo, NavBadgeCounts, AchievementToastData } from '@aureak/api-client'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
 import { NavTooltip } from '../../components/NavTooltip'
@@ -42,6 +42,7 @@ import {
 } from '@aureak/ui'
 import type { NavIconProps } from '@aureak/ui'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { AchievementToast } from '@aureak/ui'
 import { ToastProvider } from '../../components/ToastContext'
 import { NotificationProvider } from '../../components/NotificationContext'
 import { SearchProvider } from '../../components/SearchContext'
@@ -288,6 +289,41 @@ function AdminLayoutInner() {
     }
   }, [])
 
+  // ── Story 59-9 — Achievement toasts (Realtime player_badges INSERT) ─────────
+  const [toastQueue, setToastQueue] = useState<(AchievementToastData & { id: string })[]>([])
+
+  useEffect(() => {
+    // Souscrire uniquement pour admin et coach
+    if (role !== 'admin' && role !== 'coach') return
+
+    const channel = supabase
+      .channel('achievement-toasts')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'player_badges' },
+        async (payload) => {
+          const record = payload.new as { id: string; child_id: string; badge_id: string }
+          try {
+            const { data, error } = await getAchievementDetails(record.child_id, record.badge_id)
+            if (error || !data) {
+              if (process.env.NODE_ENV !== 'production') console.error('[layout] getAchievementDetails error:', error)
+              return
+            }
+            setToastQueue(prev => [...prev, { ...data, id: record.id }])
+          } catch (err) {
+            if (process.env.NODE_ENV !== 'production') console.error('[layout] achievement toast exception:', err)
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          if (process.env.NODE_ENV !== 'production') console.error('[layout] achievement Realtime channel error')
+        }
+      })
+
+    return () => { supabase.removeChannel(channel) }
+  }, [role]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (isMobile) setMobileOpen(false)
   }, [pathname, isMobile])
@@ -313,6 +349,7 @@ function AdminLayoutInner() {
   const adminInitial = (user?.email ?? 'A').charAt(0).toUpperCase()
 
   return (
+    <>
     <BreadcrumbProvider>
     <ToastProvider>
     <NotificationProvider>
@@ -661,6 +698,41 @@ function AdminLayoutInner() {
             </YStack>
           )}
 
+          {/* ── Story 59-8 — Lien Mon profil admin ── */}
+          <Pressable onPress={() => router.push('/profile' as never)}>
+            {({ pressed }) => (
+              <YStack
+                paddingVertical={7}
+                paddingHorizontal={12}
+                borderRadius={radius.xs}
+                marginBottom={2}
+                backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : (pathname === '/profile' ? `${colors.accent.gold}18` : 'transparent')}
+                borderLeftWidth={3}
+                borderLeftColor={pathname === '/profile' ? colors.accent.gold : 'transparent' as never}
+                style={{ transition: `background-color ${transitions.fast}` } as never}
+              >
+                {sidebarCollapsed ? (
+                  <YStack alignItems="center" justifyContent="center">
+                    <UserIcon color={pathname === '/profile' ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
+                  </YStack>
+                ) : (
+                  <XStack alignItems="center" gap={8}>
+                    <UserIcon color={pathname === '/profile' ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
+                    <Text
+                      fontFamily="$body"
+                      fontSize={13}
+                      fontWeight={pathname === '/profile' ? '700' : '400'}
+                      color={pathname === '/profile' ? colors.accent.gold : colors.text.secondary}
+                      style={{ opacity: labelsVisible ? 1 : 0, transition: 'opacity 0.1s ease' } as never}
+                    >
+                      Mon profil
+                    </Text>
+                  </XStack>
+                )}
+              </YStack>
+            )}
+          </Pressable>
+
           {/* ── Story 51.8 — Toggle thème (soleil / lune) ── */}
           <Pressable onPress={toggleTheme}>
             {({ pressed }) => (
@@ -794,5 +866,21 @@ function AdminLayoutInner() {
     </NotificationProvider>
     </ToastProvider>
     </BreadcrumbProvider>
+
+    {/* ── Story 59-9 — Toast queue achievement (FIFO, 1 seul visible) ── */}
+    {toastQueue.length > 0 && (
+      <AchievementToast
+        key={toastQueue[0].id}
+        playerName={toastQueue[0].playerName}
+        badgeLabel={toastQueue[0].badgeLabel}
+        badgeIconUrl={toastQueue[0].badgeIconUrl ?? undefined}
+        onDismiss={() => {
+          setTimeout(() => {
+            setToastQueue(prev => prev.slice(1))
+          }, 500)
+        }}
+      />
+    )}
+    </>
   )
 }
