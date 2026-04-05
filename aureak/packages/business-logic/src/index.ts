@@ -41,3 +41,6 @@ export {
 
 export { computePlayerStats, computePlayerTier, computePlayerXP, computePlayerBadges } from './playerStats'
 export type { PlayerStats } from './playerStats'
+
+// Story 57-7 — Score de santé implantation
+export { computeImplantationHealth } from './implantation-health'
