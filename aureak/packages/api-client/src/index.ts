@@ -231,8 +231,15 @@ export type {
 export {
   applyEvaluationEvent, listEvaluationsBySession, listMergedEvaluations,
   validateSession, closeSession,
+  // Story 55-3 — Croissance joueur
+  listRecentEvaluationsForChild,
+  // Story 55-2 — Moyennes axes radar
+  getAverageEvaluationsByPlayer,
+  // Story 55-4 — isPersonalBest
+  listEvaluationsBySessionWithPB,
 } from './evaluations/evaluations'
 export type { ApplyEvaluationParams, ApplyEvaluationResult, CloseSessionResult } from './evaluations/evaluations'
+export type { PlayerAxisAverage, EvalWithPersonalBest } from './evaluations/evaluations'
 
 export { getChildProfile, getAttendanceSource } from './parent/childProfile'
 
