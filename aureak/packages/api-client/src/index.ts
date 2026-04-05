@@ -445,6 +445,7 @@ export {
   listMethodologySessions, getMethodologySession, createMethodologySession, updateMethodologySession, toggleMethodologySession, softDeleteMethodologySession,
   linkMethodologySessionTheme, unlinkMethodologySessionTheme, listMethodologySessionThemes,
   linkMethodologySessionSituation, unlinkMethodologySessionSituation, listMethodologySessionSituations,
+  addSituationToSession,
 } from './methodology'
 export type {
   CreateMethodologyThemeParams,

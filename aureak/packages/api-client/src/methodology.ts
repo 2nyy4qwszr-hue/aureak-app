@@ -463,3 +463,24 @@ export async function listMethodologySessionSituations(
     return [mapSituation(s as Record<string, unknown>)]
   })
 }
+
+// ── Story 58-3 — Drag situation vers séance pédagogique ───────────────────────
+
+/**
+ * Associe une situation à une séance pédagogique (idempotent via upsert).
+ * Utilisé par le drag & drop depuis la bibliothèque.
+ */
+export async function addSituationToSession(
+  sessionId  : string,
+  situationId: string,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_session_situations')
+    .upsert(
+      { session_id: sessionId, situation_id: situationId },
+      { onConflict: 'session_id,situation_id' },
+    )
+  if (error && process.env.NODE_ENV !== 'production')
+    console.error('[addSituationToSession] error:', error)
+  return { error: error ?? null }
+}

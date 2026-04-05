@@ -19,7 +19,11 @@ import {
   getGroupMembersRecentStreaks,
   // Story 54-7
   listActiveAbsenceAlerts,
+  // Story 58-3
+  addSituationToSession,
+  listMethodologySessionSituations,
 } from '@aureak/api-client'
+import type { MethodologySituation } from '@aureak/types'
 import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge, AttendanceToggle, BestSessionBadge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
@@ -1043,6 +1047,13 @@ export default function SessionDetailPage() {
   const [absenceAlerts,       setAbsenceAlerts]       = useState<AbsenceAlertRow[]>([])
   const [alertsDismissed,     setAlertsDismissed]     = useState(false)
 
+  // Story 58-3 — Drag & drop situation depuis bibliothèque
+  const [sessionSituations,  setSessionSituations]  = useState<MethodologySituation[]>([])
+  const [isDragOver,         setIsDragOver]         = useState(false)
+  const [addingSituation,    setAddingSituation]    = useState(false)
+  const [highlightedSitId,   setHighlightedSitId]   = useState<string | null>(null)
+  const [situationDropError, setSituationDropError] = useState<string | null>(null)
+
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -1245,6 +1256,52 @@ export default function SessionDetailPage() {
   }
 
   useEffect(() => { load() }, [sessionId])
+
+  // Story 58-3 — Rechargement des situations liées à la séance
+  const reloadSituations = async () => {
+    if (!sessionId) return
+    const sits = await listMethodologySessionSituations(sessionId)
+    setSessionSituations(sits)
+  }
+
+  // Story 58-3 — Handlers drag & drop situation
+  const handleSituationDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    if (e.dataTransfer.types.includes('application/json')) setIsDragOver(true)
+  }
+
+  const handleSituationDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    const raw = e.dataTransfer.getData('application/json')
+    if (!raw || !sessionId) return
+    let payload: { type?: string; situationId?: string }
+    try { payload = JSON.parse(raw) } catch { return }
+    if (payload.type !== 'situation' || !payload.situationId) return
+
+    // Vérif doublon
+    if (sessionSituations.some(s => s.id === payload.situationId)) {
+      setSituationDropError('Exercice déjà dans cette séance')
+      setTimeout(() => setSituationDropError(null), 3000)
+      return
+    }
+
+    setAddingSituation(true)
+    setSituationDropError(null)
+    try {
+      const { error } = await addSituationToSession(sessionId, payload.situationId!)
+      if (error) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[SessionPage] handleSituationDrop error:', error)
+        return
+      }
+      setHighlightedSitId(payload.situationId!)
+      setTimeout(() => setHighlightedSitId(null), 2000)
+      await reloadSituations()
+    } finally {
+      setAddingSituation(false)
+    }
+  }
 
   // Guest search — debounced 300ms, min 2 chars
   useEffect(() => {
@@ -2013,6 +2070,65 @@ export default function SessionDetailPage() {
           </Pressable>
         </View>
       )}
+
+      {/* Story 58-3 — Drop zone exercices depuis bibliothèque méthodologie */}
+      <View style={styles.card}>
+        <AureakText variant="label">Exercices liés ({sessionSituations.length})</AureakText>
+
+        {/* Situations déjà liées */}
+        {sessionSituations.map(sit => (
+          <View
+            key={sit.id}
+            style={{
+              paddingVertical  : space.xs,
+              paddingHorizontal: space.sm,
+              borderRadius     : 6,
+              borderWidth      : 1,
+              borderColor      : highlightedSitId === sit.id ? colors.accent.gold : colors.border.light,
+              backgroundColor  : highlightedSitId === sit.id ? colors.accent.gold + '18' : 'transparent',
+              flexDirection    : 'row',
+              alignItems       : 'center',
+              gap              : space.xs,
+            }}
+          >
+            {sit.method && (
+              <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: colors.border.light }}>
+                <AureakText variant="caption" style={{ fontSize: 10 } as never}>{sit.method}</AureakText>
+              </View>
+            )}
+            <AureakText variant="body" style={{ flex: 1 } as never} numberOfLines={1}>{sit.title}</AureakText>
+          </View>
+        ))}
+
+        {/* Message erreur doublon */}
+        {situationDropError && (
+          <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs } as never}>
+            {situationDropError}
+          </AureakText>
+        )}
+
+        {/* Zone de dépôt — div web pour onDragOver/onDrop */}
+        {React.createElement('div', {
+          onDragOver : handleSituationDragOver,
+          onDragLeave: () => setIsDragOver(false),
+          onDrop     : handleSituationDrop,
+          style      : {
+            height         : 80,
+            border         : `2px dashed ${isDragOver ? colors.accent.gold : colors.border.goldSolid}`,
+            borderRadius   : radius.card,
+            backgroundColor: isDragOver ? colors.accent.gold + '10' : 'transparent',
+            display        : 'flex',
+            alignItems     : 'center',
+            justifyContent : 'center',
+            marginTop      : space.sm,
+            cursor         : 'copy',
+          },
+        },
+          React.createElement(AureakText as never, { variant: 'caption', style: { color: colors.text.muted } },
+            addingSituation ? 'Ajout en cours...' : 'Déposer un exercice ici'
+          )
+        )}
+      </View>
 
       {/* Présences — Stories 54-1/54-2/54-3/54-4 Squad Status Board + 54-5 Validation groupée */}
       <View style={styles.card}>
