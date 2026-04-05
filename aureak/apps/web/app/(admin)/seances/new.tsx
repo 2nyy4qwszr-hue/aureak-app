@@ -11,6 +11,7 @@ import {
   prefillSessionAttendees, createTransientGroup, computeContentRef,
   addSessionThemeBlock, addSessionWorkshop, uploadWorkshopPdf, uploadWorkshopCard,
 } from '@aureak/api-client'
+import CoachDndBoard from './_components/CoachDndBoard'
 import ThemeBlockPicker from './_components/ThemeBlockPicker'
 import type { ThemeBlockDraft } from './_components/ThemeBlockPicker'
 import WorkshopBlockEditor from './_components/WorkshopBlockEditor'
@@ -1655,56 +1656,45 @@ export default function NewSessionPage() {
             </View>
           )}
 
-          {/* ── Coaches ─────────────────────────────────────────────── */}
-          <View style={[p.card, p.cardWithDropdown, { zIndex: 15 }]}>
+          {/* ── Coaches — Story 53-10 : DnD board ──────────────────── */}
+          <View style={p.card}>
             <SectionLabel
               title="Coaches"
               hint={contextMode === 'ponctuel' ? 'Coaches pour cette séance' : 'Hérités du groupe — modifiables pour cette séance uniquement'}
             />
 
-            {/* Coachs principaux (1-2 requis) */}
-            <View style={p.coachSection}>
-              <View style={p.coachSectionHeader}>
-                <AureakText style={p.fieldLabel}>Coachs principaux</AureakText>
-                <View style={p.coachCountBadge}>
-                  <AureakText style={{ fontSize: 10, color: coachLeads.length >= 1 ? colors.accent.gold : colors.text.muted }}>
-                    {coachLeads.length}/1
-                  </AureakText>
-                </View>
+            {coachLeads.length === 0 && (
+              <View style={p.coachValidation}>
+                <AureakText variant="caption" style={{ fontSize: 10, color: '#E05252' }}>
+                  Minimum 1 coach principal requis (premier assigné = principal)
+                </AureakText>
               </View>
-              {coachLeads.length === 0 && (
-                <View style={p.coachValidation}>
-                  <AureakText variant="caption" style={{ fontSize: 10, color: '#E05252' }}>Minimum 1 coach principal requis</AureakText>
-                </View>
-              )}
-              <MultiSearchableSelect
-                options={coachLeadOpts}
-                selected={coachLeads}
-                onToggle={toggleCoachLead}
-                placeholder="Ajouter un coach principal…"
-                maxSelect={1}
-                zBase={14}
-              />
-            </View>
+            )}
 
-            {/* Coachs assistants (0-2) */}
-            <View style={[p.coachSection, { zIndex: 10 }]}>
-              <View style={p.coachSectionHeader}>
-                <AureakText style={p.fieldLabel}>Coachs assistants</AureakText>
-                <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>optionnel · max 2</AureakText>
-              </View>
-              <MultiSearchableSelect
-                options={coachAssistantOpts.length > 0 ? coachAssistantOpts : coachOpts}
-                selected={coachAssistants}
-                onToggle={toggleCoachAssistant}
-                placeholder={coachAssistantOpts.length > 0 ? 'Ajouter un assistant…' : 'Aucun assistant défini pour ce groupe'}
-                maxSelect={2}
-                zBase={10}
-              />
-            </View>
+            {/* DnD Board principal + assistants */}
+            <CoachDndBoard
+              availableCoaches={allCoaches}
+              assignedCoachIds={[...coachLeads, ...coachAssistants]}
+              onAssign={(id) => {
+                // Premier assigné = lead, suivants = assistants
+                if (coachLeads.length === 0) {
+                  if (!coachLeads.includes(id)) setCoachLeads([id])
+                } else {
+                  if (!coachAssistants.includes(id) && coachAssistants.length < 2)
+                    setCoachAssistants(prev => [...prev, id])
+                }
+              }}
+              onUnassign={(id) => {
+                if (coachLeads.includes(id)) {
+                  setCoachLeads([])
+                } else {
+                  setCoachAssistants(prev => prev.filter(c => c !== id))
+                }
+              }}
+            />
 
-            {/* Coachs remplaçants (0-n) */}
-            <View style={[p.coachSection, { zIndex: 6 }]}>
+            {/* Coachs remplaçants (0-n) — conservé en liste */}
+            <View style={[p.coachSection, { zIndex: 6, marginTop: space.xs }]}>
               <View style={p.coachSectionHeader}>
                 <AureakText style={p.fieldLabel}>Coachs remplaçants</AureakText>
                 <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>à contacter en cas d'absence</AureakText>

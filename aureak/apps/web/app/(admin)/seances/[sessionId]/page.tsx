@@ -13,12 +13,15 @@ import {
   listEvaluationsBySession,
   // Story 53-7
   listSessionsAdminView,
+  // Story 53-10
+  listAvailableCoaches, assignCoach, removeCoach,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
+import CoachDndBoard from '../_components/CoachDndBoard'
 
 const STATUS_LABEL: Record<string, string> = {
   planifiée: 'Planifiée', en_cours: 'En cours', réalisée: 'Réalisée',
@@ -623,6 +626,11 @@ export default function SessionDetailPage() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
   // Story 53-7 — Streaks d'assiduité
   const [presenceStreaks, setPresenceStreaks] = useState<{ childId: string; streak: number }[]>([])
+  // Story 53-10 — Coach DnD board édition
+  const [allAvailableCoaches, setAllAvailableCoaches] = useState<{ id: string; name: string }[]>([])
+  const [showCoachDnd,        setShowCoachDnd]        = useState(false)
+  const [coachDndSaving,      setCoachDndSaving]      = useState(false)
+  const [coachDndError,       setCoachDndError]       = useState<string | null>(null)
 
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -698,6 +706,13 @@ export default function SessionDetailPage() {
       sortedMembers.forEach(m => { map[m.childId] = null })
       ;(a.data as Attendance[]).forEach(att => { map[att.childId] = att.status as AttendanceStatus })
       setAttendanceMap(map)
+
+      // Story 53-10 — Charger coaches disponibles pour DnD board
+      listAvailableCoaches()
+        .then(coaches => setAllAvailableCoaches(coaches))
+        .catch(err => {
+          if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] listAvailableCoaches error:', err)
+        })
 
       // Story 53-6 + 53-7 — Charger évaluations et streaks si séance réalisée
       if (s.data.status === 'réalisée') {
@@ -905,6 +920,41 @@ export default function SessionDetailPage() {
         next.delete(childId)
         return next
       })
+    }
+  }
+
+  // Story 53-10 — Handlers DnD coaches
+  const handleAssignCoach = async (coachId: string) => {
+    if (!session || !sessionId) return
+    setCoachDndSaving(true)
+    setCoachDndError(null)
+    try {
+      const { error } = await assignCoach(sessionId, coachId, session.tenantId, 'assistant')
+      if (error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] assignCoach error:', error)
+        setCoachDndError('Erreur lors de l\'assignation du coach')
+        return
+      }
+      setCoaches(prev => [...prev, { coachId, role: 'assistant', sessionId, tenantId: session.tenantId } as SessionCoach])
+    } finally {
+      setCoachDndSaving(false)
+    }
+  }
+
+  const handleUnassignCoach = async (coachId: string) => {
+    if (!sessionId) return
+    setCoachDndSaving(true)
+    setCoachDndError(null)
+    try {
+      const { error } = await removeCoach(sessionId, coachId)
+      if (error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] removeCoach error:', error)
+        setCoachDndError('Erreur lors du retrait du coach')
+        return
+      }
+      setCoaches(prev => prev.filter(c => c.coachId !== coachId))
+    } finally {
+      setCoachDndSaving(false)
     }
   }
 
@@ -1139,18 +1189,56 @@ export default function SessionDetailPage() {
         )}
       </View>
 
-      {/* Coaches */}
+      {/* Coaches — Story 53-10 : DnD board */}
       <View style={styles.card}>
-        <AureakText variant="label">Coaches</AureakText>
-        {coaches.map(c => (
-          <AureakText key={c.coachId} variant="body">
-            {coachNameMap[c.coachId] ?? c.coachId.slice(0, 8) + '…'} ({c.role})
-          </AureakText>
-        ))}
-        {coaches.length === 0 && (
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>
-            Aucun coach assigné
-          </AureakText>
+        <View style={[styles.row, { justifyContent: 'space-between' as never }]}>
+          <AureakText variant="label">Coaches</AureakText>
+          <Pressable
+            style={{ paddingHorizontal: space.sm, paddingVertical: 4, backgroundColor: colors.accent.gold + '20', borderRadius: 6, borderWidth: 1, borderColor: colors.accent.gold }}
+            onPress={() => setShowCoachDnd(v => !v)}
+          >
+            <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+              {showCoachDnd ? 'Fermer' : '✏️ Modifier'}
+            </AureakText>
+          </Pressable>
+        </View>
+
+        {/* Liste lecture seule */}
+        {!showCoachDnd && (
+          <>
+            {coaches.map(c => (
+              <AureakText key={c.coachId} variant="body">
+                {coachNameMap[c.coachId] ?? c.coachId.slice(0, 8) + '…'} ({c.role})
+              </AureakText>
+            ))}
+            {coaches.length === 0 && (
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                Aucun coach assigné
+              </AureakText>
+            )}
+          </>
+        )}
+
+        {/* DnD Board édition */}
+        {showCoachDnd && (
+          <View style={{ marginTop: space.xs }}>
+            <CoachDndBoard
+              availableCoaches={allAvailableCoaches}
+              assignedCoachIds={coaches.map(c => c.coachId)}
+              onAssign  ={handleAssignCoach}
+              onUnassign={handleUnassignCoach}
+            />
+            {coachDndSaving && (
+              <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: space.xs }}>
+                Enregistrement…
+              </AureakText>
+            )}
+            {coachDndError && (
+              <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
+                {coachDndError}
+              </AureakText>
+            )}
+          </View>
         )}
       </View>
 
