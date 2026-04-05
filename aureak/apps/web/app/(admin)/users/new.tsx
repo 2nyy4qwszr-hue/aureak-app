@@ -128,24 +128,34 @@ export default function NewUserScreen() {
   // ── Soumission ───────────────────────────────────────────────────────────────
 
   // ── Formatage lisible des erreurs Edge Function ─────────────────────────────
+  // Le message inclut désormais le [step: xxx] injecté par extractFunctionError()
+  // ce qui permet d'afficher l'étape précise qui a échoué.
   function formatEdgeFunctionError(rawMessage: string): string {
-    if (rawMessage.includes('requires admin role') || rawMessage.includes('Forbidden')) {
+    // Étapes Edge Function — step inclus depuis extractFunctionError() (T2a)
+    if (rawMessage.includes('[step: env-check]')) {
+      return 'Erreur de configuration serveur : variable SUPABASE_SERVICE_ROLE_KEY manquante. Contactez l\'administrateur technique.'
+    }
+    if (rawMessage.includes('[step: auth-create]') || rawMessage.includes('[step: auth-invite]')) {
+      return `Erreur lors de la création du compte : ${rawMessage.replace(/^Auth (create|invite) failed: /, '').replace(/ \[step:.*\]$/, '')}`
+    }
+    if (rawMessage.includes('[step: profile-insert]') || rawMessage.includes('Profile creation failed')) {
+      return `Erreur lors de l'enregistrement du profil : ${rawMessage.replace(/^Profile creation failed: /, '').replace(/ \[step:.*\]$/, '')}`
+    }
+    if (rawMessage.includes('[step: role-check]') || rawMessage.includes('requires admin role') || rawMessage.includes('Forbidden')) {
       return 'Erreur d\'autorisation : votre compte n\'a pas le rôle admin requis. Reconnectez-vous et réessayez.'
     }
-    if (rawMessage.includes('Missing Authorization') || rawMessage.includes('invalid token') || rawMessage.includes('Unauthorized')) {
+    if (rawMessage.includes('[step: auth-header]') || rawMessage.includes('[step: auth-getuser]') || rawMessage.includes('[step: auth-exception]') || rawMessage.includes('Missing Authorization') || rawMessage.includes('invalid token') || rawMessage.includes('Unauthorized')) {
       return 'Session expirée ou non reconnue. Veuillez vous reconnecter.'
     }
-    if (rawMessage.includes('Auth create failed') || rawMessage.includes('Auth invite failed')) {
-      return `Erreur lors de la création du compte : ${rawMessage.replace(/^Auth (create|invite) failed: /, '')}`
-    }
-    if (rawMessage.includes('Profile creation failed')) {
-      return `Erreur lors de l'enregistrement du profil : ${rawMessage.replace(/^Profile creation failed: /, '')}`
-    }
-    if (rawMessage.includes('Server misconfiguration')) {
+    if (rawMessage.includes('Server misconfiguration') || rawMessage.includes('[step: body-validate]') || rawMessage.includes('[step: body-parse]')) {
       return 'Erreur de configuration serveur. Contactez l\'administrateur technique.'
     }
+    // Fallback : afficher le message brut avec step si disponible (plus utile que le générique)
+    if (rawMessage.includes('[step:')) {
+      return `Erreur technique : ${rawMessage}`
+    }
     if (rawMessage.includes('EdgeFunctionReturned non-2xx') || rawMessage.includes('non-2xx')) {
-      return 'La fonction de création a retourné une erreur. Consultez les logs Supabase → Functions → create-user-profile pour le détail.'
+      return 'La fonction de création a retourné une erreur non identifiable. Consultez les logs Supabase → Functions → create-user-profile.'
     }
     return rawMessage
   }

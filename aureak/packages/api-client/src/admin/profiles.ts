@@ -50,17 +50,27 @@ type ProfileResult = { data: { userId: string } | null; error: unknown }
 //   - FunctionsHttpError   (function returned a non-2xx body)      → body has { error: string }
 //
 // We try to read the response body to surface the actual function error message.
+// IMPORTANT: .clone() is required before .json() — the SDK may have already consumed
+// the Response stream to build its error message. Without .clone(), a second .json()
+// call raises TypeError: "body used already", caught silently → falls back to SDK
+// generic message (the root cause of the "non-2xx" fallback bug).
 async function extractFunctionError(error: unknown): Promise<Error> {
   const baseMsg = (error as { message?: string }).message ?? 'Erreur inconnue'
   try {
     // FunctionsHttpError exposes the raw Response under .context
     const response: Response | undefined = (error as { context?: Response }).context
     if (response && typeof response.json === 'function') {
-      const body = await response.json() as { error?: string }
-      if (body?.error) return new Error(body.error)
+      // Clone before reading — the SDK may have already consumed the original stream
+      const cloned = response.clone()
+      const body = await cloned.json() as { error?: string; step?: string }
+      if (body?.error) {
+        const stepSuffix = body.step ? ` [step: ${body.step}]` : ''
+        return new Error(`${body.error}${stepSuffix}`)
+      }
     }
   } catch {
     // JSON parse failed or no context — fall back to SDK message
+    if (process.env.NODE_ENV !== 'production') console.error('[profiles] extractFunctionError: could not parse response body, falling back to SDK message')
   }
   return new Error(baseMsg)
 }
