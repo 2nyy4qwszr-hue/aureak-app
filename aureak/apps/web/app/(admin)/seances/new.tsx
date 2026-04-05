@@ -4,7 +4,7 @@
 // À distinguer du "contenu d'entraînement" = thème pédagogique lié à la session
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Platform } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import {
   listImplantations, listGroupsByImplantation, listGroupStaff,
   listAvailableCoaches, createSession, assignCoach,
@@ -18,6 +18,7 @@ import type { SessionWorkshopDraft } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
+import { TYPE_COLOR } from './_components/constants'
 import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode } from '@aureak/types'
 import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
 import { generateSessionLabel } from './_utils'
@@ -595,6 +596,96 @@ const sr = StyleSheet.create({
   value: { flex: 1, fontSize: 13, color: colors.text.dark },
 })
 
+// ── Story 53-4 — MethodTileGrid ────────────────────────────────────────────────
+
+const SESSION_TYPE_ICON_MAP: Partial<Record<string, string>> = {
+  goal_and_player : '⚽',
+  technique       : '🎯',
+  situationnel    : '📐',
+  decisionnel     : '🧠',
+  perfectionnement: '💎',
+  integration     : '🔗',
+  equipe          : '👥',
+}
+
+const SESSION_TYPE_DESCRIPTIONS: Partial<Record<string, string>> = {
+  goal_and_player : 'Travail combiné gardien + joueur de champ',
+  technique       : 'Fondamentaux techniques du gardien',
+  situationnel    : 'Situations de jeu réelles',
+  decisionnel     : 'Prise de décision sous pression',
+  perfectionnement: 'Affinement des habiletés avancées',
+  integration     : 'Intégration équipe complète',
+  equipe          : 'Entraînement collectif équipe',
+}
+
+function MethodTileGrid({
+  value, onChange,
+}: {
+  value   : SessionType | ''
+  onChange: (t: SessionType) => void
+}) {
+  return (
+    <View style={mtg.grid}>
+      {SESSION_TYPES.map(t => {
+        const isActive = value === t
+        const color    = TYPE_COLOR[t] ?? colors.accent.gold
+        const icon     = SESSION_TYPE_ICON_MAP[t] ?? '📋'
+        const label    = SESSION_TYPE_LABELS[t] ?? t
+        const desc     = SESSION_TYPE_DESCRIPTIONS[t] ?? ''
+
+        return (
+          <Pressable
+            key={t}
+            style={[
+              mtg.tile,
+              isActive
+                ? { backgroundColor: color + '25', borderColor: color, borderWidth: 2 }
+                : { backgroundColor: colors.light.surface, borderColor: colors.border.light, borderWidth: 1 },
+            ]}
+            onPress={() => onChange(t)}
+          >
+            {isActive && (
+              <View style={[mtg.checkmark, { backgroundColor: color }]}>
+                <AureakText style={{ fontSize: 9, color: colors.text.dark, fontWeight: '700' as never }}>✓</AureakText>
+              </View>
+            )}
+            <AureakText style={{ fontSize: 22 }}>{icon}</AureakText>
+            <AureakText style={[mtg.tileLabel, { color: isActive ? color : colors.text.dark }] as never}>
+              {label}
+            </AureakText>
+            <AureakText style={mtg.tileDesc} numberOfLines={2}>{desc}</AureakText>
+          </Pressable>
+        )
+      })}
+    </View>
+  )
+}
+
+const mtg = StyleSheet.create({
+  grid     : { flexDirection: 'row', flexWrap: 'wrap' as never, gap: space.sm },
+  tile     : {
+    width        : '31%' as never,
+    minWidth     : 100,
+    flexGrow     : 1,
+    borderRadius : radius.xs ?? 8,
+    padding      : space.md,
+    gap          : 4,
+    position     : 'relative' as never,
+  },
+  tileLabel: { fontSize: 12, fontWeight: '700' as never },
+  tileDesc : { fontSize: 10, color: colors.text.muted, lineHeight: 14 },
+  checkmark: {
+    position    : 'absolute' as never,
+    top         : 6,
+    right       : 6,
+    width       : 16,
+    height      : 16,
+    borderRadius: 8,
+    alignItems  : 'center',
+    justifyContent: 'center',
+  },
+})
+
 // ── TitleField — Story 21.1 ────────────────────────────────────────────────────
 // Composant auto-générant le titre de la séance à partir de la méthode + contexte + référence.
 // Pré-rempli et éditable.
@@ -677,6 +768,7 @@ export default function NewSessionPage() {
   const router    = useRouter()
   const toast     = useToast()
   const tenantId  = useAuthStore(s => s.tenantId) ?? ''
+  const { prefill } = useLocalSearchParams<{ prefill?: string }>()
 
   // ── Step 1 — Contexte ────────────────────────────────────────
   const [step,                setStep]                = useState<Step>(1)
@@ -729,8 +821,10 @@ export default function NewSessionPage() {
   const [workshops,     setWorkshops]     = useState<SessionWorkshopDraft[]>([])
 
   // ── Result ───────────────────────────────────────────────────
-  const [creating,  setCreating]  = useState(false)
-  const [result,    setResult]    = useState<{ created: number; failed: number; linkWarnings?: number } | null>(null)
+  const [creating,       setCreating]       = useState(false)
+  const [result,         setResult]         = useState<{ created: number; failed: number; linkWarnings?: number } | null>(null)
+  // Story 53-5 — Toast duplication
+  const [duplicateToast, setDuplicateToast] = useState(false)
 
   // ── Load on mount — le layout admin garantit que l'auth est résolue ───────
   // La Supabase client a déjà le JWT depuis le localStorage avant ce montage.
@@ -802,6 +896,24 @@ export default function NewSessionPage() {
       })
       .catch(() => { setGroupStaff([]) })
   }, [groupId, groups])
+
+  // ── Story 53-5 — Pré-remplissage depuis param ?prefill ──────────────────────
+  useEffect(() => {
+    if (!prefill) return
+    try {
+      const data = JSON.parse(atob(prefill as string))
+      if (data.groupId)        setGroupId(data.groupId)
+      if (data.implantationId) setImplantationId(data.implantationId)
+      if (data.sessionType)    setSessionType(data.sessionType as SessionType)
+      if (data.duration)       setDurationMinutes(data.duration as number)
+      if (data.terrain)        setTerrain(data.terrain as string)
+      setDuplicateToast(true)
+      setTimeout(() => setDuplicateToast(false), 6000)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[seances/new] prefill decode error:', err)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Reset contentRef states when session type changes ──────────────────────
   // Story 21.1 : techniqueCtx supprimé — le contexte vient de contextType global
@@ -1121,6 +1233,18 @@ export default function NewSessionPage() {
         <AureakText variant="h2">Nouvelle séance</AureakText>
       </View>
 
+      {/* Story 53-5 — Toast duplication */}
+      {duplicateToast && (
+        <View style={{ backgroundColor: '#FEF9C3', borderWidth: 1, borderColor: '#FCD34D', borderRadius: 8, padding: space.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <AureakText variant="caption" style={{ color: '#92400E', fontWeight: '700' as never, flex: 1 }}>
+            ↻ Séance pré-remplie — choisissez la date pour confirmer
+          </AureakText>
+          <Pressable onPress={() => setDuplicateToast(false)}>
+            <AureakText variant="caption" style={{ color: '#92400E' }}>×</AureakText>
+          </Pressable>
+        </View>
+      )}
+
       {/* Step indicator */}
       <StepBar current={step} />
 
@@ -1328,23 +1452,8 @@ export default function NewSessionPage() {
                 </AureakText>
               </View>
             ) : (
-              // Pas de méthode sur le groupe → sélection manuelle
-              <View style={{ flexDirection: 'row' as never, flexWrap: 'wrap' as never, gap: space.xs }}>
-                {SESSION_TYPES.map(t => (
-                  <Pressable
-                    key={t}
-                    style={[ss2.typeChip, sessionType === t && ss2.typeChipActive]}
-                    onPress={() => setSessionType(t)}
-                  >
-                    <AureakText
-                      variant="caption"
-                      style={{ color: sessionType === t ? colors.text.dark : colors.text.muted, fontWeight: sessionType === t ? '700' : '400' as never }}
-                    >
-                      {SESSION_TYPE_LABELS[t]}
-                    </AureakText>
-                  </Pressable>
-                ))}
-              </View>
+              // Pas de méthode sur le groupe → sélection par grandes tuiles (Story 53-4)
+              <MethodTileGrid value={sessionType} onChange={setSessionType} />
             )}
           </View>
 
