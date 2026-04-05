@@ -1,0 +1,42 @@
+/* Story 62.1 — Micro-interactions keyframes CSS */
+/* Importé par le composant web ou le layout global                       */
+
+/* ── Bounce (présence cochée) ──────────────────────────────────────────── */
+@keyframes mi-bounce {
+  0%   { transform: scale(1);   }
+  40%  { transform: scale(1.3); }
+  100% { transform: scale(1);   }
+}
+.mi-bounce {
+  animation: mi-bounce 150ms cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+/* ── Flash vert (sauvegarde réussie) ──────────────────────────────────── */
+@keyframes mi-flash {
+  0%,  100% { background-color: inherit;  }
+  50%        { background-color: #10B981; } /* colors.status.success */
+}
+.mi-flash {
+  animation: mi-flash 200ms ease-in-out forwards;
+}
+
+/* ── Shake horizontal (erreur) ──────────────────────────────────────── */
+@keyframes mi-shake {
+  0%,  100% { transform: translateX(0);    }
+  20%        { transform: translateX(-8px); }
+  40%        { transform: translateX(8px);  }
+  60%        { transform: translateX(-4px); }
+  80%        { transform: translateX(4px);  }
+}
+.mi-shake {
+  animation: mi-shake 300ms ease-in-out forwards;
+}
+
+/* ── Respect prefers-reduced-motion ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .mi-bounce,
+  .mi-flash,
+  .mi-shake {
+    animation: none;
+  }
+}

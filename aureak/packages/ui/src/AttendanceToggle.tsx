@@ -1,6 +1,7 @@
 // Story 54-2 — Toggle neumorphique présent/absent
-import React, { useState } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
+// Story 62.1 — Micro-interaction bounce au toggle (web uniquement)
+import React, { useState, useRef } from 'react'
+import { Pressable, StyleSheet, View, Platform } from 'react-native'
 import { AureakText } from './components/Text'
 import { colors, space, radius } from '@aureak/theme'
 
@@ -18,10 +19,25 @@ export function AttendanceToggle({
   size = 'md',
 }: AttendanceToggleProps) {
   const [pressed, setPressed] = useState(false)
+  // Story 62.1 — ref DOM pour bounce animation (web uniquement)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   const isPresent = status === 'present'
   const bg        = isPresent ? colors.status.success : (colors.accent.red ?? '#E05252')
   const label     = isPresent ? '✓ Présent' : '✗ Absent'
+
+  const triggerBounce = () => {
+    if (Platform.OS !== 'web') return
+    const el = containerRef.current
+    if (!el) return
+    const prefersReduced =
+      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) return
+    el.classList.remove('mi-bounce')
+    void el.offsetHeight // force reflow
+    el.classList.add('mi-bounce')
+    setTimeout(() => el.classList.remove('mi-bounce'), 150)
+  }
 
   const handlePressIn = () => {
     if (!disabled) setPressed(true)
@@ -30,11 +46,15 @@ export function AttendanceToggle({
     setPressed(false)
   }
   const handlePress = () => {
-    if (!disabled) onToggle()
+    if (!disabled) {
+      triggerBounce()
+      onToggle()
+    }
   }
 
-  return (
+  const toggle = (
     <Pressable
+      ref={containerRef as never}
       disabled={disabled}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -51,6 +71,8 @@ export function AttendanceToggle({
       </View>
     </Pressable>
   )
+
+  return toggle
 }
 
 const st = StyleSheet.create({

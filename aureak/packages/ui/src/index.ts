@@ -148,6 +148,22 @@ export type { UseSwipeGestureResult, SwipeGestureBindings } from './hooks/useSwi
 export { OfflineBanner } from './OfflineBanner'
 export type { OfflineBannerProps } from './OfflineBanner'
 
+// Story 62.1 — Micro-interactions hook
+export { useMicroInteraction } from './hooks/useMicroInteraction'
+export type { UseMicroInteractionResult } from './hooks/useMicroInteraction'
+
+// Story 62.2 — EmptyState illustré SVG gold/blanc
+export { EmptyStateIllustrated } from './EmptyStateIllustrated'
+export type { EmptyStateIllustratedProps, EmptyStateVariant } from './EmptyStateIllustrated'
+
+// Story 62.3 — Skeleton unifié avec shimmer
+export { SkeletonNew as SkeletonBase } from './SkeletonNew'
+
+// Story 62.4 — HelpTooltip éducatif contextuel
+export { HelpTooltip } from './HelpTooltip'
+export type { HelpTooltipProps } from './HelpTooltip'
+export { HELP_TEXTS } from './helpTexts'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
