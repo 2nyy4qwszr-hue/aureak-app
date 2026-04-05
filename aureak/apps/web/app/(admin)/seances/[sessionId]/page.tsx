@@ -17,8 +17,10 @@ import {
   listAvailableCoaches, assignCoach, removeCoach,
   // Story 54-3
   getGroupMembersRecentStreaks,
+  // Story 54-7
+  listActiveAbsenceAlerts,
 } from '@aureak/api-client'
-import type { PlayerRecentStreak } from '@aureak/api-client'
+import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge, AttendanceToggle } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
@@ -460,6 +462,61 @@ const str = StyleSheet.create({
   sub       : { fontSize: 10 },
   badge     : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
   badgeText : { fontSize: 10, fontWeight: '700' as never },
+})
+
+// Story 54-7 — Styles bandeau alertes absence
+const ab54 = StyleSheet.create({
+  banner: {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    gap            : space.sm,
+    backgroundColor: '#FEF3C7',
+    borderWidth    : 1.5,
+    borderColor    : '#F59E0B',
+    borderRadius   : 10,
+    padding        : space.sm,
+  },
+  bannerTitle: { fontSize: 13, fontWeight: '700' as never, color: '#92400E', marginBottom: 2 },
+  bannerNames: { fontSize: 11, color: '#92400E', opacity: 0.85 },
+  dismissBtn : {
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.xs,
+    borderRadius     : 6,
+    backgroundColor  : '#F59E0B' + '30',
+    borderWidth      : 1,
+    borderColor      : '#F59E0B' + '80',
+    flexShrink       : 0,
+  },
+  dismissText: { fontSize: 11, fontWeight: '600' as never, color: '#92400E' },
+})
+
+// Story 54-5 — Styles bouton "Tous présents" + toast
+const ap54 = StyleSheet.create({
+  allPresentBtn: {
+    backgroundColor   : colors.status.success,
+    paddingHorizontal : space.sm,
+    paddingVertical   : space.xs,
+    borderRadius      : 8,
+  },
+  allPresentBtnDisabled: {
+    opacity: 0.45,
+  },
+  allPresentBtnText: {
+    fontSize  : 12,
+    fontWeight: '700' as never,
+    color     : '#FFFFFF',
+  },
+  toast: {
+    backgroundColor: '#D1FAE5',
+    borderWidth    : 1,
+    borderColor    : '#6EE7B7',
+    borderRadius   : 7,
+    padding        : space.xs + 2,
+  },
+  toastText: {
+    color     : '#065F46',
+    fontWeight: '700' as never,
+  },
 })
 
 // Story 47.3 — Styles actions rapides
@@ -974,6 +1031,13 @@ export default function SessionDetailPage() {
   const [showCoachDnd,        setShowCoachDnd]        = useState(false)
   const [coachDndSaving,      setCoachDndSaving]      = useState(false)
   const [coachDndError,       setCoachDndError]       = useState<string | null>(null)
+  // Story 54-5 — Validation groupée "Tous présents"
+  const [allPresentSaving,    setAllPresentSaving]    = useState(false)
+  const [showConfetti,        setShowConfetti]        = useState(false)
+  const [allPresentToast,     setAllPresentToast]     = useState<string | null>(null)
+  // Story 54-7 — Alertes absence pattern
+  const [absenceAlerts,       setAbsenceAlerts]       = useState<AbsenceAlertRow[]>([])
+  const [alertsDismissed,     setAlertsDismissed]     = useState(false)
 
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -1003,6 +1067,61 @@ export default function SessionDetailPage() {
       : null
     return { presenceRate, presentCount, totalCount, avgScore, topEval: topEval ?? null }
   }, [session, attendanceMap, groupMembers, evaluations, childNameMap])
+
+  // Story 54-5 — Membres non encore marqués présents
+  const notPresentMembers = useMemo(
+    () => groupMembers.filter(m => attendanceMap[m.childId] !== 'present'),
+    [groupMembers, attendanceMap]
+  )
+
+  // Story 54-5 — Handler "Tous présents" avec optimistic update + rollback partiel
+  const handleMarkAllPresent = async () => {
+    if (allPresentSaving || notPresentMembers.length === 0 || !session || !sessionId) return
+    const previousMap = { ...attendanceMap }
+    // Optimistic update
+    const newMap = { ...attendanceMap }
+    notPresentMembers.forEach(m => { newMap[m.childId] = 'present' })
+    setAttendanceMap(newMap)
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 700)
+    setAllPresentSaving(true)
+    setAttendanceError(null)
+    try {
+      const results = await Promise.allSettled(
+        notPresentMembers.map(m =>
+          recordAttendance({
+            sessionId,
+            childId  : m.childId,
+            tenantId : session.tenantId,
+            status   : 'present',
+            recordedBy: '',
+          })
+        )
+      )
+      const failedIndexes = results
+        .map((r, i) => ({ r, i }))
+        .filter(({ r }) => r.status === 'rejected' || (r.status === 'fulfilled' && (r.value as { error: unknown }).error))
+        .map(({ i }) => i)
+      if (failedIndexes.length > 0) {
+        // Rollback uniquement les présences échouées
+        const rollbackMap = { ...newMap }
+        failedIndexes.forEach(i => {
+          const member = notPresentMembers[i]
+          if (member) rollbackMap[member.childId] = previousMap[member.childId] ?? null
+        })
+        setAttendanceMap(rollbackMap)
+        setAttendanceError(`${failedIndexes.length} présence(s) n'ont pas pu être enregistrées`)
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] handleMarkAllPresent partial failures:', failedIndexes.length)
+        setTimeout(() => setAttendanceError(null), 5000)
+      } else {
+        const count = notPresentMembers.length
+        setAllPresentToast(`✓ ${count} présence${count > 1 ? 's' : ''} enregistrée${count > 1 ? 's' : ''}`)
+        setTimeout(() => setAllPresentToast(null), 3500)
+      }
+    } finally {
+      setAllPresentSaving(false)
+    }
+  }
 
   const load = async () => {
     if (!sessionId) {
@@ -1056,6 +1175,15 @@ export default function SessionDetailPage() {
           .then(streaks => setMemberStreaks(streaks))
           .catch(err => {
             if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] getGroupMembersRecentStreaks error:', err)
+          })
+      }
+
+      // Story 54-7 — Charger les alertes d'absence actives pour ce groupe (silent fail)
+      if (s.data.groupId) {
+        listActiveAbsenceAlerts(s.data.groupId)
+          .then(alerts => { setAbsenceAlerts(alerts); setAlertsDismissed(false) })
+          .catch(err => {
+            if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] listActiveAbsenceAlerts error:', err)
           })
       }
 
@@ -1865,11 +1993,70 @@ export default function SessionDetailPage() {
         </View>
       )}
 
-      {/* Présences — Stories 54-1/54-2/54-3/54-4 Squad Status Board */}
+      {/* Story 54-7 — Bandeau alertes absence pattern */}
+      {absenceAlerts.length > 0 && !alertsDismissed && (
+        <View style={ab54.banner}>
+          <View style={{ flex: 1 }}>
+            <AureakText style={ab54.bannerTitle}>
+              {`⚠️ ${absenceAlerts.length} joueur${absenceAlerts.length > 1 ? 's' : ''} absent${absenceAlerts.length > 1 ? 's' : ''} depuis 3+ séances consécutives`}
+            </AureakText>
+            <AureakText style={ab54.bannerNames} numberOfLines={2}>
+              {absenceAlerts.map(a => `${a.childName} (${a.absenceCount} abs.)`).join(' · ')}
+            </AureakText>
+          </View>
+          <Pressable style={ab54.dismissBtn} onPress={() => setAlertsDismissed(true)}>
+            <AureakText style={ab54.dismissText}>Ignorer</AureakText>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Présences — Stories 54-1/54-2/54-3/54-4 Squad Status Board + 54-5 Validation groupée */}
       <View style={styles.card}>
         {session.groupId ? (
           <>
-            <AureakText variant="label">Présences</AureakText>
+            {/* Story 54-5 — Header avec compteur + bouton "Tous présents" */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', position: 'relative' as never }}>
+              <AureakText variant="label">
+                {`Présences (${Object.values(attendanceMap).filter(s => s === 'present').length}/${groupMembers.length} joueurs)`}
+              </AureakText>
+              {/* Confetti particles */}
+              {showConfetti && (
+                <View style={{ position: 'absolute' as never, right: 0, top: -10, zIndex: 20, flexDirection: 'row', gap: 4 }} pointerEvents="none">
+                  {[colors.accent.gold, colors.status.success, colors.accent.red ?? '#E05252', colors.accent.gold, colors.status.success, colors.accent.red ?? '#E05252', colors.accent.gold, colors.status.success].map((c, i) => (
+                    <View
+                      key={i}
+                      style={{
+                        width: 8, height: 8, borderRadius: 4,
+                        backgroundColor: c,
+                        opacity: 0.85,
+                        transform: [{ translateY: -(i % 3) * 10 - 5 }],
+                      }}
+                    />
+                  ))}
+                </View>
+              )}
+              {groupMembers.length > 0 && (
+                <Pressable
+                  style={[
+                    ap54.allPresentBtn,
+                    (notPresentMembers.length === 0 || allPresentSaving) && ap54.allPresentBtnDisabled,
+                  ]}
+                  onPress={handleMarkAllPresent}
+                  disabled={notPresentMembers.length === 0 || allPresentSaving}
+                >
+                  <AureakText style={ap54.allPresentBtnText}>
+                    {allPresentSaving ? 'En cours…' : notPresentMembers.length === 0 ? '✓ Tous présents ✓' : '✓ Tous présents'}
+                  </AureakText>
+                </Pressable>
+              )}
+            </View>
+
+            {/* Story 54-5 — Toast succès */}
+            {allPresentToast && (
+              <View style={ap54.toast}>
+                <AureakText variant="caption" style={ap54.toastText}>{allPresentToast}</AureakText>
+              </View>
+            )}
 
             {/* Message d'erreur rollback */}
             {attendanceError && (
