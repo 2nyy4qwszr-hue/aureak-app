@@ -22,7 +22,7 @@ import {
   generateGroupName, GROUP_METHODS, DAYS_OF_WEEK, GROUP_DURATIONS, METHOD_COLOR,
   buildGroupBaseName,
 } from '@aureak/business-logic'
-import { AureakText, Badge, TacticalBoard } from '@aureak/ui'
+import { AureakText, Badge, TacticalBoard, CapacityIndicator } from '@aureak/ui'
 import type { FormationData } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
@@ -140,11 +140,12 @@ function InfosTab({
   const [editing, setEditing] = useState(false)
   const [saving,  setSaving]  = useState(false)
 
-  const [method,    setMethod]    = useState<GroupMethod>(group.method ?? 'Goal and Player')
-  const [day,       setDay]       = useState(group.dayOfWeek ?? 'Mardi')
-  const [startH,    setStartH]    = useState(group.startHour ?? 17)
-  const [startM,    setStartM]    = useState(group.startMinute ?? 0)
-  const [duration,  setDuration]  = useState(group.durationMinutes ?? 60)
+  const [method,     setMethod]     = useState<GroupMethod>(group.method ?? 'Goal and Player')
+  const [day,        setDay]        = useState(group.dayOfWeek ?? 'Mardi')
+  const [startH,     setStartH]     = useState(group.startHour ?? 17)
+  const [startM,     setStartM]     = useState(group.startMinute ?? 0)
+  const [duration,   setDuration]   = useState(group.durationMinutes ?? 60)
+  const [maxPlayers, setMaxPlayers] = useState<string>(String(group.maxPlayers ?? 20))
 
   // Reset on cancel
   const handleCancel = () => {
@@ -153,6 +154,7 @@ function InfosTab({
     setStartH(group.startHour ?? 17)
     setStartM(group.startMinute ?? 0)
     setDuration(group.durationMinutes ?? 60)
+    setMaxPlayers(String(group.maxPlayers ?? 20))
     setEditing(false)
   }
 
@@ -161,6 +163,7 @@ function InfosTab({
   const handleSave = async () => {
     setSaving(true)
     try {
+      const maxNum = parseInt(maxPlayers, 10)
       await updateGroup(group.id, {
         method         : method,
         dayOfWeek      : day,
@@ -168,6 +171,7 @@ function InfosTab({
         startMinute    : startM,
         durationMinutes: duration,
         name           : previewName,
+        maxPlayers     : isNaN(maxNum) ? null : maxNum,
       })
       setEditing(false)
       onSaved()
@@ -236,6 +240,20 @@ function InfosTab({
             {group.durationMinutes ? `${group.durationMinutes} min` : '—'}
           </AureakText>
         </View>
+        {/* Story 56-6 — Indicateur capacité */}
+        <View style={[info.row, { alignItems: 'center' }]}>
+          <AureakText variant="caption" style={info.label}>Capacité</AureakText>
+          <View style={{ flex: 1 }}>
+            {group.maxPlayers != null ? (
+              <CapacityIndicator
+                memberCount={0}
+                maxPlayers={group.maxPlayers}
+              />
+            ) : (
+              <AureakText variant="body" style={info.value}>—</AureakText>
+            )}
+          </View>
+        </View>
       </SectionCard>
     )
   }
@@ -288,6 +306,18 @@ function InfosTab({
         label={d => `${d} min`}
       />
 
+      {/* Story 56-6 — Capacité maximale */}
+      <FieldLabel>Capacité maximale (joueurs)</FieldLabel>
+      <TextInput
+        style={info.maxInput}
+        value={maxPlayers}
+        onChangeText={setMaxPlayers}
+        placeholder="Ex : 20"
+        placeholderTextColor={colors.text.muted}
+        keyboardType="numeric"
+        maxLength={3}
+      />
+
       {/* Name preview */}
       <View style={info.preview}>
         <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 2 }}>Nouveau nom généré</AureakText>
@@ -336,6 +366,17 @@ const info = StyleSheet.create({
     flex: 2, paddingVertical: space.xs + 2,
     borderRadius: 6, backgroundColor: colors.accent.gold,
     alignItems: 'center',
+  },
+  maxInput: {
+    backgroundColor  : colors.light.muted,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.xs + 2,
+    color            : colors.text.dark,
+    fontSize         : 13,
+    width            : 80,
   },
 })
 
@@ -561,6 +602,7 @@ function JoueursTab({
   children,
   tenantId,
   onRefresh,
+  maxPlayers,
 }: {
   groupId           : string
   groupName         : string
@@ -570,6 +612,7 @@ function JoueursTab({
   children          : Array<{ id: string; name: string }>
   tenantId          : string
   onRefresh         : () => void
+  maxPlayers?       : number | null
 }) {
   const router = useRouter()
   const [adding,     setAdding]     = useState(false)
@@ -592,6 +635,9 @@ function JoueursTab({
     !enrolledIds.has(c.id) &&
     (!search || c.name.toLowerCase().includes(search.toLowerCase()))
   )
+
+  // Story 56-6 — Blocage ajout si groupe complet
+  const isGroupFull = maxPlayers != null && members.length >= maxPlayers
 
   const handleAdd = async () => {
     if (!selectedId) return
@@ -681,8 +727,20 @@ function JoueursTab({
           </AureakText>
         </View>
         {!adding && (
-          <Pressable style={jou.addBtn} onPress={() => { setAdding(true); setSelectedId(''); setSearch('') }}>
-            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>+ Ajouter</AureakText>
+          <Pressable
+            style={[jou.addBtn, isGroupFull && { opacity: 0.5 }]}
+            onPress={() => {
+              if (isGroupFull) return
+              setAdding(true)
+              setSelectedId('')
+              setSearch('')
+            }}
+            // @ts-ignore — title HTML natif pour tooltip web
+            title={isGroupFull ? 'Groupe complet — réduisez la capacité ou transférez un joueur' : undefined}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 11 }}>
+              {isGroupFull ? 'Groupe complet' : '+ Ajouter'}
+            </AureakText>
           </Pressable>
         )}
       </View>
@@ -702,10 +760,26 @@ function JoueursTab({
               : `${Math.round((stat.present / stat.total) * 100)}% (${stat.present} présent${stat.present !== 1 ? 's' : ''} / ${stat.total} séance${stat.total !== 1 ? 's' : ''})`
             : 'Aucune séance'
 
+          // Story 56-8 — Handler navigation avec slide transition
+          const handleNavigateToChild = (childId: string) => {
+            if (typeof document !== 'undefined') {
+              // Appliquer la class CSS slide-out sur le body pour la page courante
+              const pageEl = document.getElementById('aureak-group-detail-page')
+              if (pageEl) {
+                pageEl.classList.add('aureak-slide-out-left')
+                setTimeout(() => {
+                  router.push(`/(admin)/children/${childId}` as never)
+                }, 150)
+                return
+              }
+            }
+            router.push(`/(admin)/children/${childId}` as never)
+          }
+
           return (
             <Pressable
               key={m.childId}
-              onPress={() => router.push(`/(admin)/children/${m.childId}` as never)}
+              onPress={() => handleNavigateToChild(m.childId)}
               style={({ pressed }) => [
                 jou.memberRow,
                 idx % 2 === 1 && { backgroundColor: colors.light.muted },
@@ -1278,7 +1352,11 @@ export default function GroupDetailPage() {
   const methodColor = group.method ? METHOD_COLOR[group.method] : colors.border.light
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView
+      nativeID="aureak-group-detail-page"
+      style={s.container}
+      contentContainerStyle={s.content}
+    >
 
       {/* ── Back ── */}
       <Pressable onPress={() => router.push('/groups' as never)} style={s.backBtn}>
@@ -1376,6 +1454,7 @@ export default function GroupDetailPage() {
           children={children}
           tenantId={tenantId}
           onRefresh={async () => { await loadMembers(); await loadAttendanceStats() }}
+          maxPlayers={group.maxPlayers}
         />
       )}
 

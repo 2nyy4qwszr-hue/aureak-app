@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import type {
   Implantation, Group, GroupMember, AgeGroup, GroupMethod,
   GroupWithMeta, GroupStaff, GroupStaffRole, GroupStaffWithName, GroupMemberWithName, GroupMemberWithDetails,
-  FormationData, AvatarMember,
+  FormationData, AvatarMember, GroupProposal,
 } from '@aureak/types'
 
 // ─── Implantation ─────────────────────────────────────────────────────────────
@@ -157,6 +157,7 @@ function mapGroupRow(row: Record<string, unknown>): Group {
     method         : (row.method         as GroupMethod | null) ?? null,
     isTransient    : (row.is_transient   as boolean) ?? false,
     formationData  : (row.formation_data as FormationData | null) ?? null,
+    maxPlayers     : (row.max_players    as number  | null) ?? null,
     deletedAt      : (row.deleted_at     as string  | null) ?? null,
     createdAt      : row.created_at      as string,
   }
@@ -209,9 +210,14 @@ export async function createTransientGroup(params: {
   return { data: mapGroupRow(data as Record<string, unknown>), error: null }
 }
 
+export type UpdateGroupParams = Partial<Omit<CreateGroupParams, 'tenantId' | 'implantationId'>> & {
+  /** Story 56-6 — Capacité maximale du groupe */
+  maxPlayers?: number | null
+}
+
 export async function updateGroup(
   id    : string,
-  params: Partial<Omit<CreateGroupParams, 'tenantId' | 'implantationId'>>
+  params: UpdateGroupParams
 ): Promise<{ error: unknown }> {
   const updates: Record<string, unknown> = {}
   if (params.name             !== undefined) updates['name']             = params.name
@@ -220,6 +226,7 @@ export async function updateGroup(
   if (params.startMinute      !== undefined) updates['start_minute']     = params.startMinute
   if (params.durationMinutes  !== undefined) updates['duration_minutes'] = params.durationMinutes
   if (params.method           !== undefined) updates['method']           = params.method
+  if (params.maxPlayers       !== undefined) updates['max_players']      = params.maxPlayers
 
   const { error } = await supabase.from('groups').update(updates).eq('id', id)
   return { error }
@@ -762,6 +769,110 @@ export async function transferGroupMember(
 }
 
 // ─── Sessions by group ────────────────────────────────────────────────────────
+
+// ─── Générateur groupes par âge (Story 56-7) ─────────────────────────────────
+
+/**
+ * Tranches d'âge UEFA pour la saison académique.
+ * Calculées sur le 1er janvier de l'année de début de saison.
+ * `minYear` et `maxYear` : année de naissance inclusive.
+ */
+export const AGE_CATEGORY_RANGES = [
+  { category: 'U10', minBirthYear: (seasonStartYear: number) => seasonStartYear - 10, maxBirthYear: (seasonStartYear: number) => seasonStartYear - 9  },
+  { category: 'U12', minBirthYear: (seasonStartYear: number) => seasonStartYear - 12, maxBirthYear: (seasonStartYear: number) => seasonStartYear - 11 },
+  { category: 'U14', minBirthYear: (seasonStartYear: number) => seasonStartYear - 14, maxBirthYear: (seasonStartYear: number) => seasonStartYear - 13 },
+  { category: 'U17', minBirthYear: (seasonStartYear: number) => seasonStartYear - 17, maxBirthYear: (seasonStartYear: number) => seasonStartYear - 15 },
+] as const
+
+/**
+ * Génère une proposition de groupes par catégorie d'âge depuis les joueurs actifs.
+ * Fonction pure côté client — aucune écriture en DB.
+ * @param implantationId — pour la détection de conflits avec groupes existants
+ * @param seasonStartYear — ex: 2025 pour la saison 2025-2026
+ */
+export async function generateGroupsBySeason(
+  implantationId : string,
+  seasonStartYear: number,
+): Promise<{ data: GroupProposal[]; error: unknown }> {
+  // 1. Récupérer tous les joueurs actifs (sans pagination)
+  const { data: playersData, error: playersError } = await supabase
+    .from('child_directory')
+    .select('id, display_name, birth_date')
+    .eq('actif', true)
+    .is('deleted_at', null)
+    .order('display_name', { ascending: true })
+
+  if (playersError) {
+    if (process.env.NODE_ENV !== 'production') console.error('[implantations] generateGroupsBySeason players:', playersError)
+    return { data: [], error: playersError }
+  }
+
+  // 2. Récupérer les groupes existants dans l'implantation pour détection conflits
+  const { data: existingGroupsData } = await supabase
+    .from('groups')
+    .select('name')
+    .eq('implantation_id', implantationId)
+    .eq('is_transient', false)
+    .is('deleted_at', null)
+
+  const existingNames = new Set(
+    ((existingGroupsData ?? []) as { name: string }[]).map(g => g.name.toLowerCase())
+  )
+
+  // 3. Classer les joueurs par catégorie
+  type PlayerRow = { id: string; display_name: string; birth_date: string | null }
+  const players = (playersData ?? []) as PlayerRow[]
+
+  const buckets: Record<string, { childId: string; displayName: string; birthYear: number }[]> = {}
+  for (const cat of AGE_CATEGORY_RANGES) {
+    buckets[cat.category] = []
+  }
+  buckets['Non classifiés'] = []
+
+  for (const p of players) {
+    if (!p.birth_date) {
+      buckets['Non classifiés'].push({ childId: p.id, displayName: p.display_name, birthYear: 0 })
+      continue
+    }
+    const birthYear = new Date(p.birth_date).getFullYear()
+    let placed = false
+    for (const cat of AGE_CATEGORY_RANGES) {
+      if (birthYear >= cat.minBirthYear(seasonStartYear) && birthYear <= cat.maxBirthYear(seasonStartYear)) {
+        buckets[cat.category].push({ childId: p.id, displayName: p.display_name, birthYear })
+        placed = true
+        break
+      }
+    }
+    if (!placed) {
+      buckets['Non classifiés'].push({ childId: p.id, displayName: p.display_name, birthYear })
+    }
+  }
+
+  // 4. Construire les propositions (n'inclure que les catégories avec au moins 1 joueur)
+  const proposals: GroupProposal[] = []
+  for (const cat of AGE_CATEGORY_RANGES) {
+    const members = buckets[cat.category]
+    const name    = cat.category
+    proposals.push({
+      name,
+      ageCategory: cat.category,
+      members,
+      hasConflict: existingNames.has(name.toLowerCase()),
+    })
+  }
+  // Toujours inclure "Non classifiés" s'il y a des joueurs non placés
+  const unclassified = buckets['Non classifiés']
+  if (unclassified.length > 0) {
+    proposals.push({
+      name       : 'Non classifiés',
+      ageCategory: 'Non classifiés',
+      members    : unclassified,
+      hasConflict: existingNames.has('non classifiés'),
+    })
+  }
+
+  return { data: proposals, error: null }
+}
 
 export async function listSessionsByGroup(
   groupId: string,
