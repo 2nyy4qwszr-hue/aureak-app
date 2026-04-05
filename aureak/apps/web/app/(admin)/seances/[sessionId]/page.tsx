@@ -9,11 +9,12 @@ import {
   listSessionThemeBlocks, listSessionWorkshops,
   listGroupMembersWithDetails,
   addSessionThemeBlock, removeSessionThemeBlock, listMethodologyThemes,
+  recordAttendance,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -90,6 +91,10 @@ export default function SessionDetailPage() {
   const [workshops,     setWorkshops]    = useState<SessionWorkshop[]>([])
   // Story 46.1 — Group members
   const [groupMembers,  setGroupMembers] = useState<GroupMemberWithDetails[]>([])
+  // Story 49-4 — Présences pré-remplies avec toggle
+  const [attendanceMap,      setAttendanceMap]      = useState<Record<string, AttendanceStatus | null>>({})
+  const [attendanceToggling, setAttendanceToggling] = useState<Set<string>>(new Set())
+  const [attendanceError,    setAttendanceError]    = useState<string | null>(null)
   const [guestSearch,   setGuestSearch]  = useState('')
   const [guestResults, setGuestResults]= useState<ChildDirectoryEntry[]>([])
   const [showGuestPicker, setShowGuestPicker] = useState(false)
@@ -130,15 +135,22 @@ export default function SessionDetailPage() {
       setWorkshops(ws)
 
       // Story 46.1 — Load group members if group is set
+      let sortedMembers: GroupMemberWithDetails[] = []
       if (s.data.groupId) {
         const members = await listGroupMembersWithDetails(s.data.groupId)
-        const sorted = [...members].sort((a, b) =>
+        sortedMembers = [...members].sort((a, b) =>
           a.displayName.localeCompare(b.displayName, 'fr', { sensitivity: 'base' })
         )
-        setGroupMembers(sorted)
+        setGroupMembers(sortedMembers)
       } else {
         setGroupMembers([])
       }
+
+      // Story 49-4 — Construire attendanceMap : tous les membres du groupe + présences existantes
+      const map: Record<string, AttendanceStatus | null> = {}
+      sortedMembers.forEach(m => { map[m.childId] = null })
+      ;(a.data as Attendance[]).forEach(att => { map[att.childId] = att.status as AttendanceStatus })
+      setAttendanceMap(map)
 
       // Resolve coach names from profiles
       if (c.data.length > 0) {
@@ -296,6 +308,44 @@ export default function SessionDetailPage() {
       setPostponeDate('')
       setPostponeError('')
       load()
+    }
+  }
+
+  // Story 49-4 — Toggle présence avec optimistic update
+  const handleTogglePresence = async (childId: string) => {
+    if (!session || !sessionId) return
+    if (attendanceToggling.has(childId)) return // debounce
+    const prevStatus = attendanceMap[childId] ?? null
+    // Statuts avancés : ne pas écraser avec toggle simple
+    const advancedStatuses: Array<AttendanceStatus> = ['late', 'trial', 'injured', 'unconfirmed']
+    if (prevStatus !== null && advancedStatuses.includes(prevStatus)) return
+    const newStatus: AttendanceStatus = prevStatus === 'present' ? 'absent' : 'present'
+    // Optimistic update
+    setAttendanceMap(prev => ({ ...prev, [childId]: newStatus }))
+    setAttendanceToggling(prev => new Set([...prev, childId]))
+    setAttendanceError(null)
+    try {
+      const { error } = await recordAttendance({
+        sessionId,
+        childId,
+        tenantId  : session.tenantId,
+        status    : newStatus,
+        recordedBy: '',
+      })
+      if (error) {
+        // Rollback
+        setAttendanceMap(prev => ({ ...prev, [childId]: prevStatus }))
+        setAttendanceError('Erreur lors de la mise à jour — réessayez')
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] recordAttendance error:', error)
+        // Auto-dismiss after 4s
+        setTimeout(() => setAttendanceError(null), 4000)
+      }
+    } finally {
+      setAttendanceToggling(prev => {
+        const next = new Set([...prev])
+        next.delete(childId)
+        return next
+      })
     }
   }
 
@@ -754,25 +804,127 @@ export default function SessionDetailPage() {
         </View>
       )}
 
-      {/* Présences */}
+      {/* Présences (Story 49-4) */}
       <View style={styles.card}>
-        <AureakText variant="label">Présences ({attendances.length})</AureakText>
-        {attendances.map(a => {
-          const name = guestNameMap[a.childId] ?? childNameMap[a.childId] ?? a.childId.slice(0, 8) + '…'
-          const statusLabel: Record<string, string> = {
-            present: 'Présent', absent: 'Absent', late: 'En retard',
-            trial: 'Essai', injured: 'Blessé',
-          }
-          return (
-            <AureakText key={a.id} variant="body">
-              {name} → {statusLabel[a.status] ?? a.status}
+        {session.groupId ? (
+          <>
+            {/* Compteur AC6 */}
+            <AureakText variant="label">
+              {`Présences (${groupMembers.filter(m => attendanceMap[m.childId] === 'present').length} présents / ${groupMembers.length} joueurs)`}
             </AureakText>
-          )
-        })}
-        {attendances.length === 0 && (
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>
-            Aucune présence enregistrée
-          </AureakText>
+
+            {/* Message d'erreur rollback AC5 */}
+            {attendanceError && (
+              <View style={{
+                backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm,
+                borderWidth: 1, borderColor: '#FDE68A',
+              }}>
+                <AureakText variant="caption" style={{ color: '#D97706' }}>
+                  ⚠ {attendanceError}
+                </AureakText>
+              </View>
+            )}
+
+            {groupMembers.length === 0 ? (
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                Aucun joueur dans ce groupe
+              </AureakText>
+            ) : (
+              groupMembers.map(member => {
+                const status = attendanceMap[member.childId] ?? null
+                const isToggling = attendanceToggling.has(member.childId)
+                const advancedStatuses: Array<AttendanceStatus> = ['late', 'trial', 'injured', 'unconfirmed']
+                const isAdvanced = status !== null && advancedStatuses.includes(status)
+                const isPresent = status === 'present'
+                const advancedLabel: Record<string, string> = {
+                  late: 'En retard', trial: 'Essai', injured: 'Blessé', unconfirmed: 'Non confirmé',
+                }
+                return (
+                  <View
+                    key={member.childId}
+                    style={[styles.row, { paddingVertical: 6, opacity: isToggling ? 0.6 : 1, justifyContent: 'space-between' as never }]}
+                  >
+                    {/* Avatar + nom */}
+                    <View style={[styles.row, { flex: 1 }]}>
+                      <View style={{
+                        width: 36, height: 36, borderRadius: 18,
+                        backgroundColor: colors.accent.gold + '30',
+                        borderWidth: 1, borderColor: colors.accent.gold + '60',
+                        alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <AureakText style={{ fontSize: 12, fontWeight: '700' as never, color: colors.accent.gold }}>
+                          {initials(member.displayName)}
+                        </AureakText>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <AureakText variant="body" style={{ fontWeight: '600' as never }}>
+                          {member.displayName}
+                        </AureakText>
+                        {member.birthDate ? (
+                          <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                            {getAge(member.birthDate)}
+                          </AureakText>
+                        ) : null}
+                      </View>
+                    </View>
+
+                    {/* Toggle ou badge statut avancé */}
+                    {isAdvanced ? (
+                      <View style={{
+                        paddingHorizontal: space.sm, paddingVertical: 4,
+                        backgroundColor: colors.accent.gold + '20',
+                        borderWidth: 1, borderColor: colors.accent.gold + '70',
+                        borderRadius: radius.xs,
+                        minWidth: 80, alignItems: 'center',
+                      }}>
+                        <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' as never }}>
+                          {advancedLabel[status as string] ?? status}
+                        </AureakText>
+                      </View>
+                    ) : (
+                      <Pressable
+                        onPress={() => handleTogglePresence(member.childId)}
+                        disabled={isToggling}
+                        style={{
+                          paddingHorizontal: space.sm, paddingVertical: 4,
+                          backgroundColor: isPresent ? colors.status.success : colors.accent.red,
+                          borderRadius: radius.xs,
+                          minWidth: 80, alignItems: 'center',
+                        }}
+                      >
+                        <AureakText variant="caption" style={{ color: colors.light.surface, fontWeight: '600' as never }}>
+                          {isPresent ? '✓ Présent' : '✗ Absent'}
+                        </AureakText>
+                      </Pressable>
+                    )}
+                  </View>
+                )
+              })
+            )}
+          </>
+        ) : (
+          <>
+            {/* Séance ponctuelle : comportement original AC7 */}
+            <AureakText variant="label">Présences ({attendances.length})</AureakText>
+            {attendances.map(a => {
+              const name = guestNameMap[a.childId] ?? childNameMap[a.childId] ?? a.childId.slice(0, 8) + '…'
+              const statusLabel: Record<string, string> = {
+                present: 'Présent', absent: 'Absent', late: 'En retard',
+                trial: 'Essai', injured: 'Blessé', unconfirmed: 'Non confirmé',
+              }
+              return (
+                <AureakText key={a.id} variant="body">
+                  {name} → {statusLabel[a.status] ?? a.status}
+                </AureakText>
+              )
+            })}
+            {attendances.length === 0 && (
+              <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                Aucune présence enregistrée
+              </AureakText>
+            )}
+          </>
         )}
       </View>
 
