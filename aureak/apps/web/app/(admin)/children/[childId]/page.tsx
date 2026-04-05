@@ -26,10 +26,13 @@ import {
   listAuditLogs,
   // Story 49-7 — club calculé depuis l'historique football
   getChildCurrentClubFromHistory,
+  // Story 54-6 — heatmap présences
+  listAttendancesByChild,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
   type AddChildPhotoParams,
   type AuditLog,
+  type AttendanceHistoryRow,
 } from '@aureak/api-client'
 
 // ── Niveaux de compétition ───────────────────────────────────────────────────
@@ -46,7 +49,7 @@ import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, comput
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
 import { exportCardToPng } from '../exportCardToPng'
-import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart } from '@aureak/ui'
+import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import type { PlayerTier } from '@aureak/types'
@@ -1609,6 +1612,11 @@ export default function ChildDetailPage() {
   // Story 52-6 — tabs navigation
   const [activeTab, setActiveTab] = useState<PlayerTab>('Profil')
 
+  // Story 54-6 — Heatmap présences
+  const [heatmapData,    setHeatmapData]    = useState<AttendanceHistoryRow[]>([])
+  const [heatmapLoading, setHeatmapLoading] = useState(false)
+  const [heatmapRef,     setHeatmapRef]     = useState(() => new Date())
+
   // Story 52-11 — export carte PNG
   const cardExportRef = useRef<View>(null)
   const [isExporting, setIsExporting] = useState(false)
@@ -1691,6 +1699,24 @@ export default function ChildDetailPage() {
       }
     })()
   }, [childId])
+
+  // Story 54-6 — Chargement des données heatmap (12 mois glissants depuis heatmapRef)
+  useEffect(() => {
+    if (!childId) return
+    const endDate   = new Date(heatmapRef)
+    const startDate = new Date(endDate)
+    startDate.setFullYear(startDate.getFullYear() - 1)
+    const start = startDate.toISOString().slice(0, 10)
+    const end   = endDate.toISOString().slice(0, 10)
+    setHeatmapLoading(true)
+    listAttendancesByChild(childId, start, end)
+      .then(rows => setHeatmapData(rows))
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[ChildDetailPage] listAttendancesByChild error:', err)
+        setHeatmapData([])
+      })
+      .finally(() => setHeatmapLoading(false))
+  }, [childId, heatmapRef])
 
   // ── Edit helpers ────────────────────────────────────────────────────────────
 
@@ -2639,6 +2665,40 @@ export default function ChildDetailPage() {
           <SectionTitle>Métadonnées</SectionTitle>
           <InfoRow label="Créé le"    value={child.createdAt ? new Date(child.createdAt).toLocaleDateString('fr-FR') : null} />
           <InfoRow label="Mis à jour" value={child.updatedAt ? new Date(child.updatedAt).toLocaleDateString('fr-FR') : null} />
+        </View>
+
+        {/* ── Story 54-6 — Section Présences / Heatmap ── */}
+        <View style={s.card}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
+            <SectionTitle>Présences (12 mois glissants)</SectionTitle>
+            {/* Sélecteur mois de référence AC5 */}
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              <Pressable
+                style={{ paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: 6, backgroundColor: colors.light.muted }}
+                onPress={() => setHeatmapRef(d => { const n = new Date(d); n.setMonth(n.getMonth() - 1); return n })}
+              >
+                <AureakText style={{ fontSize: 14, color: colors.text.muted }}>‹</AureakText>
+              </Pressable>
+              <AureakText style={{ fontSize: 11, color: colors.text.muted, alignSelf: 'center' as never }}>
+                {heatmapRef.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+              </AureakText>
+              <Pressable
+                style={{ paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: 6, backgroundColor: colors.light.muted }}
+                onPress={() => setHeatmapRef(d => { const n = new Date(d); n.setMonth(n.getMonth() + 1); return n })}
+              >
+                <AureakText style={{ fontSize: 14, color: colors.text.muted }}>›</AureakText>
+              </Pressable>
+            </View>
+          </View>
+          {heatmapLoading ? (
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement…</AureakText>
+          ) : (
+            <AttendanceHeatmap
+              data          ={heatmapData}
+              referenceYear ={heatmapRef.getFullYear()}
+              referenceMonth={heatmapRef.getMonth()}
+            />
+          )}
         </View>
 
         {/* Fin tab Profil tail */}

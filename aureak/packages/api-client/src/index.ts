@@ -141,8 +141,13 @@ export {
   listSessionAttendeeRoster, batchResolveAttendeeNames,
   listAttendanceStatsByGroup,
   getGroupMembersRecentStreaks,
+  // Story 54-6 — Heatmap mensuelle
+  listAttendancesByChild,
+  // Story 54-7 — Alertes absence pattern
+  checkAbsenceAlertTrigger,
+  listActiveAbsenceAlerts,
 } from './sessions/attendances'
-export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry, AttendanceStat, PlayerRecentStreak } from './sessions/attendances'
+export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry, AttendanceStat, PlayerRecentStreak, AttendanceHistoryRow, AbsenceAlertRow } from './sessions/attendances'
 
 export {
   generateRecurrenceSessions, cancelRecurrenceSeries, cancelSessionRpc, modifySingleException,

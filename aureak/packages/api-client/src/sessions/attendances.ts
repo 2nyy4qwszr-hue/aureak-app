@@ -158,6 +158,25 @@ export async function recordAttendance(
     .select()
     .single()
 
+  // Story 54-7 — Vérification absence pattern (fire-and-forget, ne bloque pas)
+  if (!error && params.status === 'absent') {
+    ;(async () => {
+      try {
+        const { data: sessData } = await supabase
+          .from('sessions')
+          .select('group_id')
+          .eq('id', params.sessionId)
+          .single()
+        const groupId = (sessData as { group_id: string | null } | null)?.group_id
+        if (groupId) {
+          await checkAbsenceAlertTrigger(params.childId, groupId, params.sessionId)
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[recordAttendance] absence alert check failed:', err)
+      }
+    })()
+  }
+
   return { data: data as Attendance | null, error }
 }
 
@@ -607,4 +626,198 @@ export async function getGroupMembersRecentStreaks(
     if (process.env.NODE_ENV !== 'production') console.error('[getGroupMembersRecentStreaks] error:', err)
     return {}
   }
+}
+
+// ─── Story 54-7 — Alertes absence pattern ────────────────────────────────────
+
+export type AbsenceAlertRow = {
+  id         : string
+  childId    : string
+  childName  : string
+  groupId    : string
+  groupName  : string
+  absenceCount: number
+  createdAt  : string
+}
+
+/**
+ * Vérifie si un joueur a 3+ absences consécutives dans un groupe et crée une alerte
+ * dans inapp_notifications si ce n'est pas déjà fait dans les dernières 24h.
+ * Ne throw jamais — silent fail avec console.error dev-only.
+ * TODO: migrer vers Edge Function cron (Option B) pour une couverture plus robuste.
+ */
+export async function checkAbsenceAlertTrigger(
+  childId  : string,
+  groupId  : string,
+  _sessionId: string,
+): Promise<void> {
+  try {
+    // 1. Récupérer les 5 dernières séances réalisées du groupe (desc)
+    const { data: sessions, error: sessErr } = await supabase
+      .from('sessions')
+      .select('id, scheduled_at')
+      .eq('group_id', groupId)
+      .eq('status', 'réalisée')
+      .is('deleted_at', null)
+      .order('scheduled_at', { ascending: false })
+      .limit(5)
+
+    if (sessErr || !sessions || sessions.length < 3) return
+
+    const sessionIds = (sessions as { id: string }[]).map(s => s.id)
+
+    // 2. Récupérer les présences du joueur pour ces séances
+    const { data: atts, error: attErr } = await supabase
+      .from('attendances')
+      .select('session_id, status')
+      .eq('child_id', childId)
+      .in('session_id', sessionIds)
+
+    if (attErr) return
+
+    // 3. Compter les absences consécutives depuis la plus récente
+    const attMap = new Map((atts ?? []).map((a: { session_id: string; status: string }) => [a.session_id, a.status]))
+    let consecutiveAbsences = 0
+    for (const sess of sessions as { id: string }[]) {
+      const status = attMap.get(sess.id)
+      if (status === 'absent') {
+        consecutiveAbsences++
+      } else {
+        break
+      }
+    }
+
+    if (consecutiveAbsences < 3) return
+
+    // 4. Vérifier doublon : alerte 'absence_alert' dans les 24h pour ce joueur + groupe
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { data: existing } = await supabase
+      .from('inapp_notifications')
+      .select('id')
+      .eq('type', 'absence_alert')
+      .gte('created_at', since24h)
+      .filter('payload->>childId', 'eq', childId)
+      .filter('payload->>groupId', 'eq', groupId)
+      .limit(1)
+
+    if (existing && existing.length > 0) return   // déjà alerté
+
+    // 5. Récupérer le nom du joueur et du groupe
+    const [childRes, groupRes, userRes] = await Promise.all([
+      supabase.from('child_directory').select('display_name').eq('id', childId).single(),
+      supabase.from('groups').select('name').eq('id', groupId).single(),
+      supabase.auth.getUser(),
+    ])
+
+    const childName = (childRes.data as { display_name: string } | null)?.display_name ?? childId
+    const groupName = (groupRes.data as { name: string } | null)?.name ?? groupId
+    const tenantId  = (userRes.data?.user?.app_metadata?.['tenant_id'] as string | undefined) ?? ''
+    const userId    = userRes.data?.user?.id ?? ''
+
+    if (!tenantId || !userId) return
+
+    // 6. Insérer la notification
+    await supabase.from('inapp_notifications').insert({
+      tenant_id: tenantId,
+      user_id  : userId,
+      title    : `Absence répétée — ${childName}`,
+      body     : `${childName} est absent(e) depuis ${consecutiveAbsences} séances consécutives dans ${groupName}.`,
+      type     : 'absence_alert',
+      payload  : { childId, childName, absenceCount: consecutiveAbsences, groupId, groupName },
+    })
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[checkAbsenceAlertTrigger] error:', err)
+    // Ne pas throw — AC7
+  }
+}
+
+/**
+ * Liste les alertes d'absence actives (non lues) pour un groupe donné.
+ * Retourne un tableau vide en cas d'erreur (silent fail).
+ */
+export async function listActiveAbsenceAlerts(
+  groupId: string,
+): Promise<AbsenceAlertRow[]> {
+  try {
+    const { data, error } = await supabase
+      .from('inapp_notifications')
+      .select('id, payload, created_at')
+      .eq('type', 'absence_alert')
+      .is('read_at', null)
+      .filter('payload->>groupId', 'eq', groupId)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (error) {
+      if (process.env.NODE_ENV !== 'production') console.error('[listActiveAbsenceAlerts] error:', error)
+      return []
+    }
+
+    return ((data ?? []) as { id: string; payload: Record<string, unknown>; created_at: string }[]).map(r => ({
+      id          : r.id,
+      childId     : (r.payload?.['childId'] as string)    ?? '',
+      childName   : (r.payload?.['childName'] as string)  ?? '',
+      groupId     : (r.payload?.['groupId'] as string)    ?? '',
+      groupName   : (r.payload?.['groupName'] as string)  ?? '',
+      absenceCount: (r.payload?.['absenceCount'] as number) ?? 0,
+      createdAt   : r.created_at,
+    }))
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listActiveAbsenceAlerts] error:', err)
+    return []
+  }
+}
+
+// ─── Story 54-6 — Heatmap mensuelle par joueur ───────────────────────────────
+
+export type AttendanceHistoryRow = {
+  sessionId  : string
+  sessionDate: string
+  sessionType: string
+  groupName  : string
+  status     : AttendanceStatus
+}
+
+/**
+ * Retourne les présences d'un joueur (child_directory) sur une période.
+ * Joint sessions → groups pour récupérer le nom du groupe.
+ */
+export async function listAttendancesByChild(
+  childId  : string,
+  startDate: string,
+  endDate  : string,
+): Promise<AttendanceHistoryRow[]> {
+  const { data, error } = await supabase
+    .from('attendances')
+    .select(`
+      session_id,
+      status,
+      sessions!inner (
+        session_date,
+        session_type,
+        group_id,
+        groups ( name )
+      )
+    `)
+    .eq('child_id', childId)
+    .gte('sessions.session_date', startDate)
+    .lte('sessions.session_date', endDate)
+    .order('sessions.session_date', { ascending: true })
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listAttendancesByChild] error:', error)
+    throw error
+  }
+
+  return ((data ?? []) as unknown[]).map(row => {
+    const r        = row as { session_id: string; status: string; sessions: { session_date: string; session_type: string | null; groups: { name: string } | null } }
+    const sessions = r.sessions
+    return {
+      sessionId  : r.session_id,
+      sessionDate: sessions?.session_date ?? '',
+      sessionType: sessions?.session_type ?? '',
+      groupName  : (sessions?.groups as { name: string } | null)?.name ?? '',
+      status     : r.status as AttendanceStatus,
+    }
+  })
 }

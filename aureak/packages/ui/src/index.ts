@@ -47,6 +47,10 @@ export type { RadarChartProps } from './RadarChart'
 export { AttendanceToggle } from './AttendanceToggle'
 export type { AttendanceToggleProps } from './AttendanceToggle'
 
+// Story 54-6 — Heatmap mensuelle présences joueur
+export { AttendanceHeatmap } from './AttendanceHeatmap'
+export type { AttendanceHeatmapProps } from './AttendanceHeatmap'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
