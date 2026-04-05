@@ -1,0 +1,41 @@
+{
+  "name"            : "Aureak Academy",
+  "short_name"      : "Aureak",
+  "description"     : "Plateforme de gestion d'académie de gardiens de but",
+  "theme_color"     : "#C9A84C",
+  "background_color": "#0F0F0F",
+  "display"         : "standalone",
+  "start_url"       : "/",
+  "orientation"     : "portrait-primary",
+  "lang"            : "fr",
+  "icons": [
+    {
+      "src"    : "/icon-192.png",
+      "sizes"  : "192x192",
+      "type"   : "image/png",
+      "purpose": "any"
+    },
+    {
+      "src"    : "/icon-512.png",
+      "sizes"  : "512x512",
+      "type"   : "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src"        : "/screenshots/screenshot-desktop.png",
+      "sizes"      : "1280x800",
+      "type"       : "image/png",
+      "form_factor": "wide",
+      "label"      : "Aureak Admin — Dashboard"
+    },
+    {
+      "src"        : "/screenshots/screenshot-mobile.png",
+      "sizes"      : "390x844",
+      "type"       : "image/png",
+      "form_factor": "narrow",
+      "label"      : "Aureak — Vue séance mobile"
+    }
+  ]
+}
