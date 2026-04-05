@@ -28,12 +28,15 @@ import {
   getChildCurrentClubFromHistory,
   // Story 54-6 — heatmap présences
   listAttendancesByChild,
+  // Story 55-3 — GrowthChart timeline croissance
+  listRecentEvaluationsForChild,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
   type AddChildPhotoParams,
   type AuditLog,
   type AttendanceHistoryRow,
 } from '@aureak/api-client'
+import type { EvaluationPoint } from '@aureak/types'
 
 // ── Niveaux de compétition ───────────────────────────────────────────────────
 
@@ -49,7 +52,7 @@ import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, comput
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
 import { exportCardToPng } from '../exportCardToPng'
-import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap } from '@aureak/ui'
+import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import type { PlayerTier } from '@aureak/types'
@@ -1617,6 +1620,10 @@ export default function ChildDetailPage() {
   const [heatmapLoading, setHeatmapLoading] = useState(false)
   const [heatmapRef,     setHeatmapRef]     = useState(() => new Date())
 
+  // Story 55-3 — Timeline croissance joueur (GrowthChart)
+  const [growthData,    setGrowthData]    = useState<EvaluationPoint[]>([])
+  const [growthLoading, setGrowthLoading] = useState(false)
+
   // Story 52-11 — export carte PNG
   const cardExportRef = useRef<View>(null)
   const [isExporting, setIsExporting] = useState(false)
@@ -1717,6 +1724,18 @@ export default function ChildDetailPage() {
       })
       .finally(() => setHeatmapLoading(false))
   }, [childId, heatmapRef])
+
+  // Story 55-3 — Chargement données GrowthChart (10 dernières évaluations)
+  useEffect(() => {
+    if (!childId) return
+    setGrowthLoading(true)
+    listRecentEvaluationsForChild(childId, 10)
+      .then(({ data }) => setGrowthData(data))
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[ChildPage] growthData error:', err)
+      })
+      .finally(() => setGrowthLoading(false))
+  }, [childId])
 
   // ── Edit helpers ────────────────────────────────────────────────────────────
 
@@ -2167,6 +2186,20 @@ export default function ChildDetailPage() {
                 stats={computePlayerStats(joueurForTier)}
                 tier={tier}
                 size={200}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* ── Timeline croissance — Story 55-3 ── */}
+        {!growthLoading && growthData.length >= 2 && (
+          <View style={s.card}>
+            <SectionTitle>Progression des évaluations</SectionTitle>
+            <View style={{ marginTop: space.sm }}>
+              <GrowthChart
+                evaluations={growthData}
+                width={340}
+                height={160}
               />
             </View>
           </View>
