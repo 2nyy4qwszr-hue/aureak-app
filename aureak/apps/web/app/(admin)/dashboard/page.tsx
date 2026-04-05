@@ -1,6 +1,7 @@
 'use client'
 // Admin Dashboard — vue de contrôle multi-implantations (Light Premium DA)
 // Story 49-5 — Design : Dashboard Admin — Game Manager Premium
+// Story 50-1 — Hero Band salle de commandement
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
@@ -71,7 +72,7 @@ function DashboardSkeleton() {
       `}</style>
 
       {/* Hero band skeleton */}
-      <SkeletonBlock h={140} r={radius.card} />
+      <SkeletonBlock h={160} r={radius.card} />
       <div style={{ height: 20 }} />
 
       {/* Filters skeleton */}
@@ -132,94 +133,109 @@ function DashboardSkeleton() {
 
 // ── Hero Band ─────────────────────────────────────────────────────────────────
 
-function HeroBand({
-  selectedName,
-  statsCount,
-}: {
-  selectedName: string | null
-  statsCount: number
-}) {
-  const today = new Date().toLocaleDateString('fr-BE', {
+function HeroBand({ implantationCount }: { implantationCount: number }) {
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const dateLabel = currentTime.toLocaleDateString('fr-BE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+  const timeLabel = currentTime.toLocaleTimeString('fr-BE', {
+    hour: '2-digit', minute: '2-digit',
   })
 
   return (
-    <div style={{
-      background    : HERO_BG,
-      borderRadius  : radius.card,
-      padding       : '28px 32px',
-      marginBottom  : 20,
-      position      : 'relative',
-      overflow      : 'hidden',
-      minHeight     : 140,
-      display       : 'flex',
-      flexDirection : 'column',
-      justifyContent: 'flex-end',
-      boxShadow     : shadows.lg,
-    }}>
-      {/* Icône décorative fond */}
-      <div style={{
-        position  : 'absolute',
-        right     : 24,
-        top       : '50%',
-        transform : 'translateY(-50%)',
-        fontSize  : 120,
-        opacity   : 0.06,
-        lineHeight: 1,
-        userSelect: 'none',
-      }}>🏟</div>
+    <div
+      className="hero-band"
+      style={{
+        position       : 'relative',
+        height         : 160,
+        backgroundColor: HERO_BG,
+        borderTop      : `3px solid ${colors.accent.gold}`,
+        borderRadius   : radius.card,
+        overflow       : 'hidden',
+        display        : 'flex',
+        alignItems     : 'center',
+        justifyContent : 'space-between',
+        paddingLeft    : 32,
+        paddingRight   : 32,
+        marginBottom   : 24,
+        boxShadow      : shadows.lg,
+      }}
+    >
+      {/* Texture terrain SVG */}
+      <svg
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.06, pointerEvents: 'none' }}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <pattern id="terrain-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#terrain-grid)" />
+        {/* Cercle central */}
+        <circle cx="50%" cy="50%" r="60" fill="none" stroke="white" strokeWidth="0.8" />
+      </svg>
 
-      {/* Gradient overlay bas */}
-      <div style={{
-        position    : 'absolute',
-        inset       : 0,
-        background  : 'linear-gradient(to top, rgba(10,10,12,0.7) 0%, transparent 60%)',
-        borderRadius: radius.card,
-      }} />
-
-      {/* Contenu texte */}
+      {/* Logo gauche */}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Badge académie */}
         <div style={{
-          display        : 'inline-flex',
-          alignItems     : 'center',
-          padding        : '3px 10px',
-          borderRadius   : radius.badge,
-          backgroundColor: colors.accent.gold,
-          color          : colors.text.dark,
-          fontSize       : 9,
-          fontWeight     : 700,
-          fontFamily     : 'Montserrat, sans-serif',
-          letterSpacing  : 1.4,
-          textTransform  : 'uppercase',
-          marginBottom   : 8,
-        }}>
-          ACADÉMIE
-        </div>
-
-        <h1 style={{
-          fontSize     : 28,
-          fontWeight   : 900,
           fontFamily   : 'Montserrat, sans-serif',
-          color        : colors.text.primary,
-          margin       : 0,
+          fontWeight   : '900',
+          fontSize     : 28,
+          color        : colors.accent.gold,
+          letterSpacing: 3,
           lineHeight   : 1.1,
+        }}>
+          AUREAK
+        </div>
+        <div style={{
+          fontFamily   : 'Montserrat, sans-serif',
+          fontWeight   : '400',
+          fontSize     : 13,
+          color        : colors.accent.goldLight,
+          letterSpacing: 2,
+          marginTop    : 4,
+          textTransform: 'uppercase',
+        }}>
+          Académie des Gardiens
+        </div>
+        <div style={{
+          fontFamily: 'Montserrat, sans-serif',
+          fontSize  : 12,
+          color     : colors.text.muted,
+          marginTop : 8,
+        }}>
+          {implantationCount} implantation{implantationCount !== 1 ? 's' : ''}
+        </div>
+      </div>
+
+      {/* Date & heure droite */}
+      <div className="hero-date" style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
+        <div style={{
+          fontFamily: 'Geist Mono, monospace',
+          fontWeight: '600',
+          fontSize  : 22,
+          color     : colors.accent.gold,
+          lineHeight: 1,
+        }}>
+          {timeLabel}
+        </div>
+        <div style={{
+          fontFamily   : 'Montserrat, sans-serif',
+          fontWeight   : '600',
+          fontSize     : 15,
+          color        : colors.accent.ivory,
+          marginTop    : 8,
           letterSpacing: 0.3,
         }}>
-          Académie Aureak
-        </h1>
-        <div style={{
-          fontSize  : 12,
-          color     : 'rgba(255,255,255,0.55)',
-          marginTop : 6,
-          fontFamily: 'Montserrat, sans-serif',
-        }}>
-          {selectedName
-            ? <><span>Vue filtrée · </span><span style={{ color: colors.accent.gold }}>{selectedName}</span></>
-            : `Vue globale · ${statsCount} implantation${statsCount !== 1 ? 's' : ''}`
-          }
-          <span style={{ margin: '0 8px', opacity: 0.4 }}>·</span>
-          {today}
+          {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
         </div>
       </div>
     </div>
@@ -755,17 +771,13 @@ export default function DashboardPage() {
           .bento-large  { grid-column: span 1; }
           .bento-medium { grid-column: span 1; }
           .bento-small  { grid-column: span 1; }
-          .aureak-hero { min-height: 100px !important; }
+          .hero-band { height: 120px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px; padding-top: 16px !important; padding-bottom: 16px !important; }
+          .hero-date { text-align: left !important; }
         }
       `}</style>
 
       {/* ── Hero Band ── */}
-      <div className="aureak-hero">
-        <HeroBand
-          selectedName={selectedName}
-          statsCount={stats.length}
-        />
-      </div>
+      <HeroBand implantationCount={stats.length} />
 
       {/* ── Filters ── */}
       <div style={S.filterRow}>
