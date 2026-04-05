@@ -96,10 +96,16 @@ export default function NewUserScreen() {
   // Charger implantations et clubs annuaire au montage
   useEffect(() => {
     listImplantations().then(({ data }) => setImplantations(data ?? []))
-    listClubDirectory({ actif: true, pageSize: 200 }).then(({ data }) => {
-      setClubs((data ?? []).map(c => ({ id: c.id, nom: c.nom })))
-      setClubsLoading(false)
-    })
+    listClubDirectory({ actif: true, pageSize: 200 })
+      .then(({ data }) => {
+        setClubs((data ?? []).map(c => ({ id: c.id, nom: c.nom })))
+      })
+      .catch((err: unknown) => {
+        if (process.env.NODE_ENV !== 'production') console.error('[users/new] listClubDirectory error:', err)
+      })
+      .finally(() => {
+        setClubsLoading(false)
+      })
   }, [])
 
   // Charger groupes quand l'implantation change (cascade)
@@ -228,7 +234,7 @@ export default function NewUserScreen() {
       <div style={s.page}>
         <style>{css}</style>
         <div style={s.card}>
-          <div style={{ ...s.badge, background: 'rgba(76,175,80,0.15)', color: colors.status.success, marginBottom: 24 }}>
+          <div style={{ ...s.badge, background: `${colors.status.present}26`, color: colors.status.success, marginBottom: 24 }}>
             Profil créé
           </div>
           <div style={s.successIcon}>✓</div>
@@ -512,7 +518,7 @@ export default function NewUserScreen() {
             <div style={s.modeBadgeRow}>
               <div style={{
                 ...s.badge,
-                background: mode === 'fiche' ? 'rgba(193,172,92,0.12)' : 'rgba(76,175,80,0.12)',
+                background: mode === 'fiche' ? `${colors.accent.gold}1F` : `${colors.status.present}1F`,
                 color: mode === 'fiche' ? colors.accent.gold : colors.status.success,
               }}>
                 {mode === 'fiche' ? '📋 Fiche locale — aucun email envoyé' : '✉️ Invitation — email envoyé à la création'}
@@ -637,7 +643,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: '#F3EFE7',
+    background: colors.light.primary,
     padding: '24px 16px 48px',
     display: 'flex',
     flexDirection: 'column',
@@ -654,7 +660,7 @@ const s: Record<string, React.CSSProperties> = {
   backBtn: {
     background: 'none',
     border: 'none',
-    color: '#71717A',
+    color: colors.text.muted,
     fontSize: 13,
     cursor: 'pointer',
     padding: '4px 0',
@@ -664,7 +670,7 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: 'Montserrat, sans-serif',
     fontWeight: 700,
     fontSize: 26,
-    color: '#18181B',
+    color: colors.text.dark,
     margin: 0,
     flex: 1,
   },
@@ -677,9 +683,9 @@ const s: Record<string, React.CSSProperties> = {
     width: 28,
     height: 28,
     borderRadius: '50%',
-    border: '2px solid #E5E7EB',
-    background: '#FFFFFF',
-    color: '#71717A',
+    border: `2px solid ${colors.border.light}`,
+    background: colors.light.surface,
+    color: colors.text.muted,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -687,29 +693,29 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: 600,
   },
   stepDotActive: {
-    border: '2px solid #C1AC5C',
+    border: `2px solid ${colors.accent.gold}`,
     background: 'rgba(193,172,92,0.15)',
-    color: '#C1AC5C',
+    color: colors.accent.gold,
   },
   stepLine: {
     width: 32,
     height: 2,
-    background: '#E5E7EB',
+    background: colors.border.light,
   },
   stepLineActive: {
-    background: '#C1AC5C',
+    background: colors.accent.gold,
   },
   card: {
     width: '100%',
     maxWidth: 680,
-    background: '#FFFFFF',
+    background: colors.light.surface,
     borderRadius: 16,
-    border: '1px solid #E5E7EB',
+    border: `1px solid ${colors.border.light}`,
     padding: 32,
   },
   stepLabel: {
     fontSize: 11,
-    color: '#C1AC5C',
+    color: colors.accent.gold,
     fontWeight: 600,
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
@@ -719,7 +725,7 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: 'Montserrat, sans-serif',
     fontWeight: 700,
     fontSize: 22,
-    color: '#18181B',
+    color: colors.text.dark,
     margin: '0 0 28px',
   },
   modeGrid: {
@@ -742,10 +748,10 @@ const s: Record<string, React.CSSProperties> = {
     gap: 12,
   },
   input: {
-    background: '#F8F6F1',
-    border: '1px solid #E5E7EB',
+    background: colors.light.muted,
+    border: `1px solid ${colors.border.light}`,
     borderRadius: 8,
-    color: '#18181B',
+    color: colors.text.dark,
     fontSize: 14,
     padding: '10px 12px',
     outline: 'none',
@@ -754,13 +760,13 @@ const s: Record<string, React.CSSProperties> = {
     boxSizing: 'border-box',
   },
   inputError: {
-    border: '1px solid #E05252',
+    border: `1px solid ${colors.accent.red}`,
   },
   select: {
-    background: '#F8F6F1',
-    border: '1px solid #E5E7EB',
+    background: colors.light.muted,
+    border: `1px solid ${colors.border.light}`,
     borderRadius: 8,
-    color: '#18181B',
+    color: colors.text.dark,
     fontSize: 14,
     padding: '10px 12px',
     outline: 'none',
@@ -771,7 +777,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   label: {
     fontSize: 12,
-    color: '#71717A',
+    color: colors.text.muted,
     fontWeight: 500,
     margin: 0,
   },
@@ -793,11 +799,11 @@ const s: Record<string, React.CSSProperties> = {
     gap: 12,
     marginTop: 8,
     paddingTop: 24,
-    borderTop: '1px solid #E5E7EB',
+    borderTop: `1px solid ${colors.border.light}`,
   },
   btnPrimary: {
-    background: '#C1AC5C',
-    color: '#1A1A1A',
+    background: colors.accent.gold,
+    color: colors.background.primary,
     border: 'none',
     borderRadius: 8,
     padding: '10px 24px',
@@ -810,8 +816,8 @@ const s: Record<string, React.CSSProperties> = {
   },
   btnSecondary: {
     background: 'transparent',
-    color: '#71717A',
-    border: '1px solid #E5E7EB',
+    color: colors.text.muted,
+    border: `1px solid ${colors.border.light}`,
     borderRadius: 8,
     padding: '10px 20px',
     fontSize: 14,
@@ -824,7 +830,7 @@ const s: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(224,82,82,0.3)',
     borderRadius: 8,
     padding: '10px 14px',
-    color: '#E05252',
+    color: colors.accent.red,
     fontSize: 13,
     marginBottom: 20,
   },
@@ -833,8 +839,8 @@ const s: Record<string, React.CSSProperties> = {
     height: 64,
     borderRadius: '50%',
     background: 'rgba(76,175,80,0.15)',
-    border: '2px solid #4CAF50',
-    color: '#4CAF50',
+    border: `2px solid ${colors.status.present}`,
+    color: colors.status.present,
     fontSize: 28,
     display: 'flex',
     alignItems: 'center',
@@ -842,8 +848,8 @@ const s: Record<string, React.CSSProperties> = {
     margin: '0 auto 20px',
   },
   emptyClub: {
-    background: '#F8F6F1',
-    border: '1px solid #E5E7EB',
+    background: colors.light.muted,
+    border: `1px solid ${colors.border.light}`,
     borderRadius: 8,
     padding: '10px 12px',
     display: 'flex',
@@ -855,18 +861,18 @@ const s: Record<string, React.CSSProperties> = {
 // Styles globaux (hover, focus)
 const css = `
   input:focus, select:focus, textarea:focus {
-    border-color: #C1AC5C !important;
+    border-color: ${colors.accent.gold} !important;
     box-shadow: 0 0 0 3px rgba(193,172,92,0.12);
   }
   select option {
-    background: #FFFFFF;
-    color: #18181B;
+    background: ${colors.light.surface};
+    color: ${colors.text.dark};
   }
   select:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
   .mode-card:hover {
-    border-color: rgba(193,172,92,0.5) !important;
+    border-color: ${colors.border.goldSolid} !important;
   }
 `

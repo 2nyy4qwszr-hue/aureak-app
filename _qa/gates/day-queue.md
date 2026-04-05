@@ -10,15 +10,15 @@ next-morning-queue:
   - story_id: story-49-8
     title: "BUG P1 — Dashboard getImplantationStats erreur 400 (fn SQL manquante)"
     priority: P1
-    status: in-progress
-    gate1: pending
-    gate2: pending
-    commit: ""
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "cfb1318"
 
   - story_id: story-49-1
     title: "BUG P1 — Création coach — Edge Function non-2xx persistant"
     priority: P1
-    status: pending
+    status: in-progress
     gate1: pending
     gate2: pending
     commit: ""
