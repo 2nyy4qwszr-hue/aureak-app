@@ -1892,3 +1892,12 @@ export interface ActiveSessionInfo {
   durationMinutes : number
 }
 
+/**
+ * Compteurs pour les pastilles de notification de la sidebar (Story 51.4).
+ * Retourné par getNavBadgeCounts() dans @aureak/api-client.
+ */
+export interface NavBadgeCounts {
+  presencesUnvalidated : number   // séances réalisées sans présences complètes
+  sessionsUpcoming24h  : boolean  // true si au moins 1 séance planifiée dans 24h
+}
+

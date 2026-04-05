@@ -355,6 +355,25 @@ next-morning-queue:
       - "_layout.tsx : <CommandPalette /> hors du flux principal"
       - "tsc 0 erreur — Playwright skipped (app non démarrée)"
 
+  - story_id: story-51-4
+    title: "FEATURE — Badges sidebar présences (rouge) + séances (or)"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-51-4_gate1.md"
+      - "_qa/reports/2026-04-05_story-51-4_gate2.md"
+    notes:
+      - "NavBadgeCounts interface dans @aureak/types/entities.ts"
+      - "getNavBadgeCounts() dans api-client/admin/dashboard.ts — 2 requêtes parallèles"
+      - "NavBadge composant dans apps/web/components/NavBadge.tsx — dot 8×8 / chiffré 16×16 (cap 99+)"
+      - "navBadges state + polling 5min avec clearInterval cleanup + cancelled flag"
+      - "Badges visibles en modes collapsed ET expanded — position: relative sur l'icône"
+      - "console guards NODE_ENV production — tsc 0 erreur"
+      - "Playwright skipped — app non démarrée"
+
   - story_id: story-51-2
     title: "FEATURE — Topbar séance active permanente"
     priority: P2

@@ -5,9 +5,10 @@ import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
-import { getActiveSession } from '@aureak/api-client'
-import type { ActiveSessionInfo } from '@aureak/api-client'
+import { getActiveSession, getNavBadgeCounts } from '@aureak/api-client'
+import type { ActiveSessionInfo, NavBadgeCounts } from '@aureak/api-client'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
+import { NavBadge } from '../../components/NavBadge'
 import {
   HomeIcon,
   CalendarIcon,
@@ -148,6 +149,31 @@ export default function AdminLayout() {
 
     fetchActive()
     const intervalId = setInterval(fetchActive, 60_000)
+
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+    }
+  }, [])
+
+  // ── Story 51.4 — Nav badges sidebar — polling 5min ────────────────────────
+  const [navBadges, setNavBadges] = useState<NavBadgeCounts | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchBadges = async () => {
+      try {
+        const counts = await getNavBadgeCounts()
+        if (!cancelled) setNavBadges(counts)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[AdminLayout] getNavBadgeCounts error:', err)
+        // dégradation silencieuse — badges restent dans leur dernier état connu
+      }
+    }
+
+    fetchBadges()
+    const intervalId = setInterval(fetchBadges, 5 * 60_000)
 
     return () => {
       cancelled = true
@@ -303,23 +329,37 @@ export default function AdminLayout() {
                         >
                           {sidebarCollapsed ? (
                             <YStack alignItems="center" justifyContent="center">
-                              <Icon
-                                color={isActive ? colors.accent.gold : colors.text.secondary}
-                                size={18}
-                                strokeWidth={1.5}
-                              />
+                              <YStack style={{ position: 'relative' } as never}>
+                                <Icon
+                                  color={isActive ? colors.accent.gold : colors.text.secondary}
+                                  size={18}
+                                  strokeWidth={1.5}
+                                />
+                                {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
+                                  <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
+                                )}
+                                {href === '/seances' && navBadges?.sessionsUpcoming24h && (
+                                  <NavBadge dot color={colors.accent.gold} />
+                                )}
+                              </YStack>
                             </YStack>
                           ) : (
                             <XStack alignItems="center">
                               <YStack
                                 marginRight={8}
-                                style={{ opacity: isActive ? 1 : 0.6 } as never}
+                                style={{ position: 'relative', opacity: isActive ? 1 : 0.6 } as never}
                               >
                                 <Icon
                                   color={isActive ? colors.accent.gold : colors.text.secondary}
                                   size={16}
                                   strokeWidth={1.5}
                                 />
+                                {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
+                                  <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
+                                )}
+                                {href === '/seances' && navBadges?.sessionsUpcoming24h && (
+                                  <NavBadge dot color={colors.accent.gold} />
+                                )}
                               </YStack>
                               <Text
                                 fontFamily="$body"

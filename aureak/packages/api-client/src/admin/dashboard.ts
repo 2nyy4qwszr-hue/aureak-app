@@ -3,6 +3,7 @@
 
 import { supabase } from '../supabase'
 import { countActivePlayersCurrentSeason } from './child-directory'
+import type { NavBadgeCounts } from '@aureak/types'
 
 // ── Streak Players (Story 50.6) ───────────────────────────────────────────────
 
@@ -252,5 +253,56 @@ export async function getDashboardKpiCounts(
       groupsTotal,
     },
     error: null,
+  }
+}
+
+// ── Nav Badge Counts (Story 51.4) ─────────────────────────────────────────────
+
+export type { NavBadgeCounts }
+
+/**
+ * Retourne les compteurs pour les pastilles de notification de la sidebar.
+ * - presencesUnvalidated : nombre de séances avec statut 'réalisée' ayant au moins
+ *   un session_attendee avec status NULL (présences non saisies).
+ * - sessionsUpcoming24h : true si au moins une séance planifiée dans les 24 prochaines heures.
+ */
+export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
+  const now   = new Date().toISOString()
+  const in24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+
+  const [unvalidatedRes, upcoming24hRes] = await Promise.all([
+    // Séances réalisées avec au moins un attendee sans statut (présences non saisies)
+    supabase
+      .from('sessions')
+      .select('id, session_attendees!inner(status)')
+      .eq('status', 'réalisée')
+      .is('session_attendees.status', null),
+
+    // Séances planifiées dans les 24 prochaines heures
+    supabase
+      .from('sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'planifiée')
+      .gte('scheduled_at', now)
+      .lte('scheduled_at', in24h),
+  ])
+
+  if (unvalidatedRes.error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[dashboard] getNavBadgeCounts unvalidated error:', unvalidatedRes.error)
+  }
+  if (upcoming24hRes.error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[dashboard] getNavBadgeCounts upcoming24h error:', upcoming24hRes.error)
+  }
+
+  // Dédupliquer : une session peut apparaître plusieurs fois si plusieurs attendees NULL
+  const unvalidatedIds = new Set(
+    ((unvalidatedRes.data ?? []) as { id: string }[]).map(r => r.id)
+  )
+
+  return {
+    presencesUnvalidated : unvalidatedIds.size,
+    sessionsUpcoming24h  : (upcoming24hRes.count ?? 0) > 0,
   }
 }
