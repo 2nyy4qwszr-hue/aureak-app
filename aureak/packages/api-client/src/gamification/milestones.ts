@@ -17,7 +17,7 @@ export async function getUnceledbratedMilestones(): Promise<{ data: AcademyMiles
       .limit(10)
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[milestones] getUnceledbratedMilestones error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] getUnceledbratedMilestones error:', error)
       return { data: [], error }
     }
 
@@ -35,7 +35,7 @@ export async function getUnceledbratedMilestones(): Promise<{ data: AcademyMiles
 
     return { data: milestones, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[milestones] getUnceledbratedMilestones exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] getUnceledbratedMilestones exception:', err)
     return { data: [], error: err }
   }
 }
@@ -54,7 +54,7 @@ export async function checkAcademyMilestones(): Promise<{ data: AcademyMilestone
       .single()
 
     if (profileErr || !profile) {
-      if (process.env.NODE_ENV !== 'production') console.error('[milestones] checkAcademyMilestones profile error:', profileErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] checkAcademyMilestones profile error:', profileErr)
       return { data: [], error: profileErr }
     }
 
@@ -63,7 +63,7 @@ export async function checkAcademyMilestones(): Promise<{ data: AcademyMilestone
     })
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[milestones] checkAcademyMilestones rpc error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] checkAcademyMilestones rpc error:', error)
       return { data: [], error }
     }
 
@@ -86,7 +86,7 @@ export async function checkAcademyMilestones(): Promise<{ data: AcademyMilestone
 
     return { data: milestones, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[milestones] checkAcademyMilestones exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] checkAcademyMilestones exception:', err)
     return { data: [], error: err }
   }
 }
@@ -100,13 +100,13 @@ export async function markMilestoneCelebrated(id: string): Promise<{ error: unkn
       .eq('id', id)
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[milestones] markMilestoneCelebrated error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] markMilestoneCelebrated error:', error)
       return { error }
     }
 
     return { error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[milestones] markMilestoneCelebrated exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] markMilestoneCelebrated exception:', err)
     return { error: err }
   }
 }

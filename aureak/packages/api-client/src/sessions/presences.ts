@@ -34,7 +34,7 @@ export async function listSessionsWithPresence(
   const { data, error } = await query
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] listSessionsWithPresence:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] listSessionsWithPresence:', error)
     return { data: [], error }
   }
 
@@ -113,7 +113,7 @@ export async function getSessionAttendanceDetail(
   ])
 
   if (attendeesRes.error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] getSessionAttendanceDetail:', attendeesRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] getSessionAttendanceDetail:', attendeesRes.error)
     return { data: null, error: attendeesRes.error }
   }
 
@@ -211,7 +211,7 @@ export async function correctAttendance(params: {
     }, { onConflict: 'session_id,child_id' })
 
   if (attErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] correctAttendance:', attErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] correctAttendance:', attErr)
     return { error: attErr }
   }
 
@@ -228,7 +228,7 @@ export async function correctAttendance(params: {
     })
 
   if (corrErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] correctAttendance audit:', corrErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] correctAttendance audit:', corrErr)
   }
 
   return { error: null }
@@ -257,7 +257,7 @@ export async function updateCoachPresence(params: {
     }, { onConflict: 'session_id,coach_id' })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] updateCoachPresence:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] updateCoachPresence:', error)
   }
   return { error: error ?? null }
 }
@@ -285,7 +285,7 @@ export async function addTrialAttendance(params: {
     }, { onConflict: 'session_id,child_id' })
 
   if (saErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] addTrialAttendance:', saErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] addTrialAttendance:', saErr)
     return { error: saErr }
   }
 
@@ -315,7 +315,7 @@ export async function listTrialConversionSuggestions(): Promise<{
     .eq('is_guest', true)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] listTrialConversionSuggestions:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] listTrialConversionSuggestions:', error)
     return { data: [], error }
   }
 
@@ -372,7 +372,7 @@ export async function convertTrialToMember(params: {
     }, { onConflict: 'group_id,child_id' })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[presences] convertTrialToMember:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[presences] convertTrialToMember:', error)
   }
   return { error: error ?? null }
 }

@@ -167,7 +167,7 @@ export async function listClubDirectory(
       .in('club_id', clubIds)
     if (statsError) {
       // Dégradé gracieux : gardienCount reste à 0, pas de blocage de la liste
-      if (process.env.NODE_ENV !== 'production') console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
+      if ((process.env.NODE_ENV as string) !== 'production') console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
     } else if (statsRows) {
       const statsMap: Record<string, number> = {}
       for (const r of statsRows as { club_id: string; gardien_count: number }[]) {
@@ -192,7 +192,7 @@ export async function listClubDirectory(
         if (item.signedUrl) {
           urlMap[item.path] = item.signedUrl
         } else {
-          if (process.env.NODE_ENV !== 'production') console.warn('[club-directory] signed URL null pour path:', item.path, '— fichier absent du bucket?')
+          if ((process.env.NODE_ENV as string) !== 'production') console.warn('[club-directory] signed URL null pour path:', item.path, '— fichier absent du bucket?')
         }
       }
       for (const entry of clubsWithLogo) {
@@ -231,7 +231,7 @@ export async function getClubDirectoryEntry(
     .eq('club_id', clubId)
     .maybeSingle()
   if (statsError) {
-    if (process.env.NODE_ENV !== 'production') console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
+    if ((process.env.NODE_ENV as string) !== 'production') console.warn('[club-directory] v_club_gardien_stats fetch failed:', statsError.message)
   }
   entry.gardienCount = (statsRow as { gardien_count: number } | null)?.gardien_count ?? 0
 

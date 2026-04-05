@@ -32,7 +32,7 @@ async function fetchLiveCounts(): Promise<Omit<LiveSessionCounts, 'isLive'>> {
       .not('status', 'in', '("cancelled","closed")')
 
     if (sessErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[liveSessionCounts] sessions error:', sessErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[liveSessionCounts] sessions error:', sessErr)
       return { sessionCount: 0, presentCount: 0, totalCount: 0 }
     }
 
@@ -47,7 +47,7 @@ async function fetchLiveCounts(): Promise<Omit<LiveSessionCounts, 'isLive'>> {
       .in('session_id', sessionIds)
 
     if (attErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[liveSessionCounts] attendances error:', attErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[liveSessionCounts] attendances error:', attErr)
       return { sessionCount, presentCount: 0, totalCount: 0 }
     }
 
@@ -57,7 +57,7 @@ async function fetchLiveCounts(): Promise<Omit<LiveSessionCounts, 'isLive'>> {
 
     return { sessionCount, presentCount, totalCount }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[liveSessionCounts] fetchLiveCounts exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[liveSessionCounts] fetchLiveCounts exception:', err)
     return { sessionCount: 0, presentCount: 0, totalCount: 0 }
   }
 }
@@ -122,7 +122,7 @@ export function useLiveSessionCounts(): LiveSessionCounts {
 
     function startPolling() {
       if (pollingInterval) return
-      if (process.env.NODE_ENV !== 'production') console.info('[liveSessionCounts] Realtime indisponible — fallback polling 30s')
+      if ((process.env.NODE_ENV as string) !== 'production') console.info('[liveSessionCounts] Realtime indisponible — fallback polling 30s')
       pollingInterval = setInterval(() => {
         refreshCounts()
       }, 30_000)

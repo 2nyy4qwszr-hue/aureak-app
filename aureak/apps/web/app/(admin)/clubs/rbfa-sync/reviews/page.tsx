@@ -168,7 +168,7 @@ const card = StyleSheet.create({
   },
   header    : { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   scoreBadge: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.status.warningBg,
     borderRadius   : 6,
     paddingHorizontal: 8,
     paddingVertical  : 3,

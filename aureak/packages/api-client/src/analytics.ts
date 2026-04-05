@@ -24,7 +24,7 @@ export async function getStatsRoomKpis(): Promise<{ data: StatsRoomKpis | null; 
     ])
 
     if (sessionsRes.error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getStatsRoomKpis sessions error:', sessionsRes.error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getStatsRoomKpis sessions error:', sessionsRes.error)
       return { data: null, error: sessionsRes.error }
     }
 
@@ -44,7 +44,7 @@ export async function getStatsRoomKpis(): Promise<{ data: StatsRoomKpis | null; 
       error: null,
     }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getStatsRoomKpis exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getStatsRoomKpis exception:', err)
     return { data: null, error: err }
   }
 }
@@ -70,7 +70,7 @@ export async function getAttendanceByGroupMonth(
       .neq('status', 'cancelled')
 
     if (sessionsError) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getAttendanceByGroupMonth sessions error:', sessionsError)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getAttendanceByGroupMonth sessions error:', sessionsError)
       return { data: null, error: sessionsError }
     }
 
@@ -85,7 +85,7 @@ export async function getAttendanceByGroupMonth(
       .in('session_id', sessionIds)
 
     if (attError) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getAttendanceByGroupMonth attendance error:', attError)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getAttendanceByGroupMonth attendance error:', attError)
       return { data: null, error: attError }
     }
 
@@ -133,7 +133,7 @@ export async function getAttendanceByGroupMonth(
 
     return { data: result.sort((a, b) => a.month.localeCompare(b.month)), error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getAttendanceByGroupMonth exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getAttendanceByGroupMonth exception:', err)
     return { data: null, error: err }
   }
 }
@@ -171,7 +171,7 @@ export async function getSessionHeatmap(
     const { data: sessions, error } = await query
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getSessionHeatmap error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getSessionHeatmap error:', error)
       return { data: null, error }
     }
 
@@ -194,7 +194,7 @@ export async function getSessionHeatmap(
 
     return { data: matrix, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getSessionHeatmap exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getSessionHeatmap exception:', err)
     return { data: null, error: err }
   }
 }
@@ -227,7 +227,7 @@ export async function getImplantationRankings(
         .neq('status', 'cancelled')
 
       if (sErr) {
-        if (process.env.NODE_ENV !== 'production') console.error('[analytics] getImplantationRankings sessions error:', sErr)
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getImplantationRankings sessions error:', sErr)
         return { data: null, error: sErr }
       }
 
@@ -242,7 +242,7 @@ export async function getImplantationRankings(
         .in('session_id', sessionIds)
 
       if (aErr) {
-        if (process.env.NODE_ENV !== 'production') console.error('[analytics] getImplantationRankings attendance error:', aErr)
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getImplantationRankings attendance error:', aErr)
         return { data: null, error: aErr }
       }
 
@@ -294,7 +294,7 @@ export async function getImplantationRankings(
       .gte('sessions.scheduled_at', sinceIso)
 
     if (eErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getImplantationRankings mastery error:', eErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getImplantationRankings mastery error:', eErr)
       return { data: null, error: eErr }
     }
 
@@ -327,7 +327,7 @@ export async function getImplantationRankings(
 
     return { data: sorted2, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getImplantationRankings exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getImplantationRankings exception:', err)
     return { data: null, error: err }
   }
 }
@@ -356,7 +356,7 @@ export async function getPlayerRankings(
     const { data, error } = await query
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getPlayerRankings error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getPlayerRankings error:', error)
       return { data: null, error }
     }
 
@@ -378,7 +378,7 @@ export async function getPlayerRankings(
 
     return { data: result, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getPlayerRankings exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getPlayerRankings exception:', err)
     return { data: null, error: err }
   }
 }
@@ -410,7 +410,7 @@ export async function getMonthlyReportData(
     const { data: sessions, error: sessErr } = await sessQuery
 
     if (sessErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getMonthlyReportData sessions error:', sessErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getMonthlyReportData sessions error:', sessErr)
       return { data: null, error: sessErr }
     }
 
@@ -439,7 +439,7 @@ export async function getMonthlyReportData(
       .in('session_id', sessionIds)
 
     if (attErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[analytics] getMonthlyReportData attendance error:', attErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getMonthlyReportData attendance error:', attErr)
       return { data: null, error: attErr }
     }
 
@@ -525,7 +525,7 @@ export async function getMonthlyReportData(
       error: null,
     }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[analytics] getMonthlyReportData exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[analytics] getMonthlyReportData exception:', err)
     return { data: null, error: err }
   }
 }

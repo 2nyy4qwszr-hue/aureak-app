@@ -25,7 +25,7 @@ const TIER_PILLS_CONFIG: { key: TierFilterKey; bg: string; textColor: string; bo
   { key: 'Tous',        bg: colors.light.muted,    textColor: colors.text.dark,  borderColor: colors.border.light },
   { key: 'Prospect',    bg: colors.light.muted,    textColor: colors.text.muted,  borderColor: colors.border.light },
   { key: 'Académicien', bg: colors.light.surface,  textColor: colors.text.dark,  borderColor: colors.border.light },
-  { key: 'Confirmé',    bg: '#FFF8E8',             textColor: '#8A6800',          borderColor: 'rgba(193,172,92,0.4)' },
+  { key: 'Confirmé',    bg: colors.status.warningBg, textColor: colors.status.warningText, borderColor: colors.border.gold },
   { key: 'Elite',       bg: colors.accent.gold,    textColor: colors.text.dark,   borderColor: colors.border.goldSolid },
 ]
 
@@ -277,13 +277,13 @@ function JoueurCard({ item, onPress }: { item: JoueurListItem; onPress: () => vo
             {item.totalAcademySeasons > 0 && (
               <InfoChip
                 label={`${item.totalAcademySeasons} saison${item.totalAcademySeasons > 1 ? 's' : ''}`}
-                color="#9E9E9E"
+                color={colors.status.neutral}
               />
             )}
             {item.totalStages > 0 && (
               <InfoChip
                 label={`${item.totalStages} stage${item.totalStages > 1 ? 's' : ''}`}
-                color="#4FC3F7"
+                color={colors.status.info}
               />
             )}
             {item.isClubPartner && (
@@ -640,7 +640,7 @@ const pZone = StyleSheet.create({
   },
   nomText: {
     fontSize    : 22,
-    color       : '#0A0A0A',
+    color       : colors.text.dark,
     fontFamily  : 'Montserrat-ExtraBold',
     letterSpacing: 0.2,
     lineHeight  : 26,
@@ -915,7 +915,7 @@ function TierPills({
               tp.pill,
               {
                 backgroundColor: cfg.bg,
-                borderColor    : isActive ? (cfg.key === 'Elite' ? '#FFE566' : cfg.borderColor) : cfg.borderColor,
+                borderColor    : isActive ? (cfg.key === 'Elite' ? colors.accent.goldLight : cfg.borderColor) : cfg.borderColor,
                 borderWidth    : isActive ? 2 : 1,
                 opacity        : isActive ? 1 : 0.75,
               },

@@ -13,10 +13,10 @@ import { colors, space } from '@aureak/theme'
 const GRADES: CoachGradeLevel[] = ['bronze', 'silver', 'gold', 'platinum']
 
 const GRADE_COLOR: Record<CoachGradeLevel, string> = {
-  bronze  : '#CD7F32',
-  silver  : '#9CA3AF',
+  bronze  : colors.accent.bronze,
+  silver  : colors.accent.silver,
   gold    : colors.accent.gold,
-  platinum: '#E5E4E2',
+  platinum: colors.accent.platinum,
 }
 
 const GRADE_LABEL: Record<CoachGradeLevel, string> = {

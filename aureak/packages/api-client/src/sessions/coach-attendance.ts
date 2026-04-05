@@ -36,7 +36,7 @@ export async function getCoachSessionRoster(
   ])
 
   if (attendeesRes.error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] getCoachSessionRoster:', attendeesRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] getCoachSessionRoster:', attendeesRes.error)
     return { data: [], error: attendeesRes.error }
   }
 
@@ -111,7 +111,7 @@ export async function markAttendance(params: {
     }, { onConflict: 'session_id,child_id' })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] markAttendance:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] markAttendance:', error)
   }
   return { error: error ?? null }
 }
@@ -149,7 +149,7 @@ export async function addTrialByCoach(params: TrialChildData): Promise<{ data: {
     .single()
 
   if (dirErr || !dirData) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] addTrialByCoach dir:', dirErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] addTrialByCoach dir:', dirErr)
     return { data: null, error: dirErr }
   }
 
@@ -167,7 +167,7 @@ export async function addTrialByCoach(params: TrialChildData): Promise<{ data: {
     }, { onConflict: 'session_id,child_id' })
 
   if (saErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] addTrialByCoach attendee:', saErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] addTrialByCoach attendee:', saErr)
     return { data: null, error: saErr }
   }
 
@@ -189,7 +189,7 @@ export async function addTrialByCoach(params: TrialChildData): Promise<{ data: {
     })
     .then(({ error: alertErr }) => {
       if (alertErr && process.env.NODE_ENV !== 'production') {
-        console.error('[coach-attendance] addTrialByCoach alert:', alertErr)
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] addTrialByCoach alert:', alertErr)
       }
     })
 
@@ -215,7 +215,7 @@ export async function listAvailableBadges(
     .order('name')
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] listAvailableBadges:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] listAvailableBadges:', error)
     return { data: [], error }
   }
 
@@ -253,7 +253,7 @@ export async function awardBadge(params: {
     }, { onConflict: 'session_id,child_id,badge_id' })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] awardBadge:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] awardBadge:', error)
   }
   return { error: error ?? null }
 }
@@ -273,7 +273,7 @@ export async function removeBadge(params: {
     .eq('badge_id', params.badgeId)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] removeBadge:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] removeBadge:', error)
   }
   return { error: error ?? null }
 }
@@ -295,7 +295,7 @@ export async function uploadSessionPhoto(params: {
     .upload(storagePath, params.file, { upsert: false })
 
   if (uploadErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] uploadSessionPhoto storage:', uploadErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] uploadSessionPhoto storage:', uploadErr)
     return { data: null, error: uploadErr }
   }
 
@@ -312,7 +312,7 @@ export async function uploadSessionPhoto(params: {
     .single()
 
   if (insertErr || !data) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] uploadSessionPhoto insert:', insertErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] uploadSessionPhoto insert:', insertErr)
     return { data: null, error: insertErr }
   }
 
@@ -339,7 +339,7 @@ export async function listSessionPhotos(
     .order('taken_at', { ascending: false })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] listSessionPhotos:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] listSessionPhotos:', error)
     return { data: [], error }
   }
 
@@ -406,7 +406,7 @@ export async function getChildSessionCard(
   ])
 
   if (nameRes.error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] getChildSessionCard:', nameRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] getChildSessionCard:', nameRes.error)
     return { data: null, error: nameRes.error }
   }
 
@@ -451,7 +451,7 @@ export async function listSessionBadgeAwards(
     .eq('session_id', sessionId)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-attendance] listSessionBadgeAwards:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-attendance] listSessionBadgeAwards:', error)
     return { data: [], error }
   }
 

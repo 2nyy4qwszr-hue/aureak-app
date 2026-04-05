@@ -740,7 +740,7 @@ export async function countActivePlayersCurrentSeason(): Promise<number> {
     .select('*', { count: 'exact', head: true })
     .eq('in_current_season', true)
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[countActivePlayersCurrentSeason]', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[countActivePlayersCurrentSeason]', error)
     return 0
   }
   return count ?? 0
@@ -762,8 +762,8 @@ export async function getChildCurrentClubFromHistory(
     .eq('child_id', childId)
     .maybeSingle()
   if (error) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[getChildCurrentClubFromHistory] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[getChildCurrentClubFromHistory] error:', error)
     return null
   }
   if (!data) return null

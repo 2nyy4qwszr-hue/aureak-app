@@ -337,9 +337,9 @@ function avatarBgColor(id: string): string {
 // ── Tier badge colors ─────────────────────────────────────────────────────────
 
 const TIER_HEADER_CONFIG: Record<PlayerTier, { bg: string; textColor: string; borderColor: string }> = {
-  Prospect   : { bg: '#E8E8E8', textColor: '#555555', borderColor: '#CCCCCC' },
+  Prospect   : { bg: colors.light.muted, textColor: colors.text.muted, borderColor: colors.border.light },
   Académicien: { bg: colors.light.surface, textColor: colors.text.dark, borderColor: colors.border.light },
-  Confirmé   : { bg: '#FFF8E8', textColor: '#8A6800', borderColor: 'rgba(193,172,92,0.4)' },
+  Confirmé   : { bg: colors.status.warningBg, textColor: colors.status.warningText, borderColor: colors.border.gold },
   Elite      : { bg: '#2A2006', textColor: '#FFE566', borderColor: '#C1AC5C' },
 }
 
@@ -694,7 +694,7 @@ function HistoriqueSection({
                   .sort((a, b) => (b.stage?.startDate ?? '').localeCompare(a.stage?.startDate ?? ''))
                   .map(p => (
                     <View key={p.id} style={hst.item}>
-                      <View style={[hst.dot, { backgroundColor: '#4FC3F7' }]} />
+                      <View style={[hst.dot, { backgroundColor: colors.status.info }]} />
                       <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>
                         {p.stage?.name ?? p.stageId}
                         {p.stage?.startDate && (
@@ -857,7 +857,7 @@ function BlessuresSection({
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' as never }}>
                   <View style={[blss.typeBadge, inj.type === 'grosse_blessure' && blss.typeBadgeSevere]}>
-                    <AureakText variant="caption" style={{ fontSize: 10, color: inj.type === 'grosse_blessure' ? '#B91C1C' : '#9A3412' }}>
+                    <AureakText variant="caption" style={{ fontSize: 10, color: inj.type === 'grosse_blessure' ? colors.status.errorText : colors.status.orangeText }}>
                       {inj.type === 'grosse_blessure' ? '⚠ Longue durée' : 'Légère'}
                     </AureakText>
                   </View>
@@ -933,8 +933,8 @@ function BlessuresSection({
 
 const blss = StyleSheet.create({
   row         : { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
-  typeBadge   : { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, borderWidth: 1, borderColor: '#FED7AA', backgroundColor: '#FFF7ED' },
-  typeBadgeSevere: { borderColor: '#FECACA', backgroundColor: '#FEF2F2' },
+  typeBadge   : { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, borderWidth: 1, borderColor: colors.status.orangeBorder, backgroundColor: colors.status.orangeBg },
+  typeBadgeSevere: { borderColor: colors.status.errorBorder, backgroundColor: colors.status.errorBg },
   form        : { backgroundColor: colors.light.muted, borderRadius: 8, padding: space.sm, gap: 4, marginTop: space.sm, borderWidth: 1, borderColor: colors.border.light },
   typePill    : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.primary },
   typePillActive: { borderColor: colors.accent.gold, backgroundColor: colors.light.muted },
@@ -1211,16 +1211,16 @@ function AffiliationSection({
       {/* Affiliation saison courante */}
       {currentAffiliation ? (
         <View style={aff.currentBox}>
-          <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700', fontSize: 11 }}>
+          <AureakText variant="caption" style={{ color: colors.status.successText, fontWeight: '700', fontSize: 11 }}>
             Affilié {currentSaison} — {currentAffiliation.clubNom}
           </AureakText>
           {currentAffiliation.clubDirectoryId && (
-            <AureakText variant="caption" style={{ color: '#059669', fontSize: 10 }}>Lié à l'annuaire</AureakText>
+            <AureakText variant="caption" style={{ color: colors.status.successTextSub, fontSize: 10 }}>Lié à l'annuaire</AureakText>
           )}
         </View>
       ) : (
         <View style={aff.warningBox}>
-          <AureakText variant="caption" style={{ color: '#92400E', fontSize: 11 }}>
+          <AureakText variant="caption" style={{ color: colors.status.warningText, fontSize: 11 }}>
             Aucune affiliation enregistrée pour {currentSaison}
           </AureakText>
         </View>
@@ -1248,7 +1248,7 @@ function AffiliationSection({
                 <View style={aff.colClub}><AureakText variant="caption" style={{ fontSize: 12 }} numberOfLines={1}>{h.clubNom}</AureakText></View>
                 <View style={aff.colCat}><AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>{h.categorie ?? '—'}</AureakText></View>
                 <View style={aff.colNiveau}><AureakText variant="caption" style={{ fontSize: 11, color: colors.text.muted }}>{h.niveau ?? '—'}</AureakText></View>
-                <View style={aff.colAff}><AureakText variant="caption" style={{ fontSize: 12, color: h.affilie ? '#059669' : colors.text.muted }}>{h.affilie ? '✓' : '✗'}</AureakText></View>
+                <View style={aff.colAff}><AureakText variant="caption" style={{ fontSize: 12, color: h.affilie ? colors.status.successTextSub : colors.text.muted }}>{h.affilie ? '✓' : '✗'}</AureakText></View>
               </View>
             ))}
         </View>
@@ -1299,7 +1299,7 @@ function AffiliationSection({
 
             {selectedClub && (
               <View style={aff.selectedBox}>
-                <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' }}>
+                <AureakText variant="caption" style={{ color: colors.status.successText, fontWeight: '700' }}>
                   Club sélectionné : {selectedClub.nom}
                 </AureakText>
               </View>
@@ -1331,9 +1331,9 @@ function AffiliationSection({
 }
 
 const aff = StyleSheet.create({
-  currentBox : { backgroundColor: '#ECFDF5', borderRadius: 8, padding: space.sm, marginTop: space.xs, borderWidth: 1, borderColor: '#6EE7B7', gap: 2 },
-  warningBox : { backgroundColor: '#FFFBEB', borderRadius: 8, padding: space.sm, marginTop: space.xs, borderWidth: 1, borderColor: '#FDE68A' },
-  selectedBox: { backgroundColor: '#ECFDF5', borderRadius: 6, padding: space.sm, marginTop: space.sm, borderWidth: 1, borderColor: '#6EE7B7' },
+  currentBox : { backgroundColor: colors.status.successBg, borderRadius: 8, padding: space.sm, marginTop: space.xs, borderWidth: 1, borderColor: colors.status.success, gap: 2 },
+  warningBox : { backgroundColor: colors.status.warningBg, borderRadius: 8, padding: space.sm, marginTop: space.xs, borderWidth: 1, borderColor: colors.accent.goldLight },
+  selectedBox: { backgroundColor: colors.status.successBg, borderRadius: 6, padding: space.sm, marginTop: space.sm, borderWidth: 1, borderColor: colors.status.success },
   tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border.divider, paddingBottom: 4, marginBottom: 2 },
   tableRow   : { flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   headerText : { color: colors.text.muted, fontWeight: '700', fontSize: 10, letterSpacing: 0.5 },
@@ -1426,7 +1426,7 @@ function ChildPhotosSection({
             <img
               src={currentPhoto.photoUrl}
               alt="Photo actuelle"
-              style={{ width: 120, height: 120, borderRadius: 60, objectFit: 'cover', border: '3px solid #B8A06A' }}
+              style={{ width: 120, height: 120, borderRadius: 60, objectFit: 'cover', border: `3px solid ${colors.accent.gold}` }}
             />
             <View style={ph.currentBadge}>
               <AureakText variant="caption" style={{ color: '#fff', fontSize: 9, fontWeight: '700' }}>ACTUELLE</AureakText>
@@ -1551,7 +1551,7 @@ function ChildPhotosSection({
             onChange={handleUpload}
             style={{
               fontSize   : 12,
-              color      : uploading ? '#9E9E9E' : '#3D3420',
+              color      : uploading ? colors.status.neutral : colors.text.dark,
               cursor     : uploading ? 'not-allowed' : 'pointer',
             }}
           />
@@ -2210,7 +2210,7 @@ export default function ChildDetailPage() {
         <PlayerTabsNav
           activeTab={activeTab}
           onSelect={setActiveTab}
-          tierColor={tierCfg.textColor === '#FFE566' ? '#C1AC5C' : tierCfg.textColor}
+          tierColor={tierCfg.textColor === colors.accent.goldLight ? colors.accent.gold : tierCfg.textColor}
         />
       </View>
 
@@ -2956,7 +2956,7 @@ export default function ChildDetailPage() {
                   .sort((a, b) => (b.stage?.startDate ?? '').localeCompare(a.stage?.startDate ?? ''))
                   .map(p => (
                     <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border.divider }}>
-                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#4FC3F7', flexShrink: 0 }} />
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.status.info, flexShrink: 0 }} />
                       <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>
                         {p.stage?.name ?? p.stageId}
                         {p.stage?.startDate && (

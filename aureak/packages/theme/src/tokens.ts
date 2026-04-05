@@ -42,6 +42,12 @@ export const colors = {
     zinc     : '#424242',  // gris zinc — éléments secondaires, bordures inactives (dark)
     ivory    : '#F0EDE0',  // blanc ivoire — texte sur fond sombre (variante)
     red      : '#E05252',  // rouge CTA — boutons d'action uniquement
+    // Grades métalliques coach
+    bronze   : '#CD7F32',  // bronze
+    silver   : '#9CA3AF',  // argent
+    platinum : '#E5E4E2',  // platine
+    // Équipe B (TacticalEditor)
+    teamB    : '#B03030',  // rouge foncé équipe B
   },
   status: {
     present  : '#4CAF50',  // présent 🟢 — présences ET évaluation positive
@@ -52,6 +58,20 @@ export const colors = {
     info     : '#60A5FA',  // bleu ciel — informations neutres
     neutral  : '#9CA3AF',  // gris — état indéterminé
     injured  : '#CE93D8',  // lilas — blessure / indisponibilité joueur
+    // Fonds sémantiques pour bandeaux / alertes
+    successBg: '#D1FAE5',  // fond vert émeraude clair — success banners
+    successText: '#065F46', // texte sur fond successBg (vert foncé)
+    successTextSub: '#059669', // texte secondaire sur fond successBg
+    warningBg: '#FFFBEB',  // fond ambre clair — warning banners
+    warningText: '#92400E', // texte sur fond warningBg (ambre foncé)
+    errorBg  : '#FEF2F2',  // fond rouge clair — error banners
+    errorText : '#B91C1C',  // texte sur fond errorBg (rouge foncé)
+    errorBorder: '#FECACA', // bordure sur fond errorBg
+    errorBorderSevere: '#FEE2E2', // fond rouge plus marqué
+    infoBg   : '#EFF6FF',  // fond bleu clair — info banners
+    orangeBg : '#FFF7ED',  // fond orange clair — blessure légère
+    orangeBorder: '#FED7AA', // bordure orange légère
+    orangeText: '#9A3412',  // texte sur fond orangeBg
   },
   overlay: {
     dark : 'rgba(0,0,0,0.5)',          // fond modal standard

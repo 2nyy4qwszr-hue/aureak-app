@@ -23,9 +23,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     'Vérifiez votre fichier .env (copiez .env.example et renseignez les valeurs).'
   // En développement : erreur explicite pour détecter immédiatement le problème
   // En production : warning pour éviter un crash dur (valeurs manquantes = app dégradée)
-  if (process.env.NODE_ENV !== 'production') {
-    console.error(msg)
-  }
+  if ((process.env.NODE_ENV as string) !== 'production') console.error(msg)
 }
 
 // Fallback localhost uniquement pour le dev local — jamais en production sans .env

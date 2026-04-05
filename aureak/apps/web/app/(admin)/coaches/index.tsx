@@ -137,6 +137,14 @@ export default function CoachesPage() {
           <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4 }}>
             Invitez le premier coach de l'académie.
           </AureakText>
+          <Pressable
+            style={{ marginTop: space.md, paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold }}
+            onPress={() => router.push('/(admin)/users/new?role=coach' as never)}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              + Inviter un coach
+            </AureakText>
+          </Pressable>
         </View>
       ) : (
         <View style={styles.table}>

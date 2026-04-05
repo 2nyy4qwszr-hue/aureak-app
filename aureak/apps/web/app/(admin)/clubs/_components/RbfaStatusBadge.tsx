@@ -13,8 +13,8 @@ type Props = {
 
 const CONFIG: Record<RbfaStatus, { label: string; color: string; bg: string }> = {
   pending : { label: 'RBFA : en attente', color: colors.text.muted,     bg: colors.light.muted   },
-  matched : { label: 'RBFA : lié',        color: colors.status.success,  bg: '#d1fae5'             },
-  rejected: { label: 'RBFA : rejeté',     color: colors.accent.red,      bg: '#fee2e2'             },
+  matched : { label: 'RBFA : lié',        color: colors.status.success,  bg: colors.status.successBg      },
+  rejected: { label: 'RBFA : rejeté',     color: colors.accent.red,      bg: colors.status.errorBorderSevere },
   skipped : { label: 'RBFA : aucun',      color: colors.text.subtle,     bg: colors.light.elevated },
 }
 

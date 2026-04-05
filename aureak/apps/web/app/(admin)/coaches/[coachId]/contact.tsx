@@ -148,7 +148,7 @@ const styles: Record<string, React.CSSProperties> = {
   successMsg     : { marginTop: '12px', color: colors.status.present, fontSize: '14px' },
   empty          : { color: colors.text.muted, fontSize: '14px', padding: '16px 0' },
   msgRow         : { backgroundColor: colors.light.surface, borderRadius: '8px', padding: '16px', marginBottom: '8px', boxShadow: shadows.sm },
-  msgRowUrgent   : { borderLeft: '4px solid #EF4444' },
+  msgRowUrgent   : { borderLeft: `4px solid ${colors.status.errorText}` },
   msgHeader      : { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
   badgeRoutine   : { fontSize: '12px', padding: '2px 8px', borderRadius: '4px', backgroundColor: colors.border.light, color: colors.text.muted },
   badgeUrgent    : { fontSize: '12px', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(239,68,68,0.15)', color: colors.status.absent },

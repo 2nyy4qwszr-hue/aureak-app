@@ -160,7 +160,7 @@ function LinkedBlocsPanel({
 
         {linkedThemes.map(t => (
           <View key={t.id} style={bl.linkedRow}>
-            <View style={[bl.dot, { backgroundColor: '#4FC3F7' }]} />
+            <View style={[bl.dot, { backgroundColor: colors.status.info }]} />
             <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{t.title}</AureakText>
             <Pressable onPress={() => handleUnlinkTheme(t.id)}>
               <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>✕</AureakText>
@@ -213,7 +213,7 @@ function LinkedBlocsPanel({
 
         {linkedSituations.map(s => (
           <View key={s.id} style={bl.linkedRow}>
-            <View style={[bl.dot, { backgroundColor: '#66BB6A' }]} />
+            <View style={[bl.dot, { backgroundColor: colors.status.present }]} />
             <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{s.title}</AureakText>
             <Pressable onPress={() => handleUnlinkSit(s.id)}>
               <AureakText variant="caption" style={{ color: colors.status.attention, fontSize: 11 }}>✕</AureakText>
@@ -437,7 +437,7 @@ export default function SeanceDetailPage() {
             </AureakText>
           </Pressable>
           <Pressable onPress={handleToggleActive}>
-            <AureakText variant="caption" style={{ color: session.isActive ? colors.status.attention : '#66BB6A', fontSize: 11 }}>
+            <AureakText variant="caption" style={{ color: session.isActive ? colors.status.attention : colors.status.present, fontSize: 11 }}>
               {session.isActive ? 'Désactiver' : 'Activer'}
             </AureakText>
           </Pressable>
@@ -555,7 +555,7 @@ export default function SeanceDetailPage() {
               {session.videoUrl && (
                 <View style={{ gap: 4, marginTop: session.pdfUrl ? 8 : 0 }}>
                   <FieldLabel>Vidéo</FieldLabel>
-                  <Pressable style={[s.mediaBtn, { backgroundColor: '#4FC3F7' }]} onPress={() => Linking.openURL(session.videoUrl!)}>
+                  <Pressable style={[s.mediaBtn, { backgroundColor: colors.status.info }]} onPress={() => Linking.openURL(session.videoUrl!)}>
                     <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 12 }}>▶ Ouvrir la vidéo →</AureakText>
                   </Pressable>
                 </View>
@@ -563,7 +563,7 @@ export default function SeanceDetailPage() {
               {session.audioUrl && (
                 <View style={{ gap: 4, marginTop: (session.pdfUrl || session.videoUrl) ? 8 : 0 }}>
                   <FieldLabel>Audio</FieldLabel>
-                  <Pressable style={[s.mediaBtn, { backgroundColor: '#CE93D8' }]} onPress={() => Linking.openURL(session.audioUrl!)}>
+                  <Pressable style={[s.mediaBtn, { backgroundColor: colors.status.injured }]} onPress={() => Linking.openURL(session.audioUrl!)}>
                     <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700', fontSize: 12 }}>🔊 Écouter l'audio →</AureakText>
                   </Pressable>
                 </View>

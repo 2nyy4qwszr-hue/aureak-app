@@ -43,7 +43,7 @@ export async function listInAppNotifications(opts: {
 
   const { data, error } = await query
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[notifications] listInAppNotifications:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[notifications] listInAppNotifications:', error)
     return { data: [], error }
   }
   return { data: (data as Record<string, unknown>[]).map(mapRow), error: null }
@@ -60,7 +60,7 @@ export async function markNotificationRead(
     .is('read_at', null)
 
   if (error && process.env.NODE_ENV !== 'production') {
-    console.error('[notifications] markNotificationRead:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[notifications] markNotificationRead:', error)
   }
   return { error }
 }
@@ -73,7 +73,7 @@ export async function markAllNotificationsRead(): Promise<{ error: unknown }> {
     .is('read_at', null)
 
   if (error && process.env.NODE_ENV !== 'production') {
-    console.error('[notifications] markAllNotificationsRead:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[notifications] markAllNotificationsRead:', error)
   }
   return { error }
 }
@@ -86,7 +86,7 @@ export async function countUnreadNotifications(): Promise<{ count: number; error
     .is('read_at', null)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[notifications] countUnreadNotifications:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[notifications] countUnreadNotifications:', error)
     return { count: 0, error }
   }
   return { count: count ?? 0, error: null }

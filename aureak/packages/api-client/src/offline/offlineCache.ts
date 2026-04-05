@@ -33,8 +33,8 @@ export function setCacheItem<T>(key: string, data: T, ttlMs: number): void {
     storage.setItem(key, JSON.stringify(entry))
     storage.setItem(CACHE_KEYS.cacheTimestamp, String(Date.now()))
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('[offlineCache] setCacheItem error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[offlineCache] setCacheItem error:', err)
     }
   }
 }
@@ -56,8 +56,8 @@ export function getCacheItem<T>(key: string): T | null {
     }
     return entry.data
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('[offlineCache] getCacheItem error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[offlineCache] getCacheItem error:', err)
     }
     return null
   }
@@ -72,8 +72,8 @@ export function invalidateCache(key: string): void {
   try {
     storage.removeItem(key)
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('[offlineCache] invalidateCache error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[offlineCache] invalidateCache error:', err)
     }
   }
 }

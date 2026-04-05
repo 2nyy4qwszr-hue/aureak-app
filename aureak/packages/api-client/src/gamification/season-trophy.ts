@@ -32,7 +32,7 @@ export async function getSeasonTrophyData(
     const { data, error } = await query
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[season-trophy] getSeasonTrophyData error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[season-trophy] getSeasonTrophyData error:', error)
       return { data: null, error }
     }
 
@@ -51,7 +51,7 @@ export async function getSeasonTrophyData(
       .lte('awarded_at', season.end_date)
 
     if (badgeErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[season-trophy] badgeCount error:', badgeErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[season-trophy] badgeCount error:', badgeErr)
     }
 
     const result: SeasonTrophyData = {
@@ -66,7 +66,7 @@ export async function getSeasonTrophyData(
 
     return { data: result, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[season-trophy] getSeasonTrophyData exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[season-trophy] getSeasonTrophyData exception:', err)
     return { data: null, error: err }
   }
 }

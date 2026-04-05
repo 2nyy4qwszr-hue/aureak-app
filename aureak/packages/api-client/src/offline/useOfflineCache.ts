@@ -37,8 +37,8 @@ export function useOfflineCache(): UseOfflineCacheResult {
       if (syncResultTimerRef.current) clearTimeout(syncResultTimerRef.current)
       syncResultTimerRef.current = setTimeout(() => setSyncResult(null), 5000)
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('[useOfflineCache] processQueue error:', err)
+      if ((process.env.NODE_ENV as string) !== 'production') {
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[useOfflineCache] processQueue error:', err)
       }
     } finally {
       setIsSyncing(false)
@@ -57,8 +57,8 @@ export function useOfflineCache(): UseOfflineCacheResult {
       setCacheItem(CACHE_KEYS.todaySessions, sessions, 4 * 60 * 60 * 1000)
       setCacheTimestamp(new Date())
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('[useOfflineCache] prefetch error:', err)
+      if ((process.env.NODE_ENV as string) !== 'production') {
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[useOfflineCache] prefetch error:', err)
       }
     }
   }, [isOnline])

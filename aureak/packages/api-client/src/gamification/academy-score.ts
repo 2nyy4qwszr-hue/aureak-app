@@ -130,7 +130,7 @@ export async function getAcademyScore(
 
     return { data: result, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[academy-score] getAcademyScore error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[academy-score] getAcademyScore error:', err)
     return { data: null, error: err }
   }
 }

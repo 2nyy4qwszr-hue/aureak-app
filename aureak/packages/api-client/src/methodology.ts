@@ -501,8 +501,8 @@ export async function getThemeOfWeek(): Promise<{
     const themeIndex = (weekNumber - 1) % themes.length
     return { data: themes[themeIndex], weekNumber, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[getThemeOfWeek] error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[getThemeOfWeek] error:', err)
     return { data: null, weekNumber: 0, error: err }
   }
 }
@@ -522,7 +522,7 @@ export async function getRecommendedSituations(
   const { data: levelData, error: levelError } = await supabase
     .rpc('get_group_avg_level', { p_group_id: groupId })
   if (levelError && process.env.NODE_ENV !== 'production')
-    console.error('[getRecommendedSituations] avgLevel error:', levelError)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[getRecommendedSituations] avgLevel error:', levelError)
 
   const avgLevel = Math.round((levelData as number | null) ?? 3)
   const minLevel = Math.max(1, avgLevel - 1)
@@ -533,8 +533,8 @@ export async function getRecommendedSituations(
   try {
     situations = await listMethodologySituations({ activeOnly: true })
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[getRecommendedSituations] situations error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[getRecommendedSituations] situations error:', err)
     return { data: [], error: err }
   }
 
@@ -566,7 +566,7 @@ export async function addSituationToSession(
       { onConflict: 'session_id,situation_id' },
     )
   if (error && process.env.NODE_ENV !== 'production')
-    console.error('[addSituationToSession] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[addSituationToSession] error:', error)
   return { error: error ?? null }
 }
 
@@ -594,8 +594,8 @@ export async function listSessionModules(
     .order('module_type')
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[listSessionModules] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[listSessionModules] error:', error)
     return { data: [], error }
   }
 
@@ -636,7 +636,7 @@ export async function upsertSessionModule(
     .select('id')
     .single()
   if (error && process.env.NODE_ENV !== 'production')
-    console.error('[upsertSessionModule] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[upsertSessionModule] error:', error)
   return { data: data ?? null, error: error ?? null }
 }
 
@@ -655,7 +655,7 @@ export async function addSituationToModule(
       { onConflict: 'module_id,situation_id' },
     )
   if (error && process.env.NODE_ENV !== 'production')
-    console.error('[addSituationToModule] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[addSituationToModule] error:', error)
   return { error: error ?? null }
 }
 
@@ -672,6 +672,6 @@ export async function removeSituationFromModule(
     .eq('module_id', moduleId)
     .eq('situation_id', situationId)
   if (error && process.env.NODE_ENV !== 'production')
-    console.error('[removeSituationFromModule] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[removeSituationFromModule] error:', error)
   return { error: error ?? null }
 }

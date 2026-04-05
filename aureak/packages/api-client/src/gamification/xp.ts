@@ -39,7 +39,7 @@ export async function awardXp(
 
     if (!res.ok) {
       const text = await res.text()
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] awardXp error:', text)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] awardXp error:', text)
       return { data: null, error: text }
     }
 
@@ -49,7 +49,7 @@ export async function awardXp(
       error: null,
     }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[xp] awardXp exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] awardXp exception:', err)
     return { data: null, error: err }
   }
 }
@@ -69,7 +69,7 @@ export async function getXpLedger(
       .limit(limit)
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] getXpLedger error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXpLedger error:', error)
       return { data: [], error }
     }
 
@@ -85,7 +85,7 @@ export async function getXpLedger(
 
     return { data: entries, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[xp] getXpLedger exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXpLedger exception:', err)
     return { data: [], error: err }
   }
 }
@@ -105,7 +105,7 @@ export async function getXpProgression(
       .limit(limit)
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] getXpProgression error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXpProgression error:', error)
       return { data: [], error }
     }
 
@@ -123,7 +123,7 @@ export async function getXpProgression(
 
     return { data: snapshots, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[xp] getXpProgression exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXpProgression exception:', err)
     return { data: [], error: err }
   }
 }
@@ -144,7 +144,7 @@ export async function getXPLeaderboard(
       .select('child_id, xp_delta')
 
     if (totalErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] getXPLeaderboard totals error:', totalErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXPLeaderboard totals error:', totalErr)
       return { data: [], error: totalErr }
     }
 
@@ -155,7 +155,7 @@ export async function getXPLeaderboard(
       .gte('created_at', weekAgo)
 
     if (weekErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] getXPLeaderboard week error:', weekErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXPLeaderboard week error:', weekErr)
       return { data: [], error: weekErr }
     }
 
@@ -167,7 +167,7 @@ export async function getXPLeaderboard(
       .lt('created_at', weekAgo)
 
     if (prevWeekErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] getXPLeaderboard prevWeek error:', prevWeekErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXPLeaderboard prevWeek error:', prevWeekErr)
       return { data: [], error: prevWeekErr }
     }
 
@@ -202,7 +202,7 @@ export async function getXPLeaderboard(
       .in('user_id', childIds)
 
     if (profileErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[xp] getXPLeaderboard profiles error:', profileErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXPLeaderboard profiles error:', profileErr)
       return { data: [], error: profileErr }
     }
 
@@ -242,7 +242,7 @@ export async function getXPLeaderboard(
 
     return { data: entries, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[xp] getXPLeaderboard exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[xp] getXPLeaderboard exception:', err)
     return { data: [], error: err }
   }
 }

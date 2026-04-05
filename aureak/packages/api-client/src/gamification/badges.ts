@@ -21,7 +21,7 @@ export async function listBadgeDefinitions(
     const { data, error } = await query
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[badges] listBadgeDefinitions error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] listBadgeDefinitions error:', error)
       return { data: [], error }
     }
 
@@ -40,7 +40,7 @@ export async function listBadgeDefinitions(
 
     return { data: badges, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[badges] listBadgeDefinitions exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] listBadgeDefinitions exception:', err)
     return { data: [], error: err }
   }
 }
@@ -58,7 +58,7 @@ export async function listPlayerBadges(
       .order('awarded_at', { ascending: false })
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[badges] listPlayerBadges error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] listPlayerBadges error:', error)
       return { data: [], error }
     }
 
@@ -74,7 +74,7 @@ export async function listPlayerBadges(
 
     return { data: badges, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[badges] listPlayerBadges exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] listPlayerBadges exception:', err)
     return { data: [], error: err }
   }
 }
@@ -98,12 +98,12 @@ export async function getAchievementDetails(
     ])
 
     if (playerResult.error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[badges] getAchievementDetails player error:', playerResult.error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] getAchievementDetails player error:', playerResult.error)
       return { data: null, error: playerResult.error }
     }
 
     if (badgeResult.error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[badges] getAchievementDetails badge error:', badgeResult.error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] getAchievementDetails badge error:', badgeResult.error)
       return { data: null, error: badgeResult.error }
     }
 
@@ -116,7 +116,7 @@ export async function getAchievementDetails(
       error: null,
     }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[badges] getAchievementDetails exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[badges] getAchievementDetails exception:', err)
     return { data: null, error: err }
   }
 }

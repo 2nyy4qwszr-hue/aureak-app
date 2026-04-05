@@ -55,7 +55,7 @@ export async function getTodaySession(
     .limit(5)
 
   if (todayErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] getTodaySession:', todayErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] getTodaySession:', todayErr)
     return { data: [], error: todayErr }
   }
 
@@ -78,7 +78,7 @@ export async function getTodaySession(
       .limit(3)
 
     if (upErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[coach-session] getTodaySession upcoming:', upErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] getTodaySession upcoming:', upErr)
       return { data: [], error: upErr }
     }
     sessions = (upcoming ?? []) as Record<string, unknown>[]
@@ -140,7 +140,7 @@ export async function getAvailableTrainings(
     .order('title')
 
   if (trErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] getAvailableTrainings:', trErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] getAvailableTrainings:', trErr)
     return { data: [], error: trErr }
   }
 
@@ -245,7 +245,7 @@ export async function selectTrainingForSession(
     .eq('id', sessionId)
 
   if (updateErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] selectTrainingForSession:', updateErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] selectTrainingForSession:', updateErr)
     return { error: updateErr }
   }
 
@@ -260,7 +260,7 @@ export async function selectTrainingForSession(
     }, { onConflict: 'session_id,training_id' })
 
   if (logErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] logTrainingUsage:', logErr)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] logTrainingUsage:', logErr)
   }
 
   return { error: null }
@@ -297,7 +297,7 @@ export async function getChildSessionContext(
   ])
 
   if (profileRes.error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] getChildSessionContext:', profileRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] getChildSessionContext:', profileRes.error)
     return { data: null, error: profileRes.error }
   }
 
@@ -350,7 +350,7 @@ export async function createTechnicalSignal(
     .single()
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] createTechnicalSignal:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] createTechnicalSignal:', error)
     return { data: null, error }
   }
 
@@ -369,7 +369,7 @@ export async function resolveTechnicalSignal(
     .eq('id', signalId)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] resolveTechnicalSignal:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] resolveTechnicalSignal:', error)
   }
   return { error: error ?? null }
 }
@@ -388,7 +388,7 @@ export async function getChildTechnicalProfile(
     .limit(100)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] getChildTechnicalProfile:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] getChildTechnicalProfile:', error)
     return { data: [], error }
   }
 
@@ -408,7 +408,7 @@ export async function listSessionSignals(
     .order('created_at', { ascending: false })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-session] listSessionSignals:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-session] listSessionSignals:', error)
     return { data: [], error }
   }
 

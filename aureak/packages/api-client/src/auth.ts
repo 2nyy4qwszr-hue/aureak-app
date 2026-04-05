@@ -76,7 +76,7 @@ export async function inviteUser({ email, role, tenantId, displayName }: InviteU
       })
 
     if (profileError) {
-      if (process.env.NODE_ENV !== 'production') console.error('[api-client] createProfile error after invite:', profileError)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[api-client] createProfile error after invite:', profileError)
       return { data: null, error: profileError }
     }
   }

@@ -45,8 +45,8 @@ export function enqueueAction(item: Omit<OfflineQueueItem, 'id' | 'timestamp' | 
 
   // Limite (QA 6.1)
   if (queue.length >= MAX_QUEUE_SIZE) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('[offlineQueue] Queue is full — discarding oldest item')
+    if ((process.env.NODE_ENV as string) !== 'production') {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[offlineQueue] Queue is full — discarding oldest item')
     }
     queue.shift() // retire le plus ancien
   }
@@ -89,8 +89,8 @@ export async function processQueue(): Promise<{ succeeded: number; failed: numbe
       dequeueAction(item.id)
       succeeded++
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('[offlineQueue] processItem failed:', item.id, err)
+      if ((process.env.NODE_ENV as string) !== 'production') {
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[offlineQueue] processItem failed:', item.id, err)
       }
       // Incrémenter retryCount
       const all = getQueue()

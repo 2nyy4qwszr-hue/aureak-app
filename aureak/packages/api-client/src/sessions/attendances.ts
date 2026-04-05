@@ -172,7 +172,7 @@ export async function recordAttendance(
           await checkAbsenceAlertTrigger(params.childId, groupId, params.sessionId)
         }
       } catch (err) {
-        if (process.env.NODE_ENV !== 'production') console.error('[recordAttendance] absence alert check failed:', err)
+        if ((process.env.NODE_ENV as string) !== 'production') console.error('[recordAttendance] absence alert check failed:', err)
       }
     })()
   }
@@ -623,7 +623,7 @@ export async function getGroupMembersRecentStreaks(
 
     return result
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[getGroupMembersRecentStreaks] error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[getGroupMembersRecentStreaks] error:', err)
     return {}
   }
 }
@@ -726,7 +726,7 @@ export async function checkAbsenceAlertTrigger(
       payload  : { childId, childName, absenceCount: consecutiveAbsences, groupId, groupName },
     })
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[checkAbsenceAlertTrigger] error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[checkAbsenceAlertTrigger] error:', err)
     // Ne pas throw — AC7
   }
 }
@@ -749,7 +749,7 @@ export async function listActiveAbsenceAlerts(
       .limit(20)
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[listActiveAbsenceAlerts] error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[listActiveAbsenceAlerts] error:', error)
       return []
     }
 
@@ -763,7 +763,7 @@ export async function listActiveAbsenceAlerts(
       createdAt   : r.created_at,
     }))
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[listActiveAbsenceAlerts] error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[listActiveAbsenceAlerts] error:', err)
     return []
   }
 }
@@ -805,7 +805,7 @@ export async function listAttendancesByChild(
     .order('sessions.session_date', { ascending: true })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[listAttendancesByChild] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[listAttendancesByChild] error:', error)
     throw error
   }
 

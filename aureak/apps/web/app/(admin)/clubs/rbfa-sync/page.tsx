@@ -316,14 +316,14 @@ const s = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   errorBox  : {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.status.errorBg,
     borderRadius   : 10,
     borderWidth    : 1,
     borderColor    : colors.accent.red,
     padding        : space.md,
   },
   reviewNote: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.status.warningBg,
     borderRadius   : 10,
     borderWidth    : 1,
     borderColor    : colors.accent.goldLight,

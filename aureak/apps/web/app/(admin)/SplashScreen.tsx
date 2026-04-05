@@ -7,7 +7,7 @@ import { colors } from '@aureak/theme'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-export const SPLASH_BG         = '#0F0F0F'
+export const SPLASH_BG         = colors.dark.background
 export const SPLASH_MIN_MS     = 1500
 export const SPLASH_TIMEOUT_MS = 5000
 

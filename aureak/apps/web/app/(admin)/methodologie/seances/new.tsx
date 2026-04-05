@@ -174,14 +174,14 @@ function ThemeSelector({
           paddingHorizontal: 10,
           borderRadius   : 8,
           borderWidth    : 1,
-          borderColor    : sel ? (isPrimary ? colors.accent.gold : '#4FC3F7') : colors.border.light,
-          backgroundColor: sel ? (isPrimary ? colors.accent.gold + '18' : '#4FC3F7' + '18') : 'transparent',
+          borderColor    : sel ? (isPrimary ? colors.accent.gold : colors.status.info) : colors.border.light,
+          backgroundColor: sel ? (isPrimary ? colors.accent.gold + '18' : colors.status.info + '18') : 'transparent',
           marginBottom   : 4,
         }}
       >
         <View style={{
           width: 20, height: 20, borderRadius: 10,
-          backgroundColor: sel ? (isPrimary ? colors.accent.gold : '#4FC3F7') : colors.border.light + '40',
+          backgroundColor: sel ? (isPrimary ? colors.accent.gold : colors.status.info) : colors.border.light + '40',
           alignItems: 'center', justifyContent: 'center',
         }}>
           {sel && (
@@ -558,13 +558,13 @@ export default function NewSeancePage() {
               if (!t) return null
               return (
                 <View key={st.themeId} style={{
-                  backgroundColor: i === 0 ? colors.accent.gold + '20' : '#4FC3F7' + '20',
+                  backgroundColor: i === 0 ? colors.accent.gold + '20' : colors.status.info + '20',
                   borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3,
                   borderWidth: 1,
-                  borderColor: i === 0 ? colors.accent.gold : '#4FC3F7',
+                  borderColor: i === 0 ? colors.accent.gold : colors.status.info,
                   flexDirection: 'row', alignItems: 'center', gap: 4,
                 }}>
-                  <AureakText variant="caption" style={{ color: i === 0 ? colors.accent.gold : '#4FC3F7', fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: i === 0 ? colors.accent.gold : colors.status.info, fontSize: 11 }}>
                     {i + 1}. {t.title}
                   </AureakText>
                 </View>

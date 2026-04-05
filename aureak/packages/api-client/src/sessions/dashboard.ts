@@ -48,7 +48,7 @@ export async function listSessionCards(
   const { data, error } = await query
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listSessionCards:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] listSessionCards:', error)
     return { data: [], error }
   }
 
@@ -119,7 +119,7 @@ export async function getSessionDetail(
   ])
 
   if (sessionRes.error || !sessionRes.data) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getSessionDetail:', sessionRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getSessionDetail:', sessionRes.error)
     return { data: null, error: sessionRes.error }
   }
 
@@ -185,7 +185,7 @@ export async function listAdminAlerts(
     .limit(100)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listAdminAlerts:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] listAdminAlerts:', error)
     return { data: [], error }
   }
 
@@ -218,7 +218,7 @@ export async function resolveAlert(
     .eq('id', alertId)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] resolveAlert:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] resolveAlert:', error)
   }
   return { error: error ?? null }
 }
@@ -238,7 +238,7 @@ export async function getCoachQualityMetrics(
     .maybeSingle()
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getCoachQualityMetrics:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getCoachQualityMetrics:', error)
     return { data: null, error }
   }
 
@@ -279,7 +279,7 @@ export async function listChildConsecutiveAbsences(
     .order('consecutive_absences', { ascending: false })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listChildConsecutiveAbsences:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] listChildConsecutiveAbsences:', error)
     return { data: [], error }
   }
 
@@ -328,7 +328,7 @@ export async function getTopGroupByAttendance(
     .eq('sessions.groups.tenant_id', tenantId)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[dashboard] getTopGroupByAttendance:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopGroupByAttendance:', error)
     return { data: null, error }
   }
 

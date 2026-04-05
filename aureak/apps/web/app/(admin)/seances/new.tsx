@@ -1206,12 +1206,12 @@ export default function NewSessionPage() {
             {result.created} séance{result.created !== 1 ? 's' : ''} créée{result.created !== 1 ? 's' : ''}
           </AureakText>
           {result.failed > 0 && (
-            <AureakText variant="caption" style={{ color: '#ef4444', textAlign: 'center' as never, marginTop: space.xs }}>
+            <AureakText variant="caption" style={{ color: colors.accent.red, textAlign: 'center' as never, marginTop: space.xs }}>
               {result.failed} échec{result.failed !== 1 ? 's' : ''}
             </AureakText>
           )}
           {result.linkWarnings && result.linkWarnings > 0 && (
-            <AureakText variant="caption" style={{ color: '#f59e0b', textAlign: 'center' as never, marginTop: space.xs }}>
+            <AureakText variant="caption" style={{ color: colors.status.warning, textAlign: 'center' as never, marginTop: space.xs }}>
               ⚠️ {result.linkWarnings} bloc{result.linkWarnings !== 1 ? 's' : ''} thème non lié{result.linkWarnings !== 1 ? 's' : ''} (contenu dupliqué possible)
             </AureakText>
           )}
@@ -1265,12 +1265,12 @@ export default function NewSessionPage() {
 
       {/* Story 53-5 — Toast duplication */}
       {duplicateToast && (
-        <View style={{ backgroundColor: '#FEF9C3', borderWidth: 1, borderColor: '#FCD34D', borderRadius: 8, padding: space.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <AureakText variant="caption" style={{ color: '#92400E', fontWeight: '700' as never, flex: 1 }}>
+        <View style={{ backgroundColor: colors.status.warningBg, borderWidth: 1, borderColor: colors.accent.goldLight, borderRadius: 8, padding: space.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <AureakText variant="caption" style={{ color: colors.status.warningText, fontWeight: '700' as never, flex: 1 }}>
             ↻ Séance pré-remplie — choisissez la date pour confirmer
           </AureakText>
           <Pressable onPress={() => setDuplicateToast(false)}>
-            <AureakText variant="caption" style={{ color: '#92400E' }}>×</AureakText>
+            <AureakText variant="caption" style={{ color: colors.status.warningText }}>×</AureakText>
           </Pressable>
         </View>
       )}
@@ -1289,7 +1289,7 @@ export default function NewSessionPage() {
             <SectionLabel title="Implantation" hint="Site physique de la séance" />
             {implantationsError ? (
               <View style={p.errorBox}>
-                <AureakText variant="caption" style={{ color: '#ef4444' }}>{implantationsError}</AureakText>
+                <AureakText variant="caption" style={{ color: colors.accent.red }}>{implantationsError}</AureakText>
                 <Pressable onPress={() => {
                   setImplantationsError(null)
                   setLoadingImplantations(true)
@@ -1694,7 +1694,7 @@ export default function NewSessionPage() {
 
             {coachLeads.length === 0 && (
               <View style={p.coachValidation}>
-                <AureakText variant="caption" style={{ fontSize: 10, color: '#E05252' }}>
+                <AureakText variant="caption" style={{ fontSize: 10, color: colors.accent.red }}>
                   Minimum 1 coach principal requis (premier assigné = principal)
                 </AureakText>
               </View>
@@ -2142,7 +2142,7 @@ const p = StyleSheet.create({
   // Cards containing SearchableSelect dropdowns need overflow visible so the dropdown
   // is not clipped by the card's border-radius on React Native web
   cardWithDropdown: { overflow: 'visible' as never },
-  errorBox    : { padding: space.sm, borderRadius: 6, backgroundColor: '#ef444420', borderWidth: 1, borderColor: '#ef444440' },
+  errorBox    : { padding: space.sm, borderRadius: 6, backgroundColor: colors.status.errorBg, borderWidth: 1, borderColor: colors.status.errorBorder },
   fieldLabel  : { fontSize: 10, fontWeight: '600' as never, letterSpacing: 0.5, color: colors.text.muted, textTransform: 'uppercase' as never, marginBottom: 4 },
   textInput   : { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light, borderRadius: 8, paddingHorizontal: space.md, paddingVertical: space.sm, color: colors.text.dark, fontSize: 13 },
   infoNote    : { backgroundColor: colors.light.muted, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.border.light, marginTop: space.xs },

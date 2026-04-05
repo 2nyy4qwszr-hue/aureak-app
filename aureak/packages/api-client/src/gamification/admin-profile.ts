@@ -16,7 +16,7 @@ export async function getAdminProfile(
       .single()
 
     if (profileErr || !profile) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] getAdminProfile profile error:', profileErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] getAdminProfile profile error:', profileErr)
       return { data: null, error: profileErr }
     }
 
@@ -27,7 +27,7 @@ export async function getAdminProfile(
       .eq('child_id', adminId)
 
     if (xpErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] getAdminProfile xp error:', xpErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] getAdminProfile xp error:', xpErr)
     }
 
     const totalXp = (xpRows ?? []).reduce((acc, r) => acc + (r.xp_delta ?? 0), 0)
@@ -44,7 +44,7 @@ export async function getAdminProfile(
 
     return { data: result, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] getAdminProfile exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] getAdminProfile exception:', err)
     return { data: null, error: err }
   }
 }
@@ -62,7 +62,7 @@ export async function getAdminActivityStats(
       .is('deleted_at', null)
 
     if (sessErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] sessionsCreated error:', sessErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] sessionsCreated error:', sessErr)
     }
 
     // Joueurs gérés (présences validées par l'admin — approximation : séances de l'académie)
@@ -72,7 +72,7 @@ export async function getAdminActivityStats(
       .eq('role', 'child')
 
     if (playerErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] playersManaged error:', playerErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] playersManaged error:', playerErr)
     }
 
     // Badges accordés (approx : entrées xp_ledger de type BADGE_EARNED toutes tenants)
@@ -82,7 +82,7 @@ export async function getAdminActivityStats(
       .eq('awarded_by', adminId)
 
     if (badgeErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] badgesAwarded error:', badgeErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] badgesAwarded error:', badgeErr)
     }
 
     // Évaluations validées (sessions clôturées par l'admin)
@@ -93,7 +93,7 @@ export async function getAdminActivityStats(
       .eq('created_by', adminId)
 
     if (evalErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] evaluationsValidated error:', evalErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] evaluationsValidated error:', evalErr)
     }
 
     const result: AdminActivityStats = {
@@ -105,7 +105,7 @@ export async function getAdminActivityStats(
 
     return { data: result, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[admin-profile] getAdminActivityStats exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] getAdminActivityStats exception:', err)
     return { data: null, error: err }
   }
 }

@@ -186,7 +186,7 @@ async function processClub(
   if (!resolvedLogoUrl && candidate.rbfaId) {
     resolvedLogoUrl = await fetchLogoFromClubPage(candidate.rbfaId)
     if (resolvedLogoUrl) {
-      if (process.env.NODE_ENV !== 'production') console.info(`[RBFA] Fallback logo trouvé sur page club pour ${candidate.nom}: ${resolvedLogoUrl}`)
+      if ((process.env.NODE_ENV as string) !== 'production') console.info(`[RBFA] Fallback logo trouvé sur page club pour ${candidate.nom}: ${resolvedLogoUrl}`)
     }
   }
 

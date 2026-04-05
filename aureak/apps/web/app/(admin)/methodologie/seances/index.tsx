@@ -40,7 +40,7 @@ function ContextBadge({ contextType }: { contextType: string | null }) {
 function LevelDot({ level }: { level: string | null }) {
   if (!level) return null
   const label = METHODOLOGY_LEVEL_LABELS[level as MethodologyLevel] ?? level
-  const color = level === 'avance' ? '#F97316' : level === 'intermediaire' ? '#4FC3F7' : '#66BB6A'
+  const color = level === 'avance' ? colors.status.warning : level === 'intermediaire' ? colors.status.info : colors.status.present
   return (
     <AureakText variant="caption" style={{ color, fontSize: 10, fontWeight: '600' }}>{label}</AureakText>
   )
@@ -186,7 +186,7 @@ export default function SeancesPage() {
               <View key={session.id} style={st.card}>
                 {/* Top row : active dot + title + ref */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <View style={[st.activeDot, { backgroundColor: session.isActive ? '#66BB6A' : colors.border.light }]} />
+                  <View style={[st.activeDot, { backgroundColor: session.isActive ? colors.status.present : colors.border.light }]} />
                   <Pressable
                     style={({ pressed }) => [{ flex: 1 }, pressed && { opacity: 0.8 }]}
                     onPress={() => router.push(`/methodologie/seances/${session.id}` as never)}

@@ -101,8 +101,8 @@ export async function uploadImplantationPhoto(
     .upload(path, file, { upsert: true, contentType: file.type })
 
   if (uploadError) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[uploadImplantationPhoto] upload error:', uploadError)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[uploadImplantationPhoto] upload error:', uploadError)
     return { publicUrl: null, error: uploadError }
   }
 
@@ -114,8 +114,8 @@ export async function uploadImplantationPhoto(
 
   const { error: dbError } = await updateImplantation(implantationId, { photoUrl: publicUrl })
   if (dbError) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[uploadImplantationPhoto] DB update error:', dbError)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[uploadImplantationPhoto] DB update error:', dbError)
     return { publicUrl: null, error: dbError }
   }
 
@@ -625,7 +625,7 @@ export async function updateGroupFormation(
     .update({ formation_data: formationData })
     .eq('id', groupId)
   if (error && process.env.NODE_ENV !== 'production') {
-    console.error('[updateGroupFormation] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[updateGroupFormation] error:', error)
   }
   return { error }
 }
@@ -742,8 +742,8 @@ export async function transferGroupMember(
     .eq('child_id', childId)
 
   if (deleteError) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('[transferGroupMember] delete error:', deleteError)
+    if ((process.env.NODE_ENV as string) !== 'production') {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[transferGroupMember] delete error:', deleteError)
     }
     return { error: deleteError }
   }
@@ -754,15 +754,15 @@ export async function transferGroupMember(
     .insert({ group_id: toGroupId, child_id: childId, tenant_id: tenantId })
 
   if (insertError) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('[transferGroupMember] insert error (rollback needed):', insertError)
+    if ((process.env.NODE_ENV as string) !== 'production') {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[transferGroupMember] insert error (rollback needed):', insertError)
     }
     // Rollback : re-insérer dans le groupe source
     const { error: rollbackError } = await supabase
       .from('group_members')
       .insert({ group_id: fromGroupId, child_id: childId, tenant_id: tenantId })
     if (rollbackError && process.env.NODE_ENV !== 'production') {
-      console.error('[transferGroupMember] rollback error:', rollbackError)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[transferGroupMember] rollback error:', rollbackError)
     }
     return { error: insertError }
   }
@@ -805,7 +805,7 @@ export async function generateGroupsBySeason(
     .order('display_name', { ascending: true })
 
   if (playersError) {
-    if (process.env.NODE_ENV !== 'production') console.error('[implantations] generateGroupsBySeason players:', playersError)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[implantations] generateGroupsBySeason players:', playersError)
     return { data: [], error: playersError }
   }
 
@@ -892,8 +892,8 @@ export async function getImplantationHoverStats(
   })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[getImplantationHoverStats] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[getImplantationHoverStats] error:', error)
     return { data: null, error }
   }
 
@@ -929,8 +929,8 @@ export async function compareImplantations(
   ])
   if (res1.error || res2.error) {
     const err = res1.error ?? res2.error
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[compareImplantations] error:', err)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[compareImplantations] error:', err)
     return { data: null, error: err }
   }
   return {
@@ -968,8 +968,8 @@ export async function listUpcomingSessionsByImplantation(
     .limit(limit)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[listUpcomingSessionsByImplantation] error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[listUpcomingSessionsByImplantation] error:', error)
     return { data: [], error }
   }
 

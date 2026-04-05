@@ -3,7 +3,7 @@
 > Mis à jour manuellement par le développeur. 30 secondes par story.
 > Ne pas déléguer à un agent — tu es la seule source fiable ici.
 
-**Dernière mise à jour** : 2026-04-01
+**Dernière mise à jour** : 2026-04-06
 
 ---
 
@@ -33,6 +33,9 @@
 | GLOBAL-SCAN 2026-04-01 (scan 23) | ✅ PASS | ✅ PASS | 0 | Non |
 | GLOBAL-SCAN 2026-04-01 (scan 24) | ✅ PASS | ✅ PASS | 0 | Non |
 | GLOBAL-SCAN 2026-04-01 (scan 25) | ✅ PASS | ✅ PASS | 0 | Non |
+| PATROL 2026-04-05 | ✅ PASS | ⏳ EN COURS | 4 BLOCKERs, 4 WARNINGs | Non |
+| BUG-CRAWLER 2026-04-06 | ✅ PASS | ⏳ EN COURS | 1 HIGH, 1 MEDIUM nouveaux | Non |
+| SCAN-FIX 2026-04-06 (cycle 3/3) | ✅ PASS | ✅ PASS | 0 | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -55,15 +58,39 @@
 
 ---
 
+## Dernière patrouille
+
+| Date | Design | Bugs | UX | Features |
+|------|--------|------|-----|---------|
+| 2026-04-05 | 3 BLOCKER, 6 WARNING | 1 CRITICAL, 3 HIGH | 3 P1, 4 P2 | 4 P1 manquantes |
+| 2026-04-06 | 4 BLOCKER, 9 WARNING | 2 CRITICAL, 1 HIGH | 3 P1, 3 P2 | 7 FRs manquants (89% Phase 1) |
+| 2026-04-06 (scan-3) | 0 BLOCKER, 0 WARNING | 0 | 0 | — | tsc CLEAN, 50+ couleurs tokenisées, 39 console guardés |
+
+---
+
 ## BLOCKERs Ouverts
 
-_Aucun._
+| ID | Description | Page | Fichier probable |
+|----|-------------|------|-----------------|
+| B-PATROL-01 | Vue `v_club_gardien_stats` manquante en DB remote | `/clubs` | migration SQL |
+| B-PATROL-02 | Erreur 400 stages/index load error (bannière + état vide simultanés) | `/stages` | `stages/index.tsx` |
+| B-PATROL-03 | Erreurs React "Unexpected text node" ×2 | `/seances` | `seances/index.tsx` |
+| B-PATROL-04 | ~~Lien sidebar Groupes → 404 (`/groupes`)~~ **RÉSOLU** — `href: '/groups'` correct | sidebar | `_layout.tsx` |
+| ~~B-CRAWLER-02~~ | ~~39 `console.error` non guardés dans `@aureak/api-client`~~ **RÉSOLU** — tous les fichiers api-client guardés avec `(process.env.NODE_ENV as string) !== 'production'` (scan-3 2026-04-06) | API | tous fichiers `api-client/src/` |
+| ~~B-CRAWLER-01~~ | ~~Colonne `unassigned_at` inexistante~~ **RÉSOLU** — migration 00134 appliquée (cycle 1) | `/dashboard` | `api-client/src/admin/dashboard.ts:75` |
 
 ---
 
 ## Warnings Ouverts (deadline : avant Gate 2)
 
-_Aucun._
+| ID | Description | Page |
+|----|-------------|------|
+| W-PATROL-01 | UUIDs bruts affichés dans liste présences | `/presences` |
+| W-PATROL-02 | Label enum `En_cours` non mappé | `/stages` |
+| W-PATROL-03 | Dashboard KPIs vides sans valeur ni empty state | `/dashboard` |
+| W-PATROL-04 | Doublon joueur AGRO Alessandro dans liste | `/children` |
+| W-CRAWLER-01 | Navigation directe URL admin redirige vers `/tableau-de-bord` → 404 Unmatched Route | toutes routes admin |
+| W-CRAWLER-02 | `implantations/index.tsx` : `load()` sans `setLoading(true)` → pas de spinner sur 2e+ appel | `/implantations` |
 
 ---
 

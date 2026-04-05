@@ -313,8 +313,8 @@ export default function TacticalEditor({ value, onChange }: TacticalEditorProps)
                 cx={toPx(player.x, FW)}
                 cy={toPx(player.y, FH)}
                 r={PLAYER_R}
-                fill={player.team === 'A' ? '#FFFFFF' : '#E05252'}
-                stroke={player.team === 'A' ? '#CCCCCC' : '#B03030'}
+                fill={player.team === 'A' ? colors.light.surface : colors.accent.red}
+                stroke={player.team === 'A' ? colors.border.light : colors.accent.teamB}
                 strokeWidth={1.5}
               />
               <Text

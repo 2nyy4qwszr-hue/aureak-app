@@ -70,7 +70,7 @@ async function extractFunctionError(error: unknown): Promise<Error> {
     }
   } catch {
     // JSON parse failed or no context — fall back to SDK message
-    if (process.env.NODE_ENV !== 'production') console.error('[profiles] extractFunctionError: could not parse response body, falling back to SDK message')
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[profiles] extractFunctionError: could not parse response body, falling back to SDK message')
   }
   return new Error(baseMsg)
 }

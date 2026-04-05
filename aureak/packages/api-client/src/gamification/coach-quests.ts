@@ -17,7 +17,7 @@ export async function getCoachWeeklyQuests(
       .order('created_at', { ascending: true })
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] getCoachWeeklyQuests error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] getCoachWeeklyQuests error:', error)
       return { data: [], error }
     }
 
@@ -45,7 +45,7 @@ export async function getCoachWeeklyQuests(
 
     return { data: quests, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] getCoachWeeklyQuests exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] getCoachWeeklyQuests exception:', err)
     return { data: [], error: err }
   }
 }
@@ -61,13 +61,13 @@ export async function assignCoachWeeklyQuests(
     })
 
     if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] assignCoachWeeklyQuests error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] assignCoachWeeklyQuests error:', error)
       return { error }
     }
 
     return { error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] assignCoachWeeklyQuests exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] assignCoachWeeklyQuests exception:', err)
     return { error: err }
   }
 }
@@ -87,7 +87,7 @@ export async function updateCoachQuestProgress(
       .single()
 
     if (fetchErr || !current) {
-      if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] updateCoachQuestProgress fetch error:', fetchErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] updateCoachQuestProgress fetch error:', fetchErr)
       return { data: null, error: fetchErr }
     }
 
@@ -107,7 +107,7 @@ export async function updateCoachQuestProgress(
       .single()
 
     if (updateErr) {
-      if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] updateCoachQuestProgress update error:', updateErr)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] updateCoachQuestProgress update error:', updateErr)
       return { data: null, error: updateErr }
     }
 
@@ -127,7 +127,7 @@ export async function updateCoachQuestProgress(
 
     return { data: quest, error: null }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[coach-quests] updateCoachQuestProgress exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coach-quests] updateCoachQuestProgress exception:', err)
     return { data: null, error: err }
   }
 }

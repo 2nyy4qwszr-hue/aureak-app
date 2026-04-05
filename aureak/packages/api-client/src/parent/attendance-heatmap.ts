@@ -29,7 +29,7 @@ export async function submitAbsenceJustification(params: {
     }, { onConflict: 'child_id,session_id' })
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[attendance-heatmap] submitAbsenceJustification:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[attendance-heatmap] submitAbsenceJustification:', error)
   }
   return { error: error ?? null }
 }
@@ -46,7 +46,7 @@ export async function getAbsenceJustification(
     .maybeSingle()
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[attendance-heatmap] getAbsenceJustification:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[attendance-heatmap] getAbsenceJustification:', error)
     return { data: null, error }
   }
 
@@ -91,7 +91,7 @@ export async function getChildAttendanceHeatmap(
   const { data, error } = await query
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[attendance-heatmap] getChildAttendanceHeatmap:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[attendance-heatmap] getChildAttendanceHeatmap:', error)
     return { data: [], error }
   }
 
@@ -156,7 +156,7 @@ export async function getChildBadgeHistory(
     .limit(200)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[attendance-heatmap] getChildBadgeHistory:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[attendance-heatmap] getChildBadgeHistory:', error)
     return { data: [], error }
   }
 
@@ -197,7 +197,7 @@ export async function getSessionPhoto(
     .maybeSingle()
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('[attendance-heatmap] getSessionPhoto:', error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[attendance-heatmap] getSessionPhoto:', error)
     return { data: null, error }
   }
 

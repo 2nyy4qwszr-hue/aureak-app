@@ -40,7 +40,7 @@ const START_MINUTES = [0, 15, 30, 45]
 
 const STAFF_ROLES: { key: GroupStaffRole; label: string; color: string }[] = [
   { key: 'principal',  label: 'Coach principal',  color: colors.accent.gold       },
-  { key: 'assistant',  label: 'Coach assistant',  color: '#4FC3F7'                },
+  { key: 'assistant',  label: 'Coach assistant',  color: colors.status.info      },
   { key: 'remplacant', label: 'Coach remplaçant', color: colors.text.muted    },
 ]
 
@@ -52,7 +52,7 @@ const SESSION_STATUS_LABEL: Record<string, string> = {
 }
 const SESSION_STATUS_COLOR: Record<string, string> = {
   planifiée: colors.accent.gold,
-  en_cours : '#4FC3F7',
+  en_cours : colors.status.info,
   terminée : colors.status.present,
   annulée  : colors.status.attention,
 }
@@ -1055,8 +1055,8 @@ function SeancesTab({
       </View>
 
       {genSuccess && (
-        <View style={{ backgroundColor: '#D1FAE5', borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
-          <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' }}>{genSuccess}</AureakText>
+        <View style={{ backgroundColor: colors.status.successBg, borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
+          <AureakText variant="caption" style={{ color: colors.status.successText, fontWeight: '700' }}>{genSuccess}</AureakText>
         </View>
       )}
 
@@ -1157,8 +1157,8 @@ function SeancesTab({
             )}
 
             {genError && (
-              <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
-                <AureakText variant="caption" style={{ color: '#DC2626' }}>{genError}</AureakText>
+              <View style={{ backgroundColor: colors.status.errorBorderSevere, borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
+                <AureakText variant="caption" style={{ color: colors.status.errorText }}>{genError}</AureakText>
               </View>
             )}
 

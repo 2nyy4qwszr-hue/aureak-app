@@ -62,7 +62,7 @@ function PlannerCell({
   }
 
   const barHeight = count === 1 ? 8 : count === 2 ? 16 : 24
-  const bgColor   = count <= 2 ? colors.accent.gold : count === 3 ? '#F59E0B' : (colors.accent.red ?? '#E05252')
+  const bgColor   = count <= 2 ? colors.accent.gold : count === 3 ? colors.status.warning : colors.accent.red
 
   return (
     <Pressable style={[pc.cell, { backgroundColor: bgColor + '18' }]} onPress={onPress}>
@@ -271,8 +271,8 @@ export default function SeasonPlannerPage() {
       <View style={st.legend}>
         {[
           { color: colors.accent.gold,        label: '1-2 séances' },
-          { color: '#F59E0B',                  label: '3 séances' },
-          { color: colors.accent.red ?? '#E05252', label: '4+ séances' },
+          { color: colors.status.warning,       label: '3 séances' },
+          { color: colors.accent.red,           label: '4+ séances' },
         ].map(({ color, label }) => (
           <View key={label} style={st.legendItem}>
             <View style={[st.legendDot, { backgroundColor: color }]} />

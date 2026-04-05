@@ -104,8 +104,8 @@ export async function getCoachEvaluationBias(
     .gte('updated_at', since)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[getCoachEvaluationBias] fetch error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[getCoachEvaluationBias] fetch error:', error)
     return { data: [], error }
   }
 
@@ -216,8 +216,8 @@ export async function listDangerousPlayers(): Promise<{ data: DangerousPlayer[];
     .limit(5000)   // suffisant pour tous les joueurs actifs
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production')
-      console.error('[listDangerousPlayers] fetch error:', error)
+    if ((process.env.NODE_ENV as string) !== 'production')
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[listDangerousPlayers] fetch error:', error)
     return { data: [], error }
   }
 

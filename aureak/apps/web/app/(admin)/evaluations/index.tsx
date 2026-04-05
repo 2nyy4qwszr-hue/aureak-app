@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     boxShadow        : shadows.gold,
   } as never,
   compareBtnText: {
-    color     : '#3D2E00',
+    color     : colors.status.successText,
     fontSize  : 13,
     fontWeight: '700' as never,
   },
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   } as never,
   chipText     : { fontSize: 12, color: colors.text.muted, fontWeight: '600' as never },
   chipTextActive: { color: '#FFFFFF' },
-  chipTextGold : { color: '#3D2E00' },
+  chipTextGold : { color: colors.status.successText },
 
   // Grille cards
   grid: {

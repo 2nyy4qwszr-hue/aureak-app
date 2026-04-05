@@ -1112,7 +1112,7 @@ const s = StyleSheet.create({
   cancelBtn: { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },
   saveBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, backgroundColor: colors.accent.gold },
 
-  errorBanner : { backgroundColor: colors.light.muted, borderLeftWidth: 3, borderLeftColor: '#f87171', borderRadius: 4, padding: space.md },
+  errorBanner : { backgroundColor: colors.status.errorBg, borderLeftWidth: 3, borderLeftColor: colors.accent.red, borderRadius: 4, padding: space.md },
 
   sectionNote  : { backgroundColor: colors.light.primary, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.border.light },
   pickerWrapper: { marginTop: space.sm, borderTopWidth: 1, borderTopColor: colors.border.divider, paddingTop: space.sm },
