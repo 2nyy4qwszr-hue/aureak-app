@@ -300,7 +300,7 @@ function SessionSummaryCard({
 }) {
   const { presenceRate, presentCount, totalCount, avgScore, topEval } = summary
   const topScore = topEval ? evalToScore(topEval) : null
-  const topName  = topEval ? (childNameMap[topEval.childId] ?? topEval.childId.slice(0, 8) + '…') : null
+  const topName  = topEval ? (childNameMap[topEval.childId] ?? 'Joueur inconnu') : null
   const topInits = topName ? topName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'
 
   const presenceColor =
@@ -431,7 +431,7 @@ function StreakBadgeSection({
     <View style={str.card}>
       <AureakText style={str.title}>Séries d'assiduité 🔥</AureakText>
       {eligible.map((s, i) => {
-        const name   = childNameMap[s.childId] ?? s.childId.slice(0, 8) + '…'
+        const name   = childNameMap[s.childId] ?? 'Joueur inconnu'
         const isExcp = s.streak >= 10
         const badge  = isExcp ? '🔥🔥 Série exceptionnelle' : '🔥 Série active'
         const bColor = isExcp ? (colors.accent.red ?? '#E05252') : colors.accent.gold

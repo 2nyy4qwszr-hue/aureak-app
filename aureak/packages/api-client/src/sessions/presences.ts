@@ -158,7 +158,7 @@ export async function getSessionAttendanceDetail(
         const att = attendanceMap.get(a.child_id)
         return {
           childId         : a.child_id,
-          displayName     : nameMap.get(a.child_id) ?? a.child_id,
+          displayName     : nameMap.get(a.child_id) ?? 'Joueur inconnu',
           attendanceType  : (a.attendance_type ?? 'member') as AttendanceType,
           status          : att?.status ?? null,
           recordedBy      : att?.recorded_by ?? null,
@@ -347,7 +347,7 @@ export async function listTrialConversionSuggestions(): Promise<{
   return {
     data: suggestions.map(s => ({
       ...s,
-      childName: nameMap.get(s.childId) ?? s.childId,
+      childName: nameMap.get(s.childId) ?? 'Joueur inconnu',
     })),
     error: null,
   }
