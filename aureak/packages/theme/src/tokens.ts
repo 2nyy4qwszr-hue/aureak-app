@@ -21,13 +21,19 @@ export const colors = {
     hover   : '#EDE9DF',  // beige légèrement plus foncé pour hover
     muted   : '#F8F6F1',  // surface atténuée (table headers, panels)
   },
-  // ── Dark theme (admin web dark mode — Story 51.8) ─────────────────────────
+  // ── Dark theme (admin web dark mode — Story 51.8 + 61.1) ─────────────────────────
   dark: {
-    primary : '#1A1A1A',  // noir chaud — fond principal dark mode admin
-    surface : '#242424',  // cards sur fond dark
-    elevated: '#2C2C2C',  // modals, drawers, overlays dark
-    hover   : '#2E2E2E',  // hover state dark
-    muted   : '#1E1E1E',  // surface atténuée dark (table headers, panels)
+    primary   : '#1A1A1A',  // noir chaud — fond principal dark mode admin
+    background: '#0F0F0F',  // noir profond — fond dark mode terrain (Story 61.1 AC2)
+    surface   : '#1A1A1A',  // card dark (Story 61.1 AC2)
+    elevated  : '#242424',  // card surélevée (Story 61.1 AC2)
+    hover     : '#2A2A2A',  // hover state dark (Story 61.1 AC2)
+    muted     : '#1E1E1E',  // surface atténuée dark (table headers, panels)
+    text      : '#F0F0F0',  // texte principal dark mode (Story 61.1 AC2)
+    textMuted : '#A0A0A0',  // texte secondaire dark mode (Story 61.1 AC2)
+    border    : '#333333',  // bordure dark mode (Story 61.1 AC2)
+    accentGreen: '#00FF88', // vert néon statuts positifs dark (Story 61.1 AC3)
+    accentRed  : '#FF4444', // rouge néon statuts négatifs dark (Story 61.1 AC3)
   },
   accent: {
     gold     : '#C1AC5C',  // or champagne AUREAK — signature, accents, badges

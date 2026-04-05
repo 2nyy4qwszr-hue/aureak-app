@@ -5,3 +5,7 @@ export type { AppConfig } from './tamagui.config'
 
 // Story 60.5 — Utilitaires couleur stats
 export { getStatColor, getStatColorClass, STAT_THRESHOLDS } from './statColors'
+
+// Story 61.1 — ThemeContext : ThemeProvider, useTheme, AppTheme
+export { ThemeProvider, useTheme } from './ThemeContext'
+export type { AppTheme } from './ThemeContext'
