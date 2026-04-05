@@ -22,7 +22,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { TYPE_COLOR } from './_components/constants'
 import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode, MethodologySituation } from '@aureak/types'
-import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS } from '@aureak/types'
+import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS, MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
 import { generateSessionLabel } from './_utils'
 import { useToast } from '../../../components/ToastContext'
 
@@ -825,6 +825,13 @@ export default function NewSessionPage() {
   // Story 58-7 — Recommandations exercices pour un groupe (cache par groupId)
   const [recommendations,        setRecommendations]        = useState<Record<string, (MethodologySituation & { isRecommended: boolean })[]>>({})
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
+
+  // Story 58-8 — Durées des 3 phases pour le wizard (en minutes, éditables)
+  const [phaseDurations, setPhaseDurations] = useState<Record<string, number>>({
+    activation : 0,
+    development: 0,
+    conclusion : 0,
+  })
 
   // ── Result ───────────────────────────────────────────────────
   const [creating,       setCreating]       = useState(false)
@@ -1838,6 +1845,51 @@ export default function NewSessionPage() {
             }
             return null
           })()}
+
+          {/* Story 58-8 — Durées des 3 phases (timeline éditable) */}
+          <View style={p.card}>
+            <SectionLabel
+              title="Structure de la séance"
+              hint="Répartissez les phases — Activation · Développement · Conclusion"
+            />
+            {(() => {
+              const totalPhases = MODULE_TYPES.reduce((sum, t) => sum + (phaseDurations[t] ?? 0), 0)
+              const isOver      = durationMinutes > 0 && totalPhases > durationMinutes
+              return (
+                <View style={{ gap: space.sm }}>
+                  {/* Indicateur total */}
+                  <AureakText variant="caption" style={{ color: isOver ? colors.accent.red : colors.text.muted }}>
+                    {isOver
+                      ? `⚠ Total dépassé : ${totalPhases} min / ${durationMinutes} min prévus`
+                      : `${totalPhases} min / ${durationMinutes} min`
+                    }
+                  </AureakText>
+                  {MODULE_TYPES.map(type => {
+                    const label = MODULE_LABELS[type]
+                    const val   = phaseDurations[type] ?? 0
+                    return (
+                      <View key={type} style={{ gap: space.xs }}>
+                        <AureakText variant="label" style={{ fontSize: 10, color: colors.text.muted }}>{label.toUpperCase()}</AureakText>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
+                          {[0, 5, 10, 15, 20, 25, 30].map(v => (
+                            <Pressable
+                              key={v}
+                              style={[cp.chip, val === v && cp.chipActive]}
+                              onPress={() => setPhaseDurations(prev => ({ ...prev, [type]: v }))}
+                            >
+                              <AureakText style={{ fontSize: 11, color: val === v ? colors.text.dark : colors.text.muted, fontWeight: val === v ? '600' as never : '400' as never }}>
+                                {v} min
+                              </AureakText>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                    )
+                  })}
+                </View>
+              )
+            })()}
+          </View>
 
           <View style={[p.card, p.cardWithDropdown]}>
             <SectionLabel title="Thèmes pédagogiques" hint="Optionnel — 0 à N thèmes par séance" />

@@ -1339,6 +1339,20 @@ export type MethodologySituation = {
   updatedAt      : string
 }
 
+// ── Story 58-8 — Modules 3 phases de séance pédagogique ──────────────────────
+
+/** Type de phase pédagogique */
+export type MethodologyModuleType = 'activation' | 'development' | 'conclusion'
+
+/** Module de phase d'une séance pédagogique (activation / développement / conclusion) */
+export type MethodologySessionModule = {
+  id              : string
+  sessionId       : string  // methodology_session_id
+  moduleType      : MethodologyModuleType
+  durationMinutes : number
+  situations      : MethodologySituation[]
+}
+
 /** Séance pédagogique — contenu réutilisable de la bibliothèque (PDF / vidéo / audio) */
 export type MethodologySession = {
   id          : string

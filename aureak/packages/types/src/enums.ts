@@ -269,3 +269,17 @@ export const DIFFICULTY_LABELS: Record<number, string> = {
   4: 'Avancé',
   5: 'Expert',
 }
+
+// ── Story 58-8 — Phases de séance pédagogique ────────────────────────────────
+
+import type { MethodologyModuleType } from './entities'
+
+/** Labels des phases pédagogiques */
+export const MODULE_LABELS: Record<MethodologyModuleType, string> = {
+  activation : 'Activation',
+  development: 'Développement',
+  conclusion : 'Conclusion',
+}
+
+/** Ordre canonique des phases */
+export const MODULE_TYPES: MethodologyModuleType[] = ['activation', 'development', 'conclusion']

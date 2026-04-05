@@ -5,7 +5,7 @@ import { supabase } from './supabase'
 import type {
   MethodologyTheme, MethodologySituation, MethodologySession,
   MethodologyMethod, MethodologyContextType, MethodologyLevel,
-  DiagramData,
+  DiagramData, MethodologyModuleType, MethodologySessionModule,
 } from '@aureak/types'
 
 // ── Row mappers ───────────────────────────────────────────────────────────────
@@ -567,5 +567,111 @@ export async function addSituationToSession(
     )
   if (error && process.env.NODE_ENV !== 'production')
     console.error('[addSituationToSession] error:', error)
+  return { error: error ?? null }
+}
+
+// ── Story 58-8 — Modules 3 phases séance pédagogique ─────────────────────────
+
+/**
+ * Retourne les modules (phases) d'une séance pédagogique avec leurs situations associées.
+ */
+export async function listSessionModules(
+  methodologySessionId: string,
+): Promise<{ data: MethodologySessionModule[]; error: unknown }> {
+  const { data, error } = await supabase
+    .from('methodology_session_modules')
+    .select(`
+      id,
+      methodology_session_id,
+      module_type,
+      duration_minutes,
+      methodology_module_situations (
+        sort_order,
+        methodology_situations ( * )
+      )
+    `)
+    .eq('methodology_session_id', methodologySessionId)
+    .order('module_type')
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production')
+      console.error('[listSessionModules] error:', error)
+    return { data: [], error }
+  }
+
+  return {
+    data: (data ?? []).map((row: Record<string, unknown>) => ({
+      id             : row.id as string,
+      sessionId      : row.methodology_session_id as string,
+      moduleType     : row.module_type as MethodologyModuleType,
+      durationMinutes: (row.duration_minutes as number | null) ?? 0,
+      situations     : ((row.methodology_module_situations as Array<{ methodology_situations: Record<string, unknown> }>) ?? [])
+        .map((s) => mapMethodologySituation(s.methodology_situations))
+        .filter(Boolean) as MethodologySituation[],
+    })),
+    error: null,
+  }
+}
+
+/**
+ * Crée ou met à jour un module de phase pour une séance pédagogique.
+ * Upsert idempotent sur (methodology_session_id, module_type).
+ */
+export async function upsertSessionModule(
+  methodologySessionId: string,
+  moduleType          : MethodologyModuleType,
+  durationMinutes     : number,
+): Promise<{ data: { id: string } | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('methodology_session_modules')
+    .upsert(
+      {
+        methodology_session_id: methodologySessionId,
+        module_type           : moduleType,
+        duration_minutes      : durationMinutes,
+        updated_at            : new Date().toISOString(),
+      },
+      { onConflict: 'methodology_session_id,module_type' },
+    )
+    .select('id')
+    .single()
+  if (error && process.env.NODE_ENV !== 'production')
+    console.error('[upsertSessionModule] error:', error)
+  return { data: data ?? null, error: error ?? null }
+}
+
+/**
+ * Associe une situation à un module de phase (idempotent).
+ */
+export async function addSituationToModule(
+  moduleId   : string,
+  situationId: string,
+  sortOrder  = 0,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_module_situations')
+    .upsert(
+      { module_id: moduleId, situation_id: situationId, sort_order: sortOrder },
+      { onConflict: 'module_id,situation_id' },
+    )
+  if (error && process.env.NODE_ENV !== 'production')
+    console.error('[addSituationToModule] error:', error)
+  return { error: error ?? null }
+}
+
+/**
+ * Retire une situation d'un module de phase.
+ */
+export async function removeSituationFromModule(
+  moduleId   : string,
+  situationId: string,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_module_situations')
+    .delete()
+    .eq('module_id', moduleId)
+    .eq('situation_id', situationId)
+  if (error && process.env.NODE_ENV !== 'production')
+    console.error('[removeSituationFromModule] error:', error)
   return { error: error ?? null }
 }

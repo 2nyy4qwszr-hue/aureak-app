@@ -22,8 +22,13 @@ import {
   // Story 58-3
   addSituationToSession,
   listMethodologySessionSituations,
+  // Story 58-8
+  listSessionModules,
+  upsertSessionModule,
 } from '@aureak/api-client'
 import type { MethodologySituation } from '@aureak/types'
+import { MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
+import { SessionTimeline } from '../_components/SessionTimeline'
 import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge, AttendanceToggle, BestSessionBadge } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
@@ -1054,6 +1059,13 @@ export default function SessionDetailPage() {
   const [highlightedSitId,   setHighlightedSitId]   = useState<string | null>(null)
   const [situationDropError, setSituationDropError] = useState<string | null>(null)
 
+  // Story 58-8 — Timeline 3 phases
+  const [sessionModules,  setSessionModules]  = useState<import('@aureak/types').MethodologySessionModule[]>([])
+  const [loadingModules,  setLoadingModules]  = useState(false)
+  const [editingModule,   setEditingModule]   = useState<import('@aureak/types').MethodologyModuleType | null>(null)
+  const [moduleDurations, setModuleDurations] = useState<Record<string, number>>({})
+  const [savingModule,    setSavingModule]    = useState(false)
+
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -1256,6 +1268,50 @@ export default function SessionDetailPage() {
   }
 
   useEffect(() => { load() }, [sessionId])
+
+  // Story 58-8 — Charger les modules de phase quand la séance a un methodologySessionId
+  useEffect(() => {
+    const methSessionId = session?.methodologySessionId
+    if (!methSessionId) return
+    setLoadingModules(true)
+    listSessionModules(methSessionId)
+      .then(res => {
+        if (res.data) {
+          setSessionModules(res.data)
+          // Pré-peupler les durées éditables
+          const durs: Record<string, number> = {}
+          res.data.forEach(m => { durs[m.moduleType] = m.durationMinutes })
+          setModuleDurations(durs)
+        }
+      })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[SessionPage] loadModules error:', err)
+      })
+      .finally(() => setLoadingModules(false))
+  }, [session?.methodologySessionId])
+
+  const handleSaveModule = async (moduleType: import('@aureak/types').MethodologyModuleType, durationMinutes: number) => {
+    const methSessionId = session?.methodologySessionId
+    if (!methSessionId) return
+    setSavingModule(true)
+    try {
+      const { error } = await upsertSessionModule(methSessionId, moduleType, durationMinutes)
+      if (error && process.env.NODE_ENV !== 'production')
+        console.error('[SessionPage] saveModule error:', error)
+      else {
+        setSessionModules(prev =>
+          prev.some(m => m.moduleType === moduleType)
+            ? prev.map(m => m.moduleType === moduleType ? { ...m, durationMinutes } : m)
+            : [...prev, { id: '', sessionId: methSessionId, moduleType, durationMinutes, situations: [] }]
+        )
+        setModuleDurations(prev => ({ ...prev, [moduleType]: durationMinutes }))
+        setEditingModule(null)
+      }
+    } finally {
+      setSavingModule(false)
+    }
+  }
 
   // Story 58-3 — Rechargement des situations liées à la séance
   const reloadSituations = async () => {
@@ -2068,6 +2124,66 @@ export default function SessionDetailPage() {
           <Pressable style={ab54.dismissBtn} onPress={() => setAlertsDismissed(true)}>
             <AureakText style={ab54.dismissText}>Ignorer</AureakText>
           </Pressable>
+        </View>
+      )}
+
+      {/* Story 58-8 — Structure de la séance (timeline 3 phases) */}
+      {session.methodologySessionId && (
+        <View style={styles.card}>
+          <AureakText variant="label">Structure de la séance</AureakText>
+          {loadingModules ? (
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>Chargement des phases…</AureakText>
+          ) : (
+            <>
+              <SessionTimeline
+                modules={sessionModules}
+                totalDuration={session.durationMinutes ?? 0}
+                onEditModule={type => setEditingModule(type)}
+              />
+              {/* Panel d'édition inline pour le module sélectionné */}
+              {editingModule && (
+                <View style={{ marginTop: space.md, padding: space.md, backgroundColor: colors.light.muted, borderRadius: 8, gap: space.sm }}>
+                  <AureakText variant="label">{MODULE_LABELS[editingModule]}</AureakText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>Durée :</AureakText>
+                    {/* Stepper +5/-5 */}
+                    {[0, 5, 10, 15, 20, 25, 30].map(v => (
+                      <Pressable
+                        key={v}
+                        style={{
+                          paddingHorizontal: space.sm,
+                          paddingVertical  : 4,
+                          borderRadius     : 6,
+                          borderWidth      : 1,
+                          borderColor      : (moduleDurations[editingModule] ?? 0) === v ? colors.accent.gold : colors.border.light,
+                          backgroundColor  : (moduleDurations[editingModule] ?? 0) === v ? colors.accent.gold + '20' : 'transparent',
+                        }}
+                        onPress={() => setModuleDurations(prev => ({ ...prev, [editingModule]: v }))}
+                      >
+                        <AureakText variant="caption" style={{ color: (moduleDurations[editingModule] ?? 0) === v ? colors.accent.gold : colors.text.muted }}>
+                          {v} min
+                        </AureakText>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.xs }}>
+                    <Pressable
+                      style={{ paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: 6, backgroundColor: colors.accent.gold, opacity: savingModule ? 0.6 : 1 }}
+                      onPress={() => handleSaveModule(editingModule, moduleDurations[editingModule] ?? 0)}
+                      disabled={savingModule}
+                    >
+                      <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
+                        {savingModule ? 'Enregistrement…' : 'Enregistrer'}
+                      </AureakText>
+                    </Pressable>
+                    <Pressable onPress={() => setEditingModule(null)}>
+                      <AureakText variant="caption" style={{ color: colors.text.muted }}>Annuler</AureakText>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+            </>
+          )}
         </View>
       )}
 

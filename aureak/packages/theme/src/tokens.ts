@@ -57,6 +57,12 @@ export const colors = {
     club  : '#60A5FA',  // bleu — badges club
     coach : '#A78BFA',  // violet — badges coach
   },
+  // Story 58-8 — Couleurs des phases de séance pédagogique
+  phase: {
+    activation : '#D4EDDA',  // vert clair — phase de mise en train
+    development: '#FFF3CD',  // or clair  — phase de développement principal
+    conclusion : '#CCE5FF',  // bleu clair — phase de conclusion/bilan
+  },
   text: {
     primary  : '#FFFFFF',         // texte principal sur fond sombre
     secondary: '#A0A0A0',         // texte secondaire sur fond sombre

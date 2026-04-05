@@ -448,6 +448,10 @@ export {
   addSituationToSession,
   getThemeOfWeek,
   getRecommendedSituations,
+  listSessionModules,
+  upsertSessionModule,
+  addSituationToModule,
+  removeSituationFromModule,
 } from './methodology'
 export type {
   CreateMethodologyThemeParams,
