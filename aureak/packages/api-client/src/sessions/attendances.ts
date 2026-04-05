@@ -517,3 +517,94 @@ export async function listSessionEvents(
 
   return { data: filtered, error }
 }
+
+// ─── Story 54-3 — Streaks récentes par joueur (batch) ────────────────────────
+
+export type PlayerRecentStreak = {
+  consecutivePresences: number   // streak actuel (présences d'affilée depuis la plus récente)
+  recentAbsences      : number   // absences sur les 5 dernières séances
+}
+
+/**
+ * Charge les 10 dernières séances réalisées d'un groupe (avant sessionId inclus),
+ * puis calcule pour chaque joueur sa streak de présences consécutives et
+ * son nombre d'absences sur les 5 dernières séances.
+ * Retourne un Record<childId, PlayerRecentStreak>.
+ * Si l'appel échoue, retourne {}.
+ */
+export async function getGroupMembersRecentStreaks(
+  groupId  : string,
+  sessionId: string,
+): Promise<Record<string, PlayerRecentStreak>> {
+  try {
+    // 1. Récupérer les 10 dernières séances réalisées du groupe
+    const { data: sessions, error: sessErr } = await supabase
+      .from('sessions')
+      .select('id, scheduled_at, status')
+      .eq('group_id', groupId)
+      .eq('status', 'réalisée')
+      .is('deleted_at', null)
+      .order('scheduled_at', { ascending: false })
+      .limit(10)
+
+    if (sessErr || !sessions || sessions.length === 0) return {}
+
+    const sessionIds = (sessions as { id: string; scheduled_at: string }[]).map(s => s.id)
+
+    // 2. Récupérer toutes les présences pour ces séances
+    const { data: attendances, error: attErr } = await supabase
+      .from('attendances')
+      .select('session_id, child_id, status')
+      .in('session_id', sessionIds)
+
+    if (attErr || !attendances) return {}
+
+    // 3. Construire une map session_id → Set<childId présent>
+    const presentBySess = new Map<string, Set<string>>()
+    for (const sess of sessions as { id: string }[]) {
+      presentBySess.set(sess.id, new Set())
+    }
+    for (const att of attendances as { session_id: string; child_id: string; status: string }[]) {
+      if (att.status === 'present' || att.status === 'late' || att.status === 'trial') {
+        presentBySess.get(att.session_id)?.add(att.child_id)
+      }
+    }
+
+    // 4. Collecter tous les enfants concernés
+    const allChildIds = new Set<string>()
+    for (const att of attendances as { child_id: string }[]) {
+      allChildIds.add(att.child_id)
+    }
+
+    // sessions is already sorted desc (most recent first)
+    const sessionsDesc = sessions as { id: string }[]
+
+    // 5. Calculer streak et absences récentes pour chaque enfant
+    const result: Record<string, PlayerRecentStreak> = {}
+    for (const childId of allChildIds) {
+      // Streak : présences d'affilée depuis la plus récente
+      let consecutivePresences = 0
+      for (const s of sessionsDesc) {
+        if (presentBySess.get(s.id)?.has(childId)) {
+          consecutivePresences++
+        } else {
+          break
+        }
+      }
+      // Absences sur les 5 dernières séances
+      const last5 = sessionsDesc.slice(0, 5)
+      let recentAbsences = 0
+      for (const s of last5) {
+        if (!presentBySess.get(s.id)?.has(childId)) {
+          recentAbsences++
+        }
+      }
+      result[childId] = { consecutivePresences, recentAbsences }
+    }
+
+    return result
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[getGroupMembersRecentStreaks] error:', err)
+    return {}
+  }
+}

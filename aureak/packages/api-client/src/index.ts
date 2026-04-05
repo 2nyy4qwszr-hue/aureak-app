@@ -140,8 +140,9 @@ export {
   listSessionsWithAttendance, listPlayersWithAttendance,
   listSessionAttendeeRoster, batchResolveAttendeeNames,
   listAttendanceStatsByGroup,
+  getGroupMembersRecentStreaks,
 } from './sessions/attendances'
-export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry, AttendanceStat } from './sessions/attendances'
+export type { RecordAttendanceParams, SessionAttendanceSummary, PlayerAttendanceSummary, AttendeeRosterEntry, AttendanceStat, PlayerRecentStreak } from './sessions/attendances'
 
 export {
   generateRecurrenceSessions, cancelRecurrenceSeries, cancelSessionRpc, modifySingleException,
