@@ -115,6 +115,18 @@ export type { SituationCardProps } from './SituationCard'
 // Story 58-6 — Notation par étoiles 1–5 (interactif ou read-only)
 export { StarRating } from './StarRating'
 
+// Story 60-2 — Line chart SVG pur présences 12 mois
+export { LineChart, SERIES_COLORS } from './LineChart'
+export type { LineChartProps } from './LineChart'
+
+// Story 60-3 — Heatmap jours/heures séances
+export { HeatmapGrid } from './HeatmapGrid'
+export type { HeatmapGridProps } from './HeatmapGrid'
+
+// Story 60-4 — Bar chart horizontal classement implantations
+export { BarChart } from './BarChart'
+export type { BarChartProps } from './BarChart'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
