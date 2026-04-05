@@ -127,6 +127,10 @@ export type { HeatmapGridProps } from './HeatmapGrid'
 export { BarChart } from './BarChart'
 export type { BarChartProps } from './BarChart'
 
+// Story 60-8 — Live counter séances en cours
+export { LiveCounter } from './LiveCounter'
+export type { LiveCounterProps } from './LiveCounter'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
