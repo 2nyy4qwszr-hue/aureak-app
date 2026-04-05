@@ -8,11 +8,12 @@ import {
   postponeSession, cancelSessionWithShift, getChildDirectoryEntry,
   listSessionThemeBlocks, listSessionWorkshops,
   listGroupMembersWithDetails,
+  addSessionThemeBlock, removeSessionThemeBlock, listMethodologyThemes,
 } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge } from '@aureak/ui'
-import { colors, space, shadows, radius } from '@aureak/theme'
+import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
-import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails } from '@aureak/types'
+import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -77,6 +78,13 @@ export default function SessionDetailPage() {
   const [childNameMap,  setChildNameMap] = useState<Record<string, string>>({})
   // Story 21.2 — Theme blocks
   const [themeBlocks,   setThemeBlocks]  = useState<SessionThemeBlock[]>([])
+  // Story 49.2 — Theme picker (édition post-création)
+  const [showThemePicker, setShowThemePicker] = useState(false)
+  const [availableThemes, setAvailableThemes] = useState<MethodologyTheme[]>([])
+  const [addingTheme,     setAddingTheme]     = useState(false)
+  const [themeAddError,   setThemeAddError]   = useState<string | null>(null)
+  const [removingThemeId, setRemovingThemeId] = useState<string | null>(null)
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
   // Story 21.3 — Workshops
   const [workshops,     setWorkshops]    = useState<SessionWorkshop[]>([])
   // Story 46.1 — Group members
@@ -177,6 +185,55 @@ export default function SessionDetailPage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [guestSearch])
+
+  // Story 49.2 — Theme picker handlers
+  const handleOpenThemePicker = async () => {
+    setThemeAddError(null)
+    if (availableThemes.length === 0) {
+      const all = await listMethodologyThemes({ activeOnly: true })
+      setAvailableThemes(all)
+    }
+    setShowThemePicker(true)
+  }
+
+  const handleAddTheme = async (themeId: string) => {
+    if (!session || !sessionId) return
+    setAddingTheme(true)
+    setThemeAddError(null)
+    try {
+      const { data, error } = await addSessionThemeBlock({
+        sessionId,
+        tenantId : session.tenantId,
+        themeId,
+        sortOrder: themeBlocks.length,
+      })
+      if (error || !data) {
+        setThemeAddError(error ?? 'Erreur inconnue')
+        return
+      }
+      const theme = availableThemes.find(t => t.id === themeId)
+      setThemeBlocks(prev => [...prev, { ...data, themeName: theme?.title }])
+      setShowThemePicker(false)
+    } finally {
+      setAddingTheme(false)
+    }
+  }
+
+  const handleRemoveTheme = async (blockId: string) => {
+    setRemovingThemeId(blockId)
+    const snapshot = [...themeBlocks]
+    setThemeBlocks(prev => prev.filter(b => b.id !== blockId)) // optimistic
+    try {
+      const { error } = await removeSessionThemeBlock(blockId)
+      if (error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] removeThemeBlock error:', error)
+        setThemeBlocks(snapshot) // rollback
+      }
+    } finally {
+      setRemovingThemeId(null)
+      setConfirmRemoveId(null)
+    }
+  }
 
   const handleAddGuest = async (child: ChildDirectoryEntry) => {
     if (!sessionId || !session) return
@@ -496,30 +553,156 @@ export default function SessionDetailPage() {
         )}
       </View>
 
-      {/* Thèmes pédagogiques (Story 21.2) */}
+      {/* Thèmes pédagogiques (Story 21.2 + Story 49.2 édition post-création) */}
       {!loading && (
         <View style={styles.card}>
-          <AureakText variant="label">Thèmes pédagogiques</AureakText>
+          {/* Header avec bouton d'ajout */}
+          <View style={[styles.row, { justifyContent: 'space-between' as never }]}>
+            <AureakText variant="label">Thèmes pédagogiques</AureakText>
+            <Pressable
+              style={{
+                paddingHorizontal: space.sm, paddingVertical: space.xs,
+                backgroundColor: colors.accent.gold + '20',
+                borderRadius: 6, borderWidth: 1, borderColor: colors.accent.gold,
+                opacity: addingTheme ? 0.6 : 1,
+              }}
+              onPress={handleOpenThemePicker}
+              disabled={addingTheme}
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold }}>
+                {addingTheme ? '…' : '+ Ajouter un thème'}
+              </AureakText>
+            </Pressable>
+          </View>
+
+          {/* Liste des blocs existants */}
           {themeBlocks.length > 0 ? themeBlocks.map((b, i) => (
-            <View key={b.id} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.xs, paddingVertical: 2 }}>
-              <AureakText variant="caption" style={{ color: colors.text.muted, minWidth: 18 }}>{i + 1}.</AureakText>
-              <View style={{ flex: 1 }}>
-                <AureakText variant="body">{b.themeName ?? b.themeId}</AureakText>
-                {b.sequenceName && (
-                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                    Séquence : {b.sequenceName}
-                  </AureakText>
+            <View key={b.id}>
+              {/* Ligne thème */}
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.xs, paddingVertical: 2 }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, minWidth: 18 }}>{i + 1}.</AureakText>
+                <View style={{ flex: 1 }}>
+                  <AureakText variant="body">{b.themeName ?? b.themeId}</AureakText>
+                  {b.sequenceName && (
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                      Séquence : {b.sequenceName}
+                    </AureakText>
+                  )}
+                  {b.resourceLabel && (
+                    <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                      Ressource : {b.resourceLabel}
+                    </AureakText>
+                  )}
+                </View>
+                {/* Bouton Retirer */}
+                {removingThemeId !== b.id && confirmRemoveId !== b.id && (
+                  <Pressable onPress={() => setConfirmRemoveId(b.id)}>
+                    <AureakText variant="caption" style={{ color: colors.accent.red ?? '#E05252' }}>Retirer</AureakText>
+                  </Pressable>
                 )}
-                {b.resourceLabel && (
-                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                    Ressource : {b.resourceLabel}
-                  </AureakText>
+                {removingThemeId === b.id && (
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>…</AureakText>
                 )}
               </View>
+              {/* Confirmation inline */}
+              {confirmRemoveId === b.id && removingThemeId !== b.id && (
+                <View style={{
+                  flexDirection: 'row', alignItems: 'center', gap: space.xs,
+                  backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.xs,
+                  marginLeft: 22,
+                }}>
+                  <AureakText variant="caption" style={{ color: '#DC2626', flex: 1 }}>
+                    Retirer ce thème ?
+                  </AureakText>
+                  <Pressable
+                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, backgroundColor: '#DC2626', borderRadius: 4 }}
+                    onPress={() => handleRemoveTheme(b.id)}
+                  >
+                    <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700' as never }}>Confirmer</AureakText>
+                  </Pressable>
+                  <Pressable
+                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, borderWidth: 1, borderColor: '#DC2626', borderRadius: 4 }}
+                    onPress={() => setConfirmRemoveId(null)}
+                  >
+                    <AureakText variant="caption" style={{ color: '#DC2626' }}>Annuler</AureakText>
+                  </Pressable>
+                </View>
+              )}
             </View>
           )) : (
             <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
               Aucun thème associé
+            </AureakText>
+          )}
+
+          {/* Picker inline */}
+          {showThemePicker && (
+            <View style={{
+              marginTop: space.xs,
+              borderWidth: 1, borderColor: colors.border.light,
+              borderRadius: radius.xs,
+              backgroundColor: colors.light.surface,
+              boxShadow: shadows.md,
+              maxHeight: 280,
+              overflow: 'hidden' as never,
+            }}>
+              <View style={{ padding: space.xs, borderBottomWidth: 1, borderBottomColor: colors.border.divider, flexDirection: 'row', justifyContent: 'space-between' as never, alignItems: 'center' }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                  Sélectionner un thème
+                </AureakText>
+                <Pressable onPress={() => setShowThemePicker(false)}>
+                  <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
+                </Pressable>
+              </View>
+              <ScrollView style={{ maxHeight: 230 }}>
+                {availableThemes.filter(t => !themeBlocks.map(b => b.themeId).includes(t.id)).map(t => {
+                  const methodColor = t.method
+                    ? (methodologyMethodColors as Record<string, string>)[t.method] ?? colors.text.muted
+                    : null
+                  return (
+                    <Pressable
+                      key={t.id}
+                      style={({ pressed }: { pressed: boolean }) => ({
+                        paddingVertical: space.sm, paddingHorizontal: space.sm,
+                        borderBottomWidth: 1, borderBottomColor: colors.border.divider,
+                        flexDirection: 'row', alignItems: 'center', gap: space.xs,
+                        backgroundColor: pressed ? colors.light.hover : colors.light.surface,
+                      })}
+                      onPress={() => handleAddTheme(t.id)}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <AureakText variant="body">{t.title}</AureakText>
+                      </View>
+                      {methodColor && (
+                        <View style={{
+                          paddingHorizontal: 6, paddingVertical: 2,
+                          borderRadius: 4,
+                          backgroundColor: methodColor + '25',
+                          borderWidth: 1, borderColor: methodColor + '70',
+                        }}>
+                          <AureakText style={{ fontSize: 10, fontWeight: '600' as never, color: methodColor }}>
+                            {t.method}
+                          </AureakText>
+                        </View>
+                      )}
+                    </Pressable>
+                  )
+                })}
+                {availableThemes.filter(t => !themeBlocks.map(b => b.themeId).includes(t.id)).length === 0 && (
+                  <View style={{ padding: space.sm }}>
+                    <AureakText variant="caption" style={{ color: colors.text.muted, fontStyle: 'italic' as never }}>
+                      Tous les thèmes actifs sont déjà associés
+                    </AureakText>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Erreur ajout */}
+          {themeAddError && (
+            <AureakText variant="caption" style={{ color: colors.accent.red ?? '#E05252', marginTop: space.xs }}>
+              {themeAddError}
             </AureakText>
           )}
         </View>
