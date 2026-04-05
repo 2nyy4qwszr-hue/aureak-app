@@ -391,7 +391,11 @@ function PlayerHeader({ joueur, displayName, photoUrl, tier, onBack }: PlayerHea
         >
           {displayName}
         </AureakText>
-        <View style={[ph2.tierBadge, { backgroundColor: tierCfg.bg, borderColor: tierCfg.borderColor }]}>
+        <View
+          style={[ph2.tierBadge, { backgroundColor: tierCfg.bg, borderColor: tierCfg.borderColor }]}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ 'data-tier-badge': true } as any)}
+        >
           <AureakText style={[ph2.tierText, { color: tierCfg.textColor }] as never}>{tier}</AureakText>
         </View>
       </View>
@@ -1604,6 +1608,10 @@ export default function ChildDetailPage() {
   // Story 52-6 — tabs navigation
   const [activeTab, setActiveTab] = useState<PlayerTab>('Profil')
 
+  // Story 52-8 — animation tier upgrade
+  const prevTierRef   = useRef<PlayerTier | null>(null)
+  const flashOpacity  = useRef(new Animated.Value(0)).current
+
   // ── Edit state ──────────────────────────────────────────────────────────────
   const [editSection, setEditSection] = useState<EditSection | null>(null)
   const [draft,       setDraft]       = useState<Partial<ChildDirectoryEntry>>({})
@@ -1694,15 +1702,72 @@ export default function ChildDetailPage() {
     setSaveError(null)
   }
 
+  // ── Story 52-8 — Tier upgrade animation ─────────────────────────────────────
+
+  const TIER_ORDER: Record<PlayerTier, number> = { Prospect: 0, Académicien: 1, Confirmé: 2, Elite: 3 }
+
+  const triggerLevelUpAnimation = (newTier: PlayerTier, name: string) => {
+    // CSS flip — web uniquement
+    if (Platform.OS === 'web') {
+      const styleId = 'aureak-tierflip-styles'
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style')
+        style.id = styleId
+        style.textContent = `
+          @keyframes tierFlip {
+            0%   { transform: perspective(400px) rotateY(0deg); }
+            50%  { transform: perspective(400px) rotateY(90deg); opacity: 0.5; }
+            100% { transform: perspective(400px) rotateY(0deg); }
+          }
+          .tier-flip-anim { animation: tierFlip 0.6s ease-in-out; }
+        `
+        document.head.appendChild(style)
+      }
+      const badge = document.querySelector('[data-tier-badge]')
+      if (badge) {
+        badge.classList.add('tier-flip-anim')
+        setTimeout(() => badge.classList.remove('tier-flip-anim'), 700)
+      }
+    }
+
+    // Flash overlay gold (cross-platform)
+    Animated.sequence([
+      Animated.timing(flashOpacity, { toValue: 0.8, duration: 300, useNativeDriver: true }),
+      Animated.timing(flashOpacity, { toValue: 0,   duration: 900, useNativeDriver: true }),
+    ]).start()
+
+    // Toast après 1s
+    setTimeout(() => {
+      toast.success(`⭐ Niveau up ! ${name} est maintenant ${newTier}`)
+    }, 1000)
+  }
+
   const saveEdit = async (fields: UpdateChildDirectoryParams) => {
     if (!child) return
+
+    // Story 52-8 — mémoriser le tier avant sauvegarde
+    prevTierRef.current = joueurForTier ? computePlayerTier(joueurForTier) : null
+
     setSavingEdit(true)
     setSaveError(null)
     try {
       await updateChildDirectoryEntry(child.id, fields)
+      const updatedChild = { ...child, ...fields }
       setChild(prev => prev ? { ...prev, ...fields } : prev)
       setEditSection(null)
       setDraft({})
+
+      // Story 52-8 — détecter upgrade tier
+      const newJoueurForTier = {
+        ...joueurForTier,
+        computedStatus: (fields as Record<string, unknown>).statut as string ?? updatedChild.statut ?? academyData?.computedStatus ?? null,
+      }
+      const newTier = computePlayerTier(newJoueurForTier as never)
+      const prevTier = prevTierRef.current
+      if (prevTier && TIER_ORDER[newTier] > TIER_ORDER[prevTier]) {
+        const name = formatNomPrenom(updatedChild.nom, updatedChild.prenom, updatedChild.displayName)
+        triggerLevelUpAnimation(newTier, name)
+      }
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde.')
     } finally {
@@ -1882,13 +1947,28 @@ export default function ChildDetailPage() {
       </View>
 
       {/* ── Header photo 280px fullwidth — Story 52-6 ── */}
-      <PlayerHeader
-        joueur={child}
-        displayName={displayName}
-        photoUrl={currentPhoto?.photoUrl ?? null}
-        tier={tier}
-        onBack={() => router.push('/children' as never)}
-      />
+      <View style={{ position: 'relative' as never }}>
+        <PlayerHeader
+          joueur={child}
+          displayName={displayName}
+          photoUrl={currentPhoto?.photoUrl ?? null}
+          tier={tier}
+          onBack={() => router.push('/children' as never)}
+        />
+        {/* Flash overlay tier upgrade — Story 52-8 */}
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position       : 'absolute' as never,
+            top            : 0,
+            left           : 0,
+            right          : 0,
+            bottom         : 0,
+            opacity        : flashOpacity,
+            backgroundColor: 'rgba(193,172,92,0.3)',
+          }}
+        />
+      </View>
 
       {/* ── Tabs sticky — Story 52-6 ── */}
       <View style={Platform.OS === 'web' ? { position: 'sticky' as never, top: 0, zIndex: 10 } : {}}>
