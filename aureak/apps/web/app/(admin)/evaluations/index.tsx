@@ -1,29 +1,50 @@
 'use client'
 // Story 6.x — Vue admin des évaluations
+// Story 55-1 — EvaluationCard FUT-style
+// Story 55-4 — Filtre "Records seulement"
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import { listEvaluationsAdmin } from '@aureak/api-client'
 import type { AdminEvalRow } from '@aureak/api-client'
-import { AureakText, Badge } from '@aureak/ui'
+import { AureakText, EvaluationCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
+import type { EvaluationWithChild } from '@aureak/types'
+import { signalScore } from '@aureak/ui'
 
+// ── Convertisseur AdminEvalRow → EvaluationWithChild ─────────────────────────
 
-const SIGNAL_VARIANT: Record<string, 'present' | 'attention' | 'zinc'> = {
-  acquired    : 'present',
-  in_progress : 'attention',
-  not_acquired: 'zinc',
-}
-
-const SIGNAL_LABEL: Record<string, string> = {
-  acquired    : 'Acquis',
-  in_progress : 'En cours',
-  not_acquired: 'Non acquis',
+function toEvalWithChild(ev: AdminEvalRow): EvaluationWithChild {
+  return {
+    id           : ev.id,
+    sessionId    : ev.sessionId,
+    childId      : ev.childId,
+    coachId      : '',
+    tenantId     : '',
+    receptivite  : ev.receptivite as 'positive' | 'attention' | 'none',
+    goutEffort   : ev.goutEffort  as 'positive' | 'attention' | 'none',
+    attitude     : ev.attitude    as 'positive' | 'attention' | 'none',
+    topSeance    : ev.topSeance ? 'star' : 'none',
+    note         : null,
+    lastEventId  : null,
+    updatedBy    : null,
+    updatedAt    : ev.evalAt,
+    createdAt    : ev.evalAt,
+    childName    : ev.childName,
+    sessionDate  : ev.evalAt,
+    sessionName  : null,
+    coachName    : null,
+    photoUrl     : null,
+    isPersonalBest: false,
+  }
 }
 
 export default function EvaluationsPage() {
-  const [evals, setEvals]     = useState<AdminEvalRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [from, setFrom]       = useState(() => {
+  const router = useRouter()
+  const [evals, setEvals]           = useState<AdminEvalRow[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [recordsOnly, setRecordsOnly] = useState(false)
+  const [from, setFrom]             = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() - 14)
     return d.toISOString().split('T')[0] as string
@@ -44,7 +65,13 @@ export default function EvaluationsPage() {
 
   useEffect(() => { load() }, [from, to])
 
-  const topCount  = evals.filter(e => e.topSeance).length
+  const topCount = evals.filter(e => e.topSeance).length
+
+  // Filtre "Records seulement" (Story 55-4)
+  // topSeance est utilisé comme proxy pour isPersonalBest côté AdminEvalRow
+  const displayedEvals = recordsOnly
+    ? evals.filter(e => e.topSeance)
+    : evals
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -58,69 +85,82 @@ export default function EvaluationsPage() {
             </AureakText>
           )}
         </View>
-        {/* Date filter */}
-        <View style={styles.filterRow}>
-          <View style={{ gap: 4 }}>
-            <AureakText variant="caption" style={styles.filterLabel}>Du</AureakText>
-            <input
-              type="date"
-              value={from}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFrom(e.target.value)}
-              style={webInputStyle}
-            />
-          </View>
-          <View style={{ gap: 4 }}>
-            <AureakText variant="caption" style={styles.filterLabel}>Au</AureakText>
-            <input
-              type="date"
-              value={to}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTo(e.target.value)}
-              style={webInputStyle}
-            />
+
+        {/* Contrôles droite : comparaison + filtres date */}
+        <View style={styles.headerRight}>
+          {/* Bouton "Comparer joueurs" (Story 55-2) */}
+          <Pressable
+            style={styles.compareBtn}
+            onPress={() => router.push('/(admin)/evaluations/comparison' as never)}
+            accessibilityLabel="Comparer deux joueurs"
+          >
+            <AureakText style={styles.compareBtnText as never}>Comparer joueurs</AureakText>
+          </Pressable>
+
+          {/* Filtres date */}
+          <View style={styles.filterRow}>
+            <View style={{ gap: 4 }}>
+              <AureakText variant="caption" style={styles.filterLabel}>Du</AureakText>
+              <input
+                type="date"
+                value={from}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFrom(e.target.value)}
+                style={webInputStyle}
+              />
+            </View>
+            <View style={{ gap: 4 }}>
+              <AureakText variant="caption" style={styles.filterLabel}>Au</AureakText>
+              <input
+                type="date"
+                value={to}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTo(e.target.value)}
+                style={webInputStyle}
+              />
+            </View>
           </View>
         </View>
       </View>
 
+      {/* ── Chips filtres rapides (Story 55-4) ── */}
+      <View style={styles.chips}>
+        <Pressable
+          style={[styles.chip, !recordsOnly && styles.chipActive]}
+          onPress={() => setRecordsOnly(false)}
+        >
+          <AureakText style={[styles.chipText, !recordsOnly && styles.chipTextActive] as never}>
+            Toutes
+          </AureakText>
+        </Pressable>
+        <Pressable
+          style={[styles.chip, recordsOnly && styles.chipActiveGold]}
+          onPress={() => setRecordsOnly(true)}
+        >
+          <AureakText style={[styles.chipText, recordsOnly && styles.chipTextGold] as never}>
+            Records seulement
+          </AureakText>
+        </Pressable>
+      </View>
 
+      {/* ── Contenu ── */}
       {loading ? (
         <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
-      ) : evals.length === 0 ? (
+      ) : displayedEvals.length === 0 ? (
         <AureakText variant="body" style={{ color: colors.text.muted }}>
-          Aucune évaluation sur cette période.
+          {recordsOnly ? 'Aucun record sur cette période.' : 'Aucune évaluation sur cette période.'}
         </AureakText>
       ) : (
-        evals.map((ev) => (
-          <View key={ev.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={{ flex: 1 }}>
-                <AureakText variant="body" style={{ fontWeight: '600' }}>
-                  {ev.childName ?? ev.childId.slice(0, 8)}
-                  {ev.topSeance ? ' ⭐' : ''}
-                </AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                  {new Date(ev.evalAt).toLocaleString('fr-FR', {
-                    day: '2-digit', month: '2-digit', year: '2-digit',
-                    hour: '2-digit', minute: '2-digit',
-                  })}
-                </AureakText>
-              </View>
-            </View>
-            <View style={styles.signals}>
-              <Badge
-                label={`R: ${SIGNAL_LABEL[ev.receptivite] ?? ev.receptivite}`}
-                variant={SIGNAL_VARIANT[ev.receptivite] ?? 'zinc'}
-              />
-              <Badge
-                label={`E: ${SIGNAL_LABEL[ev.goutEffort] ?? ev.goutEffort}`}
-                variant={SIGNAL_VARIANT[ev.goutEffort] ?? 'zinc'}
-              />
-              <Badge
-                label={`A: ${SIGNAL_LABEL[ev.attitude] ?? ev.attitude}`}
-                variant={SIGNAL_VARIANT[ev.attitude] ?? 'zinc'}
+        <View style={styles.grid}>
+          {displayedEvals.map((ev) => (
+            <View key={ev.id} style={styles.cardWrapper}>
+              <EvaluationCard
+                evaluation={toEvalWithChild(ev)}
+                showPhoto={false}
+                compact={false}
+                isPersonalBest={ev.topSeance}
               />
             </View>
-          </View>
-        ))
+          ))}
+        </View>
       )}
     </ScrollView>
   )
@@ -136,31 +176,64 @@ const webInputStyle = {
 } as React.CSSProperties
 
 const styles = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.xl, gap: space.md },
-  pageHeader : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as never, gap: space.md },
-  filterRow  : { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' as never },
-  filterLabel: { color: colors.text.muted, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
-  kpiRow    : {
-    flexDirection    : 'row',
+  container   : { flex: 1, backgroundColor: colors.light.primary },
+  content     : { padding: space.xl, gap: space.md },
+  pageHeader  : {
+    flexDirection    : 'row' as never,
+    justifyContent   : 'space-between' as never,
+    alignItems       : 'flex-start' as never,
+    flexWrap         : 'wrap' as never,
     gap              : space.md,
+  },
+  headerRight : { flexDirection: 'row' as never, alignItems: 'flex-end' as never, gap: space.md, flexWrap: 'wrap' as never },
+  filterRow   : { flexDirection: 'row' as never, gap: space.md, flexWrap: 'wrap' as never },
+  filterLabel : { color: colors.text.muted, fontWeight: '700' as never, letterSpacing: 1, textTransform: 'uppercase' as never, fontSize: 10 },
+
+  // Bouton comparaison
+  compareBtn: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : radius.button,
+    alignSelf        : 'flex-end' as never,
+    boxShadow        : shadows.gold,
+  } as never,
+  compareBtnText: {
+    color     : '#3D2E00',
+    fontSize  : 13,
+    fontWeight: '700' as never,
+  },
+
+  // Chips filtres
+  chips: { flexDirection: 'row' as never, gap: space.sm },
+  chip : {
+    paddingHorizontal: space.md,
+    paddingVertical  : 6,
+    borderRadius     : radius.badge,
     backgroundColor  : colors.light.surface,
-    borderRadius     : 10,
-    padding          : space.md,
     borderWidth      : 1,
     borderColor      : colors.border.light,
-    boxShadow: shadows.sm,
   },
-  kpi       : { flex: 1, alignItems: 'center', gap: 2 },
-  card      : {
-    backgroundColor  : colors.light.surface,
-    borderRadius     : 8,
-    padding          : space.md,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    gap              : space.xs,
-    boxShadow: shadows.sm,
+  chipActive: {
+    backgroundColor: colors.text.dark,
+    borderColor    : colors.text.dark,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
-  signals   : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' as never },
+  chipActiveGold: {
+    backgroundColor: colors.accent.gold,
+    borderColor    : colors.accent.gold,
+    boxShadow      : shadows.gold,
+  } as never,
+  chipText     : { fontSize: 12, color: colors.text.muted, fontWeight: '600' as never },
+  chipTextActive: { color: '#FFFFFF' },
+  chipTextGold : { color: '#3D2E00' },
+
+  // Grille cards
+  grid: {
+    flexDirection: 'row' as never,
+    flexWrap     : 'wrap' as never,
+    gap          : space.md,
+  },
+  cardWrapper: {
+    width: 260,
+  },
 })

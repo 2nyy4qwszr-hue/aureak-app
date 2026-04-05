@@ -975,6 +975,31 @@ export type EvaluationMerged = {
   topSeance  : TopSeance
 }
 
+/**
+ * EvaluationWithChild — évaluation enrichie avec infos joueur et séance
+ * Utilisé par EvaluationCard (Story 55-1) et la page évaluations admin
+ */
+export type EvaluationWithChild = Evaluation & {
+  childName    : string | null
+  sessionDate  : string | null    // ISO date de la séance
+  sessionName  : string | null    // libellé ou nom de la séance
+  coachName    : string | null
+  photoUrl     : string | null    // URL Storage photo du joueur
+  isPersonalBest?: boolean        // Story 55-4 — record historique joueur
+}
+
+/**
+ * EvaluationPoint — point de données pour le graphique de croissance (Story 55-3)
+ * date     : ISO date de la séance
+ * score    : note calculée (0–10)
+ * sessionName : libellé ou nom de la séance (optionnel)
+ */
+export type EvaluationPoint = {
+  date       : string
+  score      : number
+  sessionName?: string
+}
+
 // ============================================================
 // Epic 8 — Quiz, Boucle d'Apprentissage & Progression Joueur
 // ============================================================

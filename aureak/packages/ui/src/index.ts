@@ -51,6 +51,22 @@ export type { AttendanceToggleProps } from './AttendanceToggle'
 export { AttendanceHeatmap } from './AttendanceHeatmap'
 export type { AttendanceHeatmapProps } from './AttendanceHeatmap'
 
+// Story 55-1 — Card FUT-style note centrale
+export { EvaluationCard, evalTier, signalScore } from './EvaluationCard'
+export type { EvaluationCardProps, EvaluationTier } from './EvaluationCard'
+
+// Story 55-2 — Radar chart comparaison 2 joueurs
+export { ComparisonRadarChart } from './ComparisonRadarChart'
+export type { ComparisonRadarChartProps, RadarPlayer } from './ComparisonRadarChart'
+
+// Story 55-3 — Timeline croissance joueur
+export { GrowthChart } from './GrowthChart'
+export type { GrowthChartProps } from './GrowthChart'
+
+// Story 55-4 — Badge "Meilleure séance" avec animation spring
+export { BestSessionBadge } from './BestSessionBadge'
+export type { BestSessionBadgeProps } from './BestSessionBadge'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
