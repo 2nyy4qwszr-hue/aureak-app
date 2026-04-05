@@ -7,7 +7,7 @@ import { listImplantations, getAttendanceByGroupMonth } from '@aureak/api-client
 import type { AttendanceMonthlyData } from '@aureak/types'
 import { LineChart, SERIES_COLORS } from '@aureak/ui'
 import type { Implantation } from '@aureak/types'
-import { colors, radius, space, shadows } from '@aureak/theme'
+import { colors, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 
 export default function PresencesAnalyticsPage() {
   const router = useRouter()
@@ -98,6 +98,25 @@ export default function PresencesAnalyticsPage() {
           </View>
         </View>
 
+        {/* Taux moyens par groupe colorés */}
+        {!loading && series.length > 0 && (
+          <View style={s.summaryRow}>
+            {series.map(serie => {
+              const avg = serie.points.length > 0
+                ? Math.round(serie.points.reduce((sum, p) => sum + p.value, 0) / serie.points.length)
+                : 0
+              return (
+                <View key={serie.id} style={s.summaryChip}>
+                  <Text style={s.summaryGroupName}>{serie.label}</Text>
+                  <Text style={[s.summaryRate, { color: getStatColor(avg, STAT_THRESHOLDS.attendance.high, STAT_THRESHOLDS.attendance.low) }]}>
+                    {avg}%
+                  </Text>
+                </View>
+              )
+            })}
+          </View>
+        )}
+
         {/* Chart */}
         <View style={s.chartCard}>
           {loading ? (
@@ -180,4 +199,34 @@ const s = StyleSheet.create({
 
   emptyState: { height: 200, alignItems: 'center', justifyContent: 'center' },
   emptyText : { fontSize: 14, color: colors.text.muted },
+
+  // Résumé taux moyens colorés (Story 60.5)
+  summaryRow: {
+    flexDirection  : 'row',
+    flexWrap       : 'wrap' as never,
+    gap            : 8,
+    marginBottom   : space.lg,
+  },
+  summaryChip: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.xs,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    paddingVertical : 8,
+    paddingHorizontal: 12,
+    alignItems     : 'center',
+    minWidth       : 90,
+  },
+  summaryGroupName: {
+    fontSize  : 11,
+    color     : colors.text.muted,
+    fontWeight: '600',
+    marginBottom: 4,
+    textAlign : 'center' as never,
+  },
+  summaryRate: {
+    fontSize  : 18,
+    fontWeight: '800',
+    fontFamily: 'Montserrat',
+  },
 })

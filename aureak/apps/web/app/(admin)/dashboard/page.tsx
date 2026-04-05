@@ -18,8 +18,9 @@ import {
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
 import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
-import { colors, shadows, radius, transitions, gamification, typography } from '@aureak/theme'
-import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng } from '@aureak/ui'
+import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter } from '@aureak/ui'
+import { useLiveSessionCounts } from '@aureak/api-client'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
 
@@ -44,9 +45,7 @@ const SEV_LABEL: Record<string, string> = {
 
 function rateColor(pct: number | null): string {
   if (pct === null || pct === undefined) return colors.text.muted
-  if (pct >= 80) return colors.status.present
-  if (pct >= 60) return colors.status.attention
-  return colors.status.absent
+  return getStatColor(pct, STAT_THRESHOLDS.attendance.high, STAT_THRESHOLDS.attendance.low)
 }
 
 function anomalyLabel(type: string): string {
@@ -1877,6 +1876,9 @@ const QUICK_ACTIONS = [
 export default function DashboardPage() {
   const router = useRouter()
 
+  // ── Live counters (Story 60.8) ──
+  const liveCounters = useLiveSessionCounts()
+
   // ── Stats & anomalies ──
   const [stats,            setStats]            = useState<ImplantationStats[]>([])
   const [anomalies,        setAnomalies]        = useState<AnomalyEvent[]>([])
@@ -2510,6 +2512,16 @@ export default function DashboardPage() {
 
       {/* ── Hero Band (full width, avant le layout 2 cols) ── */}
       <HeroBand implantationCount={stats.length} onEnterFocusMode={() => setFocusMode(true)} />
+
+      {/* ── Live Counter — séances en cours (Story 60.8) — visible uniquement si séances actives ── */}
+      {liveCounters.sessionCount > 0 && (
+        <LiveCounter
+          sessionCount={liveCounters.sessionCount}
+          presentCount={liveCounters.presentCount}
+          totalCount={liveCounters.totalCount}
+          isLive={liveCounters.isLive}
+        />
+      )}
 
       {/* ── Layout 2 colonnes : main + aside activity feed ── */}
       <div className="page-layout">

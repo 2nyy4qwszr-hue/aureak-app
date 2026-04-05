@@ -7,19 +7,15 @@ import { getImplantationRankings } from '@aureak/api-client'
 import type { ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
 import { BarChart } from '@aureak/ui'
 import type { BarChartItem } from '@aureak/types'
-import { colors, radius, space, shadows } from '@aureak/theme'
+import { colors, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
 
-// ── Couleur selon performance ─────────────────────────────────────────────────
+// ── Couleur selon performance — délégue à getStatColor de @aureak/theme ────────
 function getStatColor(value: number, metric: 'attendance' | 'mastery'): string {
   if (metric === 'attendance') {
-    if (value >= 80) return colors.status.success
-    if (value >= 60) return colors.accent.gold
-    return colors.accent.red
+    return getStatColorBase(value, STAT_THRESHOLDS.attendance.high, STAT_THRESHOLDS.attendance.low)
   }
   // mastery sur 5
-  if (value >= 4)   return colors.status.success
-  if (value >= 3)   return colors.accent.gold
-  return colors.accent.red
+  return getStatColorBase(value, STAT_THRESHOLDS.mastery.high, STAT_THRESHOLDS.mastery.low)
 }
 
 const PERIOD_OPTIONS: { value: BarChartPeriod; label: string }[] = [
