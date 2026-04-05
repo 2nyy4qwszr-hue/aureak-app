@@ -7,14 +7,27 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
-import { AureakText, Button, EmptyState } from '@aureak/ui'
+import { AureakText, Button, EmptyState, PlayerCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
 import type { AcademyStatus } from '@aureak/types'
 import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
 
-const PAGE_SIZE = 50
+// ── View mode — galerie vs liste ───────────────────────────────────────────────
+
+type ViewMode = 'galerie' | 'liste'
+const VIEW_MODE_KEY = 'aureak_players_view_mode'
+
+function loadViewMode(): ViewMode {
+  if (typeof localStorage === 'undefined') return 'liste'
+  const stored = localStorage.getItem(VIEW_MODE_KEY)
+  return stored === 'galerie' ? 'galerie' : 'liste'
+}
+
+// PAGE_SIZE dépend du viewMode — défini dynamiquement dans le composant
+const PAGE_SIZE_LISTE   = 50
+const PAGE_SIZE_GALERIE = 48
 
 // ── Filter types ───────────────────────────────────────────────────────────────
 
@@ -127,11 +140,11 @@ const chip = StyleSheet.create({
 // ── Pagination ─────────────────────────────────────────────────────────────────
 
 function Pagination({
-  page, total, onPrev, onNext,
-}: { page: number; total: number; onPrev: () => void; onNext: () => void }) {
-  const totalPages = Math.ceil(total / PAGE_SIZE) || 1
-  const start = page * PAGE_SIZE + 1
-  const end   = Math.min((page + 1) * PAGE_SIZE, total)
+  page, total, pageSize, onPrev, onNext,
+}: { page: number; total: number; pageSize: number; onPrev: () => void; onNext: () => void }) {
+  const totalPages = Math.ceil(total / pageSize) || 1
+  const start = page * pageSize + 1
+  const end   = Math.min((page + 1) * pageSize, total)
   return (
     <View style={pag.row}>
       <AureakText variant="caption" style={{ color: colors.text.muted }}>
@@ -833,11 +846,22 @@ export default function JoueursPage() {
   const router = useRouter()
   const params = useLocalSearchParams<{ search?: string; status?: string; season?: string; stage?: string; birthYear?: string }>()
 
+  const [viewMode,           setViewMode]           = useState<ViewMode>(loadViewMode)
   const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
   const [total,              setTotal]              = useState(0)
   const [page,               setPage]               = useState(0)
   const [loading,            setLoading]            = useState(true)
   const [showAdvFilters,     setShowAdvFilters]     = useState(false)
+
+  // Persistance viewMode dans localStorage
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(VIEW_MODE_KEY, viewMode)
+    }
+  }, [viewMode])
+
+  // PAGE_SIZE dynamique selon viewMode
+  const PAGE_SIZE = viewMode === 'galerie' ? PAGE_SIZE_GALERIE : PAGE_SIZE_LISTE
 
   const [searchInput,  setSearchInput]  = useState(params.search ?? '')
   const [search,       setSearch]       = useState(params.search ?? '')
@@ -938,10 +962,13 @@ export default function JoueursPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page, seasonYearRange])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page, seasonYearRange, PAGE_SIZE])
 
   useEffect(() => { load() }, [load])
   useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter, birthYear, seasonYearRange])
+  // Reset page quand viewMode change (PAGE_SIZE change → pagination différente)
+  useEffect(() => { setPage(0) }, [viewMode])
 
   const handleSearch = () => setSearch(searchInput.trim())
 
@@ -1112,6 +1139,29 @@ export default function JoueursPage() {
               Importer CSV
             </AureakText>
           </Pressable>
+          {/* Toggle vue galerie / liste — story 52-4 */}
+          <View style={s.viewToggleGroup}>
+            <Pressable
+              style={[s.viewToggleBtn, s.viewToggleBtnLeft, viewMode === 'galerie' && s.viewToggleActive]}
+              onPress={() => setViewMode('galerie')}
+              accessibilityRole="button"
+              accessibilityLabel="Vue galerie"
+            >
+              <AureakText style={[s.viewToggleIcon, viewMode === 'galerie' && s.viewToggleIconActive] as never}>
+                ⊞
+              </AureakText>
+            </Pressable>
+            <Pressable
+              style={[s.viewToggleBtn, s.viewToggleBtnRight, viewMode === 'liste' && s.viewToggleActive]}
+              onPress={() => setViewMode('liste')}
+              accessibilityRole="button"
+              accessibilityLabel="Vue liste"
+            >
+              <AureakText style={[s.viewToggleIcon, viewMode === 'liste' && s.viewToggleIconActive] as never}>
+                ☰
+              </AureakText>
+            </Pressable>
+          </View>
           <Button
             label="Ajouter un joueur"
             variant="primary"
@@ -1235,10 +1285,13 @@ export default function JoueursPage() {
         </View>
       )}
 
-      {/* ── Grille joueurs — PremiumJoueurCard (Story 25.1) ── */}
+      {/* ── Grille joueurs — vue galerie (PlayerCard FUT) ou liste (PremiumJoueurCard) ── */}
       {loading ? (
-        <View style={gridStyle as never}>
-          {[0,1,2,3,4,5].map(i => <PremiumSkeletonCard key={i} />)}
+        <View style={viewMode === 'galerie' ? s.gridGalerie as never : gridStyle as never}>
+          {viewMode === 'galerie'
+            ? [0,1,2,3,4,5].map(i => <View key={i} style={s.playerCardSkeleton} />)
+            : [0,1,2,3,4,5].map(i => <PremiumSkeletonCard key={i} />)
+          }
         </View>
       ) : joueurs.length === 0 ? (
         <EmptyState
@@ -1248,7 +1301,19 @@ export default function JoueursPage() {
           ctaLabel="Ajouter un joueur"
           onCta={() => router.push('/children/new' as never)}
         />
+      ) : viewMode === 'galerie' ? (
+        /* Vue galerie — PlayerCard FUT-style 160×220px (story 52-4) */
+        <View style={s.gridGalerie as never}>
+          {joueurs.map(item => (
+            <PlayerCard
+              key={item.id}
+              joueur={item}
+              onPress={() => router.push(`/children/${item.id}` as never)}
+            />
+          ))}
+        </View>
       ) : (
+        /* Vue liste — PremiumJoueurCard (comportement pré-story-52, inchangé) */
         <View style={gridStyle as never}>
           {joueurs.map(item => (
             <View key={item.id} style={{ position: 'relative' as never }}>
@@ -1275,6 +1340,7 @@ export default function JoueursPage() {
         <Pagination
           page={page}
           total={total}
+          pageSize={PAGE_SIZE}
           onPrev={() => setPage(p => Math.max(0, p - 1))}
           onNext={() => setPage(p => p + 1)}
         />
@@ -1500,5 +1566,43 @@ const s = StyleSheet.create({
   checkboxActive: {
     borderColor    : colors.accent.gold,
     backgroundColor: colors.accent.gold + '18',
+  },
+
+  // ── Toggle vue galerie/liste (story 52-4) ────────────────────────────────────
+  viewToggleGroup: {
+    flexDirection: 'row',
+    borderRadius : 6,
+    overflow     : 'hidden',
+    borderWidth  : 1,
+    borderColor  : colors.border.light,
+  },
+  viewToggleBtn: {
+    paddingHorizontal: 10,
+    paddingVertical  : 7,
+    backgroundColor  : colors.light.surface,
+    alignItems       : 'center',
+    justifyContent   : 'center',
+  },
+  viewToggleBtnLeft : { borderRightWidth: 0.5, borderColor: colors.border.light },
+  viewToggleBtnRight: {},
+  viewToggleActive  : { backgroundColor: colors.accent.gold },
+  viewToggleIcon    : { fontSize: 14, color: colors.text.muted },
+  viewToggleIconActive: { color: '#FFFFFF' },
+
+  // ── Grille galerie PlayerCard 160×220 (story 52-4) ────────────────────────────
+  gridGalerie: {
+    flexDirection  : 'row',
+    flexWrap       : 'wrap',
+    gap            : space.md,
+    paddingVertical: space.md,
+  },
+
+  // Skeleton galerie — miroir des dimensions PlayerCard
+  playerCardSkeleton: {
+    width          : 160,
+    height         : 220,
+    borderRadius   : 16,
+    backgroundColor: colors.border.divider,
+    opacity        : 0.55,
   },
 })

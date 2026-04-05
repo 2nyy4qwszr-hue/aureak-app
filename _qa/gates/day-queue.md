@@ -5,6 +5,62 @@ status: in-progress
 
 next-morning-queue:
 
+  # ── EPIC 52 — Player Cards Ultimate Squad ────────────────────────────────
+
+  - story_id: story-52-2
+    title: "FEATURE — 6 stats gardien PLO/TIR/TEC/TAC/PHY/MEN"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "b4b05e7"
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-2_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-2_gate2.md"
+    notes:
+      - "gamification.statBands + statLabels dans @aureak/theme/tokens.ts"
+      - "playerStats.ts créé dans @aureak/business-logic (computePlayerStats + computePlayerTier)"
+      - "StatsRow composant interne PlayerCard — couleurs depuis gamification.statBands (0 hardcode)"
+      - "PlayerCard tier prop optionnelle — auto-calculé via computePlayerTier()"
+      - "tsc: 0 erreur"
+
+  - story_id: story-52-3
+    title: "FEATURE — Shimmer animation cards Elite"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: "45bbd47"
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-3_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-3_gate2.md"
+    notes:
+      - "useShimmerEffect() hook singleton — intégré dans commit story 52-2"
+      - "@keyframes shimmerGold + ::before pseudo-element via <style> tag injection"
+      - "Singleton id 'aureak-shimmer-styles' — 0 doublon si N cards Elite"
+      - "prefers-reduced-motion respecté (JS + CSS media query)"
+      - "Fallback mobile : borderWidth 2px gold solide sans animation"
+      - "tsc: 0 erreur"
+
+  - story_id: story-52-4
+    title: "FEATURE — Toggle galerie PlayerCard vs liste PremiumJoueurCard"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+    commit: ""
+    qa_reports:
+      - "_qa/reports/2026-04-05_story-52-4_gate1.md"
+      - "_qa/reports/2026-04-05_story-52-4_gate2.md"
+    notes:
+      - "ViewMode state 'galerie'|'liste' — localStorage aureak_players_view_mode"
+      - "Toggle buttons ⊞/☰ dans headerActions — actif gold + texte blanc"
+      - "Vue galerie : PlayerCard flexWrap row gap 16, PAGE_SIZE 48"
+      - "Vue liste : PremiumJoueurCard inchangé, PAGE_SIZE 50"
+      - "Pagination.pageSize prop ajoutée — dynamique selon viewMode"
+      - "setPage(0) sur changement viewMode"
+      - "tsc: 0 erreur"
+
   # ── EPIC 50 — Hero Band salle de commandement ────────────────────────────
 
   - story_id: story-50-10
