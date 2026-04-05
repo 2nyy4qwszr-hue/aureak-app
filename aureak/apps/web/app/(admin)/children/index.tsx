@@ -23,10 +23,10 @@ type TierFilterKey = PlayerTier | 'Tous'
 
 const TIER_PILLS_CONFIG: { key: TierFilterKey; bg: string; textColor: string; borderColor: string }[] = [
   { key: 'Tous',        bg: colors.light.muted,    textColor: colors.text.dark,  borderColor: colors.border.light },
-  { key: 'Prospect',    bg: '#E8E8E8',             textColor: '#555555',          borderColor: '#CCCCCC'           },
+  { key: 'Prospect',    bg: colors.light.muted,    textColor: colors.text.muted,  borderColor: colors.border.light },
   { key: 'Académicien', bg: colors.light.surface,  textColor: colors.text.dark,  borderColor: colors.border.light },
   { key: 'Confirmé',    bg: '#FFF8E8',             textColor: '#8A6800',          borderColor: 'rgba(193,172,92,0.4)' },
-  { key: 'Elite',       bg: '#2A2006',             textColor: '#FFE566',          borderColor: '#C1AC5C'           },
+  { key: 'Elite',       bg: colors.accent.gold,    textColor: colors.text.dark,   borderColor: colors.border.goldSolid },
 ]
 
 const TIER_FILTER_STORAGE_KEY = 'aureak_players_tier_filter'

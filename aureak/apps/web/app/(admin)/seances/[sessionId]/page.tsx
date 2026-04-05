@@ -562,7 +562,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border.light, gap: space.sm,
     boxShadow: shadows.sm,
   } as never,
-  backBtn: { paddingBottom: 4 },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
   input: {
     borderWidth: 1, borderColor: colors.border.light, borderRadius: radius.xs,
@@ -1710,11 +1709,6 @@ export default function SessionDetailPage() {
           </Pressable>
         )}
       </View>
-
-      {/* Back button */}
-      <Pressable onPress={() => router.push('/seances' as never)} style={styles.backBtn}>
-        <AureakText variant="caption" style={{ color: colors.text.muted }}>← Séances</AureakText>
-      </Pressable>
 
       {/* Story 53-2 — Header Match Report premium */}
       <MatchReportHeader

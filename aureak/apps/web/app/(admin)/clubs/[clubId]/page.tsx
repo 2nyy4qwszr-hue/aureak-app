@@ -900,7 +900,7 @@ export default function ClubDetailPage() {
                   accept="image/png, image/jpeg"
                   disabled={logoUploading}
                   onChange={handleLogoFileChange}
-                  style={{ fontSize: 12, color: logoUploading ? '#9E9E9E' : '#3D3420', cursor: logoUploading ? 'not-allowed' : 'pointer' }}
+                  style={{ fontSize: 12, color: logoUploading ? colors.text.muted : colors.text.dark, cursor: logoUploading ? 'not-allowed' : 'pointer' }}
                 />
                 {logoFile && !logoUploading && (
                   <AureakText variant="caption" style={{ color: colors.accent.gold, fontSize: 11 }}>

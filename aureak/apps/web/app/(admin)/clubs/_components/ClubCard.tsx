@@ -232,7 +232,7 @@ const s = StyleSheet.create({
   statNumber: {
     fontFamily: 'Montserrat-ExtraBold',
     fontSize  : 40,
-    color     : '#3d2b00',   // brun gold foncé — cohérent avec la référence visuelle
+    color     : colors.text.dark,
     lineHeight: 44,
   },
 

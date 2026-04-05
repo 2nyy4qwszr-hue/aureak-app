@@ -542,8 +542,8 @@ const styles = StyleSheet.create({
     borderColor      : colors.border.light,
   },
   chipActive: {
-    backgroundColor: colors.text.dark,
-    borderColor    : colors.text.dark,
+    backgroundColor: colors.dark.surface,
+    borderColor    : colors.border.dark,
   },
   chipActiveGold: {
     backgroundColor: colors.accent.gold,

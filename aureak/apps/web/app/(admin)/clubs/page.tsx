@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listClubDirectory, updateClubDirectoryEntry } from '@aureak/api-client'
 import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
 import { ClubCard, ClubCardSkeleton } from './_components'
@@ -93,7 +93,6 @@ export default function ClubsPage() {
   const clearSelection = () => setSelected(new Set())
 
   const [search,          setSearch]          = useState(params.search ?? '')
-  const [searchInput,     setSearchInput]     = useState(params.search ?? '')
   const [provinceFilter,  setProvinceFilter]  = usePersistedFilters<BelgianProvince | undefined>(
     'clubs-filter-province',
     (params.province as BelgianProvince | undefined) ?? undefined,
@@ -189,7 +188,6 @@ export default function ClubsPage() {
     }
   }
 
-  const handleSearch = () => setSearch(searchInput.trim())
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -218,26 +216,20 @@ export default function ClubsPage() {
         </View>
       </View>
 
-      {/* ── Search ── */}
+      {/* ── Search — temps-réel ── */}
       <View style={styles.searchRow}>
         <TextInput
           style={styles.searchInput}
-          value={searchInput}
-          onChangeText={setSearchInput}
-          onSubmitEditing={handleSearch}
+          value={search}
+          onChangeText={(text) => { setSearch(text); setPage(0) }}
           placeholder="Rechercher par nom, matricule, ville…"
           placeholderTextColor={colors.text.muted}
           returnKeyType="search"
         />
-        <Pressable style={styles.searchBtn} onPress={handleSearch}>
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            Chercher
-          </AureakText>
-        </Pressable>
         {search !== '' && (
           <Pressable
             style={styles.clearBtn}
-            onPress={() => { setSearch(''); setSearchInput('') }}
+            onPress={() => { setSearch(''); setPage(0) }}
           >
             <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
           </Pressable>
@@ -448,14 +440,6 @@ const styles = StyleSheet.create({
     color            : colors.text.dark,
     fontSize         : 13,
   },
-  searchBtn  : {
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    borderRadius     : 7,
-  },
   clearBtn   : {
     width           : 32,
     height          : 32,
@@ -559,7 +543,7 @@ const bulk = StyleSheet.create({
     borderColor    : colors.border.gold,
     paddingHorizontal: space.lg,
     paddingVertical: space.sm + 2,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.10)' as never,
+    boxShadow: shadows.sm as never,
   },
   btnSecondary: {
     backgroundColor  : colors.light.muted,
