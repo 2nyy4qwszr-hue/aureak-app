@@ -95,6 +95,9 @@ export type { TacticalBoardProps, FormationData } from './TacticalBoard'
 export { SituationCard } from './SituationCard'
 export type { SituationCardProps } from './SituationCard'
 
+// Story 58-6 — Notation par étoiles 1–5 (interactif ou read-only)
+export { StarRating } from './StarRating'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {

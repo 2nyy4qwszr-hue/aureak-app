@@ -31,21 +31,25 @@ function mapTheme(row: Record<string, unknown>): MethodologyTheme {
 
 function mapSituation(row: Record<string, unknown>): MethodologySituation {
   return {
-    id            : row.id        as string,
-    tenantId      : row.tenant_id as string,
-    title         : row.title     as string,
-    method        : str(row.method)  as MethodologyMethod | null,
-    description   : str(row.description),
-    corrections   : str(row.corrections),
-    commonMistakes: str(row.common_mistakes),
-    themeId       : str(row.theme_id),
-    diagramJson   : (row.diagram_json as DiagramData | null) ?? null,   // Story 58-2
-    isActive      : row.is_active as boolean,
-    deletedAt     : str(row.deleted_at),
-    createdAt     : row.created_at as string,
-    updatedAt     : row.updated_at as string,
+    id             : row.id        as string,
+    tenantId       : row.tenant_id as string,
+    title          : row.title     as string,
+    method         : str(row.method)  as MethodologyMethod | null,
+    description    : str(row.description),
+    corrections    : str(row.corrections),
+    commonMistakes : str(row.common_mistakes),
+    themeId        : str(row.theme_id),
+    diagramJson    : (row.diagram_json as DiagramData | null) ?? null,   // Story 58-2
+    difficultyLevel: typeof row.difficulty_level === 'number' ? row.difficulty_level : 3,  // Story 58-6
+    isActive       : row.is_active as boolean,
+    deletedAt      : str(row.deleted_at),
+    createdAt      : row.created_at as string,
+    updatedAt      : row.updated_at as string,
   }
 }
+
+// Alias pour la story 58-7 (getRecommendedSituations l'utilise)
+const mapMethodologySituation = mapSituation
 
 function mapSession(row: Record<string, unknown>): MethodologySession {
   return {
@@ -172,6 +176,7 @@ export type CreateMethodologySituationParams = {
   commonMistakes?: string | null
   themeId?       : string | null
   diagramJson?   : DiagramData | null   // Story 58-2
+  difficultyLevel?: number              // Story 58-6 — 1-5 (défaut 3)
 }
 
 export async function listMethodologySituations(
@@ -211,11 +216,12 @@ export async function createMethodologySituation(
     .insert({
       tenant_id      : params.tenantId,
       title          : params.title,
-      method         : params.method         ?? null,
-      description    : params.description    ?? null,
-      corrections    : params.corrections    ?? null,
-      common_mistakes: params.commonMistakes ?? null,
-      theme_id       : params.themeId        ?? null,
+      method         : params.method          ?? null,
+      description    : params.description     ?? null,
+      corrections    : params.corrections     ?? null,
+      common_mistakes: params.commonMistakes  ?? null,
+      theme_id       : params.themeId         ?? null,
+      difficulty_level: params.difficultyLevel ?? 3,  // Story 58-6
     })
     .select()
     .single()
@@ -229,13 +235,14 @@ export async function updateMethodologySituation(
   patch: Partial<Omit<CreateMethodologySituationParams, 'tenantId'>>,
 ): Promise<{ error: unknown }> {
   const u: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (patch.title          !== undefined) u.title           = patch.title
-  if (patch.method         !== undefined) u.method          = patch.method
-  if (patch.description    !== undefined) u.description     = patch.description
-  if (patch.corrections    !== undefined) u.corrections     = patch.corrections
-  if (patch.commonMistakes !== undefined) u.common_mistakes = patch.commonMistakes
-  if (patch.themeId        !== undefined) u.theme_id        = patch.themeId
-  if (patch.diagramJson    !== undefined) u.diagram_json    = patch.diagramJson   // Story 58-2
+  if (patch.title           !== undefined) u.title            = patch.title
+  if (patch.method          !== undefined) u.method           = patch.method
+  if (patch.description     !== undefined) u.description      = patch.description
+  if (patch.corrections     !== undefined) u.corrections      = patch.corrections
+  if (patch.commonMistakes  !== undefined) u.common_mistakes  = patch.commonMistakes
+  if (patch.themeId         !== undefined) u.theme_id         = patch.themeId
+  if (patch.diagramJson     !== undefined) u.diagram_json     = patch.diagramJson    // Story 58-2
+  if (patch.difficultyLevel !== undefined) u.difficulty_level = patch.difficultyLevel // Story 58-6
 
   const { error } = await supabase.from('methodology_situations').update(u).eq('id', id)
   return { error: error ?? null }

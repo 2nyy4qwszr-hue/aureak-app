@@ -15,10 +15,11 @@ import {
   updateMethodologySituation,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { AureakButton, Input } from '@aureak/ui'
+import { AureakButton, Input, StarRating } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Situation, SituationCriterion, SituationThemeLink, Theme, CoachGradeLevel, MethodologySituation, DiagramData } from '@aureak/types'
+import { DIFFICULTY_LABELS } from '@aureak/types'
 import TacticalEditor from '../../_components/TacticalEditor'
 import { generateQRCode } from '../../_components/qr-utils'
 
@@ -108,6 +109,25 @@ export default function SituationDetailPage() {
   const [qrDataUrl,    setQrDataUrl]    = useState<string | null>(null)
   const [generatingQR, setGeneratingQR] = useState(false)
   const [showQRModal,  setShowQRModal]  = useState(false)
+
+  // Story 58-6 — Notation difficulté
+  const [savingDifficulty, setSavingDifficulty] = useState(false)
+
+  const handleDifficultyChange = async (v: number) => {
+    if (!methodologySituation) return
+    setSavingDifficulty(true)
+    try {
+      const { error } = await updateMethodologySituation(methodologySituation.id, { difficultyLevel: v })
+      if (error) {
+        if (process.env.NODE_ENV !== 'production')
+          console.error('[SituationPage] difficulty save error:', error)
+        return
+      }
+      setMethodologySituation(prev => prev ? { ...prev, difficultyLevel: v } : prev)
+    } finally {
+      setSavingDifficulty(false)
+    }
+  }
 
   const handleGenerateQR = async () => {
     const appUrl = process.env.EXPO_PUBLIC_APP_URL ?? 'https://app.aureak.be'
@@ -253,6 +273,20 @@ export default function SituationDetailPage() {
           {methodologySituation.description && (
             <AureakText variant="body" style={{ color: colors.text.muted }}>{methodologySituation.description}</AureakText>
           )}
+
+          {/* Story 58-6 — Notation difficulté interactive */}
+          <View style={styles.section}>
+            <AureakText variant="label">Niveau de difficulté</AureakText>
+            <StarRating
+              value={methodologySituation.difficultyLevel ?? 3}
+              onChange={handleDifficultyChange}
+              size={22}
+            />
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+              {DIFFICULTY_LABELS[methodologySituation.difficultyLevel ?? 3]}
+              {savingDifficulty ? ' · Enregistrement…' : ''}
+            </AureakText>
+          </View>
 
           {/* Section schéma tactique */}
           <View style={styles.section}>

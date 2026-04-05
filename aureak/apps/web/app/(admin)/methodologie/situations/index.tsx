@@ -6,6 +6,7 @@ import { listMethodologySituations } from '@aureak/api-client'
 import { AureakButton, AureakText, SituationCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { MethodologySituation, MethodologyMethod } from '@aureak/types'
+import { DIFFICULTY_LABELS } from '@aureak/types'
 
 // Méthodes disponibles pour les filtres
 const METHODS: MethodologyMethod[] = [
@@ -31,9 +32,11 @@ const styles = StyleSheet.create({
 export default function SituationsPage() {
   const router    = useRouter()
   const { width } = useWindowDimensions()
-  const [situations,     setSituations]     = useState<MethodologySituation[]>([])
-  const [loading,        setLoading]        = useState(true)
-  const [selectedMethod, setSelectedMethod] = useState<MethodologyMethod | null>(null)
+  const [situations,       setSituations]       = useState<MethodologySituation[]>([])
+  const [loading,          setLoading]          = useState(true)
+  const [selectedMethod,   setSelectedMethod]   = useState<MethodologyMethod | null>(null)
+  // Story 58-6 — Filtre difficulté multi-select (client-side)
+  const [filterDifficulty, setFilterDifficulty] = useState<number[]>([])
 
   // Grille responsive : 3 cols >900px, 2 cols sinon
   const numCols = width > 900 ? 3 : 2
@@ -53,9 +56,17 @@ export default function SituationsPage() {
 
   useEffect(() => { loadData() }, [loadData])
 
-  const filtered = selectedMethod
-    ? situations.filter(s => s.method === selectedMethod)
-    : situations
+  const toggleDifficultyFilter = (level: number) => {
+    setFilterDifficulty(prev =>
+      prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
+    )
+  }
+
+  const filtered = situations.filter(s => {
+    const methodMatch     = !selectedMethod || s.method === selectedMethod
+    const difficultyMatch = filterDifficulty.length === 0 || filterDifficulty.includes(s.difficultyLevel ?? 3)
+    return methodMatch && difficultyMatch
+  })
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -92,6 +103,32 @@ export default function SituationsPage() {
         ))}
       </View>
 
+      {/* Story 58-6 — Filtres par difficulté (multi-select, client-side) */}
+      <View style={styles.filterRow}>
+        <AureakText variant="caption" style={{ color: colors.text.muted, alignSelf: 'center', marginRight: space.xs }}>
+          Difficulté :
+        </AureakText>
+        {[1, 2, 3, 4, 5].map(level => {
+          const isActive = filterDifficulty.includes(level)
+          return (
+            <Pressable
+              key={level}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
+              onPress={() => toggleDifficultyFilter(level)}
+            >
+              <AureakText style={{ fontSize: 12, color: isActive ? colors.text.dark : colors.text.muted, fontWeight: isActive ? '700' : '400' } as never}>
+                {'★'.repeat(level)} {DIFFICULTY_LABELS[level]}
+              </AureakText>
+            </Pressable>
+          )
+        })}
+        {filterDifficulty.length > 0 && (
+          <Pressable style={styles.filterChip} onPress={() => setFilterDifficulty([])}>
+            <AureakText style={{ fontSize: 12, color: colors.text.muted } as never}>✕ Réinitialiser</AureakText>
+          </Pressable>
+        )}
+      </View>
+
       {/* État chargement */}
       {loading && (
         <AureakText variant="body" style={styles.emptyText}>Chargement...</AureakText>
@@ -107,7 +144,7 @@ export default function SituationsPage() {
             >
               <SituationCard
                 situation={situation}
-                difficulty={3}
+                difficulty={situation.difficultyLevel ?? 3}
                 onPress={() => router.push(`/methodologie/situations/${situation.id}` as never)}
                 draggable
                 onDragStart={(e: React.DragEvent<HTMLDivElement>) => {

@@ -258,3 +258,14 @@ export const PLAYER_TIER_LABELS: Record<string, PlayerTier> = {
   STAGE_UNIQUEMENT   : 'Prospect',
   PROSPECT           : 'Prospect',
 }
+
+// ── Story 58-6 — Niveau de difficulté des situations pédagogiques ─────────────
+
+/** Labels de difficulté 1–5 pour les situations pédagogiques */
+export const DIFFICULTY_LABELS: Record<number, string> = {
+  1: 'Débutant',
+  2: 'Facile',
+  3: 'Intermédiaire',
+  4: 'Avancé',
+  5: 'Expert',
+}

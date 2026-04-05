@@ -1323,19 +1323,20 @@ export type DiagramData = {
 
 /** Situation pédagogique — situation de jeu/entraînement concrète (ex: 1c1, centre) */
 export type MethodologySituation = {
-  id            : string
-  tenantId      : string
-  title         : string
-  method        : MethodologyMethod | null
-  description   : string | null
-  corrections   : string | null
-  commonMistakes: string | null
-  themeId       : string | null             // lien optionnel vers un thème
-  diagramJson   : DiagramData | null        // Story 58-2 — schéma tactique SVG
-  isActive      : boolean
-  deletedAt     : string | null
-  createdAt     : string
-  updatedAt     : string
+  id             : string
+  tenantId       : string
+  title          : string
+  method         : MethodologyMethod | null
+  description    : string | null
+  corrections    : string | null
+  commonMistakes : string | null
+  themeId        : string | null             // lien optionnel vers un thème
+  diagramJson    : DiagramData | null        // Story 58-2 — schéma tactique SVG
+  difficultyLevel: number                    // Story 58-6 — 1=Débutant … 5=Expert (défaut 3)
+  isActive       : boolean
+  deletedAt      : string | null
+  createdAt      : string
+  updatedAt      : string
 }
 
 /** Séance pédagogique — contenu réutilisable de la bibliothèque (PDF / vidéo / audio) */
