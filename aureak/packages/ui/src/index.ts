@@ -43,6 +43,10 @@ export type { BadgeGridProps, BadgeItem } from './BadgeGrid'
 export { RadarChart } from './RadarChart'
 export type { RadarChartProps } from './RadarChart'
 
+// Story 54-2 — Toggle neumorphique présent/absent
+export { AttendanceToggle } from './AttendanceToggle'
+export type { AttendanceToggleProps } from './AttendanceToggle'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {
