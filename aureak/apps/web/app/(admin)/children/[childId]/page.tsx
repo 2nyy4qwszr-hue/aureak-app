@@ -55,7 +55,7 @@ import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, comput
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
 import { exportCardToPng } from '../exportCardToPng'
-import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart } from '@aureak/ui'
+import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
 import type { PlayerTier } from '@aureak/types'
@@ -513,10 +513,14 @@ function AcademyStatusHeader({ data }: { data: ChildAcademyStatusData }) {
   const badges = generateAcademyBadges(data)
   return (
     <View style={ast.wrapper}>
-      <View style={[ast.statusPill, { backgroundColor: cfg.bg, borderColor: cfg.color }]}>
-        <AureakText variant="label" style={{ color: cfg.color, fontWeight: '800', letterSpacing: 1.1, fontSize: 12 }}>
-          {cfg.label}
-        </AureakText>
+      {/* Story 62.4 — Statut avec HelpTooltip */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={[ast.statusPill, { backgroundColor: cfg.bg, borderColor: cfg.color }]}>
+          <AureakText variant="label" style={{ color: cfg.color, fontWeight: '800', letterSpacing: 1.1, fontSize: 12 }}>
+            {cfg.label}
+          </AureakText>
+        </View>
+        <HelpTooltip content={HELP_TEXTS.academyStatus} title="Statut académie" />
       </View>
       {badges.length > 0 && (
         <View style={ast.badgeRow}>
@@ -2887,7 +2891,11 @@ export default function ChildDetailPage() {
         {/* ── Story 54-6 — Section Présences / Heatmap ── */}
         <View style={s.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm }}>
-            <SectionTitle>Présences (12 mois glissants)</SectionTitle>
+            {/* Story 62.4 — HelpTooltip taux présence */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <SectionTitle>Présences (12 mois glissants)</SectionTitle>
+              <HelpTooltip content={HELP_TEXTS.attendance} title="Taux de présence" />
+            </View>
             {/* Sélecteur mois de référence AC5 */}
             <View style={{ flexDirection: 'row', gap: 6 }}>
               <Pressable

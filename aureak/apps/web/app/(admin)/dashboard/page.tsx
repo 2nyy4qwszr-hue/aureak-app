@@ -19,7 +19,7 @@ import {
 import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
 import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
 import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
-import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter } from '@aureak/ui'
+import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { useLiveSessionCounts } from '@aureak/api-client'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
@@ -390,9 +390,11 @@ type KpiCardProps = {
   labelColor  ?: string
   /** Overrides de couleur pour le sous-texte */
   subColor    ?: string
+  /** Story 62.4 — Texte d'aide contextuel HelpTooltip */
+  helpText?   : string
 }
 
-function KpiCard({ label, value, sub, accent, borderAccent, sparkline, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor }: KpiCardProps) {
+function KpiCard({ label, value, sub, accent, borderAccent, sparkline, size = 'medium', icon, cardStyle, valueColor, labelColor, subColor, helpText }: KpiCardProps) {
   const valueFontSize = size === 'large' ? 52 : size === 'medium' ? 38 : 28
 
   return (
@@ -423,8 +425,10 @@ function KpiCard({ label, value, sub, accent, borderAccent, sparkline, size = 'm
       )}
 
       <div style={S.kpiCardTop}>
-        <div style={{ ...S.kpiLabel, color: labelColor ?? (S.kpiLabel as React.CSSProperties).color }}>
+        <div style={{ ...S.kpiLabel, color: labelColor ?? (S.kpiLabel as React.CSSProperties).color, display: 'flex', alignItems: 'center', gap: 4 }}>
           {label}
+          {/* Story 62.4 — HelpTooltip éducatif */}
+          {helpText && <HelpTooltip content={helpText} />}
         </div>
       </div>
       <div style={{ ...S.kpiValue, color: valueColor ?? accent, fontSize: valueFontSize }}>{value}</div>
@@ -2630,6 +2634,7 @@ export default function DashboardPage() {
                   size="medium"
                   icon="✅"
                   sparkline={sparkAttendance}
+                  helpText={HELP_TEXTS.attendanceKpi}
                 />
               </DraggableKpiCard>
             </div>
@@ -2655,6 +2660,7 @@ export default function DashboardPage() {
                   size="medium"
                   icon="🎯"
                   sparkline={sparkMastery}
+                  helpText={HELP_TEXTS.masteryKpi}
                 />
               </DraggableKpiCard>
             </div>
