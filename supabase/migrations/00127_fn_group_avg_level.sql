@@ -6,21 +6,22 @@
 CREATE OR REPLACE FUNCTION get_group_avg_level(p_group_id UUID)
 RETURNS NUMERIC LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT COALESCE(
-    ROUND(AVG(
-      CASE e.signal
-        WHEN 'positive'   THEN 5
-        WHEN 'attention'  THEN 3
-        WHEN 'none'       THEN 3
-        ELSE 3
-      END
-    )::NUMERIC, 1),
+    ROUND(AVG(signal_score)::NUMERIC, 1),
     3
   )
-  FROM evaluations e
-  JOIN sessions s ON s.id = e.session_id
-  WHERE s.group_id = p_group_id
-    AND s.deleted_at IS NULL
-    AND s.scheduled_at >= (CURRENT_DATE - INTERVAL '90 days')
+  FROM (
+    SELECT
+      (
+        CASE e.receptivite WHEN 'positive' THEN 5 WHEN 'attention' THEN 3 ELSE 3 END
+        + CASE e.gout_effort WHEN 'positive' THEN 5 WHEN 'attention' THEN 3 ELSE 3 END
+        + CASE e.attitude    WHEN 'positive' THEN 5 WHEN 'attention' THEN 3 ELSE 3 END
+      ) / 3.0 AS signal_score
+    FROM evaluations e
+    JOIN sessions s ON s.id = e.session_id
+    WHERE s.group_id = p_group_id
+      AND s.deleted_at IS NULL
+      AND s.scheduled_at >= (CURRENT_DATE - INTERVAL '90 days')
+  ) sub
 $$;
 
 COMMENT ON FUNCTION get_group_avg_level(UUID) IS
