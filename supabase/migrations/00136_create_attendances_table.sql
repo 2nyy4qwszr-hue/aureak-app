@@ -191,6 +191,28 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Coach : écriture sur le roster (ajout d'essais, joueurs invités)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'session_attendees' AND policyname = 'sa_coach_write'
+  ) THEN
+    EXECUTE $policy$
+      CREATE POLICY "sa_coach_write" ON session_attendees
+        FOR ALL USING (
+          tenant_id = current_tenant_id()
+          AND is_active_user()
+          AND current_user_role() = 'coach'
+          AND EXISTS (
+            SELECT 1 FROM session_coaches sc
+            WHERE sc.session_id = session_attendees.session_id
+              AND sc.coach_id = auth.uid()
+          )
+        )
+    $policy$;
+  END IF;
+END $$;
+
 -- Parent : lecture du roster pour ses enfants
 DO $$ BEGIN
   IF NOT EXISTS (
@@ -292,6 +314,23 @@ DO $$ BEGIN
             WHERE pcl.parent_id = auth.uid()
               AND pcl.child_id = attendances.child_id
           )
+        )
+    $policy$;
+  END IF;
+END $$;
+
+-- Enfant : lecture de ses propres présences
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'attendances' AND policyname = 'att_child_read'
+  ) THEN
+    EXECUTE $policy$
+      CREATE POLICY "att_child_read" ON attendances
+        FOR SELECT USING (
+          is_active_user()
+          AND current_user_role() = 'child'
+          AND child_id = auth.uid()
         )
     $policy$;
   END IF;

@@ -66,36 +66,36 @@ afin que les KPIs, la streak des joueurs, le score académie et les compteurs en
 
 ### 1. Investigation préalable
 
-- [ ] 1.1 Vérifier via `grep -rn "ALTER TABLE attendances" supabase/migrations/` quelles colonnes additionnelles ont été ajoutées après la création initiale (archive)
-- [ ] 1.2 Lire `supabase/migrations/00103_badges_session_photos.sql` pour identifier les colonnes `ALTER TABLE attendances`
-- [ ] 1.3 Lire `supabase/migrations/00102_attendance_corrections_presence.sql` pour identifier la colonne `attendance_type`
-- [ ] 1.4 Lire `supabase/migrations/00090_rls_policies_complete.sql` pour vérifier si les policies `attendances` y sont définies (si oui, les inclure dans la migration principale sans doublon — utiliser `CREATE POLICY IF NOT EXISTS`)
+- [x] 1.1 Vérifier via `grep -rn "ALTER TABLE attendances" supabase/migrations/` quelles colonnes additionnelles ont été ajoutées après la création initiale (archive)
+- [x] 1.2 Lire `supabase/migrations/00103_badges_session_photos.sql` pour identifier les colonnes `ALTER TABLE attendances`
+- [x] 1.3 Lire `supabase/migrations/00102_attendance_corrections_presence.sql` pour identifier la colonne `attendance_type`
+- [x] 1.4 Lire `supabase/migrations/00090_rls_policies_complete.sql` pour vérifier si les policies `attendances` y sont définies (si oui, les inclure dans la migration principale sans doublon — utiliser `CREATE POLICY IF NOT EXISTS`)
 
 ### 2. Migration Supabase
 
-- [ ] 2.1 Créer `supabase/migrations/00136_create_attendances_table.sql`
-- [ ] 2.2 Inclure `CREATE TABLE IF NOT EXISTS attendances (...)` avec toutes les colonnes de base
-- [ ] 2.3 Inclure `ADD COLUMN IF NOT EXISTS attendance_type TEXT NOT NULL DEFAULT 'member' CHECK (attendance_type IN ('member', 'trial'))` (Migration 00102)
-- [ ] 2.4 Inclure les colonnes additionnelles identifiées en 1.2 (badges, etc.)
-- [ ] 2.5 Créer les index : `attendances_session_idx ON attendances (session_id, tenant_id)`, `attendances_child_idx ON attendances (child_id)`
-- [ ] 2.6 Créer le trigger `trg_attendance_start_session` + `trg_attendance_start`
-- [ ] 2.7 Activer RLS : `ALTER TABLE attendances ENABLE ROW LEVEL SECURITY`
-- [ ] 2.8 Créer les policies RLS :
+- [x] 2.1 Créer `supabase/migrations/00136_create_attendances_table.sql`
+- [x] 2.2 Inclure `CREATE TABLE IF NOT EXISTS attendances (...)` avec toutes les colonnes de base
+- [x] 2.3 Inclure `ADD COLUMN IF NOT EXISTS attendance_type TEXT NOT NULL DEFAULT 'member' CHECK (attendance_type IN ('member', 'trial'))` (Migration 00102)
+- [x] 2.4 Inclure les colonnes additionnelles identifiées en 1.2 (badges, etc.)
+- [x] 2.5 Créer les index : `attendances_session_idx ON attendances (session_id, tenant_id)`, `attendances_child_idx ON attendances (child_id)`
+- [x] 2.6 Créer le trigger `trg_attendance_start_session` + `trg_attendance_start`
+- [x] 2.7 Activer RLS : `ALTER TABLE attendances ENABLE ROW LEVEL SECURITY`
+- [x] 2.8 Créer les policies RLS :
   - `admin` : accès complet en lecture/écriture sur son tenant
   - `coach` : lecture des attendances de ses séances, écriture si coach de la séance
-  - `child` : lecture de ses propres attendances
+  - `child` : lecture de ses propres attendances *(ajouté en code review — policy `att_child_read`)*
   - `parent` : lecture des attendances de ses enfants
 
 ### 3. Tables dépendantes (si absentes)
 
-- [ ] 3.1 Vérifier si `session_attendees` existe dans `supabase/migrations/` (hors archive). Si absent, créer `supabase/migrations/00136_create_attendances_table.sql` avec `session_attendees` + `attendances` + `coach_presence_confirmations` + `block_checkins`
-- [ ] 3.2 Vérifier si `coach_presence_confirmations` et `block_checkins` existent. Si absent, inclure dans la même migration.
+- [x] 3.1 Vérifier si `session_attendees` existe dans `supabase/migrations/` (hors archive). Si absent, créer `supabase/migrations/00136_create_attendances_table.sql` avec `session_attendees` + `attendances` + `coach_presence_confirmations` + `block_checkins`
+- [x] 3.2 Vérifier si `coach_presence_confirmations` et `block_checkins` existent. Si absent, inclure dans la même migration.
 
 ### 4. QA post-migration
 
-- [ ] 4.1 QA scan sur la migration : vérifier que `CREATE TABLE IF NOT EXISTS` est utilisé (idempotent)
-- [ ] 4.2 Vérifier que `ALTER TABLE` avec `ADD COLUMN IF NOT EXISTS` ne causera pas de conflit si les colonnes existent déjà ailleurs
-- [ ] 4.3 Grep `console.` dans les fichiers modifiés : aucun console non-guardé
+- [x] 4.1 QA scan sur la migration : vérifier que `CREATE TABLE IF NOT EXISTS` est utilisé (idempotent)
+- [x] 4.2 Vérifier que `ALTER TABLE` avec `ADD COLUMN IF NOT EXISTS` ne causera pas de conflit si les colonnes existent déjà ailleurs
+- [x] 4.3 Grep `console.` dans les fichiers modifiés : aucun console non-guardé
 
 ## Dépendances
 
