@@ -317,3 +317,9 @@ development_status:
   34-1-architecture-programme-formulaire-intelligent: ready-for-dev
   34-2-navigation-programme-ux-bibliotheque: ready-for-dev
   epic-34-retrospective: optional
+
+  # Epic 63 : Navigation refactoring orientée usage
+  epic-63: in-progress
+  63-1-sidebar-nav-refactor: done
+  63-2-evenements-unifies-vue-filtree: done
+  epic-63-retrospective: optional

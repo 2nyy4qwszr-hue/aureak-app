@@ -4,7 +4,7 @@
 import { supabase } from '../supabase'
 import type {
   Stage, StageWithMeta, StageDay, StageBlock, StageBlockParticipant,
-  StageStatus, StageType, StageSessionType, GroupMethod,
+  StageStatus, StageType, StageSessionType, GroupMethod, EventType,
 } from '@aureak/types'
 
 // ============================================================
@@ -70,6 +70,7 @@ function mapStage(row: Record<string, unknown>): Stage {
     maxParticipants : row.max_participants as number | null,
     notes           : row.notes           as string | null,
     createdAt       : row.created_at      as string,
+    eventType       : (row.event_type ?? 'stage') as EventType,
   }
 }
 
@@ -130,6 +131,43 @@ export async function listStages(opts: {
   }
   if (opts.season) {
     q = q.eq('season_label', opts.season)
+  }
+
+  const { data, error } = await q
+  if (error) throw error
+
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    const impl = row.implantations as { name: string } | null
+    const days = (row.stage_days as unknown[]) ?? []
+    const participants = (row.child_stage_participations as unknown[]) ?? []
+    return {
+      ...mapStage(row),
+      implantationName : impl?.name ?? null,
+      dayCount         : days.length,
+      participantCount : participants.length,
+    }
+  })
+}
+
+/**
+ * listEvents — vue unifiée de tous les évènements avec filtre optionnel sur event_type (Story 63.2)
+ * Utilise la table `stages` avec filtre sur `event_type`.
+ * Compatible avec le RLS tenant_id existant.
+ */
+export async function listEvents(filter?: { type?: EventType }): Promise<StageWithMeta[]> {
+  let q = supabase
+    .from('stages')
+    .select(`
+      *,
+      implantations ( name ),
+      stage_days ( id ),
+      child_stage_participations ( id )
+    `)
+    .is('deleted_at', null)
+    .order('start_date', { ascending: false })
+
+  if (filter?.type) {
+    q = q.eq('event_type', filter.type)
   }
 
   const { data, error } = await q

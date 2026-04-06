@@ -21,7 +21,7 @@ export {
 } from './academy/academyStatus'
 
 export {
-  listStages, getStage, createStage, updateStage, softDeleteStage,
+  listStages, listEvents, getStage, createStage, updateStage, softDeleteStage,
   listStageDays, createStageDay, updateStageDay, deleteStageDay,
   listStageBlocks, createStageBlock, updateStageBlock, deleteStageBlock,
   listStageBlockParticipants, addStageBlockParticipant, removeStageBlockParticipant,

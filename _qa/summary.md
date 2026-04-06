@@ -36,6 +36,7 @@
 | PATROL 2026-04-05 | ✅ PASS | ⏳ EN COURS | 4 BLOCKERs, 4 WARNINGs | Non |
 | BUG-CRAWLER 2026-04-06 | ✅ PASS | ⏳ EN COURS | 1 HIGH, 1 MEDIUM nouveaux | Non |
 | SCAN-FIX 2026-04-06 (cycle 3/3) | ✅ PASS | ✅ PASS | 0 | Non |
+| story-63-2 (Évènements unifiés) | ✅ PASS | ✅ PASS | 8 warnings style/a11y | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 

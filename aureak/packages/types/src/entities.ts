@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -559,7 +559,7 @@ export type StageStatus      = 'planifié' | 'en_cours' | 'terminé' | 'annulé'
 export type StageType        = 'été' | 'toussaint' | 'hiver' | 'pâques' | 'custom'
 export type StageSessionType = 'entrainement' | 'match' | 'théorie' | 'autre'
 
-/** Stage / camp d'entraînement (Migration 00041 + 00048) */
+/** Stage / camp d'entraînement (Migration 00041 + 00048 + 00135) */
 export type Stage = {
   id              : string
   tenantId        : string
@@ -575,6 +575,8 @@ export type Stage = {
   maxParticipants : number | null
   notes           : string | null
   createdAt       : string
+  // Colonne ajoutée par migration 00135 (Story 63.2) — type d'évènement unifié
+  eventType       : EventType
 }
 
 /** StageDay — journée d'un stage */

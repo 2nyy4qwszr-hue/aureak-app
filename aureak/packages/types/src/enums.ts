@@ -270,6 +270,23 @@ export const DIFFICULTY_LABELS: Record<number, string> = {
   5: 'Expert',
 }
 
+// ── Story 63.2 — Type d'évènement unifié ─────────────────────────────────────
+
+/** Type d'évènement — miroir de l'enum PostgreSQL `event_type_enum` (migration 00135) */
+export type EventType = 'stage' | 'tournoi' | 'fun_day' | 'detect_day' | 'seminaire'
+
+export const EVENT_TYPES: EventType[] = [
+  'stage', 'tournoi', 'fun_day', 'detect_day', 'seminaire',
+]
+
+export const EVENT_TYPE_LABELS: Record<EventType, string> = {
+  stage      : 'Stage',
+  tournoi    : 'Tournoi Goal à Goal',
+  fun_day    : 'Fun Day',
+  detect_day : 'Detect Day',
+  seminaire  : 'Séminaire',
+}
+
 // ── Story 58-8 — Phases de séance pédagogique ────────────────────────────────
 
 import type { MethodologyModuleType } from './entities'
