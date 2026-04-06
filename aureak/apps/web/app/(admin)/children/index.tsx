@@ -15,6 +15,7 @@ import { ACADEMY_STATUS_CONFIG, computePlayerTier } from '@aureak/business-logic
 import { formatNomPrenom } from '@aureak/types'
 import type { AcademyStatus, PlayerTier } from '@aureak/types'
 import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
+import { avatarBgColor } from './_avatarHelpers'
 
 // ── Tier pills config ──────────────────────────────────────────────────────────
 
@@ -93,22 +94,6 @@ function getInitials(displayName: string, nom?: string | null, prenom?: string |
   const parts = displayName.trim().split(/\s+/)
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
-}
-
-function avatarBgColor(id: string): string {
-  // Palette conforme design system AUREAK — noir + or, aucun violet ni bleu
-  const COLORS = [
-    colors.accent.gold,         // or AUREAK   #C1AC5C
-    colors.status.success,      // émeraude    #10B981
-    colors.accent.red,          // rouge CTA   #E05252
-    colors.status.warning,      // ambre       #F59E0B
-    colors.text.muted,          // zinc        #71717A
-    colors.dark.surface,        // ardoise     #2A2827
-    colors.dark.elevated,       // dark élévé  #332F2D
-  ]
-  let hash = 0
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
-  return COLORS[Math.abs(hash) % COLORS.length]
 }
 
 function PhotoAvatar({ photoUrl, displayName, id, size = 52, nom, prenom }: {

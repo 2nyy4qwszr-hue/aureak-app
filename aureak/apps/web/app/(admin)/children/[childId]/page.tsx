@@ -55,6 +55,7 @@ import { ACADEMY_STATUS_CONFIG, generateAcademyBadges, computePlayerTier, comput
 import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
 import { exportCardToPng } from '../exportCardToPng'
+import { avatarBgColor } from '../_avatarHelpers'
 import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
@@ -324,15 +325,6 @@ const ns = StyleSheet.create({
   pill     : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.muted },
   pillActive: { borderColor: colors.accent.gold, backgroundColor: colors.light.primary },
 })
-
-// ── Avatar bg color (duplicated from index — local helper) ───────────────────
-
-function avatarBgColor(id: string): string {
-  const PALETTE = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4']
-  let hash = 0
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
-  return PALETTE[Math.abs(hash) % PALETTE.length]
-}
 
 // ── Tier badge colors ─────────────────────────────────────────────────────────
 
