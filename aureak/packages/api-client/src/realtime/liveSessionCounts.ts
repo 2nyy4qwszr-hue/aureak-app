@@ -42,7 +42,7 @@ async function fetchLiveCounts(): Promise<Omit<LiveSessionCounts, 'isLive'>> {
     const sessionIds = (sessions ?? []).map(s => s.id)
 
     const { data: attendances, error: attErr } = await supabase
-      .from('attendance_records')
+      .from('attendances')
       .select('status')
       .in('session_id', sessionIds)
 
@@ -89,7 +89,7 @@ export function useLiveSessionCounts(): LiveSessionCounts {
       .channel('live-attendance-counts')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'attendance_records' },
+        { event: '*', schema: 'public', table: 'attendances' },
         () => {
           refreshCounts()
         },

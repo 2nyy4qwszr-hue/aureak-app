@@ -20,7 +20,7 @@ export async function getStatsRoomKpis(): Promise<{ data: StatsRoomKpis | null; 
       supabase.from('sessions').select('id', { count: 'exact', head: true }).neq('status', 'cancelled'),
       supabase.from('child_directory').select('id', { count: 'exact', head: true }).eq('actif', true),
       supabase.from('club_directory').select('id', { count: 'exact', head: true }).eq('actif', true),
-      supabase.from('attendance_records').select('status'),
+      supabase.from('attendances').select('status'),
     ])
 
     if (sessionsRes.error) {
@@ -28,7 +28,7 @@ export async function getStatsRoomKpis(): Promise<{ data: StatsRoomKpis | null; 
       return { data: null, error: sessionsRes.error }
     }
 
-    // Calcul taux présence moyen sur toutes les attendance_records
+    // Calcul taux présence moyen sur toutes les attendances
     const records = (attendanceRes.data ?? []) as { status: string }[]
     const total   = records.length
     const present = records.filter(r => r.status === 'present').length
@@ -80,7 +80,7 @@ export async function getAttendanceByGroupMonth(
 
     // Récupérer les présences pour ces séances
     const { data: attendances, error: attError } = await supabase
-      .from('attendance_records')
+      .from('attendances')
       .select('session_id, status')
       .in('session_id', sessionIds)
 
@@ -237,7 +237,7 @@ export async function getImplantationRankings(
 
       // Attendances
       const { data: attendances, error: aErr } = await supabase
-        .from('attendance_records')
+        .from('attendances')
         .select('session_id, status')
         .in('session_id', sessionIds)
 
@@ -434,7 +434,7 @@ export async function getMonthlyReportData(
 
     // Récupérer les présences
     const { data: attendances, error: attErr } = await supabase
-      .from('attendance_records')
+      .from('attendances')
       .select('session_id, child_id, status')
       .in('session_id', sessionIds)
 

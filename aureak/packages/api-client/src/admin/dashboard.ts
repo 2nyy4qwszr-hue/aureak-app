@@ -26,7 +26,7 @@ export async function getTopStreakPlayers(
   const since = new Date(Date.now() - 90 * 24 * 3600_000).toISOString()
 
   const { data: records, error: recordsError } = await supabase
-    .from('attendance_records')
+    .from('attendances')
     .select('child_id, status, sessions(scheduled_at)')
     .gte('sessions.scheduled_at', since)
     .in('status', ['present', 'absent'])
@@ -113,17 +113,17 @@ export type ActivityEventItem = {
 
 /**
  * Charge les événements initiaux du feed d'activité :
- * - 5 dernières présences validées (attendance_records WHERE status='present')
+ * - 5 dernières présences validées (attendances WHERE status='present')
  * - 5 derniers nouveaux joueurs (child_directory ORDER BY created_at DESC)
  * Fusionné et trié par date DESC, limité à 10.
  */
 export async function fetchActivityFeed(): Promise<{ data: ActivityEventItem[]; error: unknown }> {
   const [attendanceRes, playersRes] = await Promise.all([
     supabase
-      .from('attendance_records')
-      .select('id, child_id, created_at, session_id')
+      .from('attendances')
+      .select('id, child_id, recorded_at, session_id')
       .eq('status', 'present')
-      .order('created_at', { ascending: false })
+      .order('recorded_at', { ascending: false })
       .limit(5),
     supabase
       .from('child_directory')
@@ -143,13 +143,13 @@ export async function fetchActivityFeed(): Promise<{ data: ActivityEventItem[]; 
   }
 
   const presenceEvents: ActivityEventItem[] = ((attendanceRes.data ?? []) as {
-    id: string; child_id: string; created_at: string; session_id: string
+    id: string; child_id: string; recorded_at: string; session_id: string
   }[]).map(r => ({
     id         : `presence-${r.id}`,
     type       : 'presence' as ActivityEventType,
     playerName : r.child_id ? `Joueur` : 'Joueur',
     description: 'Présence validée en séance',
-    createdAt  : r.created_at,
+    createdAt  : r.recorded_at,
   }))
 
   const playerEvents: ActivityEventItem[] = ((playersRes.data ?? []) as {
@@ -271,13 +271,14 @@ export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
   const now   = new Date().toISOString()
   const in24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
+  // Séances réalisées avec au moins un attendee sans présence saisie dans attendances
+  // Stratégie : récupérer les sessions "réalisées" ayant des session_attendees
+  //             puis vérifier lesquelles n'ont pas d'entrée dans attendances
   const [unvalidatedRes, upcoming24hRes] = await Promise.all([
-    // Séances réalisées avec au moins un attendee sans statut (présences non saisies)
     supabase
       .from('sessions')
-      .select('id, session_attendees!inner(status)')
-      .eq('status', 'réalisée')
-      .is('session_attendees.status', null),
+      .select('id, session_attendees!inner(child_id)')
+      .eq('status', 'réalisée'),
 
     // Séances planifiées dans les 24 prochaines heures
     supabase
@@ -297,13 +298,30 @@ export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
       console.error('[dashboard] getNavBadgeCounts upcoming24h error:', upcoming24hRes.error.message ?? upcoming24hRes.error)
   }
 
-  // Dédupliquer : une session peut apparaître plusieurs fois si plusieurs attendees NULL
-  const unvalidatedIds = new Set(
-    ((unvalidatedRes.data ?? []) as { id: string }[]).map(r => r.id)
-  )
+  // Vérifier les sessions réalisées avec attendees mais sans attendances saisies
+  const sessionIds = ((unvalidatedRes.data ?? []) as { id: string }[]).map(r => r.id)
+  let unvalidatedCount = 0
+
+  if (sessionIds.length > 0) {
+    const { data: attendancesData, error: attErr } = await supabase
+      .from('attendances')
+      .select('session_id')
+      .in('session_id', sessionIds)
+
+    if (attErr) {
+      if ((process.env.NODE_ENV as string) !== 'production')
+        console.error('[dashboard] getNavBadgeCounts attendances error:', attErr.message ?? attErr)
+    }
+
+    const sessionsWithAttendances = new Set(
+      ((attendancesData ?? []) as { session_id: string }[]).map(a => a.session_id)
+    )
+    // Sessions réalisées avec attendees mais sans aucune attendance = non validées
+    unvalidatedCount = sessionIds.filter(id => !sessionsWithAttendances.has(id)).length
+  }
 
   return {
-    presencesUnvalidated : unvalidatedIds.size,
+    presencesUnvalidated : unvalidatedCount,
     sessionsUpcoming24h  : (upcoming24hRes.count ?? 0) > 0,
   }
 }

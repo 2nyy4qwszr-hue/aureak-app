@@ -38,14 +38,14 @@ export async function getAcademyScore(
     // présences validées (status = 'present') vs total pour ce mois
     const [presentResult, totalPresenceResult] = await Promise.all([
       supabase
-        .from('attendance_records')
+        .from('attendances')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'present')
-        .gte('created_at', monthStart),
+        .gte('recorded_at', monthStart),
       supabase
-        .from('attendance_records')
+        .from('attendances')
         .select('id', { count: 'exact', head: true })
-        .gte('created_at', monthStart),
+        .gte('recorded_at', monthStart),
     ])
 
     const presentCount     = presentResult.count    ?? 0
@@ -63,8 +63,8 @@ export async function getAcademyScore(
         .gte('created_at', monthStart),
       supabase
         .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('role', 'child'),
+        .select('user_id', { count: 'exact', head: true })
+        .eq('user_role', 'child'),
     ])
 
     const uniqueChildrenWithXp = new Set(
@@ -106,10 +106,10 @@ export async function getAcademyScore(
     // ── Tendance hebdomadaire : delta score vs semaine précédente ─────────────
     // Approche simple : comparer presenceRate semaine en cours vs semaine -1
     const [presentWeek, totalWeek, presentPrevWeek, totalPrevWeek] = await Promise.all([
-      supabase.from('attendance_records').select('id', { count: 'exact', head: true }).eq('status', 'present').gte('created_at', weekAgo),
-      supabase.from('attendance_records').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
-      supabase.from('attendance_records').select('id', { count: 'exact', head: true }).eq('status', 'present').gte('created_at', twoWeekAgo).lt('created_at', weekAgo),
-      supabase.from('attendance_records').select('id', { count: 'exact', head: true }).gte('created_at', twoWeekAgo).lt('created_at', weekAgo),
+      supabase.from('attendances').select('id', { count: 'exact', head: true }).eq('status', 'present').gte('recorded_at', weekAgo),
+      supabase.from('attendances').select('id', { count: 'exact', head: true }).gte('recorded_at', weekAgo),
+      supabase.from('attendances').select('id', { count: 'exact', head: true }).eq('status', 'present').gte('recorded_at', twoWeekAgo).lt('recorded_at', weekAgo),
+      supabase.from('attendances').select('id', { count: 'exact', head: true }).gte('recorded_at', twoWeekAgo).lt('recorded_at', weekAgo),
     ])
 
     const rateThisWeek  = (totalWeek.count ?? 0) > 0
