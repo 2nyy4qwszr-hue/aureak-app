@@ -75,6 +75,7 @@ const HoverablePressable = Pressable as React.ComponentType<HoverablePressablePr
 // ── Hints sidebar : href → chord affiché en mode expanded (Story 51.6) ────────
 const ITEM_SHORTCUTS: Record<string, string> = {
   '/dashboard'                 : 'G D',
+  '/activites'                 : 'G I',   // actIvités hub unifié
   '/seances'                   : 'G S',
   '/presences'                 : 'G P',
   '/evaluations'               : 'G E',
@@ -114,6 +115,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Activité',
     items: [
+      { label: 'Activités',   href: '/activites',   Icon: CalendarDaysIcon },
       { label: 'Séances',     href: '/seances',     Icon: CalendarIcon },
       { label: 'Présences',   href: '/presences',   Icon: CheckSquareIcon },
       { label: 'Évaluations', href: '/evaluations', Icon: StarIcon },
