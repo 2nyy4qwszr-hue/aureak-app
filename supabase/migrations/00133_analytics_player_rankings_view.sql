@@ -21,7 +21,7 @@ WITH ranked AS (
   JOIN group_members gm    ON gm.child_id = cd.id
   JOIN groups g             ON g.id = gm.group_id AND g.is_transient = false
   JOIN sessions s           ON s.group_id = g.id AND s.deleted_at IS NULL
-  JOIN attendance_records a ON a.session_id = s.id AND a.child_id = cd.id
+  JOIN attendances a ON a.session_id = s.id AND a.child_id = cd.id
   WHERE cd.deleted_at IS NULL
   GROUP BY cd.id, cd.display_name, g.name
 )
@@ -39,19 +39,19 @@ FROM ranked;
 CREATE OR REPLACE VIEW v_player_xp_ranking AS
 WITH xp_totals AS (
   SELECT
-    p.id                                                                           AS child_id,
+    p.user_id                                                                        AS child_id,
     p.display_name,
     COALESCE(g.name, 'Sans groupe')                                               AS group_name,
-    COALESCE(SUM(xl.delta), 0)::numeric                                            AS total_xp,
+    COALESCE(SUM(xl.xp_delta), 0)::numeric                                            AS total_xp,
     ROW_NUMBER() OVER (
-      ORDER BY COALESCE(SUM(xl.delta), 0) DESC
+      ORDER BY COALESCE(SUM(xl.xp_delta), 0) DESC
     )                                                                              AS rank
   FROM profiles p
-  LEFT JOIN group_members gm ON gm.child_id = p.id
+  LEFT JOIN group_members gm ON gm.child_id = p.user_id
   LEFT JOIN groups g          ON g.id = gm.group_id AND g.is_transient = false
-  LEFT JOIN xp_ledger xl      ON xl.child_id = p.id
-  WHERE p.role = 'child'
-  GROUP BY p.id, p.display_name, g.name
+  LEFT JOIN xp_ledger xl      ON xl.child_id = p.user_id
+  WHERE p.user_role = 'child'
+  GROUP BY p.user_id, p.display_name, g.name
 )
 SELECT
   child_id,
