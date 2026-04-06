@@ -11,9 +11,11 @@ import {
   listGroupMembersWithProfiles,
   listAttendancesBySession,
   listSessionsWithAttendance,
+  listAttendancesByChild,
+  getChildDirectoryEntry,
 } from '@aureak/api-client'
-import type { GroupWithMeta, GroupMemberWithName } from '@aureak/types'
-import type { SessionAttendanceSummary } from '@aureak/api-client'
+import type { GroupWithMeta, GroupMemberWithName, ChildDirectoryEntry } from '@aureak/types'
+import type { SessionAttendanceSummary, AttendanceHistoryRow } from '@aureak/api-client'
 
 import { ActivitesHeader }        from '../components/ActivitesHeader'
 import { FiltresScope }           from '../components/FiltresScope'
@@ -750,6 +752,246 @@ const heatStyles = StyleSheet.create({
   },
 })
 
+// ─── Vue Joueur Inline ────────────────────────────────────────────────────────
+
+type VueJoueurInlineProps = {
+  childId   : string
+  loading   : boolean
+  entry     : ChildDirectoryEntry | null
+  history   : AttendanceHistoryRow[]
+  onViewFull: () => void
+}
+
+function VueJoueurInline({ loading, entry, history, onViewFull }: VueJoueurInlineProps) {
+  if (loading) {
+    return (
+      <View style={vueJoueurStyles.container}>
+        <AureakText style={vueJoueurStyles.loadingText}>Chargement…</AureakText>
+      </View>
+    )
+  }
+
+  if (!entry) {
+    return (
+      <View style={vueJoueurStyles.container}>
+        <AureakText style={vueJoueurStyles.loadingText}>Joueur introuvable.</AureakText>
+      </View>
+    )
+  }
+
+  const initials   = entry.displayName.slice(0, 2).toUpperCase()
+  const globalRate = Math.round(
+    (history.filter(h => h.status === 'present' || h.status === 'late').length /
+     Math.max(history.length, 1)) * 100
+  )
+
+  const sorted10 = [...history]
+    .sort((a, b) => b.sessionDate.localeCompare(a.sessionDate))
+    .slice(0, 10)
+
+  const today30ago = new Date()
+  today30ago.setDate(today30ago.getDate() - 30)
+  const hist30 = history.filter(h => new Date(h.sessionDate) >= today30ago)
+  const rate30 = hist30.length > 0
+    ? Math.round((hist30.filter(h => h.status === 'present' || h.status === 'late').length / hist30.length) * 100)
+    : 0
+
+  return (
+    <View style={vueJoueurStyles.container}>
+      {/* Card résumé */}
+      <View style={vueJoueurStyles.card}>
+        <View style={vueJoueurStyles.cardRow}>
+          <View style={vueJoueurStyles.avatar}>
+            <AureakText style={vueJoueurStyles.avatarText}>{initials}</AureakText>
+          </View>
+          <View style={vueJoueurStyles.cardInfo}>
+            <AureakText style={vueJoueurStyles.playerName}>{entry.displayName}</AureakText>
+            <AureakText style={vueJoueurStyles.playerSub}>
+              {history[0]?.groupName ?? '—'}
+            </AureakText>
+            <AureakText style={vueJoueurStyles.playerSub}>Assiduité : {globalRate} %</AureakText>
+          </View>
+        </View>
+      </View>
+
+      {/* Timeline 10 dernières séances */}
+      <View style={vueJoueurStyles.section}>
+        <AureakText style={vueJoueurStyles.sectionTitle}>10 dernières séances</AureakText>
+        {sorted10.length === 0 ? (
+          <AureakText style={vueJoueurStyles.emptyText}>Aucune séance enregistrée</AureakText>
+        ) : (
+          sorted10.map((item, i) => (
+            <View key={i} style={vueJoueurStyles.timelineRow}>
+              <View style={[vueJoueurStyles.dot, { backgroundColor: getDotColor(item.status as AttendanceStatus) }]} />
+              <AureakText style={vueJoueurStyles.timelineDate}>
+                {formatSessionDate(item.sessionDate)}
+              </AureakText>
+              <AureakText style={vueJoueurStyles.timelineStatus}>{item.status}</AureakText>
+            </View>
+          ))
+        )}
+      </View>
+
+      {/* Stats */}
+      <View style={vueJoueurStyles.statsRow}>
+        <View style={[cardStyles.card, { flex: 1 }]}>
+          <AureakText style={cardStyles.cardLabel}>Assiduité 30 jours</AureakText>
+          <AureakText style={cardStyles.cardStat}>{rate30} %</AureakText>
+        </View>
+        <View style={[cardStyles.card, { flex: 1 }]}>
+          <AureakText style={cardStyles.cardLabel}>Assiduité totale</AureakText>
+          <AureakText style={cardStyles.cardStat}>{globalRate} %</AureakText>
+        </View>
+      </View>
+
+      {/* Lien opt-in */}
+      <Pressable onPress={onViewFull} style={vueJoueurStyles.fullLink}>
+        <AureakText style={vueJoueurStyles.fullLinkText}>Voir la fiche complète →</AureakText>
+      </Pressable>
+    </View>
+  )
+}
+
+const emptyPlayerStyles = StyleSheet.create({
+  container: {
+    flex           : 1,
+    alignItems     : 'center',
+    justifyContent : 'center',
+    paddingVertical: space.xxl,
+    gap            : space.sm,
+  },
+  title: {
+    fontSize  : 16,
+    fontWeight: '600',
+    color     : colors.text.primary,
+    textAlign : 'center',
+    fontFamily: fonts.body,
+  },
+  sub: {
+    fontSize  : 13,
+    color     : colors.text.muted,
+    textAlign : 'center',
+    fontFamily: fonts.body,
+  },
+})
+
+const vueJoueurStyles = StyleSheet.create({
+  container: {
+    paddingHorizontal: space.lg,
+    paddingTop       : space.md,
+    gap              : space.md,
+  },
+  loadingText: {
+    color     : colors.text.muted,
+    fontSize  : 14,
+    fontFamily: fonts.body,
+    textAlign : 'center',
+    paddingVertical: space.xl,
+  },
+  card: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    boxShadow      : shadows.sm,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.md,
+  },
+  avatar: {
+    width          : 48,
+    height         : 48,
+    borderRadius   : 24,
+    backgroundColor: colors.dark.surface,
+    justifyContent : 'center',
+    alignItems     : 'center',
+  },
+  avatarText: {
+    color     : colors.accent.gold,
+    fontSize  : 16,
+    fontWeight: '700',
+    fontFamily: fonts.body,
+  },
+  cardInfo: {
+    flex: 1,
+    gap : 2,
+  },
+  playerName: {
+    fontSize  : 16,
+    fontWeight: '700',
+    color     : colors.text.primary,
+    fontFamily: fonts.body,
+  },
+  playerSub: {
+    fontSize  : 12,
+    color     : colors.text.muted,
+    fontFamily: fonts.body,
+  },
+  section: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    boxShadow      : shadows.sm,
+    gap            : space.xs,
+  },
+  sectionTitle: {
+    fontSize    : 13,
+    fontWeight  : '700',
+    color       : colors.text.dark,
+    fontFamily  : fonts.body,
+    marginBottom: space.xs,
+  },
+  timelineRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    paddingVertical: 4,
+    gap          : space.sm,
+  },
+  dot: {
+    width       : 8,
+    height      : 8,
+    borderRadius: 4,
+  },
+  timelineDate: {
+    fontSize  : 12,
+    color     : colors.text.muted,
+    fontFamily: fonts.mono,
+    width     : 90,
+  },
+  timelineStatus: {
+    fontSize  : 12,
+    color     : colors.text.dark,
+    fontFamily: fonts.body,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap          : space.md,
+  },
+  emptyText: {
+    fontSize  : 13,
+    color     : colors.text.muted,
+    fontFamily: fonts.body,
+    textAlign : 'center',
+    paddingVertical: space.sm,
+  },
+  fullLink: {
+    alignItems : 'flex-end',
+    marginTop  : space.md,
+    paddingBottom: space.md,
+  },
+  fullLinkText: {
+    color     : colors.accent.gold,
+    fontSize  : 13,
+    fontFamily: fonts.body,
+    fontWeight: '600',
+  },
+})
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function PresencesPage() {
@@ -762,17 +1004,15 @@ export default function PresencesPage() {
   const [sortDesc,       setSortDesc]       = useState(true)
 
   // Données brutes
-  const [sessions,   setSessions]   = useState<SessionAttendanceSummary[]>([])
-  const [groups,     setGroups]     = useState<GroupWithMeta[]>([])
-  const [members,    setMembers]    = useState<GroupMemberWithName[]>([])
-  const [attendance, setAttendance] = useState<AttendanceRow[]>([])
+  const [sessions,      setSessions]      = useState<SessionAttendanceSummary[]>([])
+  const [groups,        setGroups]        = useState<GroupWithMeta[]>([])
+  const [members,       setMembers]       = useState<GroupMemberWithName[]>([])
+  const [attendance,    setAttendance]    = useState<AttendanceRow[]>([])
 
-  // ── Redirection joueur ────────────────────────────────────────────────────
-  useEffect(() => {
-    if (scope.scope === 'joueur' && scope.childId) {
-      router.push(`/(admin)/children/${scope.childId}` as Parameters<typeof router.push>[0])
-    }
-  }, [scope, router])
+  // Données joueur (scope 'joueur')
+  const [loadingPlayer, setLoadingPlayer] = useState(false)
+  const [playerEntry,   setPlayerEntry]   = useState<ChildDirectoryEntry | null>(null)
+  const [playerHistory, setPlayerHistory] = useState<AttendanceHistoryRow[]>([])
 
   // ── Chargement sessions ───────────────────────────────────────────────────
   useEffect(() => {
@@ -807,6 +1047,38 @@ export default function PresencesPage() {
         }
       } catch (err) {
         if (process.env.NODE_ENV !== 'production') console.error('[PresencesPage] listGroups error:', err)
+      }
+    })()
+  }, [scope])
+
+  // ── Chargement données joueur ─────────────────────────────────────────────
+  useEffect(() => {
+    if (scope.scope !== 'joueur' || !scope.childId) {
+      setPlayerEntry(null)
+      setPlayerHistory([])
+      return
+    }
+    setLoadingPlayer(true)
+    ;(async () => {
+      try {
+        const today     = new Date()
+        const startDate = new Date(today)
+        startDate.setFullYear(today.getFullYear() - 1)
+
+        const [entry, history] = await Promise.all([
+          getChildDirectoryEntry(scope.childId!),
+          listAttendancesByChild(
+            scope.childId!,
+            startDate.toISOString().split('T')[0],
+            today.toISOString().split('T')[0],
+          ),
+        ])
+        setPlayerEntry(entry)
+        setPlayerHistory(history)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[PresencesPage] loadPlayerData error:', err)
+      } finally {
+        setLoadingPlayer(false)
       }
     })()
   }, [scope])
@@ -942,6 +1214,27 @@ export default function PresencesPage() {
             onToggleSort={() => setSortDesc(v => !v)}
             onClickPlayer={handleClickPlayer}
           />
+        )}
+
+        {scope.scope === 'joueur' && (
+          scope.childId ? (
+            <VueJoueurInline
+              childId={scope.childId}
+              loading={loadingPlayer}
+              entry={playerEntry}
+              history={playerHistory}
+              onViewFull={() => router.push(`/(admin)/children/${scope.childId}` as Parameters<typeof router.push>[0])}
+            />
+          ) : (
+            <View style={emptyPlayerStyles.container}>
+              <AureakText style={emptyPlayerStyles.title}>
+                Sélectionner un joueur dans le filtre ci-dessus
+              </AureakText>
+              <AureakText style={emptyPlayerStyles.sub}>
+                Utilisez le filtre Scope › Joueur pour chercher un joueur par nom.
+              </AureakText>
+            </View>
+          )
         )}
       </ScrollView>
     </View>
