@@ -1,57 +1,73 @@
-// Story 63.1 — Page hub Développement (stub)
+// Story 63.3 — Hub Développement avec 3 DevSectionCard
 import React from 'react'
-import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { colors, space, radius } from '@aureak/theme'
+import { colors, space, radius, shadows } from '@aureak/theme'
 
-const CARDS = [
+interface DevSection {
+  href       : string
+  icon       : string
+  title      : string
+  description: string
+}
+
+const SECTIONS: DevSection[] = [
   {
-    title      : 'Prospection',
-    description: 'Identifier de nouveaux talents et futurs académiciens.',
     href       : '/developpement/prospection',
-    icon       : '🔍',
+    icon       : '🎯',
+    title      : 'Prospection',
+    description: 'Suivez vos contacts, rendez-vous et taux de conversion pour développer l\'académie.',
   },
   {
-    title      : 'Marketing',
-    description: 'Gérer la communication et la visibilité de l\'académie.',
     href       : '/developpement/marketing',
     icon       : '📣',
+    title      : 'Marketing',
+    description: 'Campagnes, inscriptions et portée de vos actions de communication.',
   },
   {
-    title      : 'Partenariats',
-    description: 'Suivre et développer les relations avec les clubs partenaires.',
     href       : '/developpement/partenariats',
     icon       : '🤝',
+    title      : 'Partenariats',
+    description: 'Clubs partenaires, conventions et valeur des collaborations actives.',
   },
 ]
+
+interface DevSectionCardProps {
+  section: DevSection
+  onPress: () => void
+}
+
+function DevSectionCard({ section, onPress }: DevSectionCardProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    >
+      <Text style={styles.cardIcon}>{section.icon}</Text>
+      <Text style={styles.cardTitle}>{section.title}</Text>
+      <Text style={styles.cardDesc}>{section.description}</Text>
+      <Text style={styles.cardLink}>Voir →</Text>
+    </Pressable>
+  )
+}
 
 export default function DeveloppementPage() {
   const router = useRouter()
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Développement</Text>
-      <Text style={styles.subtitle}>
-        Cette section est en cours de développement. Les fonctionnalités arrivent bientôt.
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Développement</Text>
+        <Text style={styles.sub}>Croissance et rayonnement de l'académie Aureak</Text>
+      </View>
 
       <View style={styles.grid}>
-        {CARDS.map(card => (
-          <Pressable
-            key={card.href}
-            onPress={() => router.push(card.href as never)}
-          >
-            {({ pressed }) => (
-              <View style={[styles.card, pressed && styles.cardPressed]}>
-                <Text style={styles.cardIcon}>{card.icon}</Text>
-                <Text style={styles.cardTitle}>{card.title}</Text>
-                <Text style={styles.cardDescription}>{card.description}</Text>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>Bientôt disponible</Text>
-                </View>
-              </View>
-            )}
-          </Pressable>
+        {SECTIONS.map(section => (
+          <DevSectionCard
+            key={section.href}
+            section={section}
+            onPress={() => router.push(section.href as never)}
+          />
         ))}
       </View>
     </View>
@@ -60,66 +76,62 @@ export default function DeveloppementPage() {
 
 const styles = StyleSheet.create({
   container: {
-    flex             : 1,
-    backgroundColor  : colors.light.primary,
-    padding          : space[8],
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+    padding        : space.xl,
+  },
+  header: {
+    marginBottom: space.xl,
   },
   title: {
-    fontSize         : 28,
-    fontWeight       : '800',
-    color            : colors.text.primary,
-    marginBottom     : space[2],
+    fontSize    : 28,
+    fontWeight  : '900',
+    color       : colors.text.dark,
+    marginBottom: space.xs,
   },
-  subtitle: {
-    fontSize         : 15,
-    color            : colors.text.muted,
-    marginBottom     : space[8],
-    lineHeight       : 22,
+  sub: {
+    fontSize: 15,
+    color   : colors.text.muted,
   },
   grid: {
-    flexDirection    : 'row',
-    flexWrap         : 'wrap',
-    gap              : space[5],
+    flexDirection: 'row',
+    flexWrap     : 'wrap',
+    gap          : space.md,
   },
   card: {
-    backgroundColor  : colors.light.surface,
-    borderRadius     : radius.cardLg,
-    padding          : space[6],
-    width            : 260,
-    shadowColor      : '#000',
-    shadowOffset     : { width: 0, height: 1 },
-    shadowOpacity    : 0.06,
-    shadowRadius     : 4,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.cardLg,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : space.xl,
+    minWidth       : 240,
+    flex           : 1,
+    maxWidth       : 360,
+    // @ts-ignore — web only boxShadow
+    boxShadow      : shadows.sm,
   },
   cardPressed: {
-    opacity          : 0.85,
+    opacity: 0.85,
   },
   cardIcon: {
-    fontSize         : 36,
-    marginBottom     : space[3],
+    fontSize    : 36,
+    marginBottom: space.sm,
   },
   cardTitle: {
-    fontSize         : 18,
-    fontWeight       : '700',
-    color            : colors.text.primary,
-    marginBottom     : space[2],
+    fontSize    : 18,
+    fontWeight  : '700',
+    color       : colors.text.dark,
+    marginBottom: space.xs,
   },
-  cardDescription: {
-    fontSize         : 13,
-    color            : colors.text.muted,
-    lineHeight       : 20,
-    marginBottom     : space[4],
+  cardDesc: {
+    fontSize    : 13,
+    color       : colors.text.muted,
+    lineHeight  : 20,
+    marginBottom: space.md,
   },
-  badge: {
-    backgroundColor  : colors.light.muted,
-    borderRadius     : radius.xs,
-    paddingHorizontal: space[3],
-    paddingVertical  : space[1],
-    alignSelf        : 'flex-start',
-  },
-  badgeText: {
-    fontSize         : 11,
-    color            : colors.text.muted,
-    fontWeight       : '600',
+  cardLink: {
+    fontSize  : 13,
+    fontWeight: '700',
+    color     : colors.accent.gold,
   },
 })
