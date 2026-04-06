@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
-  getTopStreakPlayers, getPlayerOfWeek, supabase,
+  getTopStreakPlayers, getPlayerOfWeek,
   getXPLeaderboard,
   getAcademyScore,
   checkAcademyMilestones, markMilestoneCelebrated,
@@ -494,7 +494,7 @@ function DeltaPill({ data }: { data: number[] }) {
       display        : 'inline-flex',
       alignItems     : 'center',
       gap            : 2,
-      backgroundColor: positive ? 'rgba(76,175,80,0.10)' : 'rgba(244,67,54,0.10)',
+      backgroundColor: positive ? colors.status.present + '1a' : colors.status.absent + '1a',
       color          : positive ? colors.status.present : colors.status.absent,
       borderRadius   : radius.badge,
       paddingLeft    : 6,
@@ -648,8 +648,8 @@ function ImplantationCard({ stat, groups }: ImplantationCardProps) {
           fontFamily : 'Montserrat, sans-serif',
           fontWeight : '700',
           fontSize   : 16,
-          color      : '#FFFFFF',
-          textShadow : '0 1px 3px rgba(0,0,0,0.5)',
+          color      : colors.text.primary,
+          textShadow : '0 1px 3px ' + colors.dark.surface + '80',
           lineHeight : 1.2,
         }}>
           {stat.implantation_name}
@@ -659,7 +659,7 @@ function ImplantationCard({ stat, groups }: ImplantationCardProps) {
         {groups != null && (
           <div style={{
             backgroundColor: colors.accent.gold,
-            color          : '#1A1A1A',
+            color          : colors.dark.primary,
             borderRadius   : radius.badge,
             paddingLeft    : 8,
             paddingRight   : 8,
@@ -780,7 +780,7 @@ function NextSessionTile({
         alignItems     : 'center',
         padding        : '3px 10px',
         borderRadius   : radius.badge,
-        backgroundColor: 'rgba(244,67,54,0.12)',
+        backgroundColor: colors.status.absent + '1f',
         color          : colors.status.absent,
         fontSize       : 10,
         fontWeight     : 600,
@@ -976,7 +976,7 @@ function DraggableKpiCard({
         cursor      : isDragging ? 'grabbing' : 'grab',
         outline     : isDropTarget ? `2px dashed ${colors.accent.gold}` : 'none',
         outlineOffset: isDropTarget ? 2 : 0,
-        background  : isDropTarget ? 'rgba(214,201,142,0.08)' : undefined,
+        background  : isDropTarget ? colors.accent.gold + '14' : undefined,
         borderRadius: radius.card,
         transition  : 'opacity 0.15s ease, outline 0.1s ease',
         height      : '100%',
@@ -1026,7 +1026,7 @@ function InitialsAvatar({ name, rank }: { name: string; rank: number }) {
       fontFamily     : 'Montserrat, sans-serif',
       fontWeight     : '700',
       fontSize       : 13,
-      color          : rank === 1 ? '#1A1A1A' : '#FFFFFF',
+      color          : rank === 1 ? colors.dark.primary : colors.text.primary,
       flexShrink     : 0,
     }}>
       {initials}
@@ -1124,9 +1124,7 @@ function StreakTile({ players, loading }: { players: StreakPlayer[]; loading: bo
 
 function AnomalyPill({ anomaly, onClick }: { anomaly: AnomalyEvent; onClick: () => void }) {
   const color  = SEV_COLOR[anomaly.severity] ?? colors.status.info
-  const bgAlpha = anomaly.severity === 'critical' ? 'rgba(244,67,54,0.10)'
-                : anomaly.severity === 'warning'  ? 'rgba(255,193,7,0.10)'
-                :                                   'rgba(193,172,92,0.10)'
+  const bgAlpha = (SEV_COLOR[anomaly.severity] ?? colors.accent.gold) + '1a'
 
   return (
     <button
@@ -1252,7 +1250,7 @@ function AnomalyModal({
           <button
             onClick={handleResolveInModal}
             disabled={resolving}
-            style={{ padding: '8px 16px', borderRadius: radius.button, border: 'none', background: colors.status.success, cursor: resolving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: '#FFFFFF', opacity: resolving ? 0.6 : 1, fontFamily: 'Geist, sans-serif' }}
+            style={{ padding: '8px 16px', borderRadius: radius.button, border: 'none', background: colors.status.success, cursor: resolving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: colors.text.primary, opacity: resolving ? 0.6 : 1, fontFamily: 'Geist, sans-serif' }}
           >
             {resolving ? 'Résolution…' : 'Marquer résolu ✓'}
           </button>
@@ -1274,7 +1272,7 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
       bottom         : 24,
       right          : 24,
       backgroundColor: colors.status.success,
-      color          : '#FFFFFF',
+      color          : colors.text.primary,
       borderRadius   : radius.button,
       padding        : '10px 18px',
       fontSize       : 13,
@@ -2118,7 +2116,8 @@ export default function DashboardPage() {
       )
       setImplantationGroups(groupsMap)
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('[dashboard] load error:', err)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] load error:', err)
+      setStatsError(true)
     } finally {
       setLoading(false)
     }
@@ -2473,8 +2472,8 @@ export default function DashboardPage() {
           top            : 12,
           left           : 12,
           zIndex         : 501,
-          backgroundColor: 'rgba(0,0,0,0.4)',
-          color          : '#FFF',
+          backgroundColor: colors.dark.surface + '66',
+          color          : colors.text.primary,
           borderRadius   : radius.badge,
           padding        : '4px 10px',
           fontSize       : 11,
@@ -2758,8 +2757,8 @@ export default function DashboardPage() {
               boxShadow : shadows.md,
             } as React.CSSProperties}
             valueColor={colors.text.primary}
-            labelColor="rgba(255,255,255,0.75)"
-            subColor="rgba(255,255,255,0.6)"
+            labelColor={colors.text.primary + 'bf'}
+            subColor={colors.text.primary + '99'}
           />
         </div>
 
@@ -2803,34 +2802,6 @@ export default function DashboardPage() {
             />
           </div>
         )}
-
-        {/* MEDIUM — Score Académie (Story 59-6) */}
-        <div className="bento-medium">
-          <AcademyScoreTile
-            score={academyScore}
-            loading={loadingAcademyScore}
-            error={academyScoreError}
-            onRetry={async () => {
-              setLoadingAcademyScore(true)
-              setAcademyScoreError(false)
-              try {
-                const { data, error } = await getAcademyScore()
-                if (error) { setAcademyScoreError(true) }
-                setAcademyScore(data ?? null)
-              } catch { setAcademyScoreError(true) }
-              finally { setLoadingAcademyScore(false) }
-            }}
-          />
-        </div>
-
-        {/* LARGE — Leaderboard XP (Story 59-3) */}
-        <div className="bento-large">
-          <LeaderboardTile
-            entries={leaderboard}
-            loading={loadingLeaderboard}
-            onRowClick={(childId) => router.push(`/(admin)/children/${childId}` as never)}
-          />
-        </div>
 
         {/* MEDIUM — Trophée de saison (Story 59-10 — visible seulement si saison terminée) */}
         {(trophyData !== null || loadingTrophy) && (
@@ -2913,7 +2884,7 @@ export default function DashboardPage() {
                   </span>
                 )}
                 {warningCount > 0 && (
-                  <span style={{ fontSize: 12, color: colors.status.warning }}>
+                  <span style={{ fontSize: 12, color: colors.status.attention }}>
                     🟡 {warningCount} avertissement{warningCount > 1 ? 's' : ''}
                   </span>
                 )}
