@@ -246,7 +246,7 @@ const cardStyles = StyleSheet.create({
     justifyContent : 'center',
   },
   badgeRedText: {
-    color     : '#FFFFFF',
+    color     : colors.text.primary,
     fontSize  : 10,
     fontWeight: '700',
     fontFamily: fonts.heading,
@@ -726,7 +726,7 @@ const heatStyles = StyleSheet.create({
     fontSize  : 11,
     fontFamily: fonts.heading,
     fontWeight: '700',
-    color     : '#18181B',
+    color     : colors.text.dark,
   },
   playerName: {
     fontSize     : 13,

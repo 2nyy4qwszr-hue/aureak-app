@@ -64,8 +64,8 @@ type StatusConfig = { label: string; bg: string; text: string }
 const STATUS_CONFIG: Record<string, StatusConfig> = {
   'réalisée' : { label: 'Réalisée',  bg: colors.status.successBg, text: colors.status.successText },
   'terminée' : { label: 'Réalisée',  bg: colors.status.successBg, text: colors.status.successText },
-  'planifiée': { label: 'Planifiée', bg: colors.status.infoBg,    text: '#1D4ED8'                 },
-  'en_cours' : { label: 'En cours',  bg: colors.border.goldBg,    text: '#92400E'                 },
+  'planifiée': { label: 'Planifiée', bg: colors.status.infoBg,    text: colors.status.infoText    },
+  'en_cours' : { label: 'En cours',  bg: colors.border.goldBg,    text: colors.text.dark          },
   'annulée'  : { label: 'Annulée',   bg: colors.status.errorBg,   text: colors.status.errorText   },
   'reportée' : { label: 'Reportée',  bg: colors.status.orangeBg,  text: colors.status.orangeText  },
 }
@@ -130,7 +130,13 @@ function MethodeBadge({ method }: { method: string | null }) {
 
 // ── Avatars Coach ─────────────────────────────────────────────────────────────
 
-const ALPHA_COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
+const ALPHA_COLORS = [
+  colors.accent.gold,
+  colors.status.success,
+  colors.accent.red,
+  colors.status.warning,
+  colors.text.muted,
+]
 
 function getInitials(name: string): string {
   const parts = name.trim().split(' ')
@@ -542,7 +548,7 @@ const styles = StyleSheet.create({
     fontSize  : 10,
     fontWeight: '700',
     fontFamily: 'Montserrat',
-    color     : '#FFFFFF',
+    color     : colors.text.primary,
   },
   avatarExtra: {
     width          : 28,

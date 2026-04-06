@@ -69,6 +69,7 @@ export const colors = {
     errorBorder: '#FECACA', // bordure sur fond errorBg
     errorBorderSevere: '#FEE2E2', // fond rouge plus marqué
     infoBg   : '#EFF6FF',  // fond bleu clair — info banners
+    infoText : '#1D4ED8',  // texte sur fond infoBg (bleu foncé)
     orangeBg : '#FFF7ED',  // fond orange clair — blessure légère
     orangeBorder: '#FED7AA', // bordure orange légère
     orangeText: '#9A3412',  // texte sur fond orangeBg

@@ -37,7 +37,7 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
           fontWeight   : '700',
           fontFamily   : 'Montserrat',
           letterSpacing: 0.8,
-          color        : isActive ? '#FFFFFF' : colors.text.muted,
+          color        : isActive ? colors.text.primary : colors.text.muted,
         }
         return (
           <Pressable key={f.key} style={pillStyle} onPress={() => onChange(f.key)}>

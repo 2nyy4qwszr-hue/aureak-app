@@ -2,7 +2,7 @@
 // Story 63.2 — Page Évènements unifiée (Stages + Tournois + Fun Day + Detect Day + Séminaires)
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Modal,
+  View, StyleSheet, ScrollView, Pressable, Modal,
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listEvents } from '@aureak/api-client'
@@ -54,7 +54,7 @@ function EventTypePill({ eventType }: { eventType: EventType }) {
   const cfg = EVENT_TYPE_CONFIG[eventType]
   return (
     <View style={[s.pill, { backgroundColor: cfg.bg, borderColor: cfg.color }]}>
-      <Text style={[s.pillText, { color: cfg.color }]}>{cfg.label}</Text>
+      <AureakText style={StyleSheet.flatten([s.pillText, { color: cfg.color }])}>{cfg.label}</AureakText>
     </View>
   )
 }
@@ -63,9 +63,9 @@ function StatusBadge({ status }: { status: StageStatus }) {
   const color = STATUS_COLORS[status]
   return (
     <View style={{ backgroundColor: color + '20', borderColor: color, borderWidth: 1, borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2 }}>
-      <Text style={{ color, fontWeight: '700', fontSize: 10 }}>
+      <AureakText style={{ color, fontWeight: '700', fontSize: 10 } as never}>
         {status.toUpperCase()}
-      </Text>
+      </AureakText>
     </View>
   )
 }
@@ -283,9 +283,9 @@ export default function EvenementsPage() {
           style={[s.filterPill, !activeType && s.filterPillActive]}
           onPress={() => setFilter(null)}
         >
-          <Text style={[s.filterPillText, !activeType && s.filterPillTextActive]}>
+          <AureakText style={StyleSheet.flatten([s.filterPillText, !activeType && s.filterPillTextActive])}>
             Tous
-          </Text>
+          </AureakText>
         </Pressable>
 
         {EVENT_TYPES.map(type => {
@@ -300,9 +300,9 @@ export default function EvenementsPage() {
               ]}
               onPress={() => setFilter(type)}
             >
-              <Text style={[s.filterPillText, isActive && { color: typeCfg.color, fontWeight: '700' }]}>
+              <AureakText style={StyleSheet.flatten([s.filterPillText, isActive && { color: typeCfg.color, fontWeight: '700' }])}>
                 {typeCfg.label}
-              </Text>
+              </AureakText>
             </Pressable>
           )
         })}
@@ -335,7 +335,7 @@ export default function EvenementsPage() {
       {/* Empty state dédié sous le banner quand isStubType && liste vide */}
       {isStubType && cfg && events.length === 0 && !loading && (
         <View style={s.emptyStateStub}>
-          <Text style={s.emptyIcon}>{STUB_TYPE_ICONS[activeType!] ?? '📋'}</Text>
+          <AureakText style={s.emptyIcon}>{STUB_TYPE_ICONS[activeType!] ?? '📋'}</AureakText>
           <AureakText variant="body" style={{ fontWeight: '700', color: colors.text.dark, marginBottom: 4 }}>
             Aucun évènement « {cfg.label} »
           </AureakText>
@@ -358,7 +358,7 @@ export default function EvenementsPage() {
       ) : events.length === 0 && !isStubType ? (
         /* Empty state */
         <View style={s.emptyState}>
-          <Text style={s.emptyIcon}>📅</Text>
+          <AureakText style={s.emptyIcon}>📅</AureakText>
           <AureakText variant="body" style={{ fontWeight: '700', color: colors.text.dark, marginBottom: 4 }}>
             Aucun évènement
           </AureakText>

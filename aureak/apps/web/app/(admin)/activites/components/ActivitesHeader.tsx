@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   newBtnText: {
-    color     : '#18181B',
+    color     : colors.text.dark,
     fontSize  : 13,
     fontWeight: '700',
     fontFamily: 'Montserrat',
