@@ -21,8 +21,17 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     ) AS attendance_rate_pct,
     COALESCE(
       ROUND(
-        100.0 * SUM(CASE WHEN e.signal = 'acquired' THEN 1 ELSE 0 END)::NUMERIC
-        / NULLIF(COUNT(e.id), 0),
+        100.0 * (
+          COUNT(e.id) FILTER (WHERE e.receptivite = 'positive')
+          + COUNT(e.id) FILTER (WHERE e.gout_effort = 'positive')
+          + COUNT(e.id) FILTER (WHERE e.attitude = 'positive')
+        )::NUMERIC
+        / NULLIF(
+          COUNT(e.id) FILTER (WHERE e.receptivite <> 'none')
+          + COUNT(e.id) FILTER (WHERE e.gout_effort <> 'none')
+          + COUNT(e.id) FILTER (WHERE e.attitude <> 'none'),
+          0
+        ),
         1
       ), 0
     ) AS mastery_rate_pct,
