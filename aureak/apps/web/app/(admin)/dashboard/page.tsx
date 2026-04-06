@@ -2185,7 +2185,7 @@ export default function DashboardPage() {
       try {
         const { data, error } = await getTopStreakPlayers(3)
         if (error) {
-          if (process.env.NODE_ENV !== 'production')
+          if ((process.env.NODE_ENV as string) !== 'production')
             console.error('[dashboard] getTopStreakPlayers error:', error)
         }
         setStreakPlayers(data ?? [])
@@ -2202,12 +2202,12 @@ export default function DashboardPage() {
       try {
         const { data, error } = await getPlayerOfWeek()
         if (error) {
-          if (process.env.NODE_ENV !== 'production')
+          if ((process.env.NODE_ENV as string) !== 'production')
             console.error('[dashboard] getPlayerOfWeek error:', error)
         }
         setPlayerOfWeek(data ?? null)
       } catch (err) {
-        if (process.env.NODE_ENV !== 'production')
+        if ((process.env.NODE_ENV as string) !== 'production')
           console.error('[dashboard] getPlayerOfWeek exception:', err)
       }
     }
@@ -2221,12 +2221,12 @@ export default function DashboardPage() {
       try {
         const { data, error } = await getXPLeaderboard(10)
         if (error) {
-          if (process.env.NODE_ENV !== 'production')
+          if ((process.env.NODE_ENV as string) !== 'production')
             console.error('[dashboard] getXPLeaderboard error:', error)
         }
         setLeaderboard(data ?? [])
       } catch (err) {
-        if (process.env.NODE_ENV !== 'production')
+        if ((process.env.NODE_ENV as string) !== 'production')
           console.error('[dashboard] getXPLeaderboard exception:', err)
       } finally {
         setLoadingLeaderboard(false)
@@ -2778,60 +2778,6 @@ export default function DashboardPage() {
         <div className="bento-small">
           <WeatherWidget />
         </div>
-
-        {/* MEDIUM — Countdown prochaine séance (Story 50.3) */}
-        <div className="bento-medium">
-          <CountdownTile
-            session={upcomingSession}
-            loading={loadingUpcoming}
-            onNavigate={id => router.push(`/seances/${id}` as never)}
-          />
-        </div>
-
-        {/* MEDIUM — Forme du moment (Story 50.6) */}
-        <div className="bento-medium">
-          <StreakTile players={streakPlayers} loading={loadingStreaks} />
-        </div>
-
-        {/* MEDIUM — Joueur de la semaine (Story 55-8) */}
-        {playerOfWeek && (
-          <div className="bento-medium">
-            <PlayerOfWeekTile
-              player={playerOfWeek}
-              onPress={() => router.push(`/(admin)/children/${playerOfWeek.childId}` as never)}
-            />
-          </div>
-        )}
-
-        {/* MEDIUM — Trophée de saison (Story 59-10 — visible seulement si saison terminée) */}
-        {(trophyData !== null || loadingTrophy) && (
-          <div className="bento-medium">
-            {trophyData ? (
-              <SeasonTrophyTileInner
-                trophyData={trophyData}
-                academyScore={academyScore?.score ?? 0}
-                top3={leaderboard}
-                loading={loadingTrophy}
-                svgRef={trophySvgRef as React.RefObject<SVGSVGElement>}
-              />
-            ) : (
-              <div style={{
-                backgroundColor: colors.light.surface,
-                borderRadius   : radius.card,
-                border         : `1px solid ${colors.border.light}`,
-                boxShadow      : shadows.sm,
-                padding        : 20,
-              }}>
-                <div style={{
-                  height         : 200,
-                  backgroundColor: colors.light.muted,
-                  borderRadius   : radius.xs,
-                  animation      : 'a-pulse 1.8s ease-in-out infinite',
-                }} />
-              </div>
-            )}
-          </div>
-        )}
 
       </div>
 
