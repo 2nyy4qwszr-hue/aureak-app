@@ -1148,7 +1148,7 @@ export async function getActiveSession(): Promise<ActiveSessionInfo[]> {
       scheduled_at,
       duration_minutes,
       groups ( name ),
-      session_attendees ( status )
+      attendances ( status )
     `)
     .eq('status', 'planifiée')
     .gte('scheduled_at', windowStart)
@@ -1165,7 +1165,7 @@ export async function getActiveSession(): Promise<ActiveSessionInfo[]> {
     scheduled_at     : string
     duration_minutes : number
     groups           : Array<{ name: string }> | { name: string } | null
-    session_attendees: Array<{ status: string }> | null
+    attendances: Array<{ status: string }> | null
   }>
 
   // Filtrage précis côté client : [scheduled_at - 30min .. scheduled_at + duration + 15min]
@@ -1177,7 +1177,7 @@ export async function getActiveSession(): Promise<ActiveSessionInfo[]> {
       return now >= preWindow && now <= endWindow
     })
     .map(r => {
-      const attendees    = r.session_attendees ?? []
+      const attendees    = r.attendances ?? []
       const presentCount = attendees.filter(a => a.status === 'présent').length
       const totalCount   = attendees.length
       // groups peut être un objet ou un tableau selon la version du client Supabase
@@ -1215,7 +1215,7 @@ export async function getActiveSessionForCoach(): Promise<ActiveSessionInfo | nu
       duration_minutes,
       status,
       groups ( name ),
-      session_attendees ( status )
+      attendances ( status )
     `)
     .neq('status', 'cancelled')
     .gte('scheduled_at', `${today}T00:00:00`)
@@ -1232,7 +1232,7 @@ export async function getActiveSessionForCoach(): Promise<ActiveSessionInfo | nu
     duration_minutes : number
     status           : string
     groups           : Array<{ name: string }> | { name: string } | null
-    session_attendees: Array<{ status: string }> | null
+    attendances: Array<{ status: string }> | null
   }
 
   const rows = data as unknown as Row[]
@@ -1242,7 +1242,7 @@ export async function getActiveSessionForCoach(): Promise<ActiveSessionInfo | nu
     const preWindow = new Date(start.getTime() - 30 * 60 * 1000)
     const endWindow = new Date(start.getTime() + (r.duration_minutes + 15) * 60 * 1000)
     if (now >= preWindow && now <= endWindow) {
-      const attendees    = r.session_attendees ?? []
+      const attendees    = r.attendances ?? []
       const presentCount = attendees.filter(a => a.status === 'présent').length
       const totalCount   = attendees.length
       const groupObj     = Array.isArray(r.groups) ? r.groups[0] : r.groups

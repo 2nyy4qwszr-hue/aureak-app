@@ -71,15 +71,17 @@ queue:
 
   - story_id: story-49-10
     title: "BUG — profiles.id → user_id + typo getUncelebratedMilestones"
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    notes: "0 BLOCKER, 0 WARNING, 1 INFO (createdAt synthétique dans checkAcademyMilestones — non bloquant). B-CRAWLER-05 résolu. Typo getUnceledbratedMilestones → getUncelebratedMilestones corrigée dans milestones.ts + index.ts. profiles.id → user_id confirmé dans milestones.ts, admin-profile.ts, badges.ts."
 
   - story_id: story-49-11
     title: "BUG — session_attendees.status → attendances.status (nav badges)"
-    status: pending
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
+    notes: "6 occurrences corrigées (2 .select(), 2 types Row, 2 accesseurs). tsc --noEmit EXIT 0. Zéro BLOCKER, zéro WARNING. Rapport : _qa/reports/2026-04-07_story-49-11_gates.md"
 
   - story_id: story-47-6
     title: "DESIGN — Avatars couleurs hardcodées → tokens gold"

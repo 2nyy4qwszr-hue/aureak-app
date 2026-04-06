@@ -341,7 +341,7 @@ development_status:
   epic-49: in-progress
   49-9-bug-attendance-table-manquante-remote: done
   49-10-bug-profiles-id-milestones: done
-  49-11-bug-nav-badges-session-attendees: ready-for-dev
+  49-11-bug-nav-badges-session-attendees: done
   epic-49-retrospective: optional
 
   # Epic 50 : Dashboard Club HQ — Refonte v2

@@ -37,6 +37,11 @@
 | BUG-CRAWLER 2026-04-06 | ✅ PASS | ⏳ EN COURS | 1 HIGH, 1 MEDIUM nouveaux | Non |
 | SCAN-FIX 2026-04-06 (cycle 3/3) | ✅ PASS | ✅ PASS | 0 | Non |
 | story-63-2 (Évènements unifiés) | ✅ PASS | ✅ PASS | 8 warnings style/a11y | Non |
+| BUG-CRAWLER 2026-04-06 (post-sprint) | ✅ PASS | ✅ PASS | 1 MEDIUM, 1 LOW | Non |
+| BUG-CRAWLER 2026-04-06 (story 50-11 focus) | ✅ PASS | ⏳ EN COURS | 3 CRITICAL, 2 HIGH, 1 MEDIUM | Non |
+| story-49-9 (migration attendances table) | ✅ PASS | ✅ PASS | 0 (1 INFO migration ordering pre-existant) | Non |
+| story-49-10 (typo getUncelebratedMilestones + profiles.id) | ✅ PASS | ✅ PASS | 0 (1 INFO createdAt synthétique non bloquant) | Non |
+| story-49-11 (session_attendees.status → attendances.status) | ✅ PASS | ✅ PASS | 0 | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -76,6 +81,9 @@
 | B-PATROL-01 | Vue `v_club_gardien_stats` manquante en DB remote | `/clubs` | migration SQL |
 | B-PATROL-02 | Erreur 400 stages/index load error (bannière + état vide simultanés) | `/stages` | `stages/index.tsx` |
 | B-PATROL-03 | Erreurs React "Unexpected text node" ×2 | `/seances` | `seances/index.tsx` |
+| ~~B-CRAWLER-03~~ | ~~Table `attendances` inexistante — StreakTile + academy-score brisés~~ **RÉSOLU** — migration 00136 appliquée (story 49.9) | `/dashboard` | `supabase/migrations/00136_create_attendances_table.sql` |
+| B-CRAWLER-04 | Table `xp_ledger` introuvable (migration 00129 non appliquée en remote) — Leaderboard vide | `/dashboard` | `api-client/src/gamification/xp.ts` |
+| ~~B-CRAWLER-05~~ | ~~`profiles.id` inexistant dans `milestones.ts:52` → MilestoneCelebration jamais affichée~~ **RÉSOLU** — `.eq('user_id', user.id)` confirmé (story 49.10) | `/dashboard` | `api-client/src/gamification/milestones.ts` |
 | B-PATROL-04 | ~~Lien sidebar Groupes → 404 (`/groupes`)~~ **RÉSOLU** — `href: '/groups'` correct | sidebar | `_layout.tsx` |
 | ~~B-CRAWLER-02~~ | ~~39 `console.error` non guardés dans `@aureak/api-client`~~ **RÉSOLU** — tous les fichiers api-client guardés avec `(process.env.NODE_ENV as string) !== 'production'` (scan-3 2026-04-06) | API | tous fichiers `api-client/src/` |
 | ~~B-CRAWLER-01~~ | ~~Colonne `unassigned_at` inexistante~~ **RÉSOLU** — migration 00134 appliquée (cycle 1) | `/dashboard` | `api-client/src/admin/dashboard.ts:75` |
@@ -86,12 +94,14 @@
 
 | ID | Description | Page |
 |----|-------------|------|
-| W-PATROL-01 | UUIDs bruts affichés dans liste présences | `/presences` |
+| ~~W-PATROL-01~~ | ~~UUIDs bruts affichés dans liste présences~~ **RÉSOLU** — commit 9139ea6 — fallback `'Joueur inconnu'` dans `presences.ts` | `/presences` |
 | W-PATROL-02 | Label enum `En_cours` non mappé | `/stages` |
 | W-PATROL-03 | Dashboard KPIs vides sans valeur ni empty state | `/dashboard` |
 | W-PATROL-04 | Doublon joueur AGRO Alessandro dans liste | `/children` |
 | W-CRAWLER-01 | Navigation directe URL admin redirige vers `/tableau-de-bord` → 404 Unmatched Route | toutes routes admin |
 | W-CRAWLER-02 | `implantations/index.tsx` : `load()` sans `setLoading(true)` → pas de spinner sur 2e+ appel | `/implantations` |
+| W-CRAWLER-03 | `presences.ts` ligne 131 : `const childIds` déclaré mais jamais utilisé (dead code post-UUID-fix) | `api-client/src/sessions/presences.ts` |
+| W-CRAWLER-04 | `dashboard.ts` → `getNavBadgeCounts` : `console.error` affiche `[object Object]` au lieu de `err.message` | `api-client/src/admin/dashboard.ts` |
 
 ---
 
