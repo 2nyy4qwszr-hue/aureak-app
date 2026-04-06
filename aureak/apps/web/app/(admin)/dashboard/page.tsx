@@ -1,22 +1,21 @@
 'use client'
 // Admin Dashboard — vue de contrôle multi-implantations (Light Premium DA)
 // Story 49-5 — Design : Dashboard Admin — Game Manager Premium
-// Story 50-1 — Hero Band salle de commandement
-// Story 50-5 — Live activity feed
 // Story 50-10 — KPI tiles réorganisables drag-drop
+// Story 50-11 — Refonte layout trois zones (Briefing / KPIs / Gamification)
 // Story 55-8 — Joueur de la semaine tile
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import {
   getImplantationStats, listAnomalies, resolveAnomaly, listImplantations, getDashboardKpiCounts,
   listNextSessionForDashboard, listGroupsByImplantation,
-  fetchActivityFeed, getTopStreakPlayers, getPlayerOfWeek, supabase,
+  getTopStreakPlayers, getPlayerOfWeek, supabase,
   getXPLeaderboard,
   getAcademyScore,
   checkAcademyMilestones, markMilestoneCelebrated,
   getSeasonTrophyData,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, ActivityEventItem, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
 import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
 import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
@@ -24,7 +23,6 @@ import { useLiveSessionCounts } from '@aureak/api-client'
 
 // ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
 
-const HERO_BG          = '#2A2827'
 const TERRAIN_GRADIENT = 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 60%, #1a472a 100%)'
 
 // ── Design tokens (local helpers) ─────────────────────────────────────────────
@@ -81,192 +79,338 @@ function DashboardSkeleton() {
         }
       `}</style>
 
-      {/* Hero band skeleton */}
-      <SkeletonBlock h={160} r={radius.card} />
-      <div style={{ height: 20 }} />
+      {/* ── Zone 1 skeleton — Briefing du jour ── */}
+      <SkeletonBlock h={14} w="120px" r={4} />
+      <div style={{ display: 'flex', gap: 16, marginBottom: 24, marginTop: 12, alignItems: 'stretch' }}>
+        {/* Date card skeleton */}
+        <SkeletonBlock h={180} w="180px" r={radius.card} />
+        {/* Implantations grid skeleton */}
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          {[0,1,2].map(i => <SkeletonBlock key={i} h={180} r={radius.card} />)}
+        </div>
+      </div>
 
-      {/* Filters skeleton */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+      {/* Zone divider */}
+      <div style={{ height: 1, background: colors.border.light, margin: '0 0 24px 0' }} />
+
+      {/* ── Zone 2 skeleton — KPIs académie ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <SkeletonBlock h={14} w="100px" r={4} />
         <SkeletonBlock h={34} w="300px" r={8} />
       </div>
 
       {/* Bento KPI skeleton — 3 cols desktop */}
       <div className="bento-grid">
-        {/* Large card — span 2 */}
-        <div className="bento-large">
-          <SkeletonBlock h={160} r={radius.card} />
-        </div>
-        {/* Medium card — span 1 */}
-        <div className="bento-medium">
-          <SkeletonBlock h={160} r={radius.card} />
-        </div>
-        {/* Medium card — span 1 */}
-        <div className="bento-medium">
-          <SkeletonBlock h={160} r={radius.card} />
-        </div>
-        {/* Large card — span 2 */}
-        <div className="bento-large">
-          <SkeletonBlock h={130} r={radius.card} />
-        </div>
-        {/* Small card */}
-        <div className="bento-small">
-          <SkeletonBlock h={130} r={radius.card} />
-        </div>
-        {/* Small card */}
-        <div className="bento-small">
-          <SkeletonBlock h={130} r={radius.card} />
-        </div>
-        {/* Small card */}
-        <div className="bento-small">
-          <SkeletonBlock h={130} r={radius.card} />
-        </div>
-        {/* Small card */}
-        <div className="bento-small">
-          <SkeletonBlock h={130} r={radius.card} />
-        </div>
+        <div className="bento-large"><SkeletonBlock h={160} r={radius.card} /></div>
+        <div className="bento-medium"><SkeletonBlock h={160} r={radius.card} /></div>
+        <div className="bento-medium"><SkeletonBlock h={160} r={radius.card} /></div>
+        <div className="bento-large"><SkeletonBlock h={130} r={radius.card} /></div>
+        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
+        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
+        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
+        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
       </div>
 
-      {/* Next session tile skeleton */}
-      <SkeletonBlock h={72} r={radius.card} />
-      <div style={{ height: 20 }} />
+      {/* Zone divider */}
+      <div style={{ height: 1, background: colors.border.light, margin: '0 0 24px 0' }} />
 
-      {/* Implantation cards skeleton */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 8 }}>
-        <SkeletonBlock h={16} w="140px" r={4} />
+      {/* ── Zone 3 skeleton — Performance & Gamification ── */}
+      <SkeletonBlock h={14} w="200px" r={4} />
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginTop: 12, marginBottom: 12 }}>
+        <SkeletonBlock h={220} r={radius.card} />
+        <SkeletonBlock h={220} r={radius.card} />
+        <SkeletonBlock h={220} r={radius.card} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-        {[0,1,2].map(i => <SkeletonBlock key={i} h={260} r={radius.card} />)}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <SkeletonBlock h={160} r={radius.card} />
+        <SkeletonBlock h={160} r={radius.card} />
+        <SkeletonBlock h={160} r={radius.card} />
       </div>
     </div>
   )
 }
 
-// ── Hero Band ─────────────────────────────────────────────────────────────────
+// ── BriefingDuJour (Zone 1 — Story 50-11) ────────────────────────────────────
 
-function HeroBand({ implantationCount, onEnterFocusMode }: { implantationCount: number; onEnterFocusMode: () => void }) {
+type ImplantationBriefingStat = ImplantationStats & {
+  terrain_available?: boolean
+  absences_count?: number
+  coaches_count?: number
+}
+
+function getImplantStatus(stat: ImplantationBriefingStat): 'ok' | 'warning' | 'ko' {
+  // TODO: coaches_count, absences_count, terrain_available à étendre dans ImplantationStats (story suivante)
+  const coachesCount = (stat as ImplantationBriefingStat).coaches_count ?? 1
+  const terrainOk    = (stat as ImplantationBriefingStat).terrain_available ?? true
+  const absences     = (stat as ImplantationBriefingStat).absences_count ?? 0
+  if (!terrainOk || coachesCount === 0) return 'ko'
+  if (absences > 0) return 'warning'
+  return 'ok'
+}
+
+function BriefingDuJour({
+  stats,
+  todaySessionsCount,
+  onEnterFocusMode,
+}: {
+  stats              : ImplantationBriefingStat[]
+  todaySessionsCount : number
+  onEnterFocusMode   : () => void
+}) {
+  const router = useRouter()
   const [currentTime, setCurrentTime] = useState(() => new Date())
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60_000)
+    const timer = setInterval(() => setCurrentTime(new Date()), 1_000)
     return () => clearInterval(timer)
   }, [])
 
-  const dateLabel = currentTime.toLocaleDateString('fr-BE', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
-  const timeLabel = currentTime.toLocaleTimeString('fr-BE', {
-    hour: '2-digit', minute: '2-digit',
+  const dayLabel   = currentTime.toLocaleDateString('fr-BE', { weekday: 'long' }).toUpperCase()
+  const dayNum     = currentTime.getDate()
+  const monthLabel = currentTime.toLocaleDateString('fr-BE', { month: 'long', year: 'numeric' })
+  const timeLabel  = currentTime.toLocaleTimeString('fr-BE', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
   })
 
   return (
-    <div
-      className="hero-band"
-      style={{
-        position       : 'relative',
-        height         : 160,
-        backgroundColor: HERO_BG,
-        borderTop      : `3px solid ${colors.accent.gold}`,
-        borderRadius   : radius.card,
-        overflow       : 'hidden',
-        display        : 'flex',
-        alignItems     : 'center',
-        justifyContent : 'space-between',
-        paddingLeft    : 32,
-        paddingRight   : 32,
-        marginBottom   : 24,
-        boxShadow      : shadows.lg,
-      }}
-    >
-      {/* Texture terrain SVG */}
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.06, pointerEvents: 'none' }}
-        preserveAspectRatio="none"
-        aria-hidden="true"
+    <div className="briefing-row" style={{
+      display     : 'flex',
+      gap         : 16,
+      alignItems  : 'stretch',
+    }}>
+      {/* ── Date card ── */}
+      <div
+        style={{
+          minWidth       : 180,
+          flexShrink     : 0,
+          backgroundColor: colors.dark.surface,
+          borderTop      : `3px solid ${colors.accent.gold}`,
+          borderRadius   : radius.card,
+          padding        : '20px 24px',
+          display        : 'flex',
+          flexDirection  : 'column',
+          gap            : 4,
+          boxShadow      : shadows.md,
+          position       : 'relative',
+        }}
       >
-        <defs>
-          <pattern id="terrain-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#terrain-grid)" />
-        {/* Cercle central */}
-        <circle cx="50%" cy="50%" r="60" fill="none" stroke="white" strokeWidth="0.8" />
-      </svg>
-
-      {/* Logo gauche */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <div style={{
-          fontFamily   : 'Montserrat, sans-serif',
-          fontWeight   : '900',
-          fontSize     : 28,
-          color        : colors.accent.gold,
-          letterSpacing: 3,
-          lineHeight   : 1.1,
-        }}>
-          AUREAK
-        </div>
-        <div style={{
-          fontFamily   : 'Montserrat, sans-serif',
-          fontWeight   : '400',
-          fontSize     : 13,
-          color        : colors.accent.goldLight,
-          letterSpacing: 2,
-          marginTop    : 4,
-          textTransform: 'uppercase',
-        }}>
-          Académie des Gardiens
-        </div>
-        <div style={{
-          fontFamily: 'Montserrat, sans-serif',
-          fontSize  : 12,
-          color     : colors.text.muted,
-          marginTop : 8,
-        }}>
-          {implantationCount} implantation{implantationCount !== 1 ? 's' : ''}
-        </div>
-      </div>
-
-      {/* Date & heure droite */}
-      <div className="hero-date" style={{ position: 'relative', zIndex: 1, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-        <div style={{
-          fontFamily: 'Geist Mono, monospace',
-          fontWeight: '600',
-          fontSize  : 22,
-          color     : colors.accent.gold,
-          lineHeight: 1,
-        }}>
-          {timeLabel}
-        </div>
-        <div style={{
-          fontFamily   : 'Montserrat, sans-serif',
-          fontWeight   : '600',
-          fontSize     : 15,
-          color        : colors.accent.ivory,
-          letterSpacing: 0.3,
-        }}>
-          {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
-        </div>
-
-        {/* ⛶ Focus Mode toggle (Story 50-9) */}
+        {/* Bouton Focus Mode — coin supérieur droit (Story 50-9) */}
         <button
           className="aureak-focus-toggle"
           onClick={onEnterFocusMode}
           title="Mode plein écran"
           style={{
+            position     : 'absolute',
+            top          : 12,
+            right        : 12,
             background   : 'none',
-            border       : `1px solid rgba(255,255,255,0.25)`,
+            border       : `1px solid ${colors.dark.border}`,
             borderRadius : radius.xs,
-            padding      : '4px 8px',
+            padding      : '3px 7px',
             cursor       : 'pointer',
-            fontSize     : 16,
-            color        : colors.accent.ivory,
+            fontSize     : 14,
+            color        : colors.dark.textMuted,
             lineHeight   : 1,
             transition   : `all ${transitions.fast}`,
-            marginTop    : 4,
           }}
         >
           ⛶
         </button>
+
+        {/* Jour semaine */}
+        <div style={{
+          fontSize     : 10,
+          fontWeight   : 700,
+          color        : colors.accent.gold,
+          letterSpacing: 1.5,
+          textTransform: 'uppercase',
+          fontFamily   : 'Montserrat, sans-serif',
+        }}>
+          {dayLabel}
+        </div>
+
+        {/* Numéro du jour — grand */}
+        <div style={{
+          fontFamily   : 'Geist Mono, monospace',
+          fontWeight   : 900,
+          fontSize     : 36,
+          color        : colors.accent.gold,
+          lineHeight   : 1.1,
+          letterSpacing: -1,
+        }}>
+          {dayNum}
+        </div>
+
+        {/* Mois + année */}
+        <div style={{
+          fontSize  : 12,
+          color     : colors.dark.textMuted,
+          fontFamily: 'Montserrat, sans-serif',
+          marginTop : 2,
+        }}>
+          {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
+        </div>
+
+        {/* Heure temps réel */}
+        <div style={{
+          fontFamily: 'Geist Mono, monospace',
+          fontWeight: 600,
+          fontSize  : 15,
+          color     : colors.dark.text,
+          marginTop : 8,
+        }}>
+          {timeLabel}
+        </div>
+
+        {/* Badge Aujourd'hui */}
+        <div style={{
+          display        : 'inline-flex',
+          alignItems     : 'center',
+          marginTop      : 8,
+          backgroundColor: colors.accent.gold + '1f',
+          border         : `1px solid ${colors.accent.gold + '40'}`,
+          borderRadius   : radius.badge,
+          paddingLeft    : 8,
+          paddingRight   : 8,
+          paddingTop     : 3,
+          paddingBottom  : 3,
+          fontSize       : 10,
+          fontWeight     : 700,
+          color          : colors.accent.gold,
+          fontFamily     : 'Montserrat, sans-serif',
+          letterSpacing  : 0.5,
+          width          : 'fit-content',
+        }}>
+          Aujourd'hui
+        </div>
+
+        {/* Compteur séances du jour */}
+        <div style={{
+          fontSize  : 12,
+          color     : colors.dark.textMuted,
+          marginTop : 8,
+          fontFamily: 'Geist, sans-serif',
+        }}>
+          {todaySessionsCount} séance{todaySessionsCount !== 1 ? 's' : ''} aujourd'hui
+        </div>
+
+        {/* Bouton Voir planning */}
+        <button
+          onClick={() => router.push('/seances' as never)}
+          style={{
+            marginTop  : 'auto',
+            background : 'none',
+            border     : 'none',
+            cursor     : 'pointer',
+            fontSize   : 12,
+            fontWeight : 600,
+            color      : colors.accent.gold,
+            padding    : 0,
+            fontFamily : 'Montserrat, sans-serif',
+            textAlign  : 'left',
+            paddingTop : 12,
+          }}
+        >
+          Voir planning →
+        </button>
+      </div>
+
+      {/* ── Cartes implantations ── */}
+      <div className="implant-grid" style={{
+        flex               : 1,
+        display            : 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap                : 12,
+      }}>
+        {stats.length === 0 && (
+          <div style={{
+            gridColumn    : '1 / -1',
+            display       : 'flex',
+            alignItems    : 'center',
+            justifyContent: 'center',
+            color         : colors.text.muted,
+            fontSize      : 13,
+            fontFamily    : 'Montserrat, sans-serif',
+          }}>
+            Aucune implantation configurée
+          </div>
+        )}
+        {stats.map(stat => {
+          const status      = getImplantStatus(stat)
+          const statusColor = status === 'ok'
+            ? colors.status.present
+            : status === 'warning'
+              ? colors.status.attention   // token orange existant
+              : colors.accent.red
+          const coachesCount = (stat as ImplantationBriefingStat).coaches_count ?? '—'
+          const childrenCount = stat.sessions_total ?? 0  // TODO: utiliser children_count quand disponible
+          const terrainOk    = (stat as ImplantationBriefingStat).terrain_available ?? true
+
+          return (
+            <div
+              key={stat.implantation_id}
+              className={`implant-card implant-card-${status}`}
+              style={{
+                backgroundColor: colors.light.surface,
+                borderRadius   : radius.card,
+                border         : `1px solid ${colors.border.light}`,
+                boxShadow      : shadows.sm,
+                padding        : '14px 16px',
+                display        : 'flex',
+                flexDirection  : 'column',
+                gap            : 8,
+                position       : 'relative',
+                overflow       : 'hidden',
+              }}
+            >
+              {/* Barre top colorée selon statut */}
+              <div style={{
+                position: 'absolute',
+                top     : 0,
+                left    : 0,
+                right   : 0,
+                height  : 3,
+                backgroundColor: statusColor,
+              }} />
+
+              {/* Nom implantation */}
+              <div style={{
+                fontSize  : 13,
+                fontWeight: 700,
+                color     : colors.text.dark,
+                fontFamily: 'Montserrat, sans-serif',
+                paddingTop: 4,
+              }}>
+                {stat.implantation_name}
+              </div>
+
+              {/* Status rows */}
+              <div className="status-row" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.text.muted }}>
+                <span className="status-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: colors.status.present, flexShrink: 0 }} />
+                Coachs : {coachesCount}
+              </div>
+
+              <div className="status-row" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.text.muted }}>
+                <span className="status-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: colors.status.info, flexShrink: 0 }} />
+                {/* TODO: remplacer par children_count quand disponible dans ImplantationStats */}
+                Séances planifiées : {childrenCount}
+              </div>
+
+              <div className="status-row" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: terrainOk ? colors.status.present : colors.accent.red }}>
+                <span className="status-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: terrainOk ? colors.status.present : colors.accent.red, flexShrink: 0 }} />
+                Terrain : {terrainOk ? 'OK' : '⚠ Problème'}
+              </div>
+
+              {/* Présence % */}
+              {stat.attendance_rate_pct !== null && stat.attendance_rate_pct !== undefined && (
+                <div className="status-row" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.text.muted }}>
+                  <span className="status-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: colors.accent.gold, flexShrink: 0 }} />
+                  Présence : {stat.attendance_rate_pct}%
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -855,97 +999,6 @@ function simulateSpark(current: number, seed: number): number[] {
   return offsets.map((o, i) => Math.round(base * (o + jitter[i])))
 }
 
-// ── Activity Feed (Story 50-5) ────────────────────────────────────────────────
-
-function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 1)  return "À l'instant"
-  if (mins < 60) return `il y a ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `il y a ${hours}h`
-  const days = Math.floor(hours / 24)
-  return `il y a ${days}j`
-}
-
-function ActivityFeed({ events, tick }: { events: ActivityEventItem[]; tick: number }) {
-  // tick est utilisé pour forcer le recalcul des timestamps relatifs chaque minute
-  void tick
-
-  const TYPE_ICON: Record<ActivityEventItem['type'], string> = {
-    presence  : '✅',
-    new_player: '👤',
-    badge     : '🏅',
-  }
-
-  return (
-    <div style={{
-      backgroundColor: colors.light.surface,
-      borderRadius   : radius.card,
-      border         : `1px solid ${colors.border.light}`,
-      overflow       : 'hidden',
-      boxShadow      : shadows.sm,
-    }}>
-      <div style={{
-        padding      : '14px 16px',
-        borderBottom : `1px solid ${colors.border.divider}`,
-        fontSize     : 12,
-        fontWeight   : 600,
-        color        : colors.text.muted,
-        textTransform: 'uppercase' as React.CSSProperties['textTransform'],
-        letterSpacing: 0.8,
-        fontFamily   : 'Montserrat, sans-serif',
-      }}>
-        Activité récente
-      </div>
-
-      <div
-        className="aside-scroll"
-        style={{ maxHeight: 420, overflowY: 'auto' }}
-      >
-        {events.length === 0 && (
-          <div style={{ padding: 20, fontSize: 13, color: colors.text.muted, textAlign: 'center' }}>
-            Aucune activité récente
-          </div>
-        )}
-        {events.map(evt => (
-          <div
-            key={evt.id}
-            className={`feed-item${evt.isNew ? ' feed-item-new' : ''}`}
-            style={{
-              display    : 'flex',
-              alignItems : 'flex-start',
-              gap        : 10,
-              padding    : '10px 16px',
-              borderBottom: `1px solid ${colors.border.divider}`,
-            }}
-          >
-            <span style={{ fontSize: 16, lineHeight: 1.4, flexShrink: 0 }}>{TYPE_ICON[evt.type]}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize     : 13,
-                fontWeight   : 500,
-                color        : colors.text.dark,
-                overflow     : 'hidden',
-                textOverflow : 'ellipsis',
-                whiteSpace   : 'nowrap',
-              }}>
-                {evt.playerName}
-              </div>
-              <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 1 }}>
-                {evt.description}
-              </div>
-            </div>
-            <div style={{ fontSize: 10, color: colors.text.subtle, flexShrink: 0, marginTop: 2 }}>
-              {relativeTime(evt.createdAt)}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ── Streak Tile (Story 50.6) ──────────────────────────────────────────────────
 
 function InitialsAvatar({ name, rank }: { name: string; rank: number }) {
@@ -1228,7 +1281,7 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
       fontWeight     : 600,
       boxShadow      : shadows.md,
       zIndex         : 2000,
-      animation      : 'feed-slide-in 0.2s ease',
+      animation      : 'toast-slide-in 0.2s ease',
       fontFamily     : 'Geist, sans-serif',
     } as React.CSSProperties}>
       {message}
@@ -1869,14 +1922,6 @@ function LeaderboardTile({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-const QUICK_ACTIONS = [
-  { label: '+ Nouvelle séance',    href: '/seances/new', primary: true  },
-  { label: '+ Inviter utilisateur', href: '/users/new',   primary: true  },
-  { label: '→ Présences',          href: '/attendance',   primary: false },
-  { label: '→ Évaluations',        href: '/evaluations',  primary: false },
-  { label: '→ Coachs',             href: '/coaches',      primary: false },
-] as const
-
 export default function DashboardPage() {
   const router = useRouter()
 
@@ -1901,10 +1946,6 @@ export default function DashboardPage() {
   // ── Upcoming session (countdown tile — Story 50.3) ──
   const [upcomingSession,  setUpcomingSession]  = useState<UpcomingSessionRow | null>(null)
   const [loadingUpcoming,  setLoadingUpcoming]  = useState(true)
-
-  // ── Activity feed (Story 50-5) ──
-  const [activityEvents, setActivityEvents] = useState<ActivityEventItem[]>([])
-  const [tickMinute,     setTickMinute]     = useState(0)
 
   // ── Streak players (Story 50-6) ──
   const [streakPlayers,  setStreakPlayers]  = useState<StreakPlayer[]>([])
@@ -2138,20 +2179,6 @@ export default function DashboardPage() {
     loadCounts()
   }, [selectedImplantationId])
 
-  // ── Load activity feed initial data (Story 50-5) ──
-  useEffect(() => {
-    const loadFeed = async () => {
-      try {
-        const { data } = await fetchActivityFeed()
-        setActivityEvents(data ?? [])
-      } catch (err) {
-        if (process.env.NODE_ENV !== 'production')
-          console.error('[dashboard] fetchActivityFeed error:', err)
-      }
-    }
-    loadFeed()
-  }, [])
-
   // ── Load streak players (Story 50-6) ──
   useEffect(() => {
     const loadStreaks = async () => {
@@ -2274,48 +2301,6 @@ export default function DashboardPage() {
     checkMilestones()
   }, [])
 
-  // ── Realtime subscription — attendance_records INSERT (Story 50-5, AC4) ──
-  useEffect(() => {
-    const channel = supabase
-      .channel('dashboard-activity')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'attendance_records' },
-        (payload) => {
-          const record = payload.new as { id: string; child_id?: string; created_at: string }
-          const event: ActivityEventItem = {
-            id         : `presence-${record.id}`,
-            type       : 'presence',
-            playerName : 'Joueur',
-            description: 'Présence validée en séance',
-            createdAt  : record.created_at,
-            isNew      : true,
-          }
-          setActivityEvents(prev => [event, ...prev].slice(0, 20))
-          // Retirer le flag isNew après 5s
-          setTimeout(() => {
-            setActivityEvents(prev =>
-              prev.map(e => e.id === event.id ? { ...e, isNew: false } : e)
-            )
-          }, 5000)
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          if (process.env.NODE_ENV !== 'production')
-            console.error('[dashboard] Realtime channel error — affichage statique uniquement')
-        }
-      })
-
-    return () => { channel.unsubscribe() }
-  }, [])
-
-  // ── Timer minute pour recalculer les timestamps relatifs (Story 50-5, AC5) ──
-  useEffect(() => {
-    const timer = setInterval(() => setTickMinute(t => t + 1), 60_000)
-    return () => clearInterval(timer)
-  }, [])
-
   const handleResolve = async (id: string) => {
     // throws si erreur — laisse AnomalyModal gérer le try/finally
     await resolveAnomaly(id)
@@ -2431,28 +2416,34 @@ export default function DashboardPage() {
           .bento-large  { grid-column: span 1; }
           .bento-medium { grid-column: span 1; }
           .bento-small  { grid-column: span 1; }
-          .hero-band { height: 120px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px; padding-top: 16px !important; padding-bottom: 16px !important; }
-          .hero-date { text-align: left !important; }
         }
 
-        /* ── Page layout 2 colonnes (Story 50-5) ── */
-        .page-layout { display: flex; gap: 24px; align-items: flex-start; }
-        .main-col    { flex: 1 1 0; min-width: 0; }
-        .aside-col   { width: 280px; flex-shrink: 0; position: sticky; top: 24px; }
-
-        /* ── Activity feed (Story 50-5) ── */
-        @keyframes feed-slide-in {
-          from { opacity: 0; transform: translateY(-8px); }
-          to   { opacity: 1; transform: translateY(0);    }
-        }
-        .feed-item     { animation: feed-slide-in 0.25s ease forwards; }
-        .feed-item-new { background: rgba(193,172,92,0.08); }
-        .aside-scroll::-webkit-scrollbar { display: none; }
-        .aside-scroll  { scrollbar-width: none; }
+        /* ── Zone 1 — Briefing du jour ── */
+        .briefing-row { display: flex; gap: 16px; align-items: stretch; }
+        .implant-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .implant-card { position: relative; }
+        .status-row   { display: flex; align-items: center; gap: 6px; }
+        .status-dot   { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
         @media (max-width: 1024px) {
-          .page-layout { flex-direction: column; }
-          .aside-col   { width: 100%; position: static; }
+          .implant-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+          .implant-grid  { grid-template-columns: 1fr; }
+          .briefing-row  { flex-direction: column; }
+        }
+
+        /* ── Zone 3 — Performance & Gamification ── */
+        .perf-grid        { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .perf-grid-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+        @media (max-width: 1024px) {
+          .perf-grid        { grid-template-columns: 1fr 1fr; }
+          .perf-grid-bottom { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+          .perf-grid        { grid-template-columns: 1fr; }
+          .perf-grid-bottom { grid-template-columns: 1fr; }
         }
 
         /* ── Focus Mode (Story 50-9) ── */
@@ -2467,6 +2458,12 @@ export default function DashboardPage() {
         /* ── Drag & Drop KPI tiles (Story 50-10) ── */
         [draggable="true"] { user-select: none; }
         [draggable="true"]:active { cursor: grabbing; }
+
+        /* ── Toast notification ── */
+        @keyframes toast-slide-in {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0);    }
+        }
       `}</style>
 
       {/* ── Focus Mode — Badge + Bouton Quitter (Story 50-9) ── */}
@@ -2514,9 +2511,6 @@ export default function DashboardPage() {
         </button>
       )}
 
-      {/* ── Hero Band (full width, avant le layout 2 cols) ── */}
-      <HeroBand implantationCount={stats.length} onEnterFocusMode={() => setFocusMode(true)} />
-
       {/* ── Live Counter — séances en cours (Story 60.8) — visible uniquement si séances actives ── */}
       {liveCounters.sessionCount > 0 && (
         <LiveCounter
@@ -2527,67 +2521,91 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* ── Layout 2 colonnes : main + aside activity feed ── */}
-      <div className="page-layout">
-      <div className="main-col">
+      {/* ── Layout colonne simple — 3 zones ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-      {/* ── Filters ── */}
-      <div style={S.filterRow}>
-        {/* ── Implantation selector ── */}
-        <div style={S.dateGroup}>
-          <label style={S.dateLabel}>Implantation</label>
-          <select
-            value={selectedImplantationId ?? ''}
-            onChange={e => setSelectedImplantationId(e.target.value || null)}
-            style={S.implantSelect}
-          >
-            <option value="">Toutes les implantations</option>
-            {implantations.map(i => (
-              <option key={i.id} value={i.id}>{i.name}</option>
-            ))}
-          </select>
+      {/* ══════════════════════════════════════════════════════════
+          ZONE 1 — BRIEFING DU JOUR
+      ══════════════════════════════════════════════════════════ */}
+      <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12 }}>
+        Briefing du jour
+      </div>
+      <BriefingDuJour
+        stats={stats}
+        todaySessionsCount={liveCounters.sessionCount}
+        onEnterFocusMode={() => setFocusMode(true)}
+      />
+      {/* Zone divider */}
+      <div style={{ height: 1, background: colors.border.light, margin: '24px 0' }} />
+
+      {/* ══════════════════════════════════════════════════════════
+          ZONE 2 — KPIs ACADÉMIE
+      ══════════════════════════════════════════════════════════ */}
+
+      {/* En-tête zone 2 : label + filtres sur la même ligne */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5 }}>
+          KPIs académie
         </div>
 
-        {/* Preset selector */}
-        <div style={{ ...S.dateGroup, marginLeft: 8 }}>
-          <label style={S.dateLabel}>Période</label>
-          <select
-            value={preset}
-            onChange={e => handlePresetChange(e.target.value as Preset)}
-            style={S.implantSelect}
-          >
-            <option value="this-week">Semaine en cours</option>
-            <option value="last-week">Semaine passée</option>
-            <option value="4-weeks">4 dernières semaines</option>
-            <option value="custom">Personnalisé</option>
-          </select>
-        </div>
+        {/* ── Filtres (déplacés depuis filterRow global) ── */}
+        <div style={{ ...S.filterRow, marginBottom: 0 }}>
+          {/* Implantation selector */}
+          <div style={S.dateGroup}>
+            <label style={S.dateLabel}>Implantation</label>
+            <select
+              value={selectedImplantationId ?? ''}
+              onChange={e => setSelectedImplantationId(e.target.value || null)}
+              style={S.implantSelect}
+            >
+              <option value="">Toutes les implantations</option>
+              {implantations.map(i => (
+                <option key={i.id} value={i.id}>{i.name}</option>
+              ))}
+            </select>
+          </div>
 
-        {/* Custom date pickers — only shown in custom mode */}
-        {preset === 'custom' && (<>
-          <div style={S.dateGroup}>
-            <label style={S.dateLabel}>Du</label>
-            <input
-              type="date"
-              value={customFrom}
-              onChange={e => setCustomFrom(e.target.value)}
-              style={S.dateInput}
-            />
+          {/* Preset selector */}
+          <div style={{ ...S.dateGroup, marginLeft: 8 }}>
+            <label style={S.dateLabel}>Période</label>
+            <select
+              value={preset}
+              onChange={e => handlePresetChange(e.target.value as Preset)}
+              style={S.implantSelect}
+            >
+              <option value="this-week">Semaine en cours</option>
+              <option value="last-week">Semaine passée</option>
+              <option value="4-weeks">4 dernières semaines</option>
+              <option value="custom">Personnalisé</option>
+            </select>
           </div>
-          <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
-          <div style={S.dateGroup}>
-            <label style={S.dateLabel}>Au</label>
-            <input
-              type="date"
-              value={customTo}
-              onChange={e => setCustomTo(e.target.value)}
-              style={S.dateInput}
-            />
-          </div>
-          <button style={S.applyBtn} onClick={handleApplyCustom}>
-            Appliquer
-          </button>
-        </>)}
+
+          {/* Custom date pickers */}
+          {preset === 'custom' && (<>
+            <div style={S.dateGroup}>
+              <label style={S.dateLabel}>Du</label>
+              <input
+                type="date"
+                value={customFrom}
+                onChange={e => setCustomFrom(e.target.value)}
+                style={S.dateInput}
+              />
+            </div>
+            <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
+            <div style={S.dateGroup}>
+              <label style={S.dateLabel}>Au</label>
+              <input
+                type="date"
+                value={customTo}
+                onChange={e => setCustomTo(e.target.value)}
+                style={S.dateInput}
+              />
+            </div>
+            <button style={S.applyBtn} onClick={handleApplyCustom}>
+              Appliquer
+            </button>
+          </>)}
+        </div>
       </div>
 
       {/* ── Bento KPI Grid — draggable (Story 50-10) ── */}
@@ -2867,23 +2885,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Quick Actions ── */}
-      <div style={S.qaBar}>
-        <span style={S.qaBarLabel}>Actions rapides</span>
-        <div style={S.qaRow}>
-          {QUICK_ACTIONS.map(action => (
-            <button
-              key={action.href}
-              className="aureak-qa-btn"
-              style={action.primary ? S.qaBtnPrimary : S.qaBtnSecondary}
-              onClick={() => router.push(action.href as never)}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* ── Next Session Tile ── */}
       <NextSessionTile
         pendingSessions={pendingSessions}
@@ -2943,7 +2944,7 @@ export default function DashboardPage() {
         {/* Empty state fond vert léger */}
         {anomalies.length === 0 && (
           <div style={{
-            backgroundColor: 'rgba(16,185,129,0.06)',
+            backgroundColor: colors.status.success + '0f', // TODO: ajouter token successBgSubtle
             borderRadius   : radius.xs,
             padding        : '8px 12px',
             fontSize       : 12,
@@ -2954,52 +2955,127 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── Implantations Section ── */}
-      <div style={S.sectionHeader}>
-        <h2 style={S.sectionTitle}>
-          {selectedName ? `Implantation : ${selectedName}` : 'Implantations'}
-        </h2>
-        <span style={S.sectionCount}>
-          {selectedName ? '1 site' : `${visibleStats.length} site${visibleStats.length !== 1 ? 's' : ''}`}
-        </span>
+      {/* Zone divider */}
+      <div style={{ height: 1, background: colors.border.light, margin: '24px 0' }} />
+
+      {/* ══════════════════════════════════════════════════════════
+          ZONE 3 — PERFORMANCE & GAMIFICATION
+      ══════════════════════════════════════════════════════════ */}
+      <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12 }}>
+        Performance &amp; Gamification
       </div>
 
-      {visibleStats.length === 0 ? (
-        <div style={S.emptyState}>
-          <div style={{ fontSize: 36, marginBottom: 14 }}>{statsError ? '⚠️' : '📊'}</div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
-            {statsError ? 'Données indisponibles' : 'Aucune donnée disponible'}
+      {/* Ligne 1 : Leaderboard (2fr) + Score académie (1fr) + Joueur de la semaine (1fr) */}
+      <div className="perf-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+        {/* Leaderboard XP (Story 59-3) — colonne large */}
+        <LeaderboardTile
+          entries={leaderboard}
+          loading={loadingLeaderboard}
+          onRowClick={(childId) => router.push(`/(admin)/children/${childId}` as never)}
+        />
+
+        {/* Score Académie (Story 59-6) */}
+        <AcademyScoreTile
+          score={academyScore}
+          loading={loadingAcademyScore}
+          error={academyScoreError}
+          onRetry={async () => {
+            setLoadingAcademyScore(true)
+            setAcademyScoreError(false)
+            try {
+              const { data, error } = await getAcademyScore()
+              if (error) { setAcademyScoreError(true) }
+              setAcademyScore(data ?? null)
+            } catch { setAcademyScoreError(true) }
+            finally { setLoadingAcademyScore(false) }
+          }}
+        />
+
+        {/* Joueur de la semaine (Story 55-8) */}
+        {playerOfWeek ? (
+          <PlayerOfWeekTile
+            player={playerOfWeek}
+            onPress={() => router.push(`/(admin)/children/${playerOfWeek.childId}` as never)}
+          />
+        ) : (
+          <div style={{
+            backgroundColor: colors.light.surface,
+            borderRadius   : radius.card,
+            border         : `1px solid ${colors.border.light}`,
+            boxShadow      : shadows.sm,
+            padding        : 20,
+            display        : 'flex',
+            alignItems     : 'center',
+            justifyContent : 'center',
+            color          : colors.text.subtle,
+            fontSize       : 13,
+            fontFamily     : 'Montserrat, sans-serif',
+            minHeight      : 120,
+          }}>
+            Aucun joueur de la semaine
           </div>
-          <div style={{ fontSize: 13, color: colors.text.muted, maxWidth: 320, textAlign: 'center', lineHeight: 1.5 }}>
-            {statsError
-              ? 'Impossible de charger les statistiques. Vérifiez votre connexion ou contactez le support.'
-              : selectedName
-                ? `Aucune séance enregistrée pour ${selectedName} sur cette période.`
-                : 'Ajustez la période de filtrage ou vérifiez que des séances ont été enregistrées.'
-            }
-          </div>
-        </div>
-      ) : (
-        <div style={S.implantGrid}>
-          {visibleStats.map(s => (
-            <ImplantationCard
-              key={s.implantation_id}
-              stat={s}
-              groups={implantationGroups[s.implantation_id]}
+        )}
+      </div>
+
+      {/* Ligne 2 : Forme du moment + Trophée de saison + Countdown prochaine séance */}
+      <div className="perf-grid-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        {/* Forme du moment (Story 50.6) */}
+        <StreakTile players={streakPlayers} loading={loadingStreaks} />
+
+        {/* Trophée de saison (Story 59-10) */}
+        {(trophyData !== null || loadingTrophy) ? (
+          trophyData ? (
+            <SeasonTrophyTileInner
+              trophyData={trophyData}
+              academyScore={academyScore?.score ?? 0}
+              top3={leaderboard}
+              loading={loadingTrophy}
+              svgRef={trophySvgRef as React.RefObject<SVGSVGElement>}
             />
-          ))}
-        </div>
-      )}
+          ) : (
+            <div style={{
+              backgroundColor: colors.light.surface,
+              borderRadius   : radius.card,
+              border         : `1px solid ${colors.border.light}`,
+              boxShadow      : shadows.sm,
+              padding        : 20,
+            }}>
+              <div style={{
+                height         : 160,
+                backgroundColor: colors.light.muted,
+                borderRadius   : radius.xs,
+                animation      : 'a-pulse 1.8s ease-in-out infinite',
+              }} />
+            </div>
+          )
+        ) : (
+          <div style={{
+            backgroundColor: colors.light.surface,
+            borderRadius   : radius.card,
+            border         : `1px solid ${colors.border.light}`,
+            boxShadow      : shadows.sm,
+            padding        : 20,
+            display        : 'flex',
+            alignItems     : 'center',
+            justifyContent : 'center',
+            color          : colors.text.subtle,
+            fontSize       : 13,
+            fontFamily     : 'Montserrat, sans-serif',
+            minHeight      : 120,
+          }}>
+            Aucun trophée de saison actif
+          </div>
+        )}
 
-      {/* ── Fin main-col ── */}
+        {/* Countdown prochaine séance (Story 50.3) */}
+        <CountdownTile
+          session={upcomingSession}
+          loading={loadingUpcoming}
+          onNavigate={id => router.push(`/seances/${id}` as never)}
+        />
       </div>
 
-      {/* ── Aside : Activity Feed ── */}
-      <div className="aside-col">
-        <ActivityFeed events={activityEvents} tick={tickMinute} />
-      </div>
-
-      {/* ── Fin page-layout ── */}
+      {/* ── Fin layout colonne simple ── */}
       </div>
 
       {/* ── Anomaly Modal (Story 50-7) ── */}
@@ -3246,60 +3322,6 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight     : 700,
     fontFamily     : 'Geist Mono, monospace',
     color          : colors.text.dark,
-  },
-
-  // Quick actions
-  qaBar           : {
-    display        : 'flex',
-    alignItems     : 'center',
-    gap            : 16,
-    marginBottom   : 24,
-    padding        : '12px 16px',
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    border         : `1px solid ${colors.border.light}`,
-    boxShadow      : shadows.sm,
-    flexWrap       : 'wrap',
-  },
-  qaBarLabel      : {
-    fontSize       : 10,
-    fontWeight     : 700,
-    letterSpacing  : 1.2,
-    textTransform  : 'uppercase',
-    color          : colors.text.muted,
-    whiteSpace     : 'nowrap',
-  },
-  qaRow           : {
-    display        : 'flex',
-    gap            : 8,
-    flexWrap       : 'wrap',
-    flex           : 1,
-  },
-  qaBtnPrimary    : {
-    padding        : '6px 14px',
-    borderRadius   : radius.button,
-    border         : 'none',
-    backgroundColor: colors.accent.gold,
-    color          : colors.text.dark,
-    fontSize       : 12,
-    fontWeight     : 700,
-    cursor         : 'pointer',
-    fontFamily     : 'Geist, sans-serif',
-    whiteSpace     : 'nowrap',
-    transition     : `all ${transitions.fast}`,
-  },
-  qaBtnSecondary  : {
-    padding        : '6px 14px',
-    borderRadius   : radius.button,
-    border         : `1px solid ${colors.border.light}`,
-    backgroundColor: colors.light.surface,
-    color          : colors.text.muted,
-    fontSize       : 12,
-    fontWeight     : 600,
-    cursor         : 'pointer',
-    fontFamily     : 'Geist, sans-serif',
-    whiteSpace     : 'nowrap',
-    transition     : `all ${transitions.fast}`,
   },
 
   // Empty state

@@ -323,3 +323,8 @@ development_status:
   63-1-sidebar-nav-refactor: done
   63-2-evenements-unifies-vue-filtree: done
   epic-63-retrospective: optional
+
+  # Epic 50 : Dashboard Club HQ — Refonte v2
+  epic-50: in-progress
+  50-11-dashboard-v2-refonte-layout-trois-zones: done
+  epic-50-retrospective: optional
