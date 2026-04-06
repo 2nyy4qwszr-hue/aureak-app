@@ -2,84 +2,125 @@
 
 ## Résumé
 
-- Flux audités : 5
-- Frictions HAUTE priorité (P1) : 3
-- Frictions MOYENNE priorité (P2) : 3
-- Incohérences : 4
-- App vérifiée : ❌ http://localhost:8081 — app non démarrée (analyse statique uniquement)
-- Note : rapport précédent disponible : `2026-04-05_ux-inspector.md` — le présent rapport approfondit les flux et ajoute les frictions non couvertes
+- Flux audités : 5 (+ focus spécifique sur les 3 nouvelles zones story 50-11, la page Évènements 63-2, et la section Développement 63-3)
+- Frictions HAUTE priorité (P1) : 4
+- Frictions MOYENNE priorité (P2) : 4
+- Incohérences : 5
+- App vérifiée : ✅ http://localhost:8081 — HTTP 200 (analyse statique + code source, Playwright non lancé)
+- Note : rapport précédent `2026-04-05_ux-inspector.md` et version antérieure `2026-04-06_ux-inspector.md` remplacés et enrichis avec les résultats du sprint du jour.
+
+---
+
+## Focus prioritaire — Nouvelles zones dashboard (50-11), Évènements (63-2), Développement (63-3)
 
 ---
 
 ## Frictions détectées
 
-### ⚡ [UX - P1] Flux séance — Step 2 cumule trop de responsabilités
+### ⚡ [UX - P1] Dashboard Zone 1 — Compteur séances reflète LIVE uniquement, pas "aujourd'hui"
+
+**Flux concerné :** Flux 5 — Dashboard admin, Zone 1 Briefing du jour
+**Page :** `/dashboard`
+**Friction :** La date card affiche `{todaySessionsCount} séance(s) aujourd'hui` en s'appuyant sur `liveCounters.sessionCount` (ligne 2534 → `useLiveSessionCounts()`). Ce hook compte les **séances actuellement en cours** (Realtime), pas toutes les séances planifiées pour la journée. À 8h du matin, avant l'entraînement, le compteur affiche "0 séance aujourd'hui" même si 3 séances sont planifiées. À 10h30, pendant la séance, il passe à "1 séance aujourd'hui". Ce comportement est contre-intuitif pour un "Briefing du jour" censé préparer la journée.
+**Impact :** L'admin ne peut pas s'appuyer sur ce chiffre pour planifier sa journée. La date card perd sa valeur de "briefing" — elle devient une carte d'état en temps réel non pas de la journée. Risque de confusion : "0 séance aujourd'hui" peut être interprété comme "jour de repos" alors qu'il y a des séances planifiées.
+**Proposition :** Remplacer `todaySessionsCount={liveCounters.sessionCount}` par un compteur dédié `listTodaySessionsCount()` (ou utiliser le résultat de `listNextSessionForDashboard` qui a déjà les données de planning), de sorte que la date card affiche les séances planifiées pour le jour, indépendamment de leur statut live.
+**Fichier :** `aureak/apps/web/app/(admin)/dashboard/page.tsx` — ligne 2534
+
+---
+
+### ⚡ [UX - P1] Dashboard — 5 console.error sans guard NODE_ENV (BLOCKER conformité)
+
+**Flux concerné :** Flux 5 — Dashboard admin (toutes zones)
+**Page :** `/dashboard`
+**Friction :** 5 appels `console.error` sans le guard requis par CLAUDE.md et AC12 de la story 50-11 :
+- Ligne 2189 : `getTopStreakPlayers error`
+- Ligne 2206 : `getPlayerOfWeek error`
+- Ligne 2211 : `getPlayerOfWeek exception`
+- Ligne 2225 : `getXPLeaderboard error`
+- Ligne 2230 : `getXPLeaderboard exception`
+
+Ces 5 lignes restent non corrigées depuis le gate2 du 2026-04-06. La story 50-11 est marquée `done` mais l'AC12 n'est pas entièrement satisfait.
+**Impact :** Logs applicatifs pollués en production. Risque de fuite d'informations sensibles (messages d'erreur Supabase) dans la console navigateur des utilisateurs admin en production.
+**Proposition :** Envelopper chacun avec `if ((process.env.NODE_ENV as string) !== 'production')` — pattern déjà utilisé correctement aux lignes 2246, 2251, 2265, 2270, 2286, 2291.
+**Fichier :** `aureak/apps/web/app/(admin)/dashboard/page.tsx` — lignes 2189, 2206, 2211, 2225, 2230
+
+---
+
+### ⚡ [UX - P1] Évènements — stub UX "bientôt disponible" déclenché par filtre, pas par modal
+
+**Flux concerné :** Flux 4 — Créer un évènement non-Stage (63-2)
+**Page :** `/evenements`
+**Friction :** Parcours admin pour créer un Tournoi :
+1. Cliquer "+ Nouvel évènement" → modal s'ouvre (OK)
+2. Sélectionner "Tournoi Goal à Goal" → cliquer "Continuer"
+3. Le modal se ferme, **le filtre "Tournoi" s'active**, et un bandeau "Création bientôt disponible" apparaît dans la liste principale
+
+L'AC6 stipule "afficher 'Création bientôt disponible' après la sélection du type" — implicitement dans le modal, avant de fermer. Le comportement réel ferme le modal, redirige vers la vue filtrée, et affiche le stub en bannière contextuelle dans la liste. L'admin se retrouve sur une page avec 0 résultats + un bandeau — sans retour explicite au modal ni CTA "OK j'ai compris". Pour quitter cet état, l'admin doit cliquer manuellement sur "Tous" pour réinitialiser.
+
+**Impact :** Parcours de 3 clics pour arriver sur un dead-end sans CTA de sortie claire. La rupture "modal fermé → bannière liste" crée une discontinuité cognitive. L'admin peut croire que l'action a partiellement fonctionné ou être désorienté par l'absence de confirmation dans le modal.
+**Proposition :** Afficher le message "Création bientôt disponible" DANS le modal (remplacer le bouton "Continuer" par le texte stub + bouton "Fermer"), sans changer de filtre. Cela réduit à 2 clics (Nouvel évènement → sélectionner type → lire stub → fermer) et supprime le dead-end liste filtrée vide.
+**Fichier :** `aureak/apps/web/app/(admin)/evenements/page.tsx` — fonction `handleSelectEventType` (ligne 219) et composant `NewEventModal`
+
+---
+
+### ⚡ [UX - P1] Développement — sous-pages sans lien de retour vers le hub
+
+**Flux concerné :** Flux 5 — Section Développement (63-3)
+**Page :** `/developpement/prospection`, `/developpement/marketing`, `/developpement/partenariats`
+**Friction :** Les 3 pages stub n'ont aucun élément de navigation retour : ni breadcrumb "← Développement", ni lien vers `/developpement`. L'admin qui navigue via la sidebar vers "Prospection" directement (sous-item sidebar de story 63.1) puis veut revenir au hub `/developpement` n'a aucun contrôle UI pour cela — il doit re-cliquer sur "Développement" dans la sidebar (si les sous-items sont distincts) ou utiliser le bouton Retour du navigateur.
+
+La page hub `/developpement` a elle-même correctement un header avec titre et sous-titre, mais les sous-pages ne font pas référence au hub parent.
+**Impact :** Non-respect du principe "Retour arrière toujours accessible" de la spec UX. Sur les pages stub (KPIs tous à "—"), l'intérêt de la page est limité — l'admin voudra rapidement revenir au hub ou aller ailleurs. Sur une sidebar avec sous-items repliables, l'accès au hub peut ne pas être évident.
+**Proposition :** Ajouter en tête de chaque page stub un breadcrumb minimal :
+```
+← Développement
+```
+en `Pressable` → `router.push('/developpement')`. Pattern identique aux autres fiches de l'app (`← Retour`).
+**Fichier :** `aureak/apps/web/app/(admin)/developpement/prospection/page.tsx`, `marketing/page.tsx`, `partenariats/page.tsx`
+
+---
+
+### ⚡ [UX - P2] Dashboard Zone 1 — implantations cards : label "Séances planifiées" incorrect
+
+**Flux concerné :** Flux 5 — Dashboard, Zone 1 Briefing du jour
+**Page :** `/dashboard`
+**Friction :** Dans les cartes implantation de `BriefingDuJour`, la status row "Séances planifiées" affiche en réalité `stat.sessions_total` (le total de séances de la période du bento KPI Zone 2, pas le jour en cours). Le commentaire inline le confirme : `// TODO: utiliser children_count quand disponible`. Le label "Séances planifiées" est trompeur — il devrait soit afficher une vraie donnée journalière, soit être libellé différemment ("Séances sur la période" ou masqué).
+**Impact :** L'admin lit "Séances planifiées : 14" sur la carte implantation et croit qu'il y a 14 séances aujourd'hui pour ce site — alors que c'est le total sur la période de filtrage de la Zone 2 (ex. 4 dernières semaines). Crée une fausse impression d'activité.
+**Proposition :** Remplacer le label par "Séances (période)" ou supprimer la status row jusqu'à ce que `children_count` soit disponible. Alternative minimale : changer le texte de `Séances planifiées : {childrenCount}` en `Total séances : {childrenCount}`.
+**Fichier :** `aureak/apps/web/app/(admin)/dashboard/page.tsx` — ligne 396 (dans `BriefingDuJour`)
+
+---
+
+### ⚡ [UX - P2] Évènements — clic sur card stage ouvre `/stages/[id]` hors page Évènements
+
+**Flux concerné :** Flux 4 — Consulter un évènement
+**Page :** `/evenements`
+**Friction :** Un clic sur une EventCard navigue vers `/stages/{id}` (`handleCardPress` ligne 231-233). L'admin arrive sur la fiche de stage complète, avec un breadcrumb propre à `/stages`. S'il clique "← Retour" sur la fiche, il retourne vers `/stages` (la liste stages) — pas vers `/evenements`. La page Évènements a donc une navigation "fausse entrée" : elle liste des items mais ceux-ci ont leur retour arrière vers une liste parallèle.
+**Impact :** Confusion sur quelle liste est canonique. Si l'admin a filtré par type `stage` dans `/evenements`, il perd ce contexte en naviguant vers la fiche puis en revenant vers `/stages` (sans filtre). 2 clicks supplémentaires pour revenir à `/evenements`.
+**Proposition :** Court terme : dans `/stages/[stageId]/page.tsx`, détecter le referrer (ou passer un query param `?from=evenements`) pour adapter le lien de retour. Long terme : les EventCards pointent vers `/evenements/{id}` (route propre) qui affiche la fiche avec retour vers `/evenements`.
+**Fichier :** `aureak/apps/web/app/(admin)/evenements/page.tsx` — ligne 230-233 ; `aureak/apps/web/app/(admin)/stages/[stageId]/page.tsx` — retour arrière
+
+---
+
+### ⚡ [UX - P2] Développement — KPI placeholders visuellement ambigus (valeur "—" sur h1)
+
+**Flux concerné :** Flux 5 — Section Développement, sous-pages stub
+**Page :** `/developpement/prospection`, `/developpement/marketing`, `/developpement/partenariats`
+**Friction :** Les KPI placeholders affichent `"—"` avec le variant `AureakText variant="h1"` (ligne 35 de chaque page stub). Le tiret em-dash s'affiche dans la taille/graisse du h1 (28px, 900 weight), centré sur la carte. Couplé à la couleur `colors.text.subtle` (gris clair), le rendu crée une carte qui ressemble visuellement à un KPI qui a "chargé" mais dont la valeur est absente — l'admin peut confondre avec une erreur de chargement ou des données réellement manquantes.
+**Impact :** L'admin peut croire que la section est censée afficher des données et qu'il y a un problème de chargement. Le banner "en cours de développement" est présent mais scrollé hors vue sur petits écrans si les KPI cards apparaissent en premier. La distinction "stub volontaire" vs "erreur de données" n'est pas immédiate.
+**Proposition :** Remplacer `variant="h1"` par `variant="h2"` (plus petit) + ajouter un label explicite `"Pas encore disponible"` sous la valeur `"—"` en `caption` italique. Ou utiliser une icône `🔒` à la place du tiret pour signaler explicitement le caractère verrouillé.
+**Fichier :** `aureak/apps/web/app/(admin)/developpement/prospection/page.tsx` (ligne 35), `marketing/page.tsx` (ligne 35), `partenariats/page.tsx` (ligne 35)
+
+---
+
+### ⚡ [UX - P2] Flux séance — Step 2 surchargé (friction persistante non corrigée)
 
 **Flux concerné :** Flux 1 — Créer une séance
 **Page :** `/seances/new`
-**Friction :** Le Step 2 "Détails" agrège dans un seul écran : la sélection de méthodologie (tiles), le numéro d'entraînement dans le cycle (grille de 32 chips max pour Technique), le contenu pédagogique contextuel (GP Module+ENT, blocs Décisionnel, concept Technique stage), la sélection de coaches (lead + assistants), le terrain, et l'heure/durée. Un admin doit scroller significativement dans un seul "step" pour remplir jusqu'à 8 sous-sections. La `StepBar` affiche "Détails" mais ne refléte pas cette densité.
-**Impact :** La perception de progression est faussée — l'admin pense être à l'étape 2/6 mais effectue réellement le travail cognitif d'une page entière. Sur des séances Décisionnelles (blocs + coaches + terrain), le Step 2 peut nécessiter 8-12 interactions avant de pouvoir avancer. Violation flagrante de "max 3 clics pour une action courante".
-**Proposition :** Extraire la sélection coaches + terrain vers le Step 3 (renommer "Logistique"), et compresser Thèmes+Ateliers en une seule étape optionnelle — ce qui ramène à 4 steps cohérents : Contexte / Méthode / Logistique / Date.
+**Friction :** Identifiée dans le rapport du 2026-04-05 et confirmée le 2026-04-06 — non corrigée. Le Step 2 "Détails" agrège méthode, numéro de cycle (jusqu'à 32 chips), contenu pédagogique contextuel, coaches et terrain dans un seul écran. L'admin doit scroller significativement dans un seul step pour remplir 6-8 sous-sections avant de pouvoir avancer.
+**Impact :** Violation persistante de la règle "max 3 clics pour toute action courante". Friction P1 désormais dégradée à P2 car aucun parcours critique n'est bloqué — mais reste la friction avec le plus d'interactions dans l'app.
+**Proposition :** Extraire coaches + terrain vers un Step 3 "Logistique" — 4 steps cohérents : Contexte / Méthode / Logistique / Date.
 **Fichier :** `aureak/apps/web/app/(admin)/seances/new.tsx`
-
----
-
-### ⚡ [UX - P1] Fiche séance — double bouton "Retour" redondant en tête de page
-
-**Flux concerné :** Flux 1 et 5 — Fiche séance et navigation
-**Page :** `/seances/[sessionId]`
-**Friction :** La fiche de séance affiche simultanément deux éléments de retour en tête de page :
-1. Un breadcrumb "Séances / {date}" avec "Séances" cliquable (ligne 1693)
-2. Un bouton "← Séances" juste en dessous (ligne 1715)
-
-Les deux déclenchent `router.push('/seances')`. L'admin voit deux contrôles identiques sur moins de 40px de hauteur verticale.
-**Impact :** Confusion cognitive sur lequel utiliser. Surcharge visuelle en tête de page. Incohérent avec les autres fiches de l'app (clubs, joueurs) qui n'ont qu'un seul pattern de retour.
-**Proposition :** Supprimer le bouton "← Séances" (ligne 1714-1717) et conserver uniquement le breadcrumb cliquable, en alignant sur le pattern standard des autres fiches de l'app.
-**Fichier :** `aureak/apps/web/app/(admin)/seances/[sessionId]/page.tsx`
-
----
-
-### ⚡ [UX - P1] Page Clubs — recherche non temps-réel, même pattern cassé que Joueurs
-
-**Flux concerné :** Flux 3 — Ajouter un joueur à un club
-**Page :** `/clubs`
-**Friction :** La page Clubs utilise le même pattern que la page Joueurs (rapport du 2026-04-05) : champ `searchInput` séparé de `search`, avec un bouton "Chercher" obligatoire (`handleSearch = () => setSearch(searchInput.trim())`). L'admin doit taper le nom puis cliquer "Chercher" ou appuyer Entrée — pas de recherche en temps réel.
-**Impact :** Parcours Ajouter joueur à club : Dashboard → Clubs (1 clic sidebar) → taper nom club → clic "Chercher" → ouvrir fiche → section PlayerPicker → taper nom joueur → clic résultat = **7 interactions** pour une action courante. Le PlayerPicker dans la fiche club est lui temps-réel (debounce implicite via `useMemo`), créant une incohérence au sein du même flux.
-**Proposition :** Remplacer `handleSearch` par un `useEffect` avec debounce 350ms sur `searchInput` (pattern déjà présent dans le guest search de `[sessionId]/page.tsx` ligne 1376), supprimer le bouton "Chercher" et la variable `search` séparée.
-**Fichier :** `aureak/apps/web/app/(admin)/clubs/page.tsx`
-
----
-
-### ⚡ [UX - P2] Fiche séance — état de chargement régressif (texte seul, pas de skeleton)
-
-**Flux concerné :** Flux 1 — Consulter une séance
-**Page :** `/seances/[sessionId]`
-**Friction :** Quand `loading === true`, la page affiche uniquement `<AureakText>Chargement…</AureakText>` centré (lignes 1629-1635). Aucun skeleton, aucune silhouette de la future mise en page. À titre de comparaison, la page Joueurs dispose de `SkeletonCard` et `PremiumSkeletonCard`, et la page Clubs dispose de `ClubCardSkeleton`. La fiche séance est la plus consultée de l'app après le dashboard.
-**Impact :** Perception de lenteur accrue (layout shift brutal au chargement), incohérence visuelle forte avec les pages liste qui ont toutes des skeletons. Sur connexion lente, l'admin voit une page blanche avec un seul mot pendant 1-3 secondes.
-**Proposition :** Créer un `SessionDetailSkeleton` composé de : un bloc header dark (MatchReportHeader placeholder), 3 cards grises empilées de hauteurs variables, en cohérence avec le pattern `ListRowSkeleton` déjà importé dans la fiche mais non utilisé ici.
-**Fichier :** `aureak/apps/web/app/(admin)/seances/[sessionId]/page.tsx`
-
----
-
-### ⚡ [UX - P2] Navigation sidebar — 8 items dans "Administration" difficiles à scanner
-
-**Flux concerné :** Flux 5 — Navigation générale
-**Page :** `/_layout.tsx`
-**Friction :** Le groupe "Administration" comporte 8 items (Utilisateurs, Accès temporaires, Tickets support, Journal d'audit, Calendrier scolaire, Anomalies, Messages coaches, Permissions grades). C'est le groupe le plus chargé de la sidebar, et il regroupe des actions très rarement utilisées (Calendrier scolaire, Anomalies, Permissions grades) avec des actions plus fréquentes (Utilisateurs, Messages coaches). L'absence de hiérarchie visuelle force l'admin à scanner toute la liste.
-**Impact :** Temps de navigation accru pour les items Administration rares. La sidebar est actuellement à 6 groupes — le groupe Administration représente 30% de tous les items de navigation. Story 63.1 (refactoring sidebar) est ready-for-dev mais non encore livrée.
-**Proposition :** Dans l'attente de la Story 63.1, scinder "Administration" en deux sous-groupes : "Équipe" (Utilisateurs, Accès temporaires, Tickets, Messages) et "Système" (Audit, Calendrier, Anomalies, Permissions) — 2 lignes de code dans `_layout.tsx`.
-**Fichier :** `aureak/apps/web/app/(admin)/_layout.tsx`
-
----
-
-### ⚡ [UX - P2] Fiche club — 3 sections joueurs sans distinction visuelle forte entre "liaison directe" et "via annuaire"
-
-**Flux concerné :** Flux 3 — Consulter la fiche d'un club
-**Page :** `/clubs/[clubId]`
-**Friction :** La fiche club affiche trois listes de joueurs distincts : "Joueurs actuellement" (liaison directe `current`), "Joueurs affiliés" (liaison directe `affiliated`), et les `annuairePlayers` (liaison implicite via `club_directory_id`). Les deux premières listes ont un PlayerPicker avec bouton "Retirer". La troisième (`AnnuairePlayerRow`) est read-only et labellisée "via annuaire" en italique grisé de 10px. Un admin non-technique peut facilement chercher le bouton "Retirer" sur une ligne "via annuaire" et ne pas comprendre pourquoi il est absent.
-**Impact :** Confusion sur le modèle de liaison. L'admin peut contacter le support pour signaler un bug ("je ne peux pas retirer ce joueur") alors que le comportement est intentionnel. L'absence d'explication contextuelle sur la liaison implicite (via `club_directory_id`) est une friction de compréhension.
-**Proposition :** Ajouter une icône d'info `ⓘ` ou une note courte "Ces joueurs sont liés automatiquement via leur club enregistré dans l'annuaire. Modifier via la fiche joueur." au-dessus de la section annuaire, pour distinguer explicitement les 3 sources.
-**Fichier :** `aureak/apps/web/app/(admin)/clubs/[clubId]/page.tsx`
 
 ---
 
@@ -88,10 +129,12 @@ Les deux déclenchent `router.push('/seances')`. L'admin voit deux contrôles id
 | Flux | Nb clics | Estimation temps | Friction principale |
 |------|----------|-----------------|---------------------|
 | Créer une séance (groupe existant, simple) | 10+ | ~100s | Step 2 surchargé — méthode + numéro + coaches + terrain dans un seul écran |
-| Trouver un joueur | 3 + validation manuelle | ~20s | Recherche non temps-réel sur Joueurs et Clubs |
-| Ajouter joueur à club | 7 | ~25s | Recherche club non temps-réel + navigation vers fiche avant PlayerPicker |
-| Consulter fiche séance | 2 | ~8s | Loading state régressif (texte seul), double bouton retour |
-| Navigation générale | — | — | 8 items dans "Administration" — groupe surchargé sans hiérarchie |
+| Trouver un joueur | 3 + validation manuelle | ~20s | Recherche non temps-réel (bouton "Chercher" requis) |
+| Ajouter joueur à club | 7 | ~25s | Recherche club non temps-réel + PlayerPicker en fiche club |
+| Créer un évènement Stage | 4 | ~15s | Dashboard → Évènements → "+ Nouvel" → Sélectionner "Stage" → Continuer → `/stages/new` |
+| Créer un évènement Tournoi | 4 → dead-end | ~12s | Modal → Tournoi → Continuer → Filtre actif + bannière stub sans CTA de sortie |
+| Naviguer dans section Développement | 3 + retour navigateur | ~10s | Hub → Prospection → contenu stub → retour navigateur (pas de lien retour UI) |
+| Consulter dashboard Zone 1 | 0 (vue initiale) | < 3s | Compteur "séances aujourd'hui" = live uniquement, pas planning journalier |
 
 ---
 
@@ -99,47 +142,106 @@ Les deux déclenchent `router.push('/seances')`. L'admin voit deux contrôles id
 
 | Page | État manquant | Impact |
 |------|--------------|--------|
-| `/seances/[sessionId]` | Skeleton de chargement (structure prévisible) | Layout shift brutal — incohérence avec toutes les pages liste |
-| `/seances/new` (Step 2) | Indicateur de progression interne à l'étape | Admin ne sait pas combien de sous-sections restent dans l'étape |
-| `/clubs` (liste) | État vide filtré sans bouton "Réinitialiser les filtres" | Admin bloqué si aucun club ne correspond, doit deviner comment repartir |
-| `/seances/new` (Step 1) | Message si 0 groupes après sélection d'implantation | L'admin voit un dropdown vide sans suggestion de créer un groupe |
+| `/dashboard` Zone 1 — date card | Compteur séances journalières (vs live uniquement) | Admin sous-informé sur la journée à venir |
+| `/evenements` modal "Nouvel évènement" | Stub inline dans le modal pour types non-stage | Dead-end liste filtrée vide après confirmation |
+| `/developpement/prospection` `/marketing` `/partenariats` | Lien de retour "← Développement" | Violation du principe "retour toujours accessible" |
+| `/seances/new` Step 1 | Message si 0 groupes après sélection implantation | Admin voit dropdown vide, sans suggestion de créer un groupe |
+| `/clubs` liste | "Réinitialiser les filtres" sur état vide filtré | Admin bloqué si aucun club ne correspond |
+| `/stages/[stageId]` | Retour contextuel vers `/evenements` (si arrivé depuis là) | Perte du contexte de navigation |
 
 ---
 
 ## Incohérences de patterns
 
-**1. Recherche temps-réel vs bouton "Chercher" obligatoire**
+**1. Stub "bientôt disponible" — 2 patterns différents dans la même app**
+- `/evenements` modal → stub affiché APRÈS fermeture du modal, comme bannière dans la liste filtrée (pattern A)
+- `/developpement/*` pages → stub affiché DANS la page, en bannière fixe en haut (pattern B)
+- Recommandation : normaliser sur le pattern B (stub dans la page de destination) et corriger `/evenements` pour afficher le stub dans le modal (pattern C, le plus propre).
+
+**2. Recherche temps-réel vs bouton "Chercher" obligatoire (non corrigée depuis 2026-04-05)**
 - `/seances/[sessionId]` — guest search : debounce 300ms automatique ✅
-- `/clubs/[clubId]` — PlayerPicker : recherche immédiate via `useMemo` ✅
+- `/clubs/[clubId]` — PlayerPicker : recherche immédiate ✅
 - `/children` — recherche globale : bouton "Chercher" obligatoire ❌
 - `/clubs` — recherche globale : bouton "Chercher" obligatoire ❌
-- Recommandation : unifier vers le pattern debounce (≥ 3 chars / 350ms) sur toutes les listes.
+- `/evenements` — pas de champ de recherche textuelle du tout ⚠️ (chercher un stage par nom = impossible sans savoir sa date ou son statut)
 
-**2. Bouton retour dupliqué sur la fiche séance uniquement**
-- `/clubs/[clubId]` : breadcrumb seul ✅
+**3. Labels de retour arrière inconsistants**
+- `/clubs/[clubId]` : breadcrumb "Clubs / {nom}" ✅
 - `/children/[childId]` : bouton "← Retour" seul ✅
-- `/seances/[sessionId]` : breadcrumb cliquable + bouton "← Séances" séparé ❌
-- Recommandation : supprimer le bouton `← Séances` (lignes 1714-1717), conserver le breadcrumb.
+- `/seances/[sessionId]` : breadcrumb cliquable + bouton "← Séances" (doublon — friction P1 identifiée 2026-04-05) ❌
+- `/developpement/prospection` : aucun contrôle retour ❌
+- `/evenements` + stage : retour vers `/stages`, pas `/evenements` ❌
 
-**3. Skeleton de chargement présent sur les listes, absent sur les fiches de séance**
-- `/children` : `SkeletonCard` et `PremiumSkeletonCard` ✅
-- `/clubs` : `ClubCardSkeleton` ✅
-- `/seances/[sessionId]` : texte `Chargement…` seul ❌
-- `/stages/[stageId]` : non vérifié — risque identique
-- Recommandation : créer un `SessionDetailSkeleton` sur le modèle des skeletons de liste.
+**4. Grille d'implantations — statuts basés sur des données absentes**
+- `BriefingDuJour` calcule `getImplantStatus()` sur `terrain_available`, `absences_count`, `coaches_count`
+- Ces 3 champs ne sont pas dans `ImplantationStats` — le code utilise des fallbacks (`?? true`, `?? 0`, `?? 1`)
+- Résultat : toutes les cartes implantation affichent "statut vert" (tout OK) par défaut, même sans données réelles
+- L'admin peut croire que tout est OK alors que l'information n'est tout simplement pas disponible
+- Note : TODO explicite dans le code, mais visuellement invisible pour l'admin
 
-**4. Confirmation suppression inconsistante (déjà identifiée 2026-04-05 — non corrigée)**
+**5. Confirmation suppression inconsistante (persistante depuis 2026-04-05)**
 - `/clubs/[clubId]` : `ConfirmDialog` ✅
 - `/methodologie/seances` : `ConfirmDialog` ✅
 - `/stages/[stageId]` : pas de `ConfirmDialog` sur journées/blocs ❌
-- Status : friction P1 identifiée le 2026-04-05, non traitée — toujours active.
+
+---
+
+## Analyse grille UX par nouvelle zone
+
+### Zone 1 — Briefing du jour (Story 50-11)
+
+| Critère | Résultat | Observation |
+|---------|---------|-------------|
+| Action principale évidente | ✅ | Bouton "Voir planning →" visible sans scroller |
+| État vide avec CTA | ✅ | "Aucune implantation configurée" affiché |
+| État de chargement visible | ✅ | DashboardSkeleton Zone 1 mis à jour |
+| Feedback succès après action | N/A | Zone lecture seule |
+| Retour arrière accessible | N/A | Zone dashboard (pas de navigation interne) |
+| Labels clairs | ⚠️ | "Séances planifiées" trompeur (voir P2 ci-dessus) |
+| Cohérence patterns | ⚠️ | Statuts implantation toujours verts (fallbacks) |
+
+### Page Évènements (Story 63-2)
+
+| Critère | Résultat | Observation |
+|---------|---------|-------------|
+| État vide avec CTA | ✅ | EmptyState avec bouton "+ Nouvel évènement" |
+| État de chargement visible | ✅ | 6 SkeletonCard visibles |
+| Feedback erreur lisible | ✅ | Banner rouge avec message clair en français |
+| Retour arrière accessible | N/A | Page liste (pas de navigation enfant) |
+| Action principale évidente | ✅ | Bouton gold "+ Nouvel évènement" en haut droite |
+| Confirmation actions destructrices | N/A | Pas de suppression sur cette page |
+| Cohérence des patterns | ⚠️ | Stub post-modal incohérent avec stub dans-page Développement |
+| Labels filtres | ✅ | "Tous", "Stage", "Tournoi Goal à Goal", etc. — clair |
+| URL persistante | ✅ | `?type=stage` dans l'URL — partageable |
+
+### Section Développement (Story 63-3)
+
+| Critère | Résultat | Observation |
+|---------|---------|-------------|
+| État vide avec CTA | ✅ | Banner "en cours de développement" explicite |
+| État de chargement visible | N/A | Pages statiques — pas de chargement async |
+| Retour arrière accessible | ❌ | Aucun lien de retour vers `/developpement` dans les sous-pages |
+| Action principale évidente | ⚠️ | Pas d'action principale (pages stub) — le "Voir →" du hub fonctionne |
+| Labels clairs | ⚠️ | Valeur "—" en h1 peut être confondue avec erreur de chargement |
+| Cohérence des patterns | ✅ | 3 pages stub identiques entre elles |
+| Design premium | ✅ | Fond beige, cards blanches, accents gold, banner gold |
 
 ---
 
 ## Recommandations prioritaires
 
-1. **Supprimer le bouton "← Séances" redondant dans `/seances/[sessionId]`** — 1 suppression de 4 lignes, zéro risque de régression, impact visuel immédiat sur la page la plus consultée de l'app opérationnelle.
-2. **Unifier la recherche temps-réel sur `/clubs/page.tsx` et `/children/index.tsx`** — copier le pattern debounce 350ms déjà implémenté dans la guest search de la fiche séance. Réduit le flow "trouver un club" de 7 à 6 interactions.
-3. **Ajouter un skeleton de chargement sur la fiche séance** — le `ListRowSkeleton` est déjà importé dans `[sessionId]/page.tsx` mais non utilisé pour le state de loading global. Substituer le texte `Chargement…` par 3 blocs skeleton.
-4. **Scinder le groupe "Administration" en deux** dans `_layout.tsx` — 2 lignes de changement, améliore la lisibilité de la sidebar en attendant la Story 63.1 (refactoring complet).
-5. **Ajouter une note explicative sur la section "via annuaire" dans la fiche club** — éviter les tickets support sur le comportement intentionnel des liaisons implicites.
+1. **Corriger les 5 console.error sans guard NODE_ENV dans `dashboard/page.tsx`** — 5 lignes à envelopper (`if (process.env.NODE_ENV !== 'production')`), AC12 story 50-11 non satisfait, risque production immédiat.
+
+2. **Afficher le stub "bientôt disponible" dans le modal Évènements** — supprimer `setFilter(type)` pour les types non-stage dans `handleSelectEventType`, afficher le message stub dans `NewEventModal` avant fermeture — élimine le dead-end liste vide filtrée.
+
+3. **Ajouter un lien retour "← Développement" dans les 3 sous-pages stub** — 1 `Pressable` + `router.push('/developpement')` en tête de chaque page, 3 fichiers, ~5 lignes chacun.
+
+4. **Renommer ou supprimer la status row "Séances planifiées" dans BriefingDuJour** — au minimum changer le label en "Total séances (période)" pour éviter la confusion avec les séances du jour.
+
+5. **Remplacer `todaySessionsCount={liveCounters.sessionCount}` par un compteur journalier réel** — la date card doit refléter les séances planifiées pour le jour, pas uniquement les sessions live en cours.
+
+6. **Ajouter une recherche textuelle sur `/evenements`** — sans champ de recherche, trouver un stage par nom (ex. "Stage Namur juin") impose de scroller toute la liste ou de filtrer par type puis scroller. Pattern : `useEffect` debounce 350ms, filtre local côté client ou paramètre `name` dans `listEvents()`.
+
+7. **Mettre en place le retour contextuel depuis `/stages/[stageId]` vers `/evenements`** — passer `?from=evenements` en query param lors du `router.push` dans `handleCardPress`, et adapter le breadcrumb de la fiche stage en conséquence.
+
+8. **Unifier la recherche temps-réel** sur `/clubs/page.tsx` et `/children/index.tsx` — debounce 350ms, supprimer le bouton "Chercher" (friction P2 persistante depuis 2026-04-05).
