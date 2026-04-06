@@ -5,6 +5,10 @@
 -- 00062, 00102, 00103).
 -- =============================================================================
 
+-- Prérequis : colonne attendance_started_at sur sessions (archive 00014, absente en remote)
+ALTER TABLE sessions
+  ADD COLUMN IF NOT EXISTS attendance_started_at TIMESTAMPTZ;
+
 -- =============================================================================
 -- 1. session_attendees
 -- Roster attendu d'une séance (pré-rempli depuis group_members)

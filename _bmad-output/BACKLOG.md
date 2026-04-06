@@ -16,7 +16,7 @@
 
 ## Notes transversales (règles absolues avant de coder)
 
-1. **Migrations** : toujours utiliser **00090+** (00001–00089 occupées). Ignorer les numéros dans les story files — ils sont obsolètes. Réservations actives : 00114 (story 49-6), 00115 (story 49-7), 00116 (story 49-8), 00117 (story 57-2/57-3 max_players), 00118 (story 57-5 fn hover stats), 00119 (story 57-6 fn compare), 00120 (story 58-2 diagram_json), 00121 (story 58-6 difficulty_level), 00122 (story 58-7 fn group avg level).
+1. **Migrations** : toujours utiliser **00090+** (00001–00089 occupées). Ignorer les numéros dans les story files — ils sont obsolètes. Réservations actives : 00114 (story 49-6), 00115 (story 49-7), 00116 (story 49-8), 00117 (story 57-2/57-3 max_players), 00118 (story 57-5 fn hover stats), 00119 (story 57-6 fn compare), 00120 (story 58-2 diagram_json), 00121 (story 58-6 difficulty_level), 00122 (story 58-7 fn group avg level). **Dernière migration existante : 00135**. Prochaine disponible : **00136** (réservée story 49-9 — table attendances).
 2. **Chemin UI `sessions` → `seances`** : les stories écrivent `(admin)/sessions/`. L'app réelle utilise `(admin)/seances/`.
 3. **Chemin UI `referentiel` → `methodologie`** : les stories écrivent `(admin)/referentiel/`. L'app réelle utilise `(admin)/methodologie/`.
 4. **Architecture packages** :
@@ -90,6 +90,20 @@
 **✅ Tout le backlog Phase 1 est implémenté** (stories 2-1→2-3, 5-1→5-6, 7-1→7-4, 8-1→8-5, 9-1→9-5, 10-1→10-5, 11-1→11-3, 28-1)
 
 *Prochaine étape : DB Baseline Recovery + tests end-to-end*
+
+---
+
+### Epic 65 — Activités Hub Unifié (Séances · Présences · Évaluations)
+
+- [ ] 65-1 : activites-seances-refonte-hub-tableau (P1 — route /activites, tableau séances avec pseudo-filtres temporels, stat cards, colonnes Statut/Date/Méthode/Groupe/Coach/Présence/Badges/K/C/Anomalie)
+- [ ] 65-2 : activites-presences-vue-transversale (P1 — onglet Présences, vue groupes×séances en Global, heatmap joueurs×séances en Groupe, section À surveiller — dépend 65-1)
+- [ ] 65-3 : activites-evaluations-vue-transversale (P2 — onglet Évaluations, 3 sous-filtres Badges/Connaissances/Compétences, grille badges joueurs, placeholders futurs modules — dépend 65-1)
+
+**Dépendances** :
+- 65-1 indépendant (nouvelle route, coexiste avec /seances existant)
+- 65-2 dépend de 65-1 (partage FiltresContextuels + layout onglets)
+- 65-3 dépend de 65-1 (même dépendances)
+- Aucune migration DB — UI uniquement, données existantes
 
 ---
 
@@ -197,6 +211,18 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 - [ ] 49-6 : design-implantations-photo-logo-redesign (P2 — photo/logo implantation Storage + header premium + groupes cards)
 - [ ] 49-7 : feature-affiliation-auto-joueur-club-saison (P3 — vue SQL + affichage auto club saison courante dans fiche joueur)
 
+### Epic 47 — Design/UX batch
+
+- [ ] 47-1 : design-sidebar-icones-navigation
+- [ ] 47-2 : design-implantation-visuel-photo-groupes-card
+- [ ] 47-3 : ux-hub-seances-unifie
+- [ ] 47-4 : feature-liaisons-joueurs-clubs-affiliation-saison
+- [ ] 47-5 : bug-sidebar-lien-groupes-404
+- [ ] 47-6 : design-avatars-tokens-gold (P1 — PALETTE violet/bleu hardcodée dans children/[childId]/page.tsx → tokens @aureak/theme)
+- [ ] 47-7 : design-gradients-tokens-dashboard (P1 — gradients verts terrain hardcodés lignes 26/640/849 dans dashboard/page.tsx → tokens @aureak/theme)
+- [ ] 47-8 : ux-evenements-empty-state-cta (P1 — dead-end UX : filtre Tournoi → liste vide sans CTA. Empty state dédié + CTA "Créer un Stage" + label "Bientôt disponible" dans modal)
+- [ ] 47-9 : ux-developpement-breadcrumb-retour (P1 — bouton retour invisible/non affordant dans sous-pages Développement → enrichir Pressable : état hover/pressed + fond `colors.light.hover` + bordure + `router.back()`)
+
 ### Epic 45 — Design System v3
 
 - [ ] 45-1 : design-system-montserrat-gamification-tokens (Montserrat + XP/niveaux/badge tokens)
@@ -223,7 +249,10 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 
 ### Epic 49 — Bugfix batch avril 2026 #2
 
+- [ ] 49-9 : bug-attendance-table-manquante-remote (P0 — table `attendances` absente en remote → PGRST205 dashboard + score académie cassés — migration 00136)
 - [ ] 49-8 : bug-dashboard-get-implantation-stats-erreur-400 (P1 — fn SQL manquante → tiles KPI vides)
+- [ ] 49-10 : bug-profiles-id-milestones (P1 — typo getUncelebratedMilestones + doc correctif profiles.id → user_id — MilestoneCelebration jamais affichée)
+- [ ] 49-11 : bug-nav-badges-session-attendees (P1 — `column session_attendees_1.status` → topbar séance active muette — remplacer session_attendees par attendances dans getActiveSession*)
 - [ ] 49-1 : bug-creation-coach-edge-function (P1 — non-2xx persistant malgré story 44-1)
 - [ ] 49-3 : bug-joueurs-club-non-visibles (P2 — section annuaire manquante dans fiche club)
 
