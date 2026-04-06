@@ -47,6 +47,14 @@ queue:
     gate2: pass
     notes: "8 warnings style/a11y non bloquants — dette à traiter dans story dédiée. Playwright skipped (app non démarrée)."
 
+  - story_id: story-50-11
+    title: "Dashboard v2 refonte layout trois zones"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+    notes: "Recheck 2026-04-06 — BLOCKER corrigé : tiles gamification (CountdownTile, StreakTile, PlayerOfWeekTile, SeasonTrophyTileInner) absentes de Zone 2 KPIs bento. Zone 3 contient bien leaderboard XP, streaks, trophée, Player of Week, Prochaine séance. WARNING persistant : 5 console.error sans guard NODE_ENV dans dashboard/page.tsx (non-bloquant). Erreurs réseau = tables remote manquantes (attendance_records, xp_ledger) — hors scope story."
+
   - story_id: story-63-3
     title: "FEATURE — Section Développement Prospection/Marketing/Partenariats"
     priority: P3

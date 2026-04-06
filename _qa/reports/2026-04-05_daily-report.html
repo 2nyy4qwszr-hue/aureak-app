@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aureak — Rapport Journalier 5 avril 2026</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #F3EFE7;
+      color: #18181B;
+      padding: 32px 24px;
+      min-height: 100vh;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      background: #1A1A1A;
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #C1AC5C, #D6C98E, #C1AC5C);
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .header h1 { font-size: 26px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.3px; }
+    .header .date { font-size: 13px; color: #A0A0A0; margin-top: 4px; }
+    .header .badge-done {
+      background: rgba(76,175,80,0.15);
+      border: 1px solid rgba(76,175,80,0.4);
+      color: #4CAF50;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+    .header-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-box .num { font-size: 30px; font-weight: 900; color: #C1AC5C; }
+    .stat-box .lbl { font-size: 11px; color: #A0A0A0; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+    /* Section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #71717A;
+      margin: 28px 0 12px;
+    }
+
+    /* Story cards */
+    .stories { display: flex; flex-direction: column; gap: 8px; }
+    .story-card {
+      background: #FFFFFF;
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid #E5E7EB;
+    }
+    .story-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .story-icon { font-size: 20px; width: 36px; text-align: center; flex-shrink: 0; }
+    .story-body { flex: 1; min-width: 0; }
+    .story-id { font-size: 11px; font-weight: 600; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .story-title { font-size: 14px; font-weight: 600; color: #18181B; margin-top: 2px; }
+    .story-desc { font-size: 12px; color: #71717A; margin-top: 3px; }
+    .story-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .commit-badge {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      background: #F3EFE7;
+      border: 1px solid #E8E4DC;
+      color: #424242;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .tag-bug { background: rgba(224,82,82,0.1); color: #E05252; }
+    .tag-design { background: rgba(167,139,250,0.1); color: #A78BFA; }
+    .tag-ux { background: rgba(96,165,250,0.1); color: #60A5FA; }
+    .tag-feature { background: rgba(193,172,92,0.15); color: #A08B35; }
+    .tag-skip { background: rgba(156,163,175,0.15); color: #9CA3AF; }
+    .check { color: #4CAF50; font-size: 16px; flex-shrink: 0; }
+
+    /* Migration box */
+    .migrations {
+      background: #FFFFFF;
+      border-radius: 14px;
+      padding: 20px 24px;
+      border: 1px solid #E5E7EB;
+      margin-top: 8px;
+    }
+    .migration-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #F3EFE7;
+    }
+    .migration-row:last-child { border-bottom: none; }
+    .migration-num {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #C1AC5C;
+      width: 50px;
+      flex-shrink: 0;
+    }
+    .migration-desc { font-size: 13px; color: #18181B; }
+    .migration-type { font-size: 11px; color: #71717A; margin-left: auto; }
+
+    /* Files summary */
+    .files-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .file-chip {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #424242;
+      font-family: 'Courier New', monospace;
+    }
+    .file-chip .path-prefix { color: #A0A0A0; }
+    .file-chip .path-name { color: #18181B; font-weight: 600; }
+
+    /* Footer */
+    .footer {
+      margin-top: 36px;
+      text-align: center;
+      font-size: 11px;
+      color: #A0A0A0;
+      padding-bottom: 16px;
+    }
+    .footer span { color: #C1AC5C; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>Aureak — Rapport Journalier</h1>
+        <div class="date">Dimanche 5 avril 2026 · Morning session</div>
+      </div>
+      <div class="badge-done">✓ Queue terminée</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-box">
+        <div class="num">16</div>
+        <div class="lbl">Stories traitées</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">15</div>
+        <div class="lbl">Commits</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">2</div>
+        <div class="lbl">Migrations SQL</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">0</div>
+        <div class="lbl">Erreurs TS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patrol findings -->
+  <div class="section-title">🔍 Patrol 2026-04-05 — 4 critiques résolus</div>
+  <div class="stories">
+    <div class="story-card">
+      <div class="story-icon">🔴</div>
+      <div class="story-body">
+        <div class="story-id">story-47-5 · Epic 47</div>
+        <div class="story-title">Sidebar lien "Groupes" → 404</div>
+        <div class="story-desc">Vérification : lien déjà correct dans _layout.tsx — faux positif patrol</div>
+      </div>
+      <div class="story-meta">
+        <span class="tag tag-skip">déjà ok</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🔴</div>
+      <div class="story-body">
+        <div class="story-id">story-46-4 · Epic 46</div>
+        <div class="story-title">Séances — "Unexpected text node" erreurs React</div>
+        <div class="story-desc"><code>''&nbsp;&amp;&amp;&nbsp;expr</code> retourne <code>''</code> en JS → rendu string dans View. Fix : <code>!!filterImplantId</code> et <code>!!filterGroupId</code></div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">3b8e017</span>
+        <span class="tag tag-bug">BUG</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🔴</div>
+      <div class="story-body">
+        <div class="story-id">story-48-1 · Epic 48</div>
+        <div class="story-title">Page /stages — Erreur 400 + bannière rouge</div>
+        <div class="story-desc">Colonne <code>deleted_at</code> absente sur <code>stages</code> → migration 00112. Bonus : migration 00110 corrigée (<code>role</code>→<code>user_role</code>). UI : états error/loading/empty séparés</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">d235524</span>
+        <span class="tag tag-bug">BUG</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🔴</div>
+      <div class="story-body">
+        <div class="story-id">story-48-2 · Epic 48</div>
+        <div class="story-title">Vue SQL v_club_gardien_stats manquante</div>
+        <div class="story-desc">Vue archivée (00080) non portée vers <code>supabase/migrations/</code> racine → migration 00113. 2 requêtes API débloquées</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">04fed6a</span>
+        <span class="tag tag-bug">BUG</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-queued bugs -->
+  <div class="section-title">🔴 Bugs — Queue morning</div>
+  <div class="stories">
+    <div class="story-card">
+      <div class="story-icon">⚡</div>
+      <div class="story-body">
+        <div class="story-id">story-44-7 · Epic 44</div>
+        <div class="story-title">Edge Function create-user-profile — redéploiement</div>
+        <div class="story-desc">Déployée sur <code>tuiicxlkvzvanikbkmmf</code>. <code>SUPABASE_SERVICE_ROLE_KEY</code> confirmé présent dans les secrets cloud</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">d13ebae</span>
+        <span class="tag tag-bug">BUG P1</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">👥</div>
+      <div class="story-body">
+        <div class="story-id">story-46-1 · Epic 46</div>
+        <div class="story-title">Fiche séance — joueurs du groupe non affichés</div>
+        <div class="story-desc">Section "Joueurs du groupe (N)" ajoutée dans la fiche séance. Avatar initiales, âge calculé, tri alphabétique. <code>listGroupMembersWithDetails</code> réutilisé</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">fd21183</span>
+        <span class="tag tag-bug">BUG P1</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🍎</div>
+      <div class="story-body">
+        <div class="story-id">story-46-2 · Epic 46</div>
+        <div class="story-title">Safari autocomplete déclenche popup mot de passe</div>
+        <div class="story-desc"><code>data-form-type="other"</code> + <code>textContentType="none"</code> sur <code>SearchableSelect</code> et <code>MultiSearchableSelect</code></div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">d1e8a4d</span>
+        <span class="tag tag-bug">BUG P1</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">📋</div>
+      <div class="story-body">
+        <div class="story-id">story-46-3 · Epic 46</div>
+        <div class="story-title">Sélecteur coach scroll broken dans création séance</div>
+        <div class="story-desc"><code>overflow: 'auto'</code> conditionnel <code>Platform.OS === 'web'</code> sur ScrollView dropdown — isole le scroll CSS du ScrollView parent</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">2beb720</span>
+        <span class="tag tag-bug">BUG P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">📊</div>
+      <div class="story-body">
+        <div class="story-id">story-42-3 · Epic 42</div>
+        <div class="story-title">Dashboard compteur joueurs actifs incorrect</div>
+        <div class="story-desc">Remplace le count sur <code>profiles WHERE user_role='child'</code> par <code>countActivePlayersCurrentSeason()</code> via <code>v_child_academy_status WHERE in_current_season=true</code></div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">162b0a5</span>
+        <span class="tag tag-bug">BUG P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">📚</div>
+      <div class="story-body">
+        <div class="story-id">story-43-4 · Epic 43</div>
+        <div class="story-title">Méthodologie thèmes — cards trop grandes</div>
+        <div class="story-desc">Grille : 5 cols desktop (≥1024px) / 3 cols tablette (≥640px) / 2 cols mobile. Gap réduit à 12px</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">abc74b7</span>
+        <span class="tag tag-bug">BUG P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Design -->
+  <div class="section-title">🎨 Design — Queue morning</div>
+  <div class="stories">
+    <div class="story-card">
+      <div class="story-icon">🏟️</div>
+      <div class="story-body">
+        <div class="story-id">story-42-4 · Epic 42</div>
+        <div class="story-title">Dashboard bento — icônes KPI + card implantation visuelle</div>
+        <div class="story-desc">Icônes repositionnées top-right, couleurs par contexte (👥 vert, 📅 gold, 👨‍🏫 violet, 🏆 bleu). Card implantations avec gradient vert football</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">a1261a8</span>
+        <span class="tag tag-design">DESIGN P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🧭</div>
+      <div class="story-body">
+        <div class="story-id">story-47-1 · Epic 47</div>
+        <div class="story-title">Sidebar — 22 icônes navigation</div>
+        <div class="story-desc">Icônes emoji sur tous les nav items. Sidebar collapsed = icône seule. Opacité 1 (actif) / 0.55 (inactif). Type <code>NavItem</code> enrichi</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">142d622</span>
+        <span class="tag tag-design">DESIGN P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🏗️</div>
+      <div class="story-body">
+        <div class="story-id">story-47-2 · Epic 47</div>
+        <div class="story-title">Implantations — redesign cards visuelles + chips groupes</div>
+        <div class="story-desc">Liste → grille responsive 3/2/1 cols. Gradient vert terrain, badge joueurs overlay, chips groupes scrollables cliquables → /groups/:id</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">219d608</span>
+        <span class="tag tag-design">DESIGN P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- UX -->
+  <div class="section-title">⚡ UX — Queue morning</div>
+  <div class="stories">
+    <div class="story-card">
+      <div class="story-icon">👆</div>
+      <div class="story-body">
+        <div class="story-id">story-44-8 · Epic 44</div>
+        <div class="story-title">Groupe — clic joueur → fiche /children/:id</div>
+        <div class="story-desc"><code>Pressable</code> avec hover <code>colors.light.hover</code> + chevron ›. <code>stopPropagation</code> sur le bouton ✕ de suppression</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">e6f1dac</span>
+        <span class="tag tag-ux">UX P2</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-icon">🗂️</div>
+      <div class="story-body">
+        <div class="story-id">story-47-3 · Epic 47</div>
+        <div class="story-title">Hub séances unifié — Séances | Présences | Évaluations</div>
+        <div class="story-desc">Sub-header 3 onglets dans <code>seances/index.tsx</code>. Actions rapides dans fiche séance → présences/évaluations avec <code>?sessionId=</code></div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">0e329bf</span>
+        <span class="tag tag-ux">UX P3</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature -->
+  <div class="section-title">✨ Feature — Queue morning</div>
+  <div class="stories">
+    <div class="story-card">
+      <div class="story-icon">🏅</div>
+      <div class="story-body">
+        <div class="story-id">story-47-4 · Epic 47</div>
+        <div class="story-title">Fiche joueur — section affiliation club par saison</div>
+        <div class="story-desc">Recherche autocomplete clubs + <code>addChildHistoryEntry</code> avec saison calculée. Tableau historique affiliations. Badge vert/orange selon affiliation saison courante</div>
+      </div>
+      <div class="story-meta">
+        <span class="commit-badge">399f332</span>
+        <span class="tag tag-feature">FEATURE P3</span>
+        <span class="check">✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Migrations -->
+  <div class="section-title">🗄️ Migrations SQL créées</div>
+  <div class="migrations">
+    <div class="migration-row">
+      <div class="migration-num">00112</div>
+      <div class="migration-desc"><strong>stages_soft_delete</strong> — ALTER TABLE stages ADD COLUMN deleted_at TIMESTAMPTZ</div>
+      <div class="migration-type">story-48-1</div>
+    </div>
+    <div class="migration-row">
+      <div class="migration-num">00113</div>
+      <div class="migration-desc"><strong>create_v_club_gardien_stats</strong> — CREATE OR REPLACE VIEW v_club_gardien_stats (portée depuis archive 00080)</div>
+      <div class="migration-type">story-48-2</div>
+    </div>
+    <div class="migration-row">
+      <div class="migration-num">00110</div>
+      <div class="migration-desc"><strong>inapp_notifications (fix)</strong> — <code>role</code> → <code>user_role</code> dans la policy, idempotence restaurée</div>
+      <div class="migration-type">bonus story-48-1</div>
+    </div>
+  </div>
+
+  <!-- Files touched -->
+  <div class="section-title">📁 Fichiers principaux modifiés</div>
+  <div class="files-grid">
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/seances/</span><span class="path-name">page.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/seances/[sessionId]/</span><span class="path-name">page.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/stages/</span><span class="path-name">index.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/dashboard/</span><span class="path-name">page.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/implantations/</span><span class="path-name">index.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/</span><span class="path-name">_layout.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/groups/[groupId]/</span><span class="path-name">page.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/methodologie/themes/</span><span class="path-name">index.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">apps/web/(admin)/children/[childId]/</span><span class="path-name">page.tsx</span></div>
+    <div class="file-chip"><span class="path-prefix">api-client/src/admin/</span><span class="path-name">dashboard.ts + child-directory.ts</span></div>
+    <div class="file-chip"><span class="path-prefix">supabase/functions/</span><span class="path-name">create-user-profile (redéployé)</span></div>
+    <div class="file-chip"><span class="path-prefix">supabase/migrations/</span><span class="path-name">00110 · 00112 · 00113</span></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Aureak · Rapport généré le 5 avril 2026 · <span>15 commits · 0 erreur TypeScript · Pipeline BMAD complet</span>
+  </div>
+
+</div>
+</body>
+</html>

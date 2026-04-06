@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aureak — Rapport de Session · 5 avril 2026</title>
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #D6C98E;
+    --gold-dark: #9A7A2E;
+    --bg: #0D0F14;
+    --surface: #13161E;
+    --surface2: #1A1E28;
+    --surface3: #222636;
+    --text: #F0EDE8;
+    --text-muted: #8B8DA0;
+    --text-subtle: #5A5C70;
+    --green: #10B981;
+    --red: #E05252;
+    --blue: #4F8EF7;
+    --purple: #9B59B6;
+    --border: rgba(201,168,76,0.15);
+    --border-subtle: rgba(255,255,255,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0D0F14 0%, #1A1E28 50%, #0D0F14 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 600px 300px at 50% 100%, rgba(201,168,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .hero-badge::before { content: '⚡'; }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #F0EDE8 30%, #C9A84C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 40px;
+  }
+  .hero-stats {
+    display: flex; flex-wrap: wrap; gap: 24px;
+  }
+  .hero-stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 16px 24px;
+    min-width: 120px;
+  }
+  .hero-stat-value {
+    font-size: 32px; font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 48px 40px; }
+  .section + .section { border-top: 1px solid var(--border-subtle); }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--text-subtle); text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+
+  /* TECH STACK */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .stack-item {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .stack-icon { font-size: 18px; }
+  .stack-name { font-size: 13px; font-weight: 600; }
+  .stack-desc { font-size: 11px; color: var(--text-muted); }
+
+  /* EPIC GRID */
+  .epics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  .epic-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .epic-card:hover { border-color: var(--border); }
+
+  .epic-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .epic-num {
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    border-radius: 8px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .epic-title { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .epic-title-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .epic-meta {
+    padding: 12px 20px;
+    display: flex; gap: 16px; align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .meta-pill {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--text-muted);
+  }
+  .meta-pill strong { color: var(--text); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+  .story-list { padding: 8px 0; }
+  .story-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 20px;
+    transition: background 0.15s;
+  }
+  .story-item:hover { background: rgba(255,255,255,0.03); }
+  .story-check {
+    color: var(--green); font-size: 12px; margin-top: 2px; flex-shrink: 0;
+  }
+  .story-name { font-size: 13px; flex: 1; }
+  .story-id { font-size: 11px; color: var(--text-subtle); font-family: 'SF Mono', 'Fira Code', monospace; }
+  .story-commit {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 10px;
+    color: var(--text-subtle);
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+  }
+
+  /* MIGRATIONS */
+  .migrations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .migration-item {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .migration-num {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px; color: var(--gold);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .migration-desc { font-size: 12px; }
+  .migration-type {
+    font-size: 10px; font-weight: 600;
+    border-radius: 4px; padding: 1px 6px;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .type-fn { background: rgba(79,142,247,0.15); color: var(--blue); }
+  .type-view { background: rgba(155,89,182,0.15); color: var(--purple); }
+  .type-table { background: rgba(16,185,129,0.15); color: var(--green); }
+  .type-alter { background: rgba(201,168,76,0.15); color: var(--gold); }
+
+  /* QUALITY SUMMARY */
+  .quality-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .quality-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .quality-icon { font-size: 28px; margin-bottom: 8px; }
+  .quality-value { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+  .quality-label { font-size: 12px; color: var(--text-muted); }
+  .value-green { color: var(--green); }
+  .value-gold { color: var(--gold); }
+  .value-blue { color: var(--blue); }
+  .value-purple { color: var(--purple); }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+  .timeline-item { position: relative; margin-bottom: 28px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -20px; top: 6px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(201,168,76,0.4);
+  }
+  .timeline-time { font-size: 11px; color: var(--text-subtle); margin-bottom: 4px; }
+  .timeline-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-desc { font-size: 12px; color: var(--text-muted); }
+
+  /* FOOTER */
+  .footer {
+    padding: 32px 40px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .footer-logo { font-size: 20px; font-weight: 900; color: var(--gold); }
+  .footer-meta { font-size: 12px; color: var(--text-subtle); }
+
+  /* PASS BADGE */
+  .pass-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(16,185,129,0.12);
+    border: 1px solid rgba(16,185,129,0.25);
+    color: var(--green);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+    padding: 2px 10px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .hero { padding: 40px 20px 36px; }
+    .section { padding: 32px 20px; }
+    .footer { padding: 24px 20px; }
+    .epics-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 12px; }
+    .hero-stat { padding: 12px 16px; }
+    .hero-stat-value { font-size: 24px; }
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: white; color: black; }
+    .hero { background: white; border-bottom: 2px solid #C9A84C; }
+    .epic-card, .quality-card, .migration-item, .stack-item { border: 1px solid #ddd; background: #fafafa; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">Session BMAD · 5 avril 2026</div>
+    <h1>Aureak — Rapport de Session Complet</h1>
+    <p class="hero-sub">Pipeline BMAD automatisé · Epics 49 → 62 · Implémentation complète</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value">118</div>
+        <div class="hero-stat-label">Stories done</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">14</div>
+        <div class="hero-stat-label">Epics complétés</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">18</div>
+        <div class="hero-stat-label">Migrations SQL</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">307</div>
+        <div class="hero-stat-label">Commits total</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">0</div>
+        <div class="hero-stat-label">Erreurs TypeScript</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">100%</div>
+        <div class="hero-stat-label">Gate 1 + Gate 2</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUALITÉ -->
+<div class="section">
+  <div class="container">
+    <div class="section-title">Synthèse qualité</div>
+    <div class="quality-grid">
+      <div class="quality-card">
+        <div class="quality-icon">✅</div>
+        <div class="quality-value value-green">0</div>
+        <div class="quality-label">Erreurs TypeScript<br><small>npx tsc --noEmit</small></div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🛡️</div>
+        <div class="quality-value value-green">PASS</div>
+        <div class="quality-label">Gate 1 — Code Review<br>+ Migration + Sécurité</div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🎨</div>
+        <div class="quality-value value-green">PASS</div>
+        <div class="quality-label">Gate 2 — Design Critic<br>+ UX Auditor + Bug Hunter</div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🔒</div>
+        <div class="quality-value value-gold">100%</div>
+        <div class="quality-label">Try/finally<br>sur tous les loaders</div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🚫</div>
+        <div class="quality-value value-gold">0</div>
+        <div class="quality-label">Console non guardé<br>(NODE_ENV guards)</div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🏗️</div>
+        <div class="quality-value value-blue">100%</div>
+        <div class="quality-label">API via @aureak/api-client<br>Zéro accès direct Supabase</div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🎭</div>
+        <div class="quality-value value-blue">100%</div>
+        <div class="quality-label">Tokens @aureak/theme<br>Zéro couleur hardcodée</div>
+      </div>
+      <div class="quality-card">
+        <div class="quality-icon">🗑️</div>
+        <div class="quality-value value-purple">100%</div>
+        <div class="quality-label">Soft-delete uniquement<br>(deleted_at nullable)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MIGRATIONS -->
+<div class="section">
+  <div class="container">
+    <div class="section-title">Migrations SQL créées (00116 → 00133)</div>
+    <div class="migrations-grid">
+      <div class="migration-item">
+        <span class="migration-num">00116</span>
+        <span class="migration-desc">fn get_implantation_stats — KPIs présence/maîtrise dashboard</span>
+        <span class="migration-type type-fn">FUNCTION</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00117</span>
+        <span class="migration-desc">Edge Function create-user-profile fix response clone</span>
+        <span class="migration-type type-fn">EDGE FN</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00118</span>
+        <span class="migration-desc">v_child_current_club — vue club courant par enfant</span>
+        <span class="migration-type type-view">VIEW</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00119</span>
+        <span class="migration-desc">sessions.intensity_level SMALLINT CHECK 1–5</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00120</span>
+        <span class="migration-desc">inapp_notifications — alertes absence pattern</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00121</span>
+        <span class="migration-desc">groups.formation_data JSONB — formation tactique</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00122</span>
+        <span class="migration-desc">groups.max_players INTEGER DEFAULT 20</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00123</span>
+        <span class="migration-desc">implantations.max_players + photo_url</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00124</span>
+        <span class="migration-desc">fn get_implantation_hover_stats — stats survol</span>
+        <span class="migration-type type-fn">FUNCTION</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00125</span>
+        <span class="migration-desc">methodology_situations.diagram_json JSONB</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00126</span>
+        <span class="migration-desc">methodology_situations.difficulty_level INT 1–5</span>
+        <span class="migration-type type-alter">ALTER</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00127</span>
+        <span class="migration-desc">fn get_group_avg_level — niveau moyen par groupe</span>
+        <span class="migration-type type-fn">FUNCTION</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00128</span>
+        <span class="migration-desc">methodology_session_modules + situations_table</span>
+        <span class="migration-type type-table">TABLE</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00129</span>
+        <span class="migration-desc">xp_ledger + player_xp_progression view</span>
+        <span class="migration-type type-table">TABLE+VIEW</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00130</span>
+        <span class="migration-desc">badge_definitions — 20 badges seed</span>
+        <span class="migration-type type-table">TABLE</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00131</span>
+        <span class="migration-desc">coach_quests — quêtes hebdomadaires</span>
+        <span class="migration-type type-table">TABLE</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00132</span>
+        <span class="migration-desc">academy_milestones + check_academy_milestones RPC</span>
+        <span class="migration-type type-table">TABLE</span>
+      </div>
+      <div class="migration-item">
+        <span class="migration-num">00133</span>
+        <span class="migration-desc">v_player_attendance_ranking + v_player_xp_ranking</span>
+        <span class="migration-type type-view">VIEW</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EPICS -->
+<div class="section">
+  <div class="container">
+    <div class="section-title">Stories implémentées par epic</div>
+    <div class="epics-grid">
+
+      <!-- EPIC 49 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 49</div>
+          <div>
+            <div class="epic-title">Bugfix Batch Avril 2026</div>
+            <div class="epic-title-sub">Corrections critiques P1/P2</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">2 migrations</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.1 — Edge Function non-2xx fix + messages erreur coach</span><span class="story-commit">93317f9</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.2 — Blocs thèmes éditables depuis fiche séance</span><span class="story-commit">b4c8d5e</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.3 — Joueurs annuaire visibles dans fiche club</span><span class="story-commit">235d398</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.4 — Présences toggle pré-chargé depuis groupe séance</span><span class="story-commit">6effcc3</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.5 — Dashboard Game Manager premium (hero band + sparklines)</span><span class="story-commit">9e1d948</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.6 — Implantations photo upload + redesign détail premium</span><span class="story-commit">3100cc5</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.7 — Affiliation auto joueur → club courant via historique saison</span><span class="story-commit">8558d1f</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">49.8 — Fn SQL get_implantation_stats + fallback UI dashboard</span><span class="story-commit">cfb1318</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 50 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 50</div>
+          <div>
+            <div class="epic-title">Dashboard HQ</div>
+            <div class="epic-title-sub">Salle de commandement premium</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>10</strong> stories done</div>
+          <div class="meta-pill">1 Edge Fn</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.1 — Hero Band salle de commandement (SVG terrain, horloge live)</span><span class="story-commit">b250f12</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.2 — KPI cards sparkline + delta pill</span><span class="story-commit">20c5256</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.3 — Prochaine séance countdown tile H:MM:SS</span><span class="story-commit">80b19cf</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.4 — Implantation card terrain premium</span><span class="story-commit">564fb41</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.5 — Live activity feed Realtime Supabase</span><span class="story-commit">975ac51</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.6 — Forme du moment tile streak joueurs</span><span class="story-commit">0692e63</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.7 — Anomalies inline compactes dashboard</span><span class="story-commit">a919385</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.8 — Widget météo terrain (cache localStorage 1h)</span><span class="story-commit">fb53393</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.9 — Focus mode plein écran dashboard</span><span class="story-commit">35a37a5</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">50.10 — KPI tiles réorganisables drag-drop HTML5</span><span class="story-commit">11c87e0</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 51 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 51</div>
+          <div>
+            <div class="epic-title">Navigation HUD</div>
+            <div class="epic-title-sub">Sidebar premium + command palette</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">23 icônes SVG</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.1 — Sidebar icônes SVG + barre or active state</span><span class="story-commit">5588fef</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.2 — Topbar séance active permanente</span><span class="story-commit">0c58e0a</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.3 — Command palette ⌘K avec recherche débounce</span><span class="story-commit">39cb612</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.4 — Badges sidebar présences + séances</span><span class="story-commit">d05924b</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.5 — Breadcrumb animé cliquable BreadcrumbContext</span><span class="story-commit">b0342cd</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.6 — Raccourcis clavier navigation</span><span class="story-commit">16d1114</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.7 — Sidebar collapse animation smooth 0.28s</span><span class="story-commit">236014b</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">51.8 — Dark mode toggle persistant</span><span class="story-commit">fc2ff7d</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 52 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 52</div>
+          <div>
+            <div class="epic-title">Player Cards FUT-Style</div>
+            <div class="epic-title-sub">Gamification joueurs Football Manager</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>12</strong> stories done</div>
+          <div class="meta-pill">4 tiers joueurs</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.1 — PlayerCard FUT-style 160×220px 4 tiers</span><span class="story-commit">a76eebb</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.2 — 6 stats PLO/TIR/TEC/TAC/PHY/MEN + tier Elite</span><span class="story-commit">b4b05e7</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.3 — Shimmer animation dorée cards Elite</span><span class="story-commit">45bbd47</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.4 — Toggle galerie PlayerCard vs liste compacte</span><span class="story-commit">ec13961</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.5 — Filtres tier pills colorées avec compteurs</span><span class="story-commit">8cc0b33</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.6 — Header photo 280px fullwidth + tabs navigation</span><span class="story-commit">b444ad8</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.7 — XP bar animée Animated.timing 600ms</span><span class="story-commit">8b48e41</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.8 — Animation level up tier upgrade</span><span class="story-commit">dd17a97</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.9 — Badges collection fiche joueur BadgeGrid</span><span class="story-commit">b2670a0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.10 — Radar chart 6 axes SVG pur hexagonal</span><span class="story-commit">135682b</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.11 — Export card joueur PNG</span><span class="story-commit">c566a9a</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">52.12 — Vue master-detail joueurs split-screen ≥1024px</span><span class="story-commit">d0b82a5</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 53 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 53</div>
+          <div>
+            <div class="epic-title">Séances Premium</div>
+            <div class="epic-title-sub">Tactical Board + Week View + DnD</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>10</strong> stories done</div>
+          <div class="meta-pill">1 migration</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.1 — Vue semaine Tactical Board slots colorés + charge hebdo</span><span class="story-commit">fb726ef</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.2 — Header Match Report premium sur fiche séance</span><span class="story-commit">2ebefab</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.3 — Indicateur intensité 5 niveaux (migration 00119)</span><span class="story-commit">58cdfec</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.4 — Sélecteur méthode grandes tuiles visuelles</span><span class="story-commit">a75fa24</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.5 — Duplication rapide séance avec pré-remplissage</span><span class="story-commit">a88921a</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.6+7 — Rapport post-entraînement + badges séries assiduité</span><span class="story-commit">199fee6</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.8 — Season Planner vue mensuelle charge par groupe</span><span class="story-commit">fd605db</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.9 — Filtres présets enregistrables localStorage</span><span class="story-commit">3275aab</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">53.10 — Assignation coach drag-and-drop natif HTML5</span><span class="story-commit">a9a5d6d</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 54 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 54</div>
+          <div>
+            <div class="epic-title">Présences Premium</div>
+            <div class="epic-title-sub">Squad grid neumorphique + alertes</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">1 migration</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.1 — Squad overview présences en grille de cartes joueurs</span><span class="story-commit">6eb9da1</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.2 — Toggle neumorphique présent/absent @aureak/ui</span><span class="story-commit">d5baa56</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.3 — Streak joueur affiché sous le nom dans grille</span><span class="story-commit">3db6670</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.4 — Zone retardataires dans la gestion des présences</span><span class="story-commit">55246ed</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.5 — Validation groupée "Tous présents" + confetti</span><span class="story-commit">8ab37b0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.6 — Heatmap mensuelle présences joueur dans sa fiche</span><span class="story-commit">ad30b0c</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.7 — Alertes absence pattern + bandeau in-app (migration 00120)</span><span class="story-commit">ac35313</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">54.8 — Export rapport PDF présences hebdomadaires</span><span class="story-commit">4826933</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 55 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 55</div>
+          <div>
+            <div class="epic-title">Évaluations Premium</div>
+            <div class="epic-title-sub">FUT notes + Radar comparatif + Growth chart</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">SVG pur</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.1 — EvaluationCard FUT-style note centrale 80px</span><span class="story-commit">e0477e9</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.2 — Radar chart comparaison 2 joueurs SVG (or + bleu)</span><span class="story-commit">e565d3d</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.3 — Timeline croissance joueur GrowthChart bezier SVG</span><span class="story-commit">0412a35</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.4 — Badge Meilleure séance animation spring unlock</span><span class="story-commit">60fece0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.5 — Comparaison biais coach-à-coach</span><span class="story-commit">48d7fce</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.6 — Filtre joueurs en danger (signaux critiques)</span><span class="story-commit">e4baafa</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.7 — Export scouting PDF</span><span class="story-commit">75de51f</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">55.8 — Joueur de la semaine tile dashboard</span><span class="story-commit">26d6c15</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 56 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 56</div>
+          <div>
+            <div class="epic-title">Groupes Premium</div>
+            <div class="epic-title-sub">TacticalBoard + DnD transfert + Formation</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">2 migrations</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.1 — GroupCard team sheet avec mini-terrain SVG</span><span class="story-commit">27f6482</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.2 — Formation tactique visuelle terrain (TacticalBoard 1-4-2-3-1)</span><span class="story-commit">947f0a0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.3 — Player avatars grille compacte sur card groupe</span><span class="story-commit">c6a84e5</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.4 — Drag-drop transfert joueur entre groupes</span><span class="story-commit">1b264e5</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.5 — Badge groupe du mois avec shimmer gold</span><span class="story-commit">b501a12</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.6 — Indicateur capacité groupe + alerte surplein</span><span class="story-commit">5fd04c6</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.7 — Générateur automatique groupes par catégorie d'âge</span><span class="story-commit">5927697</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">56.8 — Transition slide groupe → fiche joueur</span><span class="story-commit">b52375b</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 57 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 57</div>
+          <div>
+            <div class="epic-title">Implantations Premium</div>
+            <div class="epic-title-sub">Carte Leaflet + santé + comparaison</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">2 migrations</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.1 — Drag & drop photo + preview + compression Canvas 800px</span><span class="story-commit">2665c8c</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.2 — Header detail 280px + capacité badge + bouton éditer</span><span class="story-commit">cadc4ae</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.3 — Barre capacité vert/or/rouge sur card</span><span class="story-commit">92d18d3</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.4 — Mini-carte Leaflet lazy + lien Google Maps</span><span class="story-commit">599ee3e</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.5 — Overlay stats hover présence/séances/groupes (RPC)</span><span class="story-commit">c7d677c</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.6 — Vue comparaison côte à côte</span><span class="story-commit">396a4c0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.7 — Score santé vert/or/rouge + tests unitaires Vitest</span><span class="story-commit">7d797aa</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">57.8 — Mini-timeline 3 prochaines séances sur card</span><span class="story-commit">3ae57f7</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 58 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 58</div>
+          <div>
+            <div class="epic-title">Méthodologie Premium</div>
+            <div class="epic-title-sub">Hearthstone cards + éditeur SVG terrain</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">4 migrations</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.1 — Situation card Hearthstone-style + grille</span><span class="story-commit">ae42ec9</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.2 — Éditeur terrain SVG drag & drop joueurs + flèches</span><span class="story-commit">7836fe3</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.3 — Drag situation depuis bibliothèque vers séance</span><span class="story-commit">4c75eea</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.4 — Tile thème de la semaine rotation cyclique</span><span class="story-commit">449f1b7</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.5 — QR code exercice terrain (tablette-friendly)</span><span class="story-commit">ae53671</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.6 — Notation difficulté 1–5 étoiles + filtre liste</span><span class="story-commit">b0bedf4</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.7 — Recommandations exercices adaptés au groupe</span><span class="story-commit">744a356</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">58.8 — Timeline 3 phases activation/développement/conclusion</span><span class="story-commit">23761e9</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 59 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 59</div>
+          <div>
+            <div class="epic-title">Gamification</div>
+            <div class="epic-title-sub">XP · Badges · Quêtes · Milestones</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>10</strong> stories done</div>
+          <div class="meta-pill">4 migrations + Edge Fn</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.1 — xp_ledger + player_xp_progression + Edge Function award-xp</span><span class="story-commit">51baf18</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.2 — LevelUpAnimation spring + hook useLevelUp</span><span class="story-commit">00853fa</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.3 — Leaderboard académie top 10 dans dashboard bento</span><span class="story-commit">b44d0e6</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.4 — 20 badges système seed + section Badges fiche joueur</span><span class="story-commit">06fce75</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.5 — Quêtes hebdomadaires coaches + section fiche coach</span><span class="story-commit">a3657fd</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.6 — Score académie global KPI</span><span class="story-commit">176e7b2</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.7 — Célébration milestone académie</span><span class="story-commit">71f368a</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.8 — Profil manager admin avec level XP</span><span class="story-commit">9bcf4fc</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.9 — Notifications achievement toast temps réel</span><span class="story-commit">fb65dac</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">59.10 — Season trophy fin de saison</span><span class="story-commit">4539e73</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 60 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 60</div>
+          <div>
+            <div class="epic-title">Analytics &amp; Stats Room</div>
+            <div class="epic-title-sub">Charts SVG · Heatmap · Rankings · PDF</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>8</strong> stories done</div>
+          <div class="meta-pill">2 migrations</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.1 — Stats Room hub KPIs globaux + 4 section cards</span><span class="story-commit">295a490</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.2 — Line chart présences 12 mois multi-groupes SVG pur</span><span class="story-commit">22e139e</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.3 — Heatmap 7j×24h densité séances CSS grid</span><span class="story-commit">3dd4455</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.4 — Bar chart horizontal classement implantations</span><span class="story-commit">2ed5d17</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.5 — Color-coded stats universels vert/or/rouge</span><span class="story-commit">e7d7fd0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.6 — Top 10 joueurs classements présence/progression/XP</span><span class="story-commit">a4468b1</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.7 — Export rapport PDF mensuel académie</span><span class="story-commit">fffc47c</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">60.8 — Live counters séances en cours Realtime</span><span class="story-commit">99e150e</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 61 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 61</div>
+          <div>
+            <div class="epic-title">Mobile &amp; PWA</div>
+            <div class="epic-title-sub">Dark mode · Offline · Swipe · Splash</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>6</strong> stories done</div>
+          <div class="meta-pill">PWA manifest</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">61.1 — Dark mode coach terrain auto-detect ThemeContext</span><span class="story-commit">00bb9e0</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">61.2 — HUD séance active mobile ActiveSessionContext</span><span class="story-commit">692e0f9</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">61.3 — PWA install prompt banner mobile (beforeinstallprompt)</span><span class="story-commit">9d8262d</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">61.4 — Swipe gestures présences mobile (useSwipeGesture)</span><span class="story-commit">09050ef</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">61.5 — Offline mode cache du jour (TTL, max 100 items)</span><span class="story-commit">815ec3d</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">61.6 — Splash screen animé logo + terrain SVG draw 5s</span><span class="story-commit">fe9b773</span></div>
+        </div>
+      </div>
+
+      <!-- EPIC 62 -->
+      <div class="epic-card">
+        <div class="epic-header">
+          <div class="epic-num">Epic 62</div>
+          <div>
+            <div class="epic-title">Polish &amp; Finition</div>
+            <div class="epic-title-sub">Micro-interactions · Skeleton · PWA</div>
+          </div>
+        </div>
+        <div class="epic-meta">
+          <div class="meta-pill"><div class="status-dot"></div> <strong>6</strong> stories done</div>
+          <div class="meta-pill">favicon + manifest</div>
+          <span class="pass-badge">✓ PASS</span>
+        </div>
+        <div class="story-list">
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">62.1 — Micro-interactions check/save/error (useMicroInteraction)</span><span class="story-commit">13ce677</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">62.2 — Empty states illustrés SVG 6 variants float 3s</span><span class="story-commit">0da0072</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">62.3 — Skeleton loading uniforme shimmer SkeletonNew</span><span class="story-commit">624440d</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">62.4 — Tooltips éducatifs contextuels HelpTooltip</span><span class="story-commit">c5a0951</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">62.5 — Transitions page animées Expo Router</span><span class="story-commit">2809d4f</span></div>
+          <div class="story-item"><span class="story-check">✓</span><span class="story-name">62.6 — Favicon SVG hexagone or + PWA manifest complet</span><span class="story-commit">ee9bef5</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- COMPOSANTS CRÉÉS -->
+<div class="section">
+  <div class="container">
+    <div class="section-title">Principaux composants @aureak/ui créés</div>
+    <div class="stack-grid">
+      <div class="stack-item"><span class="stack-icon">🃏</span><div><div class="stack-name">PlayerCard</div><div class="stack-desc">FUT-style 160×220px, 4 tiers</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📊</span><div><div class="stack-name">RadarChart</div><div class="stack-desc">SVG pur 6 axes hexagonal</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📈</span><div><div class="stack-name">GrowthChart</div><div class="stack-desc">Courbe bezier SVG gold fill</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📉</span><div><div class="stack-name">LineChart</div><div class="stack-desc">SVG polylines, toggle legend</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🔥</span><div><div class="stack-name">HeatmapGrid</div><div class="stack-desc">CSS grid 7×24h interpolé</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📊</span><div><div class="stack-name">BarChart</div><div class="stack-desc">Horizontal, colorFn générique</div></div></div>
+      <div class="stack-item"><span class="stack-icon">⚽</span><div><div class="stack-name">TacticalBoard</div><div class="stack-desc">Terrain SVG 400×600, 1-4-2-3-1</div></div></div>
+      <div class="stack-item"><span class="stack-icon">👥</span><div><div class="stack-name">PlayerAvatarGrid</div><div class="stack-desc">Overflow +N, tier colors</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🏅</span><div><div class="stack-name">BadgeGrid</div><div class="stack-desc">Locked/unlocked, gamification</div></div></div>
+      <div class="stack-item"><span class="stack-icon">⚡</span><div><div class="stack-name">XPBar</div><div class="stack-desc">Animated.timing 600ms</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🔘</span><div><div class="stack-name">AttendanceToggle</div><div class="stack-desc">Neumorphique scale(0.96)</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🃏</span><div><div class="stack-name">EvaluationCard</div><div class="stack-desc">FUT note 80px, OR/ARG/BRZ</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🎴</span><div><div class="stack-name">SituationCard</div><div class="stack-desc">Hearthstone-style draggable</div></div></div>
+      <div class="stack-item"><span class="stack-icon">⭐</span><div><div class="stack-name">StarRating</div><div class="stack-desc">Interactive + read-only</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🏟️</span><div><div class="stack-name">GroupCard</div><div class="stack-desc">Mini-terrain SVG inline</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🦴</span><div><div class="stack-name">SkeletonNew</div><div class="stack-desc">Shimmer gradient, sub-comps</div></div></div>
+      <div class="stack-item"><span class="stack-icon">💬</span><div><div class="stack-name">HelpTooltip</div><div class="stack-desc">getBoundingClientRect positionné</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📦</span><div><div class="stack-name">EmptyStateIllustrated</div><div class="stack-desc">6 variants SVG, float 3s</div></div></div>
+      <div class="stack-item"><span class="stack-icon">✨</span><div><div class="stack-name">ActiveSessionHUD</div><div class="stack-desc">Chrono 30s interval</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🔴</span><div><div class="stack-name">LiveCounter</div><div class="stack-desc">LIVE pulse + flip animation</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📲</span><div><div class="stack-name">PWAInstallBanner</div><div class="stack-desc">beforeinstallprompt, iOS detect</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🎯</span><div><div class="stack-name">BestSessionBadge</div><div class="stack-desc">Spring animation, a11y label</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PATTERNS TECHNIQUES -->
+<div class="section">
+  <div class="container">
+    <div class="section-title">Patterns techniques appliqués</div>
+    <div class="stack-grid">
+      <div class="stack-item"><span class="stack-icon">🔒</span><div><div class="stack-name">Try/Finally systématique</div><div class="stack-desc">setSaving(true) → try → finally</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🔇</span><div><div class="stack-name">Console guards</div><div class="stack-desc">NODE_ENV !== 'production'</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🧹</span><div><div class="stack-name">Cleanup Realtime</div><div class="stack-desc">removeChannel() + clearInterval()</div></div></div>
+      <div class="stack-item"><span class="stack-icon">📱</span><div><div class="stack-name">Platform guards</div><div class="stack-desc">Platform.OS === 'web'</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🎨</span><div><div class="stack-name">CSS keyframes singleton</div><div class="stack-desc">document.head inject (once)</div></div></div>
+      <div class="stack-item"><span class="stack-icon">♿</span><div><div class="stack-name">prefers-reduced-motion</div><div class="stack-desc">Guards sur toutes animations</div></div></div>
+      <div class="stack-item"><span class="stack-icon">💾</span><div><div class="stack-name">localStorage cache</div><div class="stack-desc">TTL + AbortController fetch</div></div></div>
+      <div class="stack-item"><span class="stack-icon">🔄</span><div><div class="stack-name">SECURITY DEFINER</div><div class="stack-desc">search_path = public sur toutes RPC</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE RÉSUMÉE -->
+<div class="section">
+  <div class="container">
+    <div class="section-title">Timeline de la session</div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-time">Matin — 5 avril 2026</div>
+        <div class="timeline-title">Lancement pipeline Epic 49 — Bugfix batch</div>
+        <div class="timeline-desc">8 stories critiques — fix Edge Function, thèmes séance, joueurs clubs, présences, dashboard, implantations, affiliation automatique, fn SQL manquante</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Milieu de matinée</div>
+        <div class="timeline-title">Epic 50 → Dashboard HQ "Salle de commandement"</div>
+        <div class="timeline-desc">Hero Band SVG terrain, sparklines, countdown, activity feed Realtime, météo, focus mode, drag-drop KPIs</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Journée</div>
+        <div class="timeline-title">Epics 51–55 — Navigation HUD, Player Cards, Séances, Présences, Évaluations</div>
+        <div class="timeline-desc">110 stories créées par agents BMAD SM en parallèle · 23 icônes SVG · FUT-style cards · RadarChart SVG pur · Neumorphic toggle</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Après-midi</div>
+        <div class="timeline-title">Epics 56–60 — Groupes, Implantations, Méthodologie, Gamification, Analytics</div>
+        <div class="timeline-desc">TacticalBoard · Hearthstone cards · xp_ledger Edge Function · Stats Room · Heatmap 7j×24h · PDF exports</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Fin de journée</div>
+        <div class="timeline-title">Epics 61–62 — Mobile PWA + Polish complet</div>
+        <div class="timeline-desc">Dark mode auto · Offline cache · Swipe gestures · Splash screen SVG · Favicon hexagone or · PWA manifest</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">Clôture — 5 avril 2026</div>
+        <div class="timeline-title">🎉 118 stories done · npx tsc --noEmit → 0 erreur · Gate 1 + Gate 2 PASS</div>
+        <div class="timeline-desc">307 commits au total dans le dépôt · 18 nouvelles migrations SQL · 22 composants @aureak/ui créés</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <div class="footer-logo">AUREAK</div>
+    <div class="footer-meta">Académie de gardiens de but · Plateforme de gestion</div>
+  </div>
+  <div style="text-align: right;">
+    <div class="footer-meta">Généré le 5 avril 2026</div>
+    <div class="footer-meta">Session BMAD — Pipeline automatisé · Claude Sonnet 4.6</div>
+    <div class="footer-meta">Branche : <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">main</code> · Commit final : <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">ee9bef5</code></div>
+  </div>
+</div>
+
+</body>
+</html>

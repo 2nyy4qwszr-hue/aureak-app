@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Dashboard Admin Aureak v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    background: #F3EFE7;
+    color: #1A1A1A;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #1A1A1A;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0 16px;
+    border-top: 3px solid #C9A84C;
+  }
+  .sidebar-logo {
+    padding: 0 20px 24px;
+    font-size: 15px;
+    font-weight: 900;
+    color: #C9A84C;
+    letter-spacing: 3px;
+  }
+  .nav-group-label {
+    padding: 8px 20px 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+  .nav-item {
+    padding: 9px 20px;
+    font-size: 13px;
+    color: #9CA3AF;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 0;
+  }
+  .nav-item.active {
+    background: rgba(201,168,76,0.12);
+    color: #C9A84C;
+    border-left: 3px solid #C9A84C;
+    padding-left: 17px;
+  }
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid #2A2A2A;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #6B7280;
+    cursor: pointer;
+  }
+
+  /* ── Main content ── */
+  .main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E0D8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    padding: 16px;
+  }
+  .card-gold {
+    border-top: 3px solid #C9A84C;
+  }
+  .card-green {
+    border-top: 3px solid #10B981;
+  }
+  .card-red {
+    border-top: 3px solid #E05252;
+  }
+
+  /* ── Zone 1 — Briefing du jour ── */
+  .zone-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+  .briefing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 16px;
+  }
+  .date-card {
+    background: #1A1A1A;
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .date-day {
+    font-size: 36px;
+    font-weight: 900;
+    color: #C9A84C;
+    line-height: 1;
+  }
+  .date-month {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .date-weekday {
+    font-size: 11px;
+    color: #6B7280;
+    margin-top: 2px;
+  }
+
+  .implant-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    flex: 1;
+  }
+  .implant-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E0D8;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .implant-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .implant-ok::before { background: #10B981; }
+  .implant-warn::before { background: #F59E0B; }
+  .implant-ko::before { background: #E05252; }
+
+  .implant-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 8px;
+  }
+  .implant-status {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: #6B7280;
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-ok { background: #10B981; }
+  .dot-warn { background: #F59E0B; }
+  .dot-ko { background: #E05252; }
+  .dot-grey { background: #D1D5DB; }
+
+  .implant-sessions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #F0EBE3;
+    font-size: 11px;
+    color: #9CA3AF;
+  }
+  .session-pill {
+    display: inline-block;
+    background: #F3EFE7;
+    border: 1px solid #E5E0D8;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6B7280;
+    margin-right: 4px;
+    margin-top: 4px;
+  }
+  .session-pill.active {
+    background: rgba(201,168,76,0.12);
+    border-color: rgba(201,168,76,0.3);
+    color: #C9A84C;
+  }
+
+  .actions-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn-primary {
+    background: #C9A84C;
+    color: #1A1A1A;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-secondary {
+    background: #FFFFFF;
+    color: #1A1A1A;
+    border: 1px solid #E5E0D8;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ── Divider ── */
+  .zone-divider {
+    height: 1px;
+    background: #E5E0D8;
+    margin: 24px 0;
+  }
+
+  /* ── Zone 2 — KPIs ── */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .filter-select {
+    background: #FFFFFF;
+    border: 1px solid #E5E0D8;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    color: #1A1A1A;
+    font-family: inherit;
+  }
+  .filter-label {
+    font-size: 11px;
+    color: #9CA3AF;
+    font-weight: 600;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .kpi-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E0D8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    padding: 14px;
+    position: relative;
+  }
+  .kpi-card.span2 { grid-column: span 2; }
+  .kpi-card.span1 { grid-column: span 1; }
+  .kpi-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+  .kpi-icon { font-size: 18px; margin-bottom: 6px; }
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 900;
+    color: #1A1A1A;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+  .kpi-value.large { font-size: 32px; }
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .kpi-sub {
+    font-size: 10px;
+    color: #D1D5DB;
+    margin-top: 2px;
+  }
+  .drag-hint {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    color: #D1D5DB;
+  }
+
+  /* ── Zone 3 — Gamification ── */
+  .perf-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+  }
+  .perf-grid-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .leaderboard-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E0D8;
+    padding: 16px;
+  }
+  .lb-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid #F5F3EF;
+    font-size: 12px;
+  }
+  .lb-rank {
+    width: 20px;
+    font-weight: 700;
+    color: #9CA3AF;
+    font-size: 11px;
+  }
+  .lb-rank.gold { color: #C9A84C; }
+  .lb-rank.silver { color: #94A3B8; }
+  .lb-rank.bronze { color: #C97C4C; }
+  .lb-name { flex: 1; color: #1A1A1A; font-weight: 600; }
+  .lb-xp { font-weight: 700; color: #C9A84C; font-size: 11px; }
+  .lb-bar-bg {
+    height: 3px;
+    background: #F0EBE3;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+  .lb-bar { height: 3px; border-radius: 999px; background: #C9A84C; }
+
+  .score-card, .week-card, .streak-card, .trophy-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E0D8;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .score-big {
+    font-size: 40px;
+    font-weight: 900;
+    color: #C9A84C;
+    line-height: 1;
+  }
+  .score-sub { font-size: 11px; color: #9CA3AF; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #C9A84C;
+  }
+  .badge-green {
+    background: rgba(16,185,129,0.1);
+    border-color: rgba(16,185,129,0.25);
+    color: #10B981;
+  }
+  .badge-red {
+    background: rgba(224,82,82,0.1);
+    border-color: rgba(224,82,82,0.25);
+    color: #E05252;
+  }
+
+  .player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C9A84C, #8B6914);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    font-weight: 700;
+  }
+
+  .annotation {
+    background: rgba(201,168,76,0.08);
+    border: 1px dashed rgba(201,168,76,0.4);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 10px;
+    color: #9B7B2A;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #1A1A1A;
+  }
+  .page-sub {
+    font-size: 12px;
+    color: #9CA3AF;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">AUREAK</div>
+
+  <div class="nav-group-label">Dashboard</div>
+  <div class="nav-item active">🏠 Tableau de bord</div>
+
+  <div class="nav-group-label" style="margin-top:8px">Activité</div>
+  <div class="nav-item">📅 Séances</div>
+  <div class="nav-item">✅ Présences</div>
+  <div class="nav-item">⭐ Évaluations</div>
+
+  <div class="nav-group-label" style="margin-top:8px">Académie</div>
+  <div class="nav-item">📖 Entraînements</div>
+  <div class="nav-item">🏷️ Thèmes</div>
+
+  <div class="nav-group-label" style="margin-top:8px">Structure</div>
+  <div class="nav-item">👥 Joueurs</div>
+  <div class="nav-item">👨‍🏫 Coachs</div>
+  <div class="nav-item">🏆 Groupes</div>
+
+  <div class="nav-group-label" style="margin-top:8px">Évènements</div>
+  <div class="nav-item">🎯 Tous les évènements</div>
+
+  <div class="nav-group-label" style="margin-top:8px">Performance</div>
+  <div class="nav-item">📊 Stats globales</div>
+
+  <div class="sidebar-footer">⚙️ Admin</div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Tableau de bord</div>
+      <div class="page-sub">Vue d'ensemble · Académie Aureak</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary">📅 Nouvelle séance</button>
+      <button class="btn-primary">✅ Valider présences</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- ZONE 1 — BRIEFING DU JOUR                  -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="zone-label">Briefing du jour</div>
+
+  <div class="briefing-header">
+
+    <!-- Date card -->
+    <div class="date-card">
+      <div class="date-weekday">DIMANCHE</div>
+      <div class="date-day">06</div>
+      <div class="date-month">Avril 2026</div>
+    </div>
+
+    <!-- Implantations status grid -->
+    <div class="implant-grid">
+
+      <!-- Implantation OK -->
+      <div class="implant-card implant-ok">
+        <div class="implant-name">🏟️ Liège Centre</div>
+        <div class="implant-status">
+          <div class="status-row"><span class="status-dot dot-ok"></span>Coach : Dupont J. ✓</div>
+          <div class="status-row"><span class="status-dot dot-ok"></span>12 joueurs attendus</div>
+          <div class="status-row"><span class="status-dot dot-ok"></span>Terrain disponible</div>
+          <div class="status-row"><span class="status-dot dot-grey"></span>0 absence signalée</div>
+        </div>
+        <div class="implant-sessions">
+          <span class="session-pill active">14h00 · U12</span>
+          <span class="session-pill">16h00 · U15</span>
+        </div>
+      </div>
+
+      <!-- Implantation WARNING (absence coach) -->
+      <div class="implant-card implant-warn">
+        <div class="implant-name">🏟️ Namur Sud</div>
+        <div class="implant-status">
+          <div class="status-row"><span class="status-dot dot-warn"></span>⚠️ Coach : absent</div>
+          <div class="status-row"><span class="status-dot dot-ok"></span>8 joueurs attendus</div>
+          <div class="status-row"><span class="status-dot dot-ok"></span>Terrain disponible</div>
+          <div class="status-row"><span class="status-dot dot-ko"></span>2 absences parents</div>
+        </div>
+        <div class="implant-sessions">
+          <span class="session-pill active">15h00 · U10</span>
+        </div>
+      </div>
+
+      <!-- Implantation KO (problème terrain) -->
+      <div class="implant-card implant-ko">
+        <div class="implant-name">🏟️ Charleroi Nord</div>
+        <div class="implant-status">
+          <div class="status-row"><span class="status-dot dot-ok"></span>Coach : Martin A. ✓</div>
+          <div class="status-row"><span class="status-dot dot-ok"></span>10 joueurs attendus</div>
+          <div class="status-row"><span class="status-dot dot-ko"></span>🚨 Terrain indisponible</div>
+          <div class="status-row"><span class="status-dot dot-warn"></span>1 blessé signalé</div>
+        </div>
+        <div class="implant-sessions">
+          <span class="session-pill active">14h30 · U14</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="annotation">
+    💡 Mockup — Les données (coachs, absences, terrain) viennent des séances planifiées + signalements parents + fiches blessures.
+    Filtre implantation disponible pour ne voir qu'une seule implantation.
+  </div>
+
+  <div class="zone-divider"></div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- ZONE 2 — KPIs ACADÉMIE                     -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div class="zone-label" style="margin-bottom:0">KPIs académie</div>
+    <div class="filter-row" style="margin-bottom:0">
+      <span class="filter-label">Implantation</span>
+      <select class="filter-select"><option>Toutes</option><option>Liège Centre</option><option>Namur Sud</option></select>
+      <span class="filter-label">Période</span>
+      <select class="filter-select"><option>4 dernières semaines</option><option>Semaine en cours</option></select>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card span2">
+      <div class="kpi-accent" style="background:#10B981"></div>
+      <div class="drag-hint">⠿</div>
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value large">247</div>
+      <div class="kpi-label">Joueurs actifs</div>
+      <div class="kpi-sub">inscrits à l'académie</div>
+    </div>
+    <div class="kpi-card span1">
+      <div class="kpi-accent" style="background:#C9A84C"></div>
+      <div class="drag-hint">⠿</div>
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-value">84%</div>
+      <div class="kpi-label">Présence</div>
+      <div class="kpi-sub">moyenne globale</div>
+    </div>
+    <div class="kpi-card span1">
+      <div class="kpi-accent" style="background:#C9A84C"></div>
+      <div class="drag-hint">⠿</div>
+      <div class="kpi-icon">🎯</div>
+      <div class="kpi-value">71%</div>
+      <div class="kpi-label">Maîtrise</div>
+      <div class="kpi-sub">moyenne globale</div>
+    </div>
+    <div class="kpi-card span2">
+      <div class="kpi-accent" style="background:#C9A84C"></div>
+      <div class="drag-hint">⠿</div>
+      <div class="kpi-icon">📅</div>
+      <div class="kpi-value large">18 / 24</div>
+      <div class="kpi-label">Séances clôturées</div>
+      <div class="kpi-sub">sur la période</div>
+    </div>
+    <div class="kpi-card span1">
+      <div class="kpi-accent" style="background:#6366F1"></div>
+      <div class="drag-hint">⠿</div>
+      <div class="kpi-icon">👨‍🏫</div>
+      <div class="kpi-value">14</div>
+      <div class="kpi-label">Coachs</div>
+      <div class="kpi-sub">actifs</div>
+    </div>
+    <div class="kpi-card span1">
+      <div class="kpi-accent" style="background:#3B82F6"></div>
+      <div class="drag-hint">⠿</div>
+      <div class="kpi-icon">🏆</div>
+      <div class="kpi-value">8</div>
+      <div class="kpi-label">Groupes</div>
+      <div class="kpi-sub">actifs</div>
+    </div>
+    <div class="kpi-card span1" style="background:linear-gradient(135deg,#1a3a2a,#2d5a3d)">
+      <div class="kpi-icon">🏟️</div>
+      <div class="kpi-value" style="color:#fff">3</div>
+      <div class="kpi-label" style="color:rgba(255,255,255,0.6)">Implantations</div>
+      <div class="kpi-sub" style="color:rgba(255,255,255,0.4)">sites actifs</div>
+    </div>
+    <div class="kpi-card span1">
+      <div class="kpi-accent" style="background:#10B981"></div>
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-value" style="color:#10B981">✓</div>
+      <div class="kpi-label">Anomalies</div>
+      <div class="kpi-sub">aucune alerte</div>
+    </div>
+  </div>
+
+  <div class="zone-divider"></div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- ZONE 3 — PERFORMANCE & GAMIFICATION        -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="zone-label">Performance & Gamification</div>
+
+  <div class="perf-grid">
+
+    <!-- Leaderboard (large) -->
+    <div class="leaderboard-card card-gold">
+      <div class="lb-title">🏅 Leaderboard XP — Saison 2025-2026</div>
+      <div class="lb-row">
+        <div class="lb-rank gold">🥇</div>
+        <div class="lb-name">Thomas D.</div>
+        <div style="flex:1"><div class="lb-bar-bg"><div class="lb-bar" style="width:100%"></div></div></div>
+        <div class="lb-xp">2 840 XP</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank silver">🥈</div>
+        <div class="lb-name">Lucas M.</div>
+        <div style="flex:1"><div class="lb-bar-bg"><div class="lb-bar" style="width:85%;background:#94A3B8"></div></div></div>
+        <div class="lb-xp" style="color:#94A3B8">2 410 XP</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank bronze">🥉</div>
+        <div class="lb-name">Maxime V.</div>
+        <div style="flex:1"><div class="lb-bar-bg"><div class="lb-bar" style="width:72%;background:#C97C4C"></div></div></div>
+        <div class="lb-xp" style="color:#C97C4C">2 050 XP</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank">4</div>
+        <div class="lb-name">Noah B.</div>
+        <div style="flex:1"><div class="lb-bar-bg"><div class="lb-bar" style="width:60%"></div></div></div>
+        <div class="lb-xp">1 700 XP</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank">5</div>
+        <div class="lb-name">Alexis P.</div>
+        <div style="flex:1"><div class="lb-bar-bg"><div class="lb-bar" style="width:52%"></div></div></div>
+        <div class="lb-xp">1 480 XP</div>
+      </div>
+    </div>
+
+    <!-- Score Académie -->
+    <div class="score-card">
+      <div class="card-title">Score académie</div>
+      <div class="score-big">87</div>
+      <div class="score-sub">/ 100 points</div>
+      <div style="margin-top:4px">
+        <span class="badge badge-green">↑ +3 pts</span>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#9CA3AF">
+        Présence · Maîtrise · Régularité
+      </div>
+      <div style="height:6px;background:#F0EBE3;border-radius:999px;margin-top:8px">
+        <div style="height:6px;width:87%;background:#C9A84C;border-radius:999px"></div>
+      </div>
+    </div>
+
+    <!-- Joueur de la semaine -->
+    <div class="week-card">
+      <div class="card-title">⭐ Joueur de la semaine</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <div class="player-avatar">TH</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#1A1A1A">Thomas D.</div>
+          <div style="font-size:11px;color:#9CA3AF">U14 · Liège Centre</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px">
+        <span class="badge">100% présence</span>
+        <span class="badge badge-green">+180 XP</span>
+      </div>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:8px">
+        "Excellent travail en situation défensive cette semaine"
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 2e ligne gamif -->
+  <div class="perf-grid-bottom">
+
+    <!-- Forme du moment -->
+    <div class="streak-card">
+      <div class="card-title">🔥 Forme du moment</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+          <span>Thomas D.</span>
+          <div style="display:flex;gap:3px">
+            <span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span>
+            <span style="font-size:10px;color:#C9A84C;font-weight:700;margin-left:4px">5🔥</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+          <span>Lucas M.</span>
+          <div style="display:flex;gap:3px">
+            <span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span><span style="color:#D1D5DB">●</span><span style="color:#D1D5DB">●</span>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:700;margin-left:4px">3🔥</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+          <span>Maxime V.</span>
+          <div style="display:flex;gap:3px">
+            <span style="color:#C9A84C">●</span><span style="color:#C9A84C">●</span><span style="color:#D1D5DB">●</span><span style="color:#D1D5DB">●</span><span style="color:#D1D5DB">●</span>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:700;margin-left:4px">2🔥</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trophée de saison -->
+    <div class="trophy-card">
+      <div class="card-title">🏆 Trophée de saison</div>
+      <div style="text-align:center;padding:12px 0">
+        <div style="font-size:40px;margin-bottom:6px">🏆</div>
+        <div style="font-size:13px;font-weight:700;color:#C9A84C">Saison 2024-2025</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:4px">Score final : 87 pts</div>
+        <div style="margin-top:8px"><span class="badge">Académie Excellence</span></div>
+      </div>
+    </div>
+
+    <!-- Prochaine séance / countdown -->
+    <div class="card" style="display:flex;flex-direction:column;gap:8px">
+      <div class="card-title">⏱️ Prochaine séance</div>
+      <div style="font-size:11px;color:#9CA3AF">Aujourd'hui · 14h00</div>
+      <div style="font-size:15px;font-weight:700;color:#1A1A1A">U12 · Liège Centre</div>
+      <div style="font-size:11px;color:#9CA3AF">Coach Dupont · 12 joueurs</div>
+      <div style="font-size:28px;font-weight:900;color:#C9A84C;margin-top:4px">01:24:38</div>
+      <div style="font-size:10px;color:#D1D5DB">avant le début</div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:16px;padding:12px;background:rgba(201,168,76,0.06);border:1px dashed rgba(201,168,76,0.3);border-radius:10px;font-size:11px;color:#9B7B2A;text-align:center">
+    💡 <strong>Mockup v2</strong> — Hero Band supprimé · Briefing du jour en premier (implantations avec statut coach / absences / terrain) · Date card intégrée · Actions rapides en haut · Activity feed latéral supprimé
+  </div>
+
+</div>
+</body>
+</html>
