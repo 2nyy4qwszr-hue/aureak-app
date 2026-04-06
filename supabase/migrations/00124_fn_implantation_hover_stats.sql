@@ -36,7 +36,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
       ), 0
     ) AS mastery_rate_pct,
     COUNT(DISTINCT s.id) FILTER (
-      WHERE s.date BETWEEN p_month_start AND p_month_end
+      WHERE s.scheduled_at BETWEEN p_month_start AND p_month_end
     ) AS session_count_this_month,
     (
       SELECT COUNT(*) FROM groups g2
@@ -49,6 +49,6 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   LEFT JOIN attendances a  ON a.session_id = s.id
   LEFT JOIN evaluations e  ON e.session_id = s.id
   WHERE g.implantation_id = p_implantation_id
-    AND s.date BETWEEN p_month_start AND p_month_end
+    AND s.scheduled_at BETWEEN p_month_start AND p_month_end
     AND s.deleted_at IS NULL;
 $$;
