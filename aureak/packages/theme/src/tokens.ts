@@ -99,6 +99,7 @@ export const colors = {
   border: {
     light   : '#E5E7EB',         // bordures inputs/tables fond clair
     gold    : 'rgba(193,172,92,0.25)',  // bordure dorée subtile (badges, profils)
+    goldBg  : 'rgba(193,172,92,0.10)',  // fond doré très subtil (banners, highlights)
     goldSolid: 'rgba(193,172,92,0.5)',  // bordure dorée plus visible
     dark    : '#424242',          // = zinc, bordures sur fond sombre
     divider : '#E8E4DC',         // séparateur sur fond beige

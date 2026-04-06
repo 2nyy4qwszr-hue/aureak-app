@@ -60,9 +60,9 @@ const styles = StyleSheet.create({
     color   : colors.text.muted,
   },
   banner: {
-    backgroundColor: 'rgba(193,172,92,0.10)',
+    backgroundColor: colors.border.goldBg,
     borderWidth    : 1,
-    borderColor    : 'rgba(193,172,92,0.25)',
+    borderColor    : colors.border.gold,
     borderRadius   : radius.card,
     padding        : space.md,
     marginBottom   : space.xl,
