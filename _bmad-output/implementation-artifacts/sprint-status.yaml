@@ -324,6 +324,26 @@ development_status:
   63-2-evenements-unifies-vue-filtree: done
   epic-63-retrospective: optional
 
+  # Epic 47 : Design/UX batch
+  epic-47: in-progress
+  47-1-design-sidebar-icones-navigation: ready-for-dev
+  47-2-design-implantation-visuel-photo-groupes-card: ready-for-dev
+  47-3-ux-hub-seances-unifie: ready-for-dev
+  47-4-feature-liaisons-joueurs-clubs-affiliation-saison: ready-for-dev
+  47-5-bug-sidebar-lien-groupes-404: ready-for-dev
+  47-6-design-avatars-tokens-gold: ready-for-dev
+  47-7-design-gradients-tokens-dashboard: ready-for-dev
+  47-8-ux-evenements-empty-state-cta: ready-for-dev
+  47-9-ux-developpement-breadcrumb-retour: ready-for-dev
+  epic-47-retrospective: optional
+
+  # Epic 49 : Bugfix + UX + Design batch avril 2026 #2
+  epic-49: in-progress
+  49-9-bug-attendance-table-manquante-remote: done
+  49-10-bug-profiles-id-milestones: ready-for-dev
+  49-11-bug-nav-badges-session-attendees: ready-for-dev
+  epic-49-retrospective: optional
+
   # Epic 50 : Dashboard Club HQ — Refonte v2
   epic-50: in-progress
   50-11-dashboard-v2-refonte-layout-trois-zones: done
