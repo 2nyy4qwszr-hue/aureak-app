@@ -5,8 +5,8 @@ import type { AcademyMilestone } from '@aureak/types'
 
 export type { AcademyMilestone }
 
-/** getUnceledbratedMilestones — milestones atteints mais pas encore célébrés */
-export async function getUnceledbratedMilestones(): Promise<{ data: AcademyMilestone[]; error: unknown }> {
+/** getUncelebratedMilestones — milestones atteints mais pas encore célébrés */
+export async function getUncelebratedMilestones(): Promise<{ data: AcademyMilestone[]; error: unknown }> {
   try {
     const { data, error } = await supabase
       .from('academy_milestones')
@@ -17,7 +17,7 @@ export async function getUnceledbratedMilestones(): Promise<{ data: AcademyMiles
       .limit(10)
 
     if (error) {
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] getUnceledbratedMilestones error:', error)
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] getUncelebratedMilestones error:', error)
       return { data: [], error }
     }
 
@@ -35,7 +35,7 @@ export async function getUnceledbratedMilestones(): Promise<{ data: AcademyMiles
 
     return { data: milestones, error: null }
   } catch (err) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] getUnceledbratedMilestones exception:', err)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] getUncelebratedMilestones exception:', err)
     return { data: [], error: err }
   }
 }

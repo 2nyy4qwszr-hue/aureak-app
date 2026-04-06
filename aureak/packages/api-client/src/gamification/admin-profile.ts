@@ -11,8 +11,8 @@ export async function getAdminProfile(
   try {
     const { data: profile, error: profileErr } = await supabase
       .from('profiles')
-      .select('id, tenant_id, display_name, avatar_url, created_at, role')
-      .eq('id', adminId)
+      .select('user_id, tenant_id, display_name, avatar_url, created_at')
+      .eq('user_id', adminId)
       .single()
 
     if (profileErr || !profile) {
@@ -33,7 +33,7 @@ export async function getAdminProfile(
     const totalXp = (xpRows ?? []).reduce((acc, r) => acc + (r.xp_delta ?? 0), 0)
 
     const result: AdminProfile = {
-      id         : profile.id,
+      id         : profile.user_id,
       tenantId   : profile.tenant_id,
       displayName: profile.display_name ?? 'Administrateur',
       avatarUrl  : profile.avatar_url ?? null,
@@ -68,8 +68,8 @@ export async function getAdminActivityStats(
     // Joueurs gérés (présences validées par l'admin — approximation : séances de l'académie)
     const { count: playersManaged, error: playerErr } = await supabase
       .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('role', 'child')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('user_role', 'child')
 
     if (playerErr) {
       if ((process.env.NODE_ENV as string) !== 'production') console.error('[admin-profile] playersManaged error:', playerErr)

@@ -93,7 +93,7 @@ export async function getAchievementDetails(
 ): Promise<{ data: AchievementToastData | null; error: unknown }> {
   try {
     const [playerResult, badgeResult] = await Promise.all([
-      supabase.from('profiles').select('display_name').eq('id', childId).single(),
+      supabase.from('profiles').select('display_name').eq('user_id', childId).single(),
       supabase.from('badge_definitions').select('label, icon_url').eq('id', badgeId).single(),
     ])
 

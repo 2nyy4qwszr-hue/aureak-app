@@ -370,7 +370,7 @@ export type { AcademyScoreResult } from './gamification/academy-score'
 
 // Story 59-7 — Milestones académie
 export {
-  getUnceledbratedMilestones, checkAcademyMilestones, markMilestoneCelebrated,
+  getUncelebratedMilestones, checkAcademyMilestones, markMilestoneCelebrated,
 } from './gamification/milestones'
 export type { AcademyMilestone } from './gamification/milestones'
 
