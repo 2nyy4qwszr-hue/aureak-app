@@ -2324,6 +2324,12 @@ export default function DashboardPage() {
     setToastMessage('Anomalie résolue ✓')
   }
 
+  // ── KPI order changed check (Story 50-10) — doit être avant tout early return ──
+  const isOrderDefault = useMemo(
+    () => JSON.stringify(kpiOrder) === JSON.stringify(KPI_DEFAULT_ORDER),
+    [kpiOrder]
+  )
+
   if (loading) return <DashboardSkeleton />
 
   // ── Derived: filter stats to selected implantation ──
@@ -2368,12 +2374,6 @@ export default function DashboardPage() {
   const pendingSessions = visibleStats.reduce(
     (acc, s) => acc + Math.max(0, (s.sessions_total ?? 0) - (s.sessions_closed ?? 0)),
     0
-  )
-
-  // ── KPI order changed check (Story 50-10) ──
-  const isOrderDefault = useMemo(
-    () => JSON.stringify(kpiOrder) === JSON.stringify(KPI_DEFAULT_ORDER),
-    [kpiOrder]
   )
 
   // ── Focus Mode container style (Story 50-9) ──
