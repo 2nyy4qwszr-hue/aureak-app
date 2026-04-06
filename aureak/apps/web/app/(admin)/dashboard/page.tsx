@@ -291,7 +291,9 @@ function BriefingDuJour({
           marginTop : 8,
           fontFamily: 'Geist, sans-serif',
         }}>
-          {todaySessionsCount} séance{todaySessionsCount !== 1 ? 's' : ''} aujourd'hui
+          {todaySessionsCount === 0
+            ? 'Aucune séance planifiée'
+            : `${todaySessionsCount} séance${todaySessionsCount !== 1 ? 's' : ''} planifiée${todaySessionsCount !== 1 ? 's' : ''}`}
         </div>
 
         {/* Bouton Voir planning */}

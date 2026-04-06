@@ -300,9 +300,17 @@ export default function EvenementsPage() {
           <AureakText variant="body" style={{ fontWeight: '700', color: cfg.color, marginBottom: 4 }}>
             {cfg.label} — Création bientôt disponible
           </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 12 }}>
             La gestion des évènements de type « {cfg.label} » sera disponible dans une prochaine mise à jour.
           </AureakText>
+          <Pressable
+            style={s.resetFilterBtn}
+            onPress={() => setFilter(null)}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+              Voir tous les évènements
+            </AureakText>
+          </Pressable>
         </View>
       )}
 
@@ -398,6 +406,14 @@ const s = StyleSheet.create({
     borderRadius : radius.card,
     padding      : space.md,
     marginBottom : space.sm,
+  },
+
+  resetFilterBtn: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    borderRadius     : radius.xs,
+    alignSelf        : 'flex-start',
   },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },

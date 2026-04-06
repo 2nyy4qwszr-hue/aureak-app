@@ -1,6 +1,7 @@
 // Story 63.3 — Page Marketing avec KPIs placeholder
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 
@@ -16,8 +17,14 @@ const KPI_ITEMS: KpiItem[] = [
 ]
 
 export default function MarketingPage() {
+  const router = useRouter()
+
   return (
     <View style={styles.container}>
+      <Pressable style={styles.backBtn} onPress={() => router.push('/(admin)/developpement' as never)}>
+        <AureakText style={styles.backText}>← Développement</AureakText>
+      </Pressable>
+
       <View style={styles.header}>
         <AureakText variant="h1" style={styles.title}>Marketing</AureakText>
         <AureakText variant="body" style={styles.sub}>Campagnes, inscriptions et portée de vos actions de communication</AureakText>
@@ -93,4 +100,17 @@ const styles = StyleSheet.create({
     color    : colors.text.muted,
     textAlign: 'center',
   },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    marginBottom : space.md,
+    alignSelf    : 'flex-start',
+    padding      : 0,
+  },
+  backText: {
+    color     : colors.text.muted,
+    fontSize  : 13,
+    fontWeight: '600',
+    fontFamily: 'Geist, sans-serif',
+  } as never,
 })

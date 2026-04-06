@@ -8,7 +8,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { ChildDetailInline, EmptyDetailState } from './_ChildDetail'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
 import { AureakText, Button, EmptyState, EmptyStateIllustrated, PlayerCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
@@ -97,15 +96,15 @@ function getInitials(displayName: string, nom?: string | null, prenom?: string |
 }
 
 function avatarBgColor(id: string): string {
-  // Palette conforme design system AUREAK — tokens uniquement (or, vert, rouge, ardoise, beige, lilas, teal)
+  // Palette conforme design system AUREAK — noir + or, aucun violet ni bleu
   const COLORS = [
-    colors.accent.gold,         // or AUREAK  #C1AC5C
-    colors.status.success,      // émeraude   #10B981
-    colors.accent.red,          // rouge CTA  #E05252
-    colors.status.warning,      // ambre      #F59E0B
-    colors.text.muted,          // zinc       #71717A
-    colors.status.injured,      // lilas      #CE93D8
-    colors.status.info,         // bleu ciel  #60A5FA
+    colors.accent.gold,         // or AUREAK   #C1AC5C
+    colors.status.success,      // émeraude    #10B981
+    colors.accent.red,          // rouge CTA   #E05252
+    colors.status.warning,      // ambre       #F59E0B
+    colors.text.muted,          // zinc        #71717A
+    colors.dark.surface,        // ardoise     #2A2827
+    colors.dark.elevated,       // dark élévé  #332F2D
   ]
   let hash = 0
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
@@ -951,20 +950,6 @@ export default function JoueursPage() {
   const router = useRouter()
   const params = useLocalSearchParams<{ search?: string; status?: string; season?: string; stage?: string; birthYear?: string; selected?: string }>()
 
-  // Story 52-12 — split-screen master-detail desktop
-  const [screenWidth,     setScreenWidth]     = useState<number>(
-    typeof window !== 'undefined' ? window.innerWidth : 0
-  )
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(params.selected ?? null)
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const handleResize = () => setScreenWidth(window.innerWidth)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  const isSplitScreen = Platform.OS === 'web' && screenWidth >= 1024
 
   const [viewMode,           setViewMode]           = useState<ViewMode>(loadViewMode)
   const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
@@ -1284,10 +1269,9 @@ export default function JoueursPage() {
     : s.gridFallback
 
   return (
-    <View style={isSplitScreen ? ssp.splitContainer : { flex: 1 }}>
+    <View style={{ flex: 1 }}>
 
-    {/* ── Panneau gauche (ou layout normal) — contient la liste ── */}
-    <View style={isSplitScreen ? ssp.leftPanel : { flex: 1 }}>
+    <View style={{ flex: 1 }}>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
 
       {/* ── En-tête ── */}
@@ -1523,12 +1507,7 @@ export default function JoueursPage() {
               key={item.id}
               joueur={item}
               onPress={() => {
-                if (isSplitScreen) {
-                  setSelectedChildId(item.id)
-                  router.replace(`/children?selected=${item.id}` as never)
-                } else {
-                  router.push(`/children/${item.id}` as never)
-                }
+                router.push(`/children/${item.id}` as never)
               }}
             />
           ))}
@@ -1550,11 +1529,8 @@ export default function JoueursPage() {
               )}
               <PremiumJoueurCard
                 item={item}
-                isSelected={isSplitScreen && selectedChildId === item.id}
-                onPress={isSplitScreen ? () => {
-                  setSelectedChildId(item.id)
-                  router.replace(`/children?selected=${item.id}` as never)
-                } : undefined}
+                isSelected={false}
+                onPress={undefined}
               />
             </View>
           ))}
@@ -1667,39 +1643,9 @@ export default function JoueursPage() {
     )}
     </View>
 
-    {/* ── Panneau droit — fiche joueur sélectionné (split-screen uniquement) ── */}
-    {isSplitScreen && (
-      <View style={ssp.rightPanel}>
-        {selectedChildId
-          ? <ChildDetailInline childId={selectedChildId} />
-          : <EmptyDetailState />
-        }
-      </View>
-    )}
-
     </View>
   )
 }
-
-const ssp = StyleSheet.create({
-  splitContainer: {
-    flexDirection: 'row',
-    height       : '100vh' as never,
-    overflow     : 'hidden' as never,
-  },
-  leftPanel: {
-    width          : 340,
-    borderRightWidth: 1,
-    borderColor    : colors.border.divider,
-    overflowY      : 'scroll' as never,
-    backgroundColor: colors.light.primary,
-  },
-  rightPanel: {
-    flex           : 1,
-    overflowY      : 'scroll' as never,
-    backgroundColor: colors.light.primary,
-  },
-})
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
