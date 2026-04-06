@@ -1,6 +1,7 @@
 // Story 63.3 — Page Partenariats avec KPIs placeholder
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
+import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 
 interface KpiItem {
@@ -9,30 +10,30 @@ interface KpiItem {
 }
 
 const KPI_ITEMS: KpiItem[] = [
-  { label: 'Partenariats actifs',         value: '—' },
-  { label: 'Clubs partenaires',           value: '—' },
-  { label: 'Valeur totale partenariats',  value: '—' },
+  { label: 'Partenariats actifs',        value: '—' },
+  { label: 'Clubs partenaires',          value: '—' },
+  { label: 'Valeur totale partenariats', value: '—' },
 ]
 
 export default function PartenariatsPage() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Partenariats</Text>
-        <Text style={styles.sub}>Clubs partenaires, conventions et valeur des collaborations actives</Text>
+        <AureakText variant="h1" style={styles.title}>Partenariats</AureakText>
+        <AureakText variant="body" style={styles.sub}>Clubs partenaires, conventions et valeur des collaborations actives</AureakText>
       </View>
 
       <View style={styles.banner}>
-        <Text style={styles.bannerText}>
+        <AureakText variant="body" style={styles.bannerText}>
           🚀 Cette section est en cours de développement. Les fonctionnalités complètes arrivent prochainement.
-        </Text>
+        </AureakText>
       </View>
 
       <View style={styles.kpiRow}>
         {KPI_ITEMS.map(k => (
           <View key={k.label} style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>{k.value}</Text>
-            <Text style={styles.kpiLabel}>{k.label}</Text>
+            <AureakText variant="h1" style={styles.kpiValue}>{k.value}</AureakText>
+            <AureakText variant="caption" style={styles.kpiLabel}>{k.label}</AureakText>
           </View>
         ))}
       </View>
@@ -50,14 +51,11 @@ const styles = StyleSheet.create({
     marginBottom: space.xl,
   },
   title: {
-    fontSize    : 24,
-    fontWeight  : '900',
     color       : colors.text.dark,
     marginBottom: space.xs,
   },
   sub: {
-    fontSize: 14,
-    color   : colors.text.muted,
+    color: colors.text.muted,
   },
   banner: {
     backgroundColor: colors.border.goldBg,
@@ -68,7 +66,6 @@ const styles = StyleSheet.create({
     marginBottom   : space.xl,
   },
   bannerText: {
-    fontSize  : 13,
     color     : colors.accent.gold,
     lineHeight: 20,
   },
@@ -89,13 +86,10 @@ const styles = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   kpiValue: {
-    fontSize    : 32,
-    fontWeight  : '900',
     color       : colors.text.subtle,
     marginBottom: space.xs,
   },
   kpiLabel: {
-    fontSize : 12,
     color    : colors.text.muted,
     textAlign: 'center',
   },

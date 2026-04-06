@@ -308,7 +308,7 @@ export default function EvenementsPage() {
 
       {/* Error */}
       {error ? (
-        <View style={{ backgroundColor: colors.accent.red + '1f', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
+        <View style={{ backgroundColor: colors.accent.red + '1f', borderRadius: radius.xs, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
           <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
         </View>
       ) : loading ? (
@@ -369,7 +369,7 @@ const s = StyleSheet.create({
     backgroundColor  : colors.accent.gold,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs + 2,
-    borderRadius     : 7,
+    borderRadius     : radius.xs,
   },
 
   pillsScrollView: { marginHorizontal: -space.xl },
@@ -390,7 +390,7 @@ const s = StyleSheet.create({
   filterPillText      : { fontSize: 12, color: colors.text.muted, fontWeight: '400' },
   filterPillTextActive: { color: colors.text.dark, fontWeight: '700' },
 
-  pill    : { borderRadius: 20, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 2 },
+  pill    : { borderRadius: 999, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 2 },
   pillText: { fontSize: 10, fontWeight: '700' },
 
   stubBanner: {
@@ -404,7 +404,7 @@ const s = StyleSheet.create({
 
   card: {
     backgroundColor: colors.light.surface,
-    borderRadius   : 10,
+    borderRadius   : radius.card,
     borderWidth    : 1,
     borderColor    : colors.border.light,
     overflow       : 'hidden',
@@ -417,7 +417,7 @@ const s = StyleSheet.create({
 
   chip: {
     backgroundColor  : colors.light.muted,
-    borderRadius     : 12,
+    borderRadius     : radius.xs,
     paddingHorizontal: 8,
     paddingVertical  : 3,
     alignSelf        : 'flex-start',
@@ -427,7 +427,7 @@ const s = StyleSheet.create({
 
   emptyState: {
     backgroundColor: colors.light.surface,
-    borderRadius   : 10,
+    borderRadius   : radius.card,
     padding        : space.xxl,
     alignItems     : 'center',
     borderWidth    : 1,
@@ -456,7 +456,7 @@ const s = StyleSheet.create({
     alignItems      : 'center',
     gap             : space.sm,
     padding         : space.sm,
-    borderRadius    : 8,
+    borderRadius    : radius.xs,
     borderWidth     : 1,
     borderColor     : colors.border.light,
     marginBottom    : space.xs,
@@ -466,7 +466,7 @@ const s = StyleSheet.create({
   btnSecondary: {
     flex             : 1,
     paddingVertical  : space.sm,
-    borderRadius     : 7,
+    borderRadius     : radius.xs,
     borderWidth      : 1,
     borderColor      : colors.border.light,
     alignItems       : 'center',
@@ -474,7 +474,7 @@ const s = StyleSheet.create({
   btnPrimary: {
     flex             : 1,
     paddingVertical  : space.sm,
-    borderRadius     : 7,
+    borderRadius     : radius.xs,
     backgroundColor  : colors.accent.gold,
     alignItems       : 'center',
   },
