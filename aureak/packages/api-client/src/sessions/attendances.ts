@@ -23,6 +23,8 @@ export type SessionAttendanceSummary = {
   excusedCount    : number
   totalAttendance : number
   completionStatus: 'complete' | 'partial' | 'not_started'
+  methodName      : string | null   // Story 65-5 — méthode pédagogique
+  coachIds        : string[]        // Story 65-5 — coaches assignés
 }
 
 export async function listSessionsWithAttendance(params?: {
@@ -36,7 +38,9 @@ export async function listSessionsWithAttendance(params?: {
     .select(`
       id, scheduled_at, duration_minutes, location, status, group_id, implantation_id,
       groups!sessions_group_id_fkey ( name ),
-      implantations!sessions_implantation_id_fkey ( name )
+      implantations!sessions_implantation_id_fkey ( name ),
+      methodology_sessions!sessions_methodology_session_id_fkey ( method ),
+      session_coaches ( coach_id )
     `)
     .is('deleted_at', null)
     .order('scheduled_at', { ascending: false })
@@ -68,8 +72,10 @@ export async function listSessionsWithAttendance(params?: {
     const s = raw as {
       id: string; scheduled_at: string; duration_minutes: number; location: string | null
       status: string; group_id: string; implantation_id: string
-      groups: { name: string } | { name: string }[] | null
-      implantations: { name: string } | { name: string }[] | null
+      groups              : { name: string } | { name: string }[] | null
+      implantations       : { name: string } | { name: string }[] | null
+      methodology_sessions: { method: string } | { method: string }[] | null
+      session_coaches     : { coach_id: string }[] | null
     }
     const counts  = countMap[s.id] ?? {}
     const present = counts['present']  ?? 0
@@ -105,6 +111,13 @@ export async function listSessionsWithAttendance(params?: {
       excusedCount    : excused,
       totalAttendance : total,
       completionStatus,
+      methodName: (() => {
+        const ms = s.methodology_sessions
+        if (!ms) return null
+        if (Array.isArray(ms)) return ms[0]?.method ?? null
+        return (ms as { method: string }).method ?? null
+      })(),
+      coachIds: ((s.session_coaches ?? []) as { coach_id: string }[]).map(c => c.coach_id),
     }
   })
 }

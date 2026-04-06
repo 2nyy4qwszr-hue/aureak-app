@@ -9,6 +9,7 @@ import {
   listAllGroups,
   listEvaluationsBySession,
   listActiveAbsenceAlerts,
+  batchResolveCoachNames,
 } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows, methodologyMethodColors } from '@aureak/theme'
@@ -234,12 +235,13 @@ type Props = {
 export function TableauSeances({ scope, temporalFilter }: Props) {
   const router = useRouter()
 
-  const [sessions,   setSessions]   = useState<SessionAttendanceSummary[]>([])
-  const [groupNames, setGroupNames] = useState<Map<string, string>>(new Map())
-  const [evalCounts, setEvalCounts] = useState<Map<string, number>>(new Map())
-  const [anomalies,  setAnomalies]  = useState<Set<string>>(new Set())
-  const [loading,    setLoading]    = useState(false)
-  const [page,       setPage]       = useState(0)
+  const [sessions,    setSessions]    = useState<SessionAttendanceSummary[]>([])
+  const [groupNames,  setGroupNames]  = useState<Map<string, string>>(new Map())
+  const [coachNames,  setCoachNames]  = useState<Map<string, string>>(new Map())
+  const [evalCounts,  setEvalCounts]  = useState<Map<string, number>>(new Map())
+  const [anomalies,   setAnomalies]   = useState<Set<string>>(new Set())
+  const [loading,     setLoading]     = useState(false)
+  const [page,        setPage]        = useState(0)
 
   useEffect(() => {
     setLoading(true)
@@ -252,6 +254,11 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
 
         const sessData = await listSessionsWithAttendance(params)
         setSessions(sessData)
+
+        // Résoudre noms de coaches en batch (aucun N+1)
+        const allCoachIds = [...new Set(sessData.flatMap(s => s.coachIds))]
+        const cNames = await batchResolveCoachNames(allCoachIds)
+        setCoachNames(cNames)
 
         // Résoudre noms de groupes (listAllGroups retourne GroupWithMeta[] directement)
         const allGroups = await listAllGroups()
@@ -376,9 +383,9 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
               {formatDate(s.scheduledAt)}
             </AureakText>
 
-            {/* MÉTHODE — non disponible via listSessionsWithAttendance */}
+            {/* MÉTHODE */}
             <View style={styles.colCell}>
-              <MethodeBadge method={null} />
+              <MethodeBadge method={s.methodName} />
             </View>
 
             {/* GROUPE */}
@@ -386,9 +393,9 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
               {s.groupName ?? '—'}
             </AureakText>
 
-            {/* COACH — non disponible via listSessionsWithAttendance */}
+            {/* COACH */}
             <View style={styles.colCell}>
-              <CoachAvatars coachIds={[]} coachNames={new Map()} />
+              <CoachAvatars coachIds={s.coachIds} coachNames={coachNames} />
             </View>
 
             {/* PRÉSENCE */}

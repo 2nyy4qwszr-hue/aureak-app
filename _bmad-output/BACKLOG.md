@@ -98,11 +98,17 @@
 - [ ] 65-1 : activites-seances-refonte-hub-tableau (P1 — route /activites, tableau séances avec pseudo-filtres temporels, stat cards, colonnes Statut/Date/Méthode/Groupe/Coach/Présence/Badges/K/C/Anomalie)
 - [ ] 65-2 : activites-presences-vue-transversale (P1 — onglet Présences, vue groupes×séances en Global, heatmap joueurs×séances en Groupe, section À surveiller — dépend 65-1)
 - [ ] 65-3 : activites-evaluations-vue-transversale (P2 — onglet Évaluations, 3 sous-filtres Badges/Connaissances/Compétences, grille badges joueurs, placeholders futurs modules — dépend 65-1)
+- [ ] 65-4 : ux-filtresscope-pill-groupe-disabled (P1 quick-win — pill Groupe grisé + non-cliquable tant qu'aucune implantation sélectionnée, hint visible sous le pill, suppression message erreur tardif — dépend 65-1)
+- [ ] 65-5 : tableau-seances-methode-coach-enrichi (P1 bug — colonnes MÉTHODE et COACH toujours vides, enrichir listSessionsWithAttendance avec JOIN methodology_sessions+session_coaches, brancher MethodeBadge et CoachAvatars — dépend 65-1)
+- [ ] 65-6 : presences-vue-joueur-inline (P1 UX fix — supprime router.push auto sur scope Joueur, remplace par card résumé joueur + timeline 10 séances + stats 30j/totale + lien opt-in fiche complète — dépend 65-2)
 
 **Dépendances** :
 - 65-1 indépendant (nouvelle route, coexiste avec /seances existant)
 - 65-2 dépend de 65-1 (partage FiltresContextuels + layout onglets)
 - 65-3 dépend de 65-1 (même dépendances)
+- 65-4 dépend de 65-1 (modifie FiltresScope.tsx créé en 65-1)
+- 65-5 dépend de 65-1 (modifie TableauSeances.tsx + attendances.ts) — aucune migration DB
+- 65-6 dépend de 65-2 (modifie presences/page.tsx) — aucune migration DB
 - Aucune migration DB — UI uniquement, données existantes
 
 ---

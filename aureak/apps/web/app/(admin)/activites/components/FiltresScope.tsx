@@ -86,17 +86,20 @@ export function FiltresScope({ value, onChange }: Props) {
     ? (joueurs.find(j => j.id === value.childId)?.displayName ?? 'Joueur')
     : 'Joueur ▾'
 
-  const isActive = (s: ScopeState['scope']) => value.scope === s
+  const isActive        = (s: ScopeState['scope']) => value.scope === s
+  const groupPillEnabled = !!(value.implantationId)
 
-  function pillStyle(active: boolean): ViewStyle {
+  function pillStyle(active: boolean, disabled = false): ViewStyle {
     return {
       paddingHorizontal: 14,
       paddingVertical  : 6,
       borderRadius     : radius.badge,
-      backgroundColor  : active ? colors.accent.gold      : colors.light.muted,
+      backgroundColor  : active ? colors.accent.gold : colors.light.muted,
       borderWidth      : 1,
-      borderColor      : active ? colors.accent.gold      : colors.border.light,
-    }
+      borderColor      : active ? colors.accent.gold : colors.border.light,
+      opacity          : disabled ? 0.45 : 1,
+      cursor           : disabled ? 'not-allowed' : 'pointer',
+    } as ViewStyle
   }
 
   function pillTextStyle(active: boolean): TextStyle {
@@ -155,8 +158,9 @@ export function FiltresScope({ value, onChange }: Props) {
       {/* Pill Groupe */}
       <View style={styles.dropdownWrapper}>
         <Pressable
-          style={pillStyle(isActive('groupe'))}
+          style={pillStyle(isActive('groupe'), !groupPillEnabled)}
           onPress={() => {
+            if (!groupPillEnabled) return
             setShowGroupDropdown(v => !v)
             setShowImplDropdown(false)
             setShowJoueurDropdown(false)
@@ -166,12 +170,13 @@ export function FiltresScope({ value, onChange }: Props) {
             {isActive('groupe') ? groupLabel : 'Groupe ▾'}
           </AureakText>
         </Pressable>
-        {showGroupDropdown && (
+        {!groupPillEnabled && (
+          <AureakText style={styles.pillHint}>Choisir une implantation d&apos;abord</AureakText>
+        )}
+        {showGroupDropdown && groupPillEnabled && (
           <View style={styles.dropdown}>
             {groups.length === 0 && (
-              <AureakText style={styles.dropdownEmpty}>
-                {value.implantationId ? 'Aucun groupe' : 'Sélectionner une implantation d\'abord'}
-              </AureakText>
+              <AureakText style={styles.dropdownEmpty}>Aucun groupe</AureakText>
             )}
             <ScrollView style={{ maxHeight: 200 }}>
               {groups.map(g => (
@@ -273,6 +278,13 @@ const styles = StyleSheet.create({
     fontSize  : 13,
     fontFamily: 'Montserrat',
     color     : colors.text.dark,
+  },
+  pillHint: {
+    fontSize  : 10,
+    fontFamily: 'Montserrat',
+    color     : colors.text.muted,
+    marginTop : 2,
+    textAlign : 'center',
   },
   dropdownEmpty: {
     padding  : space.md,
