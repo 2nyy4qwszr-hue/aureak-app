@@ -24,6 +24,13 @@ const EVENT_TYPE_CONFIG: Record<EventType, { label: string; color: string; bg: s
   seminaire  : { label: 'Séminaire',           color: colors.text.subtle,   bg: colors.text.subtle    + '1f' },
 }
 
+const STUB_TYPE_ICONS: Partial<Record<EventType, string>> = {
+  tournoi    : '🏆',
+  fun_day    : '🎉',
+  detect_day : '🔍',
+  seminaire  : '📚',
+}
+
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
   en_cours : colors.entity.stage,
@@ -149,9 +156,16 @@ function NewEventModal({ visible, onClose, onSelectType }: {
                 onPress={() => setSelected(type)}
               >
                 <View style={[s.typeColorDot, { backgroundColor: cfg.color }]} />
-                <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: isSelected ? '700' : '400' }}>
-                  {cfg.label}
-                </AureakText>
+                <View style={{ flex: 1 }}>
+                  <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: isSelected ? '700' : '400' }}>
+                    {cfg.label}
+                  </AureakText>
+                  {type !== 'stage' && (
+                    <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>
+                      Bientôt disponible
+                    </AureakText>
+                  )}
+                </View>
               </Pressable>
             )
           })}
@@ -300,17 +314,34 @@ export default function EvenementsPage() {
           <AureakText variant="body" style={{ fontWeight: '700', color: cfg.color, marginBottom: 4 }}>
             {cfg.label} — Création bientôt disponible
           </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 12 }}>
-            La gestion des évènements de type « {cfg.label} » sera disponible dans une prochaine mise à jour.
+          <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: 4 }}>
+            La création de « {cfg.label} » n&apos;est pas encore disponible. En attendant, vous pouvez créer un Stage.
           </AureakText>
-          <Pressable
-            style={s.resetFilterBtn}
-            onPress={() => setFilter(null)}
-          >
-            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-              Voir tous les évènements
-            </AureakText>
-          </Pressable>
+          <View style={s.stubActionsRow}>
+            <Pressable style={s.btnStubSecondary} onPress={() => setFilter(null)}>
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+                Voir tous les évènements
+              </AureakText>
+            </Pressable>
+            <Pressable style={s.resetFilterBtn} onPress={() => router.push('/stages/new' as never)}>
+              <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
+                Créer un Stage
+              </AureakText>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {/* Empty state dédié sous le banner quand isStubType && liste vide */}
+      {isStubType && cfg && events.length === 0 && !loading && (
+        <View style={s.emptyStateStub}>
+          <Text style={s.emptyIcon}>{STUB_TYPE_ICONS[activeType!] ?? '📋'}</Text>
+          <AureakText variant="body" style={{ fontWeight: '700', color: colors.text.dark, marginBottom: 4 }}>
+            Aucun évènement « {cfg.label} »
+          </AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.muted, textAlign: 'center' }}>
+            Aucun évènement de ce type n&apos;a encore été créé.
+          </AureakText>
         </View>
       )}
 
@@ -414,6 +445,30 @@ const s = StyleSheet.create({
     paddingVertical  : space.xs + 2,
     borderRadius     : radius.xs,
     alignSelf        : 'flex-start',
+  },
+
+  stubActionsRow: {
+    flexDirection: 'row',
+    gap          : space.sm,
+    marginTop    : space.md,
+    flexWrap     : 'wrap',
+  },
+  btnStubSecondary: {
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs + 2,
+    borderRadius     : radius.xs,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : 'transparent',
+  },
+  emptyStateStub: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.xl,
+    alignItems     : 'center',
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    marginTop      : space.sm,
   },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
