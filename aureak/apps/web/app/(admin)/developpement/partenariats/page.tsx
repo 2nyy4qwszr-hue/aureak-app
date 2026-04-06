@@ -21,7 +21,10 @@ export default function PartenariatsPage() {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.backBtn} onPress={() => router.push('/(admin)/developpement' as never)}>
+      <Pressable
+        style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
+        onPress={() => router.back()}
+      >
         <AureakText style={styles.backText}>← Développement</AureakText>
       </Pressable>
 
@@ -101,16 +104,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   backBtn: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    marginBottom : space.md,
-    alignSelf    : 'flex-start',
-    padding      : 0,
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    alignSelf        : 'flex-start',
+    marginBottom     : space.md,
+    paddingHorizontal: space.sm,
+    paddingVertical  : space.xs,
+    borderRadius     : radius.xs,
+    backgroundColor  : colors.light.hover,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  backBtnPressed: {
+    opacity: 0.6,
   },
   backText: {
     color     : colors.text.muted,
     fontSize  : 13,
     fontWeight: '600',
-    fontFamily: 'Geist, sans-serif',
   } as never,
 })
