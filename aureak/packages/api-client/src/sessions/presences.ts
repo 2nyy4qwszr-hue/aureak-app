@@ -128,7 +128,6 @@ export async function getSessionAttendanceDetail(
   const corrections = (correctionsRes.data ?? []) as CorrectionRow[]
 
   // Resolve display names
-  const childIds = attendees.map(a => a.child_id)
   const regularIds = attendees.filter(a => !a.is_guest).map(a => a.child_id)
   const guestIds   = attendees.filter(a =>  a.is_guest).map(a => a.child_id)
 

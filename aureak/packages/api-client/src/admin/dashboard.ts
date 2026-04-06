@@ -290,11 +290,11 @@ export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
 
   if (unvalidatedRes.error) {
     if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getNavBadgeCounts unvalidated error:', unvalidatedRes.error)
+      console.error('[dashboard] getNavBadgeCounts unvalidated error:', unvalidatedRes.error.message ?? unvalidatedRes.error)
   }
   if (upcoming24hRes.error) {
     if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getNavBadgeCounts upcoming24h error:', upcoming24hRes.error)
+      console.error('[dashboard] getNavBadgeCounts upcoming24h error:', upcoming24hRes.error.message ?? upcoming24hRes.error)
   }
 
   // Dédupliquer : une session peut apparaître plusieurs fois si plusieurs attendees NULL
