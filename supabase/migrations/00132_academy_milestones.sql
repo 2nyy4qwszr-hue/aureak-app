@@ -26,9 +26,9 @@ CREATE POLICY "admin_milestones_all" ON academy_milestones
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
+      WHERE profiles.user_id = auth.uid()
         AND profiles.tenant_id = academy_milestones.tenant_id
-        AND profiles.role = 'admin'
+        AND profiles.user_role = 'admin'
     )
   );
 
@@ -38,9 +38,9 @@ CREATE POLICY "staff_milestones_read" ON academy_milestones
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
+      WHERE profiles.user_id = auth.uid()
         AND profiles.tenant_id = academy_milestones.tenant_id
-        AND profiles.role IN ('coach', 'admin')
+        AND profiles.user_role IN ('coach', 'admin')
     )
   );
 
