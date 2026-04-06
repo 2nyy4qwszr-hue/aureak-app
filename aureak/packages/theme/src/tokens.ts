@@ -83,6 +83,13 @@ export const colors = {
     club  : '#60A5FA',  // bleu — badges club
     coach : '#A78BFA',  // violet — badges coach
   },
+  // Story 47-7 — Couleurs terrain football (gradients implantation / pitch)
+  terrain: {
+    darkForest : '#1a472a',  // vert forêt sombre — base gradient terrain
+    midGreen   : '#2d6a4f',  // vert moyen terrain
+    lightGreen : '#40916c',  // vert clair accent terrain
+    deepForest : '#1B4332',  // vert forêt profond — variante header
+  },
   // Story 58-8 — Couleurs des phases de séance pédagogique
   phase: {
     activation : '#D4EDDA',  // vert clair — phase de mise en train
@@ -105,6 +112,13 @@ export const colors = {
     divider : '#E8E4DC',         // séparateur sur fond beige
   },
 } as const
+
+// =============================================================================
+// Gradients pré-construits (terrain football — story 47-7)
+// =============================================================================
+
+export const TERRAIN_GRADIENT_DARK   = `linear-gradient(135deg, ${colors.terrain.darkForest} 0%, ${colors.terrain.midGreen} 60%, ${colors.terrain.darkForest} 100%)`
+export const TERRAIN_GRADIENT_HEADER = `linear-gradient(135deg, ${colors.terrain.deepForest} 0%, ${colors.terrain.midGreen} 50%, ${colors.terrain.lightGreen} 100%)`
 
 // =============================================================================
 // Polices

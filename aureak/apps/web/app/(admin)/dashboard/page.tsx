@@ -17,13 +17,9 @@ import {
 } from '@aureak/api-client'
 import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
 import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
-import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS, TERRAIN_GRADIENT_DARK, TERRAIN_GRADIENT_HEADER } from '@aureak/theme'
 import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { useLiveSessionCounts } from '@aureak/api-client'
-
-// ── Constantes locales terrain (pas de token pour ces valeurs spécifiques) ─────
-
-const TERRAIN_GRADIENT = 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 60%, #1a472a 100%)'
 
 // ── Design tokens (local helpers) ─────────────────────────────────────────────
 
@@ -637,7 +633,7 @@ function ImplantationCard({ stat, groups }: ImplantationCardProps) {
         className="implant-card-header"
         style={{
           height        : 80,
-          background    : 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #40916C 100%)',
+          background    : TERRAIN_GRADIENT_HEADER,
           position      : 'relative',
           display       : 'flex',
           alignItems    : 'flex-end',
@@ -846,7 +842,7 @@ function CountdownTile({
     <div
       className="aureak-card"
       style={{
-        background  : 'linear-gradient(135deg, #2A2827 0%, #1A1A1A 100%)',
+        background  : `linear-gradient(135deg, ${colors.dark.hover} 0%, ${colors.dark.surface} 100%)`,
         borderTop   : `3px solid ${colors.accent.gold}`,
         borderRadius: radius.card,
         padding     : 20,
@@ -2754,7 +2750,7 @@ export default function DashboardPage() {
             size="small"
             icon="🏟️"
             cardStyle={{
-              background: TERRAIN_GRADIENT,
+              background: TERRAIN_GRADIENT_DARK,
               border    : 'none',
               boxShadow : shadows.md,
             } as React.CSSProperties}
