@@ -76,9 +76,6 @@ const HoverablePressable = Pressable as React.ComponentType<HoverablePressablePr
 const ITEM_SHORTCUTS: Record<string, string> = {
   '/dashboard'                 : 'G D',
   '/activites'                 : 'G I',   // actIvités hub unifié
-  '/seances'                   : 'G S',
-  '/presences'                 : 'G P',
-  '/evaluations'               : 'G E',
   '/children'                  : 'G J',
   '/clubs'                     : 'G C',
   '/methodologie/seances'      : 'G A',   // Académie
@@ -109,20 +106,17 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Dashboard',
     items: [
-      { label: 'Tableau de bord', href: '/dashboard', Icon: HomeIcon },
+      { label: 'Dashboard', href: '/dashboard', Icon: HomeIcon },
     ],
   },
   {
     label: 'Activité',
     items: [
-      { label: 'Activités',   href: '/activites',   Icon: CalendarDaysIcon },
-      { label: 'Séances',     href: '/seances',     Icon: CalendarIcon },
-      { label: 'Présences',   href: '/presences',   Icon: CheckSquareIcon },
-      { label: 'Évaluations', href: '/evaluations', Icon: StarIcon },
+      { label: 'Activités', href: '/activites', Icon: CalendarDaysIcon },
     ],
   },
   {
-    label: 'Académie',
+    label: 'Méthode',
     items: [
       { label: 'Entraînements', href: '/methodologie/seances',    Icon: BookOpenIcon },
       { label: 'Thèmes',        href: '/methodologie/themes',     Icon: TagIcon },
@@ -130,7 +124,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Structure',
+    label: 'Académie',
     items: [
       { label: 'Joueurs',       href: '/children',      Icon: UsersIcon },
       { label: 'Coachs',        href: '/coaches',       Icon: UserCheckIcon },
@@ -575,17 +569,7 @@ function AdminLayoutInner() {
           <GlobalSearch />
         </YStack>
 
-        {/* ── Notification badge — masqué en collapsed (opacity animée) ── */}
-        <YStack
-          style={{
-            opacity   : labelsVisible ? 1 : 0,
-            transition: 'opacity 0.1s ease',
-            overflow  : 'hidden',
-            maxHeight : labelsVisible ? 80 : 0,
-          } as never}
-        >
-          <NotificationBadge />
-        </YStack>
+        {/* NotificationBadge retiré du sidebar (Story 66.1 — AC5) */}
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
@@ -636,8 +620,11 @@ function AdminLayoutInner() {
                         {({ pressed }) => (
                           <YStack
                             paddingVertical={8}
-                            paddingLeft={12}
-                            paddingRight={12}
+                            paddingLeft={sidebarCollapsed ? 0 : 12}
+                            paddingRight={sidebarCollapsed ? 0 : 12}
+                            width={sidebarCollapsed ? 52 : undefined}
+                            alignItems={sidebarCollapsed ? 'center' : undefined}
+                            justifyContent={sidebarCollapsed ? 'center' : undefined}
                             borderRadius={radius.xs}
                             borderLeftWidth={3}
                             borderLeftColor={isActive ? colors.accent.gold : 'transparent' as never}
@@ -654,10 +641,10 @@ function AdminLayoutInner() {
                           >
                             {sidebarCollapsed ? (
                               <YStack alignItems="center" justifyContent="center">
-                                <YStack style={{ position: 'relative' } as never}>
+                                <YStack style={{ position: 'relative', width: 20, height: 20 } as never}>
                                   <Icon
                                     color={isActive ? colors.accent.gold : colors.text.secondary}
-                                    size={18}
+                                    size={20}
                                     strokeWidth={1.5}
                                   />
                                   {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
