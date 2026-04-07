@@ -1866,6 +1866,65 @@ function AcademyScoreTile({
   )
 }
 
+// ── Active Quests Tile (Story 70-7) ──────────────────────────────────────────
+
+type ActiveQuest = {
+  id       : string
+  label    : string
+  progress : number
+  current ?: number
+  total   ?: number
+}
+
+const QUEST_PLACEHOLDERS: ActiveQuest[] = [
+  { id: 'q1', label: 'Nettoyage Surface (U15)', progress: 50 },
+  { id: 'q2', label: 'Réflexes Gants Dorés',   progress: 37, current: 14, total: 38 },
+]
+
+function ActiveQuestsTile({ quests }: { quests: ActiveQuest[] }) {
+  const router = useRouter()
+  const list = quests.length > 0 ? quests.slice(0, 3) : QUEST_PLACEHOLDERS
+
+  return (
+    <div style={{
+      backgroundColor: colors.light.surface,
+      borderRadius   : radius.card,
+      border         : `1px solid ${colors.border.light}`,
+      boxShadow      : shadows.sm,
+      padding        : '16px 16px',
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
+        Quêtes actives
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {list.map(q => (
+          <div key={q.id}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: colors.text.dark, fontFamily: 'Geist, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, paddingRight: 8 }}>
+                {q.label}
+              </span>
+              {q.current !== undefined && q.total !== undefined && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, fontFamily: 'Geist Mono, monospace', flexShrink: 0 }}>
+                  {q.current}/{q.total}
+                </span>
+              )}
+            </div>
+            <div style={{ height: 4, backgroundColor: colors.border.divider, borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min(q.progress, 100)}%`, backgroundColor: colors.accent.gold, borderRadius: 2, transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => router.push('/quetes' as never)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: colors.accent.gold, padding: '8px 0 0 0', fontFamily: 'Montserrat, sans-serif', textAlign: 'left' }}
+      >
+        Voir toutes les quêtes →
+      </button>
+    </div>
+  )
+}
+
 // ── Leaderboard Tile (Story 59-3) ─────────────────────────────────────────────
 
 function LeaderboardTile({
@@ -3044,6 +3103,9 @@ export default function DashboardPage() {
             })
           )}
         </div>
+
+        {/* ── Quêtes actives ── */}
+        <ActiveQuestsTile quests={[]} />
 
         {/* ── Score Académie ── */}
         <AcademyScoreTile
