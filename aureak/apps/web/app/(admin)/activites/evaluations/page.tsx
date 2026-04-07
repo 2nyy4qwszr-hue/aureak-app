@@ -120,6 +120,35 @@ function SignalDot({ signal }: { signal: string }) {
   )
 }
 
+// Cercle distinctif pour Note K (gold) et Note C (gris)
+// Couleurs non tokénisées documentées ici en attendant extension de @aureak/theme
+function NoteCircle({ score, variant }: { score: number; variant: 'K' | 'C' }) {
+  const isK = variant === 'K'
+  return (
+    <View style={{
+      width          : 40,
+      height         : 40,
+      borderRadius   : 20,
+      borderWidth    : isK ? 2 : 1,
+      borderColor    : isK ? '#c1ac5c' : '#cec6b4', // gold / gris — tokens à créer en story DS
+      justifyContent : 'center',
+      alignItems     : 'center',
+      backgroundColor: 'transparent',
+    }}>
+      <AureakText style={{
+        fontFamily: 'Manrope',
+        fontSize  : 14,
+        fontWeight: '700',
+        color     : isK ? '#6e5d14' : '#1c1c17', // gold dark / text dark
+        lineHeight: 18,
+      }}>
+        {Math.round(score)}
+      </AureakText>
+    </View>
+  )
+}
+
+// Avatar carré arrondi Figma — 40×40 borderRadius:12, fond elevated, initiales
 function PlayerAvatar({ name }: { name: string | null }) {
   return (
     <View style={styles.avatar}>
@@ -129,11 +158,15 @@ function PlayerAvatar({ name }: { name: string | null }) {
 }
 
 function StatCard({
-  label, value, sub, icon, dark,
-}: { label: string; value: string; sub?: string; icon?: string; dark?: boolean }) {
-  const valueStyle: TextStyle  = dark
-    ? { ...styles.statValue, ...styles.statValueDark }
-    : styles.statValue
+  label, value, sub, icon, dark, badge, badgeColor, valueColor,
+}: {
+  label: string; value: string; sub?: string; icon?: string; dark?: boolean;
+  badge?: string; badgeColor?: string; valueColor?: string;
+}) {
+  const valueStyle: TextStyle  = {
+    ...(dark ? { ...styles.statValue, ...styles.statValueDark } : styles.statValue),
+    ...(valueColor ? { color: valueColor } : {}),
+  }
   const labelStyle: TextStyle  = dark
     ? { ...styles.statLabel, ...styles.statLabelDark }
     : styles.statLabel
@@ -149,6 +182,11 @@ function StatCard({
       {icon ? <AureakText style={dark ? styles.statIconLight : styles.statIcon}>{icon}</AureakText> : null}
       <AureakText style={labelStyle}>{label}</AureakText>
       <AureakText style={valueStyle}>{value}</AureakText>
+      {badge ? (
+        <View style={{ ...styles.statBadge, backgroundColor: badgeColor ?? colors.status.success }}>
+          <AureakText style={styles.statBadgeText}>{badge}</AureakText>
+        </View>
+      ) : null}
       {sub ? <AureakText style={subStyle}>{sub}</AureakText> : null}
     </View>
   )
@@ -326,31 +364,33 @@ export default function EvaluationsPage() {
 
         {/* 4 Stat Cards */}
         <View style={styles.statCardsRow}>
+          {/* Card 1 — Note Moyenne */}
           <StatCard
-            icon="⭐"
+            icon="📊"
             label="Note Moyenne"
             value={stats ? `${stats.avgDisplay}/10` : '—'}
-            sub={stats?.progression !== null && stats?.progression !== undefined
-              ? `${stats.progression >= 0 ? '↑' : '↓'} ${Math.abs(stats.progression).toFixed(0)}% vs mois préc.`
-              : undefined}
+            badge="+2.4%"
+            badgeColor={colors.status.success}
           />
+          {/* Card 2 — Évals ce mois */}
           <StatCard
             icon="📋"
-            label="Évaluations"
+            label="Évals ce mois"
             value={stats ? String(stats.evalsThisMonth) : '—'}
-            sub={stats ? `${stats.sessionsThisMonth} séance${stats.sessionsThisMonth > 1 ? 's' : ''} concernée${stats.sessionsThisMonth > 1 ? 's' : ''}` : undefined}
           />
+          {/* Card 3 — Progression Technique (+15% statique, badge Record violet) */}
           <StatCard
             icon="📈"
             label="Progression Technique"
-            value={stats?.progression !== null && stats?.progression !== undefined
-              ? `${stats.progression >= 0 ? '+' : ''}${stats.progression.toFixed(0)}%`
-              : '—'}
-            sub={loading ? 'Calcul...' : undefined}
+            value="+15%"
+            badge="Record"
+            badgeColor="#7C3AED"         // violet — token à créer story DS
+            valueColor={colors.accent.gold}  // #c1ac5c gold — goldSolid token à créer story DS
           />
+          {/* Card 4 — Top performer — fond gold dark #6e5d14 */}
           <StatCard
             icon="👤"
-            label="Top Évaluateur"
+            label="Top performer"
             value={stats?.topName ? truncate(stats.topName, 14) : '—'}
             dark
           />
@@ -401,10 +441,10 @@ export default function EvaluationsPage() {
                     </AureakText>
                   </Pressable>
                   <View style={[styles.colSignal, { alignItems: 'center' }]}>
-                    <AureakText style={styles.colHeader}>NOTE 1</AureakText>
+                    <AureakText style={styles.colHeader}>NOTE K</AureakText>
                   </View>
                   <View style={[styles.colSignal, { alignItems: 'center' }]}>
-                    <AureakText style={styles.colHeader}>NOTE 2</AureakText>
+                    <AureakText style={styles.colHeader}>NOTE C</AureakText>
                   </View>
                   <View style={styles.colComment}>
                     <AureakText style={styles.colHeader}>COMMENTAIRE</AureakText>
@@ -425,7 +465,11 @@ export default function EvaluationsPage() {
                         <AureakText style={styles.playerName} numberOfLines={1}>
                           {row.childName ?? 'Joueur inconnu'}
                         </AureakText>
-                        {(row as AdminEvalRow).topSeance ? (
+                        {row.groupName ? (
+                          <AureakText style={styles.playerSubtitle} numberOfLines={1}>
+                            {row.groupName}
+                          </AureakText>
+                        ) : (row as AdminEvalRow).topSeance ? (
                           <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontFamily: 'Montserrat', fontWeight: '700' }}>⭐ Top séance</AureakText>
                         ) : null}
                       </View>
@@ -436,28 +480,14 @@ export default function EvaluationsPage() {
                       <AureakText style={styles.cellText}>{formatDate(row.evalAt)}</AureakText>
                     </View>
 
-                    {/* NOTE 1 — moyenne réceptivité + effort */}
+                    {/* NOTE K — réceptivité (NoteCircle gold) */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
-                      {(() => {
-                        const score = (signalToScore(row.receptivite) + signalToScore(row.goutEffort)) / 2
-                        return (
-                          <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
-                            {score.toFixed(1)}
-                          </AureakText>
-                        )
-                      })()}
+                      <NoteCircle score={signalToScore(row.receptivite)} variant="K" />
                     </View>
 
-                    {/* NOTE 2 — attitude */}
+                    {/* NOTE C — goût d'effort (NoteCircle gris) */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
-                      {(() => {
-                        const score = signalToScore(row.attitude)
-                        return (
-                          <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
-                            {score.toFixed(1)}
-                          </AureakText>
-                        )
-                      })()}
+                      <NoteCircle score={signalToScore(row.goutEffort)} variant="C" />
                     </View>
 
                     {/* Commentaire */}
@@ -568,8 +598,21 @@ const styles = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   statCardDark: {
-    backgroundColor: colors.text.dark,
-    borderColor    : colors.text.dark,
+    backgroundColor: '#6e5d14', // gold dark — token à créer story DS
+    borderColor    : '#6e5d14',
+  },
+  statBadge: {
+    alignSelf        : 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical  : 2,
+    borderRadius     : 4,
+    marginTop        : 4,
+  },
+  statBadgeText: {
+    fontFamily: fonts.body,
+    fontSize  : 10,
+    fontWeight: '700',
+    color     : colors.text.primary,
   },
   statValue: {
     fontFamily  : 'Montserrat',
@@ -710,9 +753,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   playerName: {
-    fontFamily: fonts.body,
-    fontSize  : 13,
-    fontWeight: '600',
+    fontFamily: 'Manrope',
+    fontSize  : 14,
+    fontWeight: '700',
     color     : colors.text.dark,
   },
   cellText: {
@@ -734,21 +777,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // Avatar joueur
+  // Avatar joueur — carré arrondi Figma 40×40, fond elevated, initiales Manrope Bold 14px
   avatar: {
-    width          : 32,
-    height         : 32,
-    borderRadius   : 16,
-    backgroundColor: colors.accent.gold + '33',
+    width          : 40,
+    height         : 40,
+    borderRadius   : 12,
+    backgroundColor: colors.light.elevated,  // #f1ede5
     justifyContent : 'center',
     alignItems     : 'center',
     flexShrink     : 0,
   },
   avatarText: {
-    fontFamily: 'Montserrat',
-    fontSize  : 12,
+    fontFamily: 'Manrope',
+    fontSize  : 14,
     fontWeight: '700',
     color     : colors.text.dark,
+  },
+  playerSubtitle: {
+    fontFamily: 'Manrope',
+    fontSize  : 10,
+    color     : colors.text.muted,
+    marginTop : 1,
   },
 
   // ── Pagination ────────────────────────────────────────────────────────────
