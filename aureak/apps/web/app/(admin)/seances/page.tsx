@@ -17,6 +17,7 @@ import {
 } from '@aureak/api-client'
 import { buildPresenceReportHTML, printReport } from './_utils/generatePresenceReport'
 import type { PresenceReportData } from './_utils/generatePresenceReport'
+import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
@@ -272,6 +273,7 @@ const HUB_TABS = [
 export default function SeancesPage() {
   const router   = useRouter()
   const pathname = usePathname()
+  const { user } = useAuthStore()
 
   // ── Period ──────────────────────────────────────────────────────────────────
   const [period,  setPeriod]  = useState<PeriodType>('month')
@@ -298,6 +300,8 @@ export default function SeancesPage() {
   const [presetNameError,  setPresetNameError]  = useState<string | null>(null)
   // Story 54-8 — Export PDF hebdomadaire
   const [exportLoading,    setExportLoading]    = useState(false)
+  // Story 69-6 — Filtre "Mes séances"
+  const [mySessionsOnly,   setMySessionsOnly]   = useState(false)
 
   // ── Bootstrap ────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -387,10 +391,13 @@ export default function SeancesPage() {
   const groupMap   = useMemo(() => new Map(allGroups.map(g => [g.id, g.name])), [allGroups])
 
   // ── Client-side status filter ─────────────────────────────────────────────
-  const filteredSessions = useMemo(
-    () => filterStatus ? sessions.filter(s => s.status === filterStatus) : sessions,
-    [sessions, filterStatus]
-  )
+  const filteredSessions = useMemo(() => {
+    let result = filterStatus ? sessions.filter(s => s.status === filterStatus) : sessions
+    if (mySessionsOnly && user?.id) {
+      result = result.filter(s => Array.isArray(s.coaches) && s.coaches.some((c: { coachId: string }) => c.coachId === user.id))
+    }
+    return result
+  }, [sessions, filterStatus, mySessionsOnly, user])
 
   // Story 53-9 — Détection préset actif
   const allPresets = useMemo(() => [...DEFAULT_PRESETS, ...presets], [presets])
@@ -672,6 +679,24 @@ export default function SeancesPage() {
             </View>
           </View>
         </Modal>
+      </View>
+
+      {/* ── Story 69-6 — Toggle "Mes séances" ── */}
+      <View style={{ flexDirection: 'row', gap: space.xs, marginBottom: space.sm }}>
+        {[false, true].map(val => {
+          const isActive = mySessionsOnly === val
+          return (
+            <Pressable
+              key={String(val)}
+              onPress={() => setMySessionsOnly(val)}
+              style={[st.chip, isActive && st.chipActive]}
+            >
+              <AureakText style={[st.chipText, isActive && st.chipTextActive] as never}>
+                {val ? 'Mes séances' : 'Toutes les séances'}
+              </AureakText>
+            </Pressable>
+          )
+        })}
       </View>
 
       {/* ── Filters ── */}
