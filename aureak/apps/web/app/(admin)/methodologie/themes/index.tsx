@@ -183,9 +183,19 @@ export default function ThemesPage() {
       )}
 
       {!loading && !errorMsg && themes.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.muted }}>
-          Aucun thème configuré.
-        </AureakText>
+        <View>
+          <AureakText variant="body" style={{ color: colors.text.muted }}>
+            Aucun thème configuré.
+          </AureakText>
+          <Pressable
+            onPress={() => router.push('/methodologie/themes/new' as never)}
+            style={{ backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8, marginTop: space.sm, alignSelf: 'flex-start' }}
+          >
+            <AureakText style={{ color: colors.text.dark, fontWeight: '700', fontSize: 13 } as never}>
+              → Créer un thème
+            </AureakText>
+          </Pressable>
+        </View>
       )}
 
       {!loading && themes.length > 0 && visibleThemes.length === 0 && (

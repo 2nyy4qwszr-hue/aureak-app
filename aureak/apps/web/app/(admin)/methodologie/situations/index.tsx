@@ -161,10 +161,25 @@ export default function SituationsPage() {
       )}
 
       {/* État vide */}
-      {!loading && filtered.length === 0 && (
+      {!loading && filtered.length === 0 && selectedMethod && (
         <AureakText variant="body" style={styles.emptyText}>
-          {selectedMethod ? `Aucune situation pour la méthode "${selectedMethod}".` : 'Aucune situation configurée.'}
+          {`Aucune situation pour la méthode "${selectedMethod}".`}
         </AureakText>
+      )}
+      {!loading && situations.length === 0 && (
+        <View>
+          <AureakText variant="body" style={styles.emptyText}>
+            Aucune situation configurée.
+          </AureakText>
+          <Pressable
+            onPress={() => router.push('/methodologie/situations/new' as never)}
+            style={{ backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8, marginTop: space.sm, alignSelf: 'flex-start' }}
+          >
+            <AureakText style={{ color: colors.text.dark, fontWeight: '700', fontSize: 13 } as never}>
+              → Créer la première situation
+            </AureakText>
+          </Pressable>
+        </View>
       )}
     </ScrollView>
   )
