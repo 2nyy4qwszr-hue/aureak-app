@@ -61,66 +61,39 @@ function DashboardSkeleton() {
       <style>{`
         @keyframes a-pulse{0%,100%{opacity:.12}50%{opacity:.25}}
         .a-skel{background:${colors.border.divider};animation:a-pulse 1.8s ease-in-out infinite}
-        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-        .bento-large  { grid-column: span 2; }
-        .bento-medium { grid-column: span 1; }
-        .bento-small  { grid-column: span 1; }
-        @media (max-width: 1024px) {
-          .bento-grid { grid-template-columns: repeat(2, 1fr); }
-          .bento-large { grid-column: span 1; }
-        }
-        @media (max-width: 768px) {
-          .bento-grid { grid-template-columns: 1fr; }
-          .bento-large { grid-column: span 1; }
-        }
       `}</style>
 
-      {/* ── Zone 1 skeleton — Briefing du jour ── */}
-      <SkeletonBlock h={14} w="120px" r={4} />
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24, marginTop: 12, alignItems: 'stretch' }}>
-        {/* Date card skeleton */}
-        <SkeletonBlock h={180} w="180px" r={radius.card} />
-        {/* Implantations grid skeleton */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-          {[0,1,2].map(i => <SkeletonBlock key={i} h={180} r={radius.card} />)}
+      {/* ── Layout 3 colonnes skeleton ── */}
+      <div style={{ display: 'flex', flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
+
+        {/* Colonne gauche */}
+        <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <SkeletonBlock h={12} w="80px" r={4} />
+          <SkeletonBlock h={100} r={radius.card} />
+          <SkeletonBlock h={100} r={radius.card} />
+          <SkeletonBlock h={12} w="140px" r={4} />
+          <SkeletonBlock h={60} r={radius.card} />
+          <SkeletonBlock h={60} r={radius.card} />
+          <SkeletonBlock h={60} r={radius.card} />
         </div>
-      </div>
 
-      {/* Zone divider */}
-      <div style={{ height: 1, background: colors.border.light, margin: '0 0 24px 0' }} />
+        {/* Colonne milieu */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SkeletonBlock h={12} w="100px" r={4} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            {[0,1,2,3].map(i => <SkeletonBlock key={i} h={80} r={radius.card} />)}
+          </div>
+          <SkeletonBlock h={80} r={radius.card} />
+          <SkeletonBlock h={60} r={radius.card} />
+          <SkeletonBlock h={160} r={radius.card} />
+        </div>
 
-      {/* ── Zone 2 skeleton — KPIs académie ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <SkeletonBlock h={14} w="100px" r={4} />
-        <SkeletonBlock h={34} w="300px" r={8} />
-      </div>
-
-      {/* Bento KPI skeleton — 3 cols desktop */}
-      <div className="bento-grid">
-        <div className="bento-large"><SkeletonBlock h={160} r={radius.card} /></div>
-        <div className="bento-medium"><SkeletonBlock h={160} r={radius.card} /></div>
-        <div className="bento-medium"><SkeletonBlock h={160} r={radius.card} /></div>
-        <div className="bento-large"><SkeletonBlock h={130} r={radius.card} /></div>
-        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
-        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
-        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
-        <div className="bento-small"><SkeletonBlock h={130} r={radius.card} /></div>
-      </div>
-
-      {/* Zone divider */}
-      <div style={{ height: 1, background: colors.border.light, margin: '0 0 24px 0' }} />
-
-      {/* ── Zone 3 skeleton — Performance & Gamification ── */}
-      <SkeletonBlock h={14} w="200px" r={4} />
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginTop: 12, marginBottom: 12 }}>
-        <SkeletonBlock h={220} r={radius.card} />
-        <SkeletonBlock h={220} r={radius.card} />
-        <SkeletonBlock h={220} r={radius.card} />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-        <SkeletonBlock h={160} r={radius.card} />
-        <SkeletonBlock h={160} r={radius.card} />
-        <SkeletonBlock h={160} r={radius.card} />
+        {/* Colonne droite */}
+        <div style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SkeletonBlock h={12} w="100px" r={4} />
+          <SkeletonBlock h={200} r={radius.card} />
+          <SkeletonBlock h={160} r={radius.card} />
+        </div>
       </div>
     </div>
   )
@@ -2395,53 +2368,24 @@ export default function DashboardPage() {
         .groups-scroll::-webkit-scrollbar { display: none; }
         .groups-scroll { scrollbar-width: none; }
 
-        /* ── Bento responsive ── */
-        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-        .bento-large  { grid-column: span 2; }
-        .bento-medium { grid-column: span 1; }
-        .bento-small  { grid-column: span 1; }
+        /* ── Dashboard 3 colonnes responsive (Story 67.1) ── */
+        .dashboard-3col { display: flex; flex-direction: row; gap: 20px; align-items: flex-start; }
 
-        @media (max-width: 1024px) {
-          .bento-grid { grid-template-columns: repeat(2, 1fr); }
-          .bento-large  { grid-column: span 1; }
-          .bento-medium { grid-column: span 1; }
-          .bento-small  { grid-column: span 1; }
+        @media (max-width: 1100px) {
+          /* Col droite passe en bas de col milieu */
+          .dashboard-3col { flex-wrap: wrap; }
+          .dashboard-3col > div:first-child  { width: 240px; flex-shrink: 0; }
+          .dashboard-3col > div:nth-child(2) { flex: 1; min-width: 300px; }
+          .dashboard-3col > div:last-child   { width: 100%; }
         }
 
         @media (max-width: 768px) {
-          .bento-grid { grid-template-columns: 1fr; }
-          .bento-large  { grid-column: span 1; }
-          .bento-medium { grid-column: span 1; }
-          .bento-small  { grid-column: span 1; }
+          .dashboard-3col { flex-direction: column; }
+          .dashboard-3col > div { width: 100% !important; flex-shrink: unset; }
         }
 
-        /* ── Zone 1 — Briefing du jour ── */
-        .briefing-row { display: flex; gap: 16px; align-items: stretch; }
-        .implant-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .implant-card { position: relative; }
-        .status-row   { display: flex; align-items: center; gap: 6px; }
-        .status-dot   { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
-        @media (max-width: 1024px) {
-          .implant-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-          .implant-grid  { grid-template-columns: 1fr; }
-          .briefing-row  { flex-direction: column; }
-        }
-
-        /* ── Zone 3 — Performance & Gamification ── */
-        .perf-grid        { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-        .perf-grid-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-
-        @media (max-width: 1024px) {
-          .perf-grid        { grid-template-columns: 1fr 1fr; }
-          .perf-grid-bottom { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 768px) {
-          .perf-grid        { grid-template-columns: 1fr; }
-          .perf-grid-bottom { grid-template-columns: 1fr; }
-        }
+        /* ── Pulse skeleton animation ── */
+        .a-skel { background: ${colors.border.divider}; animation: a-pulse 1.8s ease-in-out infinite; }
 
         /* ── Focus Mode (Story 50-9) ── */
         @keyframes focus-enter {
@@ -2518,57 +2462,378 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* ── Layout colonne simple — 3 zones ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-
       {/* ══════════════════════════════════════════════════════════
-          ZONE 1 — BRIEFING DU JOUR
+          LAYOUT 3 COLONNES — STORY 67.1
       ══════════════════════════════════════════════════════════ */}
-      <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12 }}>
-        Briefing du jour
-      </div>
-      <BriefingDuJour
-        stats={stats}
-        todaySessionsCount={liveCounters.sessionCount}
-        onEnterFocusMode={() => setFocusMode(true)}
-      />
-      {/* Zone divider */}
-      <div style={{ height: 1, background: colors.border.light, margin: '24px 0' }} />
+      <div className="dashboard-3col" style={{ display: 'flex', flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
 
-      {/* ══════════════════════════════════════════════════════════
-          ZONE 2 — KPIs ACADÉMIE
-      ══════════════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════
+          COL GAUCHE — LA JOURNÉE (260px)
+      ════════════════════════════════ */}
+      <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-      {/* En-tête zone 2 : label + filtres sur la même ligne */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5 }}>
-          KPIs académie
+        {/* Label section */}
+        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>
+          La journée
         </div>
 
-        {/* ── Filtres (déplacés depuis filterRow global) ── */}
-        <div style={{ ...S.filterRow, marginBottom: 0 }}>
+        {/* Cards séances du jour */}
+        {(() => {
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const tomorrow = new Date(today)
+          tomorrow.setDate(today.getDate() + 1)
+
+          // upcomingSession = prochaine séance (listNextSessionForDashboard retourne 1 ligne)
+          // On affiche la prochaine séance + le countdown s'il y a lieu
+          const hasSession = upcomingSession !== null && !loadingUpcoming
+
+          if (loadingUpcoming) {
+            return (
+              <>
+                <div className="a-skel" style={{ height: 90, borderRadius: radius.card, marginBottom: 8 }} />
+                <div className="a-skel" style={{ height: 90, borderRadius: radius.card, marginBottom: 8 }} />
+              </>
+            )
+          }
+
+          if (!hasSession) {
+            return (
+              <div style={{
+                backgroundColor: colors.light.surface,
+                borderRadius   : radius.card,
+                padding        : '14px 16px',
+                marginBottom   : 8,
+                boxShadow      : shadows.sm,
+                border         : `1px solid ${colors.border.light}`,
+                fontSize       : 12,
+                color          : colors.text.muted,
+                fontStyle      : 'italic',
+                fontFamily     : 'Geist, sans-serif',
+              }}>
+                Aucune séance prévue aujourd'hui
+              </div>
+            )
+          }
+
+          const session = upcomingSession!
+          const sessionDate = new Date(session.scheduledAt)
+          const isToday = sessionDate >= today && sessionDate < tomorrow
+
+          const statusColor = isToday ? colors.status.present : colors.accent.gold
+
+          const formatTime = (iso: string) => {
+            const d = new Date(iso)
+            return d.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
+          }
+
+          return (
+            <div style={{
+              backgroundColor: colors.light.surface,
+              borderRadius   : radius.card,
+              padding        : '12px 14px',
+              marginBottom   : 8,
+              boxShadow      : shadows.sm,
+              borderLeft     : `3px solid ${statusColor}`,
+              border         : `1px solid ${colors.border.light}`,
+              position       : 'relative',
+              overflow       : 'hidden',
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: colors.accent.gold, fontFamily: 'Geist Mono, monospace' }}>
+                {formatTime(session.scheduledAt)}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginTop: 2, fontFamily: 'Montserrat, sans-serif' }}>
+                {session.groupName}
+              </div>
+              {session.location && (
+                <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 2, fontFamily: 'Geist, sans-serif' }}>
+                  📍 {session.location}
+                </div>
+              )}
+              {/* Badge statut */}
+              <div style={{
+                display        : 'inline-flex',
+                alignItems     : 'center',
+                marginTop      : 8,
+                backgroundColor: statusColor + '1a',
+                border         : `1px solid ${statusColor + '40'}`,
+                borderRadius   : radius.badge,
+                paddingLeft    : 7,
+                paddingRight   : 7,
+                paddingTop     : 2,
+                paddingBottom  : 2,
+                fontSize       : 10,
+                fontWeight     : 700,
+                color          : statusColor,
+                fontFamily     : 'Montserrat, sans-serif',
+                letterSpacing  : 0.5,
+              }}>
+                {isToday ? 'Aujourd\'hui' : 'À venir'}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Lien vers le planning */}
+        <button
+          onClick={() => router.push('/seances' as never)}
+          style={{
+            background : 'none',
+            border     : 'none',
+            cursor     : 'pointer',
+            fontSize   : 12,
+            fontWeight : 600,
+            color      : colors.accent.gold,
+            padding    : '4px 0 12px 0',
+            fontFamily : 'Montserrat, sans-serif',
+            textAlign  : 'left',
+          }}
+        >
+          Voir le planning →
+        </button>
+
+        {/* ── URGENCES & ANOMALIES ── */}
+        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8, marginTop: 4 }}>
+          Urgences &amp; Anomalies
+        </div>
+
+        {sortedAnomalies.length === 0 ? (
+          <div style={{
+            backgroundColor: colors.status.success + '0f',
+            borderRadius   : radius.xs,
+            padding        : '8px 12px',
+            fontSize       : 11,
+            color          : colors.status.success,
+            fontFamily     : 'Geist, sans-serif',
+            marginBottom   : 8,
+          }}>
+            Aucune anomalie active ✓
+          </div>
+        ) : (
+          <>
+            {sortedAnomalies.slice(0, 3).map(a => {
+              const sevColor = SEV_COLOR[a.severity] ?? colors.status.info
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => setSelectedAnomaly(a)}
+                  style={{
+                    display        : 'flex',
+                    alignItems     : 'center',
+                    gap            : 8,
+                    backgroundColor: sevColor + '12',
+                    border         : `1px solid ${sevColor + '40'}`,
+                    borderLeft     : `3px solid ${sevColor}`,
+                    borderRadius   : radius.xs,
+                    padding        : '8px 10px',
+                    marginBottom   : 6,
+                    cursor         : 'pointer',
+                    textAlign      : 'left',
+                    width          : '100%',
+                    fontFamily     : 'Geist, sans-serif',
+                  }}
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: sevColor, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: sevColor, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {anomalyLabel(a.anomalyType)}
+                  </span>
+                </button>
+              )
+            })}
+
+            {sortedAnomalies.length > 3 && (
+              <button
+                onClick={() => setSelectedAnomaly(sortedAnomalies[0])}
+                style={{
+                  background : 'none',
+                  border     : 'none',
+                  cursor     : 'pointer',
+                  fontSize   : 12,
+                  fontWeight : 600,
+                  color      : colors.accent.gold,
+                  padding    : '4px 0',
+                  fontFamily : 'Montserrat, sans-serif',
+                  textAlign  : 'left',
+                }}
+              >
+                Voir toutes les anomalies ({sortedAnomalies.length}) →
+              </button>
+            )}
+          </>
+        )}
+      </div>
+      {/* ── FIN COL GAUCHE ── */}
+
+      {/* ════════════════════════════════
+          COL MILIEU — L'ACADÉMIE (flex 1)
+      ════════════════════════════════ */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+      {/* ── Ligne stats 4 chiffres ── */}
+        <div style={{
+          display        : 'flex',
+          flexDirection  : 'row',
+          backgroundColor: colors.light.surface,
+          borderRadius   : radius.card,
+          border         : `1px solid ${colors.border.light}`,
+          boxShadow      : shadows.sm,
+          padding        : '16px 20px',
+          gap            : 0,
+        }}>
+          {[
+            { label: 'Joueurs',  value: countVal(childrenTotal),          color: colors.status.present },
+            { label: 'Coachs',   value: countVal(coachesTotal),           color: colors.entity.coach   },
+            { label: 'Groupes',  value: countVal(groupsTotal),            color: colors.entity.club    },
+            { label: 'Sites',    value: stats.length > 0 ? stats.length : '—', color: colors.accent.gold },
+          ].map(({ label, value, color }, idx, arr) => (
+            <div key={label} style={{
+              flex          : 1,
+              textAlign     : 'center',
+              borderRight   : idx < arr.length - 1 ? `1px solid ${colors.border.divider}` : 'none',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: 'Montserrat, sans-serif', lineHeight: 1 }}>
+                {value}
+              </div>
+              <div style={{ fontSize: 11, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1, marginTop: 4, fontFamily: 'Montserrat, sans-serif' }}>
+                {label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Card Activité 4 semaines ── */}
+        <div style={{
+          backgroundColor: colors.light.surface,
+          borderRadius   : radius.card,
+          border         : `1px solid ${colors.border.light}`,
+          boxShadow      : shadows.sm,
+          padding        : '16px 20px',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 14, fontFamily: 'Montserrat, sans-serif' }}>
+            Activité — 4 semaines
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>Présence</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgAttendance), fontFamily: 'Geist Mono, monospace' }}>
+                {avgAttendance !== null ? `${avgAttendance}%` : '—'}
+              </span>
+            </div>
+            <div style={{ height: 6, backgroundColor: colors.border.divider, borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${avgAttendance ?? 0}%`, backgroundColor: rateColor(avgAttendance), borderRadius: 3, transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>Maîtrise</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgMastery), fontFamily: 'Geist Mono, monospace' }}>
+                {avgMastery !== null ? `${avgMastery}%` : '—'}
+              </span>
+            </div>
+            <div style={{ height: 6, backgroundColor: colors.border.divider, borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${avgMastery ?? 0}%`, backgroundColor: colors.accent.gold, borderRadius: 3, transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Card Séances Clôturées ── */}
+        <div style={{
+          backgroundColor: colors.light.surface,
+          borderRadius   : radius.card,
+          border         : `1px solid ${colors.border.light}`,
+          boxShadow      : shadows.sm,
+          padding        : '14px 20px',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, fontFamily: 'Montserrat, sans-serif' }}>
+              Séances Clôturées
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: colors.accent.gold, fontFamily: 'Geist Mono, monospace' }}>
+              {totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
+            </div>
+          </div>
+          <div style={{ height: 6, backgroundColor: colors.border.divider, borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              height         : '100%',
+              width          : totalSessions > 0 ? `${Math.round((closedSessions / totalSessions) * 100)}%` : '0%',
+              backgroundColor: colors.accent.gold,
+              borderRadius   : 3,
+              transition     : 'width 0.6s ease',
+            }} />
+          </div>
+          {pendingSessions > 0 && (
+            <div style={{ fontSize: 11, color: colors.status.absent, marginTop: 6, fontFamily: 'Geist, sans-serif' }}>
+              {pendingSessions} séance{pendingSessions > 1 ? 's' : ''} en attente
+            </div>
+          )}
+        </div>
+
+        {/* ── Performance Sites ── */}
+        {visibleStats.length > 0 && (
+          <div style={{
+            backgroundColor: colors.light.surface,
+            borderRadius   : radius.card,
+            border         : `1px solid ${colors.border.light}`,
+            boxShadow      : shadows.sm,
+            padding        : '16px 20px',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
+              Performance Sites
+            </div>
+            {/* En-tête table */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 50px 60px 60px', padding: '0 0 6px 0', borderBottom: `1px solid ${colors.border.divider}`, marginBottom: 4 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 0.8 }}>Implantation</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'center' }}>Séances</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'right' }}>Présence</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'right' }}>Maîtrise</span>
+            </div>
+            {visibleStats.map(impl => (
+              <div key={impl.implantation_id} style={{
+                display        : 'grid',
+                gridTemplateColumns: '1fr 50px 60px 60px',
+                padding        : '7px 0',
+                borderBottom   : `1px solid ${colors.border.divider}`,
+                alignItems     : 'center',
+              }}>
+                <span style={{ fontSize: 12, color: colors.text.dark, fontFamily: 'Geist, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {impl.implantation_name}
+                </span>
+                <span style={{ fontSize: 12, color: colors.text.muted, textAlign: 'center', fontFamily: 'Geist Mono, monospace' }}>
+                  {impl.sessions_total ?? '—'}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(impl.attendance_rate_pct ?? null), textAlign: 'right', fontFamily: 'Geist Mono, monospace' }}>
+                  {impl.attendance_rate_pct !== null && impl.attendance_rate_pct !== undefined ? `${impl.attendance_rate_pct}%` : '—'}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(impl.mastery_rate_pct ?? null), textAlign: 'right', fontFamily: 'Geist Mono, monospace' }}>
+                  {impl.mastery_rate_pct !== null && impl.mastery_rate_pct !== undefined ? `${impl.mastery_rate_pct}%` : '—'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Filtres période ── */}
+        <div style={{ ...S.filterRow, marginBottom: 0, borderTop: `1px solid ${colors.border.light}`, paddingTop: 12 }}>
           {/* Implantation selector */}
           <div style={S.dateGroup}>
             <label style={S.dateLabel}>Implantation</label>
             <select
               value={selectedImplantationId ?? ''}
               onChange={e => setSelectedImplantationId(e.target.value || null)}
-              style={S.implantSelect}
+              style={{ ...S.implantSelect, minWidth: 160 }}
             >
-              <option value="">Toutes les implantations</option>
+              <option value="">Toutes</option>
               {implantations.map(i => (
                 <option key={i.id} value={i.id}>{i.name}</option>
               ))}
             </select>
           </div>
-
-          {/* Preset selector */}
-          <div style={{ ...S.dateGroup, marginLeft: 8 }}>
+          <div style={S.dateGroup}>
             <label style={S.dateLabel}>Période</label>
             <select
               value={preset}
               onChange={e => handlePresetChange(e.target.value as Preset)}
-              style={S.implantSelect}
+              style={{ ...S.implantSelect, minWidth: 160 }}
             >
               <option value="this-week">Semaine en cours</option>
               <option value="last-week">Semaine passée</option>
@@ -2576,320 +2841,127 @@ export default function DashboardPage() {
               <option value="custom">Personnalisé</option>
             </select>
           </div>
-
-          {/* Custom date pickers */}
           {preset === 'custom' && (<>
             <div style={S.dateGroup}>
               <label style={S.dateLabel}>Du</label>
-              <input
-                type="date"
-                value={customFrom}
-                onChange={e => setCustomFrom(e.target.value)}
-                style={S.dateInput}
-              />
+              <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={S.dateInput} />
             </div>
             <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
             <div style={S.dateGroup}>
               <label style={S.dateLabel}>Au</label>
-              <input
-                type="date"
-                value={customTo}
-                onChange={e => setCustomTo(e.target.value)}
-                style={S.dateInput}
-              />
+              <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} style={S.dateInput} />
             </div>
-            <button style={S.applyBtn} onClick={handleApplyCustom}>
-              Appliquer
-            </button>
+            <button style={S.applyBtn} onClick={handleApplyCustom}>Appliquer</button>
           </>)}
         </div>
       </div>
+      {/* ── FIN COL MILIEU ── */}
 
-      {/* ── Bento KPI Grid — draggable (Story 50-10) ── */}
-      <div className="bento-grid">
+      {/* ════════════════════════════════
+          COL DROITE — PERFORMANCE (240px)
+      ════════════════════════════════ */}
+      <div style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* Draggable KPI tiles — ordre contrôlé par kpiOrder */}
-        {kpiOrder.map(id => {
-          if (id === 'children') return (
-            <div key="children" className="bento-large">
-              <DraggableKpiCard id="children" draggedId={draggedId} dragOverId={dragOverId}
-                onDragStart={handleDragStart} onDragOver={handleDragOver}
-                onDrop={handleDrop} onDragEnd={handleDragEnd}
-              >
-                <KpiCard
-                  label="Joueurs actifs"
-                  value={countVal(childrenTotal)}
-                  sub={selectedName ? `dans ${selectedName}` : "inscrits à l'académie"}
-                  accent={colors.status.present}
-                  size="large"
-                  icon="👥"
-                  sparkline={sparkChildren}
-                />
-              </DraggableKpiCard>
-            </div>
-          )
-          if (id === 'attendance') return (
-            <div key="attendance" className="bento-medium">
-              <DraggableKpiCard id="attendance" draggedId={draggedId} dragOverId={dragOverId}
-                onDragStart={handleDragStart} onDragOver={handleDragOver}
-                onDrop={handleDrop} onDragEnd={handleDragEnd}
-              >
-                <KpiCard
-                  label="Taux de présence"
-                  value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
-                  sub={
-                    statsError
-                      ? 'Données indisponibles'
-                      : avgAttendance === null
-                        ? 'Aucune donnée sur la période'
-                        : selectedName ? 'implantation' : 'moyenne globale'
-                  }
-                  accent={statsError ? colors.text.muted : rateColor(avgAttendance)}
-                  borderAccent={colors.accent.gold}
-                  size="medium"
-                  icon="✅"
-                  sparkline={sparkAttendance}
-                  helpText={HELP_TEXTS.attendanceKpi}
-                />
-              </DraggableKpiCard>
-            </div>
-          )
-          if (id === 'mastery') return (
-            <div key="mastery" className="bento-medium">
-              <DraggableKpiCard id="mastery" draggedId={draggedId} dragOverId={dragOverId}
-                onDragStart={handleDragStart} onDragOver={handleDragOver}
-                onDrop={handleDrop} onDragEnd={handleDragEnd}
-              >
-                <KpiCard
-                  label="Taux de maîtrise"
-                  value={avgMastery !== null ? `${avgMastery}%` : '—'}
-                  sub={
-                    statsError
-                      ? 'Données indisponibles'
-                      : avgMastery === null
-                        ? 'Aucune donnée sur la période'
-                        : selectedName ? 'implantation' : 'moyenne globale'
-                  }
-                  accent={statsError ? colors.text.muted : rateColor(avgMastery)}
-                  borderAccent={colors.accent.gold}
-                  size="medium"
-                  icon="🎯"
-                  sparkline={sparkMastery}
-                  helpText={HELP_TEXTS.masteryKpi}
-                />
-              </DraggableKpiCard>
-            </div>
-          )
-          if (id === 'sessions') return (
-            <div key="sessions" className="bento-large">
-              <DraggableKpiCard id="sessions" draggedId={draggedId} dragOverId={dragOverId}
-                onDragStart={handleDragStart} onDragOver={handleDragOver}
-                onDrop={handleDrop} onDragEnd={handleDragEnd}
-              >
-                <KpiCard
-                  label="Séances"
-                  value={totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
-                  sub={statsError ? 'Données indisponibles' : 'clôturées sur le total de la période'}
-                  accent={colors.accent.gold}
-                  size="large"
-                  icon="📅"
-                  sparkline={sparkSessions}
-                />
-              </DraggableKpiCard>
-            </div>
-          )
-          if (id === 'coaches') return (
-            <div key="coaches" className="bento-small">
-              <DraggableKpiCard id="coaches" draggedId={draggedId} dragOverId={dragOverId}
-                onDragStart={handleDragStart} onDragOver={handleDragOver}
-                onDrop={handleDrop} onDragEnd={handleDragEnd}
-              >
-                <KpiCard
-                  label="Coachs"
-                  value={countVal(coachesTotal)}
-                  sub={selectedName ? 'assignés' : 'actifs'}
-                  accent={colors.entity.coach}
-                  size="small"
-                  icon="👨‍🏫"
-                  sparkline={sparkCoaches}
-                />
-              </DraggableKpiCard>
-            </div>
-          )
-          if (id === 'groups') return (
-            <div key="groups" className="bento-small">
-              <DraggableKpiCard id="groups" draggedId={draggedId} dragOverId={dragOverId}
-                onDragStart={handleDragStart} onDragOver={handleDragOver}
-                onDrop={handleDrop} onDragEnd={handleDragEnd}
-              >
-                <KpiCard
-                  label="Groupes"
-                  value={countVal(groupsTotal)}
-                  sub={selectedName ? `dans ${selectedName}` : 'actifs'}
-                  accent={colors.entity.club}
-                  size="small"
-                  icon="🏆"
-                  sparkline={sparkGroups}
-                />
-              </DraggableKpiCard>
-            </div>
-          )
-          return null
-        })}
-
-        {/* Tiles fixes non réorganisables (AC7) */}
-
-        {/* SMALL — Implantations — card avec gradient vert terrain */}
-        <div className="bento-small">
-          <KpiCard
-            label="Implantations"
-            value={stats.length > 0 ? stats.length : '—'}
-            sub="sites actifs"
-            accent={colors.text.primary}
-            borderAccent="transparent"
-            size="small"
-            icon="🏟️"
-            cardStyle={{
-              background: TERRAIN_GRADIENT_DARK,
-              border    : 'none',
-              boxShadow : shadows.md,
-            } as React.CSSProperties}
-            valueColor={colors.text.primary}
-            labelColor={colors.text.primary + 'bf'}
-            subColor={colors.text.primary + '99'}
-          />
+        {/* Label section */}
+        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 0 }}>
+          Performance
         </div>
 
-        {/* SMALL — Anomalies critiques */}
-        <div className="bento-small">
-          <KpiCard
-            label="Anomalies"
-            value={criticalCount > 0 ? criticalCount : anomalies.length > 0 ? anomalies.length : '✓'}
-            sub={criticalCount > 0 ? 'critiques' : anomalies.length > 0 ? 'aucune critique' : 'aucune alerte'}
-            accent={criticalCount > 0 ? colors.status.absent : anomalies.length > 0 ? colors.status.attention : colors.status.present}
-            size="small"
-            icon={criticalCount > 0 ? '🚨' : anomalies.length > 0 ? '⚠️' : '✅'}
-          />
-        </div>
-
-        {/* SMALL — Météo terrain (Story 50-8) */}
-        <div className="bento-small">
-          <WeatherWidget />
-        </div>
-
-      </div>
-
-      {/* ── Bouton Réinitialiser l'ordre (Story 50-10) — visible si ordre modifié ── */}
-      {!isOrderDefault && (
-        <div style={{ textAlign: 'right', marginTop: -16, marginBottom: 16 }}>
-          <button
-            onClick={resetKpiOrder}
-            style={{
-              background     : 'none',
-              border         : 'none',
-              cursor         : 'pointer',
-              fontSize       : 11,
-              color          : colors.text.muted,
-              textDecoration : 'underline',
-              fontFamily     : 'Geist, sans-serif',
-              padding        : 0,
-            }}
-          >
-            Réinitialiser l'ordre
-          </button>
-        </div>
-      )}
-
-      {/* ── Next Session Tile ── */}
-      <NextSessionTile
-        pendingSessions={pendingSessions}
-        onNavigate={() => router.push('/seances' as never)}
-      />
-
-      {/* ── Anomaly Panel (Story 50-7 — pills inline) ── */}
-      <div style={{
-        ...S.anomalyPanel,
-        borderLeft: anomalies.length === 0
-          ? `3px solid ${colors.status.success}`
-          : `3px solid ${criticalCount > 0 ? colors.status.absent : colors.status.attention}`,
-      }}>
-        {/* Summary row */}
-        <div style={S.anomalyPanelHeader}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {anomalies.length === 0 ? (
-              <span style={{ fontSize: 13, fontWeight: 700, color: colors.status.success, fontFamily: 'Montserrat, sans-serif' }}>
-                Aucune anomalie ✓
-              </span>
-            ) : (
-              <>
-                {criticalCount > 0 && (
-                  <span style={{ fontSize: 12, color: colors.status.absent }}>
-                    🔴 {criticalCount} critique{criticalCount > 1 ? 's' : ''}
-                  </span>
-                )}
-                {warningCount > 0 && (
-                  <span style={{ fontSize: 12, color: colors.status.attention }}>
-                    🟡 {warningCount} avertissement{warningCount > 1 ? 's' : ''}
-                  </span>
-                )}
-                {infoCount > 0 && (
-                  <span style={{ fontSize: 12, color: criticalCount === 0 && warningCount === 0 ? colors.text.muted : colors.accent.gold }}>
-                    🔵 {infoCount} info{infoCount > 1 ? 's' : ''}
-                  </span>
-                )}
-              </>
-            )}
+        {/* ── Classement XP Top 5 ── */}
+        <div style={{
+          backgroundColor: colors.light.surface,
+          borderRadius   : radius.card,
+          border         : `1px solid ${colors.border.light}`,
+          boxShadow      : shadows.sm,
+          padding        : '16px 16px',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 12, fontFamily: 'Montserrat, sans-serif', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>🏆</span> Classement XP
           </div>
-          {selectedName && anomalies.length > 0 && (
-            <span style={{ fontSize: 11, color: colors.text.muted, fontStyle: 'italic' }}>
-              Anomalies non filtrables par implantation
-            </span>
+
+          {loadingLeaderboard ? (
+            [0,1,2,3,4].map(i => (
+              <div key={i} className="a-skel" style={{ height: 36, borderRadius: 8, marginBottom: 6 }} />
+            ))
+          ) : leaderboard.length === 0 ? (
+            <div style={{ fontSize: 12, color: colors.text.subtle, textAlign: 'center', padding: '20px 0', fontFamily: 'Geist, sans-serif' }}>
+              Aucun joueur classé
+            </div>
+          ) : (
+            leaderboard.slice(0, 5).map(entry => {
+              const PODIUM_BG: Record<number, string> = { 1: colors.accent.gold, 2: colors.text.secondary, 3: colors.border.dark }
+              const isPodium = entry.rank <= 3
+              const podiumBg = PODIUM_BG[entry.rank]
+              const initials = entry.displayName.split(' ').map((w: string) => w[0] ?? '').join('').slice(0, 2).toUpperCase()
+
+              return (
+                <div
+                  key={entry.childId}
+                  onClick={() => router.push(`/(admin)/children/${entry.childId}` as never)}
+                  style={{
+                    display    : 'flex',
+                    alignItems : 'center',
+                    gap        : 8,
+                    padding    : '6px 8px',
+                    borderRadius: 8,
+                    marginBottom: 4,
+                    cursor     : 'pointer',
+                    background : isPodium ? `${podiumBg}18` : 'transparent',
+                    borderLeft : isPodium ? `3px solid ${podiumBg}` : `3px solid transparent`,
+                    transition : 'background 0.15s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = colors.light.hover }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = isPodium ? `${podiumBg}18` : 'transparent' }}
+                >
+                  {/* Avatar initiales */}
+                  <div style={{
+                    width          : 28,
+                    height         : 28,
+                    borderRadius   : '50%',
+                    backgroundColor: isPodium ? podiumBg : colors.border.divider,
+                    display        : 'flex',
+                    alignItems     : 'center',
+                    justifyContent : 'center',
+                    fontSize       : 10,
+                    fontWeight     : 700,
+                    color          : isPodium && entry.rank === 1 ? colors.dark.primary : colors.text.primary,
+                    flexShrink     : 0,
+                    fontFamily     : 'Montserrat, sans-serif',
+                  }}>
+                    {initials}
+                  </div>
+
+                  {/* Nom */}
+                  <span style={{
+                    flex        : 1,
+                    fontSize    : 12,
+                    fontWeight  : isPodium ? 700 : 500,
+                    color       : colors.text.dark,
+                    overflow    : 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace  : 'nowrap',
+                    fontFamily  : 'Montserrat, sans-serif',
+                  }}>
+                    {entry.displayName}
+                  </span>
+
+                  {/* XP */}
+                  <span style={{
+                    fontSize  : 11,
+                    fontWeight: 700,
+                    color     : isPodium ? podiumBg : colors.text.muted,
+                    fontFamily: 'Geist Mono, monospace',
+                    flexShrink: 0,
+                  }}>
+                    {entry.totalXp.toLocaleString('fr-BE')}
+                  </span>
+                </div>
+              )
+            })
           )}
         </div>
 
-        {/* Pills */}
-        {anomalies.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {sortedAnomalies.map(a => (
-              <AnomalyPill key={a.id} anomaly={a} onClick={() => setSelectedAnomaly(a)} />
-            ))}
-          </div>
-        )}
-
-        {/* Empty state fond vert léger */}
-        {anomalies.length === 0 && (
-          <div style={{
-            backgroundColor: colors.status.success + '0f', // TODO: ajouter token successBgSubtle
-            borderRadius   : radius.xs,
-            padding        : '8px 12px',
-            fontSize       : 12,
-            color          : colors.status.success,
-          }}>
-            Toutes les anomalies ont été résolues — aucune alerte active.
-          </div>
-        )}
-      </div>
-
-      {/* Zone divider */}
-      <div style={{ height: 1, background: colors.border.light, margin: '24px 0' }} />
-
-      {/* ══════════════════════════════════════════════════════════
-          ZONE 3 — PERFORMANCE & GAMIFICATION
-      ══════════════════════════════════════════════════════════ */}
-      <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12 }}>
-        Performance &amp; Gamification
-      </div>
-
-      {/* Ligne 1 : Leaderboard (2fr) + Score académie (1fr) + Joueur de la semaine (1fr) */}
-      <div className="perf-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-        {/* Leaderboard XP (Story 59-3) — colonne large */}
-        <LeaderboardTile
-          entries={leaderboard}
-          loading={loadingLeaderboard}
-          onRowClick={(childId) => router.push(`/(admin)/children/${childId}` as never)}
-        />
-
-        {/* Score Académie (Story 59-6) */}
+        {/* ── Score Académie ── */}
         <AcademyScoreTile
           score={academyScore}
           loading={loadingAcademyScore}
@@ -2906,92 +2978,20 @@ export default function DashboardPage() {
           }}
         />
 
-        {/* Joueur de la semaine (Story 55-8) */}
-        {playerOfWeek ? (
-          <PlayerOfWeekTile
-            player={playerOfWeek}
-            onPress={() => router.push(`/(admin)/children/${playerOfWeek.childId}` as never)}
-          />
-        ) : (
-          <div style={{
-            backgroundColor: colors.light.surface,
-            borderRadius   : radius.card,
-            border         : `1px solid ${colors.border.light}`,
-            boxShadow      : shadows.sm,
-            padding        : 20,
-            display        : 'flex',
-            alignItems     : 'center',
-            justifyContent : 'center',
-            color          : colors.text.subtle,
-            fontSize       : 13,
-            fontFamily     : 'Montserrat, sans-serif',
-            minHeight      : 120,
-          }}>
-            Aucun joueur de la semaine
-          </div>
-        )}
-      </div>
-
-      {/* Ligne 2 : Forme du moment + Trophée de saison + Countdown prochaine séance */}
-      <div className="perf-grid-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-        {/* Forme du moment (Story 50.6) */}
-        <StreakTile players={streakPlayers} loading={loadingStreaks} />
-
-        {/* Trophée de saison (Story 59-10) */}
-        {(trophyData !== null || loadingTrophy) ? (
-          trophyData ? (
-            <SeasonTrophyTileInner
-              trophyData={trophyData}
-              academyScore={academyScore?.score ?? 0}
-              top3={leaderboard}
-              loading={loadingTrophy}
-              svgRef={trophySvgRef as React.RefObject<SVGSVGElement>}
-            />
-          ) : (
-            <div style={{
-              backgroundColor: colors.light.surface,
-              borderRadius   : radius.card,
-              border         : `1px solid ${colors.border.light}`,
-              boxShadow      : shadows.sm,
-              padding        : 20,
-            }}>
-              <div style={{
-                height         : 160,
-                backgroundColor: colors.light.muted,
-                borderRadius   : radius.xs,
-                animation      : 'a-pulse 1.8s ease-in-out infinite',
-              }} />
-            </div>
-          )
-        ) : (
-          <div style={{
-            backgroundColor: colors.light.surface,
-            borderRadius   : radius.card,
-            border         : `1px solid ${colors.border.light}`,
-            boxShadow      : shadows.sm,
-            padding        : 20,
-            display        : 'flex',
-            alignItems     : 'center',
-            justifyContent : 'center',
-            color          : colors.text.subtle,
-            fontSize       : 13,
-            fontFamily     : 'Montserrat, sans-serif',
-            minHeight      : 120,
-          }}>
-            Aucun trophée de saison actif
-          </div>
-        )}
-
-        {/* Countdown prochaine séance (Story 50.3) */}
+        {/* ── Countdown prochaine séance (fallback si pas de quêtes) ── */}
         <CountdownTile
           session={upcomingSession}
           loading={loadingUpcoming}
           onNavigate={id => router.push(`/seances/${id}` as never)}
         />
+
+      </div>
+      {/* ── FIN COL DROITE ── */}
+
+      {/* ── FIN LAYOUT 3 COLONNES ── */}
       </div>
 
-      {/* ── Fin layout colonne simple ── */}
-      </div>
+      {/* ── (Legacy bento grid — supprimé pour layout 3 colonnes Story 67.1) ── */}
 
       {/* ── Anomaly Modal (Story 50-7) ── */}
       <AnomalyModal
