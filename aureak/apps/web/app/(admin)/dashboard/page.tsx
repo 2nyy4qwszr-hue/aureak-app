@@ -1704,6 +1704,7 @@ function AcademyScoreTile({
         border         : `1px solid ${colors.border.light}`,
         boxShadow      : shadows.sm,
         padding        : 24,
+        overflow       : 'hidden',
       }}
     >
       <style>{`
@@ -1821,7 +1822,7 @@ function AcademyScoreTile({
           </div>
 
           {/* Mini-stats composantes */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 6 }}>
             {[
               { label: 'Présence',   value: score.components.presenceRate,     icon: '📅' },
               { label: 'Progression', value: score.components.progressionScore, icon: '📈' },
@@ -1831,18 +1832,19 @@ function AcademyScoreTile({
                 key={label}
                 style={{
                   flex           : 1,
+                  minWidth       : 0,
                   backgroundColor: colors.light.muted,
                   border         : `1px solid ${colors.border.light}`,
                   borderRadius   : radius.xs,
-                  padding        : '8px 10px',
+                  padding        : '6px 8px',
                   textAlign      : 'center',
                 }}
               >
-                <div style={{ fontSize: 14 }}>{icon}</div>
+                <div style={{ fontSize: 12 }}>{icon}</div>
                 <div style={{
                   fontFamily: 'Geist Mono, monospace',
                   fontWeight: 700,
-                  fontSize  : 14,
+                  fontSize  : 13,
                   color     : colors.text.dark,
                 }}>
                   {value}%
@@ -1851,7 +1853,7 @@ function AcademyScoreTile({
                   fontSize  : typography.caption.size,
                   color     : colors.text.muted,
                   fontFamily: 'Montserrat, sans-serif',
-                  lineHeight : `${typography.caption.lineHeight}px`,
+                  lineHeight : 1.2,
                 }}>
                   {label}
                 </div>
