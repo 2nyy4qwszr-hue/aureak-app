@@ -1088,7 +1088,7 @@ function AdminLayoutInner() {
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
         {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
-        {!isMobile && <Breadcrumb />}
+        {!isMobile && !pathname.startsWith('/activites') && <Breadcrumb />}
 
         {/* Story 62.5 — conteneur page-enter animation */}
         <div ref={contentAreaRef} style={{ flex: 1 }}>
