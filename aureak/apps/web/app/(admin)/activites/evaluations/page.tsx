@@ -350,7 +350,7 @@ export default function EvaluationsPage() {
           />
           <StatCard
             icon="👤"
-            label="Top Performer"
+            label="Top Évaluateur"
             value={stats?.topName ? truncate(stats.topName, 14) : '—'}
             dark
           />

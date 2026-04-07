@@ -134,7 +134,7 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
       {/* Card 1 — Présence Générale */}
       <View style={[cardStyles.card, { flex: 1 }]}>
         <AureakText style={cardStyles.statIcon}>📊</AureakText>
-        <AureakText style={cardStyles.cardLabel}>Présence Générale</AureakText>
+        <AureakText style={cardStyles.cardLabel}>Moyenne Générale</AureakText>
         <AureakText style={cardStyles.cardStat}>{stats.avgRate} %</AureakText>
         <View style={cardStyles.progressTrack}>
           <View style={[cardStyles.progressFill, { width: `${Math.min(stats.avgRate, 100)}%` as unknown as number }]} />
