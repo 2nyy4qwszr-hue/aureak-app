@@ -50,7 +50,7 @@ export function ActivitesHeader() {
             fontWeight   : '700',
             fontFamily   : 'Montserrat',
             letterSpacing: 0.8,
-            color        : isActive ? colors.text.dark : colors.text.muted,
+            color        : colors.text.dark,
           }
           return (
             <Pressable

@@ -15,7 +15,7 @@ import type { TemporalFilter }      from './components/PseudoFiltresTemporels'
 
 export default function ActivitesPage() {
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
-  const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('past')
+  const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('today')
 
   return (
     <View style={styles.container}>
@@ -42,7 +42,7 @@ export default function ActivitesPage() {
 const styles = StyleSheet.create({
   container: {
     flex           : 1,
-    backgroundColor: colors.light.primary,
+    backgroundColor: colors.light.surface,
   },
   scroll: {
     flex: 1,
