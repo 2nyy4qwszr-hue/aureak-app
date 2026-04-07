@@ -1,126 +1,129 @@
-date: 2026-04-06
-status: in-progress
+date: 2026-04-08
+status: done
 
 queue:
-  - story_id: story-64-1
-    title: "BUG — push migration v_club_gardien_stats en remote"
-    priority: P1
-    status: done
-    gate1: pass
-    gate2: pass
-    commit: "55d80c0"
-
-  - story_id: story-64-2
-    title: "BUG — stages/index états contradictoires erreur + empty state"
-    priority: P1
-    status: done
-    gate1: pass
-    gate2: pass
-    notes: "déjà corrigé — logique ternaire exclusive en place"
-
-  - story_id: story-64-3
-    title: "BUG — React Unexpected text node séances"
+  - story_id: story-65-7
+    title: "BUG — recordAttendance recordedBy vide (présences séance)"
     priority: P1
     status: done
     gate1: pass
     gate2: pass
 
-  - story_id: story-64-4
-    title: "BUG — UUIDs bruts dans liste présences"
+  - story_id: story-66-1
+    title: "UX — Sidebar restructuration labels + items (Dashboard/Méthode/Académie)"
     priority: P2
     status: done
     gate1: pass
     gate2: pass
 
-  - story_id: story-63-1
-    title: "UX — Refactoring sidebar admin 7 items + ⚙️ Admin caché"
-    priority: P1
-    status: done
-    gate1: pass
-    gate2: pass
-
-  - story_id: story-63-2
-    title: "FEATURE — Évènements unifiés vue filtrée par type"
+  - story_id: story-65-8
+    title: "UX — Activités polish filtres côte à côte, z-index, empty state, autocomplete"
     priority: P2
     status: done
     gate1: pass
     gate2: pass
-    notes: "8 warnings style/a11y non bloquants — dette à traiter dans story dédiée. Playwright skipped (app non démarrée)."
 
-  - story_id: story-50-11
-    title: "Dashboard v2 refonte layout trois zones"
+  - story_id: story-67-1
+    title: "DESIGN — Dashboard refonte layout 3 colonnes (référence dashboard-redesign.png)"
     priority: P1
     status: done
     gate1: pass
     gate2: pass
-    notes: "Recheck 2026-04-06 — BLOCKER corrigé : tiles gamification (CountdownTile, StreakTile, PlayerOfWeekTile, SeasonTrophyTileInner) absentes de Zone 2 KPIs bento. Zone 3 contient bien leaderboard XP, streaks, trophée, Player of Week, Prochaine séance. WARNING persistant : 5 console.error sans guard NODE_ENV dans dashboard/page.tsx (non-bloquant). Erreurs réseau = tables remote manquantes (attendance_records, xp_ledger) — hors scope story."
 
-  - story_id: story-63-3
-    title: "FEATURE — Section Développement Prospection/Marketing/Partenariats"
+  - story_id: story-67-2
+    title: "DESIGN — Activités Séances redesign visuel (stat cards + tableau)"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-67-3
+    title: "DESIGN — Activités Présences & Évaluations harmonisation tableau"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-65-9
+    title: "UX — Séances navigation retour + filtre par défaut + unsaved changes"
     priority: P3
-    status: pending
-    gate1: pending
-    gate2: pending
-
-  - story_id: story-49-9
-    title: "BUG — attendances table manquante remote (migration)"
     status: done
     gate1: pass
     gate2: pass
-    notes: "Migration 00136 — CREATE IF NOT EXISTS sur 4 tables (session_attendees, attendances, coach_presence_confirmations, block_checkins). Toutes colonnes ALTER (00058/00062/00102/00103) intégrées inline. Trigger trg_attendance_start + 11 policies RLS guardées. WARNING INFO : migration ordering pre-existant (00058/00062 font ALTER avant CREATE par 00136 — hors scope story, problème d'architecture archive). Playwright skipped — migration pure SQL."
 
-  - story_id: story-49-10
-    title: "BUG — profiles.id → user_id + typo getUncelebratedMilestones"
+  - story_id: story-68-1
+    title: "DESIGN — Méthodologie Entraînements refonte tableau + stat cards méthodes + pictos"
+    priority: P2
     status: done
     gate1: pass
     gate2: pass
-    notes: "0 BLOCKER, 0 WARNING, 1 INFO (createdAt synthétique dans checkAcademyMilestones — non bloquant). B-CRAWLER-05 résolu. Typo getUnceledbratedMilestones → getUncelebratedMilestones corrigée dans milestones.ts + index.ts. profiles.id → user_id confirmé dans milestones.ts, admin-profile.ts, badges.ts."
 
-  - story_id: story-49-11
-    title: "BUG — session_attendees.status → attendances.status (nav badges)"
+  - story_id: story-69-9
+    title: "BUG — listAttendancesByChild 400 (session_date → scheduled_at)"
+    priority: P1
     status: done
     gate1: pass
     gate2: pass
-    notes: "6 occurrences corrigées (2 .select(), 2 types Row, 2 accesseurs). tsc --noEmit EXIT 0. Zéro BLOCKER, zéro WARNING. Rapport : _qa/reports/2026-04-07_story-49-11_gates.md"
 
-  - story_id: story-47-6
-    title: "DESIGN — Avatars couleurs hardcodées → tokens gold"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-10
+    title: "BUG — checkAcademyMilestones 406 (.single → .maybeSingle)"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
 
-  - story_id: story-47-7
-    title: "DESIGN — Gradients verts hardcodés → tokens @aureak/theme"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-2
+    title: "BUG — Label En_cours → En cours dans /stages"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
 
-  - story_id: story-47-8
-    title: "UX — Modal Évènements empty state + CTA sortie"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-1
+    title: "UX — Skeleton loading fiche séance (remplace texte Chargement…)"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
 
-  - story_id: story-47-9
-    title: "UX — Sous-pages Développement bouton retour amélioré"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-4
+    title: "UX — Empty state avec CTA dans Thèmes + Situations"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
 
-  - story_id: story-65-1
-    title: "FEATURE — Activités Hub Séances (tableau + filtres + stat cards)"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-3
+    title: "UX — Skeleton complet tile Thème semaine + hub Méthodologie"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
 
-  - story_id: story-65-2
-    title: "FEATURE — Activités Hub Présences (vue transversale groupes×séances)"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-5
+    title: "UX — Stepper visuel wizard nouvelle séance (6 étapes)"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
 
-  - story_id: story-65-3
-    title: "FEATURE — Activités Hub Évaluations (3 sous-filtres + tableau signaux)"
-    status: pending
-    gate1: pending
-    gate2: pending
+  - story_id: story-69-6
+    title: "UX — Filtre Mes séances dans /seances"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-69-7
+    title: "FEATURE — Export CSV joueurs depuis /children"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-69-8
+    title: "FEATURE — Fiche coach onglet Activité (stats + 10 dernières séances)"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
