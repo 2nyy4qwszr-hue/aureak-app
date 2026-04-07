@@ -2490,7 +2490,7 @@ export default function DashboardPage() {
         @media (max-width: 1100px) {
           /* Col droite passe en bas de col milieu */
           .dashboard-3col { flex-wrap: wrap; }
-          .dashboard-3col > div:first-child  { width: 240px; flex-shrink: 0; }
+          .dashboard-3col > div:first-child  { width: 280px; flex-shrink: 0; }
           .dashboard-3col > div:nth-child(2) { flex: 1; min-width: 300px; }
           .dashboard-3col > div:last-child   { width: 100%; }
         }
@@ -2587,9 +2587,9 @@ export default function DashboardPage() {
       <div className="dashboard-3col" style={{ display: 'flex', flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
 
       {/* ════════════════════════════════
-          COL GAUCHE — LA JOURNÉE (260px)
+          COL GAUCHE — LA JOURNÉE (280px)
       ════════════════════════════════ */}
-      <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
 
         {/* Label section */}
         <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>
@@ -2940,12 +2940,12 @@ export default function DashboardPage() {
       {/* ── FIN COL MILIEU ── */}
 
       {/* ════════════════════════════════
-          COL DROITE — PERFORMANCE (240px)
+          COL DROITE — PERFORMANCE (280px)
       ════════════════════════════════ */}
-      <div style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Label section */}
-        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase' as React.CSSProperties['textTransform'], letterSpacing: 1.5, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
           Performance
         </div>
 
@@ -2957,7 +2957,7 @@ export default function DashboardPage() {
           boxShadow      : shadows.sm,
           padding        : '16px 16px',
         }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 12, fontFamily: 'Montserrat, sans-serif', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 12, fontFamily: 'Montserrat, sans-serif', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>🏆</span> Classement XP
           </div>
 
@@ -3029,7 +3029,7 @@ export default function DashboardPage() {
 
                   {/* XP */}
                   <span style={{
-                    fontSize  : 11,
+                    fontSize  : 13,
                     fontWeight: 700,
                     color     : isPodium ? podiumBg : colors.text.muted,
                     fontFamily: 'Geist Mono, monospace',
