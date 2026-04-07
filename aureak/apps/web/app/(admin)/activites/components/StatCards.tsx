@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   // Sous-label or (neutre/négatif)
   statSub: {
     fontSize  : 12,
-    fontFamily: 'GeistMono',
+    fontFamily: 'Montserrat',
     fontWeight: '700',
     color     : colors.accent.gold,
     marginTop : 6,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   // Sous-label vert (positif)
   statSubGreen: {
     fontSize  : 12,
-    fontFamily: 'GeistMono',
+    fontFamily: 'Montserrat',
     fontWeight: '700',
     color     : colors.status.success,
     marginTop : 6,

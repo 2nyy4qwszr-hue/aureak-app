@@ -3139,10 +3139,10 @@ export default function DashboardPage() {
                     flexShrink     : 0,
                     gap            : 0,
                   }}>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 15, color: '#FFFFFF', lineHeight: 1.1 }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 15, color: colors.text.primary, lineHeight: 1.1 }}>
                       {day}
                     </div>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 10, color: '#FFFFFF', lineHeight: 1.1, opacity: 0.85 }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 10, color: colors.text.primary, lineHeight: 1.1, opacity: 0.85 }}>
                       /{month}
                     </div>
                   </div>
