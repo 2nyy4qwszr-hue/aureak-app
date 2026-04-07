@@ -1260,7 +1260,11 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
 
 // ── Dashboard Top Bar (date + météo compacte + alertes) ─────────────────────
 
-function DashboardTopBar({ pendingSessions }: { pendingSessions: number }) {
+function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: {
+  pendingSessions: number
+  upcomingSession: UpcomingSessionRow | null
+  loadingUpcoming: boolean
+}) {
   const [now,     setNow]     = useState(() => new Date())
   const [weather, setWeather] = useState<WeatherData | null>(null)
 
@@ -1285,17 +1289,17 @@ function DashboardTopBar({ pendingSessions }: { pendingSessions: number }) {
   const dateStr    = `${dayNum} ${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}`
   const statusOk   = pendingSessions === 0
 
+  const fmtHM = (iso: string) => new Date(iso).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
+
   return (
     <div style={{
       display        : 'flex',
       alignItems     : 'center',
       justifyContent : 'space-between',
-      backgroundColor: colors.light.surface,
-      border         : `1px solid ${colors.border.divider}`,
-      borderRadius   : radius.card,
-      padding        : '10px 20px',
+      backgroundColor: colors.light.primary,
+      borderBottom   : `1px solid ${colors.border.divider}`,
+      padding        : '8px 0',
       marginBottom   : 20,
-      boxShadow      : shadows.sm,
     }}>
       {/* ── Gauche : date + heure + météo + statut ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -1317,6 +1321,17 @@ function DashboardTopBar({ pendingSessions }: { pendingSessions: number }) {
               <span style={{ color: colors.text.muted, fontFamily: 'Geist, sans-serif', fontSize: 11 }}>
                 · {Math.round(weather.windSpeed)} km/h
               </span>
+            </span>
+          </>
+        )}
+        {!loadingUpcoming && upcomingSession && (
+          <>
+            <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
+            <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 13, fontWeight: 700, color: colors.text.dark }}>
+              {fmtHM(upcomingSession.scheduledAt)}
+            </span>
+            <span style={{ fontSize: 12, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>
+              {upcomingSession.groupName}
             </span>
           </>
         )}
@@ -2564,7 +2579,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Top Bar date + météo + alertes ── */}
-      <DashboardTopBar pendingSessions={pendingSessions} />
+      <DashboardTopBar pendingSessions={pendingSessions} upcomingSession={upcomingSession} loadingUpcoming={loadingUpcoming} />
 
       {/* ══════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES — STORY 67.1
