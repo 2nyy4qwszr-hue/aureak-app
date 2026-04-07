@@ -200,7 +200,7 @@ function BriefingDuJour({
 
         {/* Numéro du jour — grand */}
         <div style={{
-          fontFamily   : 'Geist Mono, monospace',
+          fontFamily   : 'Montserrat, sans-serif',
           fontWeight   : 900,
           fontSize     : 36,
           color        : colors.accent.gold,
@@ -222,7 +222,7 @@ function BriefingDuJour({
 
         {/* Heure temps réel */}
         <div style={{
-          fontFamily: 'Geist Mono, monospace',
+          fontFamily: 'Montserrat, sans-serif',
           fontWeight: 600,
           fontSize  : 15,
           color     : colors.dark.text,
@@ -258,7 +258,7 @@ function BriefingDuJour({
           fontSize  : 12,
           color     : colors.dark.textMuted,
           marginTop : 8,
-          fontFamily: 'Geist, sans-serif',
+          fontFamily: 'Montserrat, sans-serif',
         }}>
           {todaySessionsCount === 0
             ? 'Aucune séance planifiée'
@@ -448,7 +448,7 @@ function DeltaPill({ data }: { data: number[] }) {
         alignItems: 'center',
         fontSize  : 10,
         color     : colors.text.muted,
-        fontFamily: 'Geist Mono, monospace',
+        fontFamily: 'Montserrat, sans-serif',
         marginTop : 4,
       }}>
         — stable
@@ -474,7 +474,7 @@ function DeltaPill({ data }: { data: number[] }) {
       paddingBottom  : 2,
       fontSize       : 10,
       fontWeight     : 700,
-      fontFamily     : 'Geist Mono, monospace',
+      fontFamily     : 'Montserrat, sans-serif',
       marginTop      : 4,
       whiteSpace     : 'nowrap',
     }}>
@@ -569,7 +569,7 @@ function ProgressBar({ pct, label }: { pct: number | null; label: string }) {
     <div style={{ marginBottom: 11 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
         <span style={{ fontSize: 11, color: colors.text.muted }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'Geist Mono, monospace' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'Montserrat, sans-serif' }}>
           {pct !== null && pct !== undefined ? `${val}%` : '—'}
         </span>
       </div>
@@ -638,7 +638,7 @@ function ImplantationCard({ stat, groups }: ImplantationCardProps) {
             paddingBottom  : 3,
             fontSize       : 11,
             fontWeight     : 700,
-            fontFamily     : 'Geist Mono, monospace',
+            fontFamily     : 'Montserrat, sans-serif',
             position       : 'absolute',
             top            : 10,
             right          : 14,
@@ -843,7 +843,7 @@ function CountdownTile({
             </div>
           ) : (
             <div style={{
-              fontFamily: 'Geist Mono, monospace',
+              fontFamily: 'Montserrat, sans-serif',
               fontWeight: 900,
               fontSize  : 36,
               color     : colors.accent.gold,
@@ -880,10 +880,10 @@ function CountdownTile({
         </>
       ) : (
         <>
-          <div style={{ fontSize: 16, color: colors.text.secondary, fontFamily: 'Geist, sans-serif' }}>
+          <div style={{ fontSize: 16, color: colors.text.secondary, fontFamily: 'Montserrat, sans-serif' }}>
             Aucune séance dans les 24h
           </div>
-          <div style={{ fontSize: 12, color: colors.status.present, marginTop: 6, fontFamily: 'Geist, sans-serif' }}>
+          <div style={{ fontSize: 12, color: colors.status.present, marginTop: 6, fontFamily: 'Montserrat, sans-serif' }}>
             Tout est calme ✓
           </div>
         </>
@@ -1066,7 +1066,7 @@ function StreakTile({ players, loading }: { players: StreakPlayer[]; loading: bo
                       marginRight  : 4,
                       fontSize     : 11,
                       fontWeight   : 700,
-                      fontFamily   : 'Geist Mono, monospace',
+                      fontFamily   : 'Montserrat, sans-serif',
                     }}>
                       #1
                     </span>
@@ -1078,7 +1078,7 @@ function StreakTile({ players, loading }: { players: StreakPlayer[]; loading: bo
                 fontSize  : 12,
                 fontWeight: 700,
                 color     : colors.text.muted,
-                fontFamily: 'Geist Mono, monospace',
+                fontFamily: 'Montserrat, sans-serif',
                 flexShrink: 0,
               }}>
                 {p.streak}{p.streak >= 10 ? ' 🔥' : ''}
@@ -1117,7 +1117,7 @@ function AnomalyPill({ anomaly, onClick }: { anomaly: AnomalyEvent; onClick: () 
         fontWeight     : 600,
         color          : color,
         transition     : 'opacity 0.15s ease',
-        fontFamily     : 'Geist, sans-serif',
+        fontFamily     : 'Montserrat, sans-serif',
       } as React.CSSProperties}
     >
       <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
@@ -1178,7 +1178,7 @@ function AnomalyModal({
         width          : 440,
         maxWidth       : 'calc(100vw - 32px)',
         boxShadow      : shadows.lg,
-        fontFamily     : 'Geist, sans-serif',
+        fontFamily     : 'Montserrat, sans-serif',
       }}>
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -1194,7 +1194,7 @@ function AnomalyModal({
         {/* Entity */}
         {anomaly.resourceId && (
           <div style={{ fontSize: 12, color: colors.text.muted, marginBottom: 8 }}>
-            Ressource : <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11 }}>{anomaly.resourceType} / {anomaly.resourceId}</span>
+            Ressource : <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 11 }}>{anomaly.resourceType} / {anomaly.resourceId}</span>
           </div>
         )}
 
@@ -1214,14 +1214,14 @@ function AnomalyModal({
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ padding: '8px 16px', borderRadius: radius.button, border: `1px solid ${colors.border.light}`, background: 'transparent', cursor: 'pointer', fontSize: 13, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}
+            style={{ padding: '8px 16px', borderRadius: radius.button, border: `1px solid ${colors.border.light}`, background: 'transparent', cursor: 'pointer', fontSize: 13, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}
           >
             Fermer
           </button>
           <button
             onClick={handleResolveInModal}
             disabled={resolving}
-            style={{ padding: '8px 16px', borderRadius: radius.button, border: 'none', background: colors.status.success, cursor: resolving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: colors.text.primary, opacity: resolving ? 0.6 : 1, fontFamily: 'Geist, sans-serif' }}
+            style={{ padding: '8px 16px', borderRadius: radius.button, border: 'none', background: colors.status.success, cursor: resolving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, color: colors.text.primary, opacity: resolving ? 0.6 : 1, fontFamily: 'Montserrat, sans-serif' }}
           >
             {resolving ? 'Résolution…' : 'Marquer résolu ✓'}
           </button>
@@ -1251,7 +1251,7 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
       boxShadow      : shadows.md,
       zIndex         : 2000,
       animation      : 'toast-slide-in 0.2s ease',
-      fontFamily     : 'Geist, sans-serif',
+      fontFamily     : 'Montserrat, sans-serif',
     } as React.CSSProperties}>
       {message}
     </div>
@@ -1307,7 +1307,7 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
           {dateStr}
         </span>
         <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
-        <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 13, fontWeight: 600, color: colors.text.muted }}>
+        <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 600, color: colors.text.muted }}>
           {timeLabel}
         </span>
         {weather && (
@@ -1315,10 +1315,10 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
             <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
               <span style={{ fontSize: 16 }}>{wmoEmoji(weather.weatherCode)}</span>
-              <span style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 700, color: colors.text.dark }}>
+              <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: colors.text.dark }}>
                 {Math.round(weather.temperature)}°C
               </span>
-              <span style={{ color: colors.text.muted, fontFamily: 'Geist, sans-serif', fontSize: 11 }}>
+              <span style={{ color: colors.text.muted, fontFamily: 'Montserrat, sans-serif', fontSize: 11 }}>
                 · {Math.round(weather.windSpeed)} km/h
               </span>
             </span>
@@ -1327,10 +1327,10 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
         {!loadingUpcoming && upcomingSession && (
           <>
             <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
-            <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 13, fontWeight: 700, color: colors.text.dark }}>
+            <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 700, color: colors.text.dark }}>
               {fmtHM(upcomingSession.scheduledAt)}
             </span>
-            <span style={{ fontSize: 12, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>
+            <span style={{ fontSize: 12, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>
               {upcomingSession.groupName}
             </span>
           </>
@@ -1524,7 +1524,7 @@ function WeatherWidget() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
         <span style={{ fontSize: 28, lineHeight: 1 }}>{wmoEmoji(weather.weatherCode)}</span>
         <div>
-          <div style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 700, fontSize: 22, color: colors.text.dark, lineHeight: 1 }}>
+          <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 22, color: colors.text.dark, lineHeight: 1 }}>
             {Math.round(weather.temperature)}°C
           </div>
           <div style={{ fontSize: 11, color: colors.text.muted }}>
@@ -1773,7 +1773,7 @@ function AcademyScoreTile({
           {/* Hero score + niveau */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 16 }}>
             <div style={{
-              fontFamily  : 'Geist Mono, monospace',
+              fontFamily  : 'Montserrat, sans-serif',
               fontWeight  : 900,
               fontSize    : 48,
               color       : levelColor,
@@ -1842,7 +1842,7 @@ function AcademyScoreTile({
               >
                 <div style={{ fontSize: 12 }}>{icon}</div>
                 <div style={{
-                  fontFamily: 'Geist Mono, monospace',
+                  fontFamily: 'Montserrat, sans-serif',
                   fontWeight: 700,
                   fontSize  : 13,
                   color     : colors.text.dark,
@@ -1900,11 +1900,11 @@ function ActiveQuestsTile({ quests }: { quests: ActiveQuest[] }) {
         {list.map(q => (
           <div key={q.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: colors.text.dark, fontFamily: 'Geist, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, paddingRight: 8 }}>
+              <span style={{ fontSize: 12, color: colors.text.dark, fontFamily: 'Montserrat, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, paddingRight: 8 }}>
                 {q.label}
               </span>
               {q.current !== undefined && q.total !== undefined && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, fontFamily: 'Geist Mono, monospace', flexShrink: 0 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif', flexShrink: 0 }}>
                   {q.current}/{q.total}
                 </span>
               )}
@@ -2022,7 +2022,7 @@ function LeaderboardTile({
               width     : 24,
               fontSize  : isPodium ? 16 : 13,
               fontWeight: 700,
-              fontFamily: 'Geist Mono, monospace',
+              fontFamily: 'Montserrat, sans-serif',
               color     : isPodium ? podiumBg : colors.text.muted,
               textAlign : 'center',
               flexShrink: 0,
@@ -2053,7 +2053,7 @@ function LeaderboardTile({
             <span style={{
               fontSize  : 12,
               fontWeight: 700,
-              fontFamily: 'Geist Mono, monospace',
+              fontFamily: 'Montserrat, sans-serif',
               color     : isPodium ? podiumBg : colors.text.dark,
               flexShrink: 0,
             }}>
@@ -2597,7 +2597,7 @@ export default function DashboardPage() {
           padding        : '4px 10px',
           fontSize       : 11,
           fontWeight     : 600,
-          fontFamily     : 'Geist, system-ui, sans-serif',
+          fontFamily     : 'Montserrat, sans-serif',
           pointerEvents  : 'none',
         }}>
           🎯 Focus
@@ -2621,7 +2621,7 @@ export default function DashboardPage() {
             fontWeight     : 600,
             color          : colors.text.dark,
             boxShadow      : shadows.sm,
-            fontFamily     : 'Geist, system-ui, sans-serif',
+            fontFamily     : 'Montserrat, sans-serif',
             transition     : `all ${transitions.fast}`,
           }}
         >
@@ -2689,7 +2689,7 @@ export default function DashboardPage() {
                 fontSize       : 12,
                 color          : colors.text.muted,
                 fontStyle      : 'italic',
-                fontFamily     : 'Geist, sans-serif',
+                fontFamily     : 'Montserrat, sans-serif',
               }}>
                 Aucune séance prévue aujourd'hui
               </div>
@@ -2719,14 +2719,14 @@ export default function DashboardPage() {
               position       : 'relative',
               overflow       : 'hidden',
             }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: colors.accent.gold, fontFamily: 'Geist Mono, monospace' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: colors.accent.gold, fontFamily: 'Montserrat, sans-serif' }}>
                 {formatTime(session.scheduledAt)}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginTop: 2, fontFamily: 'Montserrat, sans-serif' }}>
                 {session.groupName}
               </div>
               {session.location && (
-                <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 2, fontFamily: 'Geist, sans-serif' }}>
+                <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 2, fontFamily: 'Montserrat, sans-serif' }}>
                   📍 {session.location}
                 </div>
               )}
@@ -2784,7 +2784,7 @@ export default function DashboardPage() {
             padding        : '8px 12px',
             fontSize       : 11,
             color          : colors.status.success,
-            fontFamily     : 'Geist, sans-serif',
+            fontFamily     : 'Montserrat, sans-serif',
             marginBottom   : 8,
           }}>
             Aucune anomalie active ✓
@@ -2810,7 +2810,7 @@ export default function DashboardPage() {
                     cursor         : 'pointer',
                     textAlign      : 'left',
                     width          : '100%',
-                    fontFamily     : 'Geist, sans-serif',
+                    fontFamily     : 'Montserrat, sans-serif',
                   }}
                 >
                   <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: sevColor, flexShrink: 0 }} />
@@ -2899,8 +2899,8 @@ export default function DashboardPage() {
           </div>
           <div style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>Présence</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgAttendance), fontFamily: 'Geist Mono, monospace' }}>
+              <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>Présence</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgAttendance), fontFamily: 'Montserrat, sans-serif' }}>
                 {avgAttendance !== null ? `${avgAttendance}%` : '—'}
               </span>
             </div>
@@ -2910,8 +2910,8 @@ export default function DashboardPage() {
           </div>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>Maîtrise</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgMastery), fontFamily: 'Geist Mono, monospace' }}>
+              <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>Maîtrise</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgMastery), fontFamily: 'Montserrat, sans-serif' }}>
                 {avgMastery !== null ? `${avgMastery}%` : '—'}
               </span>
             </div>
@@ -2933,7 +2933,7 @@ export default function DashboardPage() {
             <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, fontFamily: 'Montserrat, sans-serif' }}>
               Séances Clôturées
             </div>
-            <div style={{ fontSize: 14, fontWeight: 900, color: colors.accent.gold, fontFamily: 'Geist Mono, monospace' }}>
+            <div style={{ fontSize: 14, fontWeight: 900, color: colors.accent.gold, fontFamily: 'Montserrat, sans-serif' }}>
               {totalSessions > 0 ? `${closedSessions} / ${totalSessions}` : '—'}
             </div>
           </div>
@@ -2947,7 +2947,7 @@ export default function DashboardPage() {
             }} />
           </div>
           {pendingSessions > 0 && (
-            <div style={{ fontSize: 11, color: colors.status.absent, marginTop: 6, fontFamily: 'Geist, sans-serif' }}>
+            <div style={{ fontSize: 11, color: colors.status.absent, marginTop: 6, fontFamily: 'Montserrat, sans-serif' }}>
               {pendingSessions} séance{pendingSessions > 1 ? 's' : ''} en attente
             </div>
           )}
@@ -2980,16 +2980,16 @@ export default function DashboardPage() {
                 borderBottom   : `1px solid ${colors.border.divider}`,
                 alignItems     : 'center',
               }}>
-                <span style={{ fontSize: 12, color: colors.text.dark, fontFamily: 'Geist, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 12, color: colors.text.dark, fontFamily: 'Montserrat, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {impl.implantation_name}
                 </span>
-                <span style={{ fontSize: 12, color: colors.text.muted, textAlign: 'center', fontFamily: 'Geist Mono, monospace' }}>
+                <span style={{ fontSize: 12, color: colors.text.muted, textAlign: 'center', fontFamily: 'Montserrat, sans-serif' }}>
                   {impl.sessions_total ?? '—'}
                 </span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(impl.attendance_rate_pct ?? null), textAlign: 'right', fontFamily: 'Geist Mono, monospace' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(impl.attendance_rate_pct ?? null), textAlign: 'right', fontFamily: 'Montserrat, sans-serif' }}>
                   {impl.attendance_rate_pct !== null && impl.attendance_rate_pct !== undefined ? `${impl.attendance_rate_pct}%` : '—'}
                 </span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(impl.mastery_rate_pct ?? null), textAlign: 'right', fontFamily: 'Geist Mono, monospace' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(impl.mastery_rate_pct ?? null), textAlign: 'right', fontFamily: 'Montserrat, sans-serif' }}>
                   {impl.mastery_rate_pct !== null && impl.mastery_rate_pct !== undefined ? `${impl.mastery_rate_pct}%` : '—'}
                 </span>
               </div>
@@ -3027,7 +3027,7 @@ export default function DashboardPage() {
               <div key={i} className="a-skel" style={{ height: 36, borderRadius: 8, marginBottom: 6 }} />
             ))
           ) : leaderboard.length === 0 ? (
-            <div style={{ fontSize: 12, color: colors.text.subtle, textAlign: 'center', padding: '20px 0', fontFamily: 'Geist, sans-serif' }}>
+            <div style={{ fontSize: 12, color: colors.text.subtle, textAlign: 'center', padding: '20px 0', fontFamily: 'Montserrat, sans-serif' }}>
               Aucun joueur classé
             </div>
           ) : (
@@ -3093,7 +3093,7 @@ export default function DashboardPage() {
                     fontSize  : 13,
                     fontWeight: 700,
                     color     : isPodium ? podiumBg : colors.text.muted,
-                    fontFamily: 'Geist Mono, monospace',
+                    fontFamily: 'Montserrat, sans-serif',
                     flexShrink: 0,
                   }}>
                     {entry.totalXp.toLocaleString('fr-BE')}
@@ -3162,7 +3162,7 @@ const S: Record<string, React.CSSProperties> = {
     backgroundColor: colors.light.primary,
     minHeight      : '100vh',
     color          : colors.text.dark,
-    fontFamily     : 'Geist, system-ui, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     boxSizing      : 'border-box',
   },
 
@@ -3195,7 +3195,7 @@ const S: Record<string, React.CSSProperties> = {
     fontSize       : 13,
     outline        : 'none',
     cursor         : 'pointer',
-    fontFamily     : 'Geist, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     transition     : `border-color ${transitions.fast}`,
   },
   implantSelect   : {
@@ -3207,7 +3207,7 @@ const S: Record<string, React.CSSProperties> = {
     fontSize       : 13,
     outline        : 'none',
     cursor         : 'pointer',
-    fontFamily     : 'Geist, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     minWidth       : 210,
     appearance     : 'none',
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717A' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
@@ -3223,7 +3223,7 @@ const S: Record<string, React.CSSProperties> = {
     color          : colors.text.muted,
     fontSize       : 13,
     cursor         : 'pointer',
-    fontFamily     : 'Geist, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     transition     : `all ${transitions.fast}`,
     whiteSpace     : 'nowrap',
   },
@@ -3236,7 +3236,7 @@ const S: Record<string, React.CSSProperties> = {
     fontSize       : 13,
     fontWeight     : 700,
     cursor         : 'pointer',
-    fontFamily     : 'Geist, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     whiteSpace     : 'nowrap',
     alignSelf      : 'flex-end',
   },
@@ -3318,7 +3318,7 @@ const S: Record<string, React.CSSProperties> = {
     color          : colors.text.primary,
     fontSize       : 12,
     fontWeight     : 600,
-    fontFamily     : 'Geist, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     flexShrink     : 0,
     transition     : `opacity ${transitions.fast}`,
   },
@@ -3333,7 +3333,7 @@ const S: Record<string, React.CSSProperties> = {
   sectionTitle    : {
     fontSize       : 11,
     fontWeight     : 700,
-    fontFamily     : 'Geist, sans-serif',
+    fontFamily     : 'Montserrat, sans-serif',
     letterSpacing  : 1.5,
     textTransform  : 'uppercase',
     margin         : 0,
@@ -3381,7 +3381,7 @@ const S: Record<string, React.CSSProperties> = {
   implantSeances  : {
     fontSize       : 13,
     fontWeight     : 700,
-    fontFamily     : 'Geist Mono, monospace',
+    fontFamily     : 'Montserrat, sans-serif',
     color          : colors.text.dark,
   },
 
