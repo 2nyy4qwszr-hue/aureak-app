@@ -2805,17 +2805,17 @@ export default function DashboardPage() {
           gap            : 0,
         }}>
           {[
-            { label: 'Joueurs',  value: countVal(childrenTotal),          color: colors.status.present },
-            { label: 'Coachs',   value: countVal(coachesTotal),           color: colors.entity.coach   },
-            { label: 'Groupes',  value: countVal(groupsTotal),            color: colors.entity.club    },
-            { label: 'Sites',    value: stats.length > 0 ? stats.length : '—', color: colors.accent.gold },
-          ].map(({ label, value, color }, idx, arr) => (
+            { label: 'Joueurs',  value: countVal(childrenTotal) },
+            { label: 'Coachs',   value: countVal(coachesTotal)  },
+            { label: 'Groupes',  value: countVal(groupsTotal)   },
+            { label: 'Sites',    value: stats.length > 0 ? stats.length : '—' },
+          ].map(({ label, value }, idx, arr) => (
             <div key={label} style={{
               flex          : 1,
               textAlign     : 'center',
               borderRight   : idx < arr.length - 1 ? `1px solid ${colors.border.divider}` : 'none',
             }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color, fontFamily: 'Montserrat, sans-serif', lineHeight: 1 }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: colors.accent.gold, fontFamily: 'Montserrat, sans-serif', lineHeight: 1 }}>
                 {value}
               </div>
               <div style={{ fontSize: 11, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1, marginTop: 4, fontFamily: 'Montserrat, sans-serif' }}>
