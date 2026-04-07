@@ -121,7 +121,7 @@ export function StatCards({ scope }: Props) {
               {
                 width: `${Math.min(stats.evalPct, 100)}%` as unknown as number,
                 // RN Web supporte les propriétés CSS inline via style object
-                background: 'linear-gradient(90deg, #C1AC5C 0%, #f9e28c 100%)',
+                background: `linear-gradient(90deg, ${colors.accent.gold} 0%, ${colors.accent.goldPale} 100%)`,
               } as object,
             ]}
           />
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     borderRadius    : radius.cardLg,  // 24
     padding         : 16,
     borderWidth     : 1,
-    borderColor     : 'rgba(206,198,180,0.1)',
+    borderColor     : colors.border.divider,
     boxShadow       : shadows.sm,
     position        : 'relative',
   },
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     position        : 'absolute',
     top             : 16,
     right           : 16,
-    backgroundColor : 'rgba(220,198,115,0.2)',
+    backgroundColor : colors.border.gold,
     paddingHorizontal: 8,
     paddingVertical : 4,
     borderRadius    : 12,
@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
     color     : colors.accent.gold,
   },
 
-  // Badge violet (card 3)
+  // Badge violet → ambre (card 3) — violet hors charte, remplacé par warning
   badgeViolet: {
     position        : 'absolute',
     top             : 16,
     right           : 16,
-    backgroundColor : 'rgba(197,192,253,0.2)',
+    backgroundColor : colors.status.warningBg,
     paddingHorizontal: 8,
     paddingVertical : 4,
     borderRadius    : 12,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     fontSize  : 11,
     fontWeight: '600',
     fontFamily: 'Montserrat',
-    color     : '#8B5CF6',
+    color     : colors.status.warning,
   },
 
   // Label commun (uppercase, Montserrat 14px)
@@ -244,16 +244,16 @@ const styles = StyleSheet.create({
     fontSize  : 12,
     fontFamily: 'GeistMono',
     fontWeight: '700',
-    color     : '#10B981',
+    color     : colors.status.success,
     marginTop : 6,
   },
 
-  // ── Card 4 (fond gold solid #6e5d14)
+  // ── Card 4 (fond gold solid goldDark)
   cardGold: {
     flex           : 1,
     minWidth       : 160,
     minHeight      : 174,
-    backgroundColor: '#6e5d14',
+    backgroundColor: colors.accent.goldDark,
     borderRadius   : 24,
     padding        : 16,
     borderWidth    : 0,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     fontSize     : 12,
     letterSpacing: 1.8,
     textTransform: 'uppercase',
-    color        : '#f9e28c',
+    color        : colors.accent.goldPale,
     fontFamily   : 'Montserrat',
     fontWeight   : '500',
     marginBottom : 8,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   cardGoldValue: {
     fontSize  : 20,
     fontWeight: '700',
-    color     : 'white',
+    color     : colors.text.primary,
     fontFamily: 'Montserrat',
     lineHeight : 28,
   },
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   arrowIconText: {
     fontSize  : 28,
-    color     : '#f9e28c',
+    color     : colors.accent.goldPale,
     fontWeight: '700',
   },
 

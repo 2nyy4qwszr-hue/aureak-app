@@ -115,7 +115,7 @@ export function FiltresScope({ value, onChange }: Props) {
     <View style={styles.container}>
       {/* Pill Global */}
       <Pressable style={pillStyle(isActive('global'))} onPress={() => onChange({ scope: 'global' })}>
-        <AureakText style={pillTextStyle(isActive('global'))}>Global</AureakText>
+        <AureakText style={pillTextStyle(isActive('global'))}>Toutes</AureakText>
       </Pressable>
 
       {/* Pill Implantation */}

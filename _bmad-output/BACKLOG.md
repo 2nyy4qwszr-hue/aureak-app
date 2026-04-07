@@ -166,6 +166,27 @@ Référence visuelle : `_bmad-output/design-references/dashboard-redesign.png`
 
 ---
 
+### Epic 72 — Design Figma Alignment (Dashboard + Activités + Méthodologie)
+
+Alignement visuel précis des pages principales sur les maquettes Figma validées.
+Référence : `https://www.figma.com/design/HFoTEXwV01khcWelhoUtD1/Aureak-app-with-claude`
+Aucune migration DB — UI uniquement.
+
+- [ ] 72-1 : design-dashboard-sessions-sites-evenements (P2 — carte "Sessions du jour" format liste + tableau "Performance Sites" + section "Prochains événements" avec CTA — dashboard/page.tsx)
+- [ ] 72-2 : design-statcards-seances-bento-figma (P2 — 4 stat cards bento : image icon top-left, valeur Space Grotesk Bold 30px, 4ème card fond dark gold #6e5d14 — activites/components/StatCards.tsx)
+- [ ] 72-3 : design-presences-statcards-heatmap-figma (P2 — labels MOYENNE GÉNÉRALE / GROUPES SOUS 70% / TOTAL SÉANCES / TENDANCE GLOBAL + seuils heatmap 90/70/60 + cellules 48×48 — activites/presences/page.tsx)
+- [ ] 72-4 : design-evaluations-cercles-notes-avatars-figma (P2 — composant NoteCircle gold/grey + PlayerAvatar initiales + 4 stat cards correct labels — activites/evaluations/page.tsx)
+- [ ] 72-5 : design-methodologie-entrainements-statcards-bento (P2 — 4 stat cards bento : SÉANCES TOTAL / AVEC THÈME / SITUATIONS / COACHS ACTIFS — methodologie/seances/index.tsx)
+- [ ] 72-6 : bug-alpha-colors-avatars-coach-hors-charte (P1 BUG — remplacer les couleurs d'avatars coach hors charte (violet #8B5CF6, bleu #3B82F6) par une palette AUREAK-conforme rotative (gold/vert/rouge/orange/gris) — activites/components/TableauSeances.tsx) `ready-for-dev`
+- [ ] 72-7 : bug-text-natif-evenements-aureaktext (P0 BUG — remplacer les `<Text>` natifs React Native (pills, filtres, empty state) par `<AureakText>` pour garantir la police Montserrat — evenements/page.tsx)
+- [ ] 72-8 : bug-couleurs-hardcodees-activites-header-presences (P1 BUG — remplacer `#18181B` par `colors.text.dark` et `#FFFFFF` par `colors.light.surface`/`colors.text.primary` dans ActivitesHeader.tsx et presences/page.tsx) `ready-for-dev`
+- [ ] 72-9 : design-geist-montserrat-dashboard (P1 DESIGN — remplacer les 57 occurrences de 'Geist, sans-serif' par 'Montserrat, sans-serif' dans dashboard/page.tsx — charte typographique AUREAK)
+- [ ] 72-10 : bug-load-sans-await-dashboard (P1 BUG — `load()` appelé sans `await` dans `handlePresetChange` et `handleApplyCustom` → race condition sur les appels dashboard — dashboard/page.tsx) `ready-for-dev`
+
+**Dépendances** : toutes indépendantes entre elles
+
+---
+
 ### Epic 71 — Activités Polish (alignement design-refs)
 
 Micro-ajustements des pages Activités après les stories 67-2 et 67-3.
@@ -573,6 +594,33 @@ Petites améliorations à fort impact, indépendantes les unes des autres. Aucun
 - 69-6 : indépendant (modifie seances/page.tsx uniquement)
 - 69-7 : indépendant (modifie children/index.tsx uniquement)
 - 69-8 : indépendant (modifie coaches/[coachId]/page.tsx + api-client/src/admin/coaches.ts)
+
+---
+
+### Epic 73 — Design Sidebar Restructuration
+
+Nettoyage de la sidebar admin : suppression des headers de groupe redondants, renommage et simplification des items de navigation.
+Aucune migration DB — UI uniquement. Fichier cible : `_layout.tsx`.
+
+- [ ] 73-1 : design-sidebar-restructuration-labels-groupes (P1 — supprimer headers DASHBOARD/ACTIVITÉ/MÉTHODE, renommer Entraînements→Méthodologie, retirer Thèmes et Situations du sidebar)
+- [ ] 73-2 : design-activites-fond-beige-uniforme (P1 — fond `colors.light.primary` sur header ActivitesHeader + page Séances ; Présences et Évaluations déjà corrects — ActivitesHeader.tsx + activites/page.tsx) `ready-for-dev`
+- [ ] 73-3 : design-activites-filtres-temporels-light (P1 — pills AUJOURD'HUI/À VENIR/PASSÉES : filtre actif fond `colors.accent.gold` + texte blanc, inactif fond transparent + texte muted + bordure light — PseudoFiltresTemporels.tsx)
+- [ ] 73-4 : design-dashboard-journee-style-uniforme (P1 — titre "LA JOURNÉE" col gauche : fontSize 10→12, colors.text.subtle→colors.text.dark, ajouter fontFamily Montserrat — aligner sur "L'ACADÉMIE" et "PERFORMANCE" — dashboard/page.tsx ligne 2725) `ready-for-dev`
+- [ ] 73-5 : design-methodologie-methodes-cards-pleine-largeur (P2 — retirer 4 bento stats cards + useMemo associés, refondre 7 cards méthodes en flex wrap pleine largeur, fond blanc uniforme sans code couleur par méthode — methodologie/seances/index.tsx) `ready-for-dev`
+- [ ] 73-6 : bug-presences-tableau-fond-beige (P1 BUG — ScrollView backgroundColor beige manquant + tri sessions par date desc dans groupPresenceRows + empty state explicite "Aucune séance trouvée" quand allDates vide — presences/page.tsx) `ready-for-dev`
+- [ ] 73-7 : bug-evaluations-tableau-fond-beige (P1 BUG — scrollContent backgroundColor beige manquant + empty state card visuel amélioré + retrait alignItems inline redondants sur colSignal — activites/evaluations/page.tsx) `ready-for-dev`
+
+**Dépendances** : aucune — indépendant de tous les autres epics
+
+---
+
+### Epic 74 — Activités Séances : alignement référence visuelle complète
+
+Refonte visuelle de la page Activités/Séances pour correspondre précisément à la référence `Activites seances-redesign.png` : titre, bouton CTA, filtres, stat cards. Aucune migration — UI uniquement.
+
+- [ ] 74-1 : design-activites-seances-alignement-reference-visuelle (P2 — titre 28px, bouton CTA dark, #f9e28c/#6e5d14/#FFFFFF → tokens goldDark/goldPale/text.primary, "Global"→"Toutes", violet hors charte → warning — 5 fichiers) `ready-for-dev`
+
+**Dépendances** : aucune — indépendant de tous les autres epics
 
 ---
 

@@ -46,6 +46,9 @@ export const colors = {
     bronze   : '#CD7F32',  // bronze
     silver   : '#9CA3AF',  // argent
     platinum : '#E5E4E2',  // platine
+    // Or sombre / pâle — fond card premium (Story 74-1)
+    goldDark : '#6e5d14',  // or sombre — fond card Évals Complétées
+    goldPale : '#F9E28C',  // or pâle — texte sur fond gold sombre
     // Équipe B (TacticalEditor)
     teamB    : '#B03030',  // rouge foncé équipe B
   },
@@ -217,6 +220,7 @@ export const methodologyMethodColors = {
   'Goal and Player' : '#FFB800',
   'Technique'       : '#4FC3F7',
   'Situationnel'    : '#66BB6A',
+  'Performance'     : '#26A69A',
   'Décisionnel'     : '#CE93D8',
   'Intégration'     : '#F97316',
   'Perfectionnement': '#EC4899',

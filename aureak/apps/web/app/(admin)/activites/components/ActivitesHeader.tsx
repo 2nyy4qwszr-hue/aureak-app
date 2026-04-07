@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     paddingBottom    : space.sm,
   },
   pageTitle: {
-    fontSize     : 22,
+    fontSize     : 28,
     fontWeight   : '900',
     fontFamily   : 'Montserrat',
     letterSpacing: 0.5,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     borderRadius   : 1,
   },
   newBtn: {
-    backgroundColor  : colors.accent.gold,
+    backgroundColor  : colors.text.dark,
     paddingHorizontal: space.md,
     paddingVertical  : space.sm,
     borderRadius     : radius.button,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   newBtnText: {
-    color     : colors.text.dark,
+    color     : colors.accent.gold,
     fontSize  : 13,
     fontWeight: '700',
     fontFamily: 'Montserrat',
