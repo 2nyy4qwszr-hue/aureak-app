@@ -28,16 +28,16 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
           paddingHorizontal: 14,
           paddingVertical  : 5,
           borderRadius     : radius.badge,
-          backgroundColor  : isActive ? colors.text.dark : colors.light.muted,
+          backgroundColor  : isActive ? colors.accent.gold : colors.light.muted,
           borderWidth      : 1,
-          borderColor      : isActive ? colors.text.dark : colors.border.light,
+          borderColor      : isActive ? colors.accent.gold : colors.border.light,
         }
         const textStyle: TextStyle = {
           fontSize     : 11,
           fontWeight   : '700',
           fontFamily   : 'Montserrat',
           letterSpacing: 0.8,
-          color        : isActive ? colors.text.primary : colors.text.muted,
+          color        : isActive ? '#FFFFFF' : colors.text.muted,
         }
         return (
           <Pressable key={f.key} style={pillStyle} onPress={() => onChange(f.key)}>
