@@ -71,6 +71,20 @@ const MONTHS_LONG_FR = [
   'juillet','août','septembre','octobre','novembre','décembre',
 ]
 
+function SessionDetailSkeleton() {
+  return (
+    <View style={{ padding: space.xl, gap: space.md }}>
+      <View style={{ height: 80, backgroundColor: colors.light.muted, borderRadius: radius.card, opacity: 0.6 }} />
+      <View style={{ flexDirection: 'row', gap: space.md }}>
+        {[0, 1, 2].map(i => (
+          <View key={i} style={{ flex: 1, height: 60, backgroundColor: colors.light.muted, borderRadius: radius.card, opacity: 0.6 }} />
+        ))}
+      </View>
+      <View style={{ height: 200, backgroundColor: colors.light.muted, borderRadius: radius.card, opacity: 0.6 }} />
+    </View>
+  )
+}
+
 function formatDateLong(scheduledAt: string): string {
   const d = new Date(scheduledAt)
   const weekday = DAYS_LONG_FR[d.getDay()]
@@ -1677,8 +1691,8 @@ export default function SessionDetailPage() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement…</AureakText>
+      <View style={[styles.container, { backgroundColor: colors.light.primary }]}>
+        <SessionDetailSkeleton />
       </View>
     )
   }
