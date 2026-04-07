@@ -5,7 +5,7 @@ import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, fonts } from '@aureak/theme'
+import { colors, space, radius, fonts, shadows } from '@aureak/theme'
 import {
   listEvaluationsAdmin,
 } from '@aureak/api-client'
@@ -72,6 +72,15 @@ function signalToScore(s: string): number {
 
 function computeScore(row: AdminEvalRow): number {
   return (signalToScore(row.receptivite) + signalToScore(row.goutEffort) + signalToScore(row.attitude)) / 3
+}
+
+/**
+ * Retourne la couleur token selon le score numérique 0–10.
+ */
+function noteColor(score: number): string {
+  if (score >= 7) return colors.status.success
+  if (score >= 5) return colors.status.attention
+  return colors.status.absent
 }
 
 /**
@@ -437,17 +446,38 @@ export default function EvaluationsPage() {
 
                     {/* Réceptivité */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
-                      <SignalDot signal={row.receptivite} />
+                      {(() => {
+                        const score = signalToScore(row.receptivite)
+                        return (
+                          <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
+                            {score.toFixed(1)}
+                          </AureakText>
+                        )
+                      })()}
                     </View>
 
                     {/* Effort */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
-                      <SignalDot signal={row.goutEffort} />
+                      {(() => {
+                        const score = signalToScore(row.goutEffort)
+                        return (
+                          <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
+                            {score.toFixed(1)}
+                          </AureakText>
+                        )
+                      })()}
                     </View>
 
                     {/* Attitude */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
-                      <SignalDot signal={row.attitude} />
+                      {(() => {
+                        const score = signalToScore(row.attitude)
+                        return (
+                          <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
+                            {score.toFixed(1)}
+                          </AureakText>
+                        )
+                      })()}
                     </View>
 
                     {/* Top Séance */}
@@ -459,8 +489,8 @@ export default function EvaluationsPage() {
 
                     {/* Commentaire */}
                     <View style={[styles.cell, styles.colComment]}>
-                      <AureakText style={styles.commentText} numberOfLines={2}>
-                        —
+                      <AureakText style={styles.commentText} numberOfLines={1}>
+                        {truncate((row as AdminEvalRow & { comment?: string }).comment ?? null, 40)}
                       </AureakText>
                     </View>
                   </Pressable>
@@ -553,38 +583,43 @@ const styles = StyleSheet.create({
     flexWrap         : 'wrap',
   },
   statCard: {
-    flex             : 1,
-    minWidth         : 160,
-    backgroundColor  : colors.light.surface,
-    borderRadius     : radius.card,
-    padding          : space.md,
-    borderWidth      : 1,
-    borderColor      : colors.border.divider,
+    flex           : 1,
+    minWidth       : 160,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore web shadow
+    boxShadow      : shadows.sm,
   },
   statCardDark: {
-    backgroundColor: colors.dark.surface,
-    borderColor    : colors.dark.surface,
+    backgroundColor: colors.accent.gold + '22',
+    borderColor    : colors.border.goldSolid,
   },
   statValue: {
-    fontFamily: fonts.mono,
-    fontSize  : 24,
-    fontWeight: '700',
-    color     : colors.text.dark,
+    fontFamily  : 'Montserrat',
+    fontSize    : 28,
+    fontWeight  : '900',
+    color       : colors.text.dark,
+    lineHeight  : 36,
     marginBottom: 4,
   },
   statValueDark: {
     color: colors.accent.gold,
   },
   statLabel: {
-    fontFamily: fonts.display,
-    fontSize  : 11,
-    fontWeight: '600',
-    color     : colors.text.muted,
+    fontFamily   : 'Montserrat',
+    fontSize     : 10,
+    fontWeight   : '700',
+    color        : colors.text.muted,
     textTransform: 'uppercase' as const,
-    letterSpacing: 0.6,
+    letterSpacing: 1,
+    marginTop    : 4,
   },
   statLabelDark: {
-    color: colors.text.secondary,
+    color: colors.text.muted,
   },
   statSub: {
     fontFamily: fonts.body,
@@ -593,7 +628,7 @@ const styles = StyleSheet.create({
     marginTop : 4,
   },
   statSubDark: {
-    color: colors.accent.gold,
+    color: colors.text.subtle,
   },
 
   // ── Eval Type Pills ───────────────────────────────────────────────────────
@@ -636,24 +671,24 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection    : 'row',
     alignItems       : 'center',
-    backgroundColor  : colors.light.elevated,
+    backgroundColor  : colors.light.muted,
     paddingVertical  : 10,
     paddingHorizontal: space.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
   colHeader: {
-    fontFamily   : fonts.display,
+    fontFamily   : 'Montserrat',
     fontSize     : 10,
     fontWeight   : '700',
-    letterSpacing: 0.8,
-    color        : colors.text.muted,
+    letterSpacing: 1,
+    color        : colors.text.subtle,
     textTransform: 'uppercase' as const,
   },
   tableRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
-    paddingVertical  : 10,
+    minHeight        : 52,
     paddingHorizontal: space.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
@@ -694,11 +729,15 @@ const styles = StyleSheet.create({
     fontSize  : 12,
     color     : colors.text.muted,
   },
+  noteValue: {
+    fontFamily: fonts.body,
+    fontSize  : 13,
+    fontWeight: '700',
+  },
   commentText: {
     fontFamily: fonts.body,
-    fontSize  : 11,
+    fontSize  : 12,
     color     : colors.text.muted,
-    fontStyle : 'italic',
   },
   starIcon: {
     fontSize: 14,
@@ -709,14 +748,14 @@ const styles = StyleSheet.create({
     width          : 32,
     height         : 32,
     borderRadius   : 16,
-    backgroundColor: colors.accent.goldLight,
+    backgroundColor: colors.accent.gold + '33',
     justifyContent : 'center',
     alignItems     : 'center',
     flexShrink     : 0,
   },
   avatarText: {
-    fontFamily: fonts.display,
-    fontSize  : 11,
+    fontFamily: 'Montserrat',
+    fontSize  : 12,
     fontWeight: '700',
     color     : colors.text.dark,
   },
