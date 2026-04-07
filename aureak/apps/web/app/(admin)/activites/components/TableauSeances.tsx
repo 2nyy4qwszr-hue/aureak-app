@@ -131,14 +131,6 @@ function MethodeBadge({ method }: { method: string | null }) {
 
 // ── Avatars Coach ─────────────────────────────────────────────────────────────
 
-const ALPHA_COLORS = [
-  colors.accent.gold,
-  colors.status.success,
-  colors.accent.red,
-  colors.status.warning,
-  colors.text.muted,
-]
-
 function getInitials(name: string): string {
   const parts = name.trim().split(' ')
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -164,7 +156,6 @@ function CoachAvatars({
     <View style={styles.avatarRow}>
       {shown.map((id, i) => {
         const name = coachNames.get(id) ?? '?'
-        const bg   = ALPHA_COLORS[i % ALPHA_COLORS.length]
         const init = getInitials(name)
         const avatarStyle: ViewStyle = {
           width          : 28,
@@ -174,8 +165,8 @@ function CoachAvatars({
           alignItems     : 'center',
           borderWidth    : 1.5,
           borderColor    : colors.light.surface,
-          backgroundColor: bg,
-          marginLeft     : i > 0 ? -8 : 0,
+          backgroundColor: colors.accent.gold + '33',
+          marginLeft     : i > 0 ? -6 : 0,
         }
         return (
           <View key={id} style={avatarStyle}>
@@ -184,7 +175,7 @@ function CoachAvatars({
         )
       })}
       {extra > 0 && (
-        <View style={[styles.avatarExtra, { marginLeft: -8 }]}>
+        <View style={[styles.avatarExtra, { marginLeft: -6 }]}>
           <AureakText style={styles.avatarExtraText}>+{extra}</AureakText>
         </View>
       )}
@@ -194,23 +185,25 @@ function CoachAvatars({
 
 // ── Barre présence ────────────────────────────────────────────────────────────
 
+function rateColor(pct: number): string {
+  if (pct >= 80) return colors.status.present
+  if (pct >= 60) return colors.status.warning
+  return colors.status.absent
+}
+
 function PresenceBar({ present, total }: { present: number; total: number }) {
   if (total === 0) return <AureakText style={styles.cellMuted}>—</AureakText>
-  const pct      = (present / total) * 100
-  const barColor = pct >= 80
-    ? colors.status.present
-    : pct >= 60
-      ? colors.status.warning
-      : colors.status.absent
+  const pct       = (present / total) * 100
+  const textColor = rateColor(pct)
   const fillStyle: ViewStyle = {
     height         : 4,
     borderRadius   : 2,
-    backgroundColor: barColor,
+    backgroundColor: textColor,
     width          : `${Math.min(pct, 100)}%` as unknown as number,
   }
   return (
     <View style={styles.presenceCell}>
-      <AureakText style={styles.presenceText}>{present}/{total}</AureakText>
+      <AureakText style={StyleSheet.flatten([styles.presenceText, { color: textColor }])}>{present} / {total}</AureakText>
       <View style={styles.presenceBarBg}>
         <View style={fillStyle} />
       </View>
@@ -356,8 +349,8 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
         const rowStyle: ViewStyle = {
           flexDirection    : 'row',
           alignItems       : 'center',
-          paddingVertical  : 12,
-          paddingHorizontal: space.md,
+          minHeight        : 52,
+          paddingHorizontal: 16,
           borderBottomWidth: 1,
           borderBottomColor: colors.border.divider,
           backgroundColor  : idx % 2 === 0 ? colors.light.surface : colors.light.muted,
@@ -461,8 +454,8 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection    : 'row',
     backgroundColor  : colors.light.muted,
-    paddingVertical  : space.sm,
-    paddingHorizontal: space.md,
+    paddingVertical  : 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
@@ -471,8 +464,8 @@ const styles = StyleSheet.create({
     fontSize     : 10,
     fontWeight   : '700',
     fontFamily   : 'Montserrat',
-    letterSpacing: 0.8,
-    color        : colors.text.muted,
+    letterSpacing: 1,
+    color        : colors.text.subtle,
     textTransform: 'uppercase',
   },
   colHeaderChevron: {
@@ -480,8 +473,8 @@ const styles = StyleSheet.create({
     fontSize     : 10,
     fontWeight   : '700',
     fontFamily   : 'Montserrat',
-    letterSpacing: 0.8,
-    color        : colors.text.muted,
+    letterSpacing: 1,
+    color        : colors.text.subtle,
     textTransform: 'uppercase',
   },
   colCell: {
@@ -491,7 +484,7 @@ const styles = StyleSheet.create({
   },
   colDate: {
     flex      : 1,
-    fontSize  : 12,
+    fontSize  : 13,
     fontFamily: 'Montserrat',
     color     : colors.text.dark,
     fontWeight: '500',
@@ -535,7 +528,7 @@ const styles = StyleSheet.create({
     gap : 4,
   },
   presenceText: {
-    fontSize  : 12,
+    fontSize  : 13,
     fontWeight: '600',
     fontFamily: 'Montserrat',
     color     : colors.text.dark,
@@ -552,10 +545,10 @@ const styles = StyleSheet.create({
     alignItems   : 'center',
   },
   avatarText: {
-    fontSize  : 10,
+    fontSize  : 11,
     fontWeight: '700',
     fontFamily: 'Montserrat',
-    color     : colors.text.primary,
+    color     : colors.text.dark,
   },
   avatarExtra: {
     width          : 28,

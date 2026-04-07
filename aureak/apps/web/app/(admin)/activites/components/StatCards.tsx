@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { listSessionsWithAttendance } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows, fonts } from '@aureak/theme'
+import { colors, space, radius, shadows } from '@aureak/theme'
 import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { ScopeState } from './FiltresScope'
 
@@ -131,6 +131,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
     // Web box shadow via style object (RN web supports boxShadow)
     boxShadow      : shadows.sm,
   } as unknown as object,
@@ -143,20 +145,19 @@ const styles = StyleSheet.create({
     opacity        : 0.6,
   },
   statValue: {
-    fontSize  : 32,
-    fontWeight: '700',
-    fontFamily: fonts.mono,
+    fontSize  : 28,
+    fontWeight: '900',
+    fontFamily: 'Montserrat',
     color     : colors.text.dark,
-    lineHeight: 40,
+    lineHeight: 36,
   },
   statLabel: {
-    fontSize     : 12,
-    fontWeight   : '600',
+    fontSize     : 10,
     fontFamily   : 'Montserrat',
     color        : colors.text.muted,
     marginTop    : 2,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   statSub: {
     fontSize  : 12,
