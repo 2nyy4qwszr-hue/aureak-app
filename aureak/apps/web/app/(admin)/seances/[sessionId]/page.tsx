@@ -553,6 +553,20 @@ const actSt = StyleSheet.create({
 const styles = StyleSheet.create({
   container       : { flex: 1, backgroundColor: colors.light.primary },
   content         : { padding: space.xl, gap: space.lg },
+  // Story 65-9 — Bouton retour premium
+  backBtn: {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    alignSelf      : 'flex-start',
+    paddingVertical: space.xs,
+    marginBottom   : space.sm,
+  },
+  backBtnText: {
+    color     : colors.accent.gold,
+    fontSize  : 13,
+    fontWeight: '600',
+    fontFamily: 'Montserrat',
+  },
   breadcrumb      : { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.xs },
   breadcrumbLink  : { color: colors.accent.gold, fontWeight: '600' },
   breadcrumbSep   : { color: colors.text.muted },
@@ -1080,6 +1094,9 @@ export default function SessionDetailPage() {
   // Story 61.5 — Offline mode
   const { isOnline } = useOfflineCache()
 
+  // Story 65-9 — Unsaved attendance guard
+  const [hasUnsavedAttendance, setHasUnsavedAttendance] = useState(false)
+
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -1158,6 +1175,8 @@ export default function SessionDetailPage() {
         const count = notPresentMembers.length
         setAllPresentToast(`✓ ${count} présence${count > 1 ? 's' : ''} enregistrée${count > 1 ? 's' : ''}`)
         setTimeout(() => setAllPresentToast(null), 3500)
+        // Story 65-9 — Marquer présences non confirmées
+        setHasUnsavedAttendance(true)
       }
     } finally {
       setAllPresentSaving(false)
@@ -1564,6 +1583,9 @@ export default function SessionDetailPage() {
         if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] recordAttendance error:', error)
         // Auto-dismiss after 4s
         setTimeout(() => setAttendanceError(null), 4000)
+      } else {
+        // Story 65-9 — Marquer présences non confirmées
+        setHasUnsavedAttendance(true)
       }
     } finally {
       setAttendanceToggling(prev => {
@@ -1627,6 +1649,32 @@ export default function SessionDetailPage() {
     }
   }
 
+  // Story 65-9 — Navigation guard : confirmation si présences non confirmées
+  const handleBackNavigation = () => {
+    if (hasUnsavedAttendance) {
+      const ok = typeof window !== 'undefined'
+        ? window.confirm('Des présences ont été marquées. Quitter sans valider ?')
+        : true
+      if (!ok) return
+    }
+    router.push('/(admin)/activites')
+  }
+
+  // Story 65-9 — beforeunload guard pour rechargement / fermeture onglet
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedAttendance) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', handler)
+      return () => window.removeEventListener('beforeunload', handler)
+    }
+    return undefined
+  }, [hasUnsavedAttendance])
+
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -1646,7 +1694,7 @@ export default function SessionDetailPage() {
         </AureakText>
         <Pressable
           style={{ marginTop: space.lg, paddingHorizontal: space.md, paddingVertical: space.sm, backgroundColor: colors.accent.gold, borderRadius: 8 }}
-          onPress={() => router.push('/seances' as never)}
+          onPress={() => router.push('/(admin)/activites')}
         >
           <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
             ← Retour aux séances
@@ -1688,10 +1736,15 @@ export default function SessionDetailPage() {
         </View>
       )}
 
+      {/* Story 65-9 — Bouton retour vers hub activités */}
+      <Pressable onPress={handleBackNavigation} style={styles.backBtn}>
+        <AureakText style={styles.backBtnText}>← Séances</AureakText>
+      </Pressable>
+
       {/* Breadcrumb */}
       <View style={[styles.breadcrumb, { justifyContent: 'space-between' }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
-          <Pressable onPress={() => router.push('/seances' as never)}>
+          <Pressable onPress={handleBackNavigation}>
             <AureakText variant="caption" style={styles.breadcrumbLink}>Séances</AureakText>
           </Pressable>
           <AureakText variant="caption" style={styles.breadcrumbSep}>/</AureakText>
