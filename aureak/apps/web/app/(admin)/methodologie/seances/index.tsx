@@ -86,6 +86,16 @@ export default function SeancesPage() {
     count : sessions.filter(s => s.method === m).length,
   }))
 
+  // Stat cards bento — métriques calculées côté client
+  const totalActifs  = React.useMemo(() => sessions.filter(s => s.isActive).length, [sessions])
+  const nbMethodes   = React.useMemo(() => new Set(sessions.map(s => s.method).filter(Boolean)).size, [sessions])
+  // TODO: activer quand l'API renvoie themes[] dans MethodologySession
+  const nbAvecTheme  = 0
+  const txCompletude = React.useMemo(
+    () => sessions.length === 0 ? 0 : Math.round(sessions.filter(s => s.isActive).length / sessions.length * 100),
+    [sessions]
+  )
+
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
@@ -109,6 +119,30 @@ export default function SeancesPage() {
               </Pressable>
             )
           })}
+        </View>
+      </View>
+
+      {/* ── Stat cards bento — vue synthétique ── */}
+      <View style={st.bentoRow}>
+        <View style={st.bentoCard}>
+          <AureakText style={st.bentoPicto}>🎯</AureakText>
+          <AureakText style={st.bentoValue}>{totalActifs}</AureakText>
+          <AureakText style={st.bentoLabel}>ENTRAÎNEMENTS{'\n'}ACTIFS</AureakText>
+        </View>
+        <View style={st.bentoCard}>
+          <AureakText style={st.bentoPicto}>📚</AureakText>
+          <AureakText style={st.bentoValue}>{nbMethodes}</AureakText>
+          <AureakText style={st.bentoLabel}>MÉTHODES{'\n'}UTILISÉES</AureakText>
+        </View>
+        <View style={st.bentoCard}>
+          <AureakText style={st.bentoPicto}>🏷️</AureakText>
+          <AureakText style={st.bentoValue}>{nbAvecTheme}</AureakText>
+          <AureakText style={st.bentoLabel}>AVEC{'\n'}THÈME</AureakText>
+        </View>
+        <View style={[st.bentoCard, st.bentoCardDark]}>
+          <AureakText style={st.bentoPicto}>📊</AureakText>
+          <AureakText style={[st.bentoValue, { color: '#FFFFFF' }] as never}>{txCompletude}%</AureakText>
+          <AureakText style={[st.bentoLabel, { color: 'rgba(255,255,255,0.75)' }] as never}>TAUX{'\n'}COMPLÉTUDE</AureakText>
         </View>
       </View>
 
@@ -267,7 +301,7 @@ export default function SeancesPage() {
               >
                 {/* METHODE */}
                 <View style={{ width: COL_WIDTHS.method, alignItems: 'center' }}>
-                  <View style={[st.methodCircle, { backgroundColor: methodColor + '22' }]}>
+                  <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
                     <AureakText style={st.methodPicto}>{picto}</AureakText>
                   </View>
                 </View>
@@ -380,6 +414,46 @@ const st = StyleSheet.create({
     height         : 2,
     backgroundColor: colors.accent.gold,
     borderRadius   : 1,
+  },
+
+  // Stat cards bento
+  bentoRow: {
+    flexDirection: 'row',
+    gap          : space.sm,
+  },
+  bentoCard: {
+    flex             : 1,
+    backgroundColor  : colors.light.surface,
+    borderRadius     : 12,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    paddingHorizontal: space.md,
+    paddingVertical  : 14,
+    alignItems       : 'center',
+    gap              : 4,
+    // @ts-ignore web
+    boxShadow        : shadows.sm,
+  },
+  bentoCardDark: {
+    backgroundColor: '#6E5D14',
+    borderColor    : '#6E5D14',
+  },
+  bentoPicto: {
+    fontSize: 22,
+  },
+  bentoValue: {
+    fontSize  : 26,
+    fontWeight: '900',
+    fontFamily: 'Montserrat',
+    color     : colors.text.dark,
+  },
+  bentoLabel: {
+    fontSize     : 9,
+    fontWeight   : '700',
+    color        : colors.text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    textAlign    : 'center',
   },
 
   // Stat cards
