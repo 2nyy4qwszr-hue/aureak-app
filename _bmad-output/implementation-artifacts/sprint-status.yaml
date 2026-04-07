@@ -348,3 +348,9 @@ development_status:
   epic-50: in-progress
   50-11-dashboard-v2-refonte-layout-trois-zones: done
   epic-50-retrospective: optional
+
+
+  # Epic 72 : Bugfix & polish tableau des séances
+  epic-72: in-progress
+  72-6-bug-alpha-colors-avatars-coach-hors-charte: done
+  epic-72-retrospective: optional

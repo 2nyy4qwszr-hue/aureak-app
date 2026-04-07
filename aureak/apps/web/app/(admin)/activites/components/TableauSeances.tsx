@@ -131,6 +131,16 @@ function MethodeBadge({ method }: { method: string | null }) {
 
 // ── Avatars Coach ─────────────────────────────────────────────────────────────
 
+// Palette avatars coach — couleurs conformes à la charte AUREAK uniquement
+// Aucune couleur violette (#8B5CF6) ni bleue (#3B82F6) autorisée
+const COACH_AVATAR_COLORS = [
+  colors.accent.gold,    // '#C1AC5C' — or champagne AUREAK
+  colors.status.success, // '#10B981' — vert émeraude
+  colors.accent.red,     // '#E05252' — rouge CTA
+  colors.status.warning, // '#F59E0B' — ambre/orange
+  colors.accent.silver,  // '#9CA3AF' — argent/gris
+] as const
+
 function getInitials(name: string): string {
   const parts = name.trim().split(' ')
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -165,7 +175,7 @@ function CoachAvatars({
           alignItems     : 'center',
           borderWidth    : 1.5,
           borderColor    : colors.light.surface,
-          backgroundColor: colors.accent.gold + '33',
+          backgroundColor: COACH_AVATAR_COLORS[i % COACH_AVATAR_COLORS.length] + '33',
           marginLeft     : i > 0 ? -6 : 0,
         }
         return (
