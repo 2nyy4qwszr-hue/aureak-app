@@ -2271,18 +2271,18 @@ export default function DashboardPage() {
     }
   }
 
-  const handlePresetChange = (p: Preset) => {
+  const handlePresetChange = async (p: Preset) => {
     setPreset(p)
     if (p !== 'custom') {
       const { from: f, to: t } = getPresetDates(p)
       setFrom(f); setTo(t)
-      load(f, t)
+      await load(f, t)
     }
   }
 
-  const handleApplyCustom = () => {
+  const handleApplyCustom = async () => {
     setFrom(customFrom); setTo(customTo)
-    load(customFrom, customTo)
+    await load(customFrom, customTo)
   }
 
   useEffect(() => { load() }, [])

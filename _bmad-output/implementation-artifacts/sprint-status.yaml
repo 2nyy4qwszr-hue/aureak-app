@@ -356,4 +356,5 @@ development_status:
   72-7-bug-text-natif-evenements-aureaktext: done
   72-8-bug-couleurs-hardcodees-activites-header-presences: done
   72-9-design-geist-montserrat-dashboard: done
+  72-10-bug-load-sans-await-dashboard: done
   epic-72-retrospective: optional
