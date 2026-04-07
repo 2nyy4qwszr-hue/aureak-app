@@ -170,9 +170,6 @@ export function FiltresScope({ value, onChange }: Props) {
             {isActive('groupe') ? groupLabel : 'Groupe ▾'}
           </AureakText>
         </Pressable>
-        {!groupPillEnabled && (
-          <AureakText style={styles.pillHint}>Choisir une implantation d&apos;abord</AureakText>
-        )}
         {showGroupDropdown && groupPillEnabled && (
           <View style={styles.dropdown}>
             {groups.length === 0 && (
@@ -218,6 +215,9 @@ export function FiltresScope({ value, onChange }: Props) {
               placeholderTextColor={colors.text.muted}
               value={joueurSearch}
               onChangeText={setJoueurSearch}
+              autoComplete="off"
+              autoCorrect={false}
+              {...({ 'data-lpignore': 'true', 'data-form-type': 'other' } as object)}
             />
             <ScrollView style={{ maxHeight: 200 }}>
               {joueurs.map(j => (
@@ -245,28 +245,28 @@ export function FiltresScope({ value, onChange }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    gap              : space.sm,
-    paddingHorizontal: space.lg,
-    paddingVertical  : space.md,
-    flexWrap         : 'wrap',
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.sm,
+    flexWrap     : 'wrap',
   },
   dropdownWrapper: {
     position: 'relative',
+    zIndex  : 9999,
   },
   dropdown: {
     position       : 'absolute',
     top            : 38,
     left           : 0,
-    zIndex         : 100,
+    zIndex         : 9999,
     backgroundColor: colors.light.surface,
     borderRadius   : radius.xs,
     borderWidth    : 1,
     borderColor    : colors.border.light,
     width          : 220,
-    // Use elevation for React Native box shadow equivalent
-    elevation      : 4,
+    elevation      : 20,
+    // @ts-ignore web
+    boxShadow      : '0 8px 24px rgba(0,0,0,0.12)',
   },
   dropdownItem: {
     paddingHorizontal: space.md,
@@ -278,13 +278,6 @@ const styles = StyleSheet.create({
     fontSize  : 13,
     fontFamily: 'Montserrat',
     color     : colors.text.dark,
-  },
-  pillHint: {
-    fontSize  : 10,
-    fontFamily: 'Montserrat',
-    color     : colors.text.muted,
-    marginTop : 2,
-    textAlign : 'center',
   },
   dropdownEmpty: {
     padding  : space.md,

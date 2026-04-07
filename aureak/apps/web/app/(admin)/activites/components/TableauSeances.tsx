@@ -574,8 +574,9 @@ const styles = StyleSheet.create({
     color     : colors.text.dark,
   },
   emptyRow: {
-    padding   : space.xl,
-    alignItems: 'center',
+    padding        : space.xl,
+    alignItems     : 'center',
+    backgroundColor: colors.light.surface,
   },
   emptyText: {
     fontSize  : 14,

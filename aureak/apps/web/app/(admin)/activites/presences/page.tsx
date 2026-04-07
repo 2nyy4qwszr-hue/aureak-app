@@ -1184,8 +1184,11 @@ export default function PresencesPage() {
     <View style={pageStyles.container}>
       <ActivitesHeader />
       <ScrollView style={pageStyles.scroll} contentContainerStyle={pageStyles.scrollContent}>
-        <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />
-        <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+        {/* Filtres scope + temporels sur une ligne */}
+        <View style={pageStyles.filtresRow}>
+          <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />
+          <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+        </View>
 
         {/* Stat cards */}
         <StatCardsPresences sessions={sessions} />
@@ -1252,6 +1255,14 @@ const pageStyles = StyleSheet.create({
   scrollContent: {
     paddingTop   : space.md,
     paddingBottom: space.xxl,
+  },
+  filtresRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
   },
   loadingWrapper: {
     padding    : space.xl,

@@ -51,10 +51,8 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection    : 'row',
-    gap              : space.sm,
-    paddingHorizontal: space.lg,
-    paddingBottom    : space.md,
-    flexWrap         : 'wrap',
+    flexDirection: 'row',
+    gap          : space.sm,
+    flexWrap     : 'wrap',
   },
 })

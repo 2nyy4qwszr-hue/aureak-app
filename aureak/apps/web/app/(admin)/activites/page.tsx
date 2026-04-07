@@ -23,11 +23,11 @@ export default function ActivitesPage() {
       <ActivitesHeader />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Filtres scope — ligne 1 */}
-        <FiltresScope value={scope} onChange={setScope} />
-
-        {/* Pseudo-filtres temporels — ligne 2 */}
-        <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+        {/* Filtres scope + temporels sur une ligne */}
+        <View style={styles.filtresRow}>
+          <FiltresScope value={scope} onChange={setScope} />
+          <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+        </View>
 
         {/* 4 Stat cards */}
         <StatCards scope={scope} />
@@ -49,5 +49,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: space.md,
+  },
+  filtresRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
   },
 })
