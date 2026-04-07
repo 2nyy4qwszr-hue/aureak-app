@@ -108,9 +108,18 @@ Non applicable — fix purement typographique, aucune donnée ni logique métier
 
 ### Agent Model Used
 
+claude-sonnet-4-6
+
 ### Debug Log References
 
+- grep "Geist" dashboard/page.tsx → 0 occurrences après remplacement
+- npx tsc --noEmit --skipLibCheck → 0 erreurs TypeScript
+
 ### Completion Notes List
+
+- 4 occurrences de `'Geist, sans-serif'` remplacées par `'Montserrat, sans-serif'`
+- 4 occurrences de `'Geist Mono, monospace'` remplacées par `'Montserrat, sans-serif'`
+- Total : 8 occurrences remplacées
 
 ### File List
 

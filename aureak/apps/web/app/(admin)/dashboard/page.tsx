@@ -2747,7 +2747,7 @@ export default function DashboardPage() {
             fontSize       : 12,
             color          : colors.text.muted,
             fontStyle      : 'italic',
-            fontFamily     : 'Geist, sans-serif',
+            fontFamily     : 'Montserrat, sans-serif',
           }}>
             Aucune séance aujourd'hui
           </div>
@@ -2776,7 +2776,7 @@ export default function DashboardPage() {
               >
                 {/* Heure */}
                 <div style={{
-                  fontFamily : 'Geist Mono, monospace',
+                  fontFamily : 'Montserrat, sans-serif',
                   fontWeight : 700,
                   fontSize   : 14,
                   color      : isEnCours ? colors.status.successText : colors.text.dark,
@@ -2814,7 +2814,7 @@ export default function DashboardPage() {
                   fontWeight     : 700,
                   color          : colors.accent.gold,
                   flexShrink     : 0,
-                  fontFamily     : 'Geist Mono, monospace',
+                  fontFamily     : 'Montserrat, sans-serif',
                 }}>
                   {session.coachInitials}
                 </div>
@@ -3105,7 +3105,7 @@ export default function DashboardPage() {
               ))}
             </>
           ) : upcomingStages.length === 0 ? (
-            <div style={{ fontSize: 12, color: colors.text.muted, fontStyle: 'italic', fontFamily: 'Geist, sans-serif' }}>
+            <div style={{ fontSize: 12, color: colors.text.muted, fontStyle: 'italic', fontFamily: 'Montserrat, sans-serif' }}>
               Aucun événement prévu
             </div>
           ) : (
@@ -3139,10 +3139,10 @@ export default function DashboardPage() {
                     flexShrink     : 0,
                     gap            : 0,
                   }}>
-                    <div style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 900, fontSize: 15, color: '#FFFFFF', lineHeight: 1.1 }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 15, color: '#FFFFFF', lineHeight: 1.1 }}>
                       {day}
                     </div>
-                    <div style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 600, fontSize: 10, color: '#FFFFFF', lineHeight: 1.1, opacity: 0.85 }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 10, color: '#FFFFFF', lineHeight: 1.1, opacity: 0.85 }}>
                       /{month}
                     </div>
                   </div>
@@ -3153,7 +3153,7 @@ export default function DashboardPage() {
                       fontSize    : 13,
                       fontWeight  : 600,
                       color       : colors.text.dark,
-                      fontFamily  : 'Geist, sans-serif',
+                      fontFamily  : 'Montserrat, sans-serif',
                       overflow    : 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace  : 'nowrap',
@@ -3177,7 +3177,7 @@ export default function DashboardPage() {
                       }}>
                         STAGE
                       </div>
-                      <div style={{ fontSize: 11, color: colors.text.subtle, fontFamily: 'Geist, sans-serif' }}>
+                      <div style={{ fontSize: 11, color: colors.text.subtle, fontFamily: 'Montserrat, sans-serif' }}>
                         {stage.participantCount} inscrit{stage.participantCount !== 1 ? 's' : ''}
                       </div>
                     </div>
