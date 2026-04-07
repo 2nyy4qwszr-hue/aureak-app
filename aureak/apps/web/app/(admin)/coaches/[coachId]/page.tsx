@@ -3,12 +3,11 @@
 // Story 59-5 — Quêtes hebdomadaires coaches
 // Taux de remplissage débrief, taux de présence, délai moyen
 import { useEffect, useState } from 'react'
-import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach, getCoachWeeklyQuests, assignCoachWeeklyQuests } from '@aureak/api-client'
-import type { CoachGroupEntry } from '@aureak/api-client'
+import { useLocalSearchParams } from 'expo-router'
+import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach, getCoachWeeklyQuests, assignCoachWeeklyQuests, getCoachSessionStats, listCoachRecentSessions } from '@aureak/api-client'
+import type { CoachGroupEntry, CoachSessionStats, CoachRecentSession } from '@aureak/api-client'
 import type { CoachQualityMetrics, CoachQuestWithDefinition } from '@aureak/types'
 import { colors, shadows, radius, transitions, gamification } from '@aureak/theme'
-
-type Props = { params: { coachId: string } }
 
 function MetricTile({
   label, value, unit = '', note,
@@ -49,8 +48,8 @@ function MetricTile({
   )
 }
 
-export default function CoachQualityPage({ params }: Props) {
-  const { coachId } = params
+export default function CoachQualityPage() {
+  const { coachId } = useLocalSearchParams<{ coachId: string }>()
   const [metrics,        setMetrics]        = useState<CoachQualityMetrics | null>(null)
   const [coachName,      setCoachName]      = useState<string>('')
   const [groups,         setGroups]         = useState<CoachGroupEntry[]>([])
@@ -59,6 +58,13 @@ export default function CoachQualityPage({ params }: Props) {
   // Story 59-5 — Quêtes coaches
   const [coachQuests,    setCoachQuests]    = useState<CoachQuestWithDefinition[]>([])
   const [loadingQuests,  setLoadingQuests]  = useState(true)
+
+  // Story 69-8 — Onglet Activité
+  const [activeTab,        setActiveTab]        = useState<'qualite' | 'activite'>('qualite')
+  const [sessionStats,     setSessionStats]     = useState<CoachSessionStats | null>(null)
+  const [recentSessions,   setRecentSessions]   = useState<CoachRecentSession[]>([])
+  const [loadingActivite,  setLoadingActivite]  = useState(false)
+  const [activiteLoaded,   setActiviteLoaded]   = useState(false)
   const [assigningQuests, setAssigningQuests] = useState(false)
 
   useEffect(() => {
@@ -98,6 +104,27 @@ export default function CoachQualityPage({ params }: Props) {
     })()
   }, [coachId])
 
+  async function loadActivite() {
+    if (activiteLoaded) return
+    setLoadingActivite(true)
+    try {
+      const [statsRes, sessionsRes] = await Promise.all([
+        getCoachSessionStats(coachId),
+        listCoachRecentSessions(coachId, 10),
+      ])
+      if (statsRes.error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] sessionStats error:', statsRes.error)
+      }
+      setSessionStats(statsRes.data)
+      setRecentSessions(sessionsRes.data)
+      setActiviteLoaded(true)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[CoachQualityPage] loadActivite exception:', err)
+    } finally {
+      setLoadingActivite(false)
+    }
+  }
+
   async function handleAssignQuests() {
     setAssigningQuests(true)
     try {
@@ -130,13 +157,98 @@ export default function CoachQualityPage({ params }: Props) {
       </div>
 
       <h1 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: colors.text.dark }}>
-        Métriques qualité
+        {coachName || 'Coach'}
       </h1>
-      <p style={{ margin: '0 0 24px', fontSize: 13, color: colors.text.muted }}>
-        {coachName} — données non publiques, usage interne uniquement.
+      <p style={{ margin: '0 0 16px', fontSize: 13, color: colors.text.muted }}>
+        Données non publiques — usage interne uniquement.
       </p>
 
-      {loading ? (
+      {/* ── Onglets ── */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${colors.border.divider}`, marginBottom: 24 }}>
+        {([
+          { key: 'qualite',  label: 'Qualité' },
+          { key: 'activite', label: 'Activité' },
+        ] as const).map(tab => {
+          const isActive = activeTab === tab.key
+          return (
+            <button
+              key={tab.key}
+              onClick={() => { setActiveTab(tab.key); if (tab.key === 'activite') loadActivite() }}
+              style={{
+                padding      : '8px 20px',
+                background   : 'none',
+                border       : 'none',
+                borderBottom : isActive ? `2px solid ${colors.accent.gold}` : '2px solid transparent',
+                fontSize     : 13,
+                fontWeight   : isActive ? 700 : 400,
+                color        : isActive ? colors.accent.gold : colors.text.muted,
+                cursor       : 'pointer',
+                marginBottom : -1,
+                transition   : `all ${transitions.fast}`,
+              }}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── Onglet Activité ── */}
+      {activeTab === 'activite' && (
+        <div>
+          {loadingActivite ? (
+            <div style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</div>
+          ) : (
+            <>
+              {/* Stat cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+                {[
+                  { label: 'Séances animées',   value: sessionStats?.sessionsCount    ?? 0 },
+                  { label: 'Présence moyenne',   value: sessionStats?.avgPresencePct != null ? `${Math.round(sessionStats.avgPresencePct)}%` : '—' },
+                  { label: 'Évaluations saisies', value: sessionStats?.evaluationsCount ?? 0 },
+                ].map(card => (
+                  <div key={card.label} style={{ background: colors.light.surface, borderRadius: radius.card, padding: '16px 20px', boxShadow: shadows.sm, border: `1px solid ${colors.border.divider}` }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>{card.label}</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: colors.text.dark }}>{card.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Liste séances récentes */}
+              <div style={{ background: colors.light.surface, borderRadius: radius.card, boxShadow: shadows.sm, border: `1px solid ${colors.border.divider}` }}>
+                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border.divider}`, fontSize: 14, fontWeight: 700, color: colors.text.dark }}>
+                  10 dernières séances
+                </div>
+                {recentSessions.length === 0 ? (
+                  <div style={{ padding: 32, textAlign: 'center', color: colors.text.muted, fontSize: 13 }}>
+                    Aucune séance animée pour ce coach.
+                  </div>
+                ) : recentSessions.map(s => (
+                  <a
+                    key={s.id}
+                    href={`/seances/${s.id}`}
+                    style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: `1px solid ${colors.border.divider}`, textDecoration: 'none', gap: 16 }}
+                  >
+                    <span style={{ fontSize: 12, color: colors.text.muted, minWidth: 80 }}>
+                      {new Date(s.scheduledAt).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })}
+                    </span>
+                    <span style={{ flex: 1, fontSize: 13, color: colors.text.dark }}>
+                      {s.groupName ?? '—'}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: s.status === 'clotured' ? colors.status.present : colors.text.muted }}>
+                      {s.status}
+                    </span>
+                    <span style={{ fontSize: 12, color: colors.accent.gold }}>→</span>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Onglet Qualité (contenu existant) ── */}
+      {activeTab === 'qualite' && (loading ? (
         <div style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</div>
       ) : !metrics ? (
         <div style={{
@@ -221,10 +333,10 @@ export default function CoachQualityPage({ params }: Props) {
             ))}
           </div>
         </>
-      )}
+      ))}
 
       {/* ── Historique des groupes ── */}
-      <div style={{ marginTop: 32 }}>
+      <div style={{ marginTop: 32, display: activeTab === 'qualite' ? undefined : 'none' }}>
         <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 700, color: colors.text.dark }}>
           Historique des groupes
         </h2>
@@ -271,7 +383,7 @@ export default function CoachQualityPage({ params }: Props) {
       </div>
 
       {/* ── Quêtes de la semaine (Story 59-5) ── */}
-      <div style={{ marginTop: 32 }}>
+      <div style={{ marginTop: 32, display: activeTab === 'qualite' ? undefined : 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: colors.text.dark }}>
             Quêtes de la semaine

@@ -510,9 +510,9 @@ export type { DashboardKpiCounts, ActivityEventItem, ActivityEventType, StreakPl
 export { listEvaluationsAdmin, getCoachEvaluationBias, listDangerousPlayers } from './admin/evaluations'
 export type { AdminEvalRow, BiasPeriod } from './admin/evaluations'
 
-// ── Admin — Coachs (liste paginée) ───────────────────────────────────────────
-export { listCoaches } from './admin/coaches'
-export type { CoachListRow } from './admin/coaches'
+// ── Admin — Coachs (liste paginée + stats activité) ──────────────────────────
+export { listCoaches, getCoachSessionStats, listCoachRecentSessions } from './admin/coaches'
+export type { CoachListRow, CoachSessionStats, CoachRecentSession } from './admin/coaches'
 
 // ── Admin — Notifications Edge Function ──────────────────────────────────────
 export { sendGradeNotification } from './admin/notifications'
