@@ -2788,6 +2788,11 @@ export default function DashboardPage() {
       ════════════════════════════════ */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
+        {/* Label section */}
+        <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 0, fontFamily: 'Montserrat, sans-serif' }}>
+          L&apos;Académie
+        </div>
+
       {/* ── Ligne stats 4 chiffres ── */}
         <div style={{
           display        : 'flex',
@@ -2931,48 +2936,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Filtres période ── */}
-        <div style={{ ...S.filterRow, marginBottom: 0, borderTop: `1px solid ${colors.border.light}`, paddingTop: 12 }}>
-          {/* Implantation selector */}
-          <div style={S.dateGroup}>
-            <label style={S.dateLabel}>Implantation</label>
-            <select
-              value={selectedImplantationId ?? ''}
-              onChange={e => setSelectedImplantationId(e.target.value || null)}
-              style={{ ...S.implantSelect, minWidth: 160 }}
-            >
-              <option value="">Toutes</option>
-              {implantations.map(i => (
-                <option key={i.id} value={i.id}>{i.name}</option>
-              ))}
-            </select>
-          </div>
-          <div style={S.dateGroup}>
-            <label style={S.dateLabel}>Période</label>
-            <select
-              value={preset}
-              onChange={e => handlePresetChange(e.target.value as Preset)}
-              style={{ ...S.implantSelect, minWidth: 160 }}
-            >
-              <option value="this-week">Semaine en cours</option>
-              <option value="last-week">Semaine passée</option>
-              <option value="4-weeks">4 dernières semaines</option>
-              <option value="custom">Personnalisé</option>
-            </select>
-          </div>
-          {preset === 'custom' && (<>
-            <div style={S.dateGroup}>
-              <label style={S.dateLabel}>Du</label>
-              <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={S.dateInput} />
-            </div>
-            <span style={{ color: colors.text.muted, fontSize: 13, paddingTop: 16 }}>→</span>
-            <div style={S.dateGroup}>
-              <label style={S.dateLabel}>Au</label>
-              <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} style={S.dateInput} />
-            </div>
-            <button style={S.applyBtn} onClick={handleApplyCustom}>Appliquer</button>
-          </>)}
-        </div>
       </div>
       {/* ── FIN COL MILIEU ── */}
 
