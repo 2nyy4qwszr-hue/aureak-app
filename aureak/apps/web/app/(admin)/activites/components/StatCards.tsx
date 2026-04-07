@@ -1,5 +1,6 @@
 'use client'
 // Story 65-1 — Activités Hub : 4 Stat Cards contextuelles
+// Story 71-1 — Design : pictos + ordre picto→label→valeur + 4ème card dorée
 import React, { useEffect, useState, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { listSessionsWithAttendance } from '@aureak/api-client'
@@ -76,8 +77,9 @@ export function StatCards({ scope }: Props) {
     <View style={styles.row}>
       {/* Présence Moyenne */}
       <View style={styles.card}>
-        <AureakText style={styles.statValue}>{stats.avgPres}%</AureakText>
+        <AureakText style={styles.statIcon}>📈</AureakText>
         <AureakText style={styles.statLabel}>Présence Moyenne</AureakText>
+        <AureakText style={styles.statValue}>{stats.avgPres}%</AureakText>
         <AureakText style={styles.statSub}>
           {stats.avgPres >= 75 ? '↑ Bonne dynamique' : '↓ À surveiller'}
         </AureakText>
@@ -85,31 +87,31 @@ export function StatCards({ scope }: Props) {
 
       {/* Total Séances */}
       <View style={styles.card}>
-        <AureakText style={styles.statValue}>{stats.total}</AureakText>
+        <AureakText style={styles.statIcon}>📅</AureakText>
         <AureakText style={styles.statLabel}>Total Séances</AureakText>
+        <AureakText style={styles.statValue}>{stats.total}</AureakText>
         <AureakText style={styles.statSub}>{stats.upcoming} à venir</AureakText>
       </View>
 
       {/* Annulées */}
       <View style={styles.card}>
-        <View style={styles.statRow}>
-          <AureakText style={styles.statValue}>{stats.cancelled}</AureakText>
-          {stats.cancelPct > 0 && (
-            <View style={styles.badgeOrange}>
-              <AureakText style={styles.badgeOrangeText}>{stats.cancelPct}%</AureakText>
-            </View>
-          )}
-        </View>
+        <AureakText style={styles.statIcon}>⚠️</AureakText>
         <AureakText style={styles.statLabel}>Annulées</AureakText>
+        <AureakText style={styles.statValue}>{stats.cancelled}</AureakText>
+        {stats.cancelPct > 0 && (
+          <View style={styles.badgeOrange}>
+            <AureakText style={styles.badgeOrangeText}>{stats.cancelPct}%</AureakText>
+          </View>
+        )}
         <AureakText style={styles.statSub}>sur {stats.total} séances</AureakText>
       </View>
 
-      {/* Évals Complétées */}
-      <View style={styles.card}>
-        <AureakText style={styles.statValue}>{stats.evalPct}%</AureakText>
-        <AureakText style={styles.statLabel}>Évals Complétées</AureakText>
-        {/* Barre de progression gold */}
-        <View style={styles.progressBar}>
+      {/* Évals Complétées — card dark */}
+      <View style={[styles.card, styles.cardDark]}>
+        <AureakText style={styles.statIconLight}>↑</AureakText>
+        <AureakText style={styles.statLabelLight}>Évals Complétées</AureakText>
+        <AureakText style={styles.statValueLight}>{stats.evalPct}%</AureakText>
+        <View style={[styles.progressBar, styles.progressBarDark]}>
           <View style={[styles.progressFill, { width: `${Math.min(stats.evalPct, 100)}%` as unknown as number }]} />
         </View>
       </View>
@@ -136,6 +138,10 @@ const styles = StyleSheet.create({
     // Web box shadow via style object (RN web supports boxShadow)
     boxShadow      : shadows.sm,
   } as unknown as object,
+  cardDark: {
+    backgroundColor: colors.text.dark,
+    borderColor    : colors.text.dark,
+  },
   skeletonCard: {
     flex           : 1,
     minWidth       : 160,
@@ -144,6 +150,15 @@ const styles = StyleSheet.create({
     height         : 100,
     opacity        : 0.6,
   },
+  statIcon: {
+    fontSize    : 22,
+    marginBottom: 4,
+  },
+  statIconLight: {
+    fontSize    : 22,
+    marginBottom: 4,
+    color       : colors.text.primary,
+  },
   statValue: {
     fontSize  : 28,
     fontWeight: '900',
@@ -151,11 +166,28 @@ const styles = StyleSheet.create({
     color     : colors.text.dark,
     lineHeight: 36,
   },
+  statValueLight: {
+    fontSize  : 28,
+    fontWeight: '900',
+    fontFamily: 'Montserrat',
+    color     : colors.text.primary,
+    lineHeight: 36,
+  },
   statLabel: {
     fontSize     : 10,
     fontFamily   : 'Montserrat',
     color        : colors.text.muted,
     marginTop    : 2,
+    marginBottom : 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  statLabelLight: {
+    fontSize     : 10,
+    fontFamily   : 'Montserrat',
+    color        : colors.accent.goldLight,
+    marginTop    : 2,
+    marginBottom : 4,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -171,10 +203,12 @@ const styles = StyleSheet.create({
     gap          : space.sm,
   },
   badgeOrange: {
+    alignSelf        : 'flex-start',
     backgroundColor  : colors.status.orangeBg,
     paddingHorizontal: 8,
     paddingVertical  : 2,
     borderRadius     : radius.badge,
+    marginTop        : 4,
   },
   badgeOrangeText: {
     fontSize  : 11,
@@ -188,6 +222,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border.light,
     borderRadius   : 3,
     overflow       : 'hidden',
+  },
+  progressBarDark: {
+    backgroundColor: colors.text.primary + '30',
   },
   progressFill: {
     height         : 6,
