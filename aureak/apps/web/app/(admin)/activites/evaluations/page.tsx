@@ -129,8 +129,8 @@ function PlayerAvatar({ name }: { name: string | null }) {
 }
 
 function StatCard({
-  label, value, sub, dark,
-}: { label: string; value: string; sub?: string; dark?: boolean }) {
+  label, value, sub, icon, dark,
+}: { label: string; value: string; sub?: string; icon?: string; dark?: boolean }) {
   const valueStyle: TextStyle  = dark
     ? { ...styles.statValue, ...styles.statValueDark }
     : styles.statValue
@@ -146,8 +146,9 @@ function StatCard({
 
   return (
     <View style={cardStyle}>
-      <AureakText style={valueStyle}>{value}</AureakText>
+      {icon ? <AureakText style={dark ? styles.statIconLight : styles.statIcon}>{icon}</AureakText> : null}
       <AureakText style={labelStyle}>{label}</AureakText>
+      <AureakText style={valueStyle}>{value}</AureakText>
       {sub ? <AureakText style={subStyle}>{sub}</AureakText> : null}
     </View>
   )
@@ -326,6 +327,7 @@ export default function EvaluationsPage() {
         {/* 4 Stat Cards */}
         <View style={styles.statCardsRow}>
           <StatCard
+            icon="⭐"
             label="Note Moyenne"
             value={stats ? `${stats.avgDisplay}/10` : '—'}
             sub={stats?.progression !== null && stats?.progression !== undefined
@@ -333,11 +335,13 @@ export default function EvaluationsPage() {
               : undefined}
           />
           <StatCard
-            label="Évals ce mois"
+            icon="📋"
+            label="Évaluations"
             value={stats ? String(stats.evalsThisMonth) : '—'}
             sub={stats ? `${stats.sessionsThisMonth} séance${stats.sessionsThisMonth > 1 ? 's' : ''} concernée${stats.sessionsThisMonth > 1 ? 's' : ''}` : undefined}
           />
           <StatCard
+            icon="📈"
             label="Progression Technique"
             value={stats?.progression !== null && stats?.progression !== undefined
               ? `${stats.progression >= 0 ? '+' : ''}${stats.progression.toFixed(0)}%`
@@ -345,8 +349,9 @@ export default function EvaluationsPage() {
             sub={loading ? 'Calcul...' : undefined}
           />
           <StatCard
+            icon="👤"
             label="Top Performer"
-            value={stats?.topName ?? '—'}
+            value={stats?.topName ? truncate(stats.topName, 14) : '—'}
             dark
           />
         </View>
@@ -563,8 +568,8 @@ const styles = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   statCardDark: {
-    backgroundColor: colors.accent.gold + '22',
-    borderColor    : colors.border.goldSolid,
+    backgroundColor: colors.text.dark,
+    borderColor    : colors.text.dark,
   },
   statValue: {
     fontFamily  : 'Montserrat',
@@ -575,7 +580,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValueDark: {
-    color: colors.accent.gold,
+    color: colors.text.primary,
   },
   statLabel: {
     fontFamily   : 'Montserrat',
@@ -584,10 +589,16 @@ const styles = StyleSheet.create({
     color        : colors.text.muted,
     textTransform: 'uppercase' as const,
     letterSpacing: 1,
-    marginTop    : 4,
+    marginBottom : 4,
   },
   statLabelDark: {
-    color: colors.text.muted,
+    fontFamily   : 'Montserrat',
+    fontSize     : 10,
+    fontWeight   : '700',
+    color        : colors.accent.goldLight,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 1,
+    marginBottom : 4,
   },
   statSub: {
     fontFamily: fonts.body,
@@ -596,7 +607,19 @@ const styles = StyleSheet.create({
     marginTop : 4,
   },
   statSubDark: {
-    color: colors.text.subtle,
+    fontFamily: fonts.body,
+    fontSize  : 11,
+    color     : colors.text.primary + '99',
+    marginTop : 4,
+  },
+  statIcon: {
+    fontSize    : 22,
+    marginBottom: 4,
+  },
+  statIconLight: {
+    fontSize    : 22,
+    marginBottom: 4,
+    color       : colors.text.primary,
   },
 
   // ── Eval Type Pills ───────────────────────────────────────────────────────

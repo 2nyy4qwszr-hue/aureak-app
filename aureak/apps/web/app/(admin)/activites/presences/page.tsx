@@ -133,6 +133,7 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
     <View style={cardStyles.row}>
       {/* Card 1 — Présence Générale */}
       <View style={[cardStyles.card, { flex: 1 }]}>
+        <AureakText style={cardStyles.statIcon}>📊</AureakText>
         <AureakText style={cardStyles.cardLabel}>Présence Générale</AureakText>
         <AureakText style={cardStyles.cardStat}>{stats.avgRate} %</AureakText>
         <View style={cardStyles.progressTrack}>
@@ -142,6 +143,7 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
 
       {/* Card 2 — Groupes sous 70% */}
       <View style={[cardStyles.card, { flex: 1 }]}>
+        <AureakText style={cardStyles.statIcon}>👥</AureakText>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
           <AureakText style={cardStyles.cardLabel}>Groupes sous 70%</AureakText>
           {stats.groupsUnder70 > 0 && (
@@ -158,13 +160,15 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
 
       {/* Card 3 — Total Séances */}
       <View style={[cardStyles.card, { flex: 1 }]}>
+        <AureakText style={cardStyles.statIcon}>📅</AureakText>
         <AureakText style={cardStyles.cardLabel}>Total Séances</AureakText>
         <AureakText style={cardStyles.cardStat}>{stats.totalSessions}</AureakText>
         <AureakText style={cardStyles.cardSub}>Période sélectionnée</AureakText>
       </View>
 
-      {/* Card 4 — Tendance Globale (fond gold) */}
+      {/* Card 4 — Tendance Global (fond dark) */}
       <View style={[cardStyles.card, cardStyles.cardDark, { flex: 1 }]}>
+        <AureakText style={cardStyles.statIconLight}>↗</AureakText>
         <AureakText style={cardStyles.cardLabelDark}>Tendance Global</AureakText>
         <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.status.present : colors.status.absent } as import('react-native').TextStyle}>
           {stats.totalSessions >= 2 ? trendDisplay : '—'}
@@ -197,8 +201,8 @@ const cardStyles = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   cardDark: {
-    backgroundColor: colors.accent.gold + '22',
-    borderColor    : colors.border.goldSolid,
+    backgroundColor: colors.text.dark,
+    borderColor    : colors.text.dark,
   },
   cardLabel: {
     fontSize     : 10,
@@ -213,7 +217,7 @@ const cardStyles = StyleSheet.create({
     fontSize     : 10,
     fontFamily   : fonts.heading,
     fontWeight   : '700',
-    color        : colors.text.muted,
+    color        : colors.accent.goldLight,
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom : space.sm,
@@ -240,7 +244,16 @@ const cardStyles = StyleSheet.create({
   cardSubDark: {
     fontSize  : 11,
     fontFamily: fonts.body,
-    color     : colors.text.muted,
+    color     : colors.text.primary + '99',
+  },
+  statIcon: {
+    fontSize    : 22,
+    marginBottom: 4,
+  },
+  statIconLight: {
+    fontSize    : 22,
+    marginBottom: 4,
+    color       : colors.text.primary,
   },
   progressTrack: {
     height         : 4,
