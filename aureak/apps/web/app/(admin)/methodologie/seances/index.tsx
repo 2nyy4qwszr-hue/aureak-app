@@ -33,7 +33,7 @@ const TABS = [
   { label: 'SITUATIONS',    href: '/methodologie/situations' },
 ]
 
-const COL_WIDTHS = { method: 52, num: 52, title: 1, themes: 120, situations: 80, pdf: 40, status: 40 }
+const COL_WIDTHS = { method: 52, num: 90, title: 1, themes: 100, situations: 90, pdf: 50, status: 60 }
 
 export default function SeancesPage() {
   const router = useRouter()
@@ -131,62 +131,83 @@ export default function SeancesPage() {
         </View>
       </ScrollView>
 
-      {/* ── Filtres ── */}
-      <TextInput
-        style={st.searchInput}
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Rechercher par titre…"
-        placeholderTextColor={colors.text.muted}
-      />
+      {/* ── Filtres compacts ── */}
+      <View style={st.filtersBar}>
+        {/* Gauche : Global + Méthodes dropdown + Recherche */}
+        <View style={st.filtersLeft}>
+          {/* Pill Global */}
+          <Pressable
+            onPress={() => { setMethodFilter('all'); setContextFilter('all') }}
+            style={[st.chip, {
+              borderColor    : (methodFilter === 'all' && contextFilter === 'all') ? colors.accent.gold : colors.border.light,
+              backgroundColor: (methodFilter === 'all' && contextFilter === 'all') ? colors.accent.gold : 'transparent',
+            }]}
+          >
+            <AureakText style={{ fontSize: 12, fontWeight: '700', color: (methodFilter === 'all' && contextFilter === 'all') ? colors.text.dark : colors.text.muted }}>
+              Global
+            </AureakText>
+          </Pressable>
 
-      <View style={st.filterRow}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => {
-              const active = methodFilter === m
-              return (
-                <Pressable
-                  key={m}
-                  onPress={() => setMethodFilter(m)}
-                  style={[st.chip, {
-                    borderColor    : active ? colors.accent.gold : colors.border.light,
-                    backgroundColor: active ? colors.accent.gold + '18' : 'transparent',
-                  }]}
-                >
-                  <AureakText style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
-                    {m === 'all' ? 'Toutes méthodes' : m}
-                  </AureakText>
-                </Pressable>
-              )
-            })}
+          {/* Dropdown Méthodes */}
+          <View style={st.dropdownWrap}>
+            <Pressable
+              onPress={() => setSearch(search === '__METHODS_OPEN__' ? '' : '__METHODS_OPEN__')}
+              style={[st.chip, {
+                borderColor    : methodFilter !== 'all' ? colors.accent.gold : colors.border.light,
+                backgroundColor: methodFilter !== 'all' ? colors.accent.gold + '18' : 'transparent',
+              }]}
+            >
+              <AureakText style={{ fontSize: 12, fontWeight: methodFilter !== 'all' ? '700' : '400', color: methodFilter !== 'all' ? colors.text.dark : colors.text.muted }}>
+                {methodFilter === 'all' ? 'Méthodes ▾' : `${methodFilter} ▾`}
+              </AureakText>
+            </Pressable>
           </View>
-        </ScrollView>
+
+          {/* Recherche compacte */}
+          <TextInput
+            style={st.searchCompact}
+            value={search === '__METHODS_OPEN__' ? '' : search}
+            onChangeText={setSearch}
+            placeholder="Rechercher…"
+            placeholderTextColor={colors.text.subtle}
+          />
+        </View>
+
+        {/* Droite : ACADÉMIE | STAGE */}
+        <View style={st.filtersRight}>
+          {(['academie', 'stage'] as MethodologyContextType[]).map(c => {
+            const active = contextFilter === c
+            return (
+              <Pressable
+                key={c}
+                onPress={() => setContextFilter(active ? 'all' : c)}
+                style={[st.chipToggle, active && st.chipToggleActive]}
+              >
+                <AureakText style={{ ...(st.chipToggleText as object), ...(active ? st.chipToggleTextActive as object : {}) } as import('react-native').TextStyle}>
+                  {METHODOLOGY_CONTEXT_LABELS[c]}
+                </AureakText>
+              </Pressable>
+            )
+          })}
+        </View>
       </View>
 
-      <View style={st.filterRow}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            {(['all', ...METHODOLOGY_CONTEXT_TYPES] as FilterContext[]).map(c => {
-              const active = contextFilter === c
-              return (
-                <Pressable
-                  key={c}
-                  onPress={() => setContextFilter(c)}
-                  style={[st.chip, {
-                    borderColor    : active ? colors.accent.gold : colors.border.light,
-                    backgroundColor: active ? colors.accent.gold + '18' : 'transparent',
-                  }]}
-                >
-                  <AureakText style={{ color: active ? colors.text.dark : colors.text.muted, fontWeight: active ? '700' : '400', fontSize: 12 }}>
-                    {c === 'all' ? 'Tous contextes' : METHODOLOGY_CONTEXT_LABELS[c as MethodologyContextType]}
-                  </AureakText>
-                </Pressable>
-              )
-            })}
-          </View>
-        </ScrollView>
-      </View>
+      {/* Dropdown méthodes (flottant) */}
+      {search === '__METHODS_OPEN__' && (
+        <View style={st.methodDropdown}>
+          {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
+            <Pressable
+              key={m}
+              style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
+              onPress={() => { setMethodFilter(m); setSearch('') }}
+            >
+              <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
+                {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
+              </AureakText>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       {/* ── Tableau ── */}
       {loading ? (
@@ -392,19 +413,54 @@ const st = StyleSheet.create({
     textAlign    : 'center',
   },
 
-  // Search + filters
-  searchInput: {
+  // Filters bar
+  filtersBar   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm },
+  filtersLeft  : { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  filtersRight : { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dropdownWrap : { position: 'relative', zIndex: 100 },
+  searchCompact: {
     backgroundColor  : colors.light.muted,
     borderWidth      : 1,
     borderColor      : colors.border.light,
-    borderRadius     : 8,
-    paddingHorizontal: space.md,
-    paddingVertical  : 10,
+    borderRadius     : 20,
+    paddingHorizontal: 12,
+    paddingVertical  : 5,
     color            : colors.text.dark,
-    fontSize         : 13,
+    fontSize         : 12,
+    minWidth         : 120,
+    maxWidth         : 200,
   },
-  filterRow: { flexDirection: 'row' },
-  chip     : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
+  chip          : { borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
+  chipToggle    : {
+    borderWidth      : 1,
+    borderRadius     : 6,
+    paddingHorizontal: 12,
+    paddingVertical  : 5,
+    borderColor      : colors.border.light,
+    backgroundColor  : 'transparent',
+  },
+  chipToggleActive: {
+    backgroundColor: colors.text.dark,
+    borderColor    : colors.text.dark,
+  },
+  chipToggleText    : { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: colors.text.muted },
+  chipToggleTextActive: { color: colors.light.surface },
+  methodDropdown: {
+    position       : 'absolute',
+    zIndex         : 999,
+    backgroundColor: colors.light.surface,
+    borderRadius   : 10,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : 6,
+    // @ts-ignore web
+    boxShadow      : '0 8px 24px rgba(0,0,0,0.10)',
+    top            : 0,
+    left           : 0,
+    minWidth       : 220,
+  },
+  methodDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
+  methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
   empty    : { padding: space.lg, alignItems: 'center' },
 
   // Table

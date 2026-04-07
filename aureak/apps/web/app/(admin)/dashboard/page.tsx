@@ -1258,6 +1258,107 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
   )
 }
 
+// ── Dashboard Top Bar (date + météo compacte + alertes) ─────────────────────
+
+function DashboardTopBar({ pendingSessions }: { pendingSessions: number }) {
+  const [now,     setNow]     = useState(() => new Date())
+  const [weather, setWeather] = useState<WeatherData | null>(null)
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    const cached = loadWeatherCache()
+    if (cached) { setWeather(cached); return }
+    const ctrl = new AbortController()
+    fetchWeatherData(ctrl.signal)
+      .then(d => { saveWeatherCache(d); setWeather(d) })
+      .catch(() => { /* météo optionnelle */ })
+    return () => ctrl.abort()
+  }, [])
+
+  const dayNum     = now.getDate()
+  const monthLabel = now.toLocaleDateString('fr-BE', { month: 'long', year: 'numeric' })
+  const timeLabel  = now.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
+  const dateStr    = `${dayNum} ${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}`
+  const statusOk   = pendingSessions === 0
+
+  return (
+    <div style={{
+      display        : 'flex',
+      alignItems     : 'center',
+      justifyContent : 'space-between',
+      backgroundColor: colors.light.surface,
+      border         : `1px solid ${colors.border.divider}`,
+      borderRadius   : radius.card,
+      padding        : '10px 20px',
+      marginBottom   : 20,
+      boxShadow      : shadows.sm,
+    }}>
+      {/* ── Gauche : date + heure + météo + statut ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 14, color: colors.text.dark }}>
+          {dateStr}
+        </span>
+        <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
+        <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 13, fontWeight: 600, color: colors.text.muted }}>
+          {timeLabel}
+        </span>
+        {weather && (
+          <>
+            <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
+              <span style={{ fontSize: 16 }}>{wmoEmoji(weather.weatherCode)}</span>
+              <span style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 700, color: colors.text.dark }}>
+                {Math.round(weather.temperature)}°C
+              </span>
+              <span style={{ color: colors.text.muted, fontFamily: 'Geist, sans-serif', fontSize: 11 }}>
+                · {Math.round(weather.windSpeed)} km/h
+              </span>
+            </span>
+          </>
+        )}
+        <span style={{
+          width          : 8,
+          height         : 8,
+          borderRadius   : '50%',
+          backgroundColor: statusOk ? colors.status.present : colors.status.absent,
+          display        : 'inline-block',
+          marginLeft     : 4,
+          flexShrink     : 0,
+        }} />
+      </div>
+
+      {/* ── Droite : alertes + cloche ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {pendingSessions > 0 && (
+          <span style={{
+            display        : 'inline-flex',
+            alignItems     : 'center',
+            gap            : 6,
+            backgroundColor: colors.status.absent + '12',
+            border         : `1px solid ${colors.status.absent + '35'}`,
+            borderRadius   : radius.badge,
+            padding        : '4px 10px',
+            fontSize       : 11,
+            fontWeight     : 700,
+            color          : colors.status.absent,
+            fontFamily     : 'Montserrat, sans-serif',
+            letterSpacing  : 0.5,
+            whiteSpace     : 'nowrap',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: colors.status.absent, display: 'inline-block', flexShrink: 0 }} />
+            {pendingSessions} SÉANCE{pendingSessions > 1 ? 'S' : ''} NON CLÔTURÉE{pendingSessions > 1 ? 'S' : ''}
+          </span>
+        )}
+        <span style={{ fontSize: 18, cursor: 'default', color: colors.text.muted, lineHeight: 1 }} title="Notifications">🔔</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Weather Widget (Story 50-8) ───────────────────────────────────────────────
 
 // Constante localisation — modifier ici pour changer la ville cible
@@ -2461,6 +2562,9 @@ export default function DashboardPage() {
           isLive={liveCounters.isLive}
         />
       )}
+
+      {/* ── Top Bar date + météo + alertes ── */}
+      <DashboardTopBar pendingSessions={pendingSessions} />
 
       {/* ══════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES — STORY 67.1

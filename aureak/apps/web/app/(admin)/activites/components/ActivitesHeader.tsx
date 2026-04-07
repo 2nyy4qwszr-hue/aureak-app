@@ -27,6 +27,19 @@ export function ActivitesHeader() {
   const activeTab = getActiveTab(pathname)
 
   return (
+    <View style={styles.wrapper}>
+      {/* Titre page */}
+      <View style={styles.titleRow}>
+        <AureakText style={styles.pageTitle}>ACTIVITÉS</AureakText>
+        {/* Bouton + Nouvelle séance */}
+        <Pressable
+          onPress={() => router.push('/(admin)/seances/new')}
+          style={({ pressed }) => [styles.newBtn, pressed && styles.newBtnPressed] as object[]}
+        >
+          <AureakText style={styles.newBtnText}>+ Nouvelle séance</AureakText>
+        </Pressable>
+      </View>
+
     <View style={styles.container}>
       {/* Onglets */}
       <View style={styles.tabs}>
@@ -51,32 +64,41 @@ export function ActivitesHeader() {
           )
         })}
       </View>
-
-      {/* Bouton + Nouvelle séance */}
-      <Pressable
-        onPress={() => router.push('/(admin)/seances/new')}
-        style={({ pressed }) => [styles.newBtn, pressed && styles.newBtnPressed] as object[]}
-      >
-        <AureakText style={styles.newBtnText}>+ Nouvelle séance</AureakText>
-      </Pressable>
+    </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    backgroundColor  : colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  titleRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
     justifyContent   : 'space-between',
-    backgroundColor  : colors.light.surface,
     paddingHorizontal: space.lg,
-    paddingTop       : space.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
+    paddingTop       : space.lg,
+    paddingBottom    : space.sm,
+  },
+  pageTitle: {
+    fontSize     : 22,
+    fontWeight   : '900',
+    fontFamily   : 'Montserrat',
+    letterSpacing: 0.5,
+    color        : colors.text.dark,
+  },
+  container: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
   },
   tabs: {
     flexDirection: 'row',
     gap          : space.xl,
+    flex         : 1,
   },
   tabItem: {
     paddingBottom: space.sm,
