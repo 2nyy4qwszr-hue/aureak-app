@@ -39,6 +39,7 @@ import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
 import CoachDndBoard from '../_components/CoachDndBoard'
+import { useAuthStore } from '@aureak/business-logic'
 
 const STATUS_LABEL: Record<string, string> = {
   planifiée: 'Planifiée', en_cours: 'En cours', réalisée: 'Réalisée',
@@ -1002,6 +1003,7 @@ const ssgSt = StyleSheet.create({
 
 export default function SessionDetailPage() {
   const { sessionId, updated } = useLocalSearchParams<{ sessionId: string; updated?: string }>()
+  const { user } = useAuthStore()
   const router = useRouter()
   const { width } = useWindowDimensions()
   const isMobile = width < 768
@@ -1133,7 +1135,7 @@ export default function SessionDetailPage() {
             childId  : m.childId,
             tenantId : session.tenantId,
             status   : 'present',
-            recordedBy: '',
+            recordedBy: user?.id ?? '',
           })
         )
       )
@@ -1517,7 +1519,7 @@ export default function SessionDetailPage() {
         childId,
         tenantId  : session.tenantId,
         status    : newStatus,
-        recordedBy: '',
+        recordedBy: user?.id ?? '',
       })
       if (error) {
         setAttendanceMap(prev => ({ ...prev, [childId]: prevStatus }))
@@ -1553,7 +1555,7 @@ export default function SessionDetailPage() {
         childId,
         tenantId  : session.tenantId,
         status    : newStatus,
-        recordedBy: '',
+        recordedBy: user?.id ?? '',
       })
       if (error) {
         // Rollback
