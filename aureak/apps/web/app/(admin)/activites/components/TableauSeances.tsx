@@ -63,12 +63,12 @@ function applyTemporalFilter(
 type StatusConfig = { label: string; bg: string; text: string }
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-  'réalisée' : { label: 'Réalisée',  bg: colors.status.successBg, text: colors.status.successText },
-  'terminée' : { label: 'Réalisée',  bg: colors.status.successBg, text: colors.status.successText },
-  'planifiée': { label: 'Planifiée', bg: colors.status.infoBg,    text: colors.status.infoText    },
-  'en_cours' : { label: 'En cours',  bg: colors.border.goldBg,    text: colors.text.dark          },
-  'annulée'  : { label: 'Annulée',   bg: colors.status.errorBg,   text: colors.status.errorText   },
-  'reportée' : { label: 'Reportée',  bg: colors.status.orangeBg,  text: colors.status.orangeText  },
+  'réalisée' : { label: 'Réalisée',  bg: colors.status.present    + '30', text: colors.status.successText },
+  'terminée' : { label: 'Réalisée',  bg: colors.status.present    + '30', text: colors.status.successText },
+  'planifiée': { label: 'Planifiée', bg: colors.status.info       + '30', text: colors.status.infoText    },
+  'en_cours' : { label: 'En cours',  bg: colors.accent.gold       + '45', text: colors.text.dark          },
+  'annulée'  : { label: 'Annulée',   bg: colors.status.absent     + '30', text: colors.status.errorText   },
+  'reportée' : { label: 'Reportée',  bg: colors.status.attention  + '30', text: colors.status.orangeText  },
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -81,7 +81,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   const textStyle: TextStyle = {
     fontSize  : 11,
-    fontWeight: '600',
+    fontWeight: '700',
     fontFamily: 'Montserrat',
     color     : cfg.text,
   }
@@ -339,7 +339,11 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
       {/* Lignes vides */}
       {enriched.length === 0 && (
         <View style={styles.emptyRow}>
-          <AureakText style={styles.emptyText}>Aucune séance pour ce filtre.</AureakText>
+          <AureakText style={styles.emptyText}>
+            {temporalFilter === 'today'
+              ? "Aucune séance aujourd'hui. Consultez l'onglet «\u00a0À VENIR\u00a0» pour les prochaines séances."
+              : 'Aucune séance pour ce filtre.'}
+          </AureakText>
         </View>
       )}
 
