@@ -1248,6 +1248,32 @@ export default function JoueursPage() {
     URL.revokeObjectURL(url)
   }
 
+  // Story 69-7 — Export CSV liste filtrée
+  const handleExportFilteredCSV = () => {
+    const targets = filteredFinal
+    const csvHeader = '"Prénom","Nom","Date de naissance","Statut","Club actuel","Catégorie âge","Actif"'
+    const rows = targets.map(j => {
+      const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+      return [
+        esc(j.prenom),
+        esc(j.nom),
+        esc(j.birthDate ?? ''),
+        esc(j.computedStatus ?? ''),
+        esc(j.currentClub ?? ''),
+        esc(j.ageCategory ?? ''),
+        esc(j.inCurrentSeason ? 'Oui' : 'Non'),
+      ].join(',')
+    })
+    const csv  = [csvHeader, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `joueurs-aureak-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // CSS grid natif web — colonnes fixes 280px (Story 25.5 — ratio exact avec le background 560×840)
   const gridStyle = Platform.OS === 'web'
     ? { display: 'grid' as never, gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 280px))', gap: 16 }
@@ -1291,6 +1317,24 @@ export default function JoueursPage() {
           >
             <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
               Importer CSV
+            </AureakText>
+          </Pressable>
+          {/* Story 69-7 — Export CSV liste filtrée */}
+          <Pressable
+            style={{
+              paddingHorizontal: space.md,
+              paddingVertical  : 6,
+              borderRadius     : 6,
+              borderWidth      : 1,
+              borderColor      : colors.border.divider,
+              backgroundColor  : colors.light.muted,
+              opacity          : filteredFinal.length === 0 ? 0.5 : 1,
+            }}
+            onPress={handleExportFilteredCSV}
+            disabled={filteredFinal.length === 0}
+          >
+            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' }}>
+              Exporter CSV
             </AureakText>
           </Pressable>
           {/* Toggle vue galerie / liste — story 52-4 */}
