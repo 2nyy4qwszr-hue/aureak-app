@@ -423,6 +423,8 @@ export default function EvaluationsPage() {
               </View>
             ) : paginated.length === 0 ? (
               <View style={styles.emptyRow}>
+                <AureakText style={styles.emptyIcon}>📋</AureakText>
+                <AureakText style={styles.emptyTitle}>Aucune évaluation</AureakText>
                 <AureakText style={styles.emptyText}>Aucune évaluation sur cette période.</AureakText>
               </View>
             ) : (
@@ -440,10 +442,10 @@ export default function EvaluationsPage() {
                       DATE {sortDir === 'desc' ? '↓' : '↑'}
                     </AureakText>
                   </Pressable>
-                  <View style={[styles.colSignal, { alignItems: 'center' }]}>
+                  <View style={styles.colSignal}>
                     <AureakText style={styles.colHeader}>NOTE K</AureakText>
                   </View>
-                  <View style={[styles.colSignal, { alignItems: 'center' }]}>
+                  <View style={styles.colSignal}>
                     <AureakText style={styles.colHeader}>NOTE C</AureakText>
                   </View>
                   <View style={styles.colComment}>
@@ -481,12 +483,12 @@ export default function EvaluationsPage() {
                     </View>
 
                     {/* NOTE K — réceptivité (NoteCircle gold) */}
-                    <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
+                    <View style={[styles.cell, styles.colSignal]}>
                       <NoteCircle score={signalToScore(row.receptivite)} variant="K" />
                     </View>
 
                     {/* NOTE C — goût d'effort (NoteCircle gris) */}
-                    <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
+                    <View style={[styles.cell, styles.colSignal]}>
                       <NoteCircle score={signalToScore(row.goutEffort)} variant="C" />
                     </View>
 
@@ -561,8 +563,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop   : space.md,
-    paddingBottom: space.xxl,
+    paddingTop      : space.md,
+    paddingBottom   : space.xxl,
+    backgroundColor : colors.light.primary,
   },
   filtresRow: {
     flexDirection    : 'row',
@@ -842,17 +845,32 @@ const styles = StyleSheet.create({
     color     : colors.text.muted,
   },
   emptyRow: {
-    paddingVertical: space.xl,
-    alignItems     : 'center',
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
+    paddingVertical  : space.xxl,
+    paddingHorizontal: space.lg,
+    alignItems       : 'center',
+    gap              : space.sm,
+    backgroundColor  : colors.light.surface,
+    borderRadius     : radius.card,
+    borderWidth      : 1,
+    borderColor      : colors.border.divider,
+  },
+  emptyIcon: {
+    fontSize  : 32,
+    lineHeight: 40,
+    textAlign : 'center',
+  },
+  emptyTitle: {
+    fontFamily: fonts.display,
+    fontSize  : 15,
+    fontWeight: '700' as const,
+    color     : colors.text.dark,
+    textAlign : 'center',
   },
   emptyText: {
     fontFamily: fonts.body,
     fontSize  : 13,
     color     : colors.text.muted,
+    textAlign : 'center',
   },
 
   // ── Placeholder Modules ───────────────────────────────────────────────────
