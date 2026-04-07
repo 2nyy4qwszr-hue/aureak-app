@@ -800,37 +800,49 @@ export async function listAttendancesByChild(
   startDate: string,
   endDate  : string,
 ): Promise<AttendanceHistoryRow[]> {
-  const { data, error } = await supabase
-    .from('attendances')
-    .select(`
-      session_id,
-      status,
-      sessions!inner (
-        session_date,
-        session_type,
-        group_id,
-        groups ( name )
-      )
-    `)
-    .eq('child_id', childId)
-    .gte('sessions.session_date', startDate)
-    .lte('sessions.session_date', endDate)
-    .order('sessions.session_date', { ascending: true })
+  let data: unknown[] | null = null
+  try {
+    const { data: raw, error } = await supabase
+      .from('attendances')
+      .select(`
+        session_id,
+        status,
+        sessions!inner (
+          scheduled_at,
+          session_type,
+          group_id,
+          groups ( name )
+        )
+      `)
+      .eq('child_id', childId)
+      .gte('sessions.scheduled_at', startDate)
+      .lte('sessions.scheduled_at', endDate)
 
-  if (error) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[listAttendancesByChild] error:', error)
-    throw error
+    if (error) {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[listAttendancesByChild] error:', error)
+      throw error
+    }
+
+    data = raw ?? []
+  } catch (err) {
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[listAttendancesByChild] unexpected error:', err)
+    throw err
   }
 
-  return ((data ?? []) as unknown[]).map(row => {
-    const r        = row as { session_id: string; status: string; sessions: { session_date: string; session_type: string | null; groups: { name: string } | null } }
+  const rows = (data as unknown[]).map(row => {
+    const r        = row as { session_id: string; status: string; sessions: { scheduled_at: string; session_type: string | null; groups: { name: string } | null } }
     const sessions = r.sessions
     return {
       sessionId  : r.session_id,
-      sessionDate: sessions?.session_date ?? '',
+      sessionDate: sessions?.scheduled_at ?? '',
       sessionType: sessions?.session_type ?? '',
       groupName  : (sessions?.groups as { name: string } | null)?.name ?? '',
       status     : r.status as AttendanceStatus,
     }
   })
+
+  // Tri côté JS (ascending) — PostgREST ne supporte pas .order() sur table jointe
+  rows.sort((a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime())
+
+  return rows
 }
