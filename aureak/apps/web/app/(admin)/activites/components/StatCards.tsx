@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     borderRadius    : radius.cardLg,  // 24
     padding         : 16,
     borderWidth     : 1,
-    borderColor     : 'rgba(206,198,180,0.1)',
+    borderColor     : colors.border.divider,
     boxShadow       : shadows.sm,
     position        : 'relative',
   },
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     position        : 'absolute',
     top             : 16,
     right           : 16,
-    backgroundColor : 'rgba(220,198,115,0.2)',
+    backgroundColor : colors.border.gold,
     paddingHorizontal: 8,
     paddingVertical : 4,
     borderRadius    : 12,
@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
     color     : colors.accent.gold,
   },
 
-  // Badge violet (card 3) — couleur Figma validée AC6
+  // Badge "Record" (card 3) — ambre/warning (violet exclu de la charte)
   badgeViolet: {
     position        : 'absolute',
     top             : 16,
     right           : 16,
-    backgroundColor : 'rgba(197,192,253,0.2)',
+    backgroundColor : colors.status.warningBg,
     paddingHorizontal: 8,
     paddingVertical : 4,
     borderRadius    : 12,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     fontSize  : 11,
     fontWeight: '600',
     fontFamily: 'Montserrat',
-    color     : '#8B5CF6',
+    color     : colors.status.warning,
   },
 
   // Label commun (uppercase, Montserrat 14px)
