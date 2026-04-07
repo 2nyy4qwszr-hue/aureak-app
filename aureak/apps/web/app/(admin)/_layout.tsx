@@ -104,23 +104,11 @@ type NavGroup = {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Dashboard',
+    label: '',
     items: [
-      { label: 'Dashboard', href: '/dashboard', Icon: HomeIcon },
-    ],
-  },
-  {
-    label: 'Activité',
-    items: [
-      { label: 'Activités', href: '/activites', Icon: CalendarDaysIcon },
-    ],
-  },
-  {
-    label: 'Méthode',
-    items: [
-      { label: 'Entraînements', href: '/methodologie/seances',    Icon: BookOpenIcon },
-      { label: 'Thèmes',        href: '/methodologie/themes',     Icon: TagIcon },
-      { label: 'Situations',    href: '/methodologie/situations', Icon: LayersIcon },
+      { label: 'Dashboard',    href: '/dashboard',            Icon: HomeIcon },
+      { label: 'Activités',    href: '/activites',            Icon: CalendarDaysIcon },
+      { label: 'Méthodologie', href: '/methodologie/seances', Icon: BookOpenIcon },
     ],
   },
   {
@@ -574,30 +562,32 @@ function AdminLayoutInner() {
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
           {NAV_GROUPS.map((group, gi) => (
-            <YStack key={group.label} marginBottom={4}>
+            <YStack key={group.label || `group-${gi}`} marginBottom={4}>
               {/* Story 51.7 — label groupe avec opacity animée (AC2, AC3) */}
-              <YStack
-                style={{
-                  opacity   : labelsVisible ? 1 : 0,
-                  transition: 'opacity 0.1s ease',
-                  overflow  : 'hidden',
-                  maxHeight : labelsVisible ? 40 : 0,
-                } as never}
-              >
-                <Text
-                  fontFamily="$body"
-                  fontSize={9}
-                  fontWeight="700"
-                  color={colors.text.subtle}
-                  letterSpacing={1.5}
-                  paddingHorizontal={20}
-                  paddingBottom={4}
-                  paddingTop={gi === 0 ? 4 : 12}
-                  style={{ textTransform: 'uppercase' as never }}
+              {group.label ? (
+                <YStack
+                  style={{
+                    opacity   : labelsVisible ? 1 : 0,
+                    transition: 'opacity 0.1s ease',
+                    overflow  : 'hidden',
+                    maxHeight : labelsVisible ? 40 : 0,
+                  } as never}
                 >
-                  {group.label}
-                </Text>
-              </YStack>
+                  <Text
+                    fontFamily="$body"
+                    fontSize={9}
+                    fontWeight="700"
+                    color={colors.text.subtle}
+                    letterSpacing={1.5}
+                    paddingHorizontal={20}
+                    paddingBottom={4}
+                    paddingTop={gi === 0 ? 4 : 12}
+                    style={{ textTransform: 'uppercase' as never }}
+                  >
+                    {group.label}
+                  </Text>
+                </YStack>
+              ) : null}
 
               <YStack gap={1} paddingHorizontal={8}>
                 {group.items.map(({ label, href, Icon }) => {

@@ -365,5 +365,6 @@ development_status:
 
   # Epic 73 : Design — Uniformisation visuelle dashboard
   epic-73: in-progress
+  73-1-design-sidebar-restructuration-labels-groupes: done
   73-4-design-dashboard-journee-style-uniforme: done
   epic-73-retrospective: optional
