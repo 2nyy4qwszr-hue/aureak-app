@@ -63,9 +63,11 @@ function isAtRisk(statuses: (AttendanceStatus | null)[]): boolean {
 }
 
 function getCellStyle(rate: number): { bg: string; text: string } {
-  if (rate >= 80) return { bg: colors.status.successBg,  text: colors.status.successText }
-  if (rate >= 60) return { bg: colors.status.orangeBg,   text: colors.status.orangeText  }
-  return               { bg: colors.status.errorBg,    text: colors.status.errorText   }
+  // Figma heatmap seuils
+  if (rate >= 90) return { bg: '#22c55e', text: '#ffffff' }
+  if (rate >= 70) return { bg: '#eab308', text: '#ffffff' }
+  if (rate >= 60) return { bg: '#f97316', text: '#ffffff' }
+  return               { bg: '#ef4444', text: '#ffffff' }
 }
 
 function getDotColor(status: AttendanceStatus | null): string {
@@ -143,15 +145,8 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
 
       {/* Card 2 — Groupes sous 70% */}
       <View style={[cardStyles.card, { flex: 1 }]}>
-        <AureakText style={cardStyles.statIcon}>👥</AureakText>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-          <AureakText style={cardStyles.cardLabel}>Groupes sous 70%</AureakText>
-          {stats.groupsUnder70 > 0 && (
-            <View style={cardStyles.badgeRed}>
-              <AureakText style={cardStyles.badgeRedText}>!</AureakText>
-            </View>
-          )}
-        </View>
+        <AureakText style={cardStyles.statIcon}>📉</AureakText>
+        <AureakText style={cardStyles.cardLabel}>Groupes sous 70%</AureakText>
         <AureakText style={cardStyles.cardStat}>{stats.groupsUnder70}</AureakText>
         <AureakText style={cardStyles.cardSub}>
           {stats.implantationsCount} groupe{stats.implantationsCount > 1 ? 's' : ''} suivis
@@ -161,16 +156,21 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
       {/* Card 3 — Total Séances */}
       <View style={[cardStyles.card, { flex: 1 }]}>
         <AureakText style={cardStyles.statIcon}>📅</AureakText>
-        <AureakText style={cardStyles.cardLabel}>Total Séances</AureakText>
-        <AureakText style={cardStyles.cardStat}>{stats.totalSessions}</AureakText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginBottom: space.sm }}>
+          <AureakText style={cardStyles.cardLabel}>Total Séances</AureakText>
+          <View style={cardStyles.badgeGold}>
+            <AureakText style={cardStyles.badgeGoldText}>+12%</AureakText>
+          </View>
+        </View>
+        <AureakText style={cardStyles.cardStatGoldSolid}>{stats.totalSessions}</AureakText>
         <AureakText style={cardStyles.cardSub}>Période sélectionnée</AureakText>
       </View>
 
-      {/* Card 4 — Tendance Global (fond dark) */}
-      <View style={[cardStyles.card, cardStyles.cardDark, { flex: 1 }]}>
+      {/* Card 4 — Tendance Global (fond dark gold) */}
+      <View style={[cardStyles.card, cardStyles.cardDarkGold, { flex: 1 }]}>
         <AureakText style={cardStyles.statIconLight}>↗</AureakText>
         <AureakText style={cardStyles.cardLabelDark}>Tendance Global</AureakText>
-        <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.status.present : colors.status.absent } as import('react-native').TextStyle}>
+        <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.text.primary : colors.status.absent } as import('react-native').TextStyle}>
           {stats.totalSessions >= 2 ? trendDisplay : '—'}
         </AureakText>
         <AureakText style={cardStyles.cardSubDark}>
@@ -200,9 +200,10 @@ const cardStyles = StyleSheet.create({
     // @ts-ignore web shadow
     boxShadow      : shadows.sm,
   },
-  cardDark: {
-    backgroundColor: colors.text.dark,
-    borderColor    : colors.text.dark,
+  cardDarkGold: {
+    // Figma card Tendance fond gold foncé
+    backgroundColor: '#6e5d14',
+    borderColor    : '#6e5d14',
   },
   cardLabel: {
     fontSize     : 10,
@@ -236,6 +237,25 @@ const cardStyles = StyleSheet.create({
     color       : colors.accent.gold,
     marginBottom: space.xs,
   },
+  cardStatGoldSolid: {
+    fontSize    : 28,
+    fontFamily  : 'Montserrat',
+    fontWeight  : '900',
+    color       : 'rgba(193,172,92,0.5)',  // = colors.border.goldSolid
+    marginBottom: space.xs,
+  },
+  badgeGold: {
+    backgroundColor  : 'rgba(110,93,20,0.05)',
+    borderRadius     : radius.badge,
+    paddingHorizontal: 8,
+    paddingVertical  : 2,
+  },
+  badgeGoldText: {
+    color     : colors.accent.goldLight,
+    fontSize  : 10,
+    fontWeight: '700',
+    fontFamily: fonts.heading,
+  },
   cardSub: {
     fontSize  : 11,
     fontFamily: fonts.body,
@@ -266,20 +286,6 @@ const cardStyles = StyleSheet.create({
     height         : 4,
     backgroundColor: colors.accent.gold,
     borderRadius   : 2,
-  },
-  badgeRed: {
-    backgroundColor: colors.status.absent,
-    borderRadius   : radius.badge,
-    width          : 18,
-    height         : 18,
-    alignItems     : 'center',
-    justifyContent : 'center',
-  },
-  badgeRedText: {
-    color     : colors.text.primary,
-    fontSize  : 10,
-    fontWeight: '700',
-    fontFamily: fonts.heading,
   },
 })
 
@@ -511,11 +517,11 @@ const tableStyles = StyleSheet.create({
     color     : colors.text.muted,
   },
   cell: {
-    alignItems    : 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    borderRadius  : radius.xs,
+    alignItems      : 'center',
+    justifyContent  : 'center',
+    width           : 48,
+    height          : 48,
+    borderRadius    : 8,
     marginHorizontal: 2,
   },
   cellText: {
