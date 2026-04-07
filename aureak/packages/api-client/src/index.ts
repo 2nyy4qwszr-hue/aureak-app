@@ -120,8 +120,10 @@ export {
   updateSessionIntensity,
   // Story 61.2 — séance active du jour pour le coach
   getActiveSessionForCoach,
+  // Story 72.1 — Dashboard "Sessions du jour"
+  listTodaySessionsForDashboard,
 } from './sessions/sessions'
-export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow } from './sessions/sessions'
+export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow, TodaySessionRow } from './sessions/sessions'
 export type { ActiveSessionInfo } from '@aureak/types'
 
 export {

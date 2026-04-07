@@ -1276,3 +1276,62 @@ export async function updateSessionIntensity(
     .eq('id', sessionId)
   if (error) throw error
 }
+
+// ─── Dashboard "Sessions du jour" (Story 72.1) ─────────────────────────────
+
+export type TodaySessionRow = {
+  id           : string
+  groupName    : string
+  scheduledAt  : string        // ISO
+  status       : string        // 'planifiée' | 'en_cours' | 'terminée' | 'réalisée' | 'annulée' | 'reportée'
+  coachName    : string | null // premier coach assigné
+  coachInitials: string        // ex: "JD" depuis coachName
+}
+
+export async function listTodaySessionsForDashboard(): Promise<{ data: TodaySessionRow[]; error: unknown }> {
+  const now        = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString()
+  const todayEnd   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString()
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(`
+      id,
+      scheduled_at,
+      status,
+      groups ( name, is_transient ),
+      session_coaches ( coach_id, role, profiles ( display_name ) )
+    `)
+    .gte('scheduled_at', todayStart)
+    .lte('scheduled_at', todayEnd)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: true })
+
+  if (error) return { data: [], error }
+
+  const rows: TodaySessionRow[] = (data ?? [])
+    .filter((row: Record<string, unknown>) => {
+      const g = row['groups'] as { is_transient?: boolean } | null
+      return !g?.is_transient
+    })
+    .map((row: Record<string, unknown>) => {
+      const group   = row['groups'] as { name?: string } | null
+      const coaches = (row['session_coaches'] as Array<{ coach_id: string; role: string; profiles?: { display_name?: string } | null }>) ?? []
+      // Premier coach principal, sinon premier assistant
+      const principal = coaches.find(c => c.role === 'principal') ?? coaches[0] ?? null
+      const coachName = principal?.profiles?.display_name ?? null
+      const initials  = coachName
+        ? coachName.split(' ').map((w: string) => w[0] ?? '').join('').slice(0, 2).toUpperCase()
+        : '?'
+      return {
+        id           : row['id']           as string,
+        groupName    : group?.name         ?? '—',
+        scheduledAt  : row['scheduled_at'] as string,
+        status       : (row['status']      as string) ?? 'planifiée',
+        coachName,
+        coachInitials: initials,
+      }
+    })
+
+  return { data: rows, error: null }
+}

@@ -14,9 +14,11 @@ import {
   getAcademyScore,
   checkAcademyMilestones, markMilestoneCelebrated,
   getSeasonTrophyData,
+  listTodaySessionsForDashboard,
+  listStages,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData } from '@aureak/api-client'
-import type { PlayerOfWeek, LeaderboardEntry } from '@aureak/types'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData, TodaySessionRow } from '@aureak/api-client'
+import type { PlayerOfWeek, LeaderboardEntry, StageWithMeta } from '@aureak/types'
 import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS, TERRAIN_GRADIENT_DARK, TERRAIN_GRADIENT_HEADER } from '@aureak/theme'
 import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { useLiveSessionCounts } from '@aureak/api-client'
@@ -47,6 +49,28 @@ function anomalyLabel(type: string): string {
     .split('_')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
+}
+
+// ── Story 72.1 — Helpers statut séance ───────────────────────────────────────
+
+function sessionStatusLabel(status: string): string {
+  const MAP: Record<string, string> = {
+    planifiée : 'À VENIR',
+    en_cours  : 'EN COURS',
+    terminée  : 'CLÔTURÉE',
+    réalisée  : 'CLÔTURÉE',
+    annulée   : 'ANNULÉE',
+    reportée  : 'REPORTÉE',
+  }
+  return MAP[status] ?? status.toUpperCase()
+}
+
+function sessionStatusColor(status: string): string {
+  if (status === 'en_cours')                                   return colors.status.present  // vert
+  if (status === 'planifiée')                                  return colors.status.info     // bleu
+  if (status === 'terminée' || status === 'réalisée')          return colors.text.muted      // gris
+  if (status === 'annulée')                                    return colors.status.absent   // rouge
+  return colors.text.muted
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -2117,6 +2141,12 @@ export default function DashboardPage() {
   const [loadingTrophy,     setLoadingTrophy]     = useState(true)
   const trophySvgRef = useRef<SVGSVGElement>(null)
 
+  // ── Story 72.1 — Sessions du jour + Stages à venir ──
+  const [todaySessions,        setTodaySessions]        = useState<TodaySessionRow[]>([])
+  const [loadingTodaySessions, setLoadingTodaySessions] = useState(true)
+  const [upcomingStages,       setUpcomingStages]       = useState<StageWithMeta[]>([])
+  const [loadingStages,        setLoadingStages]        = useState(true)
+
   // ── KPI counts (vary with implantation selection) ──
   const [childrenTotal, setChildrenTotal] = useState<number | null>(null)
   const [coachesTotal,  setCoachesTotal]  = useState<number | null>(null)
@@ -2342,6 +2372,45 @@ export default function DashboardPage() {
       }
     }
     loadStreaks()
+  }, [])
+
+  // ── Story 72.1 — Load séances du jour ──
+  useEffect(() => {
+    const loadTodaySessions = async () => {
+      setLoadingTodaySessions(true)
+      try {
+        const { data, error } = await listTodaySessionsForDashboard()
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listTodaySessionsForDashboard error:', error)
+        } else {
+          setTodaySessions(data)
+        }
+      } finally {
+        setLoadingTodaySessions(false)
+      }
+    }
+    loadTodaySessions()
+  }, [])
+
+  // ── Story 72.1 — Load stages à venir ──
+  useEffect(() => {
+    const loadUpcomingStages = async () => {
+      setLoadingStages(true)
+      try {
+        const todayIso = new Date().toISOString().slice(0, 10)  // 'YYYY-MM-DD'
+        const all = await listStages({ status: 'all' })
+        const filtered = all
+          .filter(s => s.status !== 'annulé' && s.startDate >= todayIso)
+          .sort((a, b) => a.startDate.localeCompare(b.startDate))
+          .slice(0, 5)
+        setUpcomingStages(filtered)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[dashboard] listStages error:', err)
+      } finally {
+        setLoadingStages(false)
+      }
+    }
+    loadUpcomingStages()
   }, [])
 
   // ── Load joueur de la semaine (Story 55-8) ──
@@ -2657,102 +2726,122 @@ export default function DashboardPage() {
           La journée
         </div>
 
-        {/* Cards séances du jour */}
-        {(() => {
-          const today = new Date()
-          today.setHours(0, 0, 0, 0)
-          const tomorrow = new Date(today)
-          tomorrow.setDate(today.getDate() + 1)
+        {/* ── Story 72.1 — Sessions du jour (liste complète) ── */}
+        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8, marginTop: 4 }}>
+          Sessions du jour
+        </div>
 
-          // upcomingSession = prochaine séance (listNextSessionForDashboard retourne 1 ligne)
-          // On affiche la prochaine séance + le countdown s'il y a lieu
-          const hasSession = upcomingSession !== null && !loadingUpcoming
+        {loadingTodaySessions ? (
+          <>
+            <div className="a-skel" style={{ height: 56, borderRadius: radius.card, marginBottom: 6 }} />
+            <div className="a-skel" style={{ height: 56, borderRadius: radius.card, marginBottom: 6 }} />
+          </>
+        ) : todaySessions.length === 0 ? (
+          <div style={{
+            backgroundColor: colors.light.surface,
+            borderRadius   : radius.card,
+            padding        : '12px 14px',
+            marginBottom   : 8,
+            boxShadow      : shadows.sm,
+            border         : `1px solid ${colors.border.light}`,
+            fontSize       : 12,
+            color          : colors.text.muted,
+            fontStyle      : 'italic',
+            fontFamily     : 'Geist, sans-serif',
+          }}>
+            Aucune séance aujourd'hui
+          </div>
+        ) : (
+          todaySessions.map(session => {
+            const isEnCours   = session.status === 'en_cours'
+            const statusColor = sessionStatusColor(session.status)
+            const formatTime  = (iso: string) =>
+              new Date(iso).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
 
-          if (loadingUpcoming) {
             return (
-              <>
-                <div className="a-skel" style={{ height: 90, borderRadius: radius.card, marginBottom: 8 }} />
-                <div className="a-skel" style={{ height: 90, borderRadius: radius.card, marginBottom: 8 }} />
-              </>
-            )
-          }
-
-          if (!hasSession) {
-            return (
-              <div style={{
-                backgroundColor: colors.light.surface,
-                borderRadius   : radius.card,
-                padding        : '14px 16px',
-                marginBottom   : 8,
-                boxShadow      : shadows.sm,
-                border         : `1px solid ${colors.border.light}`,
-                fontSize       : 12,
-                color          : colors.text.muted,
-                fontStyle      : 'italic',
-                fontFamily     : 'Montserrat, sans-serif',
-              }}>
-                Aucune séance prévue aujourd'hui
-              </div>
-            )
-          }
-
-          const session = upcomingSession!
-          const sessionDate = new Date(session.scheduledAt)
-          const isToday = sessionDate >= today && sessionDate < tomorrow
-
-          const statusColor = isToday ? colors.status.present : colors.accent.gold
-
-          const formatTime = (iso: string) => {
-            const d = new Date(iso)
-            return d.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
-          }
-
-          return (
-            <div style={{
-              backgroundColor: colors.light.surface,
-              borderRadius   : radius.card,
-              padding        : '12px 14px',
-              marginBottom   : 8,
-              boxShadow      : shadows.sm,
-              borderLeft     : `3px solid ${statusColor}`,
-              border         : `1px solid ${colors.border.light}`,
-              position       : 'relative',
-              overflow       : 'hidden',
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: colors.accent.gold, fontFamily: 'Montserrat, sans-serif' }}>
-                {formatTime(session.scheduledAt)}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginTop: 2, fontFamily: 'Montserrat, sans-serif' }}>
-                {session.groupName}
-              </div>
-              {session.location && (
-                <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 2, fontFamily: 'Montserrat, sans-serif' }}>
-                  📍 {session.location}
+              <div
+                key={session.id}
+                style={{
+                  backgroundColor: isEnCours ? colors.status.successBg : colors.light.surface,
+                  borderRadius   : radius.card,
+                  padding        : '10px 12px',
+                  marginBottom   : 6,
+                  boxShadow      : shadows.sm,
+                  border         : `1px solid ${isEnCours ? colors.status.present + '40' : colors.border.light}`,
+                  borderLeft     : `3px solid ${isEnCours ? colors.status.present : colors.border.divider}`,
+                  display        : 'flex',
+                  alignItems     : 'center',
+                  gap            : 10,
+                }}
+              >
+                {/* Heure */}
+                <div style={{
+                  fontFamily : 'Geist Mono, monospace',
+                  fontWeight : 700,
+                  fontSize   : 14,
+                  color      : isEnCours ? colors.status.successText : colors.text.dark,
+                  flexShrink : 0,
+                  minWidth   : 42,
+                }}>
+                  {formatTime(session.scheduledAt)}
                 </div>
-              )}
-              {/* Badge statut */}
-              <div style={{
-                display        : 'inline-flex',
-                alignItems     : 'center',
-                marginTop      : 8,
-                backgroundColor: statusColor + '1a',
-                border         : `1px solid ${statusColor + '40'}`,
-                borderRadius   : radius.badge,
-                paddingLeft    : 7,
-                paddingRight   : 7,
-                paddingTop     : 2,
-                paddingBottom  : 2,
-                fontSize       : 10,
-                fontWeight     : 700,
-                color          : statusColor,
-                fontFamily     : 'Montserrat, sans-serif',
-                letterSpacing  : 0.5,
-              }}>
-                {isToday ? 'Aujourd\'hui' : 'À venir'}
+
+                {/* Nom groupe */}
+                <div style={{
+                  fontFamily   : 'Manrope, Montserrat, sans-serif',
+                  fontWeight   : 700,
+                  fontSize     : 13,
+                  color        : colors.text.dark,
+                  flex         : 1,
+                  overflow     : 'hidden',
+                  textOverflow : 'ellipsis',
+                  whiteSpace   : 'nowrap',
+                }}>
+                  {session.groupName}
+                </div>
+
+                {/* Avatar coach */}
+                <div style={{
+                  width          : 24,
+                  height         : 24,
+                  borderRadius   : '50%',
+                  backgroundColor: colors.accent.goldLight + '33',
+                  border         : `1px solid ${colors.accent.goldLight}`,
+                  display        : 'flex',
+                  alignItems     : 'center',
+                  justifyContent : 'center',
+                  fontSize       : 9,
+                  fontWeight     : 700,
+                  color          : colors.accent.gold,
+                  flexShrink     : 0,
+                  fontFamily     : 'Geist Mono, monospace',
+                }}>
+                  {session.coachInitials}
+                </div>
+
+                {/* Badge statut */}
+                <div style={{
+                  backgroundColor: statusColor + '1a',
+                  border         : `1px solid ${statusColor + '40'}`,
+                  borderRadius   : radius.badge,
+                  paddingLeft    : 6,
+                  paddingRight   : 6,
+                  paddingTop     : 2,
+                  paddingBottom  : 2,
+                  fontSize       : 9,
+                  fontWeight     : 700,
+                  color          : statusColor,
+                  fontFamily     : 'Montserrat, sans-serif',
+                  letterSpacing  : 0.4,
+                  flexShrink     : 0,
+                  whiteSpace     : 'nowrap',
+                }}>
+                  {sessionStatusLabel(session.status)}
+                </div>
               </div>
-            </div>
-          )
-        })()}
+            )
+          })
+        )}
 
         {/* Lien vers le planning */}
         <button
@@ -2996,6 +3085,108 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
+
+        {/* ── Story 72.1 — Prochains événements ── */}
+        <div style={{
+          backgroundColor: colors.light.surface,
+          borderRadius   : radius.card,
+          border         : `1px solid ${colors.border.light}`,
+          boxShadow      : shadows.sm,
+          padding        : '16px 20px',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
+            Prochains événements
+          </div>
+
+          {loadingStages ? (
+            <>
+              {[0,1,2].map(i => (
+                <div key={i} className="a-skel" style={{ height: 48, borderRadius: radius.xs, marginBottom: 8 }} />
+              ))}
+            </>
+          ) : upcomingStages.length === 0 ? (
+            <div style={{ fontSize: 12, color: colors.text.muted, fontStyle: 'italic', fontFamily: 'Geist, sans-serif' }}>
+              Aucun événement prévu
+            </div>
+          ) : (
+            upcomingStages.map(stage => {
+              const d     = new Date(stage.startDate)
+              const day   = String(d.getDate()).padStart(2, '0')
+              const month = String(d.getMonth() + 1).padStart(2, '0')
+
+              return (
+                <div
+                  key={stage.id}
+                  style={{
+                    display      : 'flex',
+                    alignItems   : 'center',
+                    gap          : 12,
+                    paddingTop   : 8,
+                    paddingBottom: 8,
+                    borderBottom : `1px solid ${colors.border.divider}`,
+                  }}
+                >
+                  {/* Boîte date gold */}
+                  <div style={{
+                    width          : 40,
+                    height         : 40,
+                    borderRadius   : radius.xs,
+                    backgroundColor: colors.accent.gold,
+                    display        : 'flex',
+                    flexDirection  : 'column',
+                    alignItems     : 'center',
+                    justifyContent : 'center',
+                    flexShrink     : 0,
+                    gap            : 0,
+                  }}>
+                    <div style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 900, fontSize: 15, color: '#FFFFFF', lineHeight: 1.1 }}>
+                      {day}
+                    </div>
+                    <div style={{ fontFamily: 'Geist Mono, monospace', fontWeight: 600, fontSize: 10, color: '#FFFFFF', lineHeight: 1.1, opacity: 0.85 }}>
+                      /{month}
+                    </div>
+                  </div>
+
+                  {/* Nom + badge type */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize    : 13,
+                      fontWeight  : 600,
+                      color       : colors.text.dark,
+                      fontFamily  : 'Geist, sans-serif',
+                      overflow    : 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace  : 'nowrap',
+                    }}>
+                      {stage.name}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                      <div style={{
+                        backgroundColor: colors.border.light,
+                        border         : `1px solid ${colors.border.divider}`,
+                        borderRadius   : radius.badge,
+                        paddingLeft    : 6,
+                        paddingRight   : 6,
+                        paddingTop     : 1,
+                        paddingBottom  : 1,
+                        fontSize       : 9,
+                        fontWeight     : 700,
+                        color          : colors.text.muted,
+                        fontFamily     : 'Montserrat, sans-serif',
+                        letterSpacing  : 0.5,
+                      }}>
+                        STAGE
+                      </div>
+                      <div style={{ fontSize: 11, color: colors.text.subtle, fontFamily: 'Geist, sans-serif' }}>
+                        {stage.participantCount} inscrit{stage.participantCount !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
 
       </div>
       {/* ── FIN COL MILIEU ── */}
