@@ -42,7 +42,7 @@ export default function ActivitesPage() {
 const styles = StyleSheet.create({
   container: {
     flex           : 1,
-    backgroundColor: colors.light.surface,
+    backgroundColor: colors.light.primary,
   },
   scroll: {
     flex: 1,

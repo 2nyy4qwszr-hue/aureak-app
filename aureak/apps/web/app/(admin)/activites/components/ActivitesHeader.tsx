@@ -71,7 +71,7 @@ export function ActivitesHeader() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor  : colors.light.surface,
+    backgroundColor  : colors.light.primary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
