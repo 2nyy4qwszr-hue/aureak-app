@@ -315,6 +315,20 @@ function TableauGroupes({ rows, page, onPage, onClickGroup }: TableauGroupesProp
     return (
       <View style={tableStyles.empty}>
         <AureakText style={tableStyles.emptyText}>Aucune donnée de présence disponible.</AureakText>
+        <AureakText style={tableStyles.emptySubText}>
+          Créez des groupes et enregistrez des présences pour voir les données ici.
+        </AureakText>
+      </View>
+    )
+  }
+
+  if (allDates.length === 0) {
+    return (
+      <View style={tableStyles.empty}>
+        <AureakText style={tableStyles.emptyText}>Aucune séance trouvée pour la période sélectionnée.</AureakText>
+        <AureakText style={tableStyles.emptySubText}>
+          Vérifiez les filtres de scope ou attendez que des séances soient enregistrées.
+        </AureakText>
       </View>
     )
   }
@@ -430,6 +444,13 @@ const tableStyles = StyleSheet.create({
     color     : colors.text.muted,
     fontSize  : 14,
     fontFamily: fonts.body,
+  },
+  emptySubText: {
+    color     : colors.text.subtle,
+    fontSize  : 12,
+    fontFamily: fonts.body,
+    marginTop : space.xs,
+    textAlign : 'center',
   },
   container: {
     marginHorizontal: space.lg,
@@ -1150,8 +1171,10 @@ export default function PresencesPage() {
   const groupPresenceRows = useMemo<GroupPresenceRow[]>(() => {
     if (scope.scope !== 'global' && scope.scope !== 'implantation') return []
 
-    // 5 dernières séances (toutes confondues)
-    const last5Sessions = sessions.slice(0, 5)
+    // 5 dernières séances (toutes confondues), triées par date desc
+    const last5Sessions = [...sessions]
+      .sort((a, b) => new Date(b.scheduledAt ?? 0).getTime() - new Date(a.scheduledAt ?? 0).getTime())
+      .slice(0, 5)
 
     return groups.map(g => {
       const groupSessions = last5Sessions.filter(s => s.groupId === g.id)
@@ -1286,11 +1309,13 @@ const pageStyles = StyleSheet.create({
     backgroundColor: colors.light.primary,
   },
   scroll: {
-    flex: 1,
+    flex           : 1,
+    backgroundColor: colors.light.primary,
   },
   scrollContent: {
-    paddingTop   : space.md,
-    paddingBottom: space.xxl,
+    paddingTop     : space.md,
+    paddingBottom  : space.xxl,
+    backgroundColor: colors.light.primary,
   },
   filtresRow: {
     flexDirection    : 'row',
