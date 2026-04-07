@@ -98,9 +98,12 @@
 - [ ] 65-1 : activites-seances-refonte-hub-tableau (P1 — route /activites, tableau séances avec pseudo-filtres temporels, stat cards, colonnes Statut/Date/Méthode/Groupe/Coach/Présence/Badges/K/C/Anomalie)
 - [ ] 65-2 : activites-presences-vue-transversale (P1 — onglet Présences, vue groupes×séances en Global, heatmap joueurs×séances en Groupe, section À surveiller — dépend 65-1)
 - [ ] 65-3 : activites-evaluations-vue-transversale (P2 — onglet Évaluations, 3 sous-filtres Badges/Connaissances/Compétences, grille badges joueurs, placeholders futurs modules — dépend 65-1)
-- [ ] 65-4 : ux-filtresscope-pill-groupe-disabled (P1 quick-win — pill Groupe grisé + non-cliquable tant qu'aucune implantation sélectionnée, hint visible sous le pill, suppression message erreur tardif — dépend 65-1)
+- [x] 65-4 : ux-filtresscope-pill-groupe-disabled — CANCELLED (superseded par 65-8, Jeremy ne veut pas du hint textuel)
 - [ ] 65-5 : tableau-seances-methode-coach-enrichi (P1 bug — colonnes MÉTHODE et COACH toujours vides, enrichir listSessionsWithAttendance avec JOIN methodology_sessions+session_coaches, brancher MethodeBadge et CoachAvatars — dépend 65-1)
 - [ ] 65-6 : presences-vue-joueur-inline (P1 UX fix — supprime router.push auto sur scope Joueur, remplace par card résumé joueur + timeline 10 séances + stats 30j/totale + lien opt-in fiche complète — dépend 65-2)
+- [ ] 65-7 : bug-recordattendance-recordedby-vide (P1 BUG — recordedBy: '' → user.id, import useAuthStore manquant — fiche séance /seances/[sessionId])
+- [ ] 65-8 : ux-activites-polish-filtres-zindex-empty-state (P2 — filtres côte à côte, z-index dropdowns, empty state clair, autocomplete off, retrait hint groupe)
+- [ ] 65-9 : ux-seances-navigation-retour-defaut (P3 — bouton retour fiche séance, filtre par défaut Aujourd'hui, unsaved changes confirmation)
 
 **Dépendances** :
 - 65-1 indépendant (nouvelle route, coexiste avec /seances existant)
@@ -136,6 +139,80 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 - 50-3 et 50-6 nécessitent de vérifier le nom exact des tables `sessions` et `attendance_records`
 - 50-11 intègre et remplace 50-1/50-4/50-5 (Hero Band, ImplantationCard premium, feed latéral) — UI only, aucune migration
 - Migration max utilisée : aucune (Epic 50 = UI uniquement, pas de migration DB nécessaire)
+
+---
+
+### Epic 66 — Navigation & Sidebar Polish
+
+- [ ] 66-1 : ux-sidebar-restructuration-labels-items (P2 — "Tableau de bord"→"Dashboard", retrait Séances/Présences/Évaluations du sidebar, "Académie"→"Méthode", "Structure"→"Académie", retrait notification, fix icônes collapsed)
+
+---
+
+### Epic 70 — Dashboard Polish post-67.1 (alignement design-ref)
+
+Micro-ajustements du dashboard après l'implémentation du layout 3 colonnes (story 67-1).
+Toutes les stories portent sur `dashboard/page.tsx` uniquement — aucune migration DB.
+Référence visuelle : `_bmad-output/design-references/dashboard-redesign.png`
+
+- [ ] 70-1 : design-dashboard-topbar-bandeau-plat-seance-soir (P1 — topbar sans card flottante + infos prochaine séance du soir)
+- [ ] 70-2 : design-dashboard-academie-titre-visible-sans-filtres (P1 — titre L'ACADÉMIE lisible + supprimer filtres Implantation/Période)
+- [ ] 70-3 : design-dashboard-stats-couleur-doree-uniforme (P2 — Joueurs/Coachs/Groupes/Sites tous en colors.accent.gold)
+- [ ] 70-4 : design-dashboard-activite-4sem-compact (P2 — padding réduit, card moins haute)
+- [ ] 70-5 : design-dashboard-layout-proportions-performance-large (P2 — col droite 240→280px, titre PERFORMANCE lisible, XP scores plus grands)
+- [ ] 70-6 : design-dashboard-score-academie-mini-stats-sans-debordement (P2 — overflow hidden + mini-tiles compactées)
+- [ ] 70-7 : feature-dashboard-quetes-actives-col-performance (P2 — bloc Quêtes actives entre XP et Score Académie, placeholder statique)
+
+**Dépendances** : toutes indépendantes entre elles, toutes sur `dashboard/page.tsx`
+
+---
+
+### Epic 71 — Activités Polish (alignement design-refs)
+
+Micro-ajustements des pages Activités après les stories 67-2 et 67-3.
+Références visuelles : `_bmad-output/design-references/Activites *-redesign.png`
+Aucune migration DB — UI uniquement.
+
+- [ ] 71-6 : bug-activitesheader-hrefs-onglets-incorrects (P0 BUG — onglets Présences/Évaluations redirigent vers /implantations et /children — 2 lignes ActivitesHeader.tsx)
+- [ ] 71-3 : bug-breadcrumb-visible-sous-pages-activites (P1 BUG — breadcrumb affiché sur /activites/presences et /activites/evaluations — supprimer via condition pathname dans _layout.tsx)
+- [ ] 71-1 : design-statcards-seances-pictos-ordre-4eme-card-doree (P2 — picto→label→valeur + 4ème card fond dark + progress bar gold)
+- [ ] 71-2 : design-statcards-presences-evaluations-pictos-4eme-card-dark (P2 — même template picto que 71-1 pour Présences et Évaluations)
+- [ ] 71-4 : design-header-activites-fond-uniforme (P3 — aligner fond page + header sur colors.light.surface + onglets inactifs en colors.text.dark)
+- [ ] 71-5 : design-tableau-seances-badges-statut-plus-contraste (P3 — fonds badges STATUS plus denses + fontWeight 700)
+
+**Dépendances** : 71-1 avant 71-2 (pattern commun) — les autres indépendantes
+
+---
+
+### Epic 67 — Design References — Redesign visuel (Dashboard + Activités)
+
+Refonte visuelle basée sur les références images validées par Jeremy.
+Répertoire : `_bmad-output/design-references/`
+Aucune migration DB — UI uniquement. Données de l'app conservées.
+
+- [x] 67-1 : design-dashboard-refonte-3-colonnes (P1 — layout 3 colonnes La Journée/L'Académie/Performance remplaçant les 3 zones verticales actuelles — référence `dashboard-redesign.png`)
+- [ ] 67-2 : design-activites-seances-redesign-visuel (P2 — stat cards 28px bold + tableau lignes 52px + header 10px uppercase + avatars coach 28px — référence `Activites seances-redesign.png`)
+- [ ] 67-3 : design-activites-presences-evaluations-harmonisation-tableau (P2 — harmoniser Présences heatmap + Évaluations tableau sur le style de 67-2 — fond blanc, pas de sombre — dépend 67-2)
+
+---
+
+### Epic 68 — Design Méthodologie Entraînements
+
+Refonte visuelle de la page Entraînements basée sur la référence `Methodologie entrainement-redesign.png`.
+Aucune migration DB — les 7 méthodes sont déjà dans `@aureak/types` et `@aureak/theme`.
+
+- [ ] 68-1 : design-methodologie-entrainements-refonte-tableau-pictos-methodes (P2 — tableau à la place de la grille, 7 stat cards méthodes avec pictos ⚽📚📐🎯💪🧠👥, header MÉTHODOLOGIE + onglets, colonnes METHODE/NUM/TITRE/THÈMES/SITUATIONS/PDF/STATUT)
+
+---
+
+### Epic 69 — UX Polish & Quick Wins
+
+Aucune migration DB — UI uniquement. Petits correctifs et améliorations UX rapides.
+
+- [ ] 69-1 : ux-skeleton-fiche-seance (P1 — skeleton loading fiche séance remplace texte "Chargement…")
+- [ ] 69-2 : bug-label-en-cours-stages (P1 BUG — "En_cours" → "En cours" mapping label statut)
+- [ ] 69-3 : ux-skeleton-hub-methodologie (P2 — skeleton complet tile Thème semaine, zéro layout shift)
+- [ ] 69-4 : ux-empty-state-cta-themes-situations (P2 — bouton CTA dans empty state Thèmes + Situations)
+- [ ] 69-5 : ux-stepper-wizard-nouvelle-seance (P2 — stepper 6 étapes visible dans /seances/new)
 
 ---
 
@@ -474,6 +551,28 @@ Ordre d'implémentation recommandé : 64-1 (DB-only, 5 min) → 64-2 (UI simple)
 - 64-2 : entièrement indépendant (UI logique conditionnelle)
 - 64-3 : entièrement indépendant (JSX fix)
 - 64-4 : entièrement indépendant (API select + UI display)
+
+---
+
+### Epic 69 — UX Polish & Quick Wins
+
+Petites améliorations à fort impact, indépendantes les unes des autres. Aucune migration DB.
+
+- [ ] 69-1 : ux-skeleton-fiche-seance (P1 — skeleton loading fiche séance remplace texte "Chargement…")
+- [ ] 69-2 : bug-label-en-cours-stages (P1 BUG — "En_cours" → "En cours" mapping label statut)
+- [ ] 69-3 : ux-skeleton-hub-methodologie (P2 — skeleton complet tile Thème semaine, zéro layout shift)
+- [ ] 69-4 : ux-empty-state-cta-themes-situations (P2 — bouton CTA dans empty state Thèmes + Situations)
+- [ ] 69-5 : ux-stepper-wizard-nouvelle-seance (P2 — stepper 6 étapes visible dans /seances/new)
+- [ ] 69-6 : ux-filtre-mes-seances-coach (P2 — toggle "Toutes/Mes séances" dans /seances, filtré sur session_coaches.coach_id)
+- [ ] 69-7 : feature-export-csv-joueurs (P2 — bouton export CSV dans /children, génération côté client, respect filtres)
+- [ ] 69-8 : feature-fiche-coach-onglet-activite (P2 — onglet Activité dans fiche coach : stats + 10 dernières séances)
+- [ ] 69-9 : bug-listattendancesbychild-session-date (P1 BUG — colonne session_date → scheduled_at, heatmap présences fiche joueur vide)
+- [ ] 69-10 : bug-checkacademymilestones-406 (P1 BUG — .single() → .maybeSingle() sur profiles, erreur 406 dashboard)
+
+**Dépendances** :
+- 69-6 : indépendant (modifie seances/page.tsx uniquement)
+- 69-7 : indépendant (modifie children/index.tsx uniquement)
+- 69-8 : indépendant (modifie coaches/[coachId]/page.tsx + api-client/src/admin/coaches.ts)
 
 ---
 

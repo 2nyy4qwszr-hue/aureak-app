@@ -8,9 +8,9 @@ import { AureakText } from '@aureak/ui'
 import { colors, space, radius } from '@aureak/theme'
 
 const TABS = [
-  { key: 'seances',     label: 'SÉANCES',     href: '/(admin)/activites' },
-  { key: 'presences',   label: 'PRÉSENCES',   href: '/(admin)/activites/presences' },
-  { key: 'evaluations', label: 'ÉVALUATIONS', href: '/(admin)/activites/evaluations' },
+  { key: 'seances',     label: 'SÉANCES',     href: '/activites' },
+  { key: 'presences',   label: 'PRÉSENCES',   href: '/activites/presences' },
+  { key: 'evaluations', label: 'ÉVALUATIONS', href: '/activites/evaluations' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
