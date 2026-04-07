@@ -362,3 +362,8 @@ development_status:
   72-9-design-geist-montserrat-dashboard: done
   72-10-bug-load-sans-await-dashboard: done
   epic-72-retrospective: optional
+
+  # Epic 73 : Design — Uniformisation visuelle dashboard
+  epic-73: in-progress
+  73-4-design-dashboard-journee-style-uniforme: done
+  epic-73-retrospective: optional

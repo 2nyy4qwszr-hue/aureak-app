@@ -2722,7 +2722,7 @@ export default function DashboardPage() {
       <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
 
         {/* Label section */}
-        <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.subtle, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10, fontFamily: 'Montserrat, sans-serif' }}>
           La journée
         </div>
 
