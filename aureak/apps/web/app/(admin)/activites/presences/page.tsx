@@ -112,16 +112,29 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
       if (r < 70) groupsUnder70++
     }
 
-    return { avgRate, groupsUnder70, totalSessions, implantationsCount: groupMap.size }
+    // Tendance : compare moyenne des 3 dernières séances vs moyenne globale
+    let trend = 0
+    if (sessions.length >= 2) {
+      const sorted   = [...sessions].sort((a, b) => new Date(a.scheduledAt ?? 0).getTime() - new Date(b.scheduledAt ?? 0).getTime())
+      const recent   = sorted.slice(-3)
+      let rP = 0, rT = 0
+      for (const s of recent) { rP += s.presentCount + s.lateCount; rT += s.totalAttendance }
+      const recentRate = rT > 0 ? (rP / rT) * 100 : 0
+      trend = parseFloat((recentRate - avgRate).toFixed(1))
+    }
+
+    return { avgRate, groupsUnder70, totalSessions, implantationsCount: groupMap.size, trend }
   }, [sessions])
+
+  const trendPositive = stats.trend >= 0
+  const trendDisplay  = `${trendPositive ? '+' : ''}${stats.trend}`
 
   return (
     <View style={cardStyles.row}>
-      {/* Card 1 — Moyenne Générale */}
+      {/* Card 1 — Présence Générale */}
       <View style={[cardStyles.card, { flex: 1 }]}>
-        <AureakText style={cardStyles.cardLabel}>Moyenne Générale</AureakText>
+        <AureakText style={cardStyles.cardLabel}>Présence Générale</AureakText>
         <AureakText style={cardStyles.cardStat}>{stats.avgRate} %</AureakText>
-        {/* Barre progress gold */}
         <View style={cardStyles.progressTrack}>
           <View style={[cardStyles.progressFill, { width: `${Math.min(stats.avgRate, 100)}%` as unknown as number }]} />
         </View>
@@ -150,13 +163,15 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
         <AureakText style={cardStyles.cardSub}>Période sélectionnée</AureakText>
       </View>
 
-      {/* Card 4 — Tendance Globale (fond dark) */}
+      {/* Card 4 — Tendance Globale (fond gold) */}
       <View style={[cardStyles.card, cardStyles.cardDark, { flex: 1 }]}>
-        <AureakText style={cardStyles.cardLabelDark}>Tendance Globale</AureakText>
-        <AureakText style={cardStyles.cardStatGold}>
-          {stats.avgRate >= 80 ? '+' : ''}{stats.avgRate > 0 ? '↗' : '↘'}
+        <AureakText style={cardStyles.cardLabelDark}>Tendance Global</AureakText>
+        <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.status.present : colors.status.absent } as import('react-native').TextStyle}>
+          {stats.totalSessions >= 2 ? trendDisplay : '—'}
         </AureakText>
-        <AureakText style={cardStyles.cardSubDark}>Assiduité de la période</AureakText>
+        <AureakText style={cardStyles.cardSubDark}>
+          {stats.totalSessions >= 2 ? 'pts vs moyenne période' : 'Données insuffisantes'}
+        </AureakText>
       </View>
     </View>
   )

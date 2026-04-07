@@ -326,7 +326,7 @@ export default function EvaluationsPage() {
         {/* 4 Stat Cards */}
         <View style={styles.statCardsRow}>
           <StatCard
-            label="Moyenne Générale"
+            label="Note Moyenne"
             value={stats ? `${stats.avgDisplay}/10` : '—'}
             sub={stats?.progression !== null && stats?.progression !== undefined
               ? `${stats.progression >= 0 ? '↑' : '↓'} ${Math.abs(stats.progression).toFixed(0)}% vs mois préc.`
@@ -387,9 +387,6 @@ export default function EvaluationsPage() {
                   <View style={styles.colJoueur}>
                     <AureakText style={styles.colHeader}>JOUEUR</AureakText>
                   </View>
-                  <View style={styles.colSeance}>
-                    <AureakText style={styles.colHeader}>SÉANCE</AureakText>
-                  </View>
                   <Pressable
                     style={styles.colDate}
                     onPress={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
@@ -399,16 +396,10 @@ export default function EvaluationsPage() {
                     </AureakText>
                   </Pressable>
                   <View style={[styles.colSignal, { alignItems: 'center' }]}>
-                    <AureakText style={styles.colHeader}>RÉCEPTIVITÉ</AureakText>
+                    <AureakText style={styles.colHeader}>NOTE 1</AureakText>
                   </View>
                   <View style={[styles.colSignal, { alignItems: 'center' }]}>
-                    <AureakText style={styles.colHeader}>EFFORT</AureakText>
-                  </View>
-                  <View style={[styles.colSignal, { alignItems: 'center' }]}>
-                    <AureakText style={styles.colHeader}>ATTITUDE</AureakText>
-                  </View>
-                  <View style={[styles.colTop, { alignItems: 'center' }]}>
-                    <AureakText style={styles.colHeader}>TOP</AureakText>
+                    <AureakText style={styles.colHeader}>NOTE 2</AureakText>
                   </View>
                   <View style={styles.colComment}>
                     <AureakText style={styles.colHeader}>COMMENTAIRE</AureakText>
@@ -429,14 +420,10 @@ export default function EvaluationsPage() {
                         <AureakText style={styles.playerName} numberOfLines={1}>
                           {row.childName ?? 'Joueur inconnu'}
                         </AureakText>
+                        {(row as AdminEvalRow).topSeance ? (
+                          <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontFamily: 'Montserrat', fontWeight: '700' }}>⭐ Top séance</AureakText>
+                        ) : null}
                       </View>
-                    </View>
-
-                    {/* Séance */}
-                    <View style={[styles.cell, styles.colSeance]}>
-                      <AureakText style={styles.cellText} numberOfLines={1}>
-                        {row.sessionName ?? row.sessionId.slice(0, 8) + '…'}
-                      </AureakText>
                     </View>
 
                     {/* Date */}
@@ -444,10 +431,10 @@ export default function EvaluationsPage() {
                       <AureakText style={styles.cellText}>{formatDate(row.evalAt)}</AureakText>
                     </View>
 
-                    {/* Réceptivité */}
+                    {/* NOTE 1 — moyenne réceptivité + effort */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
                       {(() => {
-                        const score = signalToScore(row.receptivite)
+                        const score = (signalToScore(row.receptivite) + signalToScore(row.goutEffort)) / 2
                         return (
                           <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
                             {score.toFixed(1)}
@@ -456,19 +443,7 @@ export default function EvaluationsPage() {
                       })()}
                     </View>
 
-                    {/* Effort */}
-                    <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
-                      {(() => {
-                        const score = signalToScore(row.goutEffort)
-                        return (
-                          <AureakText style={{ ...styles.noteValue, color: noteColor(score) } as object}>
-                            {score.toFixed(1)}
-                          </AureakText>
-                        )
-                      })()}
-                    </View>
-
-                    {/* Attitude */}
+                    {/* NOTE 2 — attitude */}
                     <View style={[styles.cell, styles.colSignal, { alignItems: 'center' }]}>
                       {(() => {
                         const score = signalToScore(row.attitude)
@@ -480,17 +455,10 @@ export default function EvaluationsPage() {
                       })()}
                     </View>
 
-                    {/* Top Séance */}
-                    <View style={[styles.cell, styles.colTop, { alignItems: 'center' }]}>
-                      {(row as AdminEvalRow).topSeance ? (
-                        <AureakText style={styles.starIcon}>⭐</AureakText>
-                      ) : null}
-                    </View>
-
                     {/* Commentaire */}
                     <View style={[styles.cell, styles.colComment]}>
                       <AureakText style={styles.commentText} numberOfLines={1}>
-                        {truncate((row as AdminEvalRow & { comment?: string }).comment ?? null, 40)}
+                        {truncate((row as AdminEvalRow & { comment?: string }).comment ?? null, 50)}
                       </AureakText>
                     </View>
                   </Pressable>
