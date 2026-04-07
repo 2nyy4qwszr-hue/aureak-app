@@ -353,4 +353,5 @@ development_status:
   # Epic 72 : Bugfix & polish tableau des séances
   epic-72: in-progress
   72-6-bug-alpha-colors-avatars-coach-hors-charte: done
+  72-7-bug-text-natif-evenements-aureaktext: done
   epic-72-retrospective: optional
