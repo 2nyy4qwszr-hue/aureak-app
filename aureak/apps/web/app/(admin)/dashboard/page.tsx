@@ -2831,12 +2831,12 @@ export default function DashboardPage() {
           borderRadius   : radius.card,
           border         : `1px solid ${colors.border.light}`,
           boxShadow      : shadows.sm,
-          padding        : '16px 20px',
+          padding        : '12px 16px',
         }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 14, fontFamily: 'Montserrat, sans-serif' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 10, fontFamily: 'Montserrat, sans-serif' }}>
             Activité — 4 semaines
           </div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
               <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Geist, sans-serif' }}>Présence</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgAttendance), fontFamily: 'Geist Mono, monospace' }}>
