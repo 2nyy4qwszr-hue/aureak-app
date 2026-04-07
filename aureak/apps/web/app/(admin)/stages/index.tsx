@@ -9,6 +9,13 @@ import { colors, space } from '@aureak/theme'
 import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
 import { SkeletonCard } from '../../../components/SkeletonCard'
 
+const STATUS_LABELS: Record<StageStatus, string> = {
+  planifié : 'Planifié',
+  en_cours : 'En cours',
+  terminé  : 'Terminé',
+  annulé   : 'Annulé',
+}
+
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
   en_cours : colors.entity.stage,
@@ -33,7 +40,7 @@ function StatusBadge({ status }: { status: StageStatus }) {
   return (
     <View style={{ backgroundColor: color + '20', borderColor: color, borderWidth: 1, borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2 }}>
       <AureakText variant="caption" style={{ color, fontWeight: '700', fontSize: 10 }}>
-        {status.toUpperCase()}
+        {STATUS_LABELS[status].toUpperCase()}
       </AureakText>
     </View>
   )
@@ -120,7 +127,7 @@ export default function StagesPage() {
                   fontWeight: isActive ? '700' : '400',
                 }}
               >
-                {st === 'all' ? 'Tous' : st.charAt(0).toUpperCase() + st.slice(1)}
+                {st === 'all' ? 'Tous' : STATUS_LABELS[st as StageStatus]}
               </AureakText>
             </Pressable>
           )

@@ -21,6 +21,13 @@ import type {
 // Constants
 // ============================================================
 
+const STATUS_LABELS: Record<StageStatus, string> = {
+  planifié : 'Planifié',
+  en_cours : 'En cours',
+  terminé  : 'Terminé',
+  annulé   : 'Annulé',
+}
+
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
   en_cours : colors.entity.stage,
@@ -731,7 +738,7 @@ export default function StageDetailPage() {
             <Pressable onPress={() => setEditingStatus(!editingStatus)}>
               <View style={{ backgroundColor: statusColor + '20', borderColor: statusColor, borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 }}>
                 <AureakText variant="caption" style={{ color: statusColor, fontWeight: '700', fontSize: 11 }}>
-                  {stage.status.toUpperCase()} ▾
+                  {STATUS_LABELS[stage.status].toUpperCase()} ▾
                 </AureakText>
               </View>
             </Pressable>
@@ -744,7 +751,7 @@ export default function StageDetailPage() {
                 <Pressable key={st} style={p.statusOption} onPress={() => handleStatusChange(st)}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: STATUS_COLORS[st], marginRight: 8 }} />
                   <AureakText variant="caption" style={{ color: colors.text.dark }}>
-                    {st.charAt(0).toUpperCase() + st.slice(1)}
+                    {STATUS_LABELS[st]}
                   </AureakText>
                 </Pressable>
               ))}
