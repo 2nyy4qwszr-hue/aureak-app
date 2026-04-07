@@ -86,16 +86,6 @@ export default function SeancesPage() {
     count : sessions.filter(s => s.method === m).length,
   }))
 
-  // Stat cards bento — métriques calculées côté client
-  const totalActifs  = React.useMemo(() => sessions.filter(s => s.isActive).length, [sessions])
-  const nbMethodes   = React.useMemo(() => new Set(sessions.map(s => s.method).filter(Boolean)).size, [sessions])
-  // TODO: activer quand l'API renvoie themes[] dans MethodologySession
-  const nbAvecTheme  = 0
-  const txCompletude = React.useMemo(
-    () => sessions.length === 0 ? 0 : Math.round(sessions.filter(s => s.isActive).length / sessions.length * 100),
-    [sessions]
-  )
-
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
@@ -122,48 +112,16 @@ export default function SeancesPage() {
         </View>
       </View>
 
-      {/* ── Stat cards bento — vue synthétique ── */}
-      <View style={st.bentoRow}>
-        <View style={st.bentoCard}>
-          <AureakText style={st.bentoPicto}>🎯</AureakText>
-          <AureakText style={st.bentoValue}>{totalActifs}</AureakText>
-          <AureakText style={st.bentoLabel}>ENTRAÎNEMENTS{'\n'}ACTIFS</AureakText>
-        </View>
-        <View style={st.bentoCard}>
-          <AureakText style={st.bentoPicto}>📚</AureakText>
-          <AureakText style={st.bentoValue}>{nbMethodes}</AureakText>
-          <AureakText style={st.bentoLabel}>MÉTHODES{'\n'}UTILISÉES</AureakText>
-        </View>
-        <View style={st.bentoCard}>
-          <AureakText style={st.bentoPicto}>🏷️</AureakText>
-          <AureakText style={st.bentoValue}>{nbAvecTheme}</AureakText>
-          <AureakText style={st.bentoLabel}>AVEC{'\n'}THÈME</AureakText>
-        </View>
-        <View style={[st.bentoCard, st.bentoCardDark]}>
-          <AureakText style={st.bentoPicto}>📊</AureakText>
-          <AureakText style={[st.bentoValue, { color: '#FFFFFF' }] as never}>{txCompletude}%</AureakText>
-          <AureakText style={[st.bentoLabel, { color: 'rgba(255,255,255,0.75)' }] as never}>TAUX{'\n'}COMPLÉTUDE</AureakText>
-        </View>
+      {/* ── Cards méthodes — pleine largeur, uniforme ── */}
+      <View style={st.methodCardsWrap}>
+        {methodCounts.map(({ method, count }) => (
+          <View key={method} style={st.methodCard}>
+            <AureakText style={st.methodCardPicto}>{METHOD_PICTOS[method]}</AureakText>
+            <AureakText style={st.methodCardCount}>{count}</AureakText>
+            <AureakText style={st.methodCardLabel}>{method}</AureakText>
+          </View>
+        ))}
       </View>
-
-      {/* ── Stat cards méthodes ── */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={st.statCardsScroll}>
-        <View style={st.statCardsRow}>
-          {methodCounts.map(({ method, count }) => {
-            const accentColor = methodologyMethodColors[method]
-            return (
-              <View
-                key={method}
-                style={[st.statCard, { borderLeftColor: accentColor } as object]}
-              >
-                <AureakText style={st.statPicto}>{METHOD_PICTOS[method]}</AureakText>
-                <AureakText style={st.statCount}>{count}</AureakText>
-                <AureakText style={st.statLabel}>{method}</AureakText>
-              </View>
-            )
-          })}
-        </View>
-      </ScrollView>
 
       {/* ── Filtres compacts ── */}
       <View style={st.filtersBar}>
@@ -416,15 +374,17 @@ const st = StyleSheet.create({
     borderRadius   : 1,
   },
 
-  // Stat cards bento
-  bentoRow: {
+  // Cards méthodes — pleine largeur, uniforme
+  methodCardsWrap: {
     flexDirection: 'row',
+    flexWrap     : 'wrap',
     gap          : space.sm,
   },
-  bentoCard: {
+  methodCard: {
     flex             : 1,
+    minWidth         : 130,
     backgroundColor  : colors.light.surface,
-    borderRadius     : 12,
+    borderRadius     : radius.cardLg,
     borderWidth      : 1,
     borderColor      : colors.border.light,
     paddingHorizontal: space.md,
@@ -434,51 +394,14 @@ const st = StyleSheet.create({
     // @ts-ignore web
     boxShadow        : shadows.sm,
   },
-  bentoCardDark: {
-    backgroundColor: '#6E5D14',
-    borderColor    : '#6E5D14',
-  },
-  bentoPicto: {
-    fontSize: 22,
-  },
-  bentoValue: {
-    fontSize  : 26,
+  methodCardPicto: { fontSize: 28 },
+  methodCardCount: {
+    fontSize  : 22,
     fontWeight: '900',
     fontFamily: 'Montserrat',
     color     : colors.text.dark,
   },
-  bentoLabel: {
-    fontSize     : 9,
-    fontWeight   : '700',
-    color        : colors.text.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    textAlign    : 'center',
-  },
-
-  // Stat cards
-  statCardsScroll: { flexGrow: 0 },
-  statCardsRow   : { flexDirection: 'row', gap: space.sm, paddingVertical: 2 },
-  statCard: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 12,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    borderLeftWidth: 3,
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm,
-    minWidth         : 110,
-    alignItems       : 'center',
-    gap              : 4,
-  },
-  statPicto: { fontSize: 28 },
-  statCount: {
-    fontSize   : 22,
-    fontWeight : '900',
-    fontFamily : 'Montserrat',
-    color      : colors.text.dark,
-  },
-  statLabel: {
+  methodCardLabel: {
     fontSize     : 9,
     fontWeight   : '700',
     color        : colors.text.muted,
