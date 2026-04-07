@@ -51,12 +51,13 @@ export async function checkAcademyMilestones(): Promise<{ data: AcademyMilestone
       .from('profiles')
       .select('tenant_id')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (profileErr || !profile) {
+    if (profileErr) {
       if ((process.env.NODE_ENV as string) !== 'production') console.error('[milestones] checkAcademyMilestones profile error:', profileErr)
       return { data: [], error: profileErr }
     }
+    if (!profile) return { data: [], error: null }
 
     const { data, error } = await supabase.rpc('check_academy_milestones', {
       p_tenant_id: profile.tenant_id,
