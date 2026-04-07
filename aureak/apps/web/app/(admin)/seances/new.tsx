@@ -452,7 +452,7 @@ function StepBar({ current }: { current: Step }) {
           <React.Fragment key={n}>
             <View style={sb.item}>
               <View style={[sb.dot, done && sb.dotDone, active && sb.dotActive]}>
-                <AureakText style={{ fontSize: 11, fontWeight: '700' as never, color: (done || active) ? colors.text.dark : colors.text.muted }}>
+                <AureakText style={{ fontSize: 11, fontWeight: '700' as never, color: done ? '#FFFFFF' : active ? colors.text.dark : colors.text.muted }}>
                   {done ? '✓' : n}
                 </AureakText>
               </View>
@@ -475,7 +475,7 @@ const sb = StyleSheet.create({
   item    : { alignItems: 'center', gap: 2 },
   dot     : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center', justifyContent: 'center' },
   dotActive: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
-  dotDone  : { backgroundColor: colors.accent.goldLight, borderColor: colors.accent.goldLight },
+  dotDone  : { backgroundColor: colors.status.present, borderColor: colors.status.present },
   line    : { flex: 1, height: 1, backgroundColor: colors.border.light, marginBottom: 14 },
   lineDone: { backgroundColor: colors.accent.gold + '70' },
 })
