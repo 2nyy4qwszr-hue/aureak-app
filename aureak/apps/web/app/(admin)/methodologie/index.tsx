@@ -103,7 +103,13 @@ export default function MethodologieHub() {
           </AureakText>
 
           {loadingTheme ? (
-            <View style={{ height: 20, backgroundColor: colors.border.light, borderRadius: radius.xs }} />
+            <View>
+              <View style={{ height: 12, width: '60%', backgroundColor: colors.light.muted, borderRadius: radius.xs, opacity: 0.6, marginBottom: 6 }} />
+              <View style={{ height: 20, width: '90%', backgroundColor: colors.light.muted, borderRadius: radius.xs, opacity: 0.6, marginBottom: 6 }} />
+              <View style={{ height: 14, width: '100%', backgroundColor: colors.light.muted, borderRadius: radius.xs, opacity: 0.6, marginBottom: 4 }} />
+              <View style={{ height: 14, width: '75%', backgroundColor: colors.light.muted, borderRadius: radius.xs, opacity: 0.6, marginBottom: 10 }} />
+              <View style={{ height: 6, width: '100%', backgroundColor: colors.light.muted, borderRadius: radius.xs, opacity: 0.6 }} />
+            </View>
           ) : themeOfWeek ? (
             <>
               <AureakText variant="h2" style={{ fontWeight: '700', color: colors.text.dark } as never}>
