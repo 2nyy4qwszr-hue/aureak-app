@@ -36,7 +36,7 @@ import {
   METHOD_COLOR,
 } from '@aureak/business-logic'
 import { AureakButton, AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows } from '@aureak/theme'
+import { colors, space, radius, shadows, TERRAIN_GRADIENT_DARK } from '@aureak/theme'
 import type { Implantation, Group, GroupMethod, GroupMemberWithDetails, ImplantationHoverStats, UpcomingSession, HealthLevel } from '@aureak/types'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -293,14 +293,14 @@ function ImplantationCard({
           <View
             style={[
               styles.coverGradient,
-              { background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 100%)' } as any,
+              { background: TERRAIN_GRADIENT_DARK } as any,
             ]}
           />
         )}
         {/* Story 57-7 — Badge santé haut-gauche (si stats en cache) */}
         {health && (
           <View style={[styles.healthBadge, { backgroundColor: healthLevelColor(health.level) }]}>
-            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
+            <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 11 }}>
               {health.label}
             </AureakText>
           </View>
@@ -308,7 +308,7 @@ function ImplantationCard({
         {/* Badge joueurs en haut à droite */}
         {totalChildren > 0 && (
           <View style={styles.playersBadge}>
-            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
+            <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 11 }}>
               {totalChildren} joueur{totalChildren !== 1 ? 's' : ''}
             </AureakText>
           </View>
@@ -326,15 +326,15 @@ function ImplantationCard({
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
                 <View style={styles.hoverMetric}>
                   <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>Présence</AureakText>
-                  <AureakText variant="body" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{hoverStats.attendanceRatePct}%</AureakText>
+                  <AureakText variant="body" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 16 }}>{hoverStats.attendanceRatePct}%</AureakText>
                 </View>
                 <View style={styles.hoverMetric}>
                   <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>Séances</AureakText>
-                  <AureakText variant="body" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{hoverStats.sessionCountThisMonth}</AureakText>
+                  <AureakText variant="body" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 16 }}>{hoverStats.sessionCountThisMonth}</AureakText>
                 </View>
                 <View style={styles.hoverMetric}>
                   <AureakText variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>Groupes</AureakText>
-                  <AureakText variant="body" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{hoverStats.activeGroupCount}</AureakText>
+                  <AureakText variant="body" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 16 }}>{hoverStats.activeGroupCount}</AureakText>
                 </View>
               </View>
             ) : null}
@@ -611,7 +611,7 @@ function ImplantationDetail({
           /* Story 57-2 — fallback gradient terrain enrichi avec lignes */
           <View style={[detailStyles.headerBg, { overflow: 'hidden' } as any]}>
             <View style={[detailStyles.headerBg, {
-              background: 'linear-gradient(135deg, #1a472a 0%, #2d6a4f 50%, #1a472a 100%)'
+              background: TERRAIN_GRADIENT_DARK
             } as any]} />
             {/* Lignes terrain SVG inline via CSS */}
             <View style={{
@@ -629,7 +629,7 @@ function ImplantationDetail({
 
         {/* Bouton retour */}
         <Pressable style={detailStyles.backBtn} onPress={onBack}>
-          <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '600' }}>← Retour</AureakText>
+          <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '600' }}>← Retour</AureakText>
         </Pressable>
 
         {/* Story 57-2 — Badge capacité + bouton Modifier en haut-droite */}
@@ -644,11 +644,11 @@ function ImplantationDetail({
               paddingVertical  : 4,
             }}
           >
-            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 11 }}>✏ Modifier</AureakText>
+            <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '600', fontSize: 11 }}>✏ Modifier</AureakText>
           </Pressable>
           {/* Badge capacité — couleur selon taux */}
           <View style={[detailStyles.playersBadge, { backgroundColor: capacityColor + 'CC', position: 'relative', top: 0, right: 0 }]}>
-            <AureakText variant="caption" style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
+            <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700', fontSize: 11 }}>
               {impl.maxPlayers != null && impl.maxPlayers > 0
                 ? `${totalChildren} / ${impl.maxPlayers}`
                 : `${totalChildren} joueur${totalChildren !== 1 ? 's' : ''}`
@@ -662,7 +662,7 @@ function ImplantationDetail({
           <AureakText
             variant="h2"
             style={{
-              color           : '#FFFFFF',
+              color           : colors.text.primary,
               fontWeight      : '900',
               fontSize        : 28,
               textShadowColor : 'rgba(0,0,0,0.6)',
@@ -798,7 +798,7 @@ function ImplantationDetail({
               <LazyImplantationMap lat={impl.gpsLat} lon={impl.gpsLon} name={impl.name} />
             </React.Suspense>
             <View style={detailStyles.mapBadge}>
-              <AureakText variant="caption" style={{ color: '#FFFFFF', fontSize: 10 }}>Ouvrir dans Maps ↗</AureakText>
+              <AureakText variant="caption" style={{ color: colors.text.primary, fontSize: 10 }}>Ouvrir dans Maps ↗</AureakText>
             </View>
           </Pressable>
         ) : (

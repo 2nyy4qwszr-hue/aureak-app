@@ -79,6 +79,7 @@
 | story-78-1 (BUG — evalMap clé scheduled_at vs session_id → évaluations jamais affichées) | ✅ PASS | ✅ PASS | 0 |
 | story-72-14 (BUG — TYPE_COLOR + methodColor() manquent 'performance') | ✅ PASS | ✅ PASS | 0 |
 | story-77-4 (DESIGN — Analytics hex hardcodés → tokens) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
+| story-77-3 (DESIGN — Implantations gradients #1a472a/#2d6a4f + #FFFFFF → tokens) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 

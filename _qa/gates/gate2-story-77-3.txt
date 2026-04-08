@@ -1,0 +1,5 @@
+PASS|0|0|types:visual-mismatch
+Playwright skipped — app non démarrée
+Design Critic (polish): ACs validés statiquement — TERRAIN_GRADIENT_DARK + colors.text.primary en place, zéro hex hardcodé résiduel
+UX Auditor: zéro BLOCKER — couleurs 100% tokenisées, try/finally OK, console guards OK
+Bug Hunter: zéro issue résiduelle

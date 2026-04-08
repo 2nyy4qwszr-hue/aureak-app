@@ -34,9 +34,9 @@ new_queue:
   - story_id: story-77-3
     title: "DESIGN — Implantations dégradé vert + FFFFFF → tokens"
     priority: P2
-    status: pending
-    gate1: ~
-    gate2: ~
+    status: done
+    gate1: PASS
+    gate2: PASS
 
   - story_id: story-77-2
     title: "UX — Recherche joueurs live debounce 300ms"
