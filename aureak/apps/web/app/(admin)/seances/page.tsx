@@ -221,8 +221,8 @@ function GenerateModal({
           )}
 
           {error ? (
-            <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
-              <AureakText variant="caption" style={{ color: '#DC2626' }}>{error}</AureakText>
+            <View style={{ backgroundColor: colors.status.errorBg, borderRadius: 6, padding: space.sm, marginBottom: space.sm }}>
+              <AureakText variant="caption" style={{ color: colors.status.errorText }}>{error}</AureakText>
             </View>
           ) : null}
 
@@ -519,7 +519,7 @@ export default function SeancesPage() {
       {/* Toast */}
       {toast ? (
         <View style={st.toast}>
-          <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' }}>{toast}</AureakText>
+          <AureakText variant="caption" style={{ color: colors.status.successText, fontWeight: '700' }}>{toast}</AureakText>
         </View>
       ) : null}
 
@@ -887,7 +887,7 @@ const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
 
-  toast      : { backgroundColor: '#D1FAE5', borderWidth: 1, borderColor: '#6EE7B7', borderRadius: 8, padding: space.sm },
+  toast      : { backgroundColor: colors.status.successBg, borderWidth: 1, borderColor: colors.status.success, borderRadius: 8, padding: space.sm },
 
   header     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   newBtn     : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7 },

@@ -1,6 +1,7 @@
 'use client'
 // Story 11.1 — Attribuer un grade coach (admin)
 import { useEffect, useState } from 'react'
+import { useLocalSearchParams } from 'expo-router'
 import { awardCoachGrade, listCoachGradeHistory, getCoachCurrentGrade, getProfileDisplayName, sendGradeNotification } from '@aureak/api-client'
 import type { CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { colors, shadows } from '@aureak/theme'
@@ -12,10 +13,8 @@ const GRADES: { value: CoachGradeLevel; label: string; color: string; emoji: str
   { value: 'platinum', label: 'Platine',  color: colors.accent.ivory, emoji: '💎' },
 ]
 
-type Props = { params: { coachId: string } }
-
-export default function CoachGradePage({ params }: Props) {
-  const { coachId }              = params
+export default function CoachGradePage() {
+  const { coachId }              = useLocalSearchParams<{ coachId: string }>()
   const [current, setCurrent]   = useState<CoachGrade | null>(null)
   const [history, setHistory]   = useState<CoachGrade[]>([])
   const [coachName, setCoachName] = useState<string>('')
