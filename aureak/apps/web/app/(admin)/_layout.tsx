@@ -9,7 +9,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext'
 import { useThemeColors } from '../hooks/useThemeColors'
-import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase, useOfflineCache } from '@aureak/api-client'
+import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase, useOfflineCache, listStages } from '@aureak/api-client'
 import type { ActiveSessionInfo, NavBadgeCounts, AchievementToastData } from '@aureak/api-client'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
@@ -125,6 +125,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Évènements',
     items: [
       { label: 'Tous les évènements', href: '/evenements', Icon: TargetIcon },
+      { label: 'Stages',              href: '/stages',     Icon: CalendarIcon },
     ],
   },
   {
@@ -362,6 +363,31 @@ function AdminLayoutInner() {
       cancelled = true
       clearInterval(intervalId)
     }
+  }, [])
+
+  // ── Story 66.2 — Stages actifs badge ─────────────────────────────────────────
+  const [stagesActifsCount, setStagesActifsCount] = useState<number>(0)
+  const [stagesLoading,     setStagesLoading]     = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchStagesActifs = async () => {
+      setStagesLoading(true)
+      try {
+        const stages = await listStages({ status: 'en_cours' })
+        if (!cancelled) setStagesActifsCount(stages.length)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[AdminLayout] listStages error:', err)
+        // dégradation silencieuse — badge reste absent
+      } finally {
+        if (!cancelled) setStagesLoading(false)
+      }
+    }
+
+    fetchStagesActifs()
+
+    return () => { cancelled = true }
   }, [])
 
   // ── Story 59-9 — Achievement toasts (Realtime player_badges INSERT) ─────────
@@ -643,6 +669,9 @@ function AdminLayoutInner() {
                                   {href === '/seances' && navBadges?.sessionsUpcoming24h && (
                                     <NavBadge dot color={colors.accent.gold} />
                                   )}
+                                  {href === '/stages' && stagesActifsCount > 0 && (
+                                    <NavBadge count={stagesActifsCount} color={colors.accent.gold} />
+                                  )}
                                 </YStack>
                               </YStack>
                             ) : (
@@ -661,6 +690,9 @@ function AdminLayoutInner() {
                                   )}
                                   {href === '/seances' && navBadges?.sessionsUpcoming24h && (
                                     <NavBadge dot color={colors.accent.gold} />
+                                  )}
+                                  {href === '/stages' && stagesActifsCount > 0 && (
+                                    <NavBadge count={stagesActifsCount} color={colors.accent.gold} />
                                   )}
                                 </YStack>
                                 {/* Story 51.7 — label nav avec opacity animée (AC2, AC3) */}
