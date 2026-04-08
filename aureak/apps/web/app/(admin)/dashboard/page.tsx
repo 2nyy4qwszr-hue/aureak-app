@@ -176,7 +176,7 @@ function BriefingDuJour({
         style={{
           minWidth       : 180,
           flexShrink     : 0,
-          backgroundColor: colors.dark.surface,
+          backgroundColor: colors.dark.surface, // Hero card dark — décision Story 50-11 (intentionnel)
           borderTop      : `3px solid ${colors.accent.gold}`,
           borderRadius   : radius.card,
           padding        : '20px 24px',
@@ -839,7 +839,7 @@ function CountdownTile({
     <div
       className="aureak-card"
       style={{
-        background  : `linear-gradient(135deg, ${colors.dark.hover} 0%, ${colors.dark.surface} 100%)`,
+        background  : `linear-gradient(135deg, ${colors.dark.hover} 0%, ${colors.dark.surface} 100%)`, // Hero card dark — décision Story 50-11 (intentionnel)
         borderTop   : `3px solid ${colors.accent.gold}`,
         borderRadius: radius.card,
         padding     : 20,
@@ -3139,10 +3139,10 @@ export default function DashboardPage() {
                     flexShrink     : 0,
                     gap            : 0,
                   }}>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 15, color: colors.text.primary, lineHeight: 1.1 }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 15, color: colors.dark.text, lineHeight: 1.1 }}>
                       {day}
                     </div>
-                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 10, color: colors.text.primary, lineHeight: 1.1, opacity: 0.85 }}>
+                    <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 10, color: colors.dark.text, lineHeight: 1.1, opacity: 0.85 }}>
                       /{month}
                     </div>
                   </div>
