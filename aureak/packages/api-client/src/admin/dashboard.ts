@@ -33,8 +33,7 @@ export async function getTopStreakPlayers(
     .order('child_id')
 
   if (recordsError) {
-    if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers attendance error:', recordsError)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers attendance error:', recordsError)
     return { data: null, error: recordsError }
   }
 
@@ -79,8 +78,7 @@ export async function getTopStreakPlayers(
     .in('user_id', ids)
 
   if (profilesError) {
-    if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers profiles error:', profilesError)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers profiles error:', profilesError)
   }
 
   const nameMap = new Map(
@@ -134,12 +132,10 @@ export async function fetchActivityFeed(): Promise<{ data: ActivityEventItem[]; 
   ])
 
   if (attendanceRes.error) {
-    if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed attendance error:', attendanceRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed attendance error:', attendanceRes.error)
   }
   if (playersRes.error) {
-    if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed players error:', playersRes.error)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed players error:', playersRes.error)
   }
 
   const presenceEvents: ActivityEventItem[] = ((attendanceRes.data ?? []) as {
@@ -349,8 +345,7 @@ export async function getPlayerOfWeek(): Promise<{ data: PlayerOfWeek | null; er
     .gte('updated_at', since7d)
 
   if (evalError) {
-    if ((process.env.NODE_ENV as string) !== 'production')
-      if ((process.env.NODE_ENV as string) !== 'production') console.error('[getPlayerOfWeek] evalError:', evalError)
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[getPlayerOfWeek] evalError:', evalError)
     return { data: null, error: evalError }
   }
 

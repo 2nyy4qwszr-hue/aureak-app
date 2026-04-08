@@ -1,6 +1,7 @@
 'use client'
 // Story 9.5 — Formulaire contact coach (Admin → Coach)
 import { useEffect, useState } from 'react'
+import { useLocalSearchParams } from 'expo-router'
 import { sendAdminMessage, listAdminMessages } from '@aureak/api-client'
 import { colors, shadows } from '@aureak/theme'
 
@@ -12,10 +13,8 @@ type AdminMessage = {
   recipient_id: string
 }
 
-type Props = { params: { coachId: string } }
-
-export default function ContactCoachPage({ params }: Props) {
-  const { coachId } = params
+export default function ContactCoachPage() {
+  const { coachId } = useLocalSearchParams<{ coachId: string }>()
 
   const [message, setMessage]   = useState('')
   const [urgency, setUrgency]   = useState<'routine' | 'urgent'>('routine')
@@ -26,9 +25,14 @@ export default function ContactCoachPage({ params }: Props) {
 
   const loadHistory = async () => {
     setLoadingHistory(true)
-    const result = await listAdminMessages(coachId)
-    setHistory((result.data as AdminMessage[]) ?? [])
-    setLoadingHistory(false)
+    try {
+      const result = await listAdminMessages(coachId)
+      setHistory((result.data as AdminMessage[]) ?? [])
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ContactCoachPage] loadHistory error:', err)
+    } finally {
+      setLoadingHistory(false)
+    }
   }
 
   useEffect(() => { loadHistory() }, [coachId])
@@ -37,13 +41,18 @@ export default function ContactCoachPage({ params }: Props) {
     if (!message.trim()) return
     setSending(true)
     setSuccess(false)
-    const result = await sendAdminMessage(coachId, message.trim(), urgency)
-    if (!result.error) {
-      setMessage('')
-      setSuccess(true)
-      await loadHistory()
+    try {
+      const result = await sendAdminMessage(coachId, message.trim(), urgency)
+      if (!result.error) {
+        setMessage('')
+        setSuccess(true)
+        await loadHistory()
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ContactCoachPage] handleSend error:', err)
+    } finally {
+      setSending(false)
     }
-    setSending(false)
   }
 
   return (

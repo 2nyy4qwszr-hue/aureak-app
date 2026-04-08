@@ -130,16 +130,16 @@ function NoteCircle({ score, variant }: { score: number; variant: 'K' | 'C' }) {
       height         : 40,
       borderRadius   : 20,
       borderWidth    : isK ? 2 : 1,
-      borderColor    : isK ? '#c1ac5c' : '#cec6b4', // gold / gris — tokens à créer en story DS
+      borderColor    : isK ? colors.accent.gold : colors.border.divider,
       justifyContent : 'center',
       alignItems     : 'center',
       backgroundColor: 'transparent',
     }}>
       <AureakText style={{
-        fontFamily: 'Manrope',
+        fontFamily: 'Montserrat',
         fontSize  : 14,
         fontWeight: '700',
-        color     : isK ? '#6e5d14' : '#1c1c17', // gold dark / text dark
+        color     : isK ? colors.accent.goldDark : '#1c1c17', // gold dark / text dark
         lineHeight: 18,
       }}>
         {Math.round(score)}
@@ -369,7 +369,7 @@ export default function EvaluationsPage() {
             icon="📊"
             label="Note Moyenne"
             value={stats ? `${stats.avgDisplay}/10` : '—'}
-            badge="+2.4%"
+            badge={stats?.progression !== null && stats?.progression !== undefined ? `${stats.progression > 0 ? '+' : ''}${stats.progression.toFixed(1)}%` : undefined}
             badgeColor={colors.status.success}
           />
           {/* Card 2 — Évals ce mois */}
@@ -378,16 +378,14 @@ export default function EvaluationsPage() {
             label="Évals ce mois"
             value={stats ? String(stats.evalsThisMonth) : '—'}
           />
-          {/* Card 3 — Progression Technique (+15% statique, badge Record violet) */}
+          {/* Card 3 — Progression Technique */}
           <StatCard
             icon="📈"
             label="Progression Technique"
-            value="+15%"
-            badge="Record"
-            badgeColor="#7C3AED"         // violet — token à créer story DS
-            valueColor={colors.accent.gold}  // #c1ac5c gold — goldSolid token à créer story DS
+            value={stats?.progression !== null && stats?.progression !== undefined ? `${stats.progression > 0 ? '+' : ''}${stats.progression.toFixed(1)}%` : '—'}
+            valueColor={colors.accent.gold}
           />
-          {/* Card 4 — Top performer — fond gold dark #6e5d14 */}
+          {/* Card 4 — Top performer */}
           <StatCard
             icon="👤"
             label="Top performer"
@@ -601,8 +599,8 @@ const styles = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   statCardDark: {
-    backgroundColor: '#6e5d14', // gold dark — token à créer story DS
-    borderColor    : '#6e5d14',
+    backgroundColor: colors.accent.goldDark,
+    borderColor    : colors.accent.goldDark,
   },
   statBadge: {
     alignSelf        : 'flex-start',
@@ -756,7 +754,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   playerName: {
-    fontFamily: 'Manrope',
+    fontFamily: 'Montserrat',
     fontSize  : 14,
     fontWeight: '700',
     color     : colors.text.dark,
@@ -780,7 +778,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  // Avatar joueur — carré arrondi Figma 40×40, fond elevated, initiales Manrope Bold 14px
+  // Avatar joueur — carré arrondi Figma 40×40, fond elevated, initiales Montserrat Bold 14px
   avatar: {
     width          : 40,
     height         : 40,
@@ -791,13 +789,13 @@ const styles = StyleSheet.create({
     flexShrink     : 0,
   },
   avatarText: {
-    fontFamily: 'Manrope',
+    fontFamily: 'Montserrat',
     fontSize  : 14,
     fontWeight: '700',
     color     : colors.text.dark,
   },
   playerSubtitle: {
-    fontFamily: 'Manrope',
+    fontFamily: 'Montserrat',
     fontSize  : 10,
     color     : colors.text.muted,
     marginTop : 1,

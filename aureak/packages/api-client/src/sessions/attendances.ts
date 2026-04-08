@@ -90,8 +90,8 @@ export async function listSessionsWithAttendance(params?: {
     const impl = Array.isArray(s.implantations) ? s.implantations[0] : s.implantations
 
     const completionStatus: 'complete' | 'partial' | 'not_started' =
-      total === 0           ? 'not_started' :
-      s.status === 'fermée' ? 'complete'    : 'partial'
+      total === 0                                                    ? 'not_started' :
+      (s.status === 'réalisée' || s.status === 'terminée')          ? 'complete'    : 'partial'
 
     return {
       sessionId       : s.id,

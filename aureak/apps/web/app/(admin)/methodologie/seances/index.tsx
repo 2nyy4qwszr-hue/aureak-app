@@ -451,7 +451,7 @@ const st = StyleSheet.create({
     borderColor    : colors.border.light,
     padding        : 6,
     // @ts-ignore web
-    boxShadow      : '0 8px 24px rgba(0,0,0,0.10)',
+    boxShadow      : shadows.lg,
     top            : 0,
     left           : 0,
     minWidth       : 220,

@@ -64,10 +64,10 @@ function isAtRisk(statuses: (AttendanceStatus | null)[]): boolean {
 
 function getCellStyle(rate: number): { bg: string; text: string } {
   // Figma heatmap seuils
-  if (rate >= 90) return { bg: '#22c55e', text: '#ffffff' }
-  if (rate >= 70) return { bg: '#eab308', text: '#ffffff' }
-  if (rate >= 60) return { bg: '#f97316', text: '#ffffff' }
-  return               { bg: '#ef4444', text: '#ffffff' }
+  if (rate >= 90) return { bg: colors.status.success,  text: colors.text.primary }
+  if (rate >= 70) return { bg: colors.status.warning,  text: colors.text.primary }
+  if (rate >= 60) return { bg: colors.status.warning,  text: colors.text.primary }
+  return               { bg: colors.status.absent,   text: colors.text.primary }
 }
 
 function getDotColor(status: AttendanceStatus | null): string {
@@ -158,9 +158,6 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
         <AureakText style={cardStyles.statIcon}>📅</AureakText>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginBottom: space.sm }}>
           <AureakText style={cardStyles.cardLabel}>Total Séances</AureakText>
-          <View style={cardStyles.badgeGold}>
-            <AureakText style={cardStyles.badgeGoldText}>+12%</AureakText>
-          </View>
         </View>
         <AureakText style={cardStyles.cardStatGoldSolid}>{stats.totalSessions}</AureakText>
         <AureakText style={cardStyles.cardSub}>Période sélectionnée</AureakText>
@@ -202,8 +199,8 @@ const cardStyles = StyleSheet.create({
   },
   cardDarkGold: {
     // Figma card Tendance fond gold foncé
-    backgroundColor: '#6e5d14',
-    borderColor    : '#6e5d14',
+    backgroundColor: colors.accent.goldDark,
+    borderColor    : colors.accent.goldDark,
   },
   cardLabel: {
     fontSize     : 10,
@@ -241,11 +238,11 @@ const cardStyles = StyleSheet.create({
     fontSize    : 28,
     fontFamily  : 'Montserrat',
     fontWeight  : '900',
-    color       : 'rgba(193,172,92,0.5)',  // = colors.border.goldSolid
+    color       : colors.border.goldSolid,
     marginBottom: space.xs,
   },
   badgeGold: {
-    backgroundColor  : 'rgba(110,93,20,0.05)',
+    backgroundColor  : colors.border.goldBg,
     borderRadius     : radius.badge,
     paddingHorizontal: 8,
     paddingVertical  : 2,
