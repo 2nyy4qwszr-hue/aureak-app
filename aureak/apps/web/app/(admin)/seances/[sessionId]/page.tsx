@@ -52,9 +52,7 @@ const STATUS_VARIANT: Record<string, 'gold' | 'present' | 'zinc' | 'attention'> 
 
 // ── Story 53-2 — MatchReportHeader ───────────────────────────────────────────
 
-// Couleurs locales nommées (pas inline)
-const HEADER_BG    = '#1A1A1A'
-const HEADER_WHITE = '#FFFFFF'
+// Couleurs locales nommées supprimées — remplacées par tokens colors.dark.surface / colors.text.primary
 
 const SESSION_TYPE_ICON: Partial<Record<string, string>> = {
   goal_and_player : '⚽',
@@ -163,7 +161,7 @@ import { Platform } from 'react-native'
 
 const mrh = StyleSheet.create({
   header: {
-    backgroundColor      : HEADER_BG,
+    backgroundColor      : colors.dark.surface,
     borderBottomLeftRadius : 12,
     borderBottomRightRadius: 12,
     padding              : space.lg,
@@ -206,7 +204,7 @@ const mrh = StyleSheet.create({
   groupName: {
     fontSize  : 28,
     fontWeight: '900' as never,
-    color     : HEADER_WHITE,
+    color     : colors.text.primary,
     lineHeight: 34,
     paddingRight: 100,   // éviter overlap avec le status pill
   },
@@ -227,7 +225,7 @@ const mrh = StyleSheet.create({
   cancelledText: {
     fontSize  : 42,
     fontWeight: '900' as never,
-    color     : HEADER_WHITE,
+    color     : colors.text.primary,
     opacity   : 0.12,
     transform : [{ rotate: '-30deg' }],
     letterSpacing: 8,
@@ -259,7 +257,7 @@ function IntensityPicker({
           const filled    = value !== null && i <= value
           const isGold    = i <= 3
           const fillColor = filled
-            ? (isGold ? colors.accent.gold : (colors.accent.red ?? '#E05252'))
+            ? (isGold ? colors.accent.gold : (colors.accent.red))
             : colors.border.light
           return (
             <Pressable
@@ -319,8 +317,8 @@ function SessionSummaryCard({
   const topInits = topName ? topName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'
 
   const presenceColor =
-    presenceRate >= 80 ? '#10B981' :
-    presenceRate >= 60 ? '#F59E0B' : '#E05252'
+    presenceRate >= 80 ? colors.status.success :
+    presenceRate >= 60 ? colors.status.warning : colors.accent.red
 
   return (
     <View style={ssc.card}>
@@ -449,7 +447,7 @@ function StreakBadgeSection({
         const name   = childNameMap[s.childId] ?? 'Joueur inconnu'
         const isExcp = s.streak >= 10
         const badge  = isExcp ? '🔥🔥 Série exceptionnelle' : '🔥 Série active'
-        const bColor = isExcp ? (colors.accent.red ?? '#E05252') : colors.accent.gold
+        const bColor = isExcp ? (colors.accent.red) : colors.accent.gold
         return (
           <View
             key={s.childId}
@@ -501,24 +499,24 @@ const ab54 = StyleSheet.create({
     flexDirection  : 'row',
     alignItems     : 'center',
     gap            : space.sm,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.status.warningBg,
     borderWidth    : 1.5,
-    borderColor    : '#F59E0B',
+    borderColor    : colors.status.warning,
     borderRadius   : 10,
     padding        : space.sm,
   },
-  bannerTitle: { fontSize: 13, fontWeight: '700' as never, color: '#92400E', marginBottom: 2 },
-  bannerNames: { fontSize: 11, color: '#92400E', opacity: 0.85 },
+  bannerTitle: { fontSize: 13, fontWeight: '700' as never, color: colors.status.warningText, marginBottom: 2 },
+  bannerNames: { fontSize: 11, color: colors.status.warningText, opacity: 0.85 },
   dismissBtn : {
     paddingHorizontal: space.sm,
     paddingVertical  : space.xs,
     borderRadius     : 6,
-    backgroundColor  : '#F59E0B' + '30',
+    backgroundColor  : colors.status.warning + '30',
     borderWidth      : 1,
-    borderColor      : '#F59E0B' + '80',
+    borderColor      : colors.status.warning + '80',
     flexShrink       : 0,
   },
-  dismissText: { fontSize: 11, fontWeight: '600' as never, color: '#92400E' },
+  dismissText: { fontSize: 11, fontWeight: '600' as never, color: colors.status.warningText },
 })
 
 // Story 54-5 — Styles bouton "Tous présents" + toast
@@ -535,17 +533,17 @@ const ap54 = StyleSheet.create({
   allPresentBtnText: {
     fontSize  : 12,
     fontWeight: '700' as never,
-    color     : '#FFFFFF',
+    color     : colors.text.primary,
   },
   toast: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.status.successBg,
     borderWidth    : 1,
-    borderColor    : '#6EE7B7',
+    borderColor    : colors.status.successText,
     borderRadius   : 7,
     padding        : space.xs + 2,
   },
   toastText: {
-    color     : '#065F46',
+    color     : colors.status.successText,
     fontWeight: '700' as never,
   },
 })
@@ -687,12 +685,12 @@ async function computePresenceStreaks(
 // ── Stories 54-1/54-2/54-3/54-4 — Squad Status Board ────────────────────────
 
 const SQUAD_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  present   : { bg: '#10B981' + '40', text: '#059669', label: '✓ Présent'     },
-  absent    : { bg: '#E05252' + '40', text: '#DC2626', label: '✗ Absent'      },
-  late      : { bg: '#F59E0B' + '40', text: '#D97706', label: '⏱ En retard'   },
-  injured   : { bg: '#F59E0B' + '40', text: '#D97706', label: '🩹 Blessé'     },
-  trial     : { bg: '#6366F1' + '40', text: '#4F46E5', label: '👀 Essai'      },
-  unconfirmed: { bg: '#9CA3AF' + '40', text: '#6B7280', label: '? Non confirmé'},
+  present   : { bg: colors.status.success + '40', text: colors.status.successTextSub, label: '✓ Présent'     },
+  absent    : { bg: colors.accent.red     + '40', text: colors.status.errorText,       label: '✗ Absent'      },
+  late      : { bg: colors.status.warning + '40', text: colors.status.warningText,     label: '⏱ En retard'   },
+  injured   : { bg: colors.status.warning + '40', text: colors.status.warningText,     label: '🩹 Blessé'     },
+  trial     : { bg: colors.status.info    + '40', text: colors.status.info,            label: '👀 Essai'      },
+  unconfirmed: { bg: colors.status.neutral + '40', text: colors.status.neutral,        label: '? Non confirmé'},
 }
 const SQUAD_STATUS_UNKNOWN = { bg: colors.accent.gold + '33', text: colors.accent.gold, label: '?' }
 
@@ -730,7 +728,7 @@ function SquadCard({ member, status, toggling, streak, onStatus }: SquadCardProp
       streakColor = colors.status.success
     } else if (streak.recentAbsences >= 2 && streak.consecutivePresences < 3) {
       streakLabel = `⚠️ ${streak.recentAbsences} abs. récentes`
-      streakColor = '#F59E0B'
+      streakColor = colors.status.warning
     }
   }
 
@@ -899,13 +897,13 @@ function SquadStatusGrid({
           {presentCount} présents
         </AureakText>
         <AureakText style={ssgSt.counterDot}>·</AureakText>
-        <AureakText style={[ssgSt.counterItem, { color: colors.accent.red ?? '#E05252' }] as never}>
+        <AureakText style={[ssgSt.counterItem, { color: colors.accent.red }] as never}>
           {absentCount} absents
         </AureakText>
         {lateCount > 0 && (
           <>
             <AureakText style={ssgSt.counterDot}>·</AureakText>
-            <AureakText style={[ssgSt.counterItem, { color: '#F59E0B' }] as never}>
+            <AureakText style={[ssgSt.counterItem, { color: colors.status.warning }] as never}>
               {lateCount} retardataires
             </AureakText>
           </>
@@ -986,40 +984,40 @@ const ssgSt = StyleSheet.create({
   counterDot : { fontSize: 12, color: colors.text.muted },
   // Late zone
   lateZone   : {
-    backgroundColor: '#F59E0B' + '18',
+    backgroundColor: colors.status.warning + '18',
     borderWidth    : 1.5,
-    borderColor    : '#F59E0B' + '60',
+    borderColor    : colors.status.warning + '60',
     borderRadius   : 10,
     overflow       : 'hidden' as never,
   },
   lateHeader : {
-    backgroundColor: '#F59E0B' + '30',
+    backgroundColor: colors.status.warning + '30',
     paddingHorizontal: space.sm,
     paddingVertical  : space.xs + 2,
   },
-  lateTitle  : { fontSize: 13, fontWeight: '700' as never, color: '#D97706' },
+  lateTitle  : { fontSize: 13, fontWeight: '700' as never, color: colors.status.warningText },
   lateList   : { padding: space.sm, gap: 8 },
   lateRow    : { flexDirection: 'row' as never, alignItems: 'center' as never, gap: space.xs },
   lateAvatar : {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: '#F59E0B' + '30',
-    borderWidth: 1, borderColor: '#F59E0B' + '80',
+    backgroundColor: colors.status.warning + '30',
+    borderWidth: 1, borderColor: colors.status.warning + '80',
     alignItems: 'center' as never, justifyContent: 'center' as never,
     flexShrink: 0,
   },
-  lateAvatarText: { fontSize: 11, fontWeight: '700' as never, color: '#D97706' },
+  lateAvatarText: { fontSize: 11, fontWeight: '700' as never, color: colors.status.warningText },
   lateName   : { flex: 1, fontSize: 12, fontWeight: '600' as never, color: colors.text.dark },
   lateBadge  : {
-    backgroundColor: '#F59E0B' + '30', borderWidth: 1, borderColor: '#F59E0B' + '60',
+    backgroundColor: colors.status.warning + '30', borderWidth: 1, borderColor: colors.status.warning + '60',
     borderRadius: 12, paddingHorizontal: 6, paddingVertical: 2,
   },
-  lateBadgeText: { fontSize: 10, fontWeight: '700' as never, color: '#D97706' },
+  lateBadgeText: { fontSize: 10, fontWeight: '700' as never, color: colors.status.warningText },
   lateBtn    : {
     backgroundColor: colors.status.success + '20',
     borderWidth: 1, borderColor: colors.status.success + '60',
     borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
   },
-  lateBtnText: { fontSize: 11, fontWeight: '700' as never, color: '#059669' },
+  lateBtnText: { fontSize: 11, fontWeight: '700' as never, color: colors.status.successTextSub },
   // Main section label (quand lateZone visible)
   mainHeader : {
     borderTopWidth: 1.5, borderTopColor: colors.border.light,
@@ -1700,7 +1698,7 @@ export default function SessionDetailPage() {
   if (loadError || !session) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: space.xl }]}>
-        <AureakText variant="h3" style={{ color: colors.accent.red ?? '#E05252', marginBottom: space.sm }}>
+        <AureakText variant="h3" style={{ color: colors.accent.red, marginBottom: space.sm }}>
           Impossible d'afficher la séance
         </AureakText>
         <AureakText variant="body" style={{ color: colors.text.muted, textAlign: 'center' as never }}>
@@ -1740,12 +1738,12 @@ export default function SessionDetailPage() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Toast mise à jour (Story 19.5) */}
       {showUpdatedToast && (
-        <View style={{ backgroundColor: '#D1FAE5', borderWidth: 1, borderColor: '#6EE7B7', borderRadius: 8, padding: space.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <AureakText variant="caption" style={{ color: '#065F46', fontWeight: '700' as never }}>
+        <View style={{ backgroundColor: colors.status.successBg, borderWidth: 1, borderColor: colors.status.successText, borderRadius: 8, padding: space.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <AureakText variant="caption" style={{ color: colors.status.successText, fontWeight: '700' as never }}>
             ✓ Séance mise à jour avec succès
           </AureakText>
           <Pressable onPress={() => setShowUpdatedToast(false)}>
-            <AureakText variant="caption" style={{ color: '#065F46' }}>×</AureakText>
+            <AureakText variant="caption" style={{ color: colors.status.successText }}>×</AureakText>
           </Pressable>
         </View>
       )}
@@ -1806,7 +1804,7 @@ export default function SessionDetailPage() {
           saving  ={intensitySaving}
         />
         {intensityError && (
-          <AureakText variant="caption" style={{ color: colors.accent.red ?? '#E05252', marginTop: space.xs }}>
+          <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
             {intensityError}
           </AureakText>
         )}
@@ -1831,21 +1829,21 @@ export default function SessionDetailPage() {
           <AureakText variant="body">Lieu : {session.location}</AureakText>
         )}
         {session.status === 'annulée' && session.cancellationReason && (
-          <View style={{ backgroundColor: '#FEE2E2', borderRadius: 6, padding: space.sm }}>
-            <AureakText variant="caption" style={{ color: '#DC2626', fontWeight: '700' as never }}>
+          <View style={{ backgroundColor: colors.status.errorBorderSevere, borderRadius: 6, padding: space.sm }}>
+            <AureakText variant="caption" style={{ color: colors.status.errorText, fontWeight: '700' as never }}>
               Séance annulée — Contenu décalé (log audit créé)
             </AureakText>
-            <AureakText variant="caption" style={{ color: '#DC2626' }}>
+            <AureakText variant="caption" style={{ color: colors.status.errorText }}>
               Motif : {session.cancellationReason}
             </AureakText>
           </View>
         )}
         {session.status === 'reportée' && (
-          <View style={{ backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm }}>
-            <AureakText variant="caption" style={{ color: '#D97706', fontWeight: '700' as never }}>
+          <View style={{ backgroundColor: colors.status.warningBg, borderRadius: 6, padding: space.sm }}>
+            <AureakText variant="caption" style={{ color: colors.status.warningText, fontWeight: '700' as never }}>
               → Séance reportée
             </AureakText>
-            <AureakText variant="caption" style={{ color: '#D97706' }}>
+            <AureakText variant="caption" style={{ color: colors.status.warningText }}>
               La date affichée ci-dessus est la nouvelle date de cette séance.
             </AureakText>
           </View>
@@ -1867,7 +1865,7 @@ export default function SessionDetailPage() {
           <View key={a.childId} style={[styles.row, { justifyContent: 'space-between' as never }]}>
             <AureakText variant="body">{guestNameMap[a.childId] ?? a.childId.slice(0, 16) + '…'} (invité)</AureakText>
             <Pressable onPress={() => handleRemoveGuest(a.childId)}>
-              <AureakText variant="caption" style={{ color: '#DC2626' }}>Retirer</AureakText>
+              <AureakText variant="caption" style={{ color: colors.status.errorText }}>Retirer</AureakText>
             </Pressable>
           </View>
         ))}
@@ -2342,7 +2340,7 @@ export default function SessionDetailPage() {
               {/* Confetti particles */}
               {showConfetti && (
                 <View style={{ position: 'absolute' as never, right: 0, top: -10, zIndex: 20, flexDirection: 'row', gap: 4 }} pointerEvents="none">
-                  {[colors.accent.gold, colors.status.success, colors.accent.red ?? '#E05252', colors.accent.gold, colors.status.success, colors.accent.red ?? '#E05252', colors.accent.gold, colors.status.success].map((c, i) => (
+                  {[colors.accent.gold, colors.status.success, colors.accent.red, colors.accent.gold, colors.status.success, colors.accent.red, colors.accent.gold, colors.status.success].map((c, i) => (
                     <View
                       key={i}
                       style={{
@@ -2517,7 +2515,7 @@ export default function SessionDetailPage() {
               />
             </View>
             {postponeError ? (
-              <AureakText variant="caption" style={{ color: '#DC2626' }}>
+              <AureakText variant="caption" style={{ color: colors.status.errorText }}>
                 {postponeError}
               </AureakText>
             ) : null}
@@ -2545,11 +2543,11 @@ export default function SessionDetailPage() {
               Le motif est obligatoire et sera communiqué aux parents.
             </AureakText>
             {session?.sessionType && ['goal_and_player','technique','situationnel'].includes(session.sessionType) && (
-              <View style={{ backgroundColor: '#FEF3C7', borderRadius: 6, padding: space.sm }}>
-                <AureakText variant="caption" style={{ color: '#D97706', fontWeight: '700' as never }}>
+              <View style={{ backgroundColor: colors.status.warningBg, borderRadius: 6, padding: space.sm }}>
+                <AureakText variant="caption" style={{ color: colors.status.warningText, fontWeight: '700' as never }}>
                   ⚠️ Séance avec contenu séquentiel
                 </AureakText>
-                <AureakText variant="caption" style={{ color: '#D97706' }}>
+                <AureakText variant="caption" style={{ color: colors.status.warningText }}>
                   Un log d'audit sera créé pour tracer la perte de contenu dans la séquence pédagogique.
                 </AureakText>
               </View>
