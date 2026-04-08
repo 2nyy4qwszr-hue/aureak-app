@@ -10,13 +10,10 @@ import { colors, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-const SILVER = '#C0C0C0'
-const BRONZE = '#CD7F32'
-
 const PODIUM_COLORS: Record<number, string> = {
   1: colors.accent.gold,
-  2: SILVER,
-  3: BRONZE,
+  2: colors.accent.silverPodium,
+  3: colors.accent.bronze,
 }
 
 const PODIUM_MEDALS: Record<number, string> = {

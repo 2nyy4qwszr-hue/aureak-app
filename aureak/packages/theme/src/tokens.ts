@@ -44,7 +44,8 @@ export const colors = {
     red      : '#E05252',  // rouge CTA — boutons d'action uniquement
     // Grades métalliques coach
     bronze   : '#CD7F32',  // bronze
-    silver   : '#9CA3AF',  // argent
+    silver      : '#9CA3AF',  // argent
+    silverPodium: '#C0C0C0',  // argent classique podium — podium classements progression
     platinum : '#E5E4E2',  // platine
     // Or sombre / pâle — fond card premium (Story 74-1)
     goldDark : '#6e5d14',  // or sombre — fond card Évals Complétées

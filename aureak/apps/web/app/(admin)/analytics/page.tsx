@@ -12,10 +12,6 @@ import { colors, radius, shadows, transitions, space, getStatColor, STAT_THRESHO
 import { generateMonthlyReport } from './generateMonthlyReport'
 import type { ReportOptions } from '@aureak/types'
 
-// ── Constantes locales de couleur (tokens non disponibles pour ces valeurs) ───
-const CHARGE_AMBER = '#F59E0B'
-const CLUBS_BLUE   = '#3B82F6'
-
 // ── Section cards config ──────────────────────────────────────────────────────
 interface SectionConfig {
   title      : string
@@ -47,7 +43,7 @@ const SECTIONS: SectionConfig[] = [
     title      : 'Charge',
     description: 'Heatmap jours/heures et intensité séances',
     href       : '/analytics/charge',
-    accent     : CHARGE_AMBER,
+    accent     : colors.status.warning,
     icon       : '🌡️',
     kpiLabel   : 'Séances ce mois',
   },
@@ -55,7 +51,7 @@ const SECTIONS: SectionConfig[] = [
     title      : 'Clubs',
     description: 'Classement implantations et performance',
     href       : '/analytics/clubs',
-    accent     : CLUBS_BLUE,
+    accent     : colors.status.info,
     icon       : '🛡️',
     kpiLabel   : 'Clubs liés',
   },

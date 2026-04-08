@@ -78,6 +78,7 @@
 | story-77-5 (BUG — Vue session_evaluations_merged absente migrations → 406) | ✅ PASS | ✅ PASS | 0 |
 | story-78-1 (BUG — evalMap clé scheduled_at vs session_id → évaluations jamais affichées) | ✅ PASS | ✅ PASS | 0 |
 | story-72-14 (BUG — TYPE_COLOR + methodColor() manquent 'performance') | ✅ PASS | ✅ PASS | 0 |
+| story-77-4 (DESIGN — Analytics hex hardcodés → tokens) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
