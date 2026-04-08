@@ -1,0 +1,5 @@
+PASS|0|0|types:
+Playwright skipped — app non démarrée (HTTP 000).
+Design: polish — tokens uniquement, aucune couleur hardcodée, anti-patterns absents.
+Regression: coaches.ts — additive only, aucune signature existante modifiée.
+Bug hunter: 1 WARNING mineur — setInactiveCoaches(data ?? []) exécuté même si error=true, mais errorInactiveCoaches vérifié en priorité dans le JSX → impact UI nul.

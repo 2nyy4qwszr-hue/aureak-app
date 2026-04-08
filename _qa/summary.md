@@ -83,6 +83,7 @@
 | story-77-2 (UX — Recherche joueurs live debounce 300ms) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-80-1 (UX — Stages dates input natif HTML type=date) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-75-7 (FEATURE — Quiz QCM board parent /quiz/[sessionId]) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
+| story-79-1 (FEATURE — Widget coachs inactifs dashboard admin) | ✅ PASS | ✅ PASS | 1 WARNING mineur (setInactiveCoaches exécuté même si error=true — impact UI nul) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
