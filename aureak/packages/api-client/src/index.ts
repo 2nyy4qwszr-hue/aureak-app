@@ -576,6 +576,9 @@ export type { ChildDashboardExtra, ChildNextSession, ChildLastEval } from './chi
 export { getLastSessionQuiz } from './child/childQuiz'
 export type { ChildQuizData } from './child/childQuiz'
 
+// ── Child — Quiz QCM session explicite (Story 75.7) ──────────────────────────
+export { getSessionQuiz } from './child/childQuiz'
+
 // ── Parent — Préférences et historique notifications ─────────────────────────
 export { getNotificationPreferences, listNotificationLogs, saveNotificationPreferences } from './parent/notifications'
 export type { NotificationPreferences, NotificationLog } from './parent/notifications'

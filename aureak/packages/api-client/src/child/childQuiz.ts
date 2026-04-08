@@ -86,3 +86,55 @@ export async function getLastSessionQuiz(childId: string): Promise<ChildQuizData
     return { sessionId: null, firstThemeId: null, questions: [], error: err }
   }
 }
+
+/**
+ * Récupère jusqu'à 5 questions publiées issues des thèmes d'une séance spécifique.
+ * Étapes : session_themes (filtré par sessionId) → quiz_questions + quiz_options
+ */
+export async function getSessionQuiz(sessionId: string): Promise<ChildQuizData> {
+  try {
+    // Step 1 : thèmes de la séance
+    const { data: themeLinks, error: themeError } = await supabase
+      .from('session_themes')
+      .select('theme_id')
+      .eq('session_id', sessionId)
+      .order('sort_order', { ascending: true })
+
+    if (themeError) return { sessionId, firstThemeId: null, questions: [], error: themeError }
+
+    const themeIds = (themeLinks ?? []).map((r: { theme_id: string }) => r.theme_id)
+    if (themeIds.length === 0) {
+      return { sessionId, firstThemeId: null, questions: [], error: null }
+    }
+
+    // Step 2 : questions publiées des thèmes (max 5)
+    const allQuestions: (QuizQuestion & { options: QuizOption[] })[] = []
+    for (const themeId of themeIds) {
+      const { data: qs } = await listPublishedByTheme(themeId)
+      if (qs && qs.length > 0) {
+        const qIds = qs.map((q: QuizQuestion) => q.id)
+        const opts = await listOptionsByQuestionIds(qIds)
+        const optMap = new Map<string, QuizOption[]>()
+        for (const opt of opts) {
+          if (!optMap.has(opt.questionId)) optMap.set(opt.questionId, [])
+          optMap.get(opt.questionId)!.push(opt)
+        }
+        for (const q of qs) {
+          allQuestions.push({ ...q, options: optMap.get(q.id) ?? [] })
+          if (allQuestions.length >= 5) break
+        }
+      }
+      if (allQuestions.length >= 5) break
+    }
+
+    return {
+      sessionId,
+      firstThemeId : themeIds[0],
+      questions    : allQuestions.slice(0, 5),
+      error        : null,
+    }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[getSessionQuiz] error:', err)
+    return { sessionId, firstThemeId: null, questions: [], error: err }
+  }
+}
