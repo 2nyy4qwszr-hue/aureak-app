@@ -69,6 +69,6 @@ new_queue:
   - story_id: story-78-2
     title: "FEATURE — Tickets parent page détail + soft-delete + migration 00144"
     priority: P3
-    status: pending
-    gate1: ~
-    gate2: ~
+    status: done
+    gate1: PASS
+    gate2: PASS

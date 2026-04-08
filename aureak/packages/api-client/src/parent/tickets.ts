@@ -25,6 +25,7 @@ export type Ticket = {
   assignedTo : string | null
   createdAt  : string
   updatedAt  : string | null
+  deletedAt  : string | null
 }
 
 export type TicketReply = {

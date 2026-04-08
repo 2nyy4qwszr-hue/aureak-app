@@ -84,6 +84,7 @@
 | story-80-1 (UX — Stages dates input natif HTML type=date) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-75-7 (FEATURE — Quiz QCM board parent /quiz/[sessionId]) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-79-1 (FEATURE — Widget coachs inactifs dashboard admin) | ✅ PASS | ✅ PASS | 1 WARNING mineur (setInactiveCoaches exécuté même si error=true — impact UI nul) |
+| story-78-2 (FEATURE — Tickets parent page détail + soft-delete + migration 00144) | ✅ PASS | ✅ PASS | 1 WARNING mineur (alpha hex `+'18'` sur badge statut — pattern existant dans codebase) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
