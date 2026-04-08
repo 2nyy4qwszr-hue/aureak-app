@@ -2610,7 +2610,7 @@ export default function DashboardPage() {
 
         /* ── ImplantationCard terrain premium (Story 50.4) ── */
         .implant-card-header { transition: box-shadow 0.2s ease; }
-        .aureak-card:hover .implant-card-header { box-shadow: 0 4px 20px rgba(64,145,108,0.3); }
+        .aureak-card:hover .implant-card-header { box-shadow: ${shadows.gold}; }
         .groups-scroll::-webkit-scrollbar { display: none; }
         .groups-scroll { scrollbar-width: none; }
 
