@@ -815,8 +815,8 @@ export async function listAttendancesByChild(
         )
       `)
       .eq('child_id', childId)
-      .gte('sessions.scheduled_at', startDate)
-      .lte('sessions.scheduled_at', endDate)
+      // NE PAS utiliser .gte/.lte sur sessions.scheduled_at : PostgREST ignore silencieusement
+      // les filtres sur tables jointes → filtrage appliqué côté JS après le mapping
 
     if (error) {
       if ((process.env.NODE_ENV as string) !== 'production') console.error('[listAttendancesByChild] error:', error)
@@ -829,20 +829,23 @@ export async function listAttendancesByChild(
     throw err
   }
 
-  const rows = (data as unknown[]).map(row => {
-    const r        = row as { session_id: string; status: string; sessions: { scheduled_at: string; session_type: string | null; groups: { name: string } | null } }
-    const sessions = r.sessions
-    return {
-      sessionId  : r.session_id,
-      sessionDate: sessions?.scheduled_at ?? '',
-      sessionType: sessions?.session_type ?? '',
-      groupName  : (sessions?.groups as { name: string } | null)?.name ?? '',
-      status     : r.status as AttendanceStatus,
-    }
-  })
+  const rows = (data as unknown[])
+    .map(row => {
+      const r        = row as { session_id: string; status: string; sessions: { scheduled_at: string; session_type: string | null; groups: { name: string } | null } }
+      const sessions = r.sessions
+      return {
+        sessionId  : r.session_id,
+        sessionDate: sessions?.scheduled_at ?? '',
+        sessionType: sessions?.session_type ?? '',
+        groupName  : (sessions?.groups as { name: string } | null)?.name ?? '',
+        status     : r.status as AttendanceStatus,
+      }
+    })
+    // Filtrage de date côté JS — PostgREST ne supporte pas les filtres sur tables jointes
+    .filter(row => row.sessionDate >= startDate && row.sessionDate <= endDate)
 
-  // Tri côté JS (ascending) — PostgREST ne supporte pas .order() sur table jointe
-  rows.sort((a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime())
+  // Tri côté JS décroissant — PostgREST ne supporte pas .order() sur table jointe
+  rows.sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())
 
   return rows
 }
