@@ -387,7 +387,7 @@ development_status:
   # Epic 75 : Académie Hub — Nav globale + Refonte page Joueurs
   epic-75: in-progress
   75-2-academie-hub-sidebar-coachs: review
-  75-1-academie-hub-refonte-page-joueurs: ready-for-dev
+  75-1-academie-hub-refonte-page-joueurs: review
   epic-75-retrospective: optional
 
   # Epic 79 : Dashboard — Widget Coachs inactifs
