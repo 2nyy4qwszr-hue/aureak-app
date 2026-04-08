@@ -526,8 +526,8 @@ export { listEvaluationsAdmin, getCoachEvaluationBias, listDangerousPlayers } fr
 export type { AdminEvalRow, BiasPeriod } from './admin/evaluations'
 
 // ── Admin — Coachs (liste paginée + stats activité) ──────────────────────────
-export { listCoaches, getCoachSessionStats, listCoachRecentSessions } from './admin/coaches'
-export type { CoachListRow, CoachSessionStats, CoachRecentSession } from './admin/coaches'
+export { listCoaches, getCoachSessionStats, listCoachRecentSessions, detectInactiveCoaches } from './admin/coaches'
+export type { CoachListRow, CoachSessionStats, CoachRecentSession, InactiveCoach } from './admin/coaches'
 
 // ── Admin — Notifications Edge Function ──────────────────────────────────────
 export { sendGradeNotification } from './admin/notifications'

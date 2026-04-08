@@ -318,6 +318,7 @@ development_status:
   34-2-navigation-programme-ux-bibliotheque: ready-for-dev
   34-3-redesign-entrainements-table-exercices: done
   34-4-page-programmes-liste-migration: done
+  34-5-programme-detail-creation-duplication: done
   epic-34-retrospective: optional
 
   # Epic 63 : Navigation refactoring orientée usage
@@ -382,3 +383,13 @@ development_status:
   74-3-bug-filtresscope-loading-boxshadow: done
   74-4-design-dashboard-gold-concatenations-tokens: done
   epic-74-retrospective: optional
+
+  # Epic 75 : Académie Hub — Nav globale + Refonte page Joueurs
+  epic-75: in-progress
+  75-1-academie-hub-refonte-page-joueurs: ready-for-dev
+  epic-75-retrospective: optional
+
+  # Epic 79 : Dashboard — Widget Coachs inactifs
+  epic-79: in-progress
+  79-1-feature-dashboard-coachs-inactifs-widget: done
+  epic-79-retrospective: optional

@@ -16,10 +16,11 @@ import {
   getSeasonTrophyData,
   listTodaySessionsForDashboard,
   listStages,
+  detectInactiveCoaches,
 } from '@aureak/api-client'
-import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData, TodaySessionRow } from '@aureak/api-client'
+import type { ImplantationStats, AnomalyEvent, UpcomingSessionRow, StreakPlayer, AcademyScoreResult, AcademyMilestone, SeasonTrophyData, TodaySessionRow, InactiveCoach } from '@aureak/api-client'
 import type { PlayerOfWeek, LeaderboardEntry, StageWithMeta } from '@aureak/types'
-import { colors, shadows, radius, transitions, gamification, typography, getStatColor, STAT_THRESHOLDS, TERRAIN_GRADIENT_DARK, TERRAIN_GRADIENT_HEADER } from '@aureak/theme'
+import { colors, shadows, radius, transitions, gamification, typography, fonts, getStatColor, STAT_THRESHOLDS, TERRAIN_GRADIENT_DARK, TERRAIN_GRADIENT_HEADER } from '@aureak/theme'
 import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { useLiveSessionCounts } from '@aureak/api-client'
 
@@ -2153,6 +2154,11 @@ export default function DashboardPage() {
   const [groupsTotal,   setGroupsTotal]   = useState<number | null>(null)
   const [loadingCounts, setLoadingCounts] = useState(false)
 
+  // ── Story 79.1 — Coachs inactifs ──
+  const [inactiveCoaches,        setInactiveCoaches]        = useState<InactiveCoach[] | null>(null)
+  const [loadingInactiveCoaches, setLoadingInactiveCoaches] = useState(true)
+  const [errorInactiveCoaches,   setErrorInactiveCoaches]   = useState(false)
+
   // ── Focus Mode (Story 50-9) ──
   const [focusMode, setFocusMode] = useState(false)
 
@@ -2451,6 +2457,38 @@ export default function DashboardPage() {
     }
     loadLeaderboard()
   }, [])
+
+  // ── Story 79.1 — Load coachs inactifs ──
+  useEffect(() => {
+    const loadInactiveCoaches = async () => {
+      setLoadingInactiveCoaches(true)
+      setErrorInactiveCoaches(false)
+      try {
+        const { data, error } = await detectInactiveCoaches()
+        if (error) { setErrorInactiveCoaches(true) }
+        setInactiveCoaches(data ?? [])
+      } catch {
+        setErrorInactiveCoaches(true)
+      } finally {
+        setLoadingInactiveCoaches(false)
+      }
+    }
+    loadInactiveCoaches()
+  }, [])
+
+  const handleRetryInactiveCoaches = async () => {
+    setLoadingInactiveCoaches(true)
+    setErrorInactiveCoaches(false)
+    try {
+      const { data, error } = await detectInactiveCoaches()
+      if (error) setErrorInactiveCoaches(true)
+      setInactiveCoaches(data ?? [])
+    } catch {
+      setErrorInactiveCoaches(true)
+    } finally {
+      setLoadingInactiveCoaches(false)
+    }
+  }
 
   // ── Load score académie (Story 59-6) ──
   useEffect(() => {
@@ -3297,6 +3335,70 @@ export default function DashboardPage() {
 
         {/* ── Quêtes actives ── */}
         <ActiveQuestsTile quests={[]} />
+
+        {/* ── Story 79.1 — Coachs sans activité ── */}
+        <div style={{
+          backgroundColor: colors.light.surface,
+          borderRadius   : radius.card,
+          border         : `1px solid ${colors.border.light}`,
+          boxShadow      : shadows.sm,
+          padding        : '16px',
+        }}>
+          <div style={{
+            fontSize      : 13,
+            fontWeight    : 700,
+            color         : colors.text.muted,
+            textTransform : 'uppercase',
+            letterSpacing : 1.1,
+            marginBottom  : 12,
+            fontFamily    : fonts.body,
+            display       : 'flex',
+            alignItems    : 'center',
+            gap           : 6,
+          }}>
+            <span>😴</span> Coachs sans activité
+          </div>
+
+          {loadingInactiveCoaches ? (
+            <div className="a-skel" style={{ height: 80, borderRadius: 8 }} />
+          ) : errorInactiveCoaches ? (
+            <div style={{ fontSize: 12, color: colors.accent.red, fontFamily: fonts.body }}>
+              Erreur de chargement{' '}
+              <span
+                onClick={handleRetryInactiveCoaches}
+                style={{ textDecoration: 'underline', cursor: 'pointer', color: colors.text.muted }}
+              >
+                Réessayer
+              </span>
+            </div>
+          ) : (inactiveCoaches ?? []).length === 0 ? (
+            <div style={{ fontSize: 12, color: colors.status.success, fontFamily: fonts.body, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>✓</span> Tous les coachs sont actifs
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 28, fontWeight: 900, color: colors.accent.red, fontFamily: fonts.display, marginBottom: 8 }}>
+                {(inactiveCoaches ?? []).length}
+              </div>
+              {(inactiveCoaches ?? []).slice(0, 5).map(c => (
+                <div key={c.userId} style={{
+                  fontSize    : 12,
+                  color       : colors.text.dark,
+                  fontFamily  : fonts.body,
+                  padding     : '4px 0',
+                  borderBottom: `1px solid ${colors.border.divider}`,
+                }}>
+                  {c.displayName ?? 'Coach'}
+                </div>
+              ))}
+              {(inactiveCoaches ?? []).length > 5 && (
+                <div style={{ fontSize: 11, color: colors.text.subtle, fontFamily: fonts.body, marginTop: 6 }}>
+                  + {(inactiveCoaches ?? []).length - 5} autres
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* ── Score Académie ── */}
         <AcademyScoreTile

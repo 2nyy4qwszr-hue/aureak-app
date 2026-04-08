@@ -115,3 +115,76 @@ export async function listCoaches(opts: {
 
   return { data: rows, count: count ?? 0, error: null }
 }
+
+// ── Story 79.1 — Coachs inactifs ─────────────────────────────────────────────
+
+export type InactiveCoach = {
+  userId     : string
+  displayName: string | null
+}
+
+/** detectInactiveCoaches — coachs sans séance ni évaluation dans les N derniers jours */
+export async function detectInactiveCoaches(
+  daysSince = 7
+): Promise<{ data: InactiveCoach[] | null; error: unknown }> {
+  const since = new Date(Date.now() - daysSince * 24 * 3600_000).toISOString()
+
+  try {
+    // 1. Tous les coachs actifs
+    const { data: allCoaches, error: coachErr } = await supabase
+      .from('profiles')
+      .select('user_id, display_name')
+      .eq('user_role', 'coach')
+      .is('deleted_at', null)
+      .order('display_name', { ascending: true })
+
+    if (coachErr) {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coaches] detectInactiveCoaches profiles error:', coachErr)
+      return { data: null, error: coachErr }
+    }
+
+    const coaches = (allCoaches ?? []) as { user_id: string; display_name: string | null }[]
+    if (coaches.length === 0) return { data: [], error: null }
+
+    // 2. Coachs actifs en séance (session_coaches JOIN sessions)
+    const { data: sessionRows, error: sessionErr } = await supabase
+      .from('session_coaches')
+      .select('coach_id, sessions!inner(scheduled_at)')
+      .gte('sessions.scheduled_at', since)
+      .is('sessions.deleted_at', null)
+
+    if (sessionErr) {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coaches] detectInactiveCoaches sessions error:', sessionErr)
+      return { data: null, error: sessionErr }
+    }
+
+    const activeBySession = new Set(
+      ((sessionRows ?? []) as unknown as { coach_id: string }[]).map(r => r.coach_id)
+    )
+
+    // 3. Coachs actifs en évaluations
+    const { data: evalRows, error: evalErr } = await supabase
+      .from('evaluations')
+      .select('coach_id')
+      .gte('created_at', since)
+
+    if (evalErr) {
+      if ((process.env.NODE_ENV as string) !== 'production') console.error('[coaches] detectInactiveCoaches evaluations error:', evalErr)
+      return { data: null, error: evalErr }
+    }
+
+    const activeByEval = new Set(
+      ((evalRows ?? []) as { coach_id: string }[]).map(r => r.coach_id)
+    )
+
+    // 4. Inactifs = all minus (session ∪ eval)
+    const inactive: InactiveCoach[] = coaches
+      .filter(c => !activeBySession.has(c.user_id) && !activeByEval.has(c.user_id))
+      .map(c => ({ userId: c.user_id, displayName: c.display_name }))
+
+    return { data: inactive, error: null }
+  } catch (err) {
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[coaches] detectInactiveCoaches exception:', err)
+    return { data: null, error: err }
+  }
+}
