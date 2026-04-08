@@ -77,6 +77,7 @@
 | BUG-CRAWLER 2026-04-08 post-queue (statique — 0 nouveau bug) | ✅ PASS | ⏳ EN COURS | 1 CRITICAL (C7), 4 HIGH (C8/C9/C10/C11), 2 MEDIUM (C6/W07) — tous pre-existants |
 | story-77-5 (BUG — Vue session_evaluations_merged absente migrations → 406) | ✅ PASS | ✅ PASS | 0 |
 | story-78-1 (BUG — evalMap clé scheduled_at vs session_id → évaluations jamais affichées) | ✅ PASS | ✅ PASS | 0 |
+| story-72-14 (BUG — TYPE_COLOR + methodColor() manquent 'performance') | ✅ PASS | ✅ PASS | 0 |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -135,8 +136,8 @@
 | ~~B-BUG-C7~~ | ~~Vue `session_evaluations_merged` absente des migrations actives — risque 404 PostgREST à toute réinitialisation DB~~ **RÉSOLU** — story 77-5, migration 00143 | `/parent`, `/clubs`, `/activites` | `supabase/migrations/00143_create_view_session_evaluations_merged.sql` |
 | ~~B-BUG-C8~~ | ~~`evalMap.get(scheduled_at)` — clé UUID vs string date → évaluations jamais affichées dans fiche enfant parent~~ **RÉSOLU** — story 78-1 (evalMap.get(att.sessions?.id)) | `/parent/children/[id]` | `apps/web/app/(parent)/parent/children/[childId]/index.tsx:290` |
 | B-BUG-C9 | `'performance'` absent du sélecteur inline dans `GenerateModal` — type non sélectionnable | `/seances` → modale génération | `apps/web/app/(admin)/seances/page.tsx:188` |
-| B-BUG-C10 | `TYPE_COLOR` manque clé `performance` → sessions Performance affichent gold au lieu de teal (#26A69A) | `/seances` (list + calendrier) | `apps/web/app/(admin)/seances/_components/constants.ts:7` |
-| B-BUG-C11 | `methodColor()` typeMap manque `'performance'` → Dashboard Séances affiche gris pour type Performance | `/dashboard/seances` | `apps/web/app/(admin)/dashboard/seances/page.tsx:67` |
+| ~~B-BUG-C10~~ | ~~`TYPE_COLOR` manque clé `performance` → sessions Performance affichent gold au lieu de teal (#26A69A)~~ **RÉSOLU** — story 72-14 (performance: methodologyMethodColors['Performance'] ajouté) | `/seances` (list + calendrier) | `apps/web/app/(admin)/seances/_components/constants.ts:14` |
+| ~~B-BUG-C11~~ | ~~`methodColor()` typeMap manque `'performance'` → Dashboard Séances affiche gris pour type Performance~~ **RÉSOLU** — story 72-14 (performance: 'Performance' ajouté dans typeMap + methodLabel) | `/dashboard/seances` | `apps/web/app/(admin)/dashboard/seances/page.tsx:71,86` |
 | ~~B-CRAWLER-02~~ | ~~39 `console.error` non guardés dans `@aureak/api-client`~~ **RÉSOLU** — tous les fichiers api-client guardés avec `(process.env.NODE_ENV as string) !== 'production'` (scan-3 2026-04-06) | API | tous fichiers `api-client/src/` |
 | ~~B-CRAWLER-01~~ | ~~Colonne `unassigned_at` inexistante~~ **RÉSOLU** — migration 00134 appliquée (cycle 1) | `/dashboard` | `api-client/src/admin/dashboard.ts:75` |
 

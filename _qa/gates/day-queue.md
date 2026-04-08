@@ -20,9 +20,9 @@ new_queue:
   - story_id: story-72-14
     title: "BUG — TYPE_COLOR + methodColor() manquent 'performance'"
     priority: P1
-    status: pending
-    gate1: ~
-    gate2: ~
+    status: done
+    gate1: PASS
+    gate2: PASS
 
   - story_id: story-77-4
     title: "DESIGN — Analytics hex hardcodés → tokens"

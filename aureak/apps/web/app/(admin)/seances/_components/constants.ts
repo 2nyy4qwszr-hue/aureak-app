@@ -11,6 +11,7 @@ export const TYPE_COLOR: Record<string, string> = {
   decisionnel     : methodologyMethodColors['Décisionnel'],
   perfectionnement: methodologyMethodColors['Perfectionnement'],
   integration     : methodologyMethodColors['Intégration'],
+  performance     : methodologyMethodColors['Performance'],
   equipe          : '#94A3B8',
 }
 
