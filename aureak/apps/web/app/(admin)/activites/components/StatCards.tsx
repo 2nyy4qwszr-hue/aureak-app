@@ -11,9 +11,9 @@ import type { ScopeState } from './FiltresScope'
 type Props = { scope: ScopeState }
 
 function calcStats(sessions: SessionAttendanceSummary[]) {
+  const now       = new Date()
   const total     = sessions.length
   const cancelled = sessions.filter(s => s.status === 'annulée' || s.status === 'cancelled').length
-  const now       = new Date()
   const upcoming  = sessions.filter(s => new Date(s.scheduledAt) > now).length
   const withPres  = sessions.filter(s => s.totalAttendance > 0)
   const avgPres   = withPres.length > 0
@@ -24,7 +24,50 @@ function calcStats(sessions: SessionAttendanceSummary[]) {
     : 0
   const complete  = sessions.filter(s => s.completionStatus === 'complete').length
   const evalPct   = total > 0 ? Math.round((complete / total) * 100) : 0
-  return { total, cancelled, upcoming, avgPres, evalPct }
+
+  // — T1 : Trend présence (AC1) —
+  const msDay   = 86_400_000
+  const cutLast = new Date(now.getTime() - 30 * msDay)
+  const cutPrev = new Date(now.getTime() - 60 * msDay)
+  const last30  = sessions.filter(s => {
+    const d = new Date(s.scheduledAt)
+    return d >= cutLast && d <= now
+  })
+  const prev30  = sessions.filter(s => {
+    const d = new Date(s.scheduledAt)
+    return d >= cutPrev && d < cutLast
+  })
+  const avgOf = (arr: SessionAttendanceSummary[]): number | null => {
+    const wp = arr.filter(s => s.totalAttendance > 0)
+    return wp.length > 0
+      ? wp.reduce((acc, s) => acc + (s.presentCount / s.totalAttendance) * 100, 0) / wp.length
+      : null
+  }
+  const a1    = avgOf(last30)
+  const a2    = avgOf(prev30)
+  const trend = (last30.length >= 2 && prev30.length >= 2 && a1 !== null && a2 !== null)
+    ? Math.round(a1 - a2)
+    : null
+
+  // — T2 : Record annulations (AC2) —
+  const ym = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  const currentMonth = ym(now)
+  const monthMap: Record<string, number> = {}
+  for (const s of sessions) {
+    if (s.status === 'annulée' || s.status === 'cancelled') {
+      const m = ym(new Date(s.scheduledAt))
+      monthMap[m] = (monthMap[m] ?? 0) + 1
+    }
+  }
+  const cancelledThisMonth = monthMap[currentMonth] ?? 0
+  const past6Months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (i + 1), 1)
+    return ym(d)
+  })
+  const maxCancelledPast6 = past6Months.reduce((max, m) => Math.max(max, monthMap[m] ?? 0), 0)
+  const isRecord = cancelledThisMonth > 0 && maxCancelledPast6 > 0 && cancelledThisMonth >= maxCancelledPast6
+
+  return { total, cancelled, upcoming, avgPres, evalPct, trend, isRecord }
 }
 
 export function StatCards({ scope }: Props) {
@@ -66,10 +109,14 @@ export function StatCards({ scope }: Props) {
 
       {/* Card 1 — PRÉSENCE MOYENNE */}
       <View style={styles.card as object}>
-        {/* Badge trend haut droite */}
-        <View style={styles.badgeTrend as object}>
-          <AureakText style={styles.badgeTrendText}>+2.4%</AureakText>
-        </View>
+        {/* Badge trend haut droite — conditionnel (AC1) */}
+        {stats.trend !== null && (
+          <View style={styles.badgeTrend as object}>
+            <AureakText style={styles.badgeTrendText}>
+              {stats.trend >= 0 ? `+${stats.trend}%` : `${stats.trend}%`}
+            </AureakText>
+          </View>
+        )}
         {/* Picto */}
         <View style={styles.pictoBox}>
           <AureakText style={styles.pictoText}>📈</AureakText>
@@ -93,10 +140,12 @@ export function StatCards({ scope }: Props) {
 
       {/* Card 3 — ANNULÉES */}
       <View style={styles.card as object}>
-        {/* Badge "Record" violet haut droite */}
-        <View style={styles.badgeViolet as object}>
-          <AureakText style={styles.badgeVioletText}>Record</AureakText>
-        </View>
+        {/* Badge "Record" haut droite — conditionnel (AC2) */}
+        {stats.isRecord && (
+          <View style={styles.badgeViolet as object}>
+            <AureakText style={styles.badgeVioletText}>Record</AureakText>
+          </View>
+        )}
         <View style={styles.pictoBox}>
           <AureakText style={styles.pictoText}>⚠️</AureakText>
         </View>
