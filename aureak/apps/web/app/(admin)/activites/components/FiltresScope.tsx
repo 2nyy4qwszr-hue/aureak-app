@@ -25,22 +25,28 @@ type Props = {
 type GroupOption = { id: string; name: string }
 
 export function FiltresScope({ value, onChange }: Props) {
-  const [implantations,      setImplantations]      = useState<Implantation[]>([])
-  const [groups,             setGroups]             = useState<GroupOption[]>([])
-  const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
-  const [joueurSearch,       setJoueurSearch]       = useState('')
-  const [showImplDropdown,   setShowImplDropdown]   = useState(false)
-  const [showGroupDropdown,  setShowGroupDropdown]  = useState(false)
-  const [showJoueurDropdown, setShowJoueurDropdown] = useState(false)
+  const [implantations,        setImplantations]        = useState<Implantation[]>([])
+  const [groups,               setGroups]               = useState<GroupOption[]>([])
+  const [joueurs,              setJoueurs]              = useState<JoueurListItem[]>([])
+  const [joueurSearch,         setJoueurSearch]         = useState('')
+  const [showImplDropdown,     setShowImplDropdown]     = useState(false)
+  const [showGroupDropdown,    setShowGroupDropdown]    = useState(false)
+  const [showJoueurDropdown,   setShowJoueurDropdown]   = useState(false)
+  const [loadingImplantations, setLoadingImplantations] = useState(false)
+  const [loadingGroups,        setLoadingGroups]        = useState(false)
+  const [loadingJoueurs,       setLoadingJoueurs]       = useState(false)
 
   // Charger les implantations au montage
   useEffect(() => {
     ;(async () => {
+      setLoadingImplantations(true)
       try {
         const { data } = await listImplantations()
         setImplantations(data ?? [])
       } catch (err) {
         if (process.env.NODE_ENV !== 'production') console.error('[FiltresScope] listImplantations error:', err)
+      } finally {
+        setLoadingImplantations(false)
       }
     })()
   }, [])
@@ -52,11 +58,14 @@ export function FiltresScope({ value, onChange }: Props) {
       return
     }
     ;(async () => {
+      setLoadingGroups(true)
       try {
         const { data } = await listGroupsByImplantation(value.implantationId!)
         setGroups((data ?? []).map((g: { id: string; name: string }) => ({ id: g.id, name: g.name })))
       } catch (err) {
         if (process.env.NODE_ENV !== 'production') console.error('[FiltresScope] listGroupsByImplantation error:', err)
+      } finally {
+        setLoadingGroups(false)
       }
     })()
   }, [value.implantationId])
@@ -65,11 +74,14 @@ export function FiltresScope({ value, onChange }: Props) {
   useEffect(() => {
     if (!showJoueurDropdown) return
     ;(async () => {
+      setLoadingJoueurs(true)
       try {
         const result = await listJoueurs({ search: joueurSearch || undefined, pageSize: 20 })
         setJoueurs(result.data ?? [])
       } catch (err) {
         if (process.env.NODE_ENV !== 'production') console.error('[FiltresScope] listJoueurs error:', err)
+      } finally {
+        setLoadingJoueurs(false)
       }
     })()
   }, [showJoueurDropdown, joueurSearch])
@@ -134,23 +146,28 @@ export function FiltresScope({ value, onChange }: Props) {
         </Pressable>
         {showImplDropdown && (
           <View style={styles.dropdown}>
-            <ScrollView style={{ maxHeight: 200 }}>
-              {implantations.map(impl => (
-                <Pressable
-                  key={impl.id}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    onChange({ scope: 'implantation', implantationId: impl.id })
-                    setShowImplDropdown(false)
-                  }}
-                >
-                  <AureakText style={styles.dropdownItemText}>{impl.name}</AureakText>
-                </Pressable>
-              ))}
-              {implantations.length === 0 && (
-                <AureakText style={styles.dropdownEmpty}>Aucune implantation</AureakText>
-              )}
-            </ScrollView>
+            {loadingImplantations && (
+              <AureakText style={styles.dropdownEmpty}>Chargement…</AureakText>
+            )}
+            {!loadingImplantations && (
+              <ScrollView style={{ maxHeight: 200 }}>
+                {implantations.map(impl => (
+                  <Pressable
+                    key={impl.id}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      onChange({ scope: 'implantation', implantationId: impl.id })
+                      setShowImplDropdown(false)
+                    }}
+                  >
+                    <AureakText style={styles.dropdownItemText}>{impl.name}</AureakText>
+                  </Pressable>
+                ))}
+                {implantations.length === 0 && (
+                  <AureakText style={styles.dropdownEmpty}>Aucune implantation</AureakText>
+                )}
+              </ScrollView>
+            )}
           </View>
         )}
       </View>
@@ -172,23 +189,28 @@ export function FiltresScope({ value, onChange }: Props) {
         </Pressable>
         {showGroupDropdown && groupPillEnabled && (
           <View style={styles.dropdown}>
-            {groups.length === 0 && (
+            {loadingGroups && (
+              <AureakText style={styles.dropdownEmpty}>Chargement…</AureakText>
+            )}
+            {!loadingGroups && groups.length === 0 && (
               <AureakText style={styles.dropdownEmpty}>Aucun groupe</AureakText>
             )}
-            <ScrollView style={{ maxHeight: 200 }}>
-              {groups.map(g => (
-                <Pressable
-                  key={g.id}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    onChange({ scope: 'groupe', implantationId: value.implantationId, groupId: g.id })
-                    setShowGroupDropdown(false)
-                  }}
-                >
-                  <AureakText style={styles.dropdownItemText}>{g.name}</AureakText>
-                </Pressable>
-              ))}
-            </ScrollView>
+            {!loadingGroups && (
+              <ScrollView style={{ maxHeight: 200 }}>
+                {groups.map(g => (
+                  <Pressable
+                    key={g.id}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      onChange({ scope: 'groupe', implantationId: value.implantationId, groupId: g.id })
+                      setShowGroupDropdown(false)
+                    }}
+                  >
+                    <AureakText style={styles.dropdownItemText}>{g.name}</AureakText>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            )}
           </View>
         )}
       </View>
@@ -219,23 +241,28 @@ export function FiltresScope({ value, onChange }: Props) {
               autoCorrect={false}
               {...({ 'data-lpignore': 'true', 'data-form-type': 'other' } as object)}
             />
-            <ScrollView style={{ maxHeight: 200 }}>
-              {joueurs.map(j => (
-                <Pressable
-                  key={j.id}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    onChange({ scope: 'joueur', childId: j.id })
-                    setShowJoueurDropdown(false)
-                  }}
-                >
-                  <AureakText style={styles.dropdownItemText}>{j.displayName}</AureakText>
-                </Pressable>
-              ))}
-              {joueurs.length === 0 && (
-                <AureakText style={styles.dropdownEmpty}>Aucun joueur trouvé</AureakText>
-              )}
-            </ScrollView>
+            {loadingJoueurs && (
+              <AureakText style={styles.dropdownEmpty}>Chargement…</AureakText>
+            )}
+            {!loadingJoueurs && (
+              <ScrollView style={{ maxHeight: 200 }}>
+                {joueurs.map(j => (
+                  <Pressable
+                    key={j.id}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      onChange({ scope: 'joueur', childId: j.id })
+                      setShowJoueurDropdown(false)
+                    }}
+                  >
+                    <AureakText style={styles.dropdownItemText}>{j.displayName}</AureakText>
+                  </Pressable>
+                ))}
+                {joueurs.length === 0 && (
+                  <AureakText style={styles.dropdownEmpty}>Aucun joueur trouvé</AureakText>
+                )}
+              </ScrollView>
+            )}
           </View>
         )}
       </View>
@@ -266,7 +293,7 @@ const styles = StyleSheet.create({
     width          : 220,
     elevation      : 20,
     // @ts-ignore web
-    boxShadow      : '0 8px 24px rgba(0,0,0,0.12)',
+    boxShadow      : shadows.lg,
   },
   dropdownItem: {
     paddingHorizontal: space.md,
