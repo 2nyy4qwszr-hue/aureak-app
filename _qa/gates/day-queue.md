@@ -55,9 +55,9 @@ new_queue:
   - story_id: story-75-7
     title: "FEATURE — Quiz QCM board parent /quiz/[sessionId]"
     priority: P3
-    status: pending
-    gate1: ~
-    gate2: ~
+    status: done
+    gate1: PASS
+    gate2: PASS
 
   - story_id: story-79-1
     title: "FEATURE — Widget coachs inactifs >7j dashboard admin"

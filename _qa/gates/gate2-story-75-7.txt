@@ -1,0 +1,6 @@
+PASS|0|0|types:console-error
+Playwright skipped — app non démarrée (http_code=000)
+Design type: polish — ACs visuels conformes (tokens uniquement, skeleton 3 blocs, états empty/résultats/badge)
+UX: bouton CTA désactivé avant sélection, stepper 1 question/écran, badge trophée ≥80%, message encouragement contextuel
+Bug: handleSelectOption protégé par showResult guard + button disabled={showResult}, try/finally sur setLoading
+Régression: getLastSessionQuiz + ChildQuizData non modifiés — aucune régression story-75-6
