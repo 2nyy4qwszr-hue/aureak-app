@@ -1,5 +1,5 @@
-date: 2026-04-07
-status: in-progress
+date: 2026-04-08
+status: done
 
 # ──────────── QUEUE DU JOUR ────────────
 new_queue:
@@ -237,6 +237,13 @@ new_queue:
   - story_id: story-74-1
     title: "DESIGN — Activités Séances alignement référence visuelle (titre + CTA dark + tokens + Toutes)"
     priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-74-2
+    title: "BUG — StatCards badges fictifs (trend +2.4% hardcodé + Record sans condition)"
+    priority: P1
     status: done
     gate1: pass
     gate2: pass
