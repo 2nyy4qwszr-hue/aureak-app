@@ -216,8 +216,20 @@ Aucun — implémentation directe sans erreur.
 - Console guard déjà en place ligne 90 — conforme
 - TypeScript noEmit → 0 erreur
 
+### Code Review Record (claude-sonnet-4-6 — 2026-04-08)
+- Reviewer : adversarial code review automatique
+- AC1 PASS : badge trend conditionnel — `stats.trend !== null` garanti, calcul delta correct sur fenêtres 30j/60j
+- AC2 PASS : badge Record conditionnel — `stats.isRecord` calculé correctement, conditions triple vérifiées
+- AC3 PASS : grep "+2.4%" et "Record" hardcodés → 0 occurrence
+- AC4 PASS : try/finally pattern conforme — setLoading(false) dans finally ligne 91-93
+- AC5 PASS : zéro couleur hardcodée — tous les styles utilisent tokens `colors.*`, `space.*`, `radius.*`, `shadows.*`
+- Git discrepancy : sprint-status.yaml non mis à jour (ready-for-dev → done) → CORRIGÉ par reviewer
+- LOW finding non corrigé : `s.status === 'cancelled'` (anglais) en défense — la valeur DB est `'annulée'` uniquement selon SessionStatus ; `'cancelled'` est utilisé pour `participation_status` pas `session_status`. Défense superflue mais non bloquante.
+- Verdict : PASS — tous les HIGH/MEDIUM corrigés
+
 ### File List
 
 | Fichier | Statut |
 |---------|--------|
 | `aureak/apps/web/app/(admin)/activites/components/StatCards.tsx` | Modifié |
+| `_bmad-output/implementation-artifacts/sprint-status.yaml` | Mis à jour (review) |

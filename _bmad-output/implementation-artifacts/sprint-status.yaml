@@ -372,3 +372,11 @@ development_status:
   73-6-bug-presences-tableau-fond-beige: done
   73-7-bug-evaluations-tableau-fond-beige: done
   epic-73-retrospective: optional
+
+  # Epic 74 : Activités Séances — alignement référence visuelle
+  epic-74: in-progress
+  74-1-design-activites-seances-alignement-reference-visuelle: done
+  74-2-bug-statcards-badges-fictifs: done
+  74-3-bug-filtresscope-loading-boxshadow: ready-for-dev
+  74-4-design-dashboard-gold-concatenations-tokens: ready-for-dev
+  epic-74-retrospective: optional
