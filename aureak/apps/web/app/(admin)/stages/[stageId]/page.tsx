@@ -10,7 +10,7 @@ import {
   listStageBlocks, createStageBlock, updateStageBlock, deleteStageBlock,
   listAvailableCoaches,
 } from '@aureak/api-client'
-import { AureakText, HierarchyBreadcrumb } from '@aureak/ui'
+import { AureakText, HierarchyBreadcrumb, ConfirmDialog } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import { METHOD_COLOR } from '@aureak/business-logic'
 import type {
@@ -496,6 +496,12 @@ export default function StageDetailPage() {
   const [mutError,    setMutError]    = useState<string | null>(null)
   const [blockSaving, setBlockSaving] = useState(false)
 
+  // Confirm dialogs — bloc & journée
+  const [confirmBlockVisible, setConfirmBlockVisible] = useState(false)
+  const [pendingBlockId,      setPendingBlockId]      = useState<string | null>(null)
+  const [confirmDayVisible,   setConfirmDayVisible]   = useState(false)
+  const [pendingDayId,        setPendingDayId]        = useState<string | null>(null)
+
   // Coach name map for display
   const coachNames = new Map(coaches.map(c => [c.id, c.name]))
 
@@ -547,7 +553,7 @@ export default function StageDetailPage() {
     }
   }
 
-  const handleDeleteDay = async (dayId: string) => {
+  const executeDeleteDay = async (dayId: string) => {
     setMutError(null)
     try {
       await deleteStageDay(dayId)
@@ -561,6 +567,11 @@ export default function StageDetailPage() {
       if (process.env.NODE_ENV !== 'production') console.error('[stageDetail] deleteDay error:', err)
       setMutError('Erreur lors de la suppression de la journée.')
     }
+  }
+
+  const handleDeleteDay = (dayId: string) => {
+    setPendingDayId(dayId)
+    setConfirmDayVisible(true)
   }
 
   // ── Block modal open ─────────────────────────────────────────
@@ -637,7 +648,7 @@ export default function StageDetailPage() {
 
   // ── Delete block ─────────────────────────────────────────────
 
-  const handleDeleteBlock = async (blockId: string) => {
+  const executeDeleteBlock = async (blockId: string) => {
     if (!activeDayId) return
     setMutError(null)
     try {
@@ -650,6 +661,11 @@ export default function StageDetailPage() {
       if (process.env.NODE_ENV !== 'production') console.error('[stageDetail] deleteBlock error:', err)
       setMutError('Erreur lors de la suppression du bloc.')
     }
+  }
+
+  const handleDeleteBlock = (blockId: string) => {
+    setPendingBlockId(blockId)
+    setConfirmBlockVisible(true)
   }
 
   // ── Status update ────────────────────────────────────────────
@@ -946,6 +962,36 @@ export default function StageDetailPage() {
         saving={blockSaving}
         onSave={handleSaveBlock}
         onClose={() => setBlockModalVisible(false)}
+      />
+
+      {/* ── Confirm: supprimer un bloc ── */}
+      <ConfirmDialog
+        visible={confirmBlockVisible}
+        title="Supprimer ce bloc ?"
+        message="Cette action est irréversible."
+        confirmLabel="Supprimer"
+        danger
+        onConfirm={() => {
+          setConfirmBlockVisible(false)
+          if (pendingBlockId) executeDeleteBlock(pendingBlockId)
+          setPendingBlockId(null)
+        }}
+        onCancel={() => { setConfirmBlockVisible(false); setPendingBlockId(null) }}
+      />
+
+      {/* ── Confirm: supprimer une journée ── */}
+      <ConfirmDialog
+        visible={confirmDayVisible}
+        title="Supprimer cette journée ?"
+        message="Tous les blocs associés seront également supprimés."
+        confirmLabel="Supprimer"
+        danger
+        onConfirm={() => {
+          setConfirmDayVisible(false)
+          if (pendingDayId) executeDeleteDay(pendingDayId)
+          setPendingDayId(null)
+        }}
+        onCancel={() => { setConfirmDayVisible(false); setPendingDayId(null) }}
       />
     </>
   )
