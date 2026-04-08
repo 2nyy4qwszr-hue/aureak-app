@@ -167,7 +167,7 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
       <View style={[cardStyles.card, cardStyles.cardDarkGold, { flex: 1 }]}>
         <AureakText style={cardStyles.statIconLight}>↗</AureakText>
         <AureakText style={cardStyles.cardLabelDark}>Tendance Global</AureakText>
-        <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.text.primary : colors.status.absent } as import('react-native').TextStyle}>
+        <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.accent.gold : colors.status.absent } as import('react-native').TextStyle}>
           {stats.totalSessions >= 4 ? trendDisplay : '—'}
         </AureakText>
         <AureakText style={cardStyles.cardSubDark}>
@@ -198,9 +198,9 @@ const cardStyles = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   cardDarkGold: {
-    // Figma card Tendance fond gold foncé
-    backgroundColor: colors.accent.goldDark,
-    borderColor    : colors.accent.goldDark,
+    // Card Tendance : style light avec border or (zone light de la page)
+    backgroundColor: colors.light.surface,
+    borderColor    : colors.accent.gold,
   },
   cardLabel: {
     fontSize     : 10,
@@ -215,7 +215,7 @@ const cardStyles = StyleSheet.create({
     fontSize     : 10,
     fontFamily   : fonts.heading,
     fontWeight   : '700',
-    color        : colors.accent.goldLight,
+    color        : colors.text.muted,  // lisible sur fond blanc
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom : space.sm,
@@ -261,7 +261,7 @@ const cardStyles = StyleSheet.create({
   cardSubDark: {
     fontSize  : 11,
     fontFamily: fonts.body,
-    color     : colors.text.primary + '99',
+    color     : colors.text.muted,  // lisible sur fond blanc
   },
   statIcon: {
     fontSize    : 22,
@@ -270,7 +270,7 @@ const cardStyles = StyleSheet.create({
   statIconLight: {
     fontSize    : 22,
     marginBottom: 4,
-    color       : colors.text.primary,
+    color       : colors.accent.gold,  // icône or sur fond blanc
   },
   progressTrack: {
     height         : 4,
