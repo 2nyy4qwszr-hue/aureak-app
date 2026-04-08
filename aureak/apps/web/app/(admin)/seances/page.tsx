@@ -805,7 +805,7 @@ export default function SeancesPage() {
           {[0,1,2,3].map(i => <View key={i} style={st.skeletonCard} />)}
         </View>
 
-      ) : filteredSessions.length === 0 && period !== 'month' && period !== 'year' ? (
+      ) : filteredSessions.length === 0 ? (
         <View style={st.emptyState}>
           <AureakText variant="h3" style={{ color: colors.text.muted }}>Aucune séance</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 4, textAlign: 'center' as never }}>
