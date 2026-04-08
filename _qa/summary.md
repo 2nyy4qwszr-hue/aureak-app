@@ -74,7 +74,7 @@
 | story-66-2 (UX — Sidebar Stages sous-item Évènements + badge count actifs) | ✅ PASS | ✅ PASS | 1 WARNING mineur (badge expanded sur icône vs après label — cohérent avec pattern existant) | Non |
 | story-76-2 (UX — Séances empty state CTA toutes vues mois/année) | ✅ PASS | ✅ PASS | 0 |
 | story-8-6 (FEATURE — Vue coach résultats quiz groupe fiche séance) | ✅ PASS | ✅ PASS | 2 warnings mineurs (key={t.name} non-robuste, quizResults non reset pré-rechargement) | Non |
-| BUG-CRAWLER 2026-04-08 post-queue (statique — 0 nouveau bug) | ✅ PASS | ⏳ EN COURS | 1 CRITICAL (C7), 4 HIGH (C8/C9/C10/C11), 2 MEDIUM (C6/W07) — tous pre-existants |
+| BUG-CRAWLER 2026-04-08 post-queue (Playwright live) | ✅ PASS | ⏳ EN COURS | 2 HIGH (C9 + NEW-01), 2 MEDIUM (C6 + NEW-02) — 2 nouveaux bugs Playwright |
 | story-77-5 (BUG — Vue session_evaluations_merged absente migrations → 406) | ✅ PASS | ✅ PASS | 0 |
 | story-78-1 (BUG — evalMap clé scheduled_at vs session_id → évaluations jamais affichées) | ✅ PASS | ✅ PASS | 0 |
 | story-72-14 (BUG — TYPE_COLOR + methodColor() manquent 'performance') | ✅ PASS | ✅ PASS | 0 |
@@ -85,6 +85,7 @@
 | story-75-7 (FEATURE — Quiz QCM board parent /quiz/[sessionId]) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-79-1 (FEATURE — Widget coachs inactifs dashboard admin) | ✅ PASS | ✅ PASS | 1 WARNING mineur (setInactiveCoaches exécuté même si error=true — impact UI nul) |
 | story-78-2 (FEATURE — Tickets parent page détail + soft-delete + migration 00144) | ✅ PASS | ✅ PASS | 1 WARNING mineur (alpha hex `+'18'` sur badge statut — pattern existant dans codebase) |
+| BUG-CRAWLER 2026-04-08 post-sprint (Playwright live) | ✅ PASS | ⏳ EN COURS | 0 CRITICAL, 1 HIGH (sessions.name), 1 MEDIUM (connu routing), 1 LOW (connu doublon) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -117,6 +118,8 @@
 | 2026-04-08 | Design: 9 BLOCKER, 9 WARNING | Bug: 3 HIGH, 2 MEDIUM | UX: 4 P1, 4 P2 | Features: 12 manquants (81% Phase 1) |
 | 2026-04-08 (post-345) | Design: 11 BLOCKER, 11 WARNING | Bug: 2 HIGH | UX: 4 P1, 5 P2 | Features: 10 manquants (84% Phase 1) |
 | 2026-04-08 (post-queue) | Design: 3 BLOCKER, 5 WARNING | Bug: 1 CRITICAL, 4 HIGH | UX: 3 P1, 4 P2 | Features: 10 manquants (84% Phase 1) |
+| 2026-04-08 (post-patrol) | Design: 4 BLOCKER, 6 WARNING | Bug: 0 CRITICAL, 2 HIGH | UX: 4 P1, 5 P2 | Features: 10 manquants (85% Phase 1) |
+| 2026-04-08 (post-sprint) | Design: 3 BLOCKER, 5 WARNING | Bug: 0 CRITICAL, 1 HIGH | UX: 3 P1, 7 P2 | Features: 10 manquants (86% Phase 1) |
 
 ---
 
@@ -143,6 +146,9 @@
 | ~~B-BUG-C7~~ | ~~Vue `session_evaluations_merged` absente des migrations actives — risque 404 PostgREST à toute réinitialisation DB~~ **RÉSOLU** — story 77-5, migration 00143 | `/parent`, `/clubs`, `/activites` | `supabase/migrations/00143_create_view_session_evaluations_merged.sql` |
 | ~~B-BUG-C8~~ | ~~`evalMap.get(scheduled_at)` — clé UUID vs string date → évaluations jamais affichées dans fiche enfant parent~~ **RÉSOLU** — story 78-1 (evalMap.get(att.sessions?.id)) | `/parent/children/[id]` | `apps/web/app/(parent)/parent/children/[childId]/index.tsx:290` |
 | B-BUG-C9 | `'performance'` absent du sélecteur inline dans `GenerateModal` — type non sélectionnable | `/seances` → modale génération | `apps/web/app/(admin)/seances/page.tsx:188` |
+| B-BUG-C12 | `listRecentEvaluationsForChild` : select `sessions!evaluations_session_id_fkey(name)` → 400 (colonne `name` inexistante en table `sessions`) — GrowthChart vide sur fiche joueur | `/children/[id]` | `aureak/packages/api-client/src/evaluations/evaluations.ts:131` |
+| B-CRAWLER-NEW-01 | `club_directory_child_links` → 400 sur toutes fiches club — join PostgREST échoue (FK manquante ?) — section joueurs toujours vide | `/clubs/[clubId]` | `api-client/src/admin/club-directory.ts` |
+| B-CRAWLER-NEW-02 | Deep link `/children/[childId]` redirige vers `/children` après SplashScreen — race condition auth guard | `/children/[childId]` (et autres deep links admin) | `apps/web/app/(admin)/_layout.tsx:460` |
 | ~~B-BUG-C10~~ | ~~`TYPE_COLOR` manque clé `performance` → sessions Performance affichent gold au lieu de teal (#26A69A)~~ **RÉSOLU** — story 72-14 (performance: methodologyMethodColors['Performance'] ajouté) | `/seances` (list + calendrier) | `apps/web/app/(admin)/seances/_components/constants.ts:14` |
 | ~~B-BUG-C11~~ | ~~`methodColor()` typeMap manque `'performance'` → Dashboard Séances affiche gris pour type Performance~~ **RÉSOLU** — story 72-14 (performance: 'Performance' ajouté dans typeMap + methodLabel) | `/dashboard/seances` | `apps/web/app/(admin)/dashboard/seances/page.tsx:71,86` |
 | ~~B-CRAWLER-02~~ | ~~39 `console.error` non guardés dans `@aureak/api-client`~~ **RÉSOLU** — tous les fichiers api-client guardés avec `(process.env.NODE_ENV as string) !== 'production'` (scan-3 2026-04-06) | API | tous fichiers `api-client/src/` |
