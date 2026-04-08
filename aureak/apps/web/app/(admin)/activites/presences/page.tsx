@@ -63,11 +63,11 @@ function isAtRisk(statuses: (AttendanceStatus | null)[]): boolean {
 }
 
 function getCellStyle(rate: number): { bg: string; text: string } {
-  // Figma heatmap seuils
-  if (rate >= 90) return { bg: colors.status.success,  text: colors.text.primary }
-  if (rate >= 70) return { bg: colors.status.warning,  text: colors.text.primary }
-  if (rate >= 60) return { bg: colors.status.warning,  text: colors.text.primary }
-  return               { bg: colors.status.absent,   text: colors.text.primary }
+  // Figma heatmap seuils — tokens @aureak/theme uniquement
+  if (rate >= 90) return { bg: colors.status.present,   text: colors.text.primary }
+  if (rate >= 70) return { bg: colors.status.attention, text: colors.text.primary }
+  if (rate >= 60) return { bg: colors.status.warning,   text: colors.text.primary }
+  return               { bg: colors.status.absent,    text: colors.text.primary }
 }
 
 function getDotColor(status: AttendanceStatus | null): string {
@@ -168,10 +168,10 @@ function StatCardsPresences({ sessions }: StatCardsProps) {
         <AureakText style={cardStyles.statIconLight}>↗</AureakText>
         <AureakText style={cardStyles.cardLabelDark}>Tendance Global</AureakText>
         <AureakText style={{ ...(cardStyles.cardStatGold as object), color: trendPositive ? colors.text.primary : colors.status.absent } as import('react-native').TextStyle}>
-          {stats.totalSessions >= 2 ? trendDisplay : '—'}
+          {stats.totalSessions >= 4 ? trendDisplay : '—'}
         </AureakText>
         <AureakText style={cardStyles.cardSubDark}>
-          {stats.totalSessions >= 2 ? 'pts vs moyenne période' : 'Données insuffisantes'}
+          {stats.totalSessions >= 4 ? 'pts vs moyenne période' : 'Données insuffisantes'}
         </AureakText>
       </View>
     </View>
