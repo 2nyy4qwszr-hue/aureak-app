@@ -493,6 +493,7 @@ export {
   upsertSessionModule,
   addSituationToModule,
   removeSituationFromModule,
+  listMethodologyExercises,
 } from './methodology'
 export type {
   CreateMethodologyThemeParams,

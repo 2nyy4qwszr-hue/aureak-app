@@ -3,7 +3,7 @@
 
 import { supabase } from './supabase'
 import type {
-  MethodologyTheme, MethodologySituation, MethodologySession,
+  MethodologyTheme, MethodologySituation, MethodologySession, MethodologyExercise,
   MethodologyMethod, MethodologyContextType, MethodologyLevel,
   DiagramData, MethodologyModuleType, MethodologySessionModule,
 } from '@aureak/types'
@@ -674,4 +674,44 @@ export async function removeSituationFromModule(
   if (error && process.env.NODE_ENV !== 'production')
     if ((process.env.NODE_ENV as string) !== 'production') console.error('[removeSituationFromModule] error:', error)
   return { error: error ?? null }
+}
+
+// ── Story 34.3 — Exercices méthodologie (migration 00141) ─────────────────────
+
+function mapExercise(row: Record<string, unknown>): MethodologyExercise {
+  return {
+    id         : row.id          as string,
+    tenantId   : row.tenant_id   as string,
+    method     : row.method      as MethodologyMethod,
+    contextType: row.context_type as MethodologyContextType,
+    title      : row.title       as string,
+    trainingRef: typeof row.training_ref === 'number' ? row.training_ref : null,
+    description: str(row.description),
+    pdfUrl     : str(row.pdf_url),
+    isActive   : row.is_active   as boolean,
+    createdAt  : row.created_at  as string,
+    updatedAt  : row.updated_at  as string,
+    deletedAt  : str(row.deleted_at),
+  }
+}
+
+export async function listMethodologyExercises(
+  opts: { activeOnly?: boolean; method?: string; contextType?: string } = {},
+): Promise<MethodologyExercise[]> {
+  let q = supabase
+    .from('methodology_exercises')
+    .select('*')
+    .is('deleted_at', null)
+    .order('title', { ascending: true })
+
+  if (opts.method)               q = q.eq('method', opts.method)
+  if (opts.contextType)          q = q.eq('context_type', opts.contextType)
+  if (opts.activeOnly !== false)  q = q.eq('is_active', true)
+
+  const { data, error } = await q
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listMethodologyExercises] error:', error)
+    return []
+  }
+  return (data ?? []).map(r => mapExercise(r as Record<string, unknown>))
 }

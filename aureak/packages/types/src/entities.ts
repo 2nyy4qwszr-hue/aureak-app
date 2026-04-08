@@ -469,7 +469,7 @@ export type Implantation = {
 }
 
 /** Méthode pédagogique associée à un groupe */
-export type GroupMethod = 'Goal and Player' | 'Technique' | 'Situationnel' | 'Décisionnel'
+export type GroupMethod = 'Goal and Player' | 'Technique' | 'Situationnel' | 'Performance' | 'Décisionnel'
 
 /**
  * FormationData — formation tactique persistée en JSON dans groups.formation_data (migration 00121)
@@ -2282,5 +2282,25 @@ export type CoachQuestWithDefinition = CoachQuest & {
     questType   : string
     xpReward    : number
   } | null
+}
+
+// ============================================================
+// Migration 00141 — Exercices méthodologie (Story 34.3)
+// ============================================================
+
+/** MethodologyExercise — exercice pédagogique individuel (bibliothèque réutilisable) */
+export type MethodologyExercise = {
+  id          : string
+  tenantId    : string
+  method      : MethodologyMethod
+  contextType : MethodologyContextType  // 'academie' | 'stage'
+  title       : string
+  trainingRef : number | null           // référence numérique (ex: 22)
+  description : string | null
+  pdfUrl      : string | null
+  isActive    : boolean
+  createdAt   : string
+  updatedAt   : string
+  deletedAt   : string | null
 }
 
