@@ -93,6 +93,47 @@
 
 ---
 
+### Epic 8 — Quiz & Apprentissage (complément coach)
+
+- [ ] 8-6 : vue-coach-resultats-quiz-fiche-seance (P1 FEATURE — section "Résultats Quiz" dans `/seances/[sessionId]` après Présences : tableau joueurs × score + taux maîtrise par thème, `listGroupQuizResults(sessionId)` dans `@aureak/api-client` — FR24/FR72 — aucune migration)
+
+**Dépendances** : 8-1 et 8-2 `done` (tables `learning_attempts`, `themes`, `profiles` en base). Aucune migration DB requise.
+
+---
+
+### Epic 76 — Bugfix API-client séances (avril 2026)
+
+- [ ] 76-1 : bug-listattendancesbychild-filtres-gte-lte-table-jointe (P1 BUG — filtres .gte/.lte sur `sessions.scheduled_at` ignorés par PostgREST → toutes les attendances retournées sans filtre de date → corriger via filtrage JS post-fetch — `api-client/src/sessions/attendances.ts`)
+
+**Dépendances** : aucune migration DB requise. Fichier unique modifié.
+
+---
+
+### Epic 77 — Design Tokens Polish — Typography (avril 2026)
+
+Remplacement des chaînes hardcodées restantes après le batch 75.x.
+Aucune migration DB — UI uniquement.
+
+- [ ] 77-1 : design-evaluations-tokens-fontfamily-hex (P1 DESIGN — 4× `'Montserrat'` → `fonts.body` + `'#1c1c17'` → `colors.text.dark` dans `evaluations/page.tsx` — zéro valeur hardcodée après story 75.4)
+- [ ] 77-2 : ux-children-recherche-live-debounce (P2 UX — debounce 300ms sur champ recherche /children, suppression bouton "Chercher", clear immédiat sur ✕ — `children/index.tsx` uniquement, zéro changement API)
+- [ ] 77-3 : design-implantations-tokens-terrain-gradient-blanc (P1 DESIGN — 2× gradients `#1a472a`/`#2d6a4f` → `TERRAIN_GRADIENT_DARK` + 10× `'#FFFFFF'` → `colors.text.primary` dans `implantations/index.tsx`)
+- [ ] 77-4 : design-analytics-hex-hardcodes-tokenisation (P1 DESIGN — `#3B82F6` CLUBS_BLUE → `colors.status.info` + `#F59E0B` CHARGE_AMBER → `colors.status.warning` dans `analytics/page.tsx` ; `#C0C0C0` SILVER → `colors.accent.silverPodium` (nouveau token) + `#CD7F32` BRONZE → `colors.accent.bronze` dans `analytics/progression/page.tsx`)
+- [ ] 77-5 : bug-vue-session-evaluations-merged-absente-migrations (HIGH BUG — vue `session_evaluations_merged` absente de `supabase/migrations/` → requêtes 406 sur toutes les pages Évaluations — 1 migration `CREATE OR REPLACE VIEW` uniquement, zéro changement api-client) `ready-for-dev`
+
+**Dépendances** : dépend de 75.4 (done) — ne pas réintroduire Manrope ni #7C3AED.
+
+---
+
+### Epic 78 — Module Tickets Parent/Admin — Complétion web (avril 2026)
+
+Complétion du module tickets issu de story 7.4 (done) : page détail parent manquante + soft-delete RGPD.
+
+- [ ] 78-1 : tickets-parent-detail-softdelete (P1 FEATURE — page `/parent/tickets/[ticketId]` fil réponses + réponse parent + fermeture douce ; migration 00143 `deleted_at` sur `tickets` ; `softDeleteTicket()` API — FR31/FR32)
+
+**Dépendances** : story 7.4 done (tables `tickets`/`ticket_replies`, API de base, pages admin et liste parent).
+
+---
+
 ### Epic 65 — Activités Hub Unifié (Séances · Présences · Évaluations)
 
 - [ ] 65-1 : activites-seances-refonte-hub-tableau (P1 — route /activites, tableau séances avec pseudo-filtres temporels, stat cards, colonnes Statut/Date/Méthode/Groupe/Coach/Présence/Badges/K/C/Anomalie)
@@ -144,7 +185,16 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 
 ### Epic 66 — Navigation & Sidebar Polish
 
-- [ ] 66-1 : ux-sidebar-restructuration-labels-items (P2 — "Tableau de bord"→"Dashboard", retrait Séances/Présences/Évaluations du sidebar, "Académie"→"Méthode", "Structure"→"Académie", retrait notification, fix icônes collapsed)
+- [x] 66-1 : ux-sidebar-restructuration-labels-items (P2 — "Tableau de bord"→"Dashboard", retrait Séances/Présences/Évaluations du sidebar, "Académie"→"Méthode", "Structure"→"Académie", retrait notification, fix icônes collapsed)
+- [ ] 66-2 : ux-sidebar-stages-sous-item-evenements-badge-actifs (P2 — ajout item "Stages" sous Évènements, route /stages, NavBadge doré count stages en_cours au mount — _layout.tsx uniquement)
+
+---
+
+### Epic 76 — UX Séances Quick Wins
+
+Correctifs UX rapides sur la page séances — aucune migration DB, aucun changement API.
+
+- [ ] 76-1 : ux-seances-empty-state-toutes-vues (P1 — empty state CTA "Créer une séance" affiché sur TOUTES les vues quand filteredSessions.length === 0 — seances/page.tsx ligne 808 uniquement)
 
 ---
 
@@ -182,6 +232,10 @@ Aucune migration DB — UI uniquement.
 - [ ] 72-8 : bug-couleurs-hardcodees-activites-header-presences (P1 BUG — remplacer `#18181B` par `colors.text.dark` et `#FFFFFF` par `colors.light.surface`/`colors.text.primary` dans ActivitesHeader.tsx et presences/page.tsx) `ready-for-dev`
 - [ ] 72-9 : design-geist-montserrat-dashboard (P1 DESIGN — remplacer les 57 occurrences de 'Geist, sans-serif' par 'Montserrat, sans-serif' dans dashboard/page.tsx — charte typographique AUREAK)
 - [ ] 72-10 : bug-load-sans-await-dashboard (P1 BUG — `load()` appelé sans `await` dans `handlePresetChange` et `handleApplyCustom` → race condition sur les appels dashboard — dashboard/page.tsx) `ready-for-dev`
+- [ ] 72-11 : bug-couleurs-hardcodees-fiche-seance-tokens (P1 BUG — HEADER_BG #1A1A1A → colors.dark.surface ; badge trial #6366F1 → colors.status.info ; presenceColor hex → tokens sémantiques ; bandeaux retard/succès/erreur hex → tokens — seances/[sessionId]/page.tsx) `ready-for-dev`
+- [ ] 72-12 : design-dashboard-tokens-couleur-texte-dark (P2 POLISH — 2× `colors.text.primary` dans date-card dark → `colors.dark.text` (sémantique correcte) + commentaires documentation hero cards dark intentionnelles Story 50-11 — dashboard/page.tsx) `ready-for-dev`
+- [ ] 72-13 : design-presences-card-tendance-light-border-gold (P2 DESIGN — card "Tendance Global" fond sombre goldDark → fond blanc colors.light.surface + borderColor colors.accent.gold ; textes adaptés pour fond blanc — activites/presences/page.tsx) `ready-for-dev`
+- [ ] 72-14 : bug-type-color-performance-manquant-seances (P1 BUG — `TYPE_COLOR` dans `seances/_components/constants.ts` et `typeMap`/`methodLabel` dans `dashboard/seances/page.tsx` manquent l'entrée `performance` → affichage gold par défaut au lieu de teal #26A69A — 2 fichiers, 3 lignes) `ready-for-dev`
 
 **Dépendances** : toutes indépendantes entre elles
 
@@ -234,6 +288,7 @@ Aucune migration DB — UI uniquement. Petits correctifs et améliorations UX ra
 - [ ] 69-3 : ux-skeleton-hub-methodologie (P2 — skeleton complet tile Thème semaine, zéro layout shift)
 - [ ] 69-4 : ux-empty-state-cta-themes-situations (P2 — bouton CTA dans empty state Thèmes + Situations)
 - [ ] 69-5 : ux-stepper-wizard-nouvelle-seance (P2 — stepper 6 étapes visible dans /seances/new)
+- [ ] 69-11 : ux-confirm-delete-bloc-journee-stage (P1 UX — ConfirmDialog avant suppression bloc (l.640) et journée (l.550) dans stages/[stageId]/page.tsx — pattern clubs/[clubId]/page.tsx)
 
 ---
 
@@ -350,6 +405,35 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 - [ ] 44-4 : fiche-joueur-parents-club-liens
 - [ ] 44-5 : mini-stats-joueur-groupe
 - [ ] 44-6 : implantation-stats-enfants
+
+### Epic 78 — Bugfix fiche enfant côté parent (avril 2026)
+
+- [ ] 78-1 : bug-evalmap-key-scheduled-at-vs-session-id (P1 BUG — `evalMap.get(att.sessions?.scheduled_at)` utilise la date string comme clé alors que la Map est indexée par `session_id` UUID → évaluations jamais affichées dans la fiche enfant parent — `apps/web/app/(parent)/parent/children/[childId]/index.tsx` ligne 290, fix en 2 lignes)
+
+**Dépendances** : aucune migration DB requise. Fichier unique modifié.
+
+---
+
+### Epic 79 — Feature Dashboard Admin — Coaching Activity (avril 2026)
+
+Widget "Coachs sans activité" dans la colonne Performance du dashboard admin.
+Aucune migration DB — les tables `session_coaches`, `evaluations`, `profiles` existent déjà.
+
+- [ ] 79-1 : feature-dashboard-coachs-inactifs-widget (P1 FEATURE — card "Coachs sans activité" dans COL DROITE Performance du dashboard admin : fonction `detectInactiveCoaches()` dans `@aureak/api-client/src/admin/coaches.ts` + widget inline count + liste noms + états vide/skeleton/erreur — FR42)
+
+**Dépendances** : aucune migration DB requise. Tables existantes : `profiles`, `session_coaches`, `sessions`, `evaluations`.
+
+---
+
+### Epic 80 — UX Stages Date Picker (avril 2026)
+
+Remplacement des TextInput texte libre format AAAA-MM-JJ par des `<input type="date">` natifs HTML sur les formulaires stages. Aucune migration DB — UI uniquement.
+
+- [ ] 80-1 : ux-stages-dates-input-natif (P1 UX — `stages/new.tsx` : 2 champs dates début/fin → `input type="date"` natif + `stages/[stageId]/page.tsx` : champ "Ajouter une journée" → `input type="date"` natif — pattern existant : `coach/sessions/new/index.tsx`)
+
+**Dépendances** : aucune migration DB requise. 2 fichiers UI modifiés.
+
+---
 
 ### Epic 49 — Bugfix batch avril 2026 #2
 
@@ -588,7 +672,7 @@ Petites améliorations à fort impact, indépendantes les unes des autres. Aucun
 - [ ] 69-7 : feature-export-csv-joueurs (P2 — bouton export CSV dans /children, génération côté client, respect filtres)
 - [ ] 69-8 : feature-fiche-coach-onglet-activite (P2 — onglet Activité dans fiche coach : stats + 10 dernières séances)
 - [ ] 69-9 : bug-listattendancesbychild-session-date (P1 BUG — colonne session_date → scheduled_at, heatmap présences fiche joueur vide)
-- [ ] 69-10 : bug-checkacademymilestones-406 (P1 BUG — .single() → .maybeSingle() sur profiles, erreur 406 dashboard)
+- [x] 69-10 : bug-checkacademymilestones-406 (P1 BUG — .single() → .maybeSingle() sur profiles, erreur 406 dashboard) ✓ done
 
 **Dépendances** :
 - 69-6 : indépendant (modifie seances/page.tsx uniquement)
@@ -619,8 +703,38 @@ Aucune migration DB — UI uniquement. Fichier cible : `_layout.tsx`.
 Refonte visuelle de la page Activités/Séances pour correspondre précisément à la référence `Activites seances-redesign.png` : titre, bouton CTA, filtres, stat cards. Aucune migration — UI uniquement.
 
 - [ ] 74-1 : design-activites-seances-alignement-reference-visuelle (P2 — titre 28px, bouton CTA dark, #f9e28c/#6e5d14/#FFFFFF → tokens goldDark/goldPale/text.primary, "Global"→"Toutes", violet hors charte → warning — 5 fichiers) `ready-for-dev`
+- [ ] 74-2 : bug-statcards-badges-fictifs (P1 BUG — badge "+2.4%" trend calculé réel ou masqué si données insuffisantes, badge "Record" conditionnel cancelled>0 && record mensuel — StatCards.tsx uniquement) `ready-for-dev`
+- [ ] 74-3 : bug-filtresscope-loading-boxshadow (P1 BUG — états de chargement "Chargement…" dans les 3 dropdowns Implantation/Groupe/Joueur + boxShadow rgba hardcodé → shadows.lg — FiltresScope.tsx) `ready-for-dev`
+- [ ] 74-4 : design-dashboard-gold-concatenations-tokens (P2 — `colors.accent.gold + '1f'/'40'/'14'` → `colors.border.goldBg`/`colors.border.gold` aux lignes 263/264/974 de dashboard/page.tsx — 1 fichier) `ready-for-dev`
 
 **Dépendances** : aucune — indépendant de tous les autres epics
+
+---
+
+## Epic 75 — Bugs Patrol 2026-04-08
+
+> Bugs détectés et corrigés lors de la patrouille du 2026-04-08. Stories créées a posteriori pour traçabilité BMAD.
+
+- [x] 75-1 : bug-completion-status-fermee-valeur-inexistante (HIGH BUG — `completionStatus` utilisait `'fermée'` inexistant en DB → évals 0% dans StatCards — `attendances.ts:94` uniquement) `done`
+- [ ] 75-2 : bug-try-finally-contact-coach (HIGH BUG — `setSending` et `setLoadingHistory` sans try/finally dans `contact.tsx` — UI figée si appel API échoue — 1 fichier) `ready-for-dev`
+- [ ] 75-3 : ux-conversion-essai-membre-modale-confirmation (UX P1 — conversion silencieuse sur `groups[0]` → modale confirmation + sélecteur groupe obligatoire — `presences/page.tsx` uniquement) `ready-for-dev`
+- [x] 75-4 : bug-evaluations-police-violet-donnees-fictives (DESIGN BLOCKER — `evaluations/page.tsx` : 4× Manrope→Montserrat, `#7C3AED` violet→token, `+2.4%`/`+15%` fictifs→dynamique ou `'—'`) `done`
+- [ ] 75-5 : bug-presences-heatmap-tokens-metrique-fictive (DESIGN BLOCKER — `activites/presences/page.tsx` : getCellStyle 5 hex hardcodés #22c55e/#eab308/#f97316/#ef4444/#fff → colors.status.present/attention/warning/absent/text.primary ; tendance masquée si totalSessions < 4) `ready-for-dev`
+- [x] 75-6 : quiz-qcm-enfant-post-seance (FEATURE — UI seulement, backend 100% prêt — route `/parent/children/[childId]/quiz` — 5 questions QCM tirées des thèmes de la dernière séance, stepper mobile-friendly, résultats sauvegardés via `createLearningAttempt`/`submitAnswer`) `done`
+- [ ] 75-7 : quiz-qcm-parent-board-session-explicite (FEATURE — route `/parent/children/[childId]/quiz/[sessionId]` — quiz QCM depuis board parent avec session explicite, `getSessionQuiz(sessionId)`, badge trophée si ≥80%, dépend 75-6 done — FR22/FR23) `ready-for-dev`
+
+**Dépendances** : aucune — toutes les tables et RPCs existent (`quiz_questions`, `session_themes`, `learning_attempts`)
+
+---
+
+## Epic 75 (Académie Hub) — Nav globale + Refonte Coachs
+
+> Epic distinct de "Epic 75 — Bugs Patrol" ci-dessus. Utilise les mêmes numéros d'epic dans sprint-status.yaml (section Académie Hub).
+
+- [ ] 75-2 (Académie Hub) : academie-hub-sidebar-coachs (**P1 FEATURE** — sidebar refactor : supprime Joueurs/Coachs/Groupes/Implantations/Clubs → 1 seul item "Académie" ; hub `/academie/*` avec AcademieNavBar 6 onglets ; page `/academie/coachs` redesignée : 4 stat cards + filtres chips + tableau STATUT picto/PHOTO/NOM/PRÉNOM/IMPLANTATION/GRADE/DIPLÔMÉ/FORMATION) `ready-for-dev`
+- [ ] 75-1 (Académie Hub) : academie-hub-refonte-page-joueurs (**P1 FEATURE** — redesign `/academie/joueurs` : 4 métriques + toggle AUREAK/PROSPECT + tableau redesigné — dépend 75-2 done) `ready-for-dev`
+
+**Dépendances** : 75-2 avant 75-1 (75-2 crée la structure hub + AcademieNavBar que 75-1 utilise). Aucune migration DB.
 
 ---
 

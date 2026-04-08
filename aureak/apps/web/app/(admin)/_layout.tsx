@@ -26,8 +26,6 @@ import {
   UsersIcon,
   UserCheckIcon,
   ShieldIcon,
-  GridIcon,
-  MapPinIcon,
   TargetIcon,
   BarChartIcon,
   PieChartIcon,
@@ -76,9 +74,8 @@ const HoverablePressable = Pressable as React.ComponentType<HoverablePressablePr
 const ITEM_SHORTCUTS: Record<string, string> = {
   '/dashboard'                 : 'G D',
   '/activites'                 : 'G I',   // actIvités hub unifié
-  '/children'                  : 'G J',
-  '/clubs'                     : 'G C',
-  '/methodologie/seances'      : 'G A',   // Académie
+  '/academie'                  : 'G J',   // académie hub
+  '/methodologie/seances'      : 'G A',   // méthode
   '/evenements'                : 'G V',   // Évènements
   '/analytics'                 : 'G R',   // peRformance
   '/developpement/prospection' : 'G X',
@@ -114,11 +111,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Académie',
     items: [
-      { label: 'Joueurs',       href: '/children',      Icon: UsersIcon },
-      { label: 'Coachs',        href: '/coaches',       Icon: UserCheckIcon },
-      { label: 'Groupes',       href: '/groups',        Icon: GridIcon },
-      { label: 'Implantations', href: '/implantations', Icon: MapPinIcon },
-      { label: 'Clubs',         href: '/clubs',         Icon: ShieldIcon },
+      { label: 'Académie', href: '/academie', Icon: UsersIcon },
     ],
   },
   {
