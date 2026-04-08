@@ -1,0 +1,34 @@
+PASS|0|0|types:
+
+---
+Gate 2 — story-78-1 — Bug evalMap key scheduled_at vs session_id
+Date : 2026-04-08
+
+## Playwright
+Playwright skipped — app non démarrée (APP_STATUS=000)
+
+## Design Critic (statique)
+Type audit : polish (catégorie BUG, aucune modification UI)
+Aucun PNG de référence requis.
+Anti-patterns : aucun détecté.
+Principes design : N/A (correction logique pure, zéro changement visuel).
+Palette : deux rgba() pré-existants dans SIGNAL_BG (lignes 43-44) — non introduits par cette story, hors scope AC5.
+
+## UX Auditor (statique)
+- Skeleton présent (ligne 131) ✅
+- Try/finally sur setLoading (lignes 159-175) ✅
+- Console guard présent (ligne 170, NODE_ENV) ✅
+- Aucun composant UI recréé localement ✅
+- Route dynamique [childId]/index.tsx existante ✅
+- Aucune couleur hardcodée ajoutée ✅
+
+## Bug Hunter (statique)
+Corrections vérifiées :
+- T1.1 : ligne 290 → evalMap.get(att.sessions?.id ?? '') ✅ (clé UUID correcte)
+- T1.2 : type AttendanceRow.sessions expose id: string (ligne 13) ✅
+- evalMap indexé par e.session_id (ligne 186) ✅
+BLOCKERs 5 points : aucun violé ✅
+B-BUG-C8 du summary.md : RÉSOLU par cette story.
+
+## Verdict
+PASS — zéro correction, zéro blocker.

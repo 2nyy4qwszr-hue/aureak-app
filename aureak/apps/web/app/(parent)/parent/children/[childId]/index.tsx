@@ -10,7 +10,7 @@ import type { EvaluationSignal, ChildBadgeHistory } from '@aureak/types'
 type AttendanceRow = {
   id       : string
   status   : string
-  sessions?: { scheduled_at: string; groups?: { name: string } | null } | null
+  sessions?: { id: string; scheduled_at: string; groups?: { name: string } | null } | null
 }
 type EvalRow = {
   session_id  : string
@@ -287,7 +287,7 @@ export default function ChildFichePage() {
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {attendances.slice(0, 10).map((att, idx) => {
-              const ev      = evalMap.get(att.sessions?.scheduled_at ?? '')
+              const ev      = evalMap.get(att.sessions?.id ?? '')
               const session = att.sessions
               const color   = STATUS_COLOR[att.status] ?? colors.text.muted
               return (
