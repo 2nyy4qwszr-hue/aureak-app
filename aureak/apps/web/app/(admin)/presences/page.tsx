@@ -513,6 +513,9 @@ export default function DashboardPresencesPage() {
   const [loading,       setLoading]       = useState(true)
   const [detailSessionId, setDetailSessionId] = useState<string | null>(null)
   const [converting,    setConverting]    = useState<string | null>(null)
+  const [pendingConversion, setPendingConversion] = useState<TrialConversionSuggestion | null>(null)
+  const [modalGroupId,  setModalGroupId]  = useState('')
+  const [modalError,    setModalError]    = useState<string | null>(null)
 
   const [timeView,       setTimeView]       = useState<TimeView>('week')
   const [implantationId, setImplantationId] = useState('')
@@ -571,13 +574,29 @@ export default function DashboardPresencesPage() {
   const groupMap        = useMemo(() => new Map(groups.map(g => [g.id, g.name])), [groups])
   const implantationMap = useMemo(() => new Map(implantations.map(i => [i.id, i.name])), [implantations])
 
-  const handleConvert = async (s: TrialConversionSuggestion) => {
-    const groupChoice = groups[0]?.id
-    if (!groupChoice || !tenantId) return
-    setConverting(s.childId)
+  // Ouvre la modale — pas d'appel API
+  const handleOpenConvertModal = (s: TrialConversionSuggestion) => {
+    setPendingConversion(s)
+    setModalGroupId('')
+    setModalError(null)
+  }
+
+  // Exécuté depuis la modale — après confirmation explicite
+  const handleConfirmConvert = async () => {
+    if (!pendingConversion || !modalGroupId || !tenantId) return
+    setConverting(pendingConversion.childId)
     try {
-      await convertTrialToMember({ tenantId, childId: s.childId, groupId: groupChoice })
-      setSuggestions(prev => prev.filter(x => x.childId !== s.childId))
+      const { error } = await convertTrialToMember({
+        tenantId,
+        childId : pendingConversion.childId,
+        groupId : modalGroupId,
+      })
+      if (error) {
+        setModalError('Erreur lors de la conversion. Réessayez.')
+        return
+      }
+      setSuggestions(prev => prev.filter(x => x.childId !== pendingConversion.childId))
+      setPendingConversion(null)
     } finally {
       setConverting(null)
     }
@@ -658,7 +677,7 @@ export default function DashboardPresencesPage() {
                   {s.childName} — {s.trialCount} séances d&apos;essai
                 </span>
                 <button
-                  onClick={() => handleConvert(s)}
+                  onClick={() => handleOpenConvertModal(s)}
                   disabled={converting === s.childId}
                   style={{
                     padding      : '5px 12px',
@@ -766,6 +785,103 @@ export default function DashboardPresencesPage() {
           adminId={user?.id ?? ''}
           onClose={() => setDetailSessionId(null)}
         />
+      )}
+
+      {/* ── Modale confirmation conversion essai → membre ── */}
+      {pendingConversion && (
+        <div style={{
+          position       : 'fixed',
+          inset          : 0,
+          background     : 'rgba(0,0,0,0.45)',
+          display        : 'flex',
+          alignItems     : 'center',
+          justifyContent : 'center',
+          zIndex         : 1000,
+        }}>
+          <div style={{
+            background   : colors.light.surface,
+            borderRadius : radius.card,
+            padding      : space.xl,
+            width        : 380,
+            maxWidth     : '90vw',
+            // @ts-ignore — web only
+            boxShadow    : shadows.lg,
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: colors.text.dark, marginBottom: space.sm }}>
+              Convertir en membre
+            </div>
+            <div style={{ fontSize: 13, color: colors.text.muted, marginBottom: space.md }}>
+              {pendingConversion.childName} — {pendingConversion.trialCount} séance{pendingConversion.trialCount !== 1 ? 's' : ''} d&apos;essai
+            </div>
+
+            <label style={{ fontSize: 12, fontWeight: 600, color: colors.text.muted, display: 'block', marginBottom: space.xs }}>
+              Groupe de destination *
+            </label>
+            <select
+              value={modalGroupId}
+              onChange={e => { setModalGroupId(e.target.value); setModalError(null) }}
+              style={{
+                width        : '100%',
+                padding      : '8px 10px',
+                borderRadius : radius.xs,
+                border       : `1px solid ${colors.border.light}`,
+                background   : colors.light.primary,
+                fontSize     : 13,
+                color        : colors.text.dark,
+                marginBottom : space.sm,
+              }}
+            >
+              <option value='' disabled>— Choisir un groupe —</option>
+              {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
+
+            {modalError && (
+              <div style={{ fontSize: 12, color: colors.accent.red, marginBottom: space.sm }}>
+                {modalError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: space.sm, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setPendingConversion(null)}
+                style={{
+                  padding      : '7px 16px',
+                  background   : colors.light.hover,
+                  border       : `1px solid ${colors.border.light}`,
+                  borderRadius : radius.xs,
+                  fontSize     : 13,
+                  fontWeight   : 600,
+                  color        : colors.text.muted,
+                  cursor       : 'pointer',
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmConvert}
+                disabled={!modalGroupId || converting === pendingConversion.childId}
+                style={{
+                  padding      : '7px 16px',
+                  background   : (!modalGroupId || converting === pendingConversion.childId)
+                    ? colors.light.muted
+                    : colors.accent.gold,
+                  border       : 'none',
+                  borderRadius : radius.xs,
+                  fontSize     : 13,
+                  fontWeight   : 600,
+                  color        : (!modalGroupId || converting === pendingConversion.childId)
+                    ? colors.text.subtle
+                    : colors.text.dark,
+                  cursor       : (!modalGroupId || converting === pendingConversion.childId)
+                    ? 'not-allowed'
+                    : 'pointer',
+                }}
+              >
+                {converting === pendingConversion.childId ? '…' : 'Confirmer'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
