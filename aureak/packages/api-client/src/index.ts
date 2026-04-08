@@ -495,11 +495,21 @@ export {
   removeSituationFromModule,
   listMethodologyExercises,
   listMethodologyProgrammes,
+  createMethodologyProgramme,
+  getMethodologyProgramme,
+  updateMethodologyProgramme,
+  softDeleteMethodologyProgramme,
+  addProgrammeSession,
+  removeProgrammeSession,
+  updateProgrammeSessionDate,
+  updateProgrammeSessionPosition,
+  duplicateMethodologyProgramme,
 } from './methodology'
 export type {
   CreateMethodologyThemeParams,
   CreateMethodologySituationParams,
   CreateMethodologySessionParams,
+  CreateMethodologyProgrammeParams,
   MethodologyModule,
 } from './methodology'
 

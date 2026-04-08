@@ -4,7 +4,7 @@
 import { supabase } from './supabase'
 import type {
   MethodologyTheme, MethodologySituation, MethodologySession, MethodologyExercise,
-  MethodologyProgramme,
+  MethodologyProgramme, MethodologyProgrammeWithSessions, MethodologyProgrammeSessionWithEntrainement,
   MethodologyMethod, MethodologyContextType, MethodologyLevel,
   DiagramData, MethodologyModuleType, MethodologySessionModule,
 } from '@aureak/types'
@@ -764,4 +764,233 @@ export async function listMethodologyProgrammes(
     return []
   }
   return (data ?? []).map(r => mapProgramme(r as Record<string, unknown>))
+}
+
+// ── Story 34.5 — Programmes : CRUD + sessions liées ──────────────────────────
+
+export type CreateMethodologyProgrammeParams = {
+  tenantId     : string
+  method       : string
+  contextType  : string
+  title        : string
+  seasonId?    : string | null
+  totalSessions: number
+  description? : string | null
+}
+
+function mapProgrammeSession(row: Record<string, unknown>): MethodologyProgrammeSessionWithEntrainement {
+  const entrainement = row.methodology_sessions as Record<string, unknown>
+  return {
+    id            : row.id             as string,
+    programmeId   : row.programme_id   as string,
+    sessionId     : row.session_id     as string,
+    scheduledDate : (row.scheduled_date as string | null) ?? null,
+    position      : row.position       as number,
+    createdAt     : row.created_at     as string,
+    entrainement  : {
+      id    : entrainement.id    as string,
+      title : entrainement.title as string,
+      method: entrainement.method as MethodologyMethod,
+    },
+  }
+}
+
+export async function createMethodologyProgramme(
+  params: CreateMethodologyProgrammeParams,
+): Promise<{ data: MethodologyProgramme | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('methodology_programmes')
+    .insert({
+      tenant_id     : params.tenantId,
+      method        : params.method,
+      context_type  : params.contextType,
+      title         : params.title,
+      season_id     : params.seasonId     ?? null,
+      total_sessions: params.totalSessions,
+      description   : params.description  ?? null,
+    })
+    .select(`
+      *,
+      academy_seasons ( label ),
+      methodology_programme_sessions ( id, scheduled_date )
+    `)
+    .single()
+
+  if (error || !data) {
+    if (process.env.NODE_ENV !== 'production') console.error('[createMethodologyProgramme] error:', error)
+    return { data: null, error }
+  }
+  return { data: mapProgramme(data as Record<string, unknown>), error: null }
+}
+
+export async function getMethodologyProgramme(
+  id: string,
+): Promise<{ data: MethodologyProgrammeWithSessions | null; error: unknown }> {
+  const { data, error } = await supabase
+    .from('methodology_programmes')
+    .select(`
+      *,
+      academy_seasons ( label ),
+      methodology_programme_sessions (
+        id, programme_id, session_id, scheduled_date, position, created_at,
+        methodology_sessions ( id, title, method )
+      )
+    `)
+    .eq('id', id)
+    .is('deleted_at', null)
+    .single()
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[getMethodologyProgramme] error:', error)
+    return { data: null, error }
+  }
+  if (!data) return { data: null, error: null }
+
+  const row = data as Record<string, unknown>
+  const baseProgramme = mapProgramme(row)
+
+  const rawSessions = (row.methodology_programme_sessions as Array<Record<string, unknown>>) ?? []
+  const sessions = rawSessions
+    .map(s => mapProgrammeSession(s))
+    .sort((a, b) => a.position - b.position)
+
+  return { data: { ...baseProgramme, sessions }, error: null }
+}
+
+export async function updateMethodologyProgramme(
+  id   : string,
+  patch: Partial<Pick<CreateMethodologyProgrammeParams, 'title' | 'seasonId' | 'totalSessions' | 'description'>>,
+): Promise<{ error: unknown }> {
+  const u: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (patch.title         !== undefined) u.title          = patch.title
+  if (patch.seasonId      !== undefined) u.season_id      = patch.seasonId
+  if (patch.totalSessions !== undefined) u.total_sessions = patch.totalSessions
+  if (patch.description   !== undefined) u.description    = patch.description
+
+  const { error } = await supabase.from('methodology_programmes').update(u).eq('id', id)
+  if (error && process.env.NODE_ENV !== 'production') console.error('[updateMethodologyProgramme] error:', error)
+  return { error: error ?? null }
+}
+
+export async function softDeleteMethodologyProgramme(id: string): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_programmes')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error && process.env.NODE_ENV !== 'production') console.error('[softDeleteMethodologyProgramme] error:', error)
+  return { error: error ?? null }
+}
+
+export async function addProgrammeSession(
+  programmeId: string,
+  sessionId  : string,
+): Promise<{ error: unknown }> {
+  // Calcule position = max actuel + 1
+  const { data: existing } = await supabase
+    .from('methodology_programme_sessions')
+    .select('position')
+    .eq('programme_id', programmeId)
+    .order('position', { ascending: false })
+    .limit(1)
+
+  const maxPos = Array.isArray(existing) && existing.length > 0
+    ? (existing[0] as Record<string, unknown>).position as number
+    : 0
+  const newPos = maxPos + 1
+
+  const { error } = await supabase
+    .from('methodology_programme_sessions')
+    .insert({ programme_id: programmeId, session_id: sessionId, position: newPos })
+
+  if (error && process.env.NODE_ENV !== 'production') console.error('[addProgrammeSession] error:', error)
+  return { error: error ?? null }
+}
+
+export async function removeProgrammeSession(
+  programmeId: string,
+  sessionId  : string,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_programme_sessions')
+    .delete()
+    .eq('programme_id', programmeId)
+    .eq('session_id', sessionId)
+
+  if (error && process.env.NODE_ENV !== 'production') console.error('[removeProgrammeSession] error:', error)
+  return { error: error ?? null }
+}
+
+export async function updateProgrammeSessionDate(
+  programmeId  : string,
+  sessionId    : string,
+  scheduledDate: string | null,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_programme_sessions')
+    .update({ scheduled_date: scheduledDate })
+    .eq('programme_id', programmeId)
+    .eq('session_id', sessionId)
+
+  if (error && process.env.NODE_ENV !== 'production') console.error('[updateProgrammeSessionDate] error:', error)
+  return { error: error ?? null }
+}
+
+export async function updateProgrammeSessionPosition(
+  programmeId: string,
+  sessionId  : string,
+  position   : number,
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('methodology_programme_sessions')
+    .update({ position })
+    .eq('programme_id', programmeId)
+    .eq('session_id', sessionId)
+
+  if (error && process.env.NODE_ENV !== 'production') console.error('[updateProgrammeSessionPosition] error:', error)
+  return { error: error ?? null }
+}
+
+export async function duplicateMethodologyProgramme(
+  id: string,
+): Promise<{ data: MethodologyProgramme | null; error: unknown }> {
+  // 1. Récupérer le programme source avec ses sessions
+  const { data: source, error: fetchErr } = await getMethodologyProgramme(id)
+  if (fetchErr || !source) {
+    if (process.env.NODE_ENV !== 'production') console.error('[duplicateMethodologyProgramme] fetch error:', fetchErr)
+    return { data: null, error: fetchErr ?? new Error('Programme introuvable') }
+  }
+
+  // 2. Créer le duplicata (saison = null, titre = "Copie de …")
+  const { data: newProg, error: createErr } = await createMethodologyProgramme({
+    tenantId     : source.tenantId,
+    method       : source.method,
+    contextType  : source.contextType,
+    title        : `Copie de ${source.title}`,
+    seasonId     : null,
+    totalSessions: source.totalSessions,
+    description  : source.description,
+  })
+
+  if (createErr || !newProg) {
+    if (process.env.NODE_ENV !== 'production') console.error('[duplicateMethodologyProgramme] create error:', createErr)
+    return { data: null, error: createErr }
+  }
+
+  // 3. Copier toutes les liaisons sans les dates
+  if (source.sessions.length > 0) {
+    const rows = source.sessions.map(s => ({
+      programme_id  : newProg.id,
+      session_id    : s.sessionId,
+      position      : s.position,
+      scheduled_date: null,
+    }))
+    const { error: insertErr } = await supabase
+      .from('methodology_programme_sessions')
+      .insert(rows)
+
+    if (insertErr && process.env.NODE_ENV !== 'production')
+      console.error('[duplicateMethodologyProgramme] insert sessions error:', insertErr)
+  }
+
+  return { data: newProg, error: null }
 }

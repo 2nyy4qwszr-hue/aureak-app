@@ -2336,3 +2336,23 @@ export type MethodologyProgrammeSession = {
   createdAt     : string
 }
 
+/** MethodologyProgrammeSessionWithEntrainement — session join avec l'entraînement lié (Story 34.5) */
+export type MethodologyProgrammeSessionWithEntrainement = {
+  id            : string
+  programmeId   : string
+  sessionId     : string
+  scheduledDate : string | null
+  position      : number
+  createdAt     : string
+  entrainement  : {
+    id    : string
+    title : string
+    method: MethodologyMethod
+  }
+}
+
+/** MethodologyProgrammeWithSessions — programme + sessions détail (Story 34.5) */
+export type MethodologyProgrammeWithSessions = MethodologyProgramme & {
+  sessions: MethodologyProgrammeSessionWithEntrainement[]
+}
+
