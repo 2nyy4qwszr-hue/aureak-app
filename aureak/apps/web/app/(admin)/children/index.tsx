@@ -5,7 +5,7 @@
 // UI v2 : infos gauche · avatar droite · filtres avancés repliables
 // Story 52-5 : filtres tier pills colorées
 // Story 52-12 : vue master-detail split-screen desktop ≥ 1024px
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
@@ -975,6 +975,7 @@ export default function JoueursPage() {
 
   const [searchInput,  setSearchInput]  = useState(params.search ?? '')
   const [search,       setSearch]       = useState(params.search ?? '')
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [acadStatus,   setAcadStatus]   = usePersistedFilters<AcadStatusFilter>(
     'children-filter-acadStatus',
     (params.status as AcadStatusFilter | undefined) ?? 'all',
@@ -1080,7 +1081,13 @@ export default function JoueursPage() {
   // Reset page quand viewMode change (PAGE_SIZE change → pagination différente)
   useEffect(() => { setPage(0) }, [viewMode])
 
-  const handleSearch = () => setSearch(searchInput.trim())
+  const handleSearchInput = (text: string) => {
+    setSearchInput(text)
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => { setSearch(text.trim()) }, 300)
+  }
+
+  useEffect(() => () => { if (debounceTimer.current) clearTimeout(debounceTimer.current) }, [])
 
   const handleResetFilters = () => {
     setAcadStatus('all')
@@ -1373,8 +1380,7 @@ export default function JoueursPage() {
         <TextInput
           style={s.searchInput}
           value={searchInput}
-          onChangeText={setSearchInput}
-          onSubmitEditing={handleSearch}
+          onChangeText={handleSearchInput}
           placeholder="Rechercher par nom…"
           placeholderTextColor={colors.text.muted}
           returnKeyType="search"
@@ -1384,13 +1390,8 @@ export default function JoueursPage() {
           spellCheck={false}
           inputMode="search"
         />
-        <Pressable style={s.searchBtn} onPress={handleSearch}>
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
-            Chercher
-          </AureakText>
-        </Pressable>
         {search !== '' && (
-          <Pressable style={s.clearBtn} onPress={() => { setSearch(''); setSearchInput('') }}>
+          <Pressable style={s.clearBtn} onPress={() => { if (debounceTimer.current) clearTimeout(debounceTimer.current); setSearch(''); setSearchInput('') }}>
             <AureakText variant="caption" style={{ color: colors.text.muted }}>✕</AureakText>
           </Pressable>
         )}
@@ -1697,14 +1698,6 @@ const s = StyleSheet.create({
     paddingVertical  : 9,
     color            : colors.text.dark,
     fontSize         : 13,
-  },
-  searchBtn: {
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    paddingHorizontal: space.md,
-    paddingVertical  : 9,
-    borderRadius     : 8,
   },
   clearBtn: {
     width          : 34,

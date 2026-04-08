@@ -41,9 +41,9 @@ new_queue:
   - story_id: story-77-2
     title: "UX — Recherche joueurs live debounce 300ms"
     priority: P2
-    status: pending
-    gate1: ~
-    gate2: ~
+    status: done
+    gate1: PASS
+    gate2: PASS
 
   - story_id: story-80-1
     title: "UX — Stages dates input natif HTML type=date"
