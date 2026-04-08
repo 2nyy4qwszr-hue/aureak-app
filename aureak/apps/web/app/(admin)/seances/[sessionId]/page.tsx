@@ -28,8 +28,10 @@ import {
   // Story 61.5 — offline queue
   enqueueAction,
   useOfflineCache,
+  // Story 8.6 — Vue coach résultats quiz
+  listGroupQuizResults,
 } from '@aureak/api-client'
-import type { MethodologySituation } from '@aureak/types'
+import type { MethodologySituation, GroupQuizResult } from '@aureak/types'
 import { MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
 import { SessionTimeline } from '../_components/SessionTimeline'
 import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
@@ -1109,6 +1111,10 @@ export default function SessionDetailPage() {
   // Story 65-9 — Unsaved attendance guard
   const [hasUnsavedAttendance, setHasUnsavedAttendance] = useState(false)
 
+  // Story 8.6 — Résultats quiz groupe
+  const [quizResults,  setQuizResults]  = useState<GroupQuizResult[]>([])
+  const [loadingQuiz,  setLoadingQuiz]  = useState(false)
+
   // Cancel dialog
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -1313,6 +1319,18 @@ export default function SessionDetailPage() {
   }
 
   useEffect(() => { load() }, [sessionId])
+
+  // Story 8.6 — Charger les résultats quiz du groupe pour cette séance
+  useEffect(() => {
+    if (!sessionId || !session?.groupId) return
+    setLoadingQuiz(true)
+    listGroupQuizResults(sessionId)
+      .then(({ data }) => { setQuizResults(data) })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[SessionDetail] listGroupQuizResults error:', err)
+      })
+      .finally(() => { setLoadingQuiz(false) })
+  }, [sessionId, session?.groupId])
 
   // Story 58-8 — Charger les modules de phase quand la séance a un methodologySessionId
   useEffect(() => {
@@ -2428,6 +2446,78 @@ export default function SessionDetailPage() {
           </>
         )}
       </View>
+
+      {/* Résultats Quiz — Story 8.6 — FR24 */}
+      {session.groupId && (
+        <View style={styles.card}>
+          <AureakText variant="label">Résultats Quiz</AureakText>
+
+          {loadingQuiz ? (
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+              Chargement…
+            </AureakText>
+          ) : quizResults.length === 0 ? (
+            <AureakText variant="caption" style={{ color: colors.text.muted }}>
+              Aucun quiz complété pour cette séance
+            </AureakText>
+          ) : (
+            <>
+              {/* Tableau joueurs */}
+              {quizResults.map((r, idx) => (
+                <View
+                  key={`${r.childId}-${r.themeId}`}
+                  style={{
+                    flexDirection    : 'row',
+                    alignItems       : 'center',
+                    justifyContent   : 'space-between',
+                    paddingVertical  : space.xs,
+                    borderBottomWidth: idx < quizResults.length - 1 ? 1 : 0,
+                    borderBottomColor: colors.border.light,
+                  }}
+                >
+                  <AureakText variant="body" style={{ flex: 2 }}>{r.displayName}</AureakText>
+                  <AureakText variant="caption" style={{ flex: 2, color: colors.text.muted }}>{r.themeName}</AureakText>
+                  <AureakText variant="caption" style={{ flex: 1, textAlign: 'center' as never }}>
+                    {r.correctCount}/{r.questionsAnswered}
+                  </AureakText>
+                  <AureakText variant="caption" style={{ flex: 1, textAlign: 'center' as never }}>
+                    {r.masteryPercent != null ? `${r.masteryPercent}%` : '—'}
+                  </AureakText>
+                  <View style={{ flex: 1, alignItems: 'flex-end' as never }}>
+                    <Badge
+                      variant={r.masteryStatus === 'acquired' ? 'present' : 'attention'}
+                      label={r.masteryStatus === 'acquired' ? 'Acquis' : 'En cours'}
+                    />
+                  </View>
+                </View>
+              ))}
+
+              {/* Maîtrise par thème */}
+              {(() => {
+                const themeMap: Record<string, { name: string; total: number; acquired: number }> = {}
+                for (const r of quizResults) {
+                  if (!themeMap[r.themeId]) themeMap[r.themeId] = { name: r.themeName, total: 0, acquired: 0 }
+                  themeMap[r.themeId].total++
+                  if (r.masteryStatus === 'acquired') themeMap[r.themeId].acquired++
+                }
+                return (
+                  <View style={{ marginTop: space.sm, borderTopWidth: 1, borderTopColor: colors.border.divider, paddingTop: space.sm }}>
+                    <AureakText variant="label" style={{ marginBottom: space.xs }}>Maîtrise par thème</AureakText>
+                    {Object.values(themeMap).map(t => (
+                      <View key={t.name} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                        <AureakText variant="caption">{t.name}</AureakText>
+                        <AureakText variant="caption" style={{ color: colors.text.muted }}>
+                          {t.acquired}/{t.total} ({Math.round((t.acquired / t.total) * 100)}%)
+                        </AureakText>
+                      </View>
+                    ))}
+                  </View>
+                )
+              })()}
+            </>
+          )}
+        </View>
+      )}
 
       {/* Actions rapides (Story 47.3 + 53-5) — accès direct présences & évaluations & duplication */}
       <View style={styles.card}>

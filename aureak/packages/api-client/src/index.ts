@@ -271,8 +271,9 @@ export { getChildProfile, getAttendanceSource } from './parent/childProfile'
 
 export {
   createLearningAttempt, submitAnswer, stopAttempt, getPlayerProgress, getSessionLearningReport,
+  listGroupQuizResults,
 } from './learning/learning'
-export type { CreateAttemptResult, SubmitAnswerResult } from './learning/learning'
+export type { CreateAttemptResult, SubmitAnswerResult, GroupQuizResult } from './learning/learning'
 
 export {
   getImplantationStats, getComparisonReport, listAnomalies, resolveAnomaly,

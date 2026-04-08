@@ -1067,6 +1067,18 @@ export type LearningAttempt = {
   createdAt         : string
 }
 
+/** GroupQuizResult — résultat quiz d'un joueur pour une séance donnée (vue coach) — Story 8.6 */
+export type GroupQuizResult = {
+  childId           : string
+  displayName       : string
+  themeId           : string
+  themeName         : string
+  masteryPercent    : number | null
+  masteryStatus     : 'acquired' | 'not_acquired' | null
+  correctCount      : number
+  questionsAnswered : number
+}
+
 /** LearningAnswer — réponse individuelle à une question de quiz */
 export type LearningAnswer = {
   id               : string

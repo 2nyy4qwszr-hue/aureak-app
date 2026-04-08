@@ -1,6 +1,8 @@
 // Story 8.2 — API learning : quiz adaptatif, tentatives, maîtrise
 import { supabase } from '../supabase'
-import type { PlayerProgress } from '@aureak/types'
+import type { PlayerProgress, GroupQuizResult } from '@aureak/types'
+
+export type { GroupQuizResult }
 
 export type CreateAttemptResult = {
   attempt_id: string
@@ -95,4 +97,58 @@ export async function getSessionLearningReport(sessionId: string) {
   }
 
   return { attempts, themeStats, error }
+}
+
+// Story 8.6 — Vue coach : résultats quiz groupe pour une séance
+export async function listGroupQuizResults(
+  sessionId: string
+): Promise<{ data: GroupQuizResult[]; error: unknown }> {
+  const { data, error } = await supabase
+    .from('learning_attempts')
+    .select(`
+      child_id,
+      theme_id,
+      mastery_percent,
+      mastery_status,
+      correct_count,
+      questions_answered,
+      themes(name),
+      profiles!child_id(display_name)
+    `)
+    .eq('session_id', sessionId)
+    .not('ended_at', 'is', null)
+
+  if (error || !data) return { data: [], error }
+
+  type RawRow = {
+    child_id          : string
+    theme_id          : string
+    mastery_percent   : number | null
+    mastery_status    : string | null
+    correct_count     : number
+    questions_answered: number
+    themes            : { name: string } | { name: string }[] | null
+    profiles          : { display_name: string } | { display_name: string }[] | null
+  }
+
+  const results: GroupQuizResult[] = (data as unknown as RawRow[]).map(row => {
+    const themeName = Array.isArray(row.themes)
+      ? (row.themes[0]?.name ?? '')
+      : ((row.themes as { name?: string } | null)?.name ?? '')
+    const displayName = Array.isArray(row.profiles)
+      ? (row.profiles[0]?.display_name ?? row.child_id.slice(0, 8))
+      : ((row.profiles as { display_name?: string } | null)?.display_name ?? row.child_id.slice(0, 8))
+    return {
+      childId          : row.child_id,
+      displayName,
+      themeId          : row.theme_id,
+      themeName,
+      masteryPercent   : row.mastery_percent,
+      masteryStatus    : row.mastery_status as 'acquired' | 'not_acquired' | null,
+      correctCount     : row.correct_count,
+      questionsAnswered: row.questions_answered,
+    }
+  })
+
+  return { data: results, error: null }
 }
