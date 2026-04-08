@@ -136,10 +136,10 @@ function NoteCircle({ score, variant }: { score: number; variant: 'K' | 'C' }) {
       backgroundColor: 'transparent',
     }}>
       <AureakText style={{
-        fontFamily: 'Montserrat',
+        fontFamily: fonts.body,
         fontSize  : 14,
         fontWeight: '700',
-        color     : isK ? colors.accent.goldDark : '#1c1c17', // gold dark / text dark
+        color     : isK ? colors.accent.goldDark : colors.text.dark, // gold dark / text dark
         lineHeight: 18,
       }}>
         {Math.round(score)}
@@ -470,7 +470,7 @@ export default function EvaluationsPage() {
                             {row.groupName}
                           </AureakText>
                         ) : (row as AdminEvalRow).topSeance ? (
-                          <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontFamily: 'Montserrat', fontWeight: '700' }}>⭐ Top séance</AureakText>
+                          <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontFamily: fonts.body, fontWeight: '700' }}>⭐ Top séance</AureakText>
                         ) : null}
                       </View>
                     </View>
@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
     color     : colors.text.primary,
   },
   statValue: {
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.body,
     fontSize    : 28,
     fontWeight  : '900',
     color       : colors.text.dark,
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   statLabel: {
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.body,
     fontSize     : 10,
     fontWeight   : '700',
     color        : colors.text.muted,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
     marginBottom : 4,
   },
   statLabelDark: {
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.body,
     fontSize     : 10,
     fontWeight   : '700',
     color        : colors.accent.goldLight,
@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border.divider,
   },
   colHeader: {
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.body,
     fontSize     : 10,
     fontWeight   : '700',
     letterSpacing: 1,
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   playerName: {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     fontSize  : 14,
     fontWeight: '700',
     color     : colors.text.dark,
@@ -789,13 +789,13 @@ const styles = StyleSheet.create({
     flexShrink     : 0,
   },
   avatarText: {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     fontSize  : 14,
     fontWeight: '700',
     color     : colors.text.dark,
   },
   playerSubtitle: {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     fontSize  : 10,
     color     : colors.text.muted,
     marginTop : 1,
