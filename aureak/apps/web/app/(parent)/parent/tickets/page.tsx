@@ -1,6 +1,7 @@
 // Story 7.4 — Tickets support parent (liste + création)
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import { createTicket, listMyTickets } from '@aureak/api-client'
 import type { Ticket, TicketCategory } from '@aureak/api-client'
 import { TICKET_SUBJECT_TEMPLATES } from '@aureak/business-logic'
@@ -54,6 +55,7 @@ const styles = StyleSheet.create({
 })
 
 export default function ParentTicketsPage() {
+  const router = useRouter()
   const [tickets,  setTickets]  = useState<Ticket[]>([])
   const [loading,  setLoading]  = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -198,7 +200,11 @@ export default function ParentTicketsPage() {
       )}
 
       {tickets.map((ticket) => (
-        <View key={ticket.id} style={styles.card}>
+        <Pressable
+          key={ticket.id}
+          onPress={() => router.push(`/parent/tickets/${ticket.id}` as never)}
+          style={styles.card}
+        >
           <View style={{ flexDirection: 'row', gap: space.xs, alignItems: 'center' }}>
             <AureakText variant="caption" style={{ color: colors.text.muted }}>
               {STATUS_LABELS[ticket.status] ?? ticket.status}
@@ -209,7 +215,7 @@ export default function ParentTicketsPage() {
             </AureakText>
           </View>
           <AureakText variant="body" style={{ fontWeight: '600' }}>{ticket.subject}</AureakText>
-        </View>
+        </Pressable>
       ))}
     </ScrollView>
   )

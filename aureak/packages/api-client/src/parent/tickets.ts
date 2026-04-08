@@ -117,9 +117,21 @@ export async function listMyTickets(): Promise<{ data: Ticket[]; error: unknown 
   const { data, error } = await supabase
     .from('tickets')
     .select('*')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   return { data: (data as Ticket[]) ?? [], error }
+}
+
+export async function softDeleteTicket(
+  ticketId: string
+): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('tickets')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', ticketId)
+
+  return { error }
 }
 
 // Admin/Coach : liste tous les tickets du tenant avec filtre optionnel (RLS gère l'accès)

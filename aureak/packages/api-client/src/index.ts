@@ -283,7 +283,7 @@ export type { ImplantationStats, AnomalyEvent } from './admin/supervision'
 
 export {
   createTicket, replyToTicket, updateTicketStatus, listMyTickets, getTicketWithReplies,
-  listAllTickets, getTicketById, listTicketReplies,
+  listAllTickets, getTicketById, listTicketReplies, softDeleteTicket,
 } from './parent/tickets'
 export type { CreateTicketParams, TicketCategory, TicketStatus, Ticket, TicketReply } from './parent/tickets'
 
