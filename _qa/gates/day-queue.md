@@ -139,16 +139,16 @@ new_queue:
   - story_id: story-73-2
     title: "DESIGN — Activités fond beige uniforme (ActivitesHeader + page)"
     priority: P2
-    status: ready-for-dev
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
 
   - story_id: story-73-5
     title: "DESIGN — Méthodologie : méthodes cards pleine largeur uniforme sans bento 72-5"
     priority: P2
-    status: ready-for-dev
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
 
   - story_id: story-73-6
     title: "BUG — Présences tableau fond beige + empty state correct"
@@ -202,9 +202,9 @@ new_queue:
   - story_id: story-72-1
     title: "DESIGN — Dashboard Sessions du jour + Performance Sites + Prochains événements"
     priority: P2
-    status: ready-for-dev
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
 
   - story_id: story-72-2
     title: "DESIGN — Activités Séances stat cards bento Figma"
@@ -216,23 +216,23 @@ new_queue:
   - story_id: story-72-3
     title: "DESIGN — Activités Présences stat cards labels + heatmap seuils Figma"
     priority: P2
-    status: ready-for-dev
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
 
   - story_id: story-72-4
     title: "DESIGN — Activités Évaluations cercles notes + avatars joueurs Figma"
     priority: P2
-    status: ready-for-dev
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
 
   - story_id: story-72-5
     title: "DESIGN — Méthodologie Entraînements stat cards bento"
     priority: P2
-    status: ready-for-dev
-    gate1: pending
-    gate2: pending
+    status: done
+    gate1: pass
+    gate2: pass
 
   - story_id: story-74-1
     title: "DESIGN — Activités Séances alignement référence visuelle (titre + CTA dark + tokens + Toutes)"
@@ -375,3 +375,54 @@ prev_queue:
     status: done
     gate1: pass
     gate2: pass
+
+# ──────────── QUEUE DU JOUR (2026-04-08 matin) ────────────
+today_queue_2026_04_08_morning:
+  - story_id: story-75-2
+    title: "BUG — try/finally contact.tsx setSending/setLoadingHistory"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-75-5
+    title: "BUG DESIGN — Presences heatmap hex → tokens + métrique fictive masquée"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-34-3
+    title: "DESIGN — Méthodologie Entraînements redesign v2 + table Exercices"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-34-4
+    title: "FEATURE — Méthodologie Page Programmes liste + migration"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-75-3
+    title: "UX — Conversion essai→membre modale confirmation + sélection groupe"
+    priority: P1
+    status: done
+    gate1: pass
+    gate2: pass
+
+  - story_id: story-75-6
+    title: "FEATURE — Quiz QCM enfant post-séance /parent/children/[childId]/quiz"
+    priority: P2
+    status: done
+    gate1: pass
+    gate2: pass
+
+skip_already_done:
+  - story-72-10 (done avant queue)
+  - story-72-6 (done avant queue)
+  - story-72-8 (done avant queue)
+  - story-75-1 (done patrol 2026-04-08)
+  - story-75-4 (done patrol 2026-04-08)

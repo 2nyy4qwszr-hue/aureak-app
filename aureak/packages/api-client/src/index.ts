@@ -494,6 +494,7 @@ export {
   addSituationToModule,
   removeSituationFromModule,
   listMethodologyExercises,
+  listMethodologyProgrammes,
 } from './methodology'
 export type {
   CreateMethodologyThemeParams,

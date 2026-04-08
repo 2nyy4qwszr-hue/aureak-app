@@ -4,6 +4,7 @@
 import { supabase } from './supabase'
 import type {
   MethodologyTheme, MethodologySituation, MethodologySession, MethodologyExercise,
+  MethodologyProgramme,
   MethodologyMethod, MethodologyContextType, MethodologyLevel,
   DiagramData, MethodologyModuleType, MethodologySessionModule,
 } from '@aureak/types'
@@ -714,4 +715,53 @@ export async function listMethodologyExercises(
     return []
   }
   return (data ?? []).map(r => mapExercise(r as Record<string, unknown>))
+}
+
+// ── Programmes pédagogiques (Migration 00142 — Story 34.4) ───────────────────
+
+function mapProgramme(row: Record<string, unknown>): MethodologyProgramme {
+  const sessions = (row.methodology_programme_sessions as Array<{ id: string; scheduled_date: string | null }> | null) ?? []
+  const done     = sessions.filter(s => s.scheduled_date !== null).length
+  const total    = typeof row.total_sessions === 'number' ? row.total_sessions : 0
+  const season   = row.academy_seasons as { label: string } | null
+
+  return {
+    id            : row.id          as string,
+    tenantId      : row.tenant_id   as string,
+    method        : row.method      as MethodologyMethod,
+    contextType   : row.context_type as MethodologyContextType,
+    title         : row.title       as string,
+    seasonId      : str(row.season_id),
+    seasonLabel   : season?.label ?? null,
+    totalSessions : total,
+    description   : str(row.description),
+    isActive      : row.is_active   as boolean,
+    accomplishment: { done, total },
+    createdAt     : row.created_at  as string,
+    updatedAt     : row.updated_at  as string,
+    deletedAt     : str(row.deleted_at),
+  }
+}
+
+export async function listMethodologyProgrammes(
+  opts: { activeOnly?: boolean } = {},
+): Promise<MethodologyProgramme[]> {
+  let q = supabase
+    .from('methodology_programmes')
+    .select(`
+      *,
+      academy_seasons ( label ),
+      methodology_programme_sessions ( id, scheduled_date )
+    `)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+
+  if (opts.activeOnly !== false) q = q.eq('is_active', true)
+
+  const { data, error } = await q
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listMethodologyProgrammes] error:', error)
+    return []
+  }
+  return (data ?? []).map(r => mapProgramme(r as Record<string, unknown>))
 }

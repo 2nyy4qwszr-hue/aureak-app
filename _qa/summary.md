@@ -51,6 +51,19 @@
 | story-74-2 (StatCards badges fictifs) | ✅ PASS | ✅ PASS | 0 (3 warnings mineurs: borderRadius/padding hardcodés, hors scope story BUG) | Non |
 | story-74-3 (FiltresScope loading + shadows.lg) | ✅ PASS | ✅ PASS | 0 | Non |
 | story-74-4 (Dashboard gold concaténations → tokens) | ✅ PASS | ✅ PASS | 0 | Non |
+| BUG-CRAWLER 2026-04-08 v2 (statique élargi) | ✅ PASS | ⏳ EN COURS | 3 HIGH, 2 MEDIUM nouveaux |
+| story-75-5 (Présences heatmap hex → tokens) | ✅ PASS | ✅ PASS | 1 WARNING mineur (calcul vs affichage seuil) |
+| story-75-3 (Conversion essai→membre modale) | ✅ PASS | ✅ PASS | 0 |
+| story-75-6 (Quiz QCM enfant post-séance) | ✅ PASS | ✅ PASS | 1 WARNING mineur (childId non gardé avant useEffect) |
+| PATROL 2026-04-08 post-epic75 | ✅ PASS | ✅ PASS | Design: 2 BLOCKER, 4 WARNING — Bug: 1 CRITICAL, 2 HIGH — UX: 4 P1 | Non |
+| BUG-CRAWLER 2026-04-08 post75 (statique élargi post-epic75) | ✅ PASS | ⏳ EN COURS | 1 CRITICAL, 2 HIGH, 2 MEDIUM | Non |
+| story-75-5 (heatmap tokens + métrique fictive) | ✅ PASS | ✅ PASS | 1 WARNING mineur (calcul trend >= 2 vs affichage >= 4) | Non |
+| story-75-3 (modale confirmation conversion essai→membre) | ✅ PASS | ✅ PASS | 0 | Non |
+| story-75-6 (Quiz QCM enfant post-séance) | ✅ PASS | ✅ PASS | 1 WARNING mineur (childId non-guard avant appel API) | Non |
+| story-34-3 (Redesign Entraînements v2 + Table Exercices) | ✅ PASS | ✅ PASS | 2 warnings mineurs (loadSessions sans toast erreur, ENTRAÎNEMENT tab UX confusion avec GLOBAL) | Non |
+| story-34-4 (Page Programmes liste + migration) | ✅ PASS | ✅ PASS | 1 warning mineur (pas de pagination — liste potentiellement longue) | Non |
+| PATROL 2026-04-08 post-story34-3 | ✅ PASS | ✅ PASS | Design: 11 BLOCKER, 11 WARNING — Bug: 0 CRITICAL, 3 HIGH — UX: 4 P1, 5 P2 — Feature: 84%, 10 manquants | Non |
+| BUG-CRAWLER 2026-04-08 v4 (statique post-Performance ajout) | ✅ PASS | ⏳ EN COURS | 0 CRITICAL, 3 HIGH, 2 MEDIUM | Non |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 
@@ -80,6 +93,7 @@
 | 2026-04-05 | 3 BLOCKER, 6 WARNING | 1 CRITICAL, 3 HIGH | 3 P1, 4 P2 | 4 P1 manquantes |
 | 2026-04-06 | 4 BLOCKER, 9 WARNING | 2 CRITICAL, 1 HIGH | 3 P1, 3 P2 | 7 FRs manquants (89% Phase 1) |
 | 2026-04-06 (scan-3) | 0 BLOCKER, 0 WARNING | 0 | 0 | — | tsc CLEAN, 50+ couleurs tokenisées, 39 console guardés |
+| 2026-04-08 | Design: 9 BLOCKER, 9 WARNING | Bug: 3 HIGH, 2 MEDIUM | UX: 4 P1, 4 P2 | Features: 12 manquants (81% Phase 1) |
 
 ---
 
@@ -100,6 +114,14 @@
 | B-DESIGN-02 | Shadow hardcodée `rgba(64,145,108,0.3)` dans CSS injecté | `/dashboard` | `dashboard/page.tsx` ~2544 |
 | ~~B-BUG-C2~~ | ~~`load()` appelé sans `await` dans `handlePresetChange`/`handleApplyCustom`~~ **RÉSOLU** — story 72-10 | `/dashboard` | `dashboard/page.tsx` |
 | B-BUG-C3 | `listAttendancesByChild` : filtres date ignorés par PostgREST (table jointe) — toutes présences retournées | `/children/[id]` | `attendances.ts` |
+| B-BUG-C4 | `completionStatus` jamais `'complete'` — statut `'fermée'` inexistant en DB (réel : `'réalisée'`/`'terminée'`) → ÉVALS 0% dans StatCards | `/activites` | `api-client/src/sessions/attendances.ts:94` |
+| B-BUG-C5 | `contact.tsx` — `setSending`/`setLoadingHistory` sans try/finally → states bloqués si erreur API | `/coaches/[id]/contact` | `apps/web/app/(admin)/coaches/[coachId]/contact.tsx:26-45` |
+| B-BUG-C6 | Double guard `NODE_ENV` dans `dashboard.ts` (5 occurrences) — code trompeur, maintenance risquée | API | `api-client/src/admin/dashboard.ts:36,82,137,141,352` |
+| B-BUG-C7 | Vue `session_evaluations_merged` absente des migrations actives — risque 404 PostgREST à toute réinitialisation DB | `/parent`, `/clubs`, `/activites` | `supabase/migrations/` (manque 00140) |
+| B-BUG-C8 | `evalMap.get(scheduled_at)` — clé UUID vs string date → évaluations jamais affichées dans fiche enfant parent | `/parent/children/[id]` | `apps/web/app/(parent)/parent/children/[childId]/index.tsx:290` |
+| B-BUG-C9 | `'performance'` absent du sélecteur inline dans `GenerateModal` — type non sélectionnable | `/seances` → modale génération | `apps/web/app/(admin)/seances/page.tsx:188` |
+| B-BUG-C10 | `TYPE_COLOR` manque clé `performance` → sessions Performance affichent gold au lieu de teal (#26A69A) | `/seances` (list + calendrier) | `apps/web/app/(admin)/seances/_components/constants.ts:7` |
+| B-BUG-C11 | `methodColor()` typeMap manque `'performance'` → Dashboard Séances affiche gris pour type Performance | `/dashboard/seances` | `apps/web/app/(admin)/dashboard/seances/page.tsx:67` |
 | ~~B-CRAWLER-02~~ | ~~39 `console.error` non guardés dans `@aureak/api-client`~~ **RÉSOLU** — tous les fichiers api-client guardés avec `(process.env.NODE_ENV as string) !== 'production'` (scan-3 2026-04-06) | API | tous fichiers `api-client/src/` |
 | ~~B-CRAWLER-01~~ | ~~Colonne `unassigned_at` inexistante~~ **RÉSOLU** — migration 00134 appliquée (cycle 1) | `/dashboard` | `api-client/src/admin/dashboard.ts:75` |
 
@@ -115,7 +137,9 @@
 | W-PATROL-04 | Doublon joueur AGRO Alessandro dans liste | `/children` |
 | W-CRAWLER-01 | Navigation directe URL admin redirige vers `/tableau-de-bord` → 404 Unmatched Route | toutes routes admin |
 | W-CRAWLER-02 | `implantations/index.tsx` : `load()` sans `setLoading(true)` → pas de spinner sur 2e+ appel | `/implantations` |
-| W-CRAWLER-03 | `presences.ts` ligne 131 : `const childIds` déclaré mais jamais utilisé (dead code post-UUID-fix) | `api-client/src/sessions/presences.ts` |
+| ~~W-CRAWLER-03~~ | ~~`presences.ts` ligne 131 : `const childIds` déclaré mais jamais utilisé~~ **RÉSOLU** — `childIds` est utilisé ligne 340 dans `listTrialConversionSuggestions()` | `api-client/src/sessions/presences.ts` |
+| W-CRAWLER-07 | `generateGroupName.ts` — `GroupMethod` local incomplet (manque Intégration + Perfectionnement) et `METHOD_COLOR` hardcodé hors @aureak/theme | `packages/business-logic/src/groups/generateGroupName.ts:5,34` |
+| W-CRAWLER-08 | `TableauSeances.tsx` — N+1 sur `listEvaluationsBySession` : 200 appels simultanés au chargement | `apps/web/app/(admin)/activites/components/TableauSeances.tsx:276` |
 | W-CRAWLER-04 | `dashboard.ts` → `getNavBadgeCounts` : `console.error` affiche `[object Object]` au lieu de `err.message` | `api-client/src/admin/dashboard.ts` |
 | ~~W-CRAWLER-05~~ | ~~`ALPHA_COLORS` violet `#8B5CF6` hors charte~~ **RÉSOLU** — story 72-6 | `/activites` |
 | ~~W-CRAWLER-06~~ | ~~couleurs hardcodées `#18181B` / `#FFFFFF`~~ **RÉSOLU** — story 72-8 | activites hub |

@@ -2304,3 +2304,35 @@ export type MethodologyExercise = {
   deletedAt   : string | null
 }
 
+// ============================================================
+// Migration 00142 — Programmes méthodologie (Story 34.4)
+// ============================================================
+
+/** MethodologyProgramme — programme pédagogique (regroupement d'entraînements sur une saison) */
+export type MethodologyProgramme = {
+  id            : string
+  tenantId      : string
+  method        : MethodologyMethod
+  contextType   : MethodologyContextType  // 'academie' | 'stage'
+  title         : string
+  seasonId      : string | null
+  seasonLabel   : string | null           // join depuis academy_seasons.label (ex: '2025-2026')
+  totalSessions : number
+  description   : string | null
+  isActive      : boolean
+  accomplishment: { done: number; total: number }  // done = sessions avec scheduled_date
+  createdAt     : string
+  updatedAt     : string
+  deletedAt     : string | null
+}
+
+/** MethodologyProgrammeSession — lien entre un programme et un entraînement pédagogique */
+export type MethodologyProgrammeSession = {
+  id            : string
+  programmeId   : string
+  sessionId     : string
+  scheduledDate : string | null  // DATE ISO
+  position      : number
+  createdAt     : string
+}
+
