@@ -98,6 +98,7 @@ function SubNav({ childId, active }: { childId: string; active: string }) {
     { label: 'Présences',      href: `/parent/children/${childId}/presences`      },
     { label: 'Badges',         href: `/parent/children/${childId}/badges`         },
     { label: 'Progression',    href: `/parent/children/${childId}/progress`       },
+    { label: 'Quiz',           href: `/parent/children/${childId}/quiz`            },
     { label: 'Football',       href: `/parent/children/${childId}/football-history` },
     { label: 'Consentements',  href: `/parent/children/${childId}/consents`       },
   ]

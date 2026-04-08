@@ -559,6 +559,10 @@ export type { SessionAttendeeWithNote } from './sessions/sessionNotes'
 export { getChildDashboardExtra } from './child/childDashboard'
 export type { ChildDashboardExtra, ChildNextSession, ChildLastEval } from './child/childDashboard'
 
+// ── Child — Quiz QCM post-séance (Story 75.6) ────────────────────────────────
+export { getLastSessionQuiz } from './child/childQuiz'
+export type { ChildQuizData } from './child/childQuiz'
+
 // ── Parent — Préférences et historique notifications ─────────────────────────
 export { getNotificationPreferences, listNotificationLogs, saveNotificationPreferences } from './parent/notifications'
 export type { NotificationPreferences, NotificationLog } from './parent/notifications'
