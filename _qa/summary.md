@@ -81,6 +81,7 @@
 | story-77-4 (DESIGN — Analytics hex hardcodés → tokens) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-77-3 (DESIGN — Implantations gradients #1a472a/#2d6a4f + #FFFFFF → tokens) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 | story-77-2 (UX — Recherche joueurs live debounce 300ms) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
+| story-80-1 (UX — Stages dates input natif HTML type=date) | ✅ PASS | ✅ PASS | 0 (Playwright skipped — app non démarrée) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 

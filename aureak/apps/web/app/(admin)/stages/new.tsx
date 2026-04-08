@@ -68,8 +68,21 @@ export default function NewStagePage() {
     }
   }
 
+  const dateInputStyle: React.CSSProperties = {
+    padding        : '8px 12px',
+    borderRadius   : 7,
+    border         : `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.muted,
+    color          : colors.text.dark,
+    fontSize       : 13,
+    transition     : 'border-color 0.15s',
+    width          : '100%',
+    boxSizing      : 'border-box' as const,
+  }
+
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <style>{`.stage-date-inp:focus { outline: none; border-color: ${colors.accent.gold} !important; }`}</style>
 
       {/* Header */}
       <View style={s.header}>
@@ -118,22 +131,22 @@ export default function NewStagePage() {
         <View style={{ flexDirection: 'row', gap: space.md }}>
           <View style={[s.field, { flex: 1 }]}>
             <AureakText variant="caption" style={s.label}>Date de début *</AureakText>
-            <TextInput
-              style={s.input}
+            <input
+              className="stage-date-inp"
+              type="date"
               value={startDate}
-              onChangeText={setStartDate}
-              placeholder="AAAA-MM-JJ"
-              placeholderTextColor={colors.text.muted}
+              onChange={e => setStartDate(e.target.value)}
+              style={dateInputStyle}
             />
           </View>
           <View style={[s.field, { flex: 1 }]}>
             <AureakText variant="caption" style={s.label}>Date de fin *</AureakText>
-            <TextInput
-              style={s.input}
+            <input
+              className="stage-date-inp"
+              type="date"
               value={endDate}
-              onChangeText={setEndDate}
-              placeholder="AAAA-MM-JJ"
-              placeholderTextColor={colors.text.muted}
+              onChange={e => setEndDate(e.target.value)}
+              style={dateInputStyle}
             />
           </View>
         </View>

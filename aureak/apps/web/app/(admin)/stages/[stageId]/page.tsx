@@ -708,8 +708,21 @@ export default function StageDetailPage() {
   const activeBlocks = activeDayId ? (blocks[activeDayId] ?? []) : []
   const statusColor  = STATUS_COLORS[stage.status]
 
+  const addDayInputStyle: React.CSSProperties = {
+    padding        : '8px 12px',
+    borderRadius   : 7,
+    border         : `1px solid ${colors.border.light}`,
+    backgroundColor: colors.light.surface,
+    color          : colors.text.dark,
+    fontSize       : 13,
+    transition     : 'border-color 0.15s',
+    flex           : 1,
+    boxSizing      : 'border-box' as const,
+  }
+
   return (
     <>
+      <style>{`.stage-date-inp:focus { outline: none; border-color: ${colors.accent.gold} !important; }`}</style>
       <ScrollView style={p.container} contentContainerStyle={p.content}>
 
         {/* ── Back + Export ── */}
@@ -829,12 +842,12 @@ export default function StageDetailPage() {
           {/* Add day form */}
           {addingDay && (
             <View style={p.addDayForm}>
-              <TextInput
-                style={p.input}
+              <input
+                className="stage-date-inp"
+                type="date"
                 value={newDayDate}
-                onChangeText={setNewDayDate}
-                placeholder="AAAA-MM-JJ"
-                placeholderTextColor={colors.text.muted}
+                onChange={e => setNewDayDate(e.target.value)}
+                style={addDayInputStyle}
               />
               {dayError && (
                 <AureakText variant="caption" style={{ color: colors.accent.red }}>{dayError}</AureakText>

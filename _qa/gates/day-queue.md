@@ -48,9 +48,9 @@ new_queue:
   - story_id: story-80-1
     title: "UX — Stages dates input natif HTML type=date"
     priority: P2
-    status: pending
-    gate1: ~
-    gate2: ~
+    status: done
+    gate1: PASS
+    gate2: PASS
 
   - story_id: story-75-7
     title: "FEATURE — Quiz QCM board parent /quiz/[sessionId]"

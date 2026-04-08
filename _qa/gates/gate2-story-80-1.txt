@@ -1,0 +1,2 @@
+PASS|0|0|types:
+Playwright skipped — app non démarrée (http_code: 000)
