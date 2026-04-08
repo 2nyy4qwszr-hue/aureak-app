@@ -1,7 +1,7 @@
 # Story 58-7 — Méthodologie : Recommandations exercices pour un groupe
 
 **Epic** : 58 — Méthodologie "Tactical Notebook"
-**Status** : ready-for-dev
+**Status** : done
 **Priority** : medium
 **Effort** : M (demi-journée)
 

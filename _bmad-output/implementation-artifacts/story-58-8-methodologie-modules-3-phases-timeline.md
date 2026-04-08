@@ -1,7 +1,7 @@
 # Story 58-8 — Méthodologie : Modules 3 phases — timeline visuelle de séance
 
 **Epic** : 58 — Méthodologie "Tactical Notebook"
-**Status** : ready-for-dev
+**Status** : done
 **Priority** : medium
 **Effort** : M (demi-journée)
 

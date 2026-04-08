@@ -1,7 +1,7 @@
 # Story 58-6 — Méthodologie : Notation difficulté 1–5 étoiles
 
 **Epic** : 58 — Méthodologie "Tactical Notebook"
-**Status** : ready-for-dev
+**Status** : done
 **Priority** : medium
 **Effort** : S (quelques heures)
 
