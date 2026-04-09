@@ -1,11 +1,11 @@
 'use client'
-// Story 65-1 — Activités Hub : header onglets + bouton nouvelle séance
+// Story 80-1 — Uniformisation design headerBlock (pattern Méthodologie)
 import React from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius } from '@aureak/theme'
+import { colors, space } from '@aureak/theme'
 
 const TABS = [
   { key: 'seances',     label: 'SÉANCES',     href: '/activites' },
@@ -27,82 +27,90 @@ export function ActivitesHeader() {
   const activeTab = getActiveTab(pathname)
 
   return (
-    <View style={styles.wrapper}>
-      {/* Titre page */}
-      <View style={styles.titleRow}>
+    <View style={styles.headerBlock}>
+      {/* Titre + bouton */}
+      <View style={styles.headerTopRow}>
         <AureakText style={styles.pageTitle}>ACTIVITÉS</AureakText>
-        {/* Bouton + Nouvelle séance */}
         <Pressable
           onPress={() => router.push('/(admin)/seances/new')}
-          style={({ pressed }) => [styles.newBtn, pressed && styles.newBtnPressed] as object[]}
+          style={styles.newBtn}
         >
-          <AureakText style={styles.newBtnText}>+ Nouvelle séance</AureakText>
+          <AureakText style={styles.newBtnLabel}>+ Nouvelle séance</AureakText>
         </Pressable>
       </View>
 
-    <View style={styles.container}>
-      {/* Onglets */}
-      <View style={styles.tabs}>
+      {/* Nav tabs */}
+      <View style={styles.tabsRow}>
         {TABS.map(tab => {
           const isActive = tab.key === activeTab
-          const labelStyle: TextStyle = {
-            fontSize     : 13,
-            fontWeight   : '700',
-            fontFamily   : 'Montserrat',
-            letterSpacing: 0.8,
-            color        : colors.text.dark,
-          }
           return (
             <Pressable
               key={tab.key}
               onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
               style={styles.tabItem}
             >
-              <AureakText style={labelStyle}>{tab.label}</AureakText>
+              <AureakText style={{ ...styles.tabLabel, ...(isActive ? styles.tabLabelActive : {}) } as TextStyle}>
+                {tab.label}
+              </AureakText>
               {isActive && <View style={styles.tabUnderline} />}
             </Pressable>
           )
         })}
       </View>
     </View>
-    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  headerBlock: {
     backgroundColor  : colors.light.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
+    gap              : 12,
   },
-  titleRow: {
+  headerTopRow: {
     flexDirection    : 'row',
-    alignItems       : 'center',
     justifyContent   : 'space-between',
+    alignItems       : 'center',
     paddingHorizontal: space.lg,
     paddingTop       : space.lg,
-    paddingBottom    : space.sm,
   },
   pageTitle: {
-    fontSize     : 28,
-    fontWeight   : '900',
+    fontSize     : 24,
+    fontWeight   : '700',
     fontFamily   : 'Montserrat',
-    letterSpacing: 0.5,
     color        : colors.text.dark,
+    letterSpacing: 0.5,
   },
-  container: {
+  newBtn: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+  },
+  newBtnLabel: {
+    color     : colors.text.dark,
+    fontWeight: '700',
+    fontSize  : 13,
+  },
+  tabsRow: {
     flexDirection    : 'row',
-    alignItems       : 'center',
+    gap              : 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
     paddingHorizontal: space.lg,
   },
-  tabs: {
-    flexDirection: 'row',
-    gap          : space.xl,
-    flex         : 1,
-  },
   tabItem: {
-    paddingBottom: space.sm,
+    paddingBottom: 10,
     position     : 'relative',
+  },
+  tabLabel: {
+    fontSize     : 11,
+    fontWeight   : '700',
+    letterSpacing: 1,
+    color        : colors.text.subtle,
+    textTransform: 'uppercase',
+  } as TextStyle,
+  tabLabelActive: {
+    color: colors.accent.gold,
   },
   tabUnderline: {
     position       : 'absolute',
@@ -112,21 +120,5 @@ const styles = StyleSheet.create({
     height         : 2,
     backgroundColor: colors.accent.gold,
     borderRadius   : 1,
-  },
-  newBtn: {
-    backgroundColor  : colors.text.dark,
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm,
-    borderRadius     : radius.button,
-    marginBottom     : space.sm,
-  },
-  newBtnPressed: {
-    opacity: 0.85,
-  },
-  newBtnText: {
-    color     : colors.accent.gold,
-    fontSize  : 13,
-    fontWeight: '700',
-    fontFamily: 'Montserrat',
   },
 })

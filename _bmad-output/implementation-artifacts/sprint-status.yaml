@@ -394,3 +394,8 @@ development_status:
   epic-79: in-progress
   79-1-feature-dashboard-coachs-inactifs-widget: done
   epic-79-retrospective: optional
+
+  # Epic 80 : Activités — Uniformisation visuelle alignement Méthodologie
+  epic-80: in-progress
+  80-1-activites-seances-alignement-design-methodologie: done
+  epic-80-retrospective: optional

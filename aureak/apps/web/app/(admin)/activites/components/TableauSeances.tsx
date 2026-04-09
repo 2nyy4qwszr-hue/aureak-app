@@ -457,13 +457,12 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor  : colors.light.surface,
-    borderRadius     : radius.card,
+    borderRadius     : 10,
     marginHorizontal : space.lg,
     marginBottom     : space.lg,
     overflow         : 'hidden',
     borderWidth      : 1,
-    borderColor      : colors.border.light,
+    borderColor      : colors.border.divider,
   },
   tableHeader: {
     flexDirection    : 'row',

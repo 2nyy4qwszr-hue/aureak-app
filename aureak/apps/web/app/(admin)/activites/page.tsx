@@ -23,14 +23,14 @@ export default function ActivitesPage() {
       <ActivitesHeader />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        {/* 4 Stat cards */}
+        <StatCards scope={scope} />
+
         {/* Filtres scope + temporels sur une ligne */}
         <View style={styles.filtresRow}>
           <FiltresScope value={scope} onChange={setScope} />
           <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
         </View>
-
-        {/* 4 Stat cards */}
-        <StatCards scope={scope} />
 
         {/* Tableau des séances */}
         <TableauSeances scope={scope} temporalFilter={temporalFilter} />

@@ -1,5 +1,5 @@
 'use client'
-// Story 65-1 — Activités Hub : Pseudo-filtres temporels (AUJOURD'HUI / À VENIR / PASSÉES)
+// Story 80-1 — Redesign TierPills (pattern children/index.tsx)
 import React from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import type { ViewStyle, TextStyle } from 'react-native'
@@ -37,7 +37,7 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
           fontWeight   : '700',
           fontFamily   : 'Montserrat',
           letterSpacing: 0.8,
-          color        : isActive ? colors.text.primary : colors.text.muted,
+          color        : isActive ? colors.text.dark : colors.text.muted,
         }
         return (
           <Pressable key={f.key} style={pillStyle} onPress={() => onChange(f.key)}>
