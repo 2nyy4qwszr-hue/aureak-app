@@ -1,4 +1,4 @@
-date: 2026-04-08
+date: 2026-04-09
 status: in-progress
 
 # ──────────── QUEUE DU JOUR ────────────
@@ -69,6 +69,13 @@ new_queue:
   - story_id: story-78-2
     title: "FEATURE — Tickets parent page détail + soft-delete + migration 00144"
     priority: P3
+    status: done
+    gate1: PASS
+    gate2: PASS
+
+  - story_id: story-82-1
+    title: "DESIGN — Académie Coachs LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)"
+    priority: P2
     status: done
     gate1: PASS
     gate2: PASS

@@ -86,6 +86,7 @@
 | story-79-1 (FEATURE — Widget coachs inactifs dashboard admin) | ✅ PASS | ✅ PASS | 1 WARNING mineur (setInactiveCoaches exécuté même si error=true — impact UI nul) |
 | story-78-2 (FEATURE — Tickets parent page détail + soft-delete + migration 00144) | ✅ PASS | ✅ PASS | 1 WARNING mineur (alpha hex `+'18'` sur badge statut — pattern existant dans codebase) |
 | BUG-CRAWLER 2026-04-08 post-sprint (Playwright live) | ✅ PASS | ⏳ EN COURS | 0 CRITICAL, 1 HIGH (sessions.name), 1 MEDIUM (connu routing), 1 LOW (connu doublon) |
+| story-82-1 (Académie Coachs LayoutActivités redesign) | ✅ PASS | ✅ PASS | 3 warnings mineurs (pas d'état erreur UI, filtre COACH non fonctionnel documenté, pas de hover desktop) |
 
 `✅ PASS` `❌ BLOCKED` `⏳ EN COURS` `—` N/A
 

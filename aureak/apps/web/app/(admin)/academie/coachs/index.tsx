@@ -1,7 +1,8 @@
 'use client'
 // Story 75.2 — Page Coachs redesignée dans le hub Académie
+// Story 82.1 — Appliquer LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)
 import { useEffect, useState } from 'react'
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
@@ -49,51 +50,14 @@ function splitName(displayName: string | null): { prenom: string; nom: string } 
   return { prenom: parts[0], nom: parts.slice(1).join(' ') }
 }
 
-// ── FilterChip ───────────────────────────────────────────────────────────────────
-function FilterChip({ label, active, onPress }: {
-  label  : string
-  active : boolean
-  onPress: () => void
-}) {
-  return (
-    <Pressable onPress={onPress} style={[chip.base, active && chip.active] as never}>
-      <AureakText
-        variant="label"
-        style={[chip.label, active ? chip.labelActive : chip.labelInactive] as never}
-      >
-        {label}
-      </AureakText>
-    </Pressable>
-  )
-}
-
-// ── StatCard ─────────────────────────────────────────────────────────────────────
-function StatCard({ label, value, variant }: {
-  label  : string
-  value  : string
-  variant: 'default' | 'gold'
-}) {
-  const isGold = variant === 'gold'
-  return (
-    <View style={[stat.card, isGold && stat.cardGold] as never}>
-      <AureakText variant="label" style={[stat.label, isGold && stat.labelGold] as never}>
-        {label}
-      </AureakText>
-      <AureakText variant="h2" style={[stat.value, isGold && stat.valueGold] as never}>
-        {value}
-      </AureakText>
-    </View>
-  )
-}
-
 // ── Page principale ──────────────────────────────────────────────────────────────
 export default function AcademieCoachsPage() {
   const router = useRouter()
 
-  const [coaches,  setCoaches]  = useState<CoachWithGrade[]>([])
-  const [loading,  setLoading]  = useState(true)
+  const [coaches,    setCoaches]    = useState<CoachWithGrade[]>([])
+  const [loading,    setLoading]    = useState(true)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
-  const [page, setPage] = useState(0)
+  const [page,       setPage]       = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -131,6 +95,11 @@ export default function AcademieCoachsPage() {
   // implémentation du champ coachRole dans une story future.
   const filtered = coaches.filter(() => roleFilter !== 'assistant')
 
+  // ── Stats ──
+  const goldPlusCount = coaches.filter(
+    c => c.grade && (['gold', 'platinum'] as CoachGradeLevel[]).includes(c.grade.grade_level)
+  ).length
+
   const academyScore = coaches.reduce(
     (sum, c) => sum + (c.grade ? (GRADE_VALUES[c.grade.grade_level] ?? 0) : 0), 0
   )
@@ -149,32 +118,88 @@ export default function AcademieCoachsPage() {
     <View style={s.page}>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
 
-        {/* Header */}
-        <View style={s.header}>
-          <AureakText variant="h2" style={s.title}>Coachs</AureakText>
+        {/* ── headerBlock ── */}
+        <View style={s.headerTopRow}>
+          <AureakText style={s.pageTitle as TextStyle}>COACHS</AureakText>
           <Pressable
             onPress={() => router.push('/coaches/new' as never)}
-            style={({ pressed }) => [s.btnNew, pressed && s.btnNewPressed] as never}
+            style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
           >
-            <AureakText variant="label" style={s.btnNewLabel}>+ Nouveau coach</AureakText>
+            <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau coach</AureakText>
           </Pressable>
         </View>
 
-        {/* Stat cards */}
-        <View style={s.cards}>
-          <StatCard label="COACHS"         value={loading ? '—' : String(coaches.length)} variant="default" />
-          <StatCard label="FORMATION"      value="—"                                       variant="default" />
-          <StatCard label="DIPLÔMÉ"        value="—"                                       variant="default" />
-          <StatCard label="SCORE ACADÉMIE" value={loading ? '—' : String(academyScore)}   variant="gold" />
+        {/* ── StatCards ── */}
+        <View style={s.statCardsRow}>
+          {/* 👤 COACHS */}
+          <View style={s.statCard as never}>
+            <AureakText style={s.statCardPicto as TextStyle}>👤</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>COACHS</AureakText>
+            <AureakText style={{ ...s.statCardValue, color: colors.text.dark } as TextStyle}>
+              {loading ? '—' : String(coaches.length)}
+            </AureakText>
+          </View>
+
+          {/* 🏆 GRADE OR+ */}
+          <View style={s.statCard as never}>
+            <AureakText style={s.statCardPicto as TextStyle}>🏆</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>GRADE OR+</AureakText>
+            <AureakText style={{ ...s.statCardValue, color: colors.accent.gold } as TextStyle}>
+              {loading ? '—' : String(goldPlusCount)}
+            </AureakText>
+          </View>
+
+          {/* 🎓 DIPLÔMÉS */}
+          <View style={s.statCard as never}>
+            <AureakText style={s.statCardPicto as TextStyle}>🎓</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>DIPLÔMÉS</AureakText>
+            <AureakText style={{ ...s.statCardValue, color: colors.text.muted } as TextStyle}>—</AureakText>
+          </View>
+
+          {/* ⭐ SCORE ACADÉMIE */}
+          <View style={s.statCard as never}>
+            <AureakText style={s.statCardPicto as TextStyle}>⭐</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>SCORE ACADÉMIE</AureakText>
+            <AureakText style={{ ...s.statCardValue, color: colors.accent.gold } as TextStyle}>
+              {loading ? '—' : String(academyScore)}
+            </AureakText>
+          </View>
         </View>
 
-        {/* Filtres chips */}
-        <View style={s.filtersRow}>
-          <FilterChip label="COACH"     active={roleFilter === 'coach'}     onPress={() => handleRoleFilter('coach')} />
-          <FilterChip label="ASSISTANT" active={roleFilter === 'assistant'} onPress={() => handleRoleFilter('assistant')} />
+        {/* ── FiltresRow : pill TOUS + SegmentedToggle COACH/ASSISTANT ── */}
+        <View style={s.filtresRow}>
+          {/* Gauche : pill TOUS */}
+          <Pressable
+            onPress={() => { setRoleFilter('all'); setPage(0) }}
+            style={roleFilter === 'all' ? s.pillActive : s.pillInactive}
+          >
+            <AureakText style={(roleFilter === 'all' ? s.pillTextActive : s.pillTextInactive) as TextStyle}>
+              TOUS
+            </AureakText>
+          </Pressable>
+
+          {/* Droite : SegmentedToggle COACH / ASSISTANT */}
+          <View style={s.toggleRow}>
+            <Pressable
+              style={[s.toggleBtn, roleFilter === 'coach' && s.toggleBtnActive] as never}
+              onPress={() => handleRoleFilter('coach')}
+            >
+              <AureakText style={[s.toggleLabel, roleFilter === 'coach' && s.toggleLabelActive] as never}>
+                COACH
+              </AureakText>
+            </Pressable>
+            <Pressable
+              style={[s.toggleBtn, roleFilter === 'assistant' && s.toggleBtnActive] as never}
+              onPress={() => handleRoleFilter('assistant')}
+            >
+              <AureakText style={[s.toggleLabel, roleFilter === 'assistant' && s.toggleLabelActive] as never}>
+                ASSISTANT
+              </AureakText>
+            </Pressable>
+          </View>
         </View>
 
-        {/* Tableau */}
+        {/* ── CoachsTable ── */}
         {loading ? (
           <View style={s.emptyState}>
             <AureakText variant="body" style={s.emptyText}>Chargement…</AureakText>
@@ -184,50 +209,53 @@ export default function AcademieCoachsPage() {
             <AureakText variant="body" style={s.emptyText}>Aucun entraîneur</AureakText>
           </View>
         ) : (
-          <>
+          <View style={s.tableWrapper}>
             {/* En-têtes */}
-            <View style={s.rowHeader}>
+            <View style={s.tableHeader}>
               <View style={s.cellStatut} />
-              <AureakText variant="label" style={[s.cellNom,      s.colHeader] as never}>NOM</AureakText>
-              <AureakText variant="label" style={[s.cellPrenom,   s.colHeader] as never}>PRÉNOM</AureakText>
-              <AureakText variant="label" style={[s.cellImplant,  s.colHeader] as never}>IMPLANTATION</AureakText>
-              <AureakText variant="label" style={[s.cellGrade,    s.colHeader] as never}>GRADE</AureakText>
-              <AureakText variant="label" style={[s.cellDiplome,  s.colHeader] as never}>DIPLÔMÉ</AureakText>
-              <AureakText variant="label" style={[s.cellFormation,s.colHeader] as never}>FORMATION</AureakText>
+              <AureakText style={[s.thText, s.cellNom]      as never}>NOM</AureakText>
+              <AureakText style={[s.thText, s.cellPrenom]   as never}>PRÉNOM</AureakText>
+              <AureakText style={[s.thText, s.cellImplant]  as never}>IMPLANTATION</AureakText>
+              <AureakText style={[s.thText, s.cellGrade]    as never}>GRADE</AureakText>
+              <AureakText style={[s.thText, s.cellDiplome]  as never}>DIPLÔMÉ</AureakText>
+              <AureakText style={[s.thText, s.cellFormation]as never}>FORMATION</AureakText>
             </View>
 
             {/* Lignes */}
-            {paginated.map((coach, idx) => (
-              <Pressable
-                key={coach.userId}
-                onPress={() => router.push(`/coaches/${coach.userId}` as never)}
-                style={({ pressed }) => [
-                  s.row,
-                  idx % 2 === 0 ? s.rowEven : s.rowOdd,
-                  pressed && s.rowPressed,
-                ] as never}
-              >
-                <View style={[s.cellStatut, s.cellCenter]}>
-                  <UserCheckIcon color={colors.text.muted} size={18} strokeWidth={1.5} />
-                </View>
-                <AureakText variant="body" style={[s.cellNom,       s.cellText]   as never} numberOfLines={1}>{coach.nom}</AureakText>
-                <AureakText variant="body" style={[s.cellPrenom,    s.cellText]   as never} numberOfLines={1}>{coach.prenom}</AureakText>
-                <AureakText variant="body" style={[s.cellImplant,   s.cellMuted]  as never} numberOfLines={1}>—</AureakText>
-                <View style={s.cellGrade}>
-                  {coach.grade ? (
-                    <View style={[s.gradeBadge, { borderColor: GRADE_COLORS[coach.grade.grade_level] }]}>
-                      <AureakText variant="label" style={[s.gradeBadgeText, { color: GRADE_COLORS[coach.grade.grade_level] }] as never}>
-                        {GRADE_LABELS[coach.grade.grade_level]}
-                      </AureakText>
-                    </View>
-                  ) : (
-                    <AureakText variant="body" style={s.cellMuted}>—</AureakText>
-                  )}
-                </View>
-                <AureakText variant="body" style={[s.cellDiplome,  s.cellMuted]  as never}>—</AureakText>
-                <AureakText variant="body" style={[s.cellFormation,s.cellMuted]  as never} numberOfLines={1}>—</AureakText>
-              </Pressable>
-            ))}
+            {paginated.map((coach, idx) => {
+              const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
+              return (
+                <Pressable
+                  key={coach.userId}
+                  onPress={() => router.push(`/coaches/${coach.userId}` as never)}
+                  style={({ pressed }) => [
+                    s.tableRow,
+                    { backgroundColor: rowBg },
+                    pressed && s.rowPressed,
+                  ] as never}
+                >
+                  <View style={[s.cellStatut, s.cellCenter]}>
+                    <UserCheckIcon color={colors.text.muted} size={18} strokeWidth={1.5} />
+                  </View>
+                  <AureakText variant="body" style={[s.cellNom,      s.cellText]  as never} numberOfLines={1}>{coach.nom}</AureakText>
+                  <AureakText variant="body" style={[s.cellPrenom,   s.cellText]  as never} numberOfLines={1}>{coach.prenom}</AureakText>
+                  <AureakText variant="body" style={[s.cellImplant,  s.cellMuted] as never} numberOfLines={1}>—</AureakText>
+                  <View style={s.cellGrade}>
+                    {coach.grade ? (
+                      <View style={[s.gradeBadge, { borderColor: GRADE_COLORS[coach.grade.grade_level] }]}>
+                        <AureakText variant="label" style={[s.gradeBadgeText, { color: GRADE_COLORS[coach.grade.grade_level] }] as never}>
+                          {GRADE_LABELS[coach.grade.grade_level]}
+                        </AureakText>
+                      </View>
+                    ) : (
+                      <AureakText variant="body" style={s.cellMuted}>—</AureakText>
+                    )}
+                  </View>
+                  <AureakText variant="body" style={[s.cellDiplome,  s.cellMuted] as never}>—</AureakText>
+                  <AureakText variant="body" style={[s.cellFormation,s.cellMuted] as never} numberOfLines={1}>—</AureakText>
+                </Pressable>
+              )
+            })}
 
             {/* Pagination */}
             <View style={s.pagination}>
@@ -237,19 +265,26 @@ export default function AcademieCoachsPage() {
                   : 'Aucun entraîneur'}
               </AureakText>
               <View style={s.paginationBtns}>
-                <Pressable onPress={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                  style={[s.paginationBtn, page === 0 && s.paginationBtnDisabled] as never}>
+                <Pressable
+                  onPress={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  style={[s.paginationBtn, page === 0 && s.paginationBtnDisabled] as never}
+                >
                   <AureakText variant="caption" style={{ color: page === 0 ? colors.text.muted : colors.text.dark }}>←</AureakText>
                 </Pressable>
                 <AureakText variant="caption" style={s.paginationPage}>{page + 1} / {totalPages}</AureakText>
-                <Pressable onPress={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-                  style={[s.paginationBtn, page >= totalPages - 1 && s.paginationBtnDisabled] as never}>
+                <Pressable
+                  onPress={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  style={[s.paginationBtn, page >= totalPages - 1 && s.paginationBtnDisabled] as never}
+                >
                   <AureakText variant="caption" style={{ color: page >= totalPages - 1 ? colors.text.muted : colors.text.dark }}>→</AureakText>
                 </Pressable>
               </View>
             </View>
-          </>
+          </View>
         )}
+
       </ScrollView>
     </View>
   )
@@ -259,26 +294,126 @@ export default function AcademieCoachsPage() {
 const s = StyleSheet.create({
   page         : { flex: 1, backgroundColor: colors.light.primary },
   scroll       : { flex: 1 },
-  scrollContent: { padding: space.lg, paddingBottom: space.xl },
+  scrollContent: { padding: space.lg, paddingBottom: space.xl, gap: space.md },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.lg },
-  title : { color: colors.text.dark },
+  // ── headerBlock ──
+  headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pageTitle   : { fontSize: 24, fontWeight: '700', fontFamily: 'Montserrat', color: colors.text.dark, letterSpacing: 0.5 },
+  newBtn      : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
+  newBtnPressed: { opacity: 0.8 },
+  newBtnLabel : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
 
-  btnNew       : { backgroundColor: colors.text.dark, paddingVertical: space.xs, paddingHorizontal: space.md, borderRadius: radius.button },
-  btnNewPressed: { opacity: 0.8 },
-  btnNewLabel  : { color: colors.light.surface, letterSpacing: 0.5 },
+  // ── StatCards ──
+  statCardsRow: {
+    flexDirection    : 'row',
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.md,
+    flexWrap         : 'wrap',
+  },
+  statCard: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    minWidth       : 160,
+    alignItems     : 'center',
+    gap            : 4,
+    // @ts-ignore web
+    boxShadow      : shadows.sm,
+  },
+  statCardPicto: { fontSize: 22, marginBottom: 2 },
+  statCardLabel: {
+    fontSize     : 10,
+    fontFamily   : 'Montserrat',
+    fontWeight   : '700',
+    color        : colors.text.muted,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    textAlign    : 'center',
+  },
+  statCardValue: {
+    fontSize  : 28,
+    fontFamily: 'Montserrat',
+    fontWeight: '900',
+  },
 
-  cards      : { flexDirection: 'row', gap: space.md, marginBottom: space.lg, flexWrap: 'wrap' },
-  filtersRow : { flexDirection: 'row', gap: space.xs, marginBottom: space.md, flexWrap: 'wrap' },
+  // ── FiltresRow ──
+  filtresRow: {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    justifyContent: 'space-between',
+  },
+  pillActive: {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.accent.gold,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold,
+  },
+  pillInactive: {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  pillTextActive  : { fontSize: 12, fontWeight: '600', fontFamily: 'Montserrat', color: colors.text.dark },
+  pillTextInactive: { fontSize: 12, fontWeight: '600', fontFamily: 'Montserrat', color: colors.text.muted },
 
-  // Table rows
-  row       : { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: space.sm },
-  rowHeader : { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: space.sm, borderBottomWidth: 1, borderBottomColor: colors.border.light, marginBottom: 2 },
-  rowEven   : { backgroundColor: colors.light.surface },
-  rowOdd    : { backgroundColor: colors.light.hover },
+  // ── SegmentedToggle ──
+  toggleRow: {
+    flexDirection: 'row',
+    gap          : 0,
+    alignSelf    : 'flex-start',
+    borderRadius : radius.xs,
+    overflow     : 'hidden',
+    borderWidth  : 1,
+    borderColor  : colors.border.light,
+  },
+  toggleBtn       : { paddingVertical: 8, paddingHorizontal: space.lg, backgroundColor: colors.light.surface },
+  toggleBtnActive : { backgroundColor: colors.accent.gold },
+  toggleLabel     : { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: colors.text.muted },
+  toggleLabelActive: { color: colors.text.dark },
+
+  // ── CoachsTable ──
+  tableWrapper: {
+    borderRadius: 10,
+    borderWidth : 1,
+    borderColor : colors.border.divider,
+    overflow    : 'hidden',
+  },
+  tableHeader: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : 10,
+    backgroundColor  : colors.light.muted,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  thText: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    fontFamily   : 'Montserrat',
+    color        : colors.text.subtle,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  tableRow: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    minHeight        : 52,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
   rowPressed: { opacity: 0.75 },
 
-  // Columns
+  // ── Columns ──
   cellStatut  : { width: 40 },
   cellNom     : { flex: 1.2, minWidth: 80 },
   cellPrenom  : { flex: 1.2, minWidth: 80 },
@@ -290,12 +425,21 @@ const s = StyleSheet.create({
   cellCenter: { alignItems: 'center', justifyContent: 'center' },
   cellText  : { color: colors.text.dark, fontSize: 13 },
   cellMuted : { color: colors.text.muted, fontSize: 13 },
-  colHeader : { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
 
   gradeBadge    : { borderWidth: 1, borderRadius: radius.xs, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start' },
   gradeBadgeText: { fontSize: 11, fontWeight: '700' },
 
-  pagination        : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.md, paddingTop: space.sm, borderTopWidth: 1, borderTopColor: colors.border.light },
+  // ── Pagination ──
+  pagination: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : space.sm,
+    backgroundColor  : colors.light.muted,
+    borderTopWidth   : 1,
+    borderTopColor   : colors.border.divider,
+  },
   paginationInfo    : { color: colors.text.muted, fontSize: 12 },
   paginationBtns    : { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   paginationBtn     : { paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: radius.xs, backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light },
@@ -304,21 +448,4 @@ const s = StyleSheet.create({
 
   emptyState: { alignItems: 'center', paddingVertical: space.xl },
   emptyText : { color: colors.text.muted },
-})
-
-const chip = StyleSheet.create({
-  base        : { paddingVertical: 6, paddingHorizontal: space.sm, borderRadius: radius.xs, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.hover },
-  active      : { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
-  label       : { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  labelActive : { color: colors.text.dark },
-  labelInactive: { color: colors.text.muted },
-})
-
-const stat = StyleSheet.create({
-  card     : { flex: 1, minWidth: 120, backgroundColor: colors.light.surface, borderRadius: radius.card, padding: space.md, boxShadow: shadows.sm } as never,
-  cardGold : { backgroundColor: colors.accent.gold },
-  label    : { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
-  labelGold: { color: colors.text.dark },
-  value    : { color: colors.text.dark, fontSize: 28, fontWeight: '700' },
-  valueGold: { color: colors.text.dark },
 })
