@@ -402,10 +402,10 @@ export default function EvaluationsPage() {
               return (
                 <Pressable
                   key={type}
-                  style={isActive ? { ...styles.toggleBtn, ...styles.toggleBtnActive } : styles.toggleBtn}
                   onPress={() => setEvalType(type)}
+                  style={[styles.toggleBtn, isActive && styles.toggleBtnActive] as never}
                 >
-                  <AureakText style={isActive ? { ...styles.toggleLabel, ...styles.toggleLabelActive } : styles.toggleLabel}>
+                  <AureakText variant="label" style={[styles.toggleLabel, isActive && styles.toggleLabelActive] as never}>
                     {type.toUpperCase()}
                   </AureakText>
                 </Pressable>
