@@ -1,13 +1,12 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions, type TextStyle } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
-import { listThemes, listThemeGroups, updateThemeOrder } from '@aureak/api-client'
+import { listThemes, listThemeGroups, supabase } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Theme, ThemeGroup } from '@aureak/types'
 import BlocsManagerModal from '../_components/BlocsManagerModal'
-import PremiumThemeCard from '../_components/PremiumThemeCard'
 
 const BLOC_PICTOS: Record<string, string> = {
   'tir au but'         : '🎯',
@@ -31,33 +30,40 @@ const NAV_TABS = [
   { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations',active: false },
 ]
 
+const COL_WIDTHS = { num: 52, title: 1, bloc: 120, metaphore: 70, video: 60, status: 60 }
+
 export default function ThemesPage() {
   const router = useRouter()
-  const { width } = useWindowDimensions()
-  const gridColumns = width >= 1024 ? 5 : width >= 640 ? 3 : 2
 
-  const [themes,          setThemes]          = useState<Theme[]>([])
-  const [orderedThemes,   setOrderedThemes]   = useState<Theme[]>([])
-  const [groups,          setGroups]          = useState<ThemeGroup[]>([])
-  const [loading,         setLoading]         = useState(true)
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
-  const [modalVisible,    setModalVisible]    = useState(false)
-  const [themeDropOpen,   setThemeDropOpen]   = useState(false)
-  const [dragIndex,       setDragIndex]       = useState<number | null>(null)
-  const [hoverIndex,      setHoverIndex]      = useState<number | null>(null)
-  const [errorMsg,        setErrorMsg]        = useState<string | null>(null)
+  const [themes,                 setThemes]                 = useState<Theme[]>([])
+  const [orderedThemes,          setOrderedThemes]          = useState<Theme[]>([])
+  const [groups,                 setGroups]                 = useState<ThemeGroup[]>([])
+  const [loading,                setLoading]                = useState(true)
+  const [selectedGroupId,        setSelectedGroupId]        = useState<string | null>(null)
+  const [modalVisible,           setModalVisible]           = useState(false)
+  const [themeDropOpen,          setThemeDropOpen]          = useState(false)
+  const [errorMsg,               setErrorMsg]               = useState<string | null>(null)
+  const [themeIdsWithMetaphors,  setThemeIdsWithMetaphors]  = useState<Set<string>>(new Set())
+  const [themeIdsWithVideo,      setThemeIdsWithVideo]      = useState<Set<string>>(new Set())
 
   const loadData = async () => {
     setErrorMsg(null)
     setLoading(true)
     try {
-      const [t, g] = await Promise.all([listThemes(), listThemeGroups()])
+      const [t, g, meta, vids] = await Promise.all([
+        listThemes(),
+        listThemeGroups(),
+        supabase.from('theme_metaphors').select('theme_id').is('deleted_at', null),
+        supabase.from('theme_sequences').select('theme_id').not('coach_video_url', 'is', null),
+      ])
       if (t.error || g.error) {
         setErrorMsg('Impossible de charger les thèmes (erreur base de données). Réessayez ou contactez le support.')
         return
       }
       setThemes(t.data)
       setGroups(g.data)
+      setThemeIdsWithMetaphors(new Set((meta.data ?? []).map((r: { theme_id: string }) => r.theme_id)))
+      setThemeIdsWithVideo(new Set((vids.data ?? []).map((r: { theme_id: string }) => r.theme_id)))
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[ThemesIndex] loadData error:', err)
       setErrorMsg('Impossible de charger les thèmes. Veuillez réessayer.')
@@ -78,33 +84,6 @@ export default function ThemesPage() {
     : orderedThemes
 
   const groupMap = Object.fromEntries(groups.map(g => [g.id, g.name]))
-
-  const handleDrop = async (dropIndex: number) => {
-    if (dragIndex === null || dragIndex === dropIndex) return
-    const reordered = [...visibleThemes]
-    const [moved] = reordered.splice(dragIndex, 1)
-    reordered.splice(dropIndex, 0, moved)
-    const previousOrdered = orderedThemes
-    setOrderedThemes(prev => {
-      const next = [...prev]
-      reordered.forEach((t, i) => {
-        const idx = next.findIndex(x => x.id === t.id)
-        if (idx !== -1) next[idx] = { ...t, orderIndex: i }
-      })
-      return next
-    })
-    try {
-      await Promise.all(
-        reordered
-          .map((t, i) => ({ t, i }))
-          .filter(({ t, i }) => t.orderIndex !== i)
-          .map(({ t, i }) => updateThemeOrder(t.id, i))
-      )
-    } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('[ThemesIndex] handleDrop reorder error:', err)
-      setOrderedThemes(previousOrdered)
-    }
-  }
 
   const selectedGroup = groups.find(g => g.id === selectedGroupId)
   const isGlobal = selectedGroupId === null
@@ -128,7 +107,7 @@ export default function ThemesPage() {
 
         <View style={st.tabsRow}>
           {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
+            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
               <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
                 {tab.label}
               </AureakText>
@@ -204,40 +183,6 @@ export default function ThemesPage() {
         <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
       )}
 
-      {!loading && visibleThemes.length > 0 && (
-        <View style={{
-          display            : 'grid',
-          gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
-          gap                : 12,
-        } as never}>
-          {visibleThemes.map((theme, index) => (
-            <div
-              key={theme.id}
-              draggable
-              onDragStart={() => setDragIndex(index)}
-              onDragOver={(e: React.DragEvent) => { e.preventDefault(); setHoverIndex(index) }}
-              onDrop={() => { handleDrop(index); setHoverIndex(null) }}
-              onDragEnd={() => { setDragIndex(null); setHoverIndex(null) }}
-              style={{
-                opacity     : dragIndex === index ? 0.5 : 1,
-                cursor      : dragIndex !== null ? 'grabbing' : 'grab',
-                outline     : hoverIndex === index && dragIndex !== index ? `2px solid ${colors.accent.gold}60` : 'none',
-                borderRadius: 12,
-                transition  : 'opacity 0.15s',
-              }}
-            >
-              <PremiumThemeCard
-                theme={theme}
-                groupName={groupMap[theme.groupId ?? ''] ?? null}
-                category={theme.category ?? null}
-                onPress={() => router.push(`/methodologie/themes/${theme.themeKey}` as never)}
-                onManage={() => router.push(`/methodologie/themes/${theme.themeKey}` as never)}
-              />
-            </div>
-          ))}
-        </View>
-      )}
-
       {!loading && !errorMsg && themes.length === 0 && (
         <View>
           <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
@@ -258,6 +203,90 @@ export default function ThemesPage() {
         <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
           Aucun thème dans ce bloc.
         </AureakText>
+      )}
+
+      {!loading && visibleThemes.length > 0 && (
+        <View style={st.tableWrapper}>
+          {/* Header */}
+          <View style={st.tableHeader}>
+            <View style={{ width: COL_WIDTHS.num }}>
+              <AureakText style={st.thText}>NUMÉRO</AureakText>
+            </View>
+            <View style={{ flex: COL_WIDTHS.title }}>
+              <AureakText style={st.thText}>TITRE</AureakText>
+            </View>
+            <View style={{ width: COL_WIDTHS.bloc }}>
+              <AureakText style={st.thText}>BLOC</AureakText>
+            </View>
+            <View style={{ width: COL_WIDTHS.metaphore }}>
+              <AureakText style={st.thText}>MÉTAPHORE</AureakText>
+            </View>
+            <View style={{ width: COL_WIDTHS.video }}>
+              <AureakText style={st.thText}>VIDÉO</AureakText>
+            </View>
+            <View style={{ width: COL_WIDTHS.status }}>
+              <AureakText style={st.thText}>STATUT</AureakText>
+            </View>
+          </View>
+
+          {/* Rows */}
+          {visibleThemes.map((theme, idx) => {
+            const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
+            return (
+              <Pressable
+                key={theme.id}
+                onPress={() => router.push(`/methodologie/themes/${theme.themeKey}` as never)}
+                style={({ pressed }) => [
+                  st.tableRow,
+                  { backgroundColor: rowBg },
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                {/* NUMÉRO */}
+                <View style={{ width: COL_WIDTHS.num, justifyContent: 'center' }}>
+                  <AureakText style={st.numText}>
+                    {theme.orderIndex != null ? theme.orderIndex : '—'}
+                  </AureakText>
+                </View>
+
+                {/* TITRE */}
+                <View style={{ flex: COL_WIDTHS.title, justifyContent: 'center' }}>
+                  <AureakText style={st.titleText} numberOfLines={2}>
+                    {theme.name}
+                  </AureakText>
+                </View>
+
+                {/* BLOC */}
+                <View style={{ width: COL_WIDTHS.bloc, justifyContent: 'center' }}>
+                  <AureakText style={st.dashText}>
+                    {groupMap[theme.groupId ?? ''] ?? '—'}
+                  </AureakText>
+                </View>
+
+                {/* MÉTAPHORE */}
+                <View style={{ width: COL_WIDTHS.metaphore, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={[st.statusDot, {
+                    backgroundColor: themeIdsWithMetaphors.has(theme.id) ? colors.status.present : colors.border.light,
+                  }]} />
+                </View>
+
+                {/* VIDÉO */}
+                <View style={{ width: COL_WIDTHS.video, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={[st.statusDot, {
+                    backgroundColor: themeIdsWithVideo.has(theme.id) ? colors.status.present : colors.border.light,
+                  }]} />
+                </View>
+
+                {/* STATUT */}
+                <View style={{ width: COL_WIDTHS.status, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={[st.statusDot, {
+                    backgroundColor: theme.isCurrent ? colors.status.present : colors.border.light,
+                  }]} />
+                </View>
+              </Pressable>
+            )
+          })}
+        </View>
       )}
 
       <BlocsManagerModal
@@ -294,12 +323,15 @@ const st = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
+  tabItem: {
+    position    : 'relative',
+    paddingBottom: 10,
+  },
   tabLabel: {
     fontSize     : 11,
     fontWeight   : '700',
     letterSpacing: 1,
     color        : colors.text.subtle,
-    paddingBottom: 10,
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },
@@ -364,6 +396,7 @@ const st = StyleSheet.create({
     justifyContent: 'space-between',
     flexWrap      : 'wrap',
     gap           : space.sm,
+    zIndex        : 9999,
   },
   filtresLeft: {
     flexDirection: 'row',
@@ -422,4 +455,45 @@ const st = StyleSheet.create({
   },
   themeDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   themeDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
+
+  // Table
+  tableWrapper: {
+    borderRadius: 10,
+    borderWidth : 1,
+    borderColor : colors.border.divider,
+    overflow    : 'hidden',
+  },
+  tableHeader: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : 10,
+    gap              : 12,
+    backgroundColor  : colors.light.muted,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  thText: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    fontFamily   : 'Montserrat',
+    color        : colors.text.subtle,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  tableRow: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : 12,
+    gap              : 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+
+  // Row cells
+  numText   : { fontSize: 13, fontWeight: '700', color: colors.accent.gold },
+  titleText : { fontSize: 13, fontWeight: '600', color: colors.text.dark },
+  dashText  : { fontSize: 12, color: colors.text.muted },
+  statusDot : { width: 8, height: 8, borderRadius: 4 },
 })

@@ -129,7 +129,7 @@ export default function SeancesPage() {
         {/* Nav tabs : 5 onglets */}
         <View style={st.tabsRow}>
           {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
+            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
               <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
                 {tab.label}
               </AureakText>
@@ -521,12 +521,15 @@ const st = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
+  tabItem: {
+    position     : 'relative',
+    paddingBottom: 10,
+  },
   tabLabel: {
     fontSize     : 11,
     fontWeight   : '700',
     letterSpacing: 1,
     color        : colors.text.subtle,
-    paddingBottom: 10,
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },
@@ -587,6 +590,7 @@ const st = StyleSheet.create({
     justifyContent: 'space-between',
     flexWrap      : 'wrap',
     gap           : space.sm,
+    zIndex        : 9999,
   },
   filtresLeft: {
     flexDirection: 'row',

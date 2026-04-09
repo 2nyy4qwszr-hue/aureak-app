@@ -49,6 +49,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: space.md,
+    maxWidth  : 1200,
+    alignSelf : 'center',
+    width     : '100%',
   },
   filtresRow: {
     flexDirection    : 'row',
