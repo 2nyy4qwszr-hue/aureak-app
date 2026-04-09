@@ -42,18 +42,21 @@ export const CHORD_MAP: Record<string, Record<string, string>> = {
 const PREFIX_KEYS = new Set(['G', 'N'])
 const CHORD_TIMEOUT_MS = 1000
 
+// Touches de navigation navigateur — jamais interceptées (scroll, sélection de texte)
+const BROWSER_NAV_KEYS = new Set(['END', 'HOME', 'PAGEUP', 'PAGEDOWN', 'ARROWUP', 'ARROWDOWN', 'ARROWLEFT', 'ARROWRIGHT', 'TAB'])
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function isInputFocused(): boolean {
   const el = document.activeElement
   if (!el) return false
   const tag = el.tagName.toUpperCase()
-  return (
-    tag === 'INPUT' ||
-    tag === 'TEXTAREA' ||
-    tag === 'SELECT' ||
-    (el as HTMLElement).isContentEditable
-  )
+  // Inputs standards + éléments scrollables focalisés (tabIndex > -1 + overflow scroll/auto)
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+  if ((el as HTMLElement).isContentEditable) return true
+  const style = window.getComputedStyle(el)
+  const overflow = style.overflow + style.overflowY + style.overflowX
+  return overflow.includes('scroll') || overflow.includes('auto')
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -124,6 +127,9 @@ export function useKeyboardShortcuts(): KeyboardShortcutsReturn {
       }
 
       const key = e.key.toUpperCase()
+
+      // Touches de navigation navigateur → toujours passer (scroll, Home/End)
+      if (BROWSER_NAV_KEYS.has(key)) return
 
       // Pas de chord avec modificateurs (Ctrl, Meta, Alt) → reset préfixe
       if (e.ctrlKey || e.metaKey || e.altKey) {

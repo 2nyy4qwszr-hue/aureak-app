@@ -1792,6 +1792,13 @@ export default function NewSessionPage() {
       {step === 3 && (
         <View style={p.stepWrap}>
 
+          {/* Skip rapide — Thèmes optionnels */}
+          <Pressable onPress={() => setStep(4)} style={{ alignSelf: 'flex-end' }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, textDecorationLine: 'underline' as never }}>
+              Passer cette étape →
+            </AureakText>
+          </Pressable>
+
           {/* Story 58-7 — Section recommandations exercices pour ce groupe */}
           {(() => {
             const groupRecs = groupId ? (recommendations[groupId] ?? []) : []
@@ -1926,6 +1933,14 @@ export default function NewSessionPage() {
           ═══════════════════════════════════════════════════════════ */}
       {step === 4 && (
         <View style={p.stepWrap}>
+
+          {/* Skip rapide — Ateliers optionnels */}
+          <Pressable onPress={() => setStep(5)} style={{ alignSelf: 'flex-end' }}>
+            <AureakText variant="caption" style={{ color: colors.text.muted, textDecorationLine: 'underline' as never }}>
+              Passer cette étape →
+            </AureakText>
+          </Pressable>
+
           <View style={p.card}>
             <SectionLabel title="Ateliers" hint="Optionnel — 0 à 4 ateliers par séance (PDF, carte, notes)" />
             <WorkshopBlockEditor
