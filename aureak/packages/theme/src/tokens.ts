@@ -9,7 +9,7 @@
 export const colors = {
   // ── Dark theme (mobile, sidebar) ──────────────────────────────────────────
   background: {
-    primary : '#1A1A1A',  // noir chaud — fond principal app mobile (dark)
+    primary : '#111111',  // noir hero aureak.be — fond sidebar + dark areas
     surface : '#171717',  // cards, listes, rows (dark)
     elevated: '#242424',  // modals, drawers, overlays (dark)
   },
