@@ -36,8 +36,6 @@ import {
   AlertTriangleIcon,
   ChatIcon,
   LockIcon,
-  SunIcon,
-  MoonIcon,
   ActiveSessionHUD,
   PWAInstallBanner,
   OfflineBanner,
@@ -109,31 +107,27 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Académie',
+    label: '',
     items: [
       { label: 'Académie', href: '/academie', Icon: UsersIcon },
     ],
   },
   {
-    label: 'Évènements',
+    label: '',
     items: [
-      { label: 'Tous les évènements', href: '/evenements', Icon: TargetIcon },
-      { label: 'Stages',              href: '/stages',     Icon: CalendarIcon },
+      { label: 'Événements', href: '/evenements', Icon: TargetIcon },
     ],
   },
   {
-    label: 'Développement',
+    label: '',
     items: [
-      { label: 'Prospection',  href: '/developpement/prospection',  Icon: SearchIcon },
-      { label: 'Marketing',    href: '/developpement/marketing',    Icon: BarChartIcon },
-      { label: 'Partenariats', href: '/developpement/partenariats', Icon: ShieldIcon },
+      { label: 'Développement', href: '/developpement/prospection', Icon: SearchIcon },
     ],
   },
   {
-    label: 'Performance',
+    label: '',
     items: [
-      { label: 'Stats globales',   href: '/analytics',              Icon: BarChartIcon },
-      { label: 'Par implantation', href: '/analytics/implantation', Icon: PieChartIcon },
+      { label: 'Performance', href: '/analytics', Icon: BarChartIcon },
     ],
   },
 ]
@@ -197,7 +191,7 @@ function AdminLayoutInner() {
   // ── Story 62.5 — Référence au conteneur de contenu pour la transition de page ─
   const contentAreaRef = useRef<HTMLDivElement>(null)
   const { role, isLoading, signOut, user } = useAuthStore()
-  const { theme, toggleTheme } = useTheme()
+  useTheme()
   const themeColors = useThemeColors()
   const [mobileOpen,      setMobileOpen]      = useState(false)
   // Story 63.1 — panneau Administration caché derrière ⚙️
@@ -961,49 +955,6 @@ function AdminLayoutInner() {
               </YStack>
             </>
           )}
-
-          {/* ── Story 51.8 — Toggle thème (soleil / lune) ── */}
-          <Pressable onPress={toggleTheme}>
-            {({ pressed }) => (
-              <YStack
-                paddingVertical={7}
-                paddingHorizontal={12}
-                borderRadius={radius.xs}
-                marginBottom={2}
-                backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : 'transparent'}
-                style={{ transition: `background-color ${transitions.fast}` } as never}
-              >
-                {sidebarCollapsed ? (
-                  /* Collapsed : icône seule, centrée */
-                  <YStack alignItems="center" justifyContent="center">
-                    {theme === 'light'
-                      ? <MoonIcon color={colors.text.secondary} size={16} strokeWidth={1.5} />
-                      : <SunIcon  color={colors.text.secondary} size={16} strokeWidth={1.5} />
-                    }
-                  </YStack>
-                ) : (
-                  /* Expanded : icône + label */
-                  <XStack alignItems="center" gap={8}>
-                    {theme === 'light'
-                      ? <MoonIcon color={colors.text.secondary} size={16} strokeWidth={1.5} />
-                      : <SunIcon  color={colors.text.secondary} size={16} strokeWidth={1.5} />
-                    }
-                    <Text
-                      fontFamily="$body"
-                      fontSize={13}
-                      color={colors.text.secondary}
-                      style={{
-                        opacity   : labelsVisible ? 1 : 0,
-                        transition: 'opacity 0.1s ease',
-                      } as never}
-                    >
-                      {theme === 'light' ? 'Mode sombre' : 'Mode clair'}
-                    </Text>
-                  </XStack>
-                )}
-              </YStack>
-            )}
-          </Pressable>
 
           {/* Sign out */}
           <Pressable onPress={handleSignOut}>
