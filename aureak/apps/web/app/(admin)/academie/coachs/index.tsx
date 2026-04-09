@@ -3,7 +3,7 @@
 // Story 82.1 — Appliquer LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)
 import { useEffect, useState } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, usePathname } from 'expo-router'
 import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText, UserCheckIcon } from '@aureak/ui'
@@ -17,6 +17,16 @@ type CoachWithGrade = CoachListRow & {
 }
 
 type RoleFilter = 'all' | 'coach' | 'assistant'
+
+// ── Navigation Académie ───────────────────────────────────────────────────────────
+const ACADEMIE_TABS = [
+  { label: 'JOUEURS',       href: '/academie/joueurs'       },
+  { label: 'COACHS',        href: '/academie/coachs'        },
+  { label: 'SCOUTS',        href: '/academie/scouts'        },
+  { label: 'MANAGERS',      href: '/academie/managers'      },
+  { label: 'CLUBS',         href: '/academie/clubs'         },
+  { label: 'IMPLANTATIONS', href: '/academie/implantations' },
+] as const
 
 // ── Constantes ───────────────────────────────────────────────────────────────────
 const GRADE_VALUES: Record<CoachGradeLevel, number> = {
@@ -52,7 +62,8 @@ function splitName(displayName: string | null): { prenom: string; nom: string } 
 
 // ── Page principale ──────────────────────────────────────────────────────────────
 export default function AcademieCoachsPage() {
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
 
   const [coaches,    setCoaches]    = useState<CoachWithGrade[]>([])
   const [loading,    setLoading]    = useState(true)
@@ -119,14 +130,29 @@ export default function AcademieCoachsPage() {
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
 
         {/* ── headerBlock ── */}
-        <View style={s.headerTopRow}>
-          <AureakText style={s.pageTitle as TextStyle}>COACHS</AureakText>
-          <Pressable
-            onPress={() => router.push('/coaches/new' as never)}
-            style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
-          >
-            <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau coach</AureakText>
-          </Pressable>
+        <View style={s.headerBlock}>
+          <View style={s.headerTopRow}>
+            <AureakText style={s.pageTitle as TextStyle}>ACADÉMIE</AureakText>
+            <Pressable
+              onPress={() => router.push('/coaches/new' as never)}
+              style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
+            >
+              <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau coach</AureakText>
+            </Pressable>
+          </View>
+          <View style={s.tabsRow}>
+            {ACADEMIE_TABS.map(tab => {
+              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+              return (
+                <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
+                  <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
+                    {tab.label}
+                  </AureakText>
+                  {isActive && <View style={s.tabUnderline} />}
+                </Pressable>
+              )
+            })}
+          </View>
         </View>
 
         {/* ── StatCards ── */}
@@ -297,11 +323,37 @@ const s = StyleSheet.create({
   scrollContent: { padding: space.lg, paddingBottom: space.xl, gap: space.md },
 
   // ── headerBlock ──
-  headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle   : { fontSize: 24, fontWeight: '700', fontFamily: 'Montserrat', color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn      : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
+  headerBlock  : { gap: 12 },
+  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: 'Montserrat', color: colors.text.dark, letterSpacing: 0.5 },
+  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   newBtnPressed: { opacity: 0.8 },
-  newBtnLabel : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
+  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
+  // Nav tabs (pattern exact séances)
+  tabsRow: {
+    flexDirection    : 'row',
+    gap              : 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  tabLabel: {
+    fontSize     : 11,
+    fontWeight   : '700',
+    letterSpacing: 1,
+    color        : colors.text.subtle,
+    paddingBottom: 10,
+    textTransform: 'uppercase',
+  },
+  tabLabelActive: { color: colors.accent.gold },
+  tabUnderline  : {
+    position       : 'absolute',
+    bottom         : 0,
+    left           : 0,
+    right          : 0,
+    height         : 2,
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 1,
+  },
 
   // ── StatCards ──
   statCardsRow: {
