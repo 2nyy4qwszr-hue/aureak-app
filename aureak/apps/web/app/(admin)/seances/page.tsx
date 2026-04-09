@@ -185,7 +185,7 @@ function GenerateModal({
 
           <AureakText style={gn.fieldLabel}>Type pédagogique</AureakText>
           <View style={gn.typeRow}>
-            {(['goal_and_player','technique','situationnel','decisionnel','perfectionnement','integration','equipe'] as const).map(t => (
+            {(['goal_and_player','technique','situationnel','performance','decisionnel','perfectionnement','integration','equipe'] as const).map(t => (
               <Pressable
                 key={t}
                 style={[gn.typeChip, sessionType === t && { borderColor: TYPE_COLOR[t] ?? colors.accent.gold, backgroundColor: (TYPE_COLOR[t] ?? colors.accent.gold) + '20' }]}

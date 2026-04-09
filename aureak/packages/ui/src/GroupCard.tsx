@@ -38,6 +38,7 @@ function getMethodColor(method: GroupMethod | null): string {
     'Goal and Player' : 'Goal and Player',
     'Technique'       : 'Technique',
     'Situationnel'    : 'Situationnel',
+    'Performance'     : 'Performance',
     'Décisionnel'     : 'Décisionnel',
   }
   const key = map[method]

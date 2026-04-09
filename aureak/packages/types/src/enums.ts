@@ -83,6 +83,7 @@ export type MethodologyMethod =
   | 'Goal and Player'
   | 'Technique'
   | 'Situationnel'
+  | 'Performance'
   | 'Décisionnel'
   | 'Intégration'
   | 'Perfectionnement'
@@ -94,7 +95,7 @@ export type MethodologyContextType = 'academie' | 'stage'
 export type MethodologyLevel = 'debutant' | 'intermediaire' | 'avance'
 
 export const METHODOLOGY_METHODS: MethodologyMethod[] = [
-  'Goal and Player', 'Technique', 'Situationnel', 'Décisionnel', 'Intégration', 'Perfectionnement',
+  'Goal and Player', 'Technique', 'Situationnel', 'Performance', 'Décisionnel', 'Intégration', 'Perfectionnement',
 ]
 
 export const METHODOLOGY_CONTEXT_TYPES: MethodologyContextType[] = ['academie', 'stage']
@@ -141,13 +142,14 @@ export type SessionType =
   | 'goal_and_player'
   | 'technique'
   | 'situationnel'
+  | 'performance'
   | 'decisionnel'
   | 'perfectionnement'
   | 'integration'
   | 'equipe'
 
 export const SESSION_TYPES: SessionType[] = [
-  'goal_and_player', 'technique', 'situationnel', 'decisionnel',
+  'goal_and_player', 'technique', 'situationnel', 'performance', 'decisionnel',
   'perfectionnement', 'integration', 'equipe',
 ]
 
@@ -155,6 +157,7 @@ export const SESSION_TYPE_LABELS: Record<SessionType, string> = {
   goal_and_player : 'Goal & Player',
   technique       : 'Technique',
   situationnel    : 'Situationnel',
+  performance     : 'Performance',
   decisionnel     : 'Décisionnel',
   perfectionnement: 'Perfectionnement',
   integration     : 'Intégration',

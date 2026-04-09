@@ -2,12 +2,13 @@
 // Format : [Lieu] - [Jour] - [HHhMM] - [Méthode]
 // Gère automatiquement les doublons avec suffixe - 1 / - 2 / etc.
 
-export type GroupMethod = 'Goal and Player' | 'Technique' | 'Situationnel' | 'Décisionnel'
+export type GroupMethod = 'Goal and Player' | 'Technique' | 'Situationnel' | 'Performance' | 'Décisionnel'
 
 export const GROUP_METHODS: GroupMethod[] = [
   'Goal and Player',
   'Technique',
   'Situationnel',
+  'Performance',
   'Décisionnel',
 ]
 
@@ -32,9 +33,10 @@ export const AGE_CATEGORY_TO_METHOD: Record<string, GroupMethod> = {
 // Couleurs associées à chaque méthode (design system Dark Manga Premium)
 export const METHOD_COLOR: Record<GroupMethod, string> = {
   'Goal and Player': '#FFB800',
-  'Technique'    : '#4FC3F7',
-  'Situationnel' : '#66BB6A',
-  'Décisionnel'  : '#CE93D8',
+  'Technique'      : '#4FC3F7',
+  'Situationnel'   : '#66BB6A',
+  'Performance'    : '#26A69A',
+  'Décisionnel'    : '#CE93D8',
 }
 
 /**
