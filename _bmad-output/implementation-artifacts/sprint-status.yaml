@@ -410,5 +410,5 @@ development_status:
   # Epic 82 : Alignements visuels — Cards + Programmes
   epic-82: in-progress
   82-1-activites-statcards-hauteur-uniforme: done
-  82-2-methodologie-programmes-layout-entrainements: ready-for-dev
+  82-2-methodologie-programmes-layout-entrainements: done
   epic-82-retrospective: optional

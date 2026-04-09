@@ -100,93 +100,88 @@ export default function ProgrammesPage() {
         </View>
       </View>
 
-      {/* ── Stats row compact — 7 blocs côte à côte ── */}
-      <View style={st.statsRow}>
+      {/* ── StatCards — 7 cards méthodes horizontales ── */}
+      <View style={st.statCardsRow}>
         {methodCounts.map(({ method, count }) => {
           const color = methodologyMethodColors[method] ?? colors.accent.gold
           return (
-            <View key={method} style={st.statBlock}>
-              <AureakText style={{ ...st.statCount, color } as TextStyle}>{count}</AureakText>
-              <AureakText style={st.statLabel}>{METHOD_PICTOS[method]} {method}</AureakText>
+            <View key={method} style={st.statCard}>
+              <AureakText style={st.statCardPicto}>{METHOD_PICTOS[method]}</AureakText>
+              <AureakText style={st.statCardLabel}>{method}</AureakText>
+              <AureakText style={{ ...st.statCardValue, color } as TextStyle}>{count}</AureakText>
             </View>
           )
         })}
       </View>
 
-      {/* ── Filter bar — tabs underline style ── */}
-      <View style={st.filterBar}>
-        {/* Global */}
-        <Pressable
-          onPress={() => { setMethodFilter('all'); setContextFilter('all'); setMethodDropOpen(false) }}
-          style={st.filterTabWrap}
-        >
-          <AureakText style={{ ...st.filterTab, ...(isGlobal ? st.filterTabActive : {}) } as TextStyle}>
-            GLOBAL
-          </AureakText>
-          {isGlobal && <View style={st.filterTabUnderline} />}
-        </Pressable>
-
-        {/* MÉTHODE dropdown */}
-        <View>
+      {/* ── FiltresRow — gauche | droite ── */}
+      <View style={st.filtresRow}>
+        {/* Gauche : GLOBAL pill + MÉTHODE pill */}
+        <View style={st.filtresLeft}>
           <Pressable
-            onPress={() => setMethodDropOpen(o => !o)}
-            style={st.filterTabWrap}
+            style={isGlobal ? st.pillActive : st.pillInactive}
+            onPress={() => { setMethodFilter('all'); setContextFilter('all'); setMethodDropOpen(false) }}
           >
-            <AureakText style={{ ...st.filterTab, ...(methodFilter !== 'all' ? st.filterTabActive : {}) } as TextStyle}>
-              {methodFilter === 'all' ? 'MÉTHODE ▾' : `${methodFilter} ▾`}
-            </AureakText>
-            {methodFilter !== 'all' && <View style={st.filterTabUnderline} />}
+            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
           </Pressable>
-        </View>
 
-        {/* ACADÉMIQUE */}
-        <Pressable
-          onPress={() => { setContextFilter(contextFilter === 'academie' ? 'all' : 'academie'); setMethodDropOpen(false) }}
-          style={st.filterTabWrap}
-        >
-          <AureakText style={{ ...st.filterTab, ...(contextFilter === 'academie' ? st.filterTabActive : {}) } as TextStyle}>
-            ACADÉMIQUE
-          </AureakText>
-          {contextFilter === 'academie' && <View style={st.filterTabUnderline} />}
-        </Pressable>
-
-        {/* STAGE */}
-        <Pressable
-          onPress={() => { setContextFilter(contextFilter === 'stage' ? 'all' : 'stage'); setMethodDropOpen(false) }}
-          style={st.filterTabWrap}
-        >
-          <AureakText style={{ ...st.filterTab, ...(contextFilter === 'stage' ? st.filterTabActive : {}) } as TextStyle}>
-            STAGE
-          </AureakText>
-          {contextFilter === 'stage' && <View style={st.filterTabUnderline} />}
-        </Pressable>
-
-        {/* Recherche */}
-        <TextInput
-          style={st.searchCompact}
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Rechercher…"
-          placeholderTextColor={colors.text.subtle}
-        />
-      </View>
-
-      {/* Dropdown méthodes */}
-      {methodDropOpen && (
-        <View style={st.methodDropdown}>
-          {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
+          <View style={st.dropdownWrapper}>
             <Pressable
-              key={m}
-              style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
-              onPress={() => { setMethodFilter(m); setMethodDropOpen(false) }}
+              style={methodFilter !== 'all' ? st.pillActive : st.pillInactive}
+              onPress={() => setMethodDropOpen(o => !o)}
             >
-              <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
-                {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
+              <AureakText style={methodFilter !== 'all' ? st.pillTextActive : st.pillTextInactive}>
+                {methodFilter === 'all' ? 'MÉTHODE ▾' : `${methodFilter} ▾`}
               </AureakText>
             </Pressable>
-          ))}
+
+            {methodDropOpen && (
+              <View style={st.methodDropdown}>
+                {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
+                  <Pressable
+                    key={m}
+                    style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
+                    onPress={() => { setMethodFilter(m); setMethodDropOpen(false) }}
+                  >
+                    <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
+                      {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
+                    </AureakText>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
-      )}
+
+        {/* Droite : Toggle ACADÉMIE / STAGE + recherche */}
+        <View style={st.filtresRight}>
+          <View style={st.toggleRow}>
+            <Pressable
+              style={[st.toggleBtn, contextFilter === 'academie' && st.toggleBtnActive] as never}
+              onPress={() => { setContextFilter(contextFilter === 'academie' ? 'all' : 'academie'); setMethodDropOpen(false) }}
+            >
+              <AureakText style={[st.toggleLabel, contextFilter === 'academie' && st.toggleLabelActive] as never}>
+                ACADÉMIE
+              </AureakText>
+            </Pressable>
+            <Pressable
+              style={[st.toggleBtn, contextFilter === 'stage' && st.toggleBtnActive] as never}
+              onPress={() => { setContextFilter(contextFilter === 'stage' ? 'all' : 'stage'); setMethodDropOpen(false) }}
+            >
+              <AureakText style={[st.toggleLabel, contextFilter === 'stage' && st.toggleLabelActive] as never}>
+                STAGE
+              </AureakText>
+            </Pressable>
+          </View>
+          <TextInput
+            style={st.searchCompact}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher…"
+            placeholderTextColor={colors.text.subtle}
+          />
+        </View>
+      </View>
 
       {/* ── Contenu : table programmes ── */}
       {loading ? (
@@ -339,76 +334,143 @@ const st = StyleSheet.create({
     borderRadius   : 1,
   },
 
-  // Stats row compact
-  statsRow: {
-    flexDirection   : 'row',
-    gap             : space.sm,
-    paddingVertical : 8,
-  },
-  statBlock: {
-    flex         : 1,
-    alignItems   : 'center',
-    gap          : 2,
-  },
-  statCount: {
-    fontSize  : 22,
-    fontWeight: '900',
-    fontFamily: 'Montserrat',
-  },
-  statLabel: {
-    fontSize     : 9,
-    fontWeight   : '600',
-    color        : colors.text.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    textAlign    : 'center',
-  },
-
-  // Filter bar — tabs underline style
-  filterBar: {
+  // StatCards — 7 cards méthodes horizontales
+  statCardsRow: {
     flexDirection    : 'row',
-    alignItems       : 'center',
-    gap              : 4,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-    paddingBottom    : 0,
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.md,
     flexWrap         : 'wrap',
   },
-  filterTabWrap: {
-    position    : 'relative',
-    paddingBottom: 8,
+  statCard: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    minWidth       : 130,
+    alignItems     : 'center',
+    gap            : 4,
+    // @ts-ignore web
+    boxShadow      : shadows.sm,
   },
-  filterTab: {
+  statCardPicto: {
+    fontSize    : 22,
+    marginBottom: 2,
+  },
+  statCardLabel: {
+    fontSize     : 10,
+    fontFamily   : 'Montserrat',
+    fontWeight   : '700',
+    color        : colors.text.muted,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    textAlign    : 'center',
+  },
+  statCardValue: {
+    fontSize  : 28,
+    fontFamily: 'Montserrat',
+    fontWeight: '900',
+    color     : colors.text.dark,
+  },
+
+  // FiltresRow — gauche | droite
+  filtresRow: {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    justifyContent: 'space-between',
+    flexWrap      : 'wrap',
+    gap           : space.sm,
+  },
+  filtresLeft: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.sm,
+  },
+  filtresRight: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.sm,
+  },
+
+  // Pills FiltresScope design (hauteur alignée sur toggles : paddingVertical 8)
+  pillActive: {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.accent.gold,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold,
+  },
+  pillInactive: {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  pillTextActive: {
+    fontSize  : 12,
+    fontWeight: '600',
+    fontFamily: 'Montserrat',
+    color     : colors.text.dark,
+  },
+  pillTextInactive: {
+    fontSize  : 12,
+    fontWeight: '600',
+    fontFamily: 'Montserrat',
+    color     : colors.text.muted,
+  },
+
+  // Dropdown wrapper (for pill + dropdown positioning)
+  dropdownWrapper: {
+    position: 'relative',
+    zIndex  : 9999,
+  },
+
+  // SegmentedToggle (pattern exact de academie/joueurs)
+  toggleRow: {
+    flexDirection: 'row',
+    gap          : 0,
+    alignSelf    : 'flex-start',
+    borderRadius : radius.xs,
+    overflow     : 'hidden',
+    borderWidth  : 1,
+    borderColor  : colors.border.light,
+  },
+  toggleBtn: {
+    paddingVertical  : 8,
+    paddingHorizontal: space.lg,
+    backgroundColor  : colors.light.surface,
+  },
+  toggleBtnActive: {
+    backgroundColor: colors.accent.gold,
+  },
+  toggleLabel: {
     fontSize     : 11,
     fontWeight   : '700',
     letterSpacing: 0.8,
-    color        : colors.text.subtle,
-    paddingHorizontal: 10,
-    textTransform: 'uppercase',
+    color        : colors.text.muted,
   },
-  filterTabActive: {
-    color: colors.accent.gold,
-  },
-  filterTabUnderline: {
-    position       : 'absolute',
-    bottom         : 0,
-    left           : 10,
-    right          : 10,
-    height         : 2,
-    backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
+  toggleLabelActive: {
+    color: colors.text.dark,
   },
 
-  // Méthode dropdown
+  // Méthode dropdown (absolu sous sa pill)
   methodDropdown: {
+    position       : 'absolute',
+    top            : 38,
+    left           : 0,
+    zIndex         : 9999,
     backgroundColor: colors.light.surface,
-    borderRadius   : 10,
+    borderRadius   : radius.xs,
     borderWidth    : 1,
     borderColor    : colors.border.light,
     padding        : 6,
+    minWidth       : 220,
     // @ts-ignore web
     boxShadow      : shadows.lg,
-    minWidth       : 220,
   },
   methodDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
@@ -425,8 +487,6 @@ const st = StyleSheet.create({
     fontSize         : 12,
     minWidth         : 120,
     maxWidth         : 200,
-    marginLeft       : 'auto',
-    marginBottom     : 8,
   },
 
   // Table
