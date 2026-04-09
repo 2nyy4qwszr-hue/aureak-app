@@ -1,16 +1,17 @@
 'use client'
-// Story 80-1 — Redesign TierPills exact (pattern children/index.tsx tp.*)
+// Story 80-1 — TierPills exact (copie du pattern TIER_PILLS_CONFIG de children/index.tsx)
+// Actif = même bg, borderWidth 2, opacity 1 — Inactif = borderWidth 1, opacity 0.75
 import React from 'react'
 import { ScrollView, Pressable, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors } from '@aureak/theme'
 
 export type TemporalFilter = 'today' | 'upcoming' | 'past'
 
-const FILTERS: { key: TemporalFilter; label: string; bg: string; borderColor: string; textColor: string }[] = [
-  { key: 'today',    label: "AUJOURD'HUI", bg: colors.accent.gold,   borderColor: colors.accent.gold,   textColor: colors.text.dark },
-  { key: 'upcoming', label: 'À VENIR',     bg: colors.light.surface, borderColor: colors.border.light,  textColor: colors.text.dark },
-  { key: 'past',     label: 'PASSÉES',     bg: colors.light.muted,   borderColor: colors.border.light,  textColor: colors.text.muted },
+const FILTERS_CONFIG: { key: TemporalFilter; label: string; bg: string; textColor: string; borderColor: string }[] = [
+  { key: 'today',    label: "AUJOURD'HUI", bg: colors.accent.gold,   textColor: colors.text.dark,  borderColor: colors.border.goldSolid },
+  { key: 'upcoming', label: 'À VENIR',     bg: colors.light.surface, textColor: colors.text.dark,  borderColor: colors.border.light     },
+  { key: 'past',     label: 'PASSÉES',     bg: colors.light.muted,   textColor: colors.text.muted, borderColor: colors.border.light     },
 ]
 
 type Props = {
@@ -25,7 +26,7 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={tp.row}
     >
-      {FILTERS.map(cfg => {
+      {FILTERS_CONFIG.map(cfg => {
         const isActive = cfg.key === value
         return (
           <Pressable
