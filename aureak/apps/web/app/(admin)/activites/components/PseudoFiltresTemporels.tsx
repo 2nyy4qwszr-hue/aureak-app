@@ -1,6 +1,5 @@
 'use client'
-// Story 80-1 — Copie exacte du pattern TierPills (children/index.tsx)
-// tp.row / tp.pill / tp.label — même bg fixe, actif = borderWidth 2 + opacity 1
+// Story 80-1 — Copie pixel-perfect du TierPills joueurs (children/index.tsx)
 import React from 'react'
 import { ScrollView, Pressable, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
@@ -8,10 +7,11 @@ import { colors } from '@aureak/theme'
 
 export type TemporalFilter = 'today' | 'upcoming' | 'past'
 
-const TEMPORAL_CONFIG: { key: TemporalFilter; label: string; bg: string; textColor: string; borderColor: string }[] = [
-  { key: 'today',    label: "AUJOURD'HUI", bg: colors.light.muted, textColor: colors.text.dark,  borderColor: colors.border.light },
-  { key: 'upcoming', label: 'À VENIR',     bg: colors.light.muted, textColor: colors.text.dark,  borderColor: colors.border.light },
-  { key: 'past',     label: 'PASSÉES',     bg: colors.light.muted, textColor: colors.text.muted, borderColor: colors.border.light },
+// Même structure que TIER_PILLS_CONFIG dans children/index.tsx
+const TEMPORAL_PILLS_CONFIG: { key: TemporalFilter; label: string; bg: string; textColor: string; borderColor: string }[] = [
+  { key: 'today',    label: "Aujourd'hui", bg: colors.light.muted,   textColor: colors.text.dark,  borderColor: colors.border.light },
+  { key: 'upcoming', label: 'À venir',     bg: colors.light.surface, textColor: colors.text.dark,  borderColor: colors.border.light },
+  { key: 'past',     label: 'Passées',     bg: colors.light.muted,   textColor: colors.text.muted, borderColor: colors.border.light },
 ]
 
 type Props = {
@@ -26,7 +26,7 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={tp.row}
     >
-      {TEMPORAL_CONFIG.map(cfg => {
+      {TEMPORAL_PILLS_CONFIG.map(cfg => {
         const isActive = cfg.key === value
         return (
           <Pressable
@@ -53,6 +53,7 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
   )
 }
 
+// Copié 1:1 depuis children/index.tsx (tp StyleSheet)
 const tp = StyleSheet.create({
   row  : { flexDirection: 'row', gap: 8, paddingVertical: 4, paddingHorizontal: 2 },
   pill : { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
