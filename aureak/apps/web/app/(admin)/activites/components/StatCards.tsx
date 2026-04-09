@@ -194,9 +194,8 @@ const styles = StyleSheet.create({
   card: {
     flex            : 1,
     minWidth        : 160,
-    minHeight       : 174,
     backgroundColor : colors.light.surface,
-    borderRadius    : radius.cardLg,  // 24
+    borderRadius    : radius.card,
     padding         : 16,
     borderWidth     : 1,
     borderColor     : colors.border.divider,
@@ -207,9 +206,8 @@ const styles = StyleSheet.create({
   skeletonCard: {
     flex           : 1,
     minWidth       : 160,
-    minHeight      : 174,
     backgroundColor: colors.light.muted,
-    borderRadius   : radius.cardLg,
+    borderRadius   : radius.card,
     opacity        : 0.6,
   },
 
@@ -301,9 +299,8 @@ const styles = StyleSheet.create({
   cardGold: {
     flex           : 1,
     minWidth       : 160,
-    minHeight      : 174,
     backgroundColor: colors.accent.goldDark,
-    borderRadius   : 24,
+    borderRadius   : radius.card,
     padding        : 16,
     borderWidth    : 0,
     position       : 'relative',

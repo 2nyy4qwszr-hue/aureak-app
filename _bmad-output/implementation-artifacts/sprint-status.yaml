@@ -401,3 +401,14 @@ development_status:
   80-2-activites-presences-alignement-design-seances: done
   80-3-activites-evaluations-alignement-design-seances: done
   epic-80-retrospective: optional
+
+  # Epic 81 : Méthodologie — Uniformisation LayoutActivités
+  epic-81: done
+  81-1-methodologie-entrainements-layout-activites: done
+  epic-81-retrospective: optional
+
+  # Epic 82 : Alignements visuels — Cards + Programmes
+  epic-82: in-progress
+  82-1-activites-statcards-hauteur-uniforme: done
+  82-2-methodologie-programmes-layout-entrainements: ready-for-dev
+  epic-82-retrospective: optional
