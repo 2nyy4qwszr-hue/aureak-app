@@ -332,22 +332,19 @@ function TableauGroupes({ rows, page, onPage, onClickGroup }: TableauGroupesProp
 
   return (
     <View style={tableStyles.container}>
-      {/* Titre + légende */}
-      <View style={tableStyles.header}>
-        <AureakText style={tableStyles.title}>Registre des Présences</AureakText>
-        <View style={tableStyles.legend}>
-          <View style={tableStyles.legendItem}>
-            <View style={[tableStyles.legendDot, { backgroundColor: colors.status.present }]} />
-            <AureakText style={tableStyles.legendLabel}>Présent</AureakText>
-          </View>
-          <View style={tableStyles.legendItem}>
-            <View style={[tableStyles.legendDot, { backgroundColor: colors.status.absent }]} />
-            <AureakText style={tableStyles.legendLabel}>Absent</AureakText>
-          </View>
-          <View style={tableStyles.legendItem}>
-            <View style={[tableStyles.legendDot, { backgroundColor: colors.status.attention }]} />
-            <AureakText style={tableStyles.legendLabel}>Retard</AureakText>
-          </View>
+      {/* Légende compacte */}
+      <View style={tableStyles.legend}>
+        <View style={tableStyles.legendItem}>
+          <View style={[tableStyles.legendDot, { backgroundColor: colors.status.present }]} />
+          <AureakText style={tableStyles.legendLabel}>Présent</AureakText>
+        </View>
+        <View style={tableStyles.legendItem}>
+          <View style={[tableStyles.legendDot, { backgroundColor: colors.status.absent }]} />
+          <AureakText style={tableStyles.legendLabel}>Absent</AureakText>
+        </View>
+        <View style={tableStyles.legendItem}>
+          <View style={[tableStyles.legendDot, { backgroundColor: colors.status.attention }]} />
+          <AureakText style={tableStyles.legendLabel}>Retard</AureakText>
         </View>
       </View>
 
@@ -367,10 +364,10 @@ function TableauGroupes({ rows, page, onPage, onClickGroup }: TableauGroupesProp
       </View>
 
       {/* Lignes */}
-      {sliced.map(row => (
+      {sliced.map((row, idx) => (
         <Pressable
           key={row.groupId}
-          style={({ pressed }) => [tableStyles.tableRow, pressed && tableStyles.tableRowPressed]}
+          style={({ pressed }) => [tableStyles.tableRow, { backgroundColor: idx % 2 === 0 ? colors.light.surface : colors.light.muted }, pressed && tableStyles.tableRowPressed]}
           onPress={() => onClickGroup(row.groupId)}
         >
           <View style={{ flex: 2 }}>
@@ -434,7 +431,7 @@ const tableStyles = StyleSheet.create({
     margin         : space.lg,
     padding        : space.xl,
     backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
+    borderRadius   : 10,
     alignItems     : 'center',
   },
   emptyText: {
@@ -452,32 +449,16 @@ const tableStyles = StyleSheet.create({
   container: {
     marginHorizontal: space.lg,
     marginBottom    : space.lg,
-    backgroundColor : colors.light.surface,
-    borderRadius    : radius.card,
+    borderRadius    : 10,
     borderWidth     : 1,
     borderColor     : colors.border.divider,
     overflow        : 'hidden',
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore web shadow
-    boxShadow       : shadows.sm,
-  },
-  header: {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    justifyContent   : 'space-between',
-    padding          : space.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-  },
-  title: {
-    fontSize  : 15,
-    fontFamily: fonts.heading,
-    fontWeight: '700',
-    color     : colors.text.dark,
   },
   legend: {
-    flexDirection: 'row',
-    gap          : space.md,
+    flexDirection    : 'row',
+    gap              : space.md,
+    paddingHorizontal: 16,
+    paddingVertical  : 6,
   },
   legendItem: {
     flexDirection: 'row',
@@ -497,15 +478,15 @@ const tableStyles = StyleSheet.create({
   tableHeader: {
     flexDirection    : 'row',
     alignItems       : 'center',
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm,
+    paddingHorizontal: 16,
+    paddingVertical  : 10,
     backgroundColor  : colors.light.muted,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
   th: {
     fontSize     : 10,
-    fontFamily   : fonts.heading,
+    fontFamily   : 'Montserrat',
     fontWeight   : '700',
     color        : colors.text.subtle,
     letterSpacing: 1,
@@ -514,11 +495,10 @@ const tableStyles = StyleSheet.create({
   tableRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
-    paddingHorizontal: space.md,
+    paddingHorizontal: 16,
     minHeight        : 52,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
-    backgroundColor  : colors.light.surface,
   },
   tableRowPressed: {
     backgroundColor: colors.light.hover,
@@ -567,6 +547,7 @@ const tableStyles = StyleSheet.create({
     paddingVertical  : space.sm,
     borderTopWidth   : 1,
     borderTopColor   : colors.border.divider,
+    backgroundColor  : colors.light.muted,
   },
   paginationLabel: {
     fontSize  : 12,
@@ -653,8 +634,8 @@ function HeatmapGroupe({ rows, sessionDates, sortDesc, onToggleSort, onClickPlay
       </View>
 
       {/* Lignes joueurs */}
-      {sorted.map(row => (
-        <View key={row.childId} style={heatStyles.tableRow}>
+      {sorted.map((row, idx) => (
+        <View key={row.childId} style={[heatStyles.tableRow, { backgroundColor: idx % 2 === 0 ? colors.light.surface : colors.light.muted }]}>
           {/* Avatar + Nom */}
           <View style={heatStyles.playerCell}>
             <View style={heatStyles.avatar}>
@@ -694,14 +675,10 @@ const heatStyles = StyleSheet.create({
   container: {
     marginHorizontal: space.lg,
     marginBottom    : space.lg,
-    backgroundColor : colors.light.surface,
-    borderRadius    : radius.card,
+    borderRadius    : 10,
     borderWidth     : 1,
     borderColor     : colors.border.divider,
     overflow        : 'hidden',
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore web shadow
-    boxShadow       : shadows.sm,
   },
   atRiskBanner: {
     backgroundColor  : colors.status.errorBg,
@@ -1240,14 +1217,14 @@ export default function PresencesPage() {
     <View style={pageStyles.container}>
       <ActivitesHeader />
       <ScrollView style={pageStyles.scroll} contentContainerStyle={pageStyles.scrollContent}>
+        {/* Stat cards */}
+        <StatCardsPresences sessions={sessions} />
+
         {/* Filtres scope + temporels sur une ligne */}
         <View style={pageStyles.filtresRow}>
           <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />
           <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
         </View>
-
-        {/* Stat cards */}
-        <StatCardsPresences sessions={sessions} />
 
         {/* Vue selon filtre */}
         {loading && (

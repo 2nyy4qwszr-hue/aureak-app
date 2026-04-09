@@ -398,4 +398,5 @@ development_status:
   # Epic 80 : Activités — Uniformisation visuelle alignement Méthodologie
   epic-80: in-progress
   80-1-activites-seances-alignement-design-methodologie: done
+  80-2-activites-presences-alignement-design-seances: done
   epic-80-retrospective: optional
