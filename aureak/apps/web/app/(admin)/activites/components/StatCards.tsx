@@ -118,9 +118,7 @@ export function StatCards({ scope }: Props) {
           </View>
         )}
         {/* Picto */}
-        <View style={styles.pictoBox}>
-          <AureakText style={styles.pictoText}>📈</AureakText>
-        </View>
+        <AureakText style={styles.statIcon}>📈</AureakText>
         <AureakText style={styles.statLabel}>PRÉSENCE MOYENNE</AureakText>
         <AureakText style={styles.statValue}>{stats.avgPres}%</AureakText>
         <AureakText style={stats.avgPres >= 75 ? styles.statSubGreen : styles.statSub}>
@@ -130,9 +128,7 @@ export function StatCards({ scope }: Props) {
 
       {/* Card 2 — TOTAL SÉANCES */}
       <View style={styles.card as object}>
-        <View style={styles.pictoBox}>
-          <AureakText style={styles.pictoText}>📅</AureakText>
-        </View>
+        <AureakText style={styles.statIcon}>📅</AureakText>
         <AureakText style={styles.statLabel}>TOTAL SÉANCES</AureakText>
         <AureakText style={styles.statValue}>{stats.total}</AureakText>
         <AureakText style={styles.statSub}>{stats.upcoming} à venir</AureakText>
@@ -146,9 +142,7 @@ export function StatCards({ scope }: Props) {
             <AureakText style={styles.badgeVioletText}>Record</AureakText>
           </View>
         )}
-        <View style={styles.pictoBox}>
-          <AureakText style={styles.pictoText}>⚠️</AureakText>
-        </View>
+        <AureakText style={styles.statIcon}>⚠️</AureakText>
         <AureakText style={styles.statLabel}>ANNULÉES</AureakText>
         <AureakText style={styles.statValue}>{stats.cancelled}</AureakText>
         <AureakText style={styles.statSub}>sur {stats.total} séances</AureakText>
@@ -196,7 +190,7 @@ const styles = StyleSheet.create({
     minWidth        : 160,
     backgroundColor : colors.light.surface,
     borderRadius    : radius.card,
-    padding         : 16,
+    padding         : space.md,
     borderWidth     : 1,
     borderColor     : colors.border.divider,
     boxShadow       : shadows.sm,
@@ -211,16 +205,10 @@ const styles = StyleSheet.create({
     opacity        : 0.6,
   },
 
-  // Zone picto 41×41px
-  pictoBox: {
-    width          : 41,
-    height         : 41,
-    alignItems     : 'center',
-    justifyContent : 'center',
-    marginBottom   : 12,
-  },
-  pictoText: {
-    fontSize: 26,
+  // Picto emoji direct
+  statIcon: {
+    fontSize    : 22,
+    marginBottom: 4,
   },
 
   // Badge trend or (card 1)
@@ -257,40 +245,38 @@ const styles = StyleSheet.create({
     color     : colors.status.warning,
   },
 
-  // Label commun (uppercase, Montserrat 14px)
+  // Label commun (uppercase)
   statLabel: {
-    fontSize     : 14,
+    fontSize     : 10,
     fontFamily   : 'Montserrat',
-    fontWeight   : '500',
+    fontWeight   : '700',
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 1,
     color        : colors.text.muted,
-    marginBottom : 6,
+    marginBottom : space.sm,
   },
 
-  // Valeur commun (30px bold)
+  // Valeur commun (28px black)
   statValue: {
-    fontSize  : 30,
-    fontWeight: '700',
-    fontFamily: 'Montserrat',
-    color     : colors.text.dark,
-    lineHeight : 38,
+    fontSize    : 28,
+    fontWeight  : '900',
+    fontFamily  : 'Montserrat',
+    color       : colors.text.dark,
+    marginBottom: space.xs,
   },
 
   // Sous-label or (neutre/négatif)
   statSub: {
-    fontSize  : 12,
+    fontSize  : 11,
     fontFamily: 'Montserrat',
-    fontWeight: '700',
     color     : colors.accent.gold,
     marginTop : 6,
   },
 
   // Sous-label vert (positif)
   statSubGreen: {
-    fontSize  : 12,
+    fontSize  : 11,
     fontFamily: 'Montserrat',
-    fontWeight: '700',
     color     : colors.status.success,
     marginTop : 6,
   },
@@ -301,7 +287,7 @@ const styles = StyleSheet.create({
     minWidth       : 160,
     backgroundColor: colors.accent.goldDark,
     borderRadius   : radius.card,
-    padding        : 16,
+    padding        : space.md,
     borderWidth    : 0,
     position       : 'relative',
   },

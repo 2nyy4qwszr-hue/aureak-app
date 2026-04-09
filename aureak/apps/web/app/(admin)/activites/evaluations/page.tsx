@@ -13,7 +13,6 @@ import type { AdminEvalRow } from '@aureak/api-client'
 
 import { ActivitesHeader }        from '../components/ActivitesHeader'
 import { FiltresScope }           from '../components/FiltresScope'
-import { PseudoFiltresTemporels } from '../components/PseudoFiltresTemporels'
 import type { ScopeState }        from '../components/FiltresScope'
 import type { TemporalFilter }    from '../components/PseudoFiltresTemporels'
 
@@ -230,7 +229,7 @@ export default function EvaluationsPage() {
   const router = useRouter()
 
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
-  const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('past')
+  const [temporalFilter]                    = useState<TemporalFilter>('past')
   const [evalType,       setEvalType]       = useState<EvalType>('badges')
   const [evals,          setEvals]          = useState<EvalRowEnriched[]>([])
   const [loading,        setLoading]        = useState(false)
@@ -388,14 +387,9 @@ export default function EvaluationsPage() {
           />
         </View>
 
-        {/* Filtres scope + temporels sur une ligne */}
+        {/* Filtres scope + toggle evalType sur une ligne */}
         <View style={styles.filtresRow}>
           <FiltresScope value={scope} onChange={setScope} />
-          <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
-        </View>
-
-        {/* Eval Type — SegmentedToggle */}
-        <View style={styles.toggleRowWrapper}>
           <View style={styles.toggleRow}>
             {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
               const isActive = type === evalType
@@ -669,10 +663,6 @@ const styles = StyleSheet.create({
   },
 
   // ── Eval Type SegmentedToggle ──────────────────────────────────────────────
-  toggleRowWrapper: {
-    paddingHorizontal: space.lg,
-    marginBottom     : space.md,
-  },
   toggleRow: {
     flexDirection: 'row',
     gap          : 0,

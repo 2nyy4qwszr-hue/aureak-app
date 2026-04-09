@@ -1,7 +1,7 @@
 'use client'
 // Programmes pédagogiques — bibliothèque de programmes par méthode et saison
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable, type TextStyle } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listMethodologyProgrammes } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -39,7 +39,6 @@ export default function ProgrammesPage() {
 
   const [programmes,     setProgrammes]     = useState<MethodologyProgramme[]>([])
   const [loading,        setLoading]        = useState(true)
-  const [search,         setSearch]         = useState('')
   const [methodFilter,   setMethodFilter]   = useState<FilterMethod>('all')
   const [contextFilter,  setContextFilter]  = useState<MethodologyContextType | 'all'>('all')
   const [methodDropOpen, setMethodDropOpen] = useState(false)
@@ -61,7 +60,6 @@ export default function ProgrammesPage() {
   }, [loadProgrammes])
 
   const filtered = programmes.filter(p => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false
     if (methodFilter  !== 'all' && p.method      !== methodFilter)  return false
     if (contextFilter !== 'all' && p.contextType !== contextFilter) return false
     return true
@@ -153,7 +151,7 @@ export default function ProgrammesPage() {
           </View>
         </View>
 
-        {/* Droite : Toggle ACADÉMIE / STAGE + recherche */}
+        {/* Droite : Toggle ACADÉMIE / STAGE */}
         <View style={st.filtresRight}>
           <View style={st.toggleRow}>
             <Pressable
@@ -173,13 +171,6 @@ export default function ProgrammesPage() {
               </AureakText>
             </Pressable>
           </View>
-          <TextInput
-            style={st.searchCompact}
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Rechercher…"
-            placeholderTextColor={colors.text.subtle}
-          />
         </View>
       </View>
 
@@ -474,20 +465,6 @@ const st = StyleSheet.create({
   },
   methodDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
-
-  // Recherche compacte
-  searchCompact: {
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    borderRadius     : 20,
-    paddingHorizontal: 12,
-    paddingVertical  : 5,
-    color            : colors.text.dark,
-    fontSize         : 12,
-    minWidth         : 120,
-    maxWidth         : 200,
-  },
 
   // Table
   empty: { padding: space.lg, alignItems: 'center' },
