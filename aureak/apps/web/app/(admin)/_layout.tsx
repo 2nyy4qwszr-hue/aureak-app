@@ -723,17 +723,6 @@ function AdminLayoutInner() {
                 })}
               </YStack>
 
-              {gi < NAV_GROUPS.length - 1 && (
-                <Separator
-                  borderColor={colors.border.dark}
-                  marginTop={10}
-                  marginHorizontal={20}
-                  style={{
-                    opacity   : labelsVisible ? 0.4 : 0,
-                    transition: 'opacity 0.1s ease',
-                  } as never}
-                />
-              )}
             </YStack>
           ))}
         </YStack>
