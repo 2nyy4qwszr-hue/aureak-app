@@ -13,6 +13,11 @@ export const colors = {
     surface : '#171717',  // cards, listes, rows (dark)
     elevated: '#242424',  // modals, drawers, overlays (dark)
   },
+  // ── Sidebar admin (brun chaud intermédiaire) ──────────────────────────────
+  sidebar: {
+    bg    : '#2D2318',  // brun chaud — fond sidebar admin (entre #1A1A1A et beige)
+    border: '#3D3020',  // bordure latérale sidebar
+  },
   // ── Light theme (admin web, inspiré aureak.be) ────────────────────────────
   light: {
     primary : '#F3EFE7',  // beige crème — fond principal admin web

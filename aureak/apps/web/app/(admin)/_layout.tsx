@@ -484,9 +484,9 @@ function AdminLayoutInner() {
       <YStack
         data-sidebar="true"
         width={sidebarWidth}
-        backgroundColor={colors.background.primary}
+        backgroundColor={colors.sidebar.bg}
         borderRightWidth={1}
-        borderRightColor={colors.border.dark}
+        borderRightColor={colors.sidebar.border}
         style={{
           flexShrink    : 0,
           display       : 'flex',
@@ -1043,7 +1043,7 @@ function AdminLayoutInner() {
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
         {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
-        {!isMobile && !pathname.startsWith('/activites') && <Breadcrumb />}
+        {!isMobile && !pathname.startsWith('/activites') && !pathname.startsWith('/methodologie') && <Breadcrumb />}
 
         {/* Story 62.5 — conteneur page-enter animation */}
         <div ref={contentAreaRef} style={{ flex: 1 }}>
