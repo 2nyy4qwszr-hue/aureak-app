@@ -1,7 +1,7 @@
 'use client'
 // Entraînements pédagogiques — bibliothèque de contenu réutilisable
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable, type TextStyle } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listMethodologySessions, softDeleteMethodologySession, listMethodologyExercises } from '@aureak/api-client'
 import { AureakText, ConfirmDialog } from '@aureak/ui'
@@ -44,7 +44,6 @@ export default function SeancesPage() {
   const [sessions,        setSessions]        = useState<MethodologySession[]>([])
   const [exercises,       setExercises]       = useState<MethodologyExercise[]>([])
   const [loading,         setLoading]         = useState(true)
-  const [search,          setSearch]          = useState('')
   const [methodFilter,    setMethodFilter]    = useState<FilterMethod>('all')
   const [contextFilter,   setContextFilter]   = useState<MethodologyContextType | 'all'>('all')
   const [contentType,     setContentType]     = useState<ContentType>('entrainement')
@@ -96,14 +95,12 @@ export default function SeancesPage() {
   }
 
   const filteredSessions = sessions.filter(s => {
-    if (search && !s.title.toLowerCase().includes(search.toLowerCase())) return false
     if (methodFilter  !== 'all' && s.method      !== methodFilter)  return false
     if (contextFilter !== 'all' && s.contextType !== contextFilter) return false
     return true
   })
 
   const filteredExercises = exercises.filter(e => {
-    if (search && !e.title.toLowerCase().includes(search.toLowerCase())) return false
     if (methodFilter  !== 'all' && e.method      !== methodFilter)  return false
     if (contextFilter !== 'all' && e.contextType !== contextFilter) return false
     return true
@@ -156,11 +153,10 @@ export default function SeancesPage() {
         })}
       </View>
 
-      {/* ── FiltresRow — pills gauche + toggles droite + search ── */}
+      {/* ── FiltresRow — gauche | centre | droite ── */}
       <View style={st.filtresRow}>
         {/* Gauche : GLOBAL pill + MÉTHODE pill */}
         <View style={st.filtresLeft}>
-          {/* GLOBAL pill */}
           <Pressable
             style={isGlobal ? st.pillActive : st.pillInactive}
             onPress={() => { setMethodFilter('all'); setContextFilter('all'); setContentType('entrainement'); setMethodDropOpen(false) }}
@@ -168,7 +164,6 @@ export default function SeancesPage() {
             <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
           </Pressable>
 
-          {/* MÉTHODE pill + dropdown */}
           <View style={st.dropdownWrapper}>
             <Pressable
               style={methodFilter !== 'all' ? st.pillActive : st.pillInactive}
@@ -179,7 +174,6 @@ export default function SeancesPage() {
               </AureakText>
             </Pressable>
 
-            {/* Dropdown méthodes */}
             {methodDropOpen && (
               <View style={st.methodDropdown}>
                 {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
@@ -198,9 +192,8 @@ export default function SeancesPage() {
           </View>
         </View>
 
-        {/* Droite : SegmentedToggle content + SegmentedToggle context + search */}
-        <View style={st.filtresRight}>
-          {/* Toggle ENTRAÎNEMENT / EXERCICE */}
+        {/* Centre : Toggle ENTRAÎNEMENT / EXERCICE */}
+        <View style={st.filtresCenter}>
           <View style={st.toggleRow}>
             <Pressable
               style={[st.toggleBtn, contentType === 'entrainement' && st.toggleBtnActive] as never}
@@ -219,8 +212,10 @@ export default function SeancesPage() {
               </AureakText>
             </Pressable>
           </View>
+        </View>
 
-          {/* Toggle ACADÉMIE / STAGE */}
+        {/* Droite : Toggle ACADÉMIE / STAGE */}
+        <View style={st.filtresRight}>
           <View style={st.toggleRow}>
             <Pressable
               style={[st.toggleBtn, contextFilter === 'academie' && st.toggleBtnActive] as never}
@@ -239,15 +234,6 @@ export default function SeancesPage() {
               </AureakText>
             </Pressable>
           </View>
-
-          {/* Recherche compacte */}
-          <TextInput
-            style={st.searchCompact}
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Rechercher…"
-            placeholderTextColor={colors.text.subtle}
-          />
         </View>
       </View>
 
@@ -594,7 +580,7 @@ const st = StyleSheet.create({
     color     : colors.text.dark,
   },
 
-  // FiltresRow — pills gauche + toggles droite
+  // FiltresRow — gauche | centre | droite
   filtresRow: {
     flexDirection : 'row',
     alignItems    : 'center',
@@ -607,17 +593,20 @@ const st = StyleSheet.create({
     alignItems   : 'center',
     gap          : space.sm,
   },
+  filtresCenter: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    justifyContent: 'center',
+  },
   filtresRight: {
     flexDirection: 'row',
     alignItems   : 'center',
-    gap          : space.sm,
-    flexWrap     : 'wrap',
   },
 
-  // Pills FiltresScope design
+  // Pills FiltresScope design (hauteur alignée sur toggles : paddingVertical 8)
   pillActive: {
     paddingHorizontal: 14,
-    paddingVertical  : 6,
+    paddingVertical  : 8,
     borderRadius     : radius.badge,
     backgroundColor  : colors.accent.gold,
     borderWidth      : 1,
@@ -625,7 +614,7 @@ const st = StyleSheet.create({
   },
   pillInactive: {
     paddingHorizontal: 14,
-    paddingVertical  : 6,
+    paddingVertical  : 8,
     borderRadius     : radius.badge,
     backgroundColor  : colors.light.muted,
     borderWidth      : 1,
@@ -696,20 +685,6 @@ const st = StyleSheet.create({
   methodDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
 
-  // Recherche compacte
-  searchCompact: {
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    borderRadius     : 20,
-    paddingHorizontal: 12,
-    paddingVertical  : 5,
-    color            : colors.text.dark,
-    fontSize         : 12,
-    minWidth         : 120,
-    maxWidth         : 200,
-  },
-
   // Table
   empty: { padding: space.lg, alignItems: 'center' },
   tableWrapper: {
@@ -723,6 +698,7 @@ const st = StyleSheet.create({
     alignItems       : 'center',
     paddingHorizontal: 16,
     paddingVertical  : 10,
+    gap              : 12,
     backgroundColor  : colors.light.muted,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
@@ -739,7 +715,8 @@ const st = StyleSheet.create({
     flexDirection    : 'row',
     alignItems       : 'center',
     paddingHorizontal: 16,
-    minHeight        : 52,
+    paddingVertical  : 12,
+    gap              : 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },

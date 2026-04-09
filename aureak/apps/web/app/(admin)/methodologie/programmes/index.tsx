@@ -5,14 +5,12 @@ import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-n
 import { useRouter } from 'expo-router'
 import { listMethodologyProgrammes } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, space, radius, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS,
   type MethodologyMethod, type MethodologyContextType,
 } from '@aureak/types'
 import type { MethodologyProgramme } from '@aureak/types'
-
-type FilterMethod = MethodologyMethod | 'all'
 
 const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Goal and Player' : '⚽',
@@ -39,9 +37,7 @@ export default function ProgrammesPage() {
 
   const [programmes,     setProgrammes]     = useState<MethodologyProgramme[]>([])
   const [loading,        setLoading]        = useState(true)
-  const [methodFilter,   setMethodFilter]   = useState<FilterMethod>('all')
   const [contextFilter,  setContextFilter]  = useState<MethodologyContextType | 'all'>('all')
-  const [methodDropOpen, setMethodDropOpen] = useState(false)
 
   const loadProgrammes = useCallback(async () => {
     setLoading(true)
@@ -60,7 +56,6 @@ export default function ProgrammesPage() {
   }, [loadProgrammes])
 
   const filtered = programmes.filter(p => {
-    if (methodFilter  !== 'all' && p.method      !== methodFilter)  return false
     if (contextFilter !== 'all' && p.contextType !== contextFilter) return false
     return true
   })
@@ -71,7 +66,7 @@ export default function ProgrammesPage() {
     count : programmes.filter(p => p.method === m).length,
   }))
 
-  const isGlobal = methodFilter === 'all' && contextFilter === 'all'
+  const isGlobal = contextFilter === 'all'
 
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
@@ -118,37 +113,10 @@ export default function ProgrammesPage() {
         <View style={st.filtresLeft}>
           <Pressable
             style={isGlobal ? st.pillActive : st.pillInactive}
-            onPress={() => { setMethodFilter('all'); setContextFilter('all'); setMethodDropOpen(false) }}
+            onPress={() => setContextFilter('all')}
           >
             <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
           </Pressable>
-
-          <View style={st.dropdownWrapper}>
-            <Pressable
-              style={methodFilter !== 'all' ? st.pillActive : st.pillInactive}
-              onPress={() => setMethodDropOpen(o => !o)}
-            >
-              <AureakText style={methodFilter !== 'all' ? st.pillTextActive : st.pillTextInactive}>
-                {methodFilter === 'all' ? 'MÉTHODE ▾' : `${methodFilter} ▾`}
-              </AureakText>
-            </Pressable>
-
-            {methodDropOpen && (
-              <View style={st.methodDropdown}>
-                {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
-                  <Pressable
-                    key={m}
-                    style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
-                    onPress={() => { setMethodFilter(m); setMethodDropOpen(false) }}
-                  >
-                    <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
-                      {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
-                    </AureakText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
         </View>
 
         {/* Droite : Toggle ACADÉMIE / STAGE */}
@@ -156,7 +124,7 @@ export default function ProgrammesPage() {
           <View style={st.toggleRow}>
             <Pressable
               style={[st.toggleBtn, contextFilter === 'academie' && st.toggleBtnActive] as never}
-              onPress={() => { setContextFilter(contextFilter === 'academie' ? 'all' : 'academie'); setMethodDropOpen(false) }}
+              onPress={() => setContextFilter(contextFilter === 'academie' ? 'all' : 'academie')}
             >
               <AureakText style={[st.toggleLabel, contextFilter === 'academie' && st.toggleLabelActive] as never}>
                 ACADÉMIE
@@ -164,7 +132,7 @@ export default function ProgrammesPage() {
             </Pressable>
             <Pressable
               style={[st.toggleBtn, contextFilter === 'stage' && st.toggleBtnActive] as never}
-              onPress={() => { setContextFilter(contextFilter === 'stage' ? 'all' : 'stage'); setMethodDropOpen(false) }}
+              onPress={() => setContextFilter(contextFilter === 'stage' ? 'all' : 'stage')}
             >
               <AureakText style={[st.toggleLabel, contextFilter === 'stage' && st.toggleLabelActive] as never}>
                 STAGE
@@ -414,12 +382,6 @@ const st = StyleSheet.create({
     color     : colors.text.muted,
   },
 
-  // Dropdown wrapper (for pill + dropdown positioning)
-  dropdownWrapper: {
-    position: 'relative',
-    zIndex  : 9999,
-  },
-
   // SegmentedToggle (pattern exact de academie/joueurs)
   toggleRow: {
     flexDirection: 'row',
@@ -447,24 +409,6 @@ const st = StyleSheet.create({
   toggleLabelActive: {
     color: colors.text.dark,
   },
-
-  // Méthode dropdown (absolu sous sa pill)
-  methodDropdown: {
-    position       : 'absolute',
-    top            : 38,
-    left           : 0,
-    zIndex         : 9999,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.xs,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    padding        : 6,
-    minWidth       : 220,
-    // @ts-ignore web
-    boxShadow      : shadows.lg,
-  },
-  methodDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
-  methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
 
   // Table
   empty: { padding: space.lg, alignItems: 'center' },
