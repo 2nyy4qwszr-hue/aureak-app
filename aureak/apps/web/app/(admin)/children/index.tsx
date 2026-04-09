@@ -1,45 +1,52 @@
 'use client'
 // Annuaire joueurs — child_directory (import Notion)
 // Terminologie officielle : joueur = enfant = child
-// Story 18.2 : refonte UI cards + grille responsive + photos + filtres améliorés
-// UI v2 : infos gauche · avatar droite · filtres avancés repliables
-// Story 52-5 : filtres tier pills colorées
-// Story 52-12 : vue master-detail split-screen desktop ≥ 1024px
+// Story 83-1 : refonte DA (pattern Activités Séances) + filtres Statut/Année/Niveau/Club + toggle AUREAK KEPER / PROSPECT
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
-import { AureakText, Button, EmptyState, EmptyStateIllustrated, PlayerCard } from '@aureak/ui'
+import { AureakText, EmptyStateIllustrated, PlayerCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import { ACADEMY_STATUS_CONFIG, computePlayerTier } from '@aureak/business-logic'
+import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
-import type { AcademyStatus, PlayerTier } from '@aureak/types'
-import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
+import type { AcademyStatus } from '@aureak/types'
 import { avatarBgColor } from './_avatarHelpers'
 
-// ── Tier pills config ──────────────────────────────────────────────────────────
+// ── Toggle mode — AUREAK KEPER vs PROSPECT ────────────────────────────────────
 
-type TierFilterKey = PlayerTier | 'Tous'
+type ToggleMode = 'AUREAK_KEPER' | 'PROSPECT'
 
-const TIER_PILLS_CONFIG: { key: TierFilterKey; bg: string; textColor: string; borderColor: string }[] = [
-  { key: 'Tous',        bg: colors.light.muted,    textColor: colors.text.dark,  borderColor: colors.border.light },
-  { key: 'Prospect',    bg: colors.light.muted,    textColor: colors.text.muted,  borderColor: colors.border.light },
-  { key: 'Académicien', bg: colors.light.surface,  textColor: colors.text.dark,  borderColor: colors.border.light },
-  { key: 'Confirmé',    bg: colors.status.warningBg, textColor: colors.status.warningText, borderColor: colors.border.gold },
-  { key: 'Elite',       bg: colors.accent.gold,    textColor: colors.text.dark,   borderColor: colors.border.goldSolid },
+// ── Statut filter options ──────────────────────────────────────────────────────
+
+const STATUT_OPTIONS: { key: AcademyStatus | 'all'; label: string }[] = [
+  { key: 'all',               label: 'Tous les statuts'   },
+  { key: 'ACADÉMICIEN',       label: 'Académicien'        },
+  { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau'          },
+  { key: 'ANCIEN',            label: 'Ancien'             },
+  { key: 'STAGE_UNIQUEMENT',  label: 'Stage seul'         },
 ]
 
-const TIER_FILTER_STORAGE_KEY = 'aureak_players_tier_filter'
+// ── Niveau (étoiles) filter options ───────────────────────────────────────────
 
-function loadTierFilter(): PlayerTier[] {
-  if (typeof localStorage === 'undefined') return []
-  try {
-    const stored = localStorage.getItem(TIER_FILTER_STORAGE_KEY)
-    if (!stored) return []
-    const parsed = JSON.parse(stored)
-    return Array.isArray(parsed) ? parsed as PlayerTier[] : []
-  } catch { return [] }
-}
+const NIVEAU_OPTIONS: { key: number; label: string }[] = [
+  { key: 0, label: 'Tous niveaux' },
+  { key: 1, label: '★'            },
+  { key: 2, label: '★★'           },
+  { key: 3, label: '★★★'          },
+  { key: 4, label: '★★★★'         },
+  { key: 5, label: '★★★★★'        },
+]
+
+// ── Années de naissance — pill dropdown ────────────────────────────────────────
+
+const ANNEE_OPTIONS: { key: string; label: string }[] = [
+  { key: 'all', label: 'Toutes années' },
+  ...Array.from({ length: 15 }, (_, i) => {
+    const y = (2018 - i).toString()
+    return { key: y, label: y }
+  }),
+]
 
 // ── View mode — galerie vs liste ───────────────────────────────────────────────
 
@@ -56,35 +63,6 @@ function loadViewMode(): ViewMode {
 const PAGE_SIZE_LISTE   = 50
 const PAGE_SIZE_GALERIE = 48
 
-// ── Filter types ───────────────────────────────────────────────────────────────
-
-type AcadStatusFilter = 'all' | AcademyStatus | 'current-season'
-type SeasonFilter     = 'all' | 'eq1' | 'eq2' | 'gte3'
-type StageFilter      = 'all' | 'eq0' | 'eq1' | 'eq2' | 'gte3'
-
-const SEASON_TABS: { key: SeasonFilter; label: string }[] = [
-  { key: 'all',  label: 'Toutes'    },
-  { key: 'eq1',  label: '1 saison'  },
-  { key: 'eq2',  label: '2 saisons' },
-  { key: 'gte3', label: '3+'        },
-]
-
-const STAGE_TABS: { key: StageFilter; label: string }[] = [
-  { key: 'all',  label: 'Tous'       },
-  { key: 'eq0',  label: 'Aucun'      },
-  { key: 'eq1',  label: '1 stage'    },
-  { key: 'eq2',  label: '2 stages'   },
-  { key: 'gte3', label: '3+'         },
-]
-
-// Années de naissance dynamiques : 2004 → 2018
-const BIRTH_YEAR_TABS: { key: string; label: string }[] = [
-  { key: 'all', label: 'Toutes' },
-  ...Array.from({ length: 15 }, (_, i) => {
-    const y = (2018 - i).toString()
-    return { key: y, label: y }
-  }),
-]
 
 // ── PhotoAvatar — cercle photo ou initiales en fallback ────────────────────────
 
@@ -828,140 +806,177 @@ const psk = StyleSheet.create({
   },
 })
 
-// ── FilterRow ─────────────────────────────────────────────────────────────────
+// ── PillDropdown — pill cliquable avec dropdown options ────────────────────────
 
-function FilterRow<K extends string>({
-  label, tabs, active, onSelect,
+function PillDropdown<K extends string | number>({
+  label, options, value, onChange, open, onOpen,
 }: {
   label   : string
-  tabs    : { key: K; label: string }[]
-  active  : K
-  onSelect: (key: K) => void
+  options : { key: K; label: string }[]
+  value   : K
+  onChange: (v: K) => void
+  open    : boolean
+  onOpen  : () => void
 }) {
+  const isActive    = value !== (options[0]?.key)
+  const activeLabel = options.find(o => o.key === value)?.label ?? label
+
   return (
-    <View style={fr.wrap}>
-      <AureakText variant="caption" style={fr.label}>{label}</AureakText>
-      <View style={fr.row}>
-        {tabs.map(t => {
-          const isActive = active === t.key
-          return (
-            <Pressable
-              key={t.key}
-              style={[fr.tab, isActive && fr.tabActive]}
-              onPress={() => onSelect(t.key)}
-            >
-              <AureakText
-                variant="caption"
-                style={{ color: isActive ? colors.text.dark : colors.text.muted, fontWeight: isActive ? '700' : '400' } as never}
-              >
-                {t.label}
-              </AureakText>
-            </Pressable>
-          )
-        })}
-      </View>
+    <View style={pd.wrapper}>
+      <Pressable
+        style={[pd.pill, isActive && pd.pillActive]}
+        onPress={onOpen}
+      >
+        <AureakText style={[pd.pillText, isActive && pd.pillTextActive] as never}>
+          {isActive ? activeLabel : `${label} ▾`}
+        </AureakText>
+      </Pressable>
+      {open && (
+        <View style={pd.dropdown}>
+          <ScrollView style={{ maxHeight: 220 }}>
+            {options.map(opt => {
+              const sel = opt.key === value
+              return (
+                <Pressable
+                  key={String(opt.key)}
+                  style={[pd.item, sel && pd.itemSelected]}
+                  onPress={() => onChange(opt.key)}
+                >
+                  <AureakText style={[pd.itemText, sel && pd.itemTextSelected] as never}>
+                    {opt.label}
+                  </AureakText>
+                </Pressable>
+              )
+            })}
+          </ScrollView>
+        </View>
+      )}
     </View>
   )
 }
 
-const fr = StyleSheet.create({
-  wrap    : { gap: 5 },
-  label   : { color: colors.text.muted, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' as never, fontWeight: '700' as never },
-  row     : { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  tab     : { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5, borderWidth: 1, borderColor: colors.border.light, backgroundColor: 'transparent' },
-  tabActive: { borderColor: colors.accent.gold, backgroundColor: colors.accent.gold + '18' },
+const pd = StyleSheet.create({
+  wrapper   : { position: 'relative', zIndex: 9999 },
+  pill      : {
+    paddingHorizontal: 14,
+    paddingVertical  : 6,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  pillActive: {
+    backgroundColor: colors.accent.gold,
+    borderColor    : colors.accent.gold,
+  },
+  pillText  : { fontSize: 12, fontWeight: '600' as never, fontFamily: 'Montserrat', color: colors.text.muted },
+  pillTextActive: { color: colors.text.dark },
+  dropdown  : {
+    position       : 'absolute',
+    top            : 38,
+    left           : 0,
+    zIndex         : 9999,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.xs,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    minWidth       : 180,
+    elevation      : 20,
+    // @ts-ignore web
+    boxShadow      : shadows.lg,
+  },
+  item        : { paddingHorizontal: space.md, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
+  itemSelected: { backgroundColor: colors.accent.gold + '20' },
+  itemText    : { fontSize: 13, fontFamily: 'Montserrat', color: colors.text.dark },
+  itemTextSelected: { fontWeight: '700' as never },
 })
 
-// ── TierPills ─────────────────────────────────────────────────────────────────
+// ── ClubPillDropdown — pill + input texte ─────────────────────────────────────
 
-function TierPills({
-  selectedTiers, onToggle, counts,
+function ClubPillDropdown({
+  value, onChange, open, onOpen,
 }: {
-  selectedTiers: PlayerTier[]
-  onToggle: (tier: TierFilterKey) => void
-  counts: Record<TierFilterKey, number>
+  value   : string
+  onChange: (v: string) => void
+  open    : boolean
+  onOpen  : () => void
 }) {
+  const isActive = value.trim().length > 0
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tp.row}
-    >
-      {TIER_PILLS_CONFIG.map(cfg => {
-        const isTous   = cfg.key === 'Tous'
-        const isActive = isTous
-          ? selectedTiers.length === 0
-          : selectedTiers.includes(cfg.key as PlayerTier)
-        return (
-          <Pressable
-            key={cfg.key}
-            style={[
-              tp.pill,
-              {
-                backgroundColor: cfg.bg,
-                borderColor    : isActive ? (cfg.key === 'Elite' ? colors.accent.goldLight : cfg.borderColor) : cfg.borderColor,
-                borderWidth    : isActive ? 2 : 1,
-                opacity        : isActive ? 1 : 0.75,
-              },
-            ]}
-            onPress={() => onToggle(cfg.key)}
-            accessibilityRole="button"
-            accessibilityLabel={`Filtre ${cfg.key}`}
-          >
-            <AureakText
-              style={[tp.label, { color: cfg.textColor, fontWeight: isActive ? '700' : '500' }] as never}
-            >
-              {cfg.key === 'Tous'
-                ? `${cfg.key} (${counts['Tous']})`
-                : `${cfg.key} (${counts[cfg.key as PlayerTier] ?? 0})`
-              }
-            </AureakText>
-          </Pressable>
-        )
-      })}
-    </ScrollView>
+    <View style={pd.wrapper}>
+      <Pressable style={[pd.pill, isActive && pd.pillActive]} onPress={onOpen}>
+        <AureakText style={[pd.pillText, isActive && pd.pillTextActive] as never}>
+          {isActive ? value.trim() : 'Club ▾'}
+        </AureakText>
+      </Pressable>
+      {open && (
+        <View style={[pd.dropdown, { width: 220 }]}>
+          <TextInput
+            style={cpd.input}
+            placeholder="Rechercher un club…"
+            placeholderTextColor={colors.text.muted}
+            value={value}
+            onChangeText={onChange}
+            autoComplete="off"
+            autoCorrect={false}
+            {...({ 'data-lpignore': 'true' } as object)}
+          />
+          {value.trim() !== '' && (
+            <Pressable style={cpd.clearRow} onPress={() => onChange('')}>
+              <AureakText style={{ fontSize: 12, color: colors.text.muted }}>Effacer</AureakText>
+            </Pressable>
+          )}
+        </View>
+      )}
+    </View>
   )
 }
 
-const tp = StyleSheet.create({
-  row  : { flexDirection: 'row', gap: 8, paddingVertical: 4, paddingHorizontal: 2 },
-  pill : { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 12, letterSpacing: 0.2 },
+const cpd = StyleSheet.create({
+  input   : {
+    margin           : space.sm,
+    paddingHorizontal: space.sm,
+    paddingVertical  : 6,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : radius.xs,
+    fontSize         : 13,
+    fontFamily       : 'Montserrat',
+    color            : colors.text.dark,
+    backgroundColor  : colors.light.primary,
+  },
+  clearRow: {
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderTopWidth   : 1,
+    borderTopColor   : colors.border.divider,
+  },
 })
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 export default function JoueursPage() {
   const router = useRouter()
-  const params = useLocalSearchParams<{ search?: string; status?: string; season?: string; stage?: string; birthYear?: string; selected?: string }>()
+  const params = useLocalSearchParams<{ search?: string; selected?: string }>()
 
+  const [viewMode,  setViewMode]  = useState<ViewMode>(loadViewMode)
+  const [joueurs,   setJoueurs]   = useState<JoueurListItem[]>([])
+  const [total,     setTotal]     = useState(0)
+  const [page,      setPage]      = useState(0)
+  const [loading,   setLoading]   = useState(true)
 
-  const [viewMode,           setViewMode]           = useState<ViewMode>(loadViewMode)
-  const [joueurs,            setJoueurs]            = useState<JoueurListItem[]>([])
-  const [total,              setTotal]              = useState(0)
-  const [page,               setPage]               = useState(0)
-  const [loading,            setLoading]            = useState(true)
-  const [showAdvFilters,     setShowAdvFilters]     = useState(false)
+  // ── Nouveaux filtres 83-1 ────────────────────────────────────────────────────
+  const [toggleMode,   setToggleMode]   = useState<ToggleMode>('AUREAK_KEPER')
+  const [statutFilter, setStatutFilter] = useState<AcademyStatus | 'all'>('all')
+  const [birthYear,    setBirthYear]    = useState<string>('all')
+  const [niveauFilter, setNiveauFilter] = useState<number>(0)  // 0 = tous
+  const [clubSearch,   setClubSearch]   = useState('')
 
-  // ── Tier filter — Story 52-5 ────────────────────────────────────────────────
-  const [selectedTiers, setSelectedTiers] = useState<PlayerTier[]>(loadTierFilter)
+  // ── Pill dropdown open state — mutuellement exclusifs ────────────────────────
+  const [openPill, setOpenPill] = useState<'statut' | 'annee' | 'niveau' | 'club' | null>(null)
 
-  useEffect(() => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(TIER_FILTER_STORAGE_KEY, JSON.stringify(selectedTiers))
-    }
-  }, [selectedTiers])
-
-  const handleToggleTier = (key: TierFilterKey) => {
-    if (key === 'Tous') {
-      setSelectedTiers([])
-      return
-    }
-    const tier = key as PlayerTier
-    setSelectedTiers(prev =>
-      prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
-    )
-  }
+  const togglePill = (pill: 'statut' | 'annee' | 'niveau' | 'club') =>
+    setOpenPill(prev => prev === pill ? null : pill)
 
   // Persistance viewMode dans localStorage
   useEffect(() => {
@@ -973,98 +988,21 @@ export default function JoueursPage() {
   // PAGE_SIZE dynamique selon viewMode
   const PAGE_SIZE = viewMode === 'galerie' ? PAGE_SIZE_GALERIE : PAGE_SIZE_LISTE
 
-  const [searchInput,  setSearchInput]  = useState(params.search ?? '')
-  const [search,       setSearch]       = useState(params.search ?? '')
+  const [searchInput, setSearchInput] = useState(params.search ?? '')
+  const [search,      setSearch]      = useState(params.search ?? '')
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [acadStatus,   setAcadStatus]   = usePersistedFilters<AcadStatusFilter>(
-    'children-filter-acadStatus',
-    (params.status as AcadStatusFilter | undefined) ?? 'all',
-  )
-  const [seasonFilter, setSeasonFilter] = usePersistedFilters<SeasonFilter>(
-    'children-filter-season',
-    (params.season as SeasonFilter | undefined) ?? 'all',
-  )
-  const [stageFilter,  setStageFilter]  = usePersistedFilters<StageFilter>(
-    'children-filter-stage',
-    (params.stage as StageFilter | undefined) ?? 'all',
-  )
-  const [birthYear,    setBirthYear]    = usePersistedFilters<string>(
-    'children-filter-birthYear',
-    params.birthYear ?? 'all',
-  )
-
-  // Sync filters to URL so the browser Back button restores state
-  useEffect(() => {
-    router.setParams({
-      search   : search || undefined,
-      status   : acadStatus   !== 'all' ? acadStatus   : undefined,
-      season   : seasonFilter !== 'all' ? seasonFilter : undefined,
-      stage    : stageFilter  !== 'all' ? stageFilter  : undefined,
-      birthYear: birthYear    !== 'all' ? birthYear    : undefined,
-    } as never)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, acadStatus, seasonFilter, stageFilter, birthYear])
-
-  // Nombre total de filtres actifs (hors recherche)
-  const activeFilterCount = useMemo(() => {
-    let n = 0
-    if (acadStatus   !== 'all') n++
-    if (seasonFilter !== 'all') n++
-    if (stageFilter  !== 'all') n++
-    if (birthYear    !== 'all') n++
-    return n
-  }, [acadStatus, seasonFilter, stageFilter, birthYear])
-
-  // Filtres avancés actifs uniquement (pour le badge sur le toggle)
-  const advFilterCount = useMemo(() => {
-    let n = 0
-    if (seasonFilter !== 'all') n++
-    if (stageFilter  !== 'all') n++
-    if (birthYear    !== 'all') n++
-    return n
-  }, [seasonFilter, stageFilter, birthYear])
-
-  // Saison effective — lue directement depuis les données déjà chargées (v_child_academy_status).
-  // Tous les joueurs du même tenant partagent le même current_season_label calculé par la vue SQL.
-  // Zéro appel supplémentaire, zéro logique de priorité côté JS.
-  const currentSeasonLabel = useMemo(
-    () => joueurs.find(j => j.currentSeasonLabel != null)?.currentSeasonLabel ?? null,
-    [joueurs]
-  )
-
-  // Extrait "2025-2026" depuis "AK.2025-2026" ou tout autre format — résistant aux préfixes DB
-  const seasonYearRange = useMemo(
-    () => currentSeasonLabel?.match(/\d{4}-\d{4}/)?.[0] ?? null,
-    [currentSeasonLabel]
-  )
-
-  const acadStatusTabs = useMemo<{ key: AcadStatusFilter; label: string }[]>(() => [
-    { key: 'all',               label: 'Tous'                                                        },
-    { key: 'current-season',    label: seasonYearRange ?? 'Saison actuelle'                          },
-    { key: 'NOUVEAU_ACADÉMICIEN', label: 'Nouveau'                                                   },
-    { key: 'ANCIEN',            label: 'Ancien'                                                      },
-    { key: 'STAGE_UNIQUEMENT',  label: 'Stage seul'                                                  },
-    { key: 'PROSPECT',          label: 'Prospect'                                                    },
-  ], [seasonYearRange])
 
   const load = useCallback(async () => {
-    // Aucune saison active configurée → filtre 'current-season' retourne 0 résultat (pas tous les joueurs)
-    if (acadStatus === 'current-season' && !seasonYearRange) {
-      setJoueurs([])
-      setTotal(0)
-      return
-    }
     setLoading(true)
     try {
       const { data, count } = await listJoueurs({
-        search         : search || undefined,
-        computedStatus : (acadStatus !== 'all' && acadStatus !== 'current-season') ? acadStatus : undefined,
-        academySaison  : acadStatus === 'current-season' ? (seasonYearRange ?? undefined) : undefined,
-        totalSeasonsCmp: seasonFilter !== 'all' ? seasonFilter : undefined,
-        totalStagesCmp : stageFilter  !== 'all' ? stageFilter  : undefined,
-        birthYear      : birthYear !== 'all' ? birthYear : undefined,
+        search        : search || undefined,
+        computedStatus: toggleMode === 'PROSPECT'
+          ? 'PROSPECT'
+          : statutFilter !== 'all' ? statutFilter : undefined,
+        birthYear     : birthYear !== 'all' ? birthYear : undefined,
         page,
-        pageSize: PAGE_SIZE,
+        pageSize      : PAGE_SIZE,
       })
       setJoueurs(data)
       setTotal(count)
@@ -1074,11 +1012,10 @@ export default function JoueursPage() {
       setLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, acadStatus, seasonFilter, stageFilter, birthYear, page, seasonYearRange, PAGE_SIZE])
+  }, [search, toggleMode, statutFilter, birthYear, page, PAGE_SIZE])
 
   useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(0) }, [search, acadStatus, seasonFilter, stageFilter, birthYear, seasonYearRange])
-  // Reset page quand viewMode change (PAGE_SIZE change → pagination différente)
+  useEffect(() => { setPage(0) }, [search, toggleMode, statutFilter, birthYear])
   useEffect(() => { setPage(0) }, [viewMode])
 
   const handleSearchInput = (text: string) => {
@@ -1090,31 +1027,33 @@ export default function JoueursPage() {
   useEffect(() => () => { if (debounceTimer.current) clearTimeout(debounceTimer.current) }, [])
 
   const handleResetFilters = () => {
-    setAcadStatus('all')
-    setSeasonFilter('all')
-    setStageFilter('all')
+    setToggleMode('AUREAK_KEPER')
+    setStatutFilter('all')
     setBirthYear('all')
+    setNiveauFilter(0)
+    setClubSearch('')
   }
 
-  // ── Tier pills — Story 52-5 ─────────────────────────────────────────────────
+  // ── Filtrage client-side — toggle + niveau + club ────────────────────────────
 
-  // `joueurs` est déjà la liste filtrée côté serveur (statut, saison, etc.)
-  // Les compteurs tier se calculent sur cette base.
-  const tierCounts = useMemo(() => {
-    const counts: Record<TierFilterKey, number> = {
-      Tous: joueurs.length, Prospect: 0, Académicien: 0, Confirmé: 0, Elite: 0,
+  // AUREAK_KEPER sans statut spécifique → exclure PROSPECT côté client
+  const filteredByToggle = useMemo(() => {
+    if (toggleMode === 'AUREAK_KEPER' && statutFilter === 'all') {
+      return joueurs.filter(j => j.computedStatus !== 'PROSPECT')
     }
-    joueurs.forEach(j => {
-      const tier = computePlayerTier(j)
-      counts[tier]++
-    })
-    return counts
-  }, [joueurs])
+    return joueurs
+  }, [joueurs, toggleMode, statutFilter])
 
-  const filteredByTier = useMemo(() => {
-    if (selectedTiers.length === 0) return joueurs
-    return joueurs.filter(j => selectedTiers.includes(computePlayerTier(j)))
-  }, [joueurs, selectedTiers])
+  const filteredByNiveau = useMemo(() => {
+    if (!niveauFilter) return filteredByToggle
+    return filteredByToggle.filter(j => (j.teamLevelStars ?? 0) === niveauFilter)
+  }, [filteredByToggle, niveauFilter])
+
+  const filteredByClub = useMemo(() => {
+    const q = clubSearch.toLowerCase().trim()
+    if (!q) return filteredByNiveau
+    return filteredByNiveau.filter(j => j.currentClub?.toLowerCase().includes(q))
+  }, [filteredByNiveau, clubSearch])
 
   // ── Filtre "En danger" — Story 55-6 ─────────────────────────────────────────
   const [dangerOnly,      setDangerOnly]      = useState(false)
@@ -1134,9 +1073,9 @@ export default function JoueursPage() {
   }, [])
 
   const filteredFinal = useMemo(() => {
-    if (!dangerOnly) return filteredByTier
-    return filteredByTier.filter(j => dangerPlayerIds.has(j.id))
-  }, [filteredByTier, dangerOnly, dangerPlayerIds])
+    if (!dangerOnly) return filteredByClub
+    return filteredByClub.filter(j => dangerPlayerIds.has(j.id))
+  }, [filteredByClub, dangerOnly, dangerPlayerIds])
 
   // ── CSV Import ──────────────────────────────────────────────────────────────
   const [showImportModal, setShowImportModal] = useState(false)
@@ -1289,93 +1228,43 @@ export default function JoueursPage() {
   return (
     <View style={{ flex: 1 }}>
 
-    <View style={{ flex: 1 }}>
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-
-      {/* ── En-tête ── */}
-      <View style={s.header}>
-        <View>
-          <AureakText variant="h2" color={colors.accent.gold}>Joueurs</AureakText>
-          {!loading && (
-            <AureakText variant="caption" style={s.headerSub}>
-              {total} joueur{total !== 1 ? 's' : ''}
-              {activeFilterCount > 0 && `  ·  ${activeFilterCount} filtre${activeFilterCount > 1 ? 's' : ''} actif${activeFilterCount > 1 ? 's' : ''}`}
-            </AureakText>
-          )}
-        </View>
+    {/* ── Header block — DA pattern Activités Séances ── */}
+    <View style={s.headerBlock}>
+      <View style={s.headerTopRow}>
+        <AureakText style={s.pageTitle}>ACADÉMIE</AureakText>
         <View style={s.headerActions}>
-          {activeFilterCount > 0 && (
-            <Pressable style={s.resetBtn} onPress={handleResetFilters}>
-              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' as never }}>
-                Réinitialiser
-              </AureakText>
-            </Pressable>
-          )}
-          <Pressable
-            style={{
-              paddingHorizontal: space.md,
-              paddingVertical  : 6,
-              borderRadius     : 6,
-              borderWidth      : 1,
-              borderColor      : colors.border.light,
-              backgroundColor  : colors.light.surface,
-            }}
-            onPress={() => { setCsvPreview([]); setCsvError(null); setImportResult(null); setShowImportModal(true) }}
-          >
-            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
-              Importer CSV
-            </AureakText>
+          {/* Utilitaires */}
+          <Pressable style={s.utilBtn} onPress={() => { setCsvPreview([]); setCsvError(null); setImportResult(null); setShowImportModal(true) }}>
+            <AureakText style={s.utilBtnLabel}>Importer CSV</AureakText>
           </Pressable>
-          {/* Story 69-7 — Export CSV liste filtrée */}
           <Pressable
-            style={{
-              paddingHorizontal: space.md,
-              paddingVertical  : 6,
-              borderRadius     : 6,
-              borderWidth      : 1,
-              borderColor      : colors.border.divider,
-              backgroundColor  : colors.light.muted,
-              opacity          : filteredFinal.length === 0 ? 0.5 : 1,
-            }}
+            style={[s.utilBtn, filteredFinal.length === 0 && { opacity: 0.5 }]}
             onPress={handleExportFilteredCSV}
             disabled={filteredFinal.length === 0}
           >
-            <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '600' }}>
-              Exporter CSV
-            </AureakText>
+            <AureakText style={s.utilBtnLabel}>Exporter CSV</AureakText>
           </Pressable>
-          {/* Toggle vue galerie / liste — story 52-4 */}
+          {/* Toggle galerie / liste */}
           <View style={s.viewToggleGroup}>
-            <Pressable
-              style={[s.viewToggleBtn, s.viewToggleBtnLeft, viewMode === 'galerie' && s.viewToggleActive]}
-              onPress={() => setViewMode('galerie')}
-              accessibilityRole="button"
-              accessibilityLabel="Vue galerie"
-            >
-              <AureakText style={[s.viewToggleIcon, viewMode === 'galerie' && s.viewToggleIconActive] as never}>
-                ⊞
-              </AureakText>
+            <Pressable style={[s.viewToggleBtn, s.viewToggleBtnLeft, viewMode === 'galerie' && s.viewToggleActive]} onPress={() => setViewMode('galerie')} accessibilityRole="button" accessibilityLabel="Vue galerie">
+              <AureakText style={[s.viewToggleIcon, viewMode === 'galerie' && s.viewToggleIconActive] as never}>⊞</AureakText>
             </Pressable>
-            <Pressable
-              style={[s.viewToggleBtn, s.viewToggleBtnRight, viewMode === 'liste' && s.viewToggleActive]}
-              onPress={() => setViewMode('liste')}
-              accessibilityRole="button"
-              accessibilityLabel="Vue liste"
-            >
-              <AureakText style={[s.viewToggleIcon, viewMode === 'liste' && s.viewToggleIconActive] as never}>
-                ☰
-              </AureakText>
+            <Pressable style={[s.viewToggleBtn, s.viewToggleBtnRight, viewMode === 'liste' && s.viewToggleActive]} onPress={() => setViewMode('liste')} accessibilityRole="button" accessibilityLabel="Vue liste">
+              <AureakText style={[s.viewToggleIcon, viewMode === 'liste' && s.viewToggleIconActive] as never}>☰</AureakText>
             </Pressable>
           </View>
-          <Button
-            label="Ajouter un joueur"
-            variant="primary"
-            onPress={() => router.push('/children/new' as never)}
-          />
+          {/* CTA gold */}
+          <Pressable style={s.newBtn} onPress={() => router.push('/children/new' as never)}>
+            <AureakText style={s.newBtnLabel}>+ Nouveau joueur</AureakText>
+          </Pressable>
         </View>
       </View>
+    </View>
 
-      {/* ── Barre de recherche ── */}
+    <View style={{ flex: 1 }}>
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+
+      {/* ── Barre de recherche nom ── */}
       <View style={s.searchRow}>
         <TextInput
           style={s.searchInput}
@@ -1397,14 +1286,65 @@ export default function JoueursPage() {
         )}
       </View>
 
-      {/* ── Pills tier — Story 52-5 ── */}
-      <TierPills
-        selectedTiers={selectedTiers}
-        onToggle={handleToggleTier}
-        counts={tierCounts}
-      />
+      {/* ── filtresRow — pills gauche + toggle droite ── */}
+      <Pressable style={s.filtresRowBackdrop} onPress={() => setOpenPill(null)} />
+      <View style={s.filtresRow}>
+        {/* Gauche : 4 pill-dropdowns */}
+        <View style={s.pillsGroup}>
+          <PillDropdown
+            label="Statut"
+            options={STATUT_OPTIONS}
+            value={statutFilter}
+            onChange={(v) => { setStatutFilter(v as AcademyStatus | 'all'); setOpenPill(null) }}
+            open={openPill === 'statut'}
+            onOpen={() => togglePill('statut')}
+          />
+          <PillDropdown
+            label="Année"
+            options={ANNEE_OPTIONS}
+            value={birthYear}
+            onChange={(v) => { setBirthYear(v as string); setOpenPill(null) }}
+            open={openPill === 'annee'}
+            onOpen={() => togglePill('annee')}
+          />
+          <PillDropdown
+            label="Niveau"
+            options={NIVEAU_OPTIONS}
+            value={niveauFilter}
+            onChange={(v) => { setNiveauFilter(v as number); setOpenPill(null) }}
+            open={openPill === 'niveau'}
+            onOpen={() => togglePill('niveau')}
+          />
+          <ClubPillDropdown
+            value={clubSearch}
+            onChange={setClubSearch}
+            open={openPill === 'club'}
+            onOpen={() => togglePill('club')}
+          />
+        </View>
 
-      {/* ── Chip filtre "En danger" — Story 55-6 ── */}
+        {/* Droite : SegmentedToggle AUREAK KEPER / PROSPECT */}
+        <View style={s.toggleRow}>
+          <Pressable
+            style={[s.toggleBtn, toggleMode === 'AUREAK_KEPER' && s.toggleBtnActive]}
+            onPress={() => { setToggleMode('AUREAK_KEPER'); setStatutFilter('all') }}
+          >
+            <AureakText style={[s.toggleLabel, toggleMode === 'AUREAK_KEPER' && s.toggleLabelActive] as never}>
+              AUREAK KEPER
+            </AureakText>
+          </Pressable>
+          <Pressable
+            style={[s.toggleBtn, toggleMode === 'PROSPECT' && s.toggleBtnActive]}
+            onPress={() => { setToggleMode('PROSPECT'); setStatutFilter('all') }}
+          >
+            <AureakText style={[s.toggleLabel, toggleMode === 'PROSPECT' && s.toggleLabelActive] as never}>
+              PROSPECT
+            </AureakText>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Chip danger — conservé ── */}
       {dangerPlayerIds.size > 0 && (
         <Pressable
           style={[
@@ -1414,8 +1354,6 @@ export default function JoueursPage() {
               : { backgroundColor: colors.light.surface, borderColor: colors.accent.red + '60' },
           ]}
           onPress={() => setDangerOnly(v => !v)}
-          accessibilityRole="button"
-          accessibilityLabel={dangerOnly ? 'Désactiver le filtre En danger' : 'Filtrer les joueurs en danger'}
         >
           <AureakText style={[
             { fontSize: 12, fontWeight: '700' as never },
@@ -1425,61 +1363,6 @@ export default function JoueursPage() {
           </AureakText>
         </Pressable>
       )}
-
-      {/* ── Filtres ── */}
-      <View style={s.filtersBlock}>
-
-        {/* Statut — toujours visible */}
-        <FilterRow
-          label="Statut"
-          tabs={acadStatusTabs}
-          active={acadStatus}
-          onSelect={(v) => setAcadStatus(v as AcadStatusFilter)}
-        />
-
-        {/* Toggle filtres avancés */}
-        <Pressable
-          style={[s.advToggle, showAdvFilters && s.advToggleOpen]}
-          onPress={() => setShowAdvFilters(v => !v)}
-        >
-          <AureakText
-            variant="caption"
-            style={[s.advToggleLabel, advFilterCount > 0 && s.advToggleLabelActive] as never}
-          >
-            {advFilterCount > 0
-              ? `Filtres avancés  ·  ${advFilterCount} actif${advFilterCount > 1 ? 's' : ''}`
-              : 'Filtres avancés'
-            }
-          </AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10 }}>
-            {showAdvFilters ? '▲' : '▼'}
-          </AureakText>
-        </Pressable>
-
-        {/* Filtres avancés repliables */}
-        {showAdvFilters && (
-          <View style={s.advFilters}>
-            <FilterRow
-              label="Expérience académie"
-              tabs={SEASON_TABS}
-              active={seasonFilter}
-              onSelect={(v) => setSeasonFilter(v as SeasonFilter)}
-            />
-            <FilterRow
-              label="Expérience stage"
-              tabs={STAGE_TABS}
-              active={stageFilter}
-              onSelect={(v) => setStageFilter(v as StageFilter)}
-            />
-            <FilterRow
-              label="Année de naissance"
-              tabs={BIRTH_YEAR_TABS}
-              active={birthYear}
-              onSelect={setBirthYear}
-            />
-          </View>
-        )}
-      </View>
 
       {/* ── Barre bulk actions ── */}
       {Platform.OS === 'web' && !loading && joueurs.length > 0 && (
@@ -1681,10 +1564,102 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { padding: space.xl, gap: space.md },
 
-  // En-tête
-  header      : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerSub   : { color: colors.text.muted, marginTop: 3, fontSize: 12 },
+  // ── Header block (DA pattern Activités Séances) ────────────────────────────
+  headerBlock: {
+    backgroundColor  : colors.light.primary,
+    gap              : 0,
+  },
+  headerTopRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingTop       : space.lg,
+    paddingBottom    : space.md,
+  },
+  pageTitle: {
+    fontSize     : 24,
+    fontWeight   : '700' as never,
+    fontFamily   : 'Montserrat',
+    color        : colors.text.dark,
+    letterSpacing: 0.5,
+  },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  utilBtn: {
+    paddingHorizontal: space.md,
+    paddingVertical  : 6,
+    borderRadius     : 6,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.surface,
+  },
+  utilBtnLabel: {
+    fontSize  : 12,
+    fontWeight: '600' as never,
+    fontFamily: 'Montserrat',
+    color     : colors.text.muted,
+  },
+  newBtn: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+  },
+  newBtnLabel: {
+    color     : colors.text.dark,
+    fontWeight: '700' as never,
+    fontSize  : 13,
+    fontFamily: 'Montserrat',
+  },
+
+  // ── filtresRow (DA Activités Séances) ──────────────────────────────────────
+  filtresRowBackdrop: {
+    position: 'absolute' as never,
+    // invisible tap zone pour fermer les dropdowns — géré inline
+  },
+  filtresRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
+  },
+  pillsGroup: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.sm,
+    flexWrap     : 'wrap',
+  },
+
+  // SegmentedToggle (identique à PseudoFiltresTemporels)
+  toggleRow: {
+    flexDirection : 'row',
+    gap           : 0,
+    alignSelf     : 'flex-start',
+    borderRadius  : radius.xs,
+    overflow      : 'hidden',
+    borderWidth   : 1,
+    borderColor   : colors.border.light,
+  },
+  toggleBtn: {
+    paddingVertical  : 8,
+    paddingHorizontal: space.md,
+    backgroundColor  : colors.light.surface,
+  },
+  toggleBtnActive: {
+    backgroundColor: colors.accent.gold,
+  },
+  toggleLabel: {
+    fontSize     : 11,
+    fontWeight   : '700' as never,
+    letterSpacing: 0.8,
+    color        : colors.text.muted,
+    fontFamily   : 'Montserrat',
+  },
+  toggleLabelActive: {
+    color: colors.text.dark,
+  },
 
   // Recherche
   searchRow : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
@@ -1708,49 +1683,6 @@ const s = StyleSheet.create({
     borderWidth    : 1,
     borderColor    : colors.border.light,
     backgroundColor: colors.light.surface,
-  },
-  resetBtn: {
-    paddingHorizontal: space.sm,
-    paddingVertical  : 5,
-    borderRadius     : 6,
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold + '60',
-    backgroundColor  : colors.accent.gold + '08',
-  },
-
-  // Bloc filtres
-  filtersBlock: { gap: space.sm },
-
-  advToggle: {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    justifyContent   : 'space-between',
-    paddingVertical  : 8,
-    paddingHorizontal: 12,
-    borderRadius     : 7,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    backgroundColor  : colors.light.surface,
-  },
-  advToggleOpen: {
-    borderColor    : colors.accent.gold + '50',
-    backgroundColor: colors.accent.gold + '08',
-  },
-  advToggleLabel: {
-    color     : colors.text.muted,
-    fontSize  : 11,
-    fontWeight: '600' as never,
-  },
-  advToggleLabelActive: {
-    color: colors.text.dark,
-  },
-  advFilters: {
-    backgroundColor: colors.light.muted,
-    borderRadius   : 8,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    padding        : 12,
-    gap            : 12,
   },
 
   // Grille — gap 16 cohérent avec le CSS grid web (Story 25.5)
