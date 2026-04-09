@@ -80,25 +80,25 @@ export default function YearView({ sessions, year, onMonthClick }: Props) {
                       )}
                       {enCours > 0 && (
                         <View style={st.breakdownRow}>
-                          <View style={[st.dot, { backgroundColor: '#3B82F6' }]} />
+                          <View style={[st.dot, { backgroundColor: colors.status.info }]} />
                           <AureakText style={st.breakdownText}>{`En cours : ${enCours}`}</AureakText>
                         </View>
                       )}
                       {realized > 0 && (
                         <View style={st.breakdownRow}>
-                          <View style={[st.dot, { backgroundColor: '#10B981' }]} />
+                          <View style={[st.dot, { backgroundColor: colors.status.success }]} />
                           <AureakText style={st.breakdownText}>{`Réalisée${realized > 1 ? 's' : ''} : ${realized}`}</AureakText>
                         </View>
                       )}
                       {reportee > 0 && (
                         <View style={st.breakdownRow}>
-                          <View style={[st.dot, { backgroundColor: '#F59E0B' }]} />
+                          <View style={[st.dot, { backgroundColor: colors.status.warning }]} />
                           <AureakText style={st.breakdownText}>{`Reportée${reportee > 1 ? 's' : ''} : ${reportee}`}</AureakText>
                         </View>
                       )}
                       {cancelled > 0 && (
                         <View style={st.breakdownRow}>
-                          <View style={[st.dot, { backgroundColor: '#DC2626' }]} />
+                          <View style={[st.dot, { backgroundColor: colors.status.absent }]} />
                           <AureakText style={st.breakdownText}>{`Annulée${cancelled > 1 ? 's' : ''} : ${cancelled}`}</AureakText>
                         </View>
                       )}
