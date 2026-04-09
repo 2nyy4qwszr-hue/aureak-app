@@ -344,13 +344,7 @@ export default function EvaluationsPage() {
       <ActivitesHeader />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Filtres scope + temporels sur une ligne */}
-        <View style={styles.filtresRow}>
-          <FiltresScope value={scope} onChange={setScope} />
-          <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
-        </View>
-
-        {/* Vue Joueur — card résumé */}
+        {/* Vue Joueur — card résumé (scope joueur uniquement) */}
         {playerSummary && (
           <View style={styles.section}>
             <PlayerSummaryCard
@@ -362,7 +356,7 @@ export default function EvaluationsPage() {
           </View>
         )}
 
-        {/* 4 Stat Cards */}
+        {/* 4 Stat Cards — AVANT les filtres (alignement Séances/Présences) */}
         <View style={styles.statCardsRow}>
           {/* Card 1 — Note Moyenne */}
           <StatCard
@@ -394,22 +388,30 @@ export default function EvaluationsPage() {
           />
         </View>
 
-        {/* Pills sous-filtres Éval Type */}
-        <View style={styles.evalTypePills}>
-          {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
-            const isActive   = type === evalType
-            const pillStyle  : ViewStyle  = isActive
-              ? { ...styles.evalTypePill, ...styles.evalTypePillActive }
-              : styles.evalTypePill
-            const pillTxtStyle: TextStyle = isActive
-              ? { ...styles.evalTypePillText, ...styles.evalTypePillTextActive }
-              : styles.evalTypePillText
-            return (
-              <Pressable key={type} style={pillStyle} onPress={() => setEvalType(type)}>
-                <AureakText style={pillTxtStyle}>{type.toUpperCase()}</AureakText>
-              </Pressable>
-            )
-          })}
+        {/* Filtres scope + temporels sur une ligne */}
+        <View style={styles.filtresRow}>
+          <FiltresScope value={scope} onChange={setScope} />
+          <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+        </View>
+
+        {/* Eval Type — SegmentedToggle */}
+        <View style={styles.toggleRowWrapper}>
+          <View style={styles.toggleRow}>
+            {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
+              const isActive = type === evalType
+              return (
+                <Pressable
+                  key={type}
+                  style={isActive ? { ...styles.toggleBtn, ...styles.toggleBtnActive } : styles.toggleBtn}
+                  onPress={() => setEvalType(type)}
+                >
+                  <AureakText style={isActive ? { ...styles.toggleLabel, ...styles.toggleLabelActive } : styles.toggleLabel}>
+                    {type.toUpperCase()}
+                  </AureakText>
+                </Pressable>
+              )
+            })}
+          </View>
         </View>
 
         {/* Contenu selon sous-filtre */}
@@ -666,39 +668,42 @@ const styles = StyleSheet.create({
     color       : colors.text.primary,
   },
 
-  // ── Eval Type Pills ───────────────────────────────────────────────────────
-  evalTypePills: {
-    flexDirection    : 'row',
-    gap              : space.sm,
+  // ── Eval Type SegmentedToggle ──────────────────────────────────────────────
+  toggleRowWrapper: {
     paddingHorizontal: space.lg,
     marginBottom     : space.md,
   },
-  evalTypePill: {
-    paddingHorizontal: 14,
-    paddingVertical  : 5,
-    borderRadius     : radius.badge,
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold,
-    backgroundColor  : 'transparent',
+  toggleRow: {
+    flexDirection: 'row',
+    gap          : 0,
+    alignSelf    : 'flex-start',
+    borderRadius : radius.xs,
+    overflow     : 'hidden',
+    borderWidth  : 1,
+    borderColor  : colors.border.light,
   },
-  evalTypePillActive: {
+  toggleBtn: {
+    paddingVertical  : 8,
+    paddingHorizontal: space.lg,
+    backgroundColor  : colors.light.surface,
+  },
+  toggleBtnActive: {
     backgroundColor: colors.accent.gold,
   },
-  evalTypePillText: {
-    fontFamily   : fonts.display,
+  toggleLabel: {
     fontSize     : 11,
     fontWeight   : '700',
     letterSpacing: 0.8,
-    color        : colors.accent.gold,
+    color        : colors.text.muted,
   },
-  evalTypePillTextActive: {
+  toggleLabelActive: {
     color: colors.text.dark,
   },
 
   // ── Tableau évaluations ───────────────────────────────────────────────────
   tableContainer: {
     backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
+    borderRadius   : 10,
     borderWidth    : 1,
     borderColor    : colors.border.divider,
     overflow       : 'hidden',
@@ -708,12 +713,12 @@ const styles = StyleSheet.create({
     alignItems       : 'center',
     backgroundColor  : colors.light.muted,
     paddingVertical  : 10,
-    paddingHorizontal: space.md,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
   colHeader: {
-    fontFamily   : fonts.body,
+    fontFamily   : 'Montserrat',
     fontSize     : 10,
     fontWeight   : '700',
     letterSpacing: 1,
@@ -724,7 +729,7 @@ const styles = StyleSheet.create({
     flexDirection    : 'row',
     alignItems       : 'center',
     minHeight        : 52,
-    paddingHorizontal: space.md,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
     backgroundColor  : colors.light.surface,
@@ -808,6 +813,9 @@ const styles = StyleSheet.create({
     justifyContent : 'center',
     gap            : space.md,
     paddingVertical: space.md,
+    backgroundColor: colors.light.muted,
+    borderTopWidth : 1,
+    borderTopColor : colors.border.divider,
   },
   pageBtn: {
     paddingHorizontal: space.md,

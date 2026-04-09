@@ -1,0 +1,67 @@
+GATE 2 — Story 80.3 : Activites Evaluations Alignement Design Seances
+======================================================================
+Date: 2026-04-09
+Reviewer: Gate 2 (Claude Opus 4.6)
+Verdict: PASS | 0 corrections | 0 blockers | types: none
+
+Playwright: skipped — browser closed (Target page, context or browser has been closed)
+App status: 200 OK
+
+## Static Review
+
+### AC #1 — SectionHeader (ActivitesHeader)
+OK — Shared component imported, not modified.
+
+### AC #2 — Ordre des blocs (StatCards AVANT filtres)
+OK — Render order verified (lines 347-395):
+  1. playerSummary (scope joueur only)
+  2. statCardsRow
+  3. filtresRow
+  4. toggleRowWrapper (evalType)
+  5. contenu
+
+### AC #3 — FiltresScope
+OK — Shared component, not modified.
+
+### AC #4 — PseudoFiltresTemporels (SegmentedToggle)
+OK — Shared component, not modified.
+
+### AC #5 — EvalType pills redesign -> SegmentedToggle
+OK — All styles match reference pattern from academie/joueurs/index.tsx:
+  - toggleRow: flexDirection row, gap 0, alignSelf flex-start, borderRadius radius.xs, overflow hidden, borderWidth 1, borderColor colors.border.light
+  - toggleBtn: paddingVertical 8, paddingHorizontal space.lg, backgroundColor colors.light.surface
+  - toggleBtnActive: backgroundColor colors.accent.gold
+  - toggleLabel: fontSize 11, fontWeight 700, letterSpacing 0.8, color colors.text.muted
+  - toggleLabelActive: color colors.text.dark
+Note: reference has marginBottom: space.md on toggleRow; evaluations uses a wrapper (toggleRowWrapper) with marginBottom: space.md instead. Equivalent result, no issue.
+
+### AC #6 — Tableau evaluations aligne sur EntrainementsTable
+OK — Styles match reference from methodologie/seances/index.tsx:
+  - tableContainer: borderRadius 10, borderWidth 1, borderColor colors.border.divider, overflow hidden
+  - tableHeader: paddingHorizontal 16, paddingVertical 10, backgroundColor colors.light.muted
+  - colHeader: fontFamily 'Montserrat', fontSize 10, fontWeight 700, letterSpacing 1, color colors.text.subtle, textTransform uppercase
+  - tableRow: paddingHorizontal 16, minHeight 52, borderBottomWidth 1, borderBottomColor colors.border.divider
+  - tableRowAlt: backgroundColor colors.light.muted (zebra stripes)
+
+### AC #7 — Pagination alignee style Seances
+OK — pagination style: backgroundColor colors.light.muted, borderTopWidth 1, borderTopColor colors.border.divider
+
+## QA Scan
+
+### try/finally on state loaders
+OK — setLoading(true) at line 242, finally { setLoading(false) } at line 258. Single loader, correct pattern.
+
+### Console guards
+OK — Single console.error at line 256, guarded by `process.env.NODE_ENV !== 'production'`.
+
+### Silent catch
+OK — No empty catch blocks found.
+
+### TypeScript
+OK — tsc --noEmit: zero errors.
+
+### Shared files regression
+OK — Only evaluations/page.tsx was modified. Shared components (ActivitesHeader, FiltresScope, PseudoFiltresTemporels) untouched.
+
+### Potential bugs
+None detected. Data flow, pagination, sorting, and scope filtering logic unchanged from pre-story state.
