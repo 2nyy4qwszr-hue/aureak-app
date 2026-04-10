@@ -132,7 +132,7 @@ const RELATION_BADGE_VARIANTS: Record<Exclude<ClubRelationType, 'normal'>, 'gold
 
 const STATUT_COLORS: Record<string, string> = {
   'Académicien': colors.accent.gold,
-  'Nouveau'    : colors.entity.stage,
+  'Nouveau'    : colors.accent.goldLight,
   'Stagiaire'  : colors.status.info,
   'Ancien'     : colors.text.muted,
 }
@@ -175,7 +175,7 @@ function PlayerRow({ row, onRemove }: { row: ClubChildLinkRow; onRemove: () => v
       </View>
 
       <Pressable onPress={onRemove} style={pr.removeBtn}>
-        <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Retirer</AureakText>
+        <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 11 }}>Retirer</AureakText>
       </Pressable>
     </View>
   )
@@ -281,7 +281,7 @@ function CoachRow({ name, onRemove }: { name: string; onRemove: () => void }) {
       </View>
       <AureakText variant="body" style={{ flex: 1, fontSize: 13 }}>{name}</AureakText>
       <Pressable onPress={onRemove} style={pr.removeBtn}>
-        <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Retirer</AureakText>
+        <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 11 }}>Retirer</AureakText>
       </Pressable>
     </View>
   )
@@ -723,7 +723,7 @@ export default function ClubDetailPage() {
       {/* Error banner */}
       {error && (
         <View style={s.errorBanner}>
-          <AureakText variant="body" style={{ color: colors.accent.red }}>{error}</AureakText>
+          <AureakText variant="body" style={{ color: colors.status.errorStrong }}>{error}</AureakText>
         </View>
       )}
 
@@ -839,7 +839,7 @@ export default function ClubDetailPage() {
               {/* Suppression rapide sans passer en mode édition */}
               {club.logoPath && !logoUploading && (
                 <Pressable onPress={handleLogoDelete}>
-                  <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>
+                  <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 11 }}>
                     Supprimer le logo
                   </AureakText>
                 </Pressable>
@@ -912,7 +912,7 @@ export default function ClubDetailPage() {
                 )}
                 {club.logoPath && !logoUploading && !logoFile && (
                   <Pressable onPress={handleLogoDelete}>
-                    <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Supprimer le logo</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 11 }}>Supprimer le logo</AureakText>
                   </Pressable>
                 )}
               </View>
@@ -1112,7 +1112,7 @@ const s = StyleSheet.create({
   cancelBtn: { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, borderWidth: 1, borderColor: colors.border.light },
   saveBtn  : { paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: 7, backgroundColor: colors.accent.gold },
 
-  errorBanner : { backgroundColor: colors.status.errorBg, borderLeftWidth: 3, borderLeftColor: colors.accent.red, borderRadius: 4, padding: space.md },
+  errorBanner : { backgroundColor: colors.status.errorBg, borderLeftWidth: 3, borderLeftColor: colors.status.errorStrong, borderRadius: 4, padding: space.md },
 
   sectionNote  : { backgroundColor: colors.light.primary, borderRadius: 6, padding: space.sm, borderWidth: 1, borderColor: colors.border.light },
   pickerWrapper: { marginTop: space.sm, borderTopWidth: 1, borderTopColor: colors.border.divider, paddingTop: space.sm },

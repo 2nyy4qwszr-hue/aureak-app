@@ -32,7 +32,7 @@ export function getStatColor(
   if (isRecord) return colors.accent.gold
   if (value >= thresholdHigh) return colors.status.success
   if (value >= thresholdLow)  return colors.accent.gold
-  return colors.accent.red
+  return colors.status.errorStrong
 }
 
 // ── getStatColorClass ─────────────────────────────────────────────────────────

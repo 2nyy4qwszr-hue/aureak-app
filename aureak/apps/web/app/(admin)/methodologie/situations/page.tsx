@@ -154,7 +154,7 @@ export default function SituationsPage() {
       )}
 
       {errorMsg && (
-        <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
+        <AureakText style={{ color: colors.status.errorStrong, fontSize: 13 }}>{errorMsg}</AureakText>
       )}
 
       {!loading && !errorMsg && situations.length === 0 && (

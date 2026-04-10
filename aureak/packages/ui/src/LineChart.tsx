@@ -17,7 +17,7 @@ export const SERIES_COLORS: string[] = [
   '#8B5CF6',
   '#F59E0B',
   '#06B6D4',
-  colors.accent.red,
+  colors.status.errorStrong,
 ]
 
 // ── Types ─────────────────────────────────────────────────────────────────────

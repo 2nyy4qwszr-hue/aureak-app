@@ -343,7 +343,7 @@ export default function EditSessionPage() {
   if (loadError || !session) {
     return (
       <View style={[st.container, { justifyContent: 'center', alignItems: 'center', padding: space.xl }]}>
-        <AureakText variant="h3" style={{ color: colors.accent.red ?? '#E05252' }}>
+        <AureakText variant="h3" style={{ color: colors.status.errorStrong ?? '#E05252' }}>
           {loadError ?? 'Séance introuvable'}
         </AureakText>
         <Pressable

@@ -631,9 +631,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 5, flex: 1 }}>
-      <label style={{ fontSize: 12, color: error ? colors.accent.red : colors.text.muted, fontWeight: 500 }}>{label}</label>
+      <label style={{ fontSize: 12, color: error ? colors.status.errorStrong : colors.text.muted, fontWeight: 500 }}>{label}</label>
       {children}
-      {error && <span style={{ fontSize: 11, color: colors.accent.red }}>{error}</span>}
+      {error && <span style={{ fontSize: 11, color: colors.status.errorStrong }}>{error}</span>}
     </div>
   )
 }
@@ -760,7 +760,7 @@ const s: Record<string, React.CSSProperties> = {
     boxSizing: 'border-box',
   },
   inputError: {
-    border: `1px solid ${colors.accent.red}`,
+    border: `1px solid ${colors.status.errorStrong}`,
   },
   select: {
     background: colors.light.muted,
@@ -830,7 +830,7 @@ const s: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(224,82,82,0.3)',
     borderRadius: 8,
     padding: '10px 14px',
-    color: colors.accent.red,
+    color: colors.status.errorStrong,
     fontSize: 13,
     marginBottom: 20,
   },

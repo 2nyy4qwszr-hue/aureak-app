@@ -22,7 +22,7 @@ const variantConfig: Record<ButtonVariant, { bg: string; border?: string; textCo
   primary:   { bg: colors.accent.gold, textColor: colors.text.dark, loadingColor: colors.text.dark },
   secondary: { bg: 'transparent', border: colors.accent.gold, textColor: colors.accent.gold, loadingColor: colors.accent.gold },
   ghost:     { bg: 'transparent', textColor: colors.accent.gold, loadingColor: colors.accent.gold },
-  danger:    { bg: colors.accent.red, textColor: '#FFFFFF', loadingColor: '#FFFFFF' },
+  danger:    { bg: colors.status.errorStrong, textColor: '#FFFFFF', loadingColor: '#FFFFFF' },
 }
 
 const styles = StyleSheet.create({

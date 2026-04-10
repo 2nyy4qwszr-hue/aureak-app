@@ -297,7 +297,7 @@ function AddGuestModal({
         )}
 
         {error && (
-          <div style={{ color: colors.accent.red ?? colors.status.absent, fontSize: 13, marginTop: 8 }}>{error}</div>
+          <div style={{ color: colors.status.errorStrong ?? colors.status.absent, fontSize: 13, marginTop: 8 }}>{error}</div>
         )}
       </div>
     </div>

@@ -18,9 +18,9 @@ const STATUS_LABELS: Record<StageStatus, string> = {
 
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
-  en_cours : colors.entity.stage,
+  en_cours : colors.accent.goldLight,
   terminé  : colors.text.muted,
-  annulé   : colors.accent.red,
+  annulé   : colors.status.errorStrong,
 }
 
 const TYPE_LABELS: Record<StageType, string> = {
@@ -136,8 +136,8 @@ export default function StagesPage() {
 
       {/* Error — affiché seul, sans état vide simultané */}
       {error ? (
-        <View style={{ backgroundColor: colors.accent.red + '15', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
-          <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
+        <View style={{ backgroundColor: colors.status.errorStrong + '15', borderRadius: 7, padding: space.md, borderWidth: 1, borderColor: colors.status.errorStrong }}>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>{error}</AureakText>
         </View>
       ) : loading ? (
         /* Skeleton */

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   dangerZone : {
     borderWidth  : 1,
-    borderColor  : colors.accent.red,
+    borderColor  : colors.status.errorStrong,
     borderRadius : radius.card,
     padding      : space.md,
     gap          : space.sm,
@@ -237,7 +237,7 @@ export default function ParentTicketDetailPage() {
       {/* Fermer la demande */}
       {ticket.status !== 'closed' && (
         <View style={styles.dangerZone}>
-          <AureakText variant="label" style={{ color: colors.accent.red }}>Fermer ma demande</AureakText>
+          <AureakText variant="label" style={{ color: colors.status.errorStrong }}>Fermer ma demande</AureakText>
           <AureakText variant="caption" style={{ color: colors.text.muted }}>
             Si votre problème est résolu, vous pouvez clore cette demande. Elle ne sera plus visible dans votre liste.
           </AureakText>

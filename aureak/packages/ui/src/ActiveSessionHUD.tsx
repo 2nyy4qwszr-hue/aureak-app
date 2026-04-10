@@ -61,7 +61,7 @@ export function ActiveSessionHUD({
     ? colors.status.success
     : rate >= 50
       ? colors.accent.gold
-      : colors.accent.red
+      : colors.status.errorStrong
 
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Séance en cours : ${session.groupName}`}>

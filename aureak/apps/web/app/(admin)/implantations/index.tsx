@@ -72,7 +72,7 @@ function methodBadgeStyle(method: GroupMethod) {
 function getCapacityColor(current: number, max: number | null): string {
   if (!max || max <= 0) return colors.accent.gold
   const ratio = current / max
-  if (ratio >= 0.90) return colors.accent.red
+  if (ratio >= 0.90) return colors.status.errorStrong
   if (ratio >= 0.70) return colors.accent.gold
   return colors.status.success
 }
@@ -81,7 +81,7 @@ function getCapacityColor(current: number, max: number | null): string {
 function healthLevelColor(level: HealthLevel): string {
   if (level === 'green') return colors.status.success
   if (level === 'gold')  return colors.accent.gold
-  return colors.accent.red
+  return colors.status.errorStrong
 }
 
 // Story 57-8 — Formatage date séance
@@ -421,7 +421,7 @@ function ImplantationCard({
               )}
               {/* Story 57-1 — Erreur upload inline (AC6 / AC7) */}
               {photoErrorMsg && (
-                <AureakText variant="caption" style={{ color: colors.accent.red }}>
+                <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>
                   {photoErrorMsg}
                 </AureakText>
               )}
@@ -1149,7 +1149,7 @@ export default function ImplantationsPage() {
       )}
 
       {loadError && (
-        <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>
+        <AureakText variant="body" style={{ color: colors.status.errorStrong }}>{loadError}</AureakText>
       )}
 
       {loading ? (

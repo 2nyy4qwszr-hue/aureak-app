@@ -16,7 +16,7 @@ type AdminMessage = {
   sent_at     : string
 }
 
-const URGENCY_COLOR = { routine: colors.text.muted, urgent: colors.accent.red }
+const URGENCY_COLOR = { routine: colors.text.muted, urgent: colors.status.errorStrong }
 const URGENCY_LABEL = { routine: 'Routine', urgent: '🚨 Urgent' }
 
 export default function CoachMessagesPage() {
@@ -104,7 +104,7 @@ const s = StyleSheet.create({
     borderColor    : colors.border.light,
     gap            : space.sm,
   },
-  cardUrgent : { borderColor: colors.accent.red + '40', borderLeftWidth: 4, borderLeftColor: colors.accent.red },
+  cardUrgent : { borderColor: colors.status.errorStrong + '40', borderLeftWidth: 4, borderLeftColor: colors.status.errorStrong },
   cardHeader : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   badge      : {
     paddingHorizontal: 6,

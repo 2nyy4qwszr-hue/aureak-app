@@ -90,7 +90,7 @@ export default function ComparePage() {
       </View>
 
       {loadError && (
-        <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>
+        <AureakText variant="body" style={{ color: colors.status.errorStrong }}>{loadError}</AureakText>
       )}
 
       {/* ── Sélecteurs côte à côte ── */}

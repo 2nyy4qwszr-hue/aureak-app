@@ -745,12 +745,12 @@ const st = StyleSheet.create({
     paddingVertical  : 2,
     borderRadius     : 4,
     borderWidth      : 1,
-    borderColor      : colors.accent.red + '50',
-    backgroundColor  : colors.accent.red + '0D',
+    borderColor      : colors.status.errorStrong + '50',
+    backgroundColor  : colors.status.errorStrong + '0D',
   },
   deleteBtnLabel: {
     fontSize  : 10,
     fontWeight: '600',
-    color     : colors.accent.red,
+    color     : colors.status.errorStrong,
   },
 })

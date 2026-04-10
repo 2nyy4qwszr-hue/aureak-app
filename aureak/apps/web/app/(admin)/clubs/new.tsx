@@ -61,8 +61,8 @@ const ff = StyleSheet.create({
     fontSize         : 13,
     fontFamily       : 'System',
   },
-  inputError: { borderColor: colors.accent.red },
-  errorText : { color: colors.accent.red, fontSize: 11 },
+  inputError: { borderColor: colors.status.errorStrong },
+  errorText : { color: colors.status.errorStrong, fontSize: 11 },
   textarea  : { minHeight: 80, textAlignVertical: 'top' as never },
 })
 
@@ -277,7 +277,7 @@ export default function NewClubScreen() {
         {/* Error */}
         {error && (
           <View style={styles.errorBanner}>
-            <AureakText variant="body" style={{ color: colors.accent.red }}>{error}</AureakText>
+            <AureakText variant="body" style={{ color: colors.status.errorStrong }}>{error}</AureakText>
           </View>
         )}
 
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     backgroundColor: colors.light.muted,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent.red,
+    borderLeftColor: colors.status.errorStrong,
     borderRadius   : 4,
     padding        : space.md,
   },

@@ -84,5 +84,5 @@ const styles = StyleSheet.create({
     borderRadius     : radius.xs,
     backgroundColor  : colors.accent.gold,
   },
-  confirmBtnDanger: { backgroundColor: colors.accent.red },
+  confirmBtnDanger: { backgroundColor: colors.status.errorStrong },
 })

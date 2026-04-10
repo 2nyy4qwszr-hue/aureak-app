@@ -143,7 +143,7 @@ export default function SectionVisionPedagogique({ themeId, tenantId }: Props) {
         ))}
 
         {error && (
-          <div style={{ color: colors.accent.red, fontSize: 12, marginBottom: 12 }}>{error}</div>
+          <div style={{ color: colors.status.errorStrong, fontSize: 12, marginBottom: 12 }}>{error}</div>
         )}
 
         <button

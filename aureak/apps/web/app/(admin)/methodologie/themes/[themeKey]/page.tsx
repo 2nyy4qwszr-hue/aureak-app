@@ -180,7 +180,7 @@ export default function ThemeDossierPage() {
                 <span style={S.tabIcon}>{tab.icon}</span>
                 <span style={S.tabLabel}>{tab.label}</span>
                 {tab.id === 'organisation' && freeCount > 0 && (
-                  <span style={{ fontSize: 9, fontWeight: 700, backgroundColor: colors.accent.red, color: '#fff', borderRadius: 999, padding: '1px 5px', lineHeight: 1.4 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, backgroundColor: colors.status.errorStrong, color: '#fff', borderRadius: 999, padding: '1px 5px', lineHeight: 1.4 }}>
                     {freeCount}
                   </span>
                 )}

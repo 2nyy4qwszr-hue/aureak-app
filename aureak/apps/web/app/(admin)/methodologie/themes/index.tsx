@@ -180,7 +180,7 @@ export default function ThemesPage() {
       )}
 
       {errorMsg && (
-        <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
+        <AureakText style={{ color: colors.status.errorStrong, fontSize: 13 }}>{errorMsg}</AureakText>
       )}
 
       {!loading && !errorMsg && themes.length === 0 && (

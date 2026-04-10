@@ -26,7 +26,7 @@ const tamaguiTokens = createTokens({
     beige             : colors.accent.beige,
     zinc              : colors.accent.zinc,
     ivory             : colors.accent.ivory,
-    red               : colors.accent.red,
+    red               : colors.status.errorStrong,
     // Status
     statusPresent     : colors.status.present,
     statusAttention   : colors.status.attention,

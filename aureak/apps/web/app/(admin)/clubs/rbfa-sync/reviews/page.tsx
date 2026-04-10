@@ -23,7 +23,7 @@ function ScoreBar({ score }: { score: number }) {
     ? colors.status.success
     : score >= 25
       ? colors.accent.goldLight
-      : colors.accent.red
+      : colors.status.errorStrong
   return (
     <View style={sb.track}>
       <View style={[sb.fill, { width: `${score}%` as never, backgroundColor: color }]} />
@@ -137,7 +137,7 @@ function ReviewCard({
           onPress={() => onReject(review.id)}
           disabled={!!processing}
         >
-          <AureakText variant="caption" style={{ color: colors.accent.red, fontWeight: '700' }}>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontWeight: '700' }}>
             {busy ? '…' : 'Rejeter'}
           </AureakText>
         </Pressable>
@@ -205,7 +205,7 @@ const card = StyleSheet.create({
   rejectBtn : {
     borderRadius     : 8,
     borderWidth      : 1,
-    borderColor      : colors.accent.red,
+    borderColor      : colors.status.errorStrong,
     paddingVertical  : 9,
     paddingHorizontal: space.md,
   },
@@ -288,7 +288,7 @@ export default function RbfaReviewsPage() {
               <AureakText variant="caption" style={{ color: colors.status.success, fontWeight: '700' }}>
                 {confirmed} ✓
               </AureakText>
-              <AureakText variant="caption" style={{ color: colors.accent.red, fontWeight: '700' }}>
+              <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontWeight: '700' }}>
                 {rejected} ✕
               </AureakText>
             </View>

@@ -16,7 +16,7 @@ describe('getStatColor', () => {
     expect(color).toBe('#C1AC5C')
   })
 
-  it('cas low : value < thresholdLow → colors.accent.red (#E05252)', () => {
+  it('cas low : value < thresholdLow → colors.status.errorStrong (#E05252)', () => {
     const color = getStatColor(50, 80, 60)
     expect(color).toBe('#E05252')
   })

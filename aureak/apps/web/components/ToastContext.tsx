@@ -31,7 +31,7 @@ const ToastContext = createContext<ToastContextValue | null>(null)
 
 const TOAST_CONFIG: Record<ToastType, { icon: string; bg: string; border: string; text: string }> = {
   success: { icon: '✓', bg: '#F0FDF4', border: colors.status.success,   text: '#166534' },
-  error  : { icon: '✕', bg: '#FEF2F2', border: colors.accent.red,       text: '#991B1B' },
+  error  : { icon: '✕', bg: '#FEF2F2', border: colors.status.errorStrong,       text: '#991B1B' },
   warning: { icon: '!', bg: '#FFFBEB', border: '#F59E0B',               text: '#92400E' },
   info   : { icon: 'i', bg: colors.light.muted, border: colors.accent.gold, text: colors.text.dark },
 }

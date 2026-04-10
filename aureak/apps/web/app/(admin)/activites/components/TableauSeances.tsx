@@ -136,7 +136,7 @@ function MethodeBadge({ method }: { method: string | null }) {
 const COACH_AVATAR_COLORS = [
   colors.accent.gold,    // '#C1AC5C' — or champagne AUREAK
   colors.status.success, // '#10B981' — vert émeraude
-  colors.accent.red,     // '#E05252' — rouge CTA
+  colors.status.errorStrong,     // '#E05252' — rouge CTA
   colors.status.warning, // '#F59E0B' — ambre/orange
   colors.accent.silver,  // '#9CA3AF' — argent/gris
 ] as const

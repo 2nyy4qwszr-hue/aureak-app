@@ -216,7 +216,7 @@ export default function SectionQuiz({ themeKey, themeId }: Props) {
             {options.length > 3 && (
               <button
                 onClick={() => setOptions(prev => prev.slice(0, -1))}
-                style={{ fontSize: 11, padding: '4px 10px', backgroundColor: 'transparent', border: `1px solid ${colors.border.light}`, borderRadius: 6, cursor: 'pointer', color: colors.accent.red }}
+                style={{ fontSize: 11, padding: '4px 10px', backgroundColor: 'transparent', border: `1px solid ${colors.border.light}`, borderRadius: 6, cursor: 'pointer', color: colors.status.errorStrong }}
               >
                 - Option
               </button>

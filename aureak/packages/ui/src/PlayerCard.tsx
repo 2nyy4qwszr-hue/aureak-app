@@ -202,9 +202,9 @@ function useShimmerEffect(isElite: boolean): void {
  * Couleurs depuis gamification.statBands — jamais hardcodées.
  */
 function statBandColor(value: number): string {
-  if (value >= 75) return gamification.statBands.high
-  if (value >= 60) return gamification.statBands.medium
-  return gamification.statBands.low
+  if (value >= 75) return colors.accent.gold
+  if (value >= 60) return colors.accent.gold
+  return colors.status.errorText
 }
 
 function StatsRow({ stats }: { stats: PlayerStats }) {

@@ -15,7 +15,7 @@ const variantColors: Record<BadgeVariant, { bg: string; text: string; border?: s
   present     : { bg: colors.status.present,   text: colors.text.dark },
   attention   : { bg: colors.status.attention,  text: colors.text.dark },
   zinc        : { bg: colors.accent.zinc,       text: colors.text.primary },
-  danger      : { bg: colors.accent.red,        text: '#FFFFFF' },
+  danger      : { bg: colors.status.errorStrong,        text: '#FFFFFF' },
   goldOutline : { bg: 'transparent',            text: colors.accent.gold, border: colors.border.goldSolid },
   light       : { bg: colors.light.muted,       text: colors.text.dark,   border: colors.border.light },
 }

@@ -337,7 +337,7 @@ function BriefingDuJour({
             ? colors.status.present
             : status === 'warning'
               ? colors.status.attention   // token orange existant
-              : colors.accent.red
+              : colors.status.errorStrong
           const coachesCount = (stat as ImplantationBriefingStat).coaches_count ?? '—'
           const childrenCount = stat.sessions_total ?? 0  // TODO: utiliser children_count quand disponible
           const terrainOk    = (stat as ImplantationBriefingStat).terrain_available ?? true
@@ -392,8 +392,8 @@ function BriefingDuJour({
                 Séances planifiées : {childrenCount}
               </div>
 
-              <div className="status-row" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: terrainOk ? colors.status.present : colors.accent.red }}>
-                <span className="status-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: terrainOk ? colors.status.present : colors.accent.red, flexShrink: 0 }} />
+              <div className="status-row" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: terrainOk ? colors.status.present : colors.status.errorStrong }}>
+                <span className="status-dot" style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: terrainOk ? colors.status.present : colors.status.errorStrong, flexShrink: 0 }} />
                 Terrain : {terrainOk ? 'OK' : '⚠ Problème'}
               </div>
 
@@ -1817,7 +1817,7 @@ function AcademyScoreTile({
               </div>
               <div style={{
                 fontSize  : 12,
-                color     : score.trend >= 0 ? colors.status.success : colors.accent.red,
+                color     : score.trend >= 0 ? colors.status.success : colors.status.errorStrong,
                 fontWeight: 600,
                 fontFamily: 'Montserrat, sans-serif',
                 marginTop : 2,
@@ -1969,7 +1969,7 @@ function LeaderboardTile({
 
   const EVOLUTION_ICON: Record<string, { icon: string; color: string }> = {
     up    : { icon: '▲', color: colors.status.success },
-    down  : { icon: '▼', color: colors.accent.red },
+    down  : { icon: '▼', color: colors.status.errorStrong },
     stable: { icon: '—', color: colors.text.subtle },
   }
 
@@ -3362,7 +3362,7 @@ export default function DashboardPage() {
           {loadingInactiveCoaches ? (
             <div className="a-skel" style={{ height: 80, borderRadius: 8 }} />
           ) : errorInactiveCoaches ? (
-            <div style={{ fontSize: 12, color: colors.accent.red, fontFamily: fonts.body }}>
+            <div style={{ fontSize: 12, color: colors.status.errorStrong, fontFamily: fonts.body }}>
               Erreur de chargement{' '}
               <span
                 onClick={handleRetryInactiveCoaches}
@@ -3377,7 +3377,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 28, fontWeight: 900, color: colors.accent.red, fontFamily: fonts.display, marginBottom: 8 }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: colors.status.errorStrong, fontFamily: fonts.display, marginBottom: 8 }}>
                 {(inactiveCoaches ?? []).length}
               </div>
               {(inactiveCoaches ?? []).slice(0, 5).map(c => (

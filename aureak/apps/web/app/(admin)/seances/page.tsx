@@ -656,7 +656,7 @@ export default function SeancesPage() {
                 autoFocus
               />
               {presetNameError ? (
-                <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: 4 }}>
+                <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: 4 }}>
                   {presetNameError}
                 </AureakText>
               ) : null}

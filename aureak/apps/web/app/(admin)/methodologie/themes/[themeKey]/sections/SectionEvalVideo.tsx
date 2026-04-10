@@ -246,7 +246,7 @@ export default function SectionEvalVideo({ themeId, tenantId, criteria }: Props)
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }} onClick={() => handleStartEdit(tmpl)}>✎</button>
                   <button
-                    style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }}
+                    style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.status.errorStrong, borderColor: colors.status.errorStrong + '40' }}
                     onClick={() => handleDelete(tmpl.id)}
                   >
                     🗑

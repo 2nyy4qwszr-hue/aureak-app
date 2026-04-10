@@ -15,7 +15,7 @@ type AdminMessage = {
   sent_at     : string
 }
 
-const URGENCY_COLOR = { routine: colors.text.muted, urgent: colors.accent.red }
+const URGENCY_COLOR = { routine: colors.text.muted, urgent: colors.status.errorStrong }
 const URGENCY_LABEL = { routine: 'Routine', urgent: '🚨 Urgent' }
 
 export default function AdminMessagesPage() {
@@ -125,7 +125,7 @@ export default function AdminMessagesPage() {
           {(['routine', 'urgent'] as const).map(u => (
             <Pressable
               key={u}
-              style={[s.chip, urgency === u && s.chipActive, urgency === u && u === 'urgent' && { backgroundColor: colors.accent.red }]}
+              style={[s.chip, urgency === u && s.chipActive, urgency === u && u === 'urgent' && { backgroundColor: colors.status.errorStrong }]}
               onPress={() => setUrgency(u)}
             >
               <AureakText variant="caption" style={{ color: urgency === u ? colors.light.primary : colors.text.dark, fontWeight: '600' }}>
@@ -151,7 +151,7 @@ export default function AdminMessagesPage() {
         </AureakText>
 
         {error && (
-          <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>{error}</AureakText>
         )}
         {success && (
           <AureakText variant="caption" style={{ color: colors.status.present }}>✓ Message envoyé.</AureakText>

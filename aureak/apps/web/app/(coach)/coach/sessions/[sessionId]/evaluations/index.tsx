@@ -303,7 +303,7 @@ export default function EvaluationsPage() {
         </div>
       )}
       {saveError && (
-        <div style={{ margin: '8px 0', padding: '8px 12px', borderRadius: 8, backgroundColor: 'rgba(224,82,82,0.12)', color: colors.accent.red, fontSize: 13 }}>
+        <div style={{ margin: '8px 0', padding: '8px 12px', borderRadius: 8, backgroundColor: 'rgba(224,82,82,0.12)', color: colors.status.errorStrong, fontSize: 13 }}>
           {saveError}
         </div>
       )}

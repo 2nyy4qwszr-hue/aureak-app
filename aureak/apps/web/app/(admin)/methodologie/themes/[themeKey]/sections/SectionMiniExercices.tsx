@@ -188,7 +188,7 @@ export default function SectionMiniExercices({ themeId, tenantId, criteria, sequ
                 <div style={{ fontWeight: 600, fontSize: 14, color: colors.text.dark }}>⚡ {ex.title}</div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }} onClick={() => handleEdit(ex)}>✎</button>
-                  <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }} onClick={() => handleDelete(ex.id)}>🗑</button>
+                  <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.status.errorStrong, borderColor: colors.status.errorStrong + '40' }} onClick={() => handleDelete(ex.id)}>🗑</button>
                 </div>
               </div>
               {(ex.criterionId || ex.sequenceId) && (

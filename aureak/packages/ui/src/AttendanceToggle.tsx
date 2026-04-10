@@ -23,7 +23,7 @@ export function AttendanceToggle({
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   const isPresent = status === 'present'
-  const bg        = isPresent ? colors.status.success : (colors.accent.red ?? '#E05252')
+  const bg        = isPresent ? colors.status.success : (colors.status.errorStrong ?? '#E05252')
   const label     = isPresent ? '✓ Présent' : '✗ Absent'
 
   const triggerBounce = () => {

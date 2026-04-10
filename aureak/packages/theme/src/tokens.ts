@@ -46,7 +46,6 @@ export const colors = {
     beige    : '#F3EFE7',  // beige/crème — warm accent, web admin background
     zinc     : '#424242',  // gris zinc — éléments secondaires, bordures inactives (dark)
     ivory    : '#F0EDE0',  // blanc ivoire — texte sur fond sombre (variante)
-    red      : '#E05252',  // rouge CTA — boutons d'action uniquement
     // Grades métalliques coach
     bronze   : '#CD7F32',  // bronze
     silver      : '#9CA3AF',  // argent
@@ -77,6 +76,7 @@ export const colors = {
     errorText : '#B91C1C',  // texte sur fond errorBg (rouge foncé)
     errorBorder: '#FECACA', // bordure sur fond errorBg
     errorBorderSevere: '#FEE2E2', // fond rouge plus marqué
+    errorStrong: '#E05252', // rouge erreur sémantique (bannières, validation forms, états destructifs) — jamais accent brand
     infoBg   : '#EFF6FF',  // fond bleu clair — info banners
     infoText : '#1D4ED8',  // texte sur fond infoBg (bleu foncé)
     orangeBg : '#FFF7ED',  // fond orange clair — blessure légère
@@ -88,23 +88,12 @@ export const colors = {
     modal: 'rgba(0,0,0,0.7)',          // fond modal plein écran
     light: 'rgba(255,255,255,0.85)',   // surface translucide sur fond sombre
   },
-  entity: {
-    stage : '#4ADE80',  // vert — statut "en cours" stage
-    club  : '#60A5FA',  // bleu — badges club
-    coach : '#A78BFA',  // violet — badges coach
-  },
   // Story 47-7 — Couleurs terrain football (gradients implantation / pitch)
   terrain: {
     darkForest : '#1a472a',  // vert forêt sombre — base gradient terrain
     midGreen   : '#2d6a4f',  // vert moyen terrain
     lightGreen : '#40916c',  // vert clair accent terrain
     deepForest : '#1B4332',  // vert forêt profond — variante header
-  },
-  // Story 58-8 — Couleurs des phases de séance pédagogique
-  phase: {
-    activation : '#D4EDDA',  // vert clair — phase de mise en train
-    development: '#FFF3CD',  // or clair  — phase de développement principal
-    conclusion : '#CCE5FF',  // bleu clair — phase de conclusion/bilan
   },
   text: {
     primary  : '#FFFFFF',         // texte principal sur fond sombre
@@ -243,11 +232,6 @@ export const gamification = {
     fillColor  : '#C1AC5C',               // gold AUREAK
     trackColor : '#E5E7EB',               // gris clair
     glowColor  : 'rgba(193,172,92,0.4)',  // halo gold actif
-  },
-  statBands: {
-    high  : '#22C55E',  // >= 75 — vert performance
-    medium: '#C1AC5C',  // 60-74 — or standard
-    low   : '#EF4444',  // < 60  — rouge amélioration
   },
   statLabels: ['PLO', 'TIR', 'TEC', 'TAC', 'PHY', 'MEN'] as const,
   levels: {

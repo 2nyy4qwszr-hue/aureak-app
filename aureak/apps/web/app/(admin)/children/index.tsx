@@ -1350,14 +1350,14 @@ export default function JoueursPage() {
           style={[
             { paddingHorizontal: space.md, paddingVertical: 6, borderRadius: 14, borderWidth: 1, alignSelf: 'flex-start' as never },
             dangerOnly
-              ? { backgroundColor: colors.accent.red, borderColor: colors.accent.red }
-              : { backgroundColor: colors.light.surface, borderColor: colors.accent.red + '60' },
+              ? { backgroundColor: colors.status.errorStrong, borderColor: colors.status.errorStrong }
+              : { backgroundColor: colors.light.surface, borderColor: colors.status.errorStrong + '60' },
           ]}
           onPress={() => setDangerOnly(v => !v)}
         >
           <AureakText style={[
             { fontSize: 12, fontWeight: '700' as never },
-            dangerOnly ? { color: '#fff' } : { color: colors.accent.red },
+            dangerOnly ? { color: '#fff' } : { color: colors.status.errorStrong },
           ] as never}>
             En danger · {dangerPlayerIds.size}
           </AureakText>
@@ -1505,7 +1505,7 @@ export default function JoueursPage() {
             />
 
             {csvError && (
-              <span style={{ fontSize: 12, color: colors.accent.red }}>{csvError}</span>
+              <span style={{ fontSize: 12, color: colors.status.errorStrong }}>{csvError}</span>
             )}
 
             {csvPreview.length > 0 && (

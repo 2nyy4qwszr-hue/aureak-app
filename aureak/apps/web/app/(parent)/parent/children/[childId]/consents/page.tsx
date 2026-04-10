@@ -73,7 +73,7 @@ export default function ChildConsentsPage() {
       </AureakText>
 
       {error && (
-        <AureakText variant="caption" style={{ color: colors.accent.red, marginBottom: space.md }}>
+        <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginBottom: space.md }}>
           {error}
         </AureakText>
       )}

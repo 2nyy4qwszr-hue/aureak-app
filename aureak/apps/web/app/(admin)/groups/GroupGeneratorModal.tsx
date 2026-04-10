@@ -208,7 +208,7 @@ export function GroupGeneratorModal({
                         </AureakText>
                         {proposal.hasConflict && (
                           <View style={s.conflictBadge}>
-                            <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 9, fontWeight: '700' }}>
+                            <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 9, fontWeight: '700' }}>
                               Conflit — groupe existant
                             </AureakText>
                           </View>
@@ -227,7 +227,7 @@ export function GroupGeneratorModal({
               </ScrollView>
 
               {genState.error && (
-                <AureakText variant="caption" style={{ color: colors.accent.red }}>
+                <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>
                   {genState.error}
                 </AureakText>
               )}
@@ -310,12 +310,12 @@ const s = StyleSheet.create({
     fontWeight       : '600',
   },
   conflictBadge: {
-    backgroundColor: colors.accent.red + '15',
+    backgroundColor: colors.status.errorStrong + '15',
     borderRadius   : 4,
     paddingHorizontal: 5,
     paddingVertical  : 2,
     borderWidth    : 1,
-    borderColor    : colors.accent.red + '40',
+    borderColor    : colors.status.errorStrong + '40',
   },
   primaryBtn: {
     backgroundColor  : colors.accent.gold,

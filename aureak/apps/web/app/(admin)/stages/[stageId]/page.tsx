@@ -30,9 +30,9 @@ const STATUS_LABELS: Record<StageStatus, string> = {
 
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
-  en_cours : colors.entity.stage,
+  en_cours : colors.accent.goldLight,
   terminé  : colors.text.muted,
-  annulé   : colors.accent.red,
+  annulé   : colors.status.errorStrong,
 }
 
 const STATUSES: StageStatus[] = ['planifié', 'en_cours', 'terminé', 'annulé']
@@ -99,7 +99,7 @@ function BlockCard({
             <AureakText variant="caption" style={{ fontSize: 10, color: colors.text.muted }}>Éditer</AureakText>
           </Pressable>
           <Pressable onPress={() => onDelete(block.id)} style={bc.actionBtn}>
-            <AureakText variant="caption" style={{ fontSize: 10, color: colors.accent.red }}>Suppr.</AureakText>
+            <AureakText variant="caption" style={{ fontSize: 10, color: colors.status.errorStrong }}>Suppr.</AureakText>
           </Pressable>
         </View>
       </View>
@@ -696,7 +696,7 @@ export default function StageDetailPage() {
   if (!stage) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.light.primary, padding: space.xl }}>
-        <AureakText variant="caption" style={{ color: colors.accent.red }}>Stage introuvable.</AureakText>
+        <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>Stage introuvable.</AureakText>
         <Pressable onPress={() => router.back()} style={{ marginTop: space.md }}>
           <AureakText variant="caption" style={{ color: colors.text.muted }}>← Retour</AureakText>
         </Pressable>
@@ -753,8 +753,8 @@ export default function StageDetailPage() {
 
         {/* ── Mutation error banner ── */}
         {mutError && (
-          <View style={{ backgroundColor: colors.accent.red + '15', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: colors.accent.red }}>
-            <AureakText variant="caption" style={{ color: colors.accent.red }}>{mutError}</AureakText>
+          <View style={{ backgroundColor: colors.status.errorStrong + '15', borderRadius: 7, padding: space.sm, borderWidth: 1, borderColor: colors.status.errorStrong }}>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>{mutError}</AureakText>
           </View>
         )}
 
@@ -850,7 +850,7 @@ export default function StageDetailPage() {
                 style={addDayInputStyle}
               />
               {dayError && (
-                <AureakText variant="caption" style={{ color: colors.accent.red }}>{dayError}</AureakText>
+                <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>{dayError}</AureakText>
               )}
               <Pressable
                 style={[p.addDayConfirmBtn, !newDayDate && { opacity: 0.4 }]}
@@ -912,7 +912,7 @@ export default function StageDetailPage() {
                         <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>+ Bloc</AureakText>
                       </Pressable>
                       <Pressable onPress={() => handleDeleteDay(activeDay.id)}>
-                        <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 }}>Suppr. journée</AureakText>
+                        <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 11 }}>Suppr. journée</AureakText>
                       </Pressable>
                     </View>
                   </View>

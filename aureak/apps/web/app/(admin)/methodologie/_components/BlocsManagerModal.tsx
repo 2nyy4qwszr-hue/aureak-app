@@ -121,7 +121,7 @@ export default function BlocsManagerModal({ visible, onClose, onBlocChanged }: P
 
           {error && (
             <View style={s.errorBanner}>
-              <AureakText style={{ color: colors.accent.red, fontSize: 12 }}>{error}</AureakText>
+              <AureakText style={{ color: colors.status.errorStrong, fontSize: 12 }}>{error}</AureakText>
             </View>
           )}
 
@@ -168,11 +168,11 @@ export default function BlocsManagerModal({ visible, onClose, onBlocChanged }: P
                       <AureakText style={{ fontSize: 11, color: colors.text.muted }}>Renommer</AureakText>
                     </Pressable>
                     <Pressable
-                      style={[s.actionBtn, { backgroundColor: colors.accent.red + '18' }]}
+                      style={[s.actionBtn, { backgroundColor: colors.status.errorStrong + '18' }]}
                       onPress={() => handleDelete(bloc.id, bloc.name)}
                       disabled={saving}
                     >
-                      <AureakText style={{ fontSize: 11, color: colors.accent.red }}>Supprimer</AureakText>
+                      <AureakText style={{ fontSize: 11, color: colors.status.errorStrong }}>Supprimer</AureakText>
                     </Pressable>
                   </>
                 )}
@@ -212,7 +212,7 @@ const s = StyleSheet.create({
   sheet     : { width: '100%', maxWidth: 520, backgroundColor: colors.light.surface, borderRadius: radius.cardLg, overflow: 'hidden', boxShadow: shadows.lg },
   header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space.md, paddingTop: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   closeBtn  : { padding: 6 },
-  errorBanner: { backgroundColor: colors.accent.red + '10', padding: space.sm, paddingHorizontal: space.md },
+  errorBanner: { backgroundColor: colors.status.errorStrong + '10', padding: space.sm, paddingHorizontal: space.md },
   blocRow   : { flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.light.muted, borderRadius: 8, padding: space.sm },
   input     : { flex: 1, borderWidth: 1, borderColor: colors.border.light, borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: 6, fontSize: 13, color: colors.text.dark, backgroundColor: colors.light.surface },
   actionBtn : { borderRadius: 6, paddingHorizontal: space.sm, paddingVertical: 6 },

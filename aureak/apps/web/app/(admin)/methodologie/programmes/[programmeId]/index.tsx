@@ -587,8 +587,8 @@ const st = StyleSheet.create({
   },
   actionBtnSecondary    : { borderColor: colors.border.light, backgroundColor: 'transparent' },
   actionBtnSecondaryText: { fontSize: 13, fontWeight: '600', color: colors.text.muted },
-  actionBtnDanger       : { borderColor: colors.accent.red, backgroundColor: colors.accent.red + '10' },
-  actionBtnDangerText   : { fontSize: 13, fontWeight: '600', color: colors.accent.red },
+  actionBtnDanger       : { borderColor: colors.status.errorStrong, backgroundColor: colors.status.errorStrong + '10' },
+  actionBtnDangerText   : { fontSize: 13, fontWeight: '600', color: colors.status.errorStrong },
 
   // Table
   tableCard: {
@@ -665,8 +665,8 @@ const st = StyleSheet.create({
   reorderBtnText: { fontSize: 10, color: colors.text.muted },
 
   // Remove button
-  removeBtn    : { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent.red + '15', alignItems: 'center', justifyContent: 'center' },
-  removeBtnText: { fontSize: 11, fontWeight: '700', color: colors.accent.red },
+  removeBtn    : { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.status.errorStrong + '15', alignItems: 'center', justifyContent: 'center' },
+  removeBtnText: { fontSize: 11, fontWeight: '700', color: colors.status.errorStrong },
 
   // Picker
   pickerCard: {

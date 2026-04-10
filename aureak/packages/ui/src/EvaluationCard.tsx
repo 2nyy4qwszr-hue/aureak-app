@@ -57,13 +57,13 @@ const TIER_CONFIG: Record<EvaluationTier, TierConfig> = {
     badgeText: '#444',
   },
   bronze: {
-    bg       : colors.accent.red + '18',    // rouge pâle 10% opacité
-    border   : colors.accent.red,
+    bg       : colors.status.errorStrong + '18',    // rouge pâle 10% opacité
+    border   : colors.status.errorStrong,
     label    : 'BRZ',
-    noteColor: colors.accent.red,
+    noteColor: colors.status.errorStrong,
     textColor: colors.text.dark,
-    badgeBg  : colors.accent.red + '30',
-    badgeText: colors.accent.red,
+    badgeBg  : colors.status.errorStrong + '30',
+    badgeText: colors.status.errorStrong,
   },
 }
 

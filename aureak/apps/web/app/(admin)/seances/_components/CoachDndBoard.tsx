@@ -96,9 +96,9 @@ const cc = StyleSheet.create({
     borderWidth: 1, borderColor: colors.accent.gold,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  actionBtnRemove: { backgroundColor: (colors.accent.red ?? '#E05252') + '18', borderColor: colors.accent.red ?? '#E05252' },
+  actionBtnRemove: { backgroundColor: (colors.status.errorStrong ?? '#E05252') + '18', borderColor: colors.status.errorStrong ?? '#E05252' },
   actionText     : { fontSize: 16, fontWeight: '700' as never, color: colors.accent.gold, lineHeight: 20 },
-  actionTextRemove: { color: colors.accent.red ?? '#E05252' },
+  actionTextRemove: { color: colors.status.errorStrong ?? '#E05252' },
 })
 
 // ── DropZone ───────────────────────────────────────────────────────────────────

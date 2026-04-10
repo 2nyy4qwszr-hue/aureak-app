@@ -152,7 +152,7 @@ export default function RbfaSyncPage() {
             <View style={s.statsRow}>
               <StatCard label="En attente"  count={stats.pending}  color={colors.accent.gold} />
               <StatCard label="Matchés"     count={stats.matched}  color={colors.status.success} />
-              <StatCard label="Rejetés"     count={stats.rejected} color={colors.accent.red} />
+              <StatCard label="Rejetés"     count={stats.rejected} color={colors.status.errorStrong} />
               <StatCard label="Sans résultat" count={stats.skipped} color={colors.text.muted} />
             </View>
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: space.sm }}>
@@ -217,7 +217,7 @@ export default function RbfaSyncPage() {
       {/* Erreur */}
       {error && (
         <View style={s.errorBox}>
-          <AureakText variant="caption" style={{ color: colors.accent.red }}>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>
             Erreur : {error}
           </AureakText>
         </View>
@@ -233,9 +233,9 @@ export default function RbfaSyncPage() {
             <ResultCard label="Traités"       count={result.processed}     color={colors.text.dark}         icon="📋" />
             <ResultCard label="Matchés"       count={result.matched}       color={colors.status.success}    icon="✅" />
             <ResultCard label="À valider"     count={result.pendingReview} color={colors.accent.goldLight}  icon="⏳" />
-            <ResultCard label="Rejetés"       count={result.rejected}      color={colors.accent.red}        icon="❌" />
+            <ResultCard label="Rejetés"       count={result.rejected}      color={colors.status.errorStrong}        icon="❌" />
             <ResultCard label="Sans résultat" count={result.skipped}       color={colors.text.muted}        icon="⏭️" />
-            <ResultCard label="Erreurs"       count={result.errors}        color={colors.accent.red}        icon="⚠️" />
+            <ResultCard label="Erreurs"       count={result.errors}        color={colors.status.errorStrong}        icon="⚠️" />
           </View>
           {result.pendingReview > 0 && (
             <Pressable style={s.reviewNote} onPress={() => router.push('/clubs/rbfa-sync/reviews' as never)}>
@@ -319,7 +319,7 @@ const s = StyleSheet.create({
     backgroundColor: colors.status.errorBg,
     borderRadius   : 10,
     borderWidth    : 1,
-    borderColor    : colors.accent.red,
+    borderColor    : colors.status.errorStrong,
     padding        : space.md,
   },
   reviewNote: {

@@ -259,7 +259,7 @@ function IntensityPicker({
           const filled    = value !== null && i <= value
           const isGold    = i <= 3
           const fillColor = filled
-            ? (isGold ? colors.accent.gold : (colors.accent.red))
+            ? (isGold ? colors.accent.gold : (colors.status.errorStrong))
             : colors.border.light
           return (
             <Pressable
@@ -320,7 +320,7 @@ function SessionSummaryCard({
 
   const presenceColor =
     presenceRate >= 80 ? colors.status.success :
-    presenceRate >= 60 ? colors.status.warning : colors.accent.red
+    presenceRate >= 60 ? colors.status.warning : colors.status.errorStrong
 
   return (
     <View style={ssc.card}>
@@ -449,7 +449,7 @@ function StreakBadgeSection({
         const name   = childNameMap[s.childId] ?? 'Joueur inconnu'
         const isExcp = s.streak >= 10
         const badge  = isExcp ? '🔥🔥 Série exceptionnelle' : '🔥 Série active'
-        const bColor = isExcp ? (colors.accent.red) : colors.accent.gold
+        const bColor = isExcp ? (colors.status.errorStrong) : colors.accent.gold
         return (
           <View
             key={s.childId}
@@ -688,7 +688,7 @@ async function computePresenceStreaks(
 
 const SQUAD_STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   present   : { bg: colors.status.success + '40', text: colors.status.successTextSub, label: '✓ Présent'     },
-  absent    : { bg: colors.accent.red     + '40', text: colors.status.errorText,       label: '✗ Absent'      },
+  absent    : { bg: colors.status.errorStrong     + '40', text: colors.status.errorText,       label: '✗ Absent'      },
   late      : { bg: colors.status.warning + '40', text: colors.status.warningText,     label: '⏱ En retard'   },
   injured   : { bg: colors.status.warning + '40', text: colors.status.warningText,     label: '🩹 Blessé'     },
   trial     : { bg: colors.status.info    + '40', text: colors.status.info,            label: '👀 Essai'      },
@@ -899,7 +899,7 @@ function SquadStatusGrid({
           {presentCount} présents
         </AureakText>
         <AureakText style={ssgSt.counterDot}>·</AureakText>
-        <AureakText style={[ssgSt.counterItem, { color: colors.accent.red }] as never}>
+        <AureakText style={[ssgSt.counterItem, { color: colors.status.errorStrong }] as never}>
           {absentCount} absents
         </AureakText>
         {lateCount > 0 && (
@@ -1716,7 +1716,7 @@ export default function SessionDetailPage() {
   if (loadError || !session) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: space.xl }]}>
-        <AureakText variant="h3" style={{ color: colors.accent.red, marginBottom: space.sm }}>
+        <AureakText variant="h3" style={{ color: colors.status.errorStrong, marginBottom: space.sm }}>
           Impossible d'afficher la séance
         </AureakText>
         <AureakText variant="body" style={{ color: colors.text.muted, textAlign: 'center' as never }}>
@@ -1822,7 +1822,7 @@ export default function SessionDetailPage() {
           saving  ={intensitySaving}
         />
         {intensityError && (
-          <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: space.xs }}>
             {intensityError}
           </AureakText>
         )}
@@ -1963,7 +1963,7 @@ export default function SessionDetailPage() {
               </AureakText>
             )}
             {coachDndError && (
-              <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
+              <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: space.xs }}>
                 {coachDndError}
               </AureakText>
             )}
@@ -2065,7 +2065,7 @@ export default function SessionDetailPage() {
                 {/* Bouton Retirer */}
                 {removingThemeId !== b.id && confirmRemoveId !== b.id && (
                   <Pressable onPress={() => setConfirmRemoveId(b.id)}>
-                    <AureakText variant="caption" style={{ color: colors.accent.red }}>Retirer</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>Retirer</AureakText>
                   </Pressable>
                 )}
                 {removingThemeId === b.id && (
@@ -2076,23 +2076,23 @@ export default function SessionDetailPage() {
               {confirmRemoveId === b.id && removingThemeId !== b.id && (
                 <View style={{
                   flexDirection: 'row', alignItems: 'center', gap: space.xs,
-                  backgroundColor: colors.accent.red + '18', borderRadius: 6, padding: space.xs,
+                  backgroundColor: colors.status.errorStrong + '18', borderRadius: 6, padding: space.xs,
                   marginLeft: 22,
                 }}>
-                  <AureakText variant="caption" style={{ color: colors.accent.red, flex: 1 }}>
+                  <AureakText variant="caption" style={{ color: colors.status.errorStrong, flex: 1 }}>
                     Retirer ce thème ?
                   </AureakText>
                   <Pressable
-                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, backgroundColor: colors.accent.red, borderRadius: 4 }}
+                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, backgroundColor: colors.status.errorStrong, borderRadius: 4 }}
                     onPress={() => handleRemoveTheme(b.id)}
                   >
                     <AureakText variant="caption" style={{ color: colors.light.surface, fontWeight: '700' as never }}>Confirmer</AureakText>
                   </Pressable>
                   <Pressable
-                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, borderWidth: 1, borderColor: colors.accent.red, borderRadius: 4 }}
+                    style={{ paddingHorizontal: space.xs, paddingVertical: 2, borderWidth: 1, borderColor: colors.status.errorStrong, borderRadius: 4 }}
                     onPress={() => setConfirmRemoveId(null)}
                   >
-                    <AureakText variant="caption" style={{ color: colors.accent.red }}>Annuler</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>Annuler</AureakText>
                   </Pressable>
                 </View>
               )}
@@ -2169,13 +2169,13 @@ export default function SessionDetailPage() {
 
           {/* Erreur ajout */}
           {themeAddError && (
-            <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: space.xs }}>
               {themeAddError}
             </AureakText>
           )}
           {/* Erreur suppression (AC4 — rollback visible) */}
           {themeRemoveError && (
-            <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs }}>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: space.xs }}>
               Erreur lors du retrait : {themeRemoveError}
             </AureakText>
           )}
@@ -2318,7 +2318,7 @@ export default function SessionDetailPage() {
 
         {/* Message erreur doublon */}
         {situationDropError && (
-          <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.xs } as never}>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: space.xs } as never}>
             {situationDropError}
           </AureakText>
         )}
@@ -2358,7 +2358,7 @@ export default function SessionDetailPage() {
               {/* Confetti particles */}
               {showConfetti && (
                 <View style={{ position: 'absolute' as never, right: 0, top: -10, zIndex: 20, flexDirection: 'row', gap: 4 }} pointerEvents="none">
-                  {[colors.accent.gold, colors.status.success, colors.accent.red, colors.accent.gold, colors.status.success, colors.accent.red, colors.accent.gold, colors.status.success].map((c, i) => (
+                  {[colors.accent.gold, colors.status.success, colors.status.errorStrong, colors.accent.gold, colors.status.success, colors.status.errorStrong, colors.accent.gold, colors.status.success].map((c, i) => (
                     <View
                       key={i}
                       style={{
@@ -2652,7 +2652,7 @@ export default function SessionDetailPage() {
               />
             </View>
             {cancelError ? (
-              <AureakText variant="caption" style={{ color: colors.accent.red }}>
+              <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>
                 {cancelError}
               </AureakText>
             ) : null}

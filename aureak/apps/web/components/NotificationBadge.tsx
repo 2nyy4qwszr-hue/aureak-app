@@ -35,7 +35,7 @@ export function NotificationBadge() {
             position       : 'absolute',
             top            : -4,
             right          : -4,
-            backgroundColor: colors.accent.red,
+            backgroundColor: colors.status.errorStrong,
             color          : '#fff',
             borderRadius   : '50%',
             fontSize       : 9,

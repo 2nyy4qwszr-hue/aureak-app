@@ -112,23 +112,23 @@ function DangerAlertsSection({
 
 const alert = StyleSheet.create({
   container  : {
-    backgroundColor: colors.accent.red + '1A',
+    backgroundColor: colors.status.errorStrong + '1A',
     borderRadius   : radius.card,
     borderWidth    : 1,
-    borderColor    : colors.accent.red + '40',
+    borderColor    : colors.status.errorStrong + '40',
     padding        : space.md,
     gap            : space.sm,
   },
   header     : { flexDirection: 'row' as never, alignItems: 'center' as never, gap: space.sm },
-  title      : { fontSize: 14, fontWeight: '700' as never, color: colors.accent.red },
+  title      : { fontSize: 14, fontWeight: '700' as never, color: colors.status.errorStrong },
   badge      : {
-    backgroundColor: colors.accent.red,
+    backgroundColor: colors.status.errorStrong,
     borderRadius   : 12,
     paddingHorizontal: 8,
     paddingVertical  : 2,
   },
   badgeText  : { color: '#fff', fontSize: 11, fontWeight: '700' as never },
-  subtitle   : { fontSize: 12, color: colors.accent.red + 'CC' },
+  subtitle   : { fontSize: 12, color: colors.status.errorStrong + 'CC' },
   list       : { gap: space.sm },
   row        : {
     flexDirection  : 'row' as never,
@@ -138,12 +138,12 @@ const alert = StyleSheet.create({
     overflow       : 'hidden' as never,
     gap            : space.sm,
   },
-  leftBorder : { width: 3, alignSelf: 'stretch' as never, backgroundColor: colors.accent.red },
+  leftBorder : { width: 3, alignSelf: 'stretch' as never, backgroundColor: colors.status.errorStrong },
   rowContent : { flex: 1, paddingVertical: space.sm, gap: 2 },
   playerName : { fontSize: 13, fontWeight: '600' as never, color: colors.text.dark },
   playerMeta : { fontSize: 11, color: colors.text.muted },
   pill       : {
-    backgroundColor: colors.accent.red,
+    backgroundColor: colors.status.errorStrong,
     paddingHorizontal: 8,
     paddingVertical  : 3,
     borderRadius     : 12,

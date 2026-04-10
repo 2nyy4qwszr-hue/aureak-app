@@ -285,7 +285,7 @@ export default function SectionMetaphores({ themeId, tenantId, sequences }: Prop
               ✎ Éditer
             </button>
             <button
-              style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }}
+              style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.status.errorStrong, borderColor: colors.status.errorStrong + '40' }}
               onClick={() => handleDelete(m.id)}
               disabled={deletingId === m.id || !!movingId}
               title="Supprimer"

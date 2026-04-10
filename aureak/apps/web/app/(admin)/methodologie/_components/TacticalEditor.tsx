@@ -213,7 +213,7 @@ export default function TacticalEditor({ value, onChange }: TacticalEditorProps)
             style={[s.toolBtn, { opacity: countB >= MAX_PLAYERS ? 0.4 : 1 }]}
             onPress={() => addPlayer('B')}
           >
-            <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 12 } as never}>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 12 } as never}>
               + Joueur B
             </AureakText>
           </Pressable>
@@ -229,10 +229,10 @@ export default function TacticalEditor({ value, onChange }: TacticalEditorProps)
         </View>
 
         <Pressable
-          style={[s.toolBtn, clearPending && { backgroundColor: colors.accent.red }]}
+          style={[s.toolBtn, clearPending && { backgroundColor: colors.status.errorStrong }]}
           onPress={handleClear}
         >
-          <AureakText variant="caption" style={{ color: clearPending ? '#FFFFFF' : colors.accent.red, fontSize: 12 } as never}>
+          <AureakText variant="caption" style={{ color: clearPending ? '#FFFFFF' : colors.status.errorStrong, fontSize: 12 } as never}>
             {clearPending ? 'Confirmer ?' : 'Effacer'}
           </AureakText>
         </Pressable>
@@ -313,7 +313,7 @@ export default function TacticalEditor({ value, onChange }: TacticalEditorProps)
                 cx={toPx(player.x, FW)}
                 cy={toPx(player.y, FH)}
                 r={PLAYER_R}
-                fill={player.team === 'A' ? colors.light.surface : colors.accent.red}
+                fill={player.team === 'A' ? colors.light.surface : colors.status.errorStrong}
                 stroke={player.team === 'A' ? colors.border.light : colors.accent.teamB}
                 strokeWidth={1.5}
               />

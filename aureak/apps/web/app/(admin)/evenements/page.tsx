@@ -18,9 +18,9 @@ import { SkeletonCard } from '../../../components/SkeletonCard'
 
 const EVENT_TYPE_CONFIG: Record<EventType, { label: string; color: string; bg: string }> = {
   stage      : { label: 'Stage',              color: colors.accent.gold,    bg: colors.accent.gold    + '1f' },
-  tournoi    : { label: 'Tournoi Goal à Goal', color: colors.entity.club,   bg: colors.entity.club    + '1f' },
+  tournoi    : { label: 'Tournoi Goal à Goal', color: colors.text.muted,    bg: colors.text.muted     + '1f' },
   fun_day    : { label: 'Fun Day',             color: colors.status.success, bg: colors.status.success + '1f' },
-  detect_day : { label: 'Detect Day',          color: colors.accent.red,    bg: colors.accent.red     + '1f' },
+  detect_day : { label: 'Detect Day',          color: colors.status.errorStrong,    bg: colors.status.errorStrong     + '1f' },
   seminaire  : { label: 'Séminaire',           color: colors.text.subtle,   bg: colors.text.subtle    + '1f' },
 }
 
@@ -33,9 +33,9 @@ const STUB_TYPE_ICONS: Partial<Record<EventType, string>> = {
 
 const STATUS_COLORS: Record<StageStatus, string> = {
   planifié : colors.accent.gold,
-  en_cours : colors.entity.stage,
+  en_cours : colors.accent.goldLight,
   terminé  : colors.text.muted,
-  annulé   : colors.accent.red,
+  annulé   : colors.status.errorStrong,
 }
 
 // ============================================================
@@ -347,8 +347,8 @@ export default function EvenementsPage() {
 
       {/* Error */}
       {error ? (
-        <View style={{ backgroundColor: colors.accent.red + '1f', borderRadius: radius.xs, padding: space.md, borderWidth: 1, borderColor: colors.accent.red }}>
-          <AureakText variant="caption" style={{ color: colors.accent.red }}>{error}</AureakText>
+        <View style={{ backgroundColor: colors.status.errorStrong + '1f', borderRadius: radius.xs, padding: space.md, borderWidth: 1, borderColor: colors.status.errorStrong }}>
+          <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>{error}</AureakText>
         </View>
       ) : loading ? (
         /* Skeleton */

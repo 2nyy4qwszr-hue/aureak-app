@@ -9,9 +9,9 @@ import { MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
 
 // Couleurs des phases (tokens @aureak/theme colors.phase)
 const PHASE_COLORS: Record<MethodologyModuleType, string> = {
-  activation : colors.phase.activation,
-  development: colors.phase.development,
-  conclusion : colors.phase.conclusion,
+  activation : colors.accent.goldLight,
+  development: colors.accent.gold,
+  conclusion : colors.text.muted,
 }
 
 type Props = {
@@ -36,7 +36,7 @@ export function SessionTimeline({ modules, totalDuration, onEditModule, readOnly
       {/* Indicateur total durée */}
       {totalDuration > 0 && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.xs }}>
-          <AureakText variant="caption" style={{ color: isOver ? colors.accent.red : colors.text.muted }}>
+          <AureakText variant="caption" style={{ color: isOver ? colors.status.errorStrong : colors.text.muted }}>
             {isOver
               ? `⚠ Total dépassé : ${sumDuration} min / ${totalDuration} min prévus`
               : `${sumDuration} min / ${totalDuration} min`
@@ -73,7 +73,7 @@ export function SessionTimeline({ modules, totalDuration, onEditModule, readOnly
                 borderRadius     : 8,
                 borderWidth      : isOver && !isEmpty ? 2 : 1,
                 borderColor      : isOver && !isEmpty && duration > totalDuration / 3
-                  ? colors.accent.red
+                  ? colors.status.errorStrong
                   : colors.border.light,
                 padding          : space.sm,
                 gap              : space.xs,

@@ -249,7 +249,7 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
             </button>
           </div>
           {positionError && (
-            <div style={{ color: colors.accent.red, fontSize: 11, marginTop: 4 }}>{positionError}</div>
+            <div style={{ color: colors.status.errorStrong, fontSize: 11, marginTop: 4 }}>{positionError}</div>
           )}
           <div style={{ fontSize: 11, color: colors.text.muted, marginTop: 4 }}>
             Slot dans la grille 5×5 (1 = haut gauche, 25 = bas droite). Optionnel.
@@ -271,7 +271,7 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
         </div>
 
         {error && (
-          <div style={{ color: colors.accent.red, fontSize: 12, marginBottom: 12 }}>{error}</div>
+          <div style={{ color: colors.status.errorStrong, fontSize: 12, marginBottom: 12 }}>{error}</div>
         )}
 
         <button

@@ -5,7 +5,7 @@ import { colors } from '@aureak/theme'
 const AVATAR_COLORS = [
   colors.accent.gold,      // or AUREAK   #C1AC5C
   colors.status.success,   // émeraude    #10B981
-  colors.accent.red,       // rouge CTA   #E05252
+  colors.status.errorStrong,       // rouge CTA   #E05252
   colors.status.warning,   // ambre       #F59E0B
   colors.text.muted,       // zinc        #71717A
   colors.dark.surface,     // ardoise     #2A2827

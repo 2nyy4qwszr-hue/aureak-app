@@ -209,7 +209,7 @@ export default function SectionBadge({ themeId, tenantId }: Props) {
                   </button>
                   <button
                     onClick={() => handleDelete(level.id)}
-                    style={{ padding: '5px 0', width: '100%', backgroundColor: 'transparent', color: colors.accent.red, border: `1px solid ${colors.accent.red}40`, borderRadius: radius.button, fontSize: 11, cursor: 'pointer' }}
+                    style={{ padding: '5px 0', width: '100%', backgroundColor: 'transparent', color: colors.status.errorStrong, border: `1px solid ${colors.status.errorStrong}40`, borderRadius: radius.button, fontSize: 11, cursor: 'pointer' }}
                   >
                     Supprimer
                   </button>

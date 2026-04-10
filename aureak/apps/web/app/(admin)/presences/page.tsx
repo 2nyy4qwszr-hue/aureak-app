@@ -836,7 +836,7 @@ export default function DashboardPresencesPage() {
             </select>
 
             {modalError && (
-              <div style={{ fontSize: 12, color: colors.accent.red, marginBottom: space.sm }}>
+              <div style={{ fontSize: 12, color: colors.status.errorStrong, marginBottom: space.sm }}>
                 {modalError}
               </div>
             )}

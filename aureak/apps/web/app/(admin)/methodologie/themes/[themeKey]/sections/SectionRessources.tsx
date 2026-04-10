@@ -179,7 +179,7 @@ export default function SectionRessources({ themeId, tenantId }: Props) {
               {THEME_RESOURCE_TYPE_LABELS[r.resourceType]}
             </span>
             <button
-              style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40', flexShrink: 0 }}
+              style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.status.errorStrong, borderColor: colors.status.errorStrong + '40', flexShrink: 0 }}
               onClick={() => handleDelete(r.id)}
             >
               🗑

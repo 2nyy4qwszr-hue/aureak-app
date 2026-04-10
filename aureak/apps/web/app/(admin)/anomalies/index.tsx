@@ -24,7 +24,7 @@ const TYPE_ICONS: Record<AnomalyEvent['anomalyType'], string> = {
 const SEVERITY_COLOR: Record<AnomalyEvent['severity'], string> = {
   info    : colors.status.info,
   warning : colors.status.attention,
-  critical: colors.accent.red,
+  critical: colors.status.errorStrong,
 }
 
 const SEVERITY_LABEL: Record<AnomalyEvent['severity'], string> = {
@@ -106,7 +106,7 @@ export default function AnomaliesPage() {
       <View style={s.kpiRow}>
         {([
           { key: 'all',      label: 'Total',    value: counts.all,      color: colors.text.dark },
-          { key: 'critical', label: 'Critiques', value: counts.critical, color: colors.accent.red },
+          { key: 'critical', label: 'Critiques', value: counts.critical, color: colors.status.errorStrong },
           { key: 'warning',  label: 'Attention', value: counts.warning,  color: colors.status.attention },
           { key: 'info',     label: 'Info',      value: counts.info,     color: colors.status.info },
         ] as const).map(k => (

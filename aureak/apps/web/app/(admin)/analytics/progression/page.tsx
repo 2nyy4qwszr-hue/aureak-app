@@ -57,7 +57,7 @@ function RankingTable({
         const opt       = METRIC_OPTIONS.find(o => o.value === metric)
 
         const deltaIcon  = item.weeklyDelta > 0 ? '▲' : item.weeklyDelta < 0 ? '▼' : '='
-        const deltaColor = item.weeklyDelta > 0 ? colors.status.success : item.weeklyDelta < 0 ? colors.accent.red : colors.text.muted
+        const deltaColor = item.weeklyDelta > 0 ? colors.status.success : item.weeklyDelta < 0 ? colors.status.errorStrong : colors.text.muted
         const deltaText  = item.weeklyDelta !== 0 ? `${deltaIcon}${Math.abs(item.weeklyDelta)}` : deltaIcon
 
         // Couleur valeur selon métrique

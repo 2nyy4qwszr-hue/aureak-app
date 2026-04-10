@@ -187,7 +187,7 @@ export default function OnboardingPage() {
           />
 
           {error && (
-            <AureakText variant="caption" style={{ color: colors.accent.red, marginTop: space.sm }}>{error}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginTop: space.sm }}>{error}</AureakText>
           )}
 
           <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.md }}>
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
           </View>
 
           {error && (
-            <AureakText variant="caption" style={{ color: colors.accent.red, marginBottom: space.sm }}>{error}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, marginBottom: space.sm }}>{error}</AureakText>
           )}
 
           <View style={{ flexDirection: 'row', gap: space.sm }}>

@@ -46,7 +46,7 @@ function KpiCard({ label, value, sub, color, showBar }: {
 function rateColor(pct: number): string {
   if (pct >= 80) return colors.status.present
   if (pct >= 60) return colors.status.attention
-  return colors.accent.red
+  return colors.status.errorStrong
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────

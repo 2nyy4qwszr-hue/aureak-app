@@ -53,7 +53,7 @@ const BTN_GHOST: React.CSSProperties = {
 }
 
 const BTN_DANGER: React.CSSProperties = {
-  ...BTN_GHOST, color: colors.accent.red, borderColor: colors.accent.red + '40',
+  ...BTN_GHOST, color: colors.status.errorStrong, borderColor: colors.status.errorStrong + '40',
 }
 
 const BADGE_SEQ: React.CSSProperties = {
@@ -596,7 +596,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
       {freeFaults.length > 0 && (
         <div style={{ marginTop: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
-            textTransform: 'uppercase', color: colors.accent.red,
+            textTransform: 'uppercase', color: colors.status.errorStrong,
             marginBottom: 12 }}>
             ⚠ Erreurs libres ({freeFaults.length})
           </div>
@@ -604,7 +604,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
             <div key={fault.id} style={{
               ...CARD_STYLE,
               marginBottom: 8,
-              border: `1px solid ${colors.accent.red}30`,
+              border: `1px solid ${colors.status.errorStrong}30`,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark }}>
@@ -634,7 +634,7 @@ export default function SectionCriteres({ themeId, tenantId, criteria, onCriteri
 
       {/* ── Ajouter une erreur libre ──────────────────────────────────────────── */}
       {showAddFreeFault ? (
-        <div style={{ ...CARD_STYLE, marginTop: 12, border: `2px solid ${colors.accent.red}30` }}>
+        <div style={{ ...CARD_STYLE, marginTop: 12, border: `2px solid ${colors.status.errorStrong}30` }}>
           <div style={{ marginBottom: 12 }}>
             <label style={LABEL_STYLE}>Libellé de l'erreur libre *</label>
             <input

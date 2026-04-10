@@ -26,7 +26,7 @@ function getActionIcon(action: string): string {
 }
 
 function getActionColor(action: string): string {
-  if (action.includes('delete') || action.includes('suspend')) return colors.accent.red
+  if (action.includes('delete') || action.includes('suspend')) return colors.status.errorStrong
   if (action.includes('create') || action.includes('restore')) return colors.status.success
   if (action.includes('update') || action.includes('export'))  return colors.accent.gold
   if (action.includes('login'))                                return colors.status.present

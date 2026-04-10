@@ -379,7 +379,7 @@ export default function SectionSavoirFaire({ themeId, tenantId, criteria }: Prop
                 <div style={{ display: 'flex', gap: 6, marginLeft: 8 }}>
                   <button style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11 }} onClick={() => handleStartEdit(ex)}>✎</button>
                   <button
-                    style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.accent.red, borderColor: colors.accent.red + '40' }}
+                    style={{ ...BTN_GHOST, padding: '4px 8px', fontSize: 11, color: colors.status.errorStrong, borderColor: colors.status.errorStrong + '40' }}
                     onClick={() => handleDelete(ex.id)}
                   >
                     🗑

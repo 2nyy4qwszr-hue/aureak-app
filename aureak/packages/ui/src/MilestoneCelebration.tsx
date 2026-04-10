@@ -13,7 +13,7 @@ const CONFETTI_COLORS = [
   colors.accent.gold,
   colors.accent.goldLight,
   colors.status.success,
-  colors.accent.red,
+  colors.status.errorStrong,
   colors.light.surface,  // blanc surface (= #FFFFFF)
 ]
 

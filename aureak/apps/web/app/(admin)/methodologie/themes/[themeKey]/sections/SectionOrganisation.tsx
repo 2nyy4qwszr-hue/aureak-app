@@ -223,7 +223,7 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
   )
 
   if (error) return (
-    <div style={{ padding: 20, color: colors.accent.red, fontSize: 13 }}>
+    <div style={{ padding: 20, color: colors.status.errorStrong, fontSize: 13 }}>
       {error}
     </div>
   )
@@ -317,11 +317,11 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
       ))}
 
       {freeCount > 0 && (
-        <div style={{ ...CARD, border: `1.5px dashed ${colors.accent.red}60`, marginBottom: 20 }}>
+        <div style={{ ...CARD, border: `1.5px dashed ${colors.status.errorStrong}60`, marginBottom: 20 }}>
           <div style={{ ...SEQ_HEADER, marginBottom: 16 }}>
             <span style={{ fontSize: 14 }}>🔗</span>
-            <span style={{ fontWeight: 700, fontSize: 14, color: colors.accent.red }}>Éléments libres</span>
-            <span style={{ fontSize: 11, backgroundColor: colors.accent.red + '18', color: colors.accent.red, padding: '2px 8px', borderRadius: 999 }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: colors.status.errorStrong }}>Éléments libres</span>
+            <span style={{ fontSize: 11, backgroundColor: colors.status.errorStrong + '18', color: colors.status.errorStrong, padding: '2px 8px', borderRadius: 999 }}>
               {freeCount} non liés
             </span>
           </div>

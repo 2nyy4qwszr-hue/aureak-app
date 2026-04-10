@@ -554,7 +554,7 @@ const bulk = StyleSheet.create({
     borderRadius     : 7,
   },
   btnDanger: {
-    backgroundColor  : colors.accent.red,
+    backgroundColor  : colors.status.errorStrong,
     paddingHorizontal: space.md,
     paddingVertical  : 6,
     borderRadius     : 7,

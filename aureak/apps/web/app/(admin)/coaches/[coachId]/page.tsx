@@ -424,7 +424,7 @@ export default function CoachQualityPage() {
               const isDone  = quest.status === 'completed'
               const isExp   = quest.status === 'expired'
               const statusIcon = isDone ? '✓' : isExp ? '✗' : '⏳'
-              const statusColor = isDone ? colors.status.success : isExp ? colors.accent.red : colors.status.info
+              const statusColor = isDone ? colors.status.success : isExp ? colors.status.errorStrong : colors.status.info
 
               return (
                 <div

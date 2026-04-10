@@ -1206,7 +1206,7 @@ export default function NewSessionPage() {
             {result.created} séance{result.created !== 1 ? 's' : ''} créée{result.created !== 1 ? 's' : ''}
           </AureakText>
           {result.failed > 0 && (
-            <AureakText variant="caption" style={{ color: colors.accent.red, textAlign: 'center' as never, marginTop: space.xs }}>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, textAlign: 'center' as never, marginTop: space.xs }}>
               {result.failed} échec{result.failed !== 1 ? 's' : ''}
             </AureakText>
           )}
@@ -1289,7 +1289,7 @@ export default function NewSessionPage() {
             <SectionLabel title="Implantation" hint="Site physique de la séance" />
             {implantationsError ? (
               <View style={p.errorBox}>
-                <AureakText variant="caption" style={{ color: colors.accent.red }}>{implantationsError}</AureakText>
+                <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>{implantationsError}</AureakText>
                 <Pressable onPress={() => {
                   setImplantationsError(null)
                   setLoadingImplantations(true)
@@ -1522,8 +1522,8 @@ export default function NewSessionPage() {
                 const max  = TRAINING_MAX[sessionType] ?? 20
                 const over = selectedDates.length > 1 && last > max
                 return (
-                  <View style={[p.infoNote, { marginTop: space.xs, borderColor: over ? colors.accent.red + '60' : undefined, backgroundColor: over ? colors.accent.red + '10' : undefined }]}>
-                    <AureakText variant="caption" style={{ color: over ? colors.accent.red : colors.accent.gold }}>
+                  <View style={[p.infoNote, { marginTop: space.xs, borderColor: over ? colors.status.errorStrong + '60' : undefined, backgroundColor: over ? colors.status.errorStrong + '10' : undefined }]}>
+                    <AureakText variant="caption" style={{ color: over ? colors.status.errorStrong : colors.accent.gold }}>
                       {selectedDates.length > 1
                         ? over
                           ? `⚠ Séquence ${trainingNumber} → ${last} dépasse le maximum (${max}) — choisissez un numéro de départ ≤ ${max - selectedDates.length + 1}`
@@ -1558,7 +1558,7 @@ export default function NewSessionPage() {
                     <View style={{ gap: space.sm }}>
                       <SectionLabel title="Concept" hint="Requis — ex: Prise en main, Relance courte…" />
                       <TextInput
-                        style={[p.textInput, !techConcept.trim() && { borderColor: colors.accent.red }]}
+                        style={[p.textInput, !techConcept.trim() && { borderColor: colors.status.errorStrong }]}
                         value={techConcept}
                         onChangeText={setTechConcept}
                         placeholder="Concept du stage…"
@@ -1567,7 +1567,7 @@ export default function NewSessionPage() {
                         autoCorrect={false}
                       />
                       {!techConcept.trim() && (
-                        <AureakText variant="caption" style={{ color: colors.accent.red }}>Le concept est requis pour les séances stage</AureakText>
+                        <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>Le concept est requis pour les séances stage</AureakText>
                       )}
                       <SectionLabel title="Séquence dans ce concept" hint="1-8" />
                       <NumChips values={[1,2,3,4,5,6,7,8]} selected={techStageSeq} onSelect={setTechStageSeq} fmt={v => `Séq. ${v}`} />
@@ -1607,10 +1607,10 @@ export default function NewSessionPage() {
                       />
                       {deciBlocks.length > 1 && (
                         <Pressable
-                          style={{ padding: space.xs, borderRadius: 4, backgroundColor: colors.accent.red + '18' }}
+                          style={{ padding: space.xs, borderRadius: 4, backgroundColor: colors.status.errorStrong + '18' }}
                           onPress={() => setDeciBlocks(prev => prev.filter(x => x.id !== b.id))}
                         >
-                          <AureakText style={{ fontSize: 12, color: colors.accent.red }}>✕</AureakText>
+                          <AureakText style={{ fontSize: 12, color: colors.status.errorStrong }}>✕</AureakText>
                         </Pressable>
                       )}
                     </View>
@@ -1622,7 +1622,7 @@ export default function NewSessionPage() {
                     <AureakText style={{ fontSize: 12, color: colors.accent.gold }}>+ Ajouter un bloc</AureakText>
                   </Pressable>
                   {!deciBlocks.some(b => b.title.trim()) && (
-                    <AureakText variant="caption" style={{ color: colors.accent.red }}>Au moins un bloc avec un titre est requis</AureakText>
+                    <AureakText variant="caption" style={{ color: colors.status.errorStrong }}>Au moins un bloc avec un titre est requis</AureakText>
                   )}
                 </View>
               )}
@@ -1694,7 +1694,7 @@ export default function NewSessionPage() {
 
             {coachLeads.length === 0 && (
               <View style={p.coachValidation}>
-                <AureakText variant="caption" style={{ fontSize: 10, color: colors.accent.red }}>
+                <AureakText variant="caption" style={{ fontSize: 10, color: colors.status.errorStrong }}>
                   Minimum 1 coach principal requis (premier assigné = principal)
                 </AureakText>
               </View>
@@ -1865,7 +1865,7 @@ export default function NewSessionPage() {
               return (
                 <View style={{ gap: space.sm }}>
                   {/* Indicateur total */}
-                  <AureakText variant="caption" style={{ color: isOver ? colors.accent.red : colors.text.muted }}>
+                  <AureakText variant="caption" style={{ color: isOver ? colors.status.errorStrong : colors.text.muted }}>
                     {isOver
                       ? `⚠ Total dépassé : ${totalPhases} min / ${durationMinutes} min prévus`
                       : `${totalPhases} min / ${durationMinutes} min`

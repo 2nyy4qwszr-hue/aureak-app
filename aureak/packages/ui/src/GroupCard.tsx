@@ -249,7 +249,7 @@ const s = StyleSheet.create({
     paddingVertical  : 2,
   },
   memberBadgeOver: {
-    backgroundColor: colors.accent.red,
+    backgroundColor: colors.status.errorStrong,
   },
   pitchWrapper: {
     width   : '100%' as never,

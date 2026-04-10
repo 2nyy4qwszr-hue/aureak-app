@@ -2098,7 +2098,7 @@ export default function ChildDetailPage() {
             </Pressable>
           )}
           {pdfError && (
-            <AureakText variant="caption" style={{ color: colors.accent.red, maxWidth: 200 }}>{pdfError}</AureakText>
+            <AureakText variant="caption" style={{ color: colors.status.errorStrong, maxWidth: 200 }}>{pdfError}</AureakText>
           )}
           {/* Partager — Story 52-11 — web uniquement */}
           {Platform.OS === 'web' && (
@@ -2607,7 +2607,7 @@ export default function ChildDetailPage() {
 
               {/* Validation : un seul type de niveau à la fois (AC #6) */}
               {draft.youthLevel && draft.seniorDivision && (
-                <AureakText variant="caption" style={{ color: colors.accent.red, fontSize: 11 } as never}>
+                <AureakText variant="caption" style={{ color: colors.status.errorStrong, fontSize: 11 } as never}>
                   Un seul niveau peut être renseigné (jeune OU senior).
                 </AureakText>
               )}

@@ -815,7 +815,7 @@ function JoueursTab({
                 style={jou.transferBtn}
                 onPress={(e) => { e.stopPropagation?.(); handleOpenTransfer(m) }}
               >
-                <AureakText variant="caption" style={{ color: colors.entity.club, fontSize: 10, fontWeight: '700' }}>
+                <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 10, fontWeight: '700' }}>
                   ⇄
                 </AureakText>
               </Pressable>
@@ -954,7 +954,7 @@ const jou = StyleSheet.create({
   cancelBtn    : { flex: 1, paddingVertical: space.xs + 2, borderRadius: 6, borderWidth: 1, borderColor: colors.border.light, alignItems: 'center' },
   confirmBtn   : { flex: 2, paddingVertical: space.xs + 2, borderRadius: 6, backgroundColor: colors.accent.gold, alignItems: 'center' },
   // Story 56-4 — Bouton Transférer
-  transferBtn  : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.entity.club + '60', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.entity.club + '10' },
+  transferBtn  : { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.text.muted + '60', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.text.muted + '10' },
   // Modal transfert mobile
   overlay      : { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center', padding: space.xl },
   modal        : { backgroundColor: colors.light.surface, borderRadius: 12, padding: space.md, width: '100%', maxWidth: 400 },

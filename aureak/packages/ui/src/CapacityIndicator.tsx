@@ -10,7 +10,7 @@ import { AureakText } from './components/Text'
 
 const COLOR_NORMAL    = colors.text.muted
 const COLOR_WARNING   = '#F59E0B'   // orange attention
-const COLOR_FULL      = colors.accent.red
+const COLOR_FULL      = colors.status.errorStrong
 const COLOR_OVERFLOW  = '#DC2626'   // rouge vif surplein
 
 export type CapacityStatus = 'normal' | 'warning' | 'full' | 'overflow'

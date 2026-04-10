@@ -285,7 +285,7 @@ const em = StyleSheet.create({
   checkboxChecked: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
   checkmark      : { fontSize: 10, color: colors.text.dark, fontWeight: '700' },
   checkboxLabel  : { fontSize: 13, color: colors.text.dark },
-  errorText      : { fontSize: 12, color: colors.accent.red, marginTop: 12 },
+  errorText      : { fontSize: 12, color: colors.status.errorStrong, marginTop: 12 },
   actions: {
     flexDirection  : 'row',
     justifyContent : 'flex-end',
