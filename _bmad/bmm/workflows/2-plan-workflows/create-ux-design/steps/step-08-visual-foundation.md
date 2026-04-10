@@ -185,6 +185,20 @@ Show the generated visual foundation content and present choices:
 
 #### If 'C' (Continue):
 
+- **Avant de sauvegarder** — générer automatiquement des écrans Stitch représentant le design system établi :
+
+  1. Obtenir ou créer le projet Stitch via `mcp__stitch__list_projects` (chercher "Aureak") puis `mcp__stitch__create_project` si absent
+  2. Créer le design system via `mcp__stitch__create_design_system` avec les tokens exacts définis durant cette étape (couleurs, typographie, espacements), puis l'appliquer avec `mcp__stitch__apply_design_system`
+  3. Générer 3 écrans représentatifs via `mcp__stitch__generate_screen_from_text` :
+     - Écran 1 : Dashboard / vue principale (liste ou tableau)
+     - Écran 2 : Formulaire de saisie (création ou édition)
+     - Écran 3 : Vue détail / fiche (card ou page d'entité)
+  4. Chaque prompt Stitch doit inclure les tokens visuels définis dans cette étape (couleurs HEX, polices, rayons, ombres)
+  5. Ajouter dans le frontmatter du document : `stitchProjectId: {id}` et `stitchDesignSystemId: {id}`
+  6. Afficher UNE SEULE ligne : `🎨 Stitch: design system visualisé (3 écrans générés)`
+
+  En cas d'erreur Stitch → skip silencieux, continuer sans bloquer.
+
 - Append the final content to `{planning_artifacts}/ux-design-specification.md`
 - Update frontmatter: append step to end of stepsCompleted array
 - Load `{project-root}/_bmad/bmm/workflows/2-plan-workflows/create-ux-design/steps/step-09-design-directions.md`

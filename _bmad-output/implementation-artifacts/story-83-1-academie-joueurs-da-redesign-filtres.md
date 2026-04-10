@@ -1,6 +1,6 @@
 # Story 83.1 : Académie — Joueurs : Refonte DA (pattern Activités Séances) + Filtres
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

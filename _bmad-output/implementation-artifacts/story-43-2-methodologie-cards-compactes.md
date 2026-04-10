@@ -1,6 +1,6 @@
 # Story 43.2 : Méthodologie — cards entraînements plus compactes
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,11 +18,11 @@ afin de visualiser plus d'entraînements sans scroller.
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/methodologie/seances/index.tsx`
-- [ ] Réduire le padding des cards : `space.sm` vertical
-- [ ] Passer à grid 3 colonnes : `grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))`
-- [ ] Tronquer les descriptions à 1 ligne avec ellipsis
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/methodologie/seances/index.tsx`
+- [x] Réduire le padding des cards : `space.sm` vertical
+- [x] Passer à grid 3 colonnes : `grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))`
+- [x] Tronquer les descriptions à 1 ligne avec ellipsis
+- [x] Vérifier TypeScript
 
 ## Files
 

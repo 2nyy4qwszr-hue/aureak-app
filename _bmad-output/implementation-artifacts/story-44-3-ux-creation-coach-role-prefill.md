@@ -1,6 +1,6 @@
 # Story 44.3 : UX — Création coach : rôle pré-sélectionné, étape skippée
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,13 +18,13 @@ afin d'éviter une étape inutile et de créer un coach en moins de clics.
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/coaches/index.tsx` — trouver le bouton "Nouveau coach" ou "Créer"
-- [ ] Modifier le `router.push('/users/new')` → `router.push('/users/new?role=coach')`
-- [ ] Lire `aureau/apps/web/app/(admin)/users/new.tsx` lignes 70–100
-- [ ] Ajouter `useLocalSearchParams` pour lire `role` depuis l'URL
-- [ ] Si `role` fourni : `useState<ProfileRole>(params.role as ProfileRole ?? 'child')` et `const skipRoleStep = !!params.role`
-- [ ] Conditionner le rendu de l'étape 1 sur `!skipRoleStep`
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/coaches/index.tsx` — trouver le bouton "Nouveau coach" ou "Créer"
+- [x] Modifier le `router.push('/users/new')` → `router.push('/users/new?role=coach')`
+- [x] Lire `aureau/apps/web/app/(admin)/users/new.tsx` lignes 70–100
+- [x] Ajouter `useLocalSearchParams` pour lire `role` depuis l'URL
+- [x] Si `role` fourni : `useState<ProfileRole>(params.role as ProfileRole ?? 'child')` et `const skipRoleStep = !!params.role`
+- [x] Conditionner le rendu de l'étape 2 (rôle) sur `!skipRoleStep`
+- [x] Vérifier TypeScript
 
 ## Files
 

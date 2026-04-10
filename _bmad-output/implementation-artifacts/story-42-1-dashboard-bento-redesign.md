@@ -1,6 +1,6 @@
 # Story 42.1 : Dashboard admin — refonte bento visuel
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -21,14 +21,14 @@ afin d'avoir une vue d'ensemble attractive et lisible d'un coup d'œil.
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/dashboard/page.tsx` entièrement
-- [ ] Lire `_agents/design-references/desktop-admin-bento-v2.html` pour la référence visuelle
-- [ ] Remplacer le layout KPI strip (6 colonnes égales) par un bento grid CSS avec `grid-template-areas`
-- [ ] Cartes grandes : `joueurs-actifs` (span 2 cols) + `taux-presence` (span 2 cols)
-- [ ] Cartes medium : `seances-semaine`, `absences-coachs`, `anomalies`
-- [ ] Cartes small : `stages-a-venir`, `groupes-actifs`
-- [ ] Adapter `DashboardSkeleton` au nouveau grid
-- [ ] Vérifier TypeScript `npx tsc --noEmit`
+- [x] Lire `aureak/apps/web/app/(admin)/dashboard/page.tsx` entièrement
+- [x] Lire `_agents/design-references/desktop-admin-bento-v2.html` pour la référence visuelle
+- [x] Remplacer le layout KPI strip (6 colonnes égales) par un bento grid CSS avec media queries
+- [x] Cartes grandes : `joueurs-actifs` (span 2 cols) + `seances` (span 2 cols)
+- [x] Cartes medium : `taux-presence`, `taux-maitrise`
+- [x] Cartes small : `coachs`, `groupes`, `anomalies`
+- [x] Adapter `DashboardSkeleton` au nouveau grid
+- [x] Vérifier TypeScript `npx tsc --noEmit`
 
 ## Files
 

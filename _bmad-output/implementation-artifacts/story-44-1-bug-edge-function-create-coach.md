@@ -1,6 +1,6 @@
 # Story 44.1 : BUG — Edge Function non-2xx à la création d'un coach
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -17,13 +17,13 @@ afin de gérer les coachs de l'académie sans blocage.
 
 ## Technical Tasks
 
-- [ ] Lire `supabase/functions/create-user-profile/index.ts` entièrement
-- [ ] Ajouter des logs détaillés à chaque étape : auth check, role check, body parse, insert profile, invite
-- [ ] Vérifier le role check : `callerRole !== 'admin'` — tester avec JWT decode fallback
+- [x] Lire `supabase/functions/create-user-profile/index.ts` entièrement
+- [x] Ajouter des logs détaillés à chaque étape : auth check, role check, body parse, insert profile, invite
+- [x] Vérifier le role check : `callerRole !== 'admin'` — tester avec JWT decode fallback
 - [ ] Vérifier que `SUPABASE_SERVICE_ROLE_KEY` est bien configuré dans les secrets Supabase du projet
-- [ ] Lire `aureak/apps/web/app/(admin)/users/new.tsx` — vérifier la gestion de l'erreur côté UI
-- [ ] Dans l'UI : parser le message d'erreur de la réponse Edge Function et l'afficher proprement (pas le code brut)
-- [ ] Console guard `process.env.NODE_ENV !== 'production'` sur les logs UI
+- [x] Lire `aureak/apps/web/app/(admin)/users/new.tsx` — vérifier la gestion de l'erreur côté UI
+- [x] Dans l'UI : parser le message d'erreur de la réponse Edge Function et l'afficher proprement (pas le code brut)
+- [x] Console guard `process.env.NODE_ENV !== 'production'` sur les logs UI
 - [ ] Tester en local avec `supabase functions serve create-user-profile`
 
 ## Files

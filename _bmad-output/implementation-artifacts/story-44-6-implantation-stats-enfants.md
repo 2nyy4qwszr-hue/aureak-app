@@ -1,6 +1,6 @@
 # Story 44.6 : Implantation enrichie — stats groupes et listing enfants
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,15 +18,15 @@ afin d'avoir une vue d'ensemble complète de l'implantation sans naviguer dans c
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/implantations/` — trouver la page de détail implantation
-- [ ] Lire `aureak/packages/api-client/src/sessions/implantations.ts` — vérifier `listGroupMembersWithProfiles`
-- [ ] Pour chaque groupe de l'implantation : charger `listGroupMembersWithProfiles(groupId)` → compter + lister
-- [ ] Ajouter state `expandedGroups: Set<string>` pour les groupes ouverts
-- [ ] Afficher badge nombre d'enfants sur chaque groupe card
-- [ ] Section expandable : liste compacte nom + club
-- [ ] Compter le total dans le header de la fiche implantation
-- [ ] Styles tokens uniquement
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/implantations/` — trouver la page de détail implantation
+- [x] Lire `aureak/packages/api-client/src/sessions/implantations.ts` — vérifier `listGroupMembersWithProfiles`
+- [x] Pour chaque groupe de l'implantation : charger `listGroupMembersWithDetails(groupId)` → compter + lister (avec currentClub)
+- [x] Ajouter state `expandedGroups: Set<string>` pour les groupes ouverts
+- [x] Afficher badge nombre d'enfants sur chaque groupe card
+- [x] Section expandable : liste compacte nom + club
+- [x] Compter le total dans le header de la fiche implantation
+- [x] Styles tokens uniquement
+- [x] Vérifier TypeScript
 
 ## Files
 
