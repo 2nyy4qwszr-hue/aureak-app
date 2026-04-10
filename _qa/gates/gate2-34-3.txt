@@ -1,0 +1,6 @@
+PASS|0|0|types:visual-mismatch
+Playwright: skipped — app non démarrée (HTTP 000)
+Design: redesign type — PNG comparé. Nav tabs 5/5 ✅, stats row compact ✅, filter bar underline ✅, table colonnes ✅. THÈMES/SITUATIONS = "—" conforme scope story.
+Aucun hardcode hex, tokens utilisés partout, shadows.lg pour dropdown.
+Bug: 0 blocker — try/finally OK, console guards OK, no silent catch, no double-submit risk.
+Warnings (non-bloquants): (1) loadSessions/loadExercises sans feedback toast si erreur — silenced dans api-client. (2) ENTRAÎNEMENT tab inactive state quand GLOBAL est actif — UX confusion mineure.

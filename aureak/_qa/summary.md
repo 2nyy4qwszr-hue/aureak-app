@@ -1,6 +1,59 @@
 # QA Summary — Aureak
 
-Dernière mise à jour : 2026-04-05
+Dernière mise à jour : 2026-04-09
+
+---
+
+## Story 81-1 — Méthodologie Entraînements — LayoutActivités
+
+**Gate 1** : Non exécuté (dev agent)
+**Gate 2** : PASS (0 blocker, 8 warnings)
+
+### Findings Gate 2 (design / UX / bug hunting)
+
+| ID | Catégorie | Sévérité | Description | Statut |
+|----|-----------|----------|-------------|--------|
+| W-D1 | Design | WARNING | minWidth statCard 130 vs spec 160 | Non bloquant |
+| W-D2 | Design | WARNING | Pas de hover feedback sur statCards | Non bloquant |
+| W-UX1 | UX | WARNING | fontSize/spacing partiellement hardcodés | Non bloquant |
+| W-UX2 | UX | WARNING | loadSessions/loadExercises sans catch — erreur réseau silencieuse | Non bloquant |
+| W-B2 | Bug | WARNING | StatCards basées sessions uniquement — pas de switch exercices | Non bloquant |
+
+### Dette technique identifiée
+
+- Ajouter catch sur loadSessions/loadExercises avec toast.error
+- Faire basculer les StatCards selon contentType (sessions vs exercices)
+- Normaliser fontSize/spacing vers tokens
+
+---
+
+## Story 49-1 — BUG P1 — Création coach impossible — Edge Function non-2xx
+
+**Gate 1** : PASS (après corrections blockers)
+**Gate 2** : PASS (0 blocker)
+
+### Findings Gate 1 (code review)
+
+| ID | Sévérité | Description | Statut |
+|----|----------|-------------|--------|
+| BLOCKER-B1 | BLOCKER | `setClubsLoading(false)` en `.then()` sans `.finally()` → spinner infini si erreur réseau | CORRIGÉ |
+| BLOCKER-B2 | BLOCKER | 30+ couleurs hardcodées dans `s` styles object et template CSS → violation règle tokens | CORRIGÉ |
+| WARNING-W1 | WARNING | `listImplantations` sans `.catch()` → erreur silencieuse | Non bloquant |
+| WARNING-W2 | WARNING | `listGroupsByImplantation` sans `.catch()` → erreur silencieuse | Non bloquant |
+
+### Findings Gate 2 (UX / bug hunting)
+
+| ID | Catégorie | Sévérité | Description | Statut |
+|----|-----------|----------|-------------|--------|
+| W-G2-1 | Bug/UX | WARNING | Message "Failed to fetch" affiché tel quel lors coupure réseau | Non bloquant |
+| W-G2-2 | UX | WARNING | Message "Tenant non défini." trop technique — peu lisible pour l'admin | Non bloquant |
+| W-G2-3 | Bug | WARNING | `listImplantations` + `listGroupsByImplantation` sans gestion d'erreur (même que W1/W2) | Non bloquant |
+
+### Dette technique identifiée
+
+- Ajouter un cas `Failed to fetch` / `NetworkError` dans `formatEdgeFunctionError()` (polish)
+- Remplacer "Tenant non défini." par "Erreur de session : veuillez vous reconnecter."
+- Ajouter `.catch()` sur `listImplantations` et `listGroupsByImplantation`
 
 ---
 
@@ -35,6 +88,38 @@ Dernière mise à jour : 2026-04-05
 - Ajouter validation des dates custom (p_from ≤ p_to) dans le composant dashboard
 - Propager `setStatsError(true)` dans le catch global de `load()`
 - Distinguer état d'erreur vs état zéro pour KPIs Joueurs/Coachs/Groupes
+
+---
+
+## Story 63-3 — Section Développement — hub Prospection / Marketing / Partenariats
+
+**Gate 1** : PASS (1 MEDIUM corrigé — rgba hardcodés → tokens `colors.border.goldBg` + `colors.border.gold`)
+**Gate 2** : PASS (0 blocker, 4 warnings non bloquants)
+
+### Findings Gate 1 (code review + design critic)
+
+| ID | Sévérité | Description | Statut |
+|----|----------|-------------|--------|
+| MEDIUM-M1 | MEDIUM | 3 fichiers stub avec `rgba(193,172,92,0.10)` hardcodé en backgroundColor banner | CORRIGÉ — token `colors.border.goldBg` ajouté dans tokens.ts |
+
+### Findings Gate 2 (UX / regression / bug hunting)
+
+| ID | Catégorie | Sévérité | Description | Statut |
+|----|-----------|----------|-------------|--------|
+| W-UX-1 | UX | WARNING | `DevSectionCard` recréé localement au lieu de `@aureak/ui/Card` | Non bloquant — justifiable (Card sans Pressable) |
+| W-UX-2 | UX | WARNING | fontSize hardcodés (valeurs numériques conformes aux tokens mais non importées via `typography.*`) | Non bloquant — dette cosmétique |
+| W-UX-3 | UX | WARNING | `accessibilityLabel` manquant sur `Pressable` hub | Non bloquant — pages stub |
+| W-BUG-1 | Bug | WARNING | `router.push(section.href as never)` — cast permissif, pattern projet établi | Non bloquant |
+
+### Regression
+
+Fichier partagé modifié : `packages/theme/src/tokens.ts` — ajout additif de `colors.border.goldBg`. Aucune régression sur les stories `done` existantes. TypeScript → 0 erreur.
+
+### Dette technique identifiée
+
+- Remplacer `as never` par les routes typées Expo Router si le type system est configuré
+- Ajouter `accessibilityLabel` sur les `Pressable` cards hub lors de l'implémentation réelle
+- Unifier les KPI cards avec un composant `@aureak/ui/KpiCard` lors de la story de contenu
 
 ---
 
