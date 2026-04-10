@@ -14,3 +14,20 @@ supabase/.temp/
 # Environment
 .env
 .env.local
+
+# Claude worktrees (ephemeral)
+.claude/worktrees/
+
+# Debug screenshots at repo root
+/crawler-*.png
+/patrol_*.png
+/activites-*.png
+/joueurs-*.png
+/dashboard-*.png
+/stage-*.png
+/presences-*.png
+
+# Ad-hoc QA screenshot dirs (keep _qa/reports/screenshots/ only)
+_qa/screenshots/
+_qa/patrol_dashboard.png
+aureak/_qa/screenshots/
