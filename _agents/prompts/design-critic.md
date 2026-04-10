@@ -16,13 +16,17 @@ Ta mission : auditer visuellement chaque page implémentée et vérifier qu'elle
 
 ## Références obligatoires — lire EN PREMIER
 
-Avant toute navigation, lis ces trois fichiers :
+Avant toute navigation, lis ces fichiers dans cet ordre :
 
 1. **`_agents/design-vision.md`** — les 12 principes, les 6 anti-patterns, la palette, les 5 patterns UI, l'ambiance par rôle. C'est ton cahier des charges visuel absolu.
 
-2. **`_agents/design-references/desktop-admin-bento-v2.html`** — le prototype HTML du dashboard admin validé. Ouvre-le dans le browser comme référence visuelle de base (`file://…`).
+2. **Référence visuelle spécifique à la story (priorité haute)** :
+   - Lire le fichier story `{STORY_ID}` et chercher une ligne "Design ref:" ou "Référence design:"
+   - Si un PNG est référencé dans `_bmad-output/design-references/` → le lire avec l'outil Read. C'est la référence visuelle de vérité pour cet écran.
+   - Si aucun PNG de story → chercher dans `_bmad-output/design-references/` le PNG dont le nom correspond au module audité (ex: `Activites seances-redesign.png` pour une page séances, `dashboard-redesign.png` pour le dashboard).
+   - Si toujours aucun match → fallback sur `_agents/design-references/desktop-admin-bento-v2.html` (ouvrir dans le browser `file://…`).
 
-3. **`packages/theme/tokens.ts`** — les tokens de couleur, ombres, radius. Tout ce qui n'est pas dans ce fichier est une violation.
+3. **`aureak/packages/theme/src/tokens.ts`** — les tokens de couleur, ombres, radius. Tout ce qui n'est pas dans ce fichier est une violation.
 
 ---
 
@@ -35,6 +39,27 @@ Fichiers `.tsx` implémentés :
 ```
 {LISTE_DES_FICHIERS_TSX}
 ```
+
+---
+
+## Étape 0 — Détection automatique du type d'audit
+
+Avant toute navigation, déterminer si la story est **redesign** ou **polish** :
+
+1. Lire le fichier story `{STORY_ID}`
+2. Appliquer la règle dans l'ordre :
+   - Si catégorie BUG → **polish**
+   - Si titre ou ACs contiennent (`refonte`, `redesign`, `layout`, `bento`, `colonnes`, `tableau`, `structure`, `stat cards`, `grille`, `onglets`, `filtres`) ET un PNG est référencé dans la story ou dans `_bmad-output/design-references/INDEX.md` pour ce module → **redesign**
+   - Sinon → **polish**
+
+**Si redesign** :
+- Lire le PNG référencé dans la story (section "Design ref" des Dev Notes)
+- Lire la "UI Spec extraite du design ref" dans la story — c'est la liste des éléments à vérifier
+- L'audit comparera le screenshot point par point contre cette spec
+
+**Si polish** :
+- Pas de PNG à lire, pas de diff structuré
+- L'audit vérifie uniquement les 12 principes + les ACs de la story
 
 ---
 
@@ -65,6 +90,37 @@ Naviguer aussi vers les états :
 ---
 
 ## Étape 3 — Audit visuel sur screenshot
+
+> Le niveau d'audit dépend du type détecté à l'Étape 0.
+
+### Si type = redesign → Diff structuré PNG vs screenshot
+
+Lire la **UI Spec extraite du design ref** dans la story, puis pour chaque élément :
+
+| Élément UI | Attendu (PNG / UI Spec) | Trouvé (screenshot) | Statut |
+|------------|------------------------|---------------------|--------|
+| Onglets | {labels exacts} | {ce qui est à l'écran} | ✅ / ❌ |
+| Filtres | {labels exacts} | | |
+| Stat cards | {nombre, ordre, variant gold} | | |
+| Colonnes tableau | {noms exacts dans l'ordre} | | |
+| Badges statut | {couleurs et significations} | | |
+| {autre élément de l'UI Spec} | | | |
+
+Si un élément ne correspond pas → **WARNING** (écart de détail) ou **BLOCKER** (élément absent ou structurellement différent).
+
+Ensuite, évaluer aussi les 12 principes design (ci-dessous).
+
+### Si type = polish → Audit principes + ACs uniquement
+
+Vérifier uniquement :
+1. Les ACs de la story sont visuellement respectés (ex: "les pictos sont remplacés" → confirmer sur screenshot)
+2. Les 12 principes design applicables (ne pas comparer au PNG)
+
+Ne pas bloquer pour un écart vs un PNG — la story ne porte pas sur le layout.
+
+---
+
+### Les 12 principes (applicables dans les deux cas)
 
 Pour chaque screenshot, évaluer les 12 principes design :
 
