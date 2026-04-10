@@ -151,7 +151,7 @@ export default function ThemesPage() {
               onPress={() => setThemeDropOpen(o => !o)}
             >
               <AureakText style={!isGlobal ? st.pillTextActive : st.pillTextInactive}>
-                {isGlobal ? 'THÈME ▾' : `${selectedGroup?.name ?? 'THÈME'} ▾`}
+                {isGlobal ? 'BLOC ▾' : `${selectedGroup?.name ?? 'BLOC'} ▾`}
               </AureakText>
             </Pressable>
 
