@@ -25511,7 +25511,7 @@
           "isVar": true,
           "key": "$backgroundPrimary",
           "name": "c-backgroundPrimary",
-          "val": "#1A1A1A",
+          "val": "#111111",
           "variable": ""
         },
         "backgroundSurface": {
@@ -26016,7 +26016,7 @@
     },
     "themes": {
       "dark": {
-        "backgroundPrimary": "#1A1A1A",
+        "backgroundPrimary": "#111111",
         "backgroundSurface": "#171717",
         "backgroundElevated": "#242424",
         "lightPrimary": "#F3EFE7",
@@ -26044,7 +26044,7 @@
         "borderGoldSolid": "rgba(193,172,92,0.5)",
         "borderDark": "#424242",
         "borderDivider": "#E8E4DC",
-        "background": "#1A1A1A",
+        "background": "#111111",
         "backgroundHover": "#171717",
         "backgroundFocus": "#242424",
         "backgroundPress": "#242424",
@@ -26063,7 +26063,7 @@
         "id": "dark"
       },
       "light": {
-        "backgroundPrimary": "#1A1A1A",
+        "backgroundPrimary": "#111111",
         "backgroundSurface": "#171717",
         "backgroundElevated": "#242424",
         "lightPrimary": "#F3EFE7",
@@ -26175,7 +26175,7 @@
         "isVar": true,
         "key": "$backgroundPrimary",
         "name": "c-backgroundPrimary",
-        "val": "#1A1A1A",
+        "val": "#111111",
         "variable": ""
       },
       "$color.backgroundSurface": {
