@@ -1,6 +1,6 @@
 # Story 83.3 : DS — Typo weights & mesure de lecture
 
-**Status:** todo
+**Status:** done
 **Epic:** 83 — DS Alignment Site Homepage
 **Source:** `_bmad-output/design-references/DESIGN-SYSTEM-HOMEPAGE.md` §3
 **Deps:** aucune
@@ -27,8 +27,8 @@ Aligner les tokens `typography.*` sur les poids et paramètres du site. Ajouter 
 
 ## Tasks
 
-- [ ] T1 — Mettre à jour `tokens.ts` (typography)
-- [ ] T2 — Vérifier que Montserrat 800/900 est bien chargé dans `apps/web` (_layout.tsx) et `apps/mobile`
-- [ ] T3 — Si 800 manquant → ajouter les fichiers TTF / adapter la config expo-font
-- [ ] T4 — Grep des composants `<H1>`, `<H2>` custom qui hardcodent un weight → migrer sur Text variant
-- [ ] T5 — Screenshot avant/après + validation visuelle
+- [x] T1 — Mettre à jour `tokens.ts` (typography)
+- [x] T2 — Vérifier que Montserrat 800/900 est bien chargé dans `apps/web` (_layout.tsx) et `apps/mobile` — ExtraBold + Black déjà chargés depuis story 83-0
+- [x] T3 — Si 800 manquant → N/A, déjà présent
+- [x] T4 — Grep `<H1>/<H2>` custom : aucun composant dédié, tous les titres passent par `<AureakText variant>`. Bonus : fix `Text.tsx` qui référençait encore `Rajdhani-Bold`/`Geist-Regular` (fonts non chargées) → migré sur `Montserrat-Black` / `Montserrat-ExtraBold` / `Poppins-Regular` / `Poppins-SemiBold` pour que AC7 prenne effet réel
+- [x] T5 — Screenshots avant/après sur dashboard, méthodologie/situations, académie/children : titres nettement plus lourds, body rendu Poppins visible

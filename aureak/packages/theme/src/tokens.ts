@@ -135,12 +135,12 @@ export const fonts = {
 // =============================================================================
 
 export const typography = {
-  display : { size: 36, weight: '900' as const, family: 'Montserrat', letterSpacing: 0.5 },
-  h1      : { size: 28, weight: '700' as const, family: 'Montserrat', letterSpacing: 0.3 },
-  h2      : { size: 22, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.2 },
-  h3      : { size: 18, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.1 },
-  bodyLg  : { size: 16, weight: '400' as const, family: 'Poppins', lineHeight: 28 },
-  body    : { size: 15, weight: '400' as const, family: 'Poppins', lineHeight: 26 },
+  display : { size: 36, weight: '900' as const, family: 'Montserrat', letterSpacing: -0.4, lineHeight: 40 },
+  h1      : { size: 28, weight: '900' as const, family: 'Montserrat', letterSpacing: -0.3 },
+  h2      : { size: 22, weight: '900' as const, family: 'Montserrat', letterSpacing: -0.2 },
+  h3      : { size: 18, weight: '800' as const, family: 'Montserrat', letterSpacing: 0.1 },
+  bodyLg  : { size: 16, weight: '400' as const, family: 'Poppins', lineHeight: 28, maxWidth: 560 },
+  body    : { size: 15, weight: '400' as const, family: 'Poppins', lineHeight: 27, maxWidth: 560 },
   bodySm  : { size: 13, weight: '400' as const, family: 'Poppins', lineHeight: 22 },
   caption : { size: 11, weight: '400' as const, family: 'Poppins', lineHeight: 16 },
   label   : { size: 12, weight: '600' as const, family: 'Poppins', letterSpacing: 0.8, textTransform: 'uppercase' as const },
