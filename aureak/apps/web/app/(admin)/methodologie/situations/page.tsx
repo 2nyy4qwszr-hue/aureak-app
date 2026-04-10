@@ -1,117 +1,373 @@
+'use client'
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listSituations, listThemeGroups } from '@aureak/api-client'
-import { AureakButton } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Situation, ThemeGroup } from '@aureak/types'
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.light.primary },
-  content: { padding: space.xl, gap: space.lg },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  groupSection: { gap: space.md },
-  situationCard: {
-    backgroundColor: colors.light.surface,
-    borderRadius: 8,
-    padding: space.md,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: space.sm,
-  },
-})
+const BLOC_PICTOS: Record<string, string> = {
+  'tir au but'         : '🎯',
+  '1 contre 1'         : '⚔️',
+  'centre'             : '📐',
+  'balle en profondeur': '🚀',
+  'relance'            : '🔄',
+  'phase arrêtée'      : '⛔',
+  'communication'      : '📢',
+}
+
+function getBlocPicto(name: string): string {
+  return BLOC_PICTOS[name.toLowerCase()] ?? '📋'
+}
+
+const NAV_TABS = [
+  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',     active: false },
+  { label: 'PROGRAMMES',    href: '/methodologie/programmes',  active: false },
+  { label: 'THÈMES',        href: '/methodologie/themes',      active: false },
+  { label: 'SITUATIONS',    href: '/methodologie/situations',  active: true  },
+  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations', active: false },
+]
 
 export default function SituationsPage() {
   const router = useRouter()
-  const [situations, setSituations] = useState<Situation[]>([])
-  const [blocs, setBlocs] = useState<ThemeGroup[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    Promise.all([listSituations(), listThemeGroups()]).then(([s, g]) => {
+  const [situations,     setSituations]     = useState<Situation[]>([])
+  const [groups,         setGroups]         = useState<ThemeGroup[]>([])
+  const [loading,        setLoading]        = useState(true)
+  const [selectedBlocId, setSelectedBlocId] = useState<string | null>(null)
+  const [blocDropOpen,   setBlocDropOpen]   = useState(false)
+  const [errorMsg,       setErrorMsg]       = useState<string | null>(null)
+
+  const loadData = async () => {
+    setErrorMsg(null)
+    setLoading(true)
+    try {
+      const [s, g] = await Promise.all([listSituations(), listThemeGroups()])
+      if (s.error || g.error) {
+        setErrorMsg('Impossible de charger les situations. Réessayez ou contactez le support.')
+        return
+      }
       setSituations(s.data)
-      setBlocs(g.data)
-    }).catch(err => {
-      if (process.env.NODE_ENV !== 'production') console.error('[SituationsPage] load error:', err)
-    }).finally(() => {
+      setGroups(g.data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[SituationsPage] loadData error:', err)
+      setErrorMsg('Impossible de charger les situations. Veuillez réessayer.')
+    } finally {
       setLoading(false)
-    })
-  }, [])
+    }
+  }
 
-  const groupedSituations = blocs.map((bloc) => ({
-    bloc,
-    situations: situations.filter((s) => s.blocId === bloc.id),
-  }))
-  const ungrouped = situations.filter((s) => s.blocId === null)
+  useEffect(() => { loadData() }, [])
+
+  const isGlobal = selectedBlocId === null
+  const selectedGroup = groups.find(g => g.id === selectedBlocId)
+
+  const visibleSituations = selectedBlocId
+    ? situations.filter(s => s.blocId === selectedBlocId)
+    : situations
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <AureakText variant="h2">Situations</AureakText>
-        <AureakButton
-          label="Nouvelle situation"
-          onPress={() => router.push('/(admin)/methodologie/situations/new' as never)}
-          variant="primary"
-        />
-      </View>
+    <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {loading && (
-        <AureakText variant="body" style={{ color: colors.text.muted }}>Chargement...</AureakText>
-      )}
+      {/* ── Header : titre + nav tabs + bouton ── */}
+      <View style={st.headerBlock}>
+        <View style={st.headerTopRow}>
+          <AureakText style={st.pageTitle}>MÉTHODOLOGIE</AureakText>
+          <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/situations/new' as never)}>
+            <AureakText style={st.newBtnLabel}>+ Nouvelle situation</AureakText>
+          </Pressable>
+        </View>
 
-      {groupedSituations.map(({ bloc, situations: groupSit }) =>
-        groupSit.length > 0 ? (
-          <View key={bloc.id} style={styles.groupSection}>
-            <AureakText variant="label" style={{ color: colors.text.muted }}>{bloc.name}</AureakText>
-            {groupSit.map((sit) => (
-              <View key={sit.id} style={styles.situationCard}>
-                <View style={{ flex: 1, gap: space.xs }}>
-                  <AureakText variant="label">{sit.name}</AureakText>
-                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                    {sit.situationKey} · v{sit.version}
-                  </AureakText>
-                </View>
-                <AureakButton
-                  label="Gérer"
-                  onPress={() => router.push(`/(admin)/methodologie/situations/${sit.situationKey}` as never)}
-                  variant="secondary"
-                />
-              </View>
-            ))}
-          </View>
-        ) : null
-      )}
-
-      {ungrouped.length > 0 && (
-        <View style={styles.groupSection}>
-          <AureakText variant="label" style={{ color: colors.text.muted }}>Sans groupe</AureakText>
-          {ungrouped.map((sit) => (
-            <View key={sit.id} style={styles.situationCard}>
-              <View style={{ flex: 1, gap: space.xs }}>
-                <AureakText variant="label">{sit.name}</AureakText>
-                <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                  {sit.situationKey} · v{sit.version}
-                </AureakText>
-              </View>
-              <AureakButton
-                label="Gérer"
-                onPress={() => router.push(`/(admin)/methodologie/situations/${sit.situationKey}` as never)}
-                variant="secondary"
-              />
-            </View>
+        <View style={st.tabsRow}>
+          {NAV_TABS.map(tab => (
+            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
+              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
+                {tab.label}
+              </AureakText>
+              {tab.active && <View style={st.tabUnderline} />}
+            </Pressable>
           ))}
         </View>
+      </View>
+
+      {/* ── StatCards — 1 card par ThemeGroup ── */}
+      <View style={st.statCardsRow}>
+        {groups.map(g => {
+          const count = situations.filter(s => s.blocId === g.id).length
+          return (
+            <Pressable
+              key={g.id}
+              style={[st.statCard, selectedBlocId === g.id && st.statCardActive] as never}
+              onPress={() => setSelectedBlocId(g.id === selectedBlocId ? null : g.id)}
+            >
+              <AureakText style={st.statCardPicto}>{getBlocPicto(g.name)}</AureakText>
+              <AureakText style={st.statCardLabel}>{g.name}</AureakText>
+              <AureakText style={st.statCardValue}>{count}</AureakText>
+            </Pressable>
+          )
+        })}
+      </View>
+
+      {/* ── FiltresRow — gauche ── */}
+      <View style={st.filtresRow}>
+        <View style={st.filtresLeft}>
+          <Pressable
+            style={isGlobal ? st.pillActive : st.pillInactive}
+            onPress={() => { setSelectedBlocId(null); setBlocDropOpen(false) }}
+          >
+            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
+          </Pressable>
+
+          <View style={st.dropdownWrapper}>
+            <Pressable
+              style={!isGlobal ? st.pillActive : st.pillInactive}
+              onPress={() => setBlocDropOpen(o => !o)}
+            >
+              <AureakText style={!isGlobal ? st.pillTextActive : st.pillTextInactive}>
+                {isGlobal ? 'BLOC ▾' : `${selectedGroup?.name ?? 'BLOC'} ▾`}
+              </AureakText>
+            </Pressable>
+
+            {blocDropOpen && (
+              <View style={st.blocDropdown}>
+                {groups.map(g => (
+                  <Pressable
+                    key={g.id}
+                    style={[st.blocDropdownItem, selectedBlocId === g.id && st.blocDropdownItemActive]}
+                    onPress={() => { setSelectedBlocId(g.id); setBlocDropOpen(false) }}
+                  >
+                    <AureakText style={{ fontSize: 12, fontWeight: selectedBlocId === g.id ? '700' : '400', color: selectedBlocId === g.id ? colors.text.dark : colors.text.muted }}>
+                      {getBlocPicto(g.name)} {g.name}
+                    </AureakText>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* ── Contenu ── */}
+      {loading && (
+        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
       )}
 
-      {!loading && situations.length === 0 && (
-        <AureakText variant="body" style={{ color: colors.text.muted }}>
+      {errorMsg && (
+        <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
+      )}
+
+      {!loading && !errorMsg && situations.length === 0 && (
+        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
           Aucune situation configurée.
         </AureakText>
+      )}
+
+      {!loading && situations.length > 0 && visibleSituations.length === 0 && (
+        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
+          Aucune situation dans ce bloc.
+        </AureakText>
+      )}
+
+      {!loading && visibleSituations.length > 0 && (
+        <View style={st.grid}>
+          {visibleSituations.map(sit => (
+            <Pressable
+              key={sit.id}
+              onPress={() => router.push(`/methodologie/situations/${sit.situationKey}` as never)}
+              style={({ pressed }) => [st.situationCard, pressed && { opacity: 0.85 }]}
+            >
+              <AureakText style={st.situationName} numberOfLines={2}>{sit.name}</AureakText>
+              <AureakText style={st.situationKey}>{sit.situationKey}</AureakText>
+            </Pressable>
+          ))}
+        </View>
       )}
     </ScrollView>
   )
 }
+
+// ── Styles ───────────────────────────────────────────────────────────────────
+
+const st = StyleSheet.create({
+  container  : { flex: 1, backgroundColor: colors.light.primary },
+  content    : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+
+  // Header block
+  headerBlock  : { gap: 12 },
+  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: 'Montserrat', color: colors.text.dark, letterSpacing: 0.5 },
+  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
+  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
+
+  // Nav tabs
+  tabsRow: {
+    flexDirection    : 'row',
+    gap              : 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  tabItem: {
+    position    : 'relative',
+    paddingBottom: 10,
+  },
+  tabLabel: {
+    fontSize     : 11,
+    fontWeight   : '700',
+    letterSpacing: 1,
+    color        : colors.text.subtle,
+    textTransform: 'uppercase',
+  },
+  tabLabelActive: { color: colors.accent.gold },
+  tabUnderline  : {
+    position       : 'absolute',
+    bottom         : 0,
+    left           : 0,
+    right          : 0,
+    height         : 2,
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 1,
+  },
+
+  // StatCards
+  statCardsRow: {
+    flexDirection    : 'row',
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.md,
+    flexWrap         : 'wrap',
+  },
+  statCard: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    minWidth       : 130,
+    alignItems     : 'center',
+    gap            : 4,
+    // @ts-ignore web
+    boxShadow      : shadows.sm,
+  },
+  statCardActive: {
+    borderColor    : colors.accent.gold,
+    backgroundColor: colors.accent.gold + '10',
+  },
+  statCardPicto: {
+    fontSize    : 22,
+    marginBottom: 2,
+  },
+  statCardLabel: {
+    fontSize     : 10,
+    fontFamily   : 'Montserrat',
+    fontWeight   : '700',
+    color        : colors.text.muted,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    textAlign    : 'center',
+  },
+  statCardValue: {
+    fontSize  : 28,
+    fontFamily: 'Montserrat',
+    fontWeight: '900',
+    color     : colors.text.dark,
+  },
+
+  // FiltresRow
+  filtresRow: {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    justifyContent: 'space-between',
+    flexWrap      : 'wrap',
+    gap           : space.sm,
+    zIndex        : 9999,
+  },
+  filtresLeft: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.sm,
+  },
+
+  // Pills
+  pillActive: {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.accent.gold,
+    borderWidth      : 1,
+    borderColor      : colors.accent.gold,
+  },
+  pillInactive: {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.light.muted,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+  },
+  pillTextActive: {
+    fontSize  : 12,
+    fontWeight: '600',
+    fontFamily: 'Montserrat',
+    color     : colors.text.dark,
+  },
+  pillTextInactive: {
+    fontSize  : 12,
+    fontWeight: '600',
+    fontFamily: 'Montserrat',
+    color     : colors.text.muted,
+  },
+
+  // Dropdown
+  dropdownWrapper: {
+    position: 'relative',
+    zIndex  : 9999,
+  },
+  blocDropdown: {
+    position       : 'absolute',
+    top            : 38,
+    left           : 0,
+    zIndex         : 9999,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.xs,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : 6,
+    minWidth       : 220,
+    // @ts-ignore web
+    boxShadow      : shadows.lg,
+  },
+  blocDropdownItem      : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
+  blocDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
+
+  // Grid + SituationCard
+  grid: {
+    flexDirection: 'row',
+    flexWrap     : 'wrap',
+    gap          : space.md,
+  },
+  situationCard: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    minWidth       : 220,
+    flexGrow       : 1,
+    flexBasis      : 240,
+    maxWidth       : 320,
+    gap            : 6,
+    // @ts-ignore web
+    boxShadow      : shadows.sm,
+  },
+  situationName: {
+    fontSize  : 14,
+    fontWeight: '700',
+    fontFamily: 'Montserrat',
+    color     : colors.text.dark,
+  },
+  situationKey: {
+    fontSize: 11,
+    color   : colors.text.muted,
+  },
+})
