@@ -12,7 +12,7 @@ import {
   batchResolveCoachNames,
 } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows, methodologyMethodColors } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows, methodologyMethodColors } from '@aureak/theme'
 import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { Evaluation } from '@aureak/types'
 import type { ScopeState } from './FiltresScope'
@@ -82,7 +82,7 @@ function StatusBadge({ status }: { status: string }) {
   const textStyle: TextStyle = {
     fontSize  : 11,
     fontWeight: '700',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     color     : cfg.text,
   }
   return (
@@ -119,7 +119,7 @@ function MethodeBadge({ method }: { method: string | null }) {
   const textStyle: TextStyle = {
     fontSize  : 11,
     fontWeight: '600',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color,
   }
   return (
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     flex         : 1,
     fontSize     : 10,
     fontWeight   : '700',
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     letterSpacing: 1,
     color        : colors.text.subtle,
     textTransform: 'uppercase',
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     width        : 32,
     fontSize     : 10,
     fontWeight   : '700',
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     letterSpacing: 1,
     color        : colors.text.subtle,
     textTransform: 'uppercase',
@@ -498,27 +498,27 @@ const styles = StyleSheet.create({
   colDate: {
     flex      : 1,
     fontSize  : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.dark,
     fontWeight: '500',
   },
   colText: {
     flex      : 1,
     fontSize  : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.dark,
   },
   colBadgeCount: {
     flex      : 1,
     fontSize  : 13,
     fontWeight: '700',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     color     : colors.text.dark,
   },
   colBadgeCountZero: {
     flex      : 1,
     fontSize  : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.subtle,
   },
   colAnomaly: {
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   cellMuted: {
     fontSize  : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.subtle,
   },
   presenceCell: {
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   presenceText: {
     fontSize  : 13,
     fontWeight: '600',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.dark,
   },
   presenceBarBg: {
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize  : 11,
     fontWeight: '700',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     color     : colors.text.dark,
   },
   avatarExtra: {
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   avatarExtraText: {
     fontSize  : 10,
     fontWeight: '700',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     color     : colors.text.dark,
   },
   emptyRow: {
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize  : 14,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.muted,
   },
   pagination: {
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   },
   paginationInfo: {
     fontSize  : 12,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.muted,
   },
   paginationActions: {
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   pageNum: {
     fontSize  : 12,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.muted,
   },
   loadingContainer: {
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize  : 14,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.muted,
   },
 })

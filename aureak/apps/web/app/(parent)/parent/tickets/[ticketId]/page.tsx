@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getTicketWithReplies, replyToTicket, softDeleteTicket } from '@aureak/api-client'
 import type { Ticket, TicketReply, TicketStatus } from '@aureak/api-client'
 import { AureakButton, AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   open       : 'Ouvert',
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     color             : colors.text.dark,
     minHeight         : 80,
     textAlignVertical : 'top',
-    fontFamily        : 'Montserrat',
+    fontFamily        : fonts.body,
     fontSize          : 14,
   },
   statusBadge: {

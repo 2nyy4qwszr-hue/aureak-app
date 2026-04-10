@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { colors, radius, shadows } from '@aureak/theme'
+import { colors, fonts, radius, shadows } from '@aureak/theme'
 
 // ── CSS animations (constantes statiques — pas de contenu utilisateur)  ────────
 
@@ -121,7 +121,7 @@ const s = StyleSheet.create({
     fontSize  : 13,
     fontWeight: '700',
     color     : colors.text.primary,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     textTransform: 'uppercase' as never,
     letterSpacing: 0.5,
   },
@@ -168,7 +168,7 @@ const s = StyleSheet.create({
     fontSize  : 28,
     fontWeight: '800',
     color     : colors.accent.gold,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     lineHeight: 32,
   },
   counterLabel: {
@@ -194,7 +194,7 @@ const s = StyleSheet.create({
     fontSize  : 28,
     fontWeight: '800',
     color     : colors.status.present,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     lineHeight: 32,
   },
   separatorSlash: {
@@ -205,6 +205,6 @@ const s = StyleSheet.create({
     fontSize  : 20,
     fontWeight: '600',
     color     : colors.text.secondary,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
   },
 })

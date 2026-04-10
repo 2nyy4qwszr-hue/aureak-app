@@ -3,7 +3,7 @@
 // RÈGLE : constantes locales SPLASH_BG, SPLASH_MIN_MS, SPLASH_TIMEOUT_MS
 // RÈGLE : cleanup timeout OBLIGATOIRE dans le return du useEffect
 import React from 'react'
-import { colors } from '@aureak/theme'
+import { colors, fonts } from '@aureak/theme'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -60,7 +60,7 @@ export function SplashScreen({ dismiss = false }: SplashScreenProps) {
           animation: aureak-fade-out 0.3s ease forwards;
         }
         .aureak-splash-logo {
-          font-family  : 'Montserrat', sans-serif;
+          font-family  : ${fonts.display}, sans-serif;
           font-size    : 40px;
           font-weight  : 900;
           color        : ${colors.accent.gold};
@@ -69,7 +69,7 @@ export function SplashScreen({ dismiss = false }: SplashScreenProps) {
           opacity      : 0;
         }
         .aureak-splash-subtitle {
-          font-family  : 'Montserrat', sans-serif;
+          font-family  : ${fonts.body}, sans-serif;
           font-size    : 14px;
           font-weight  : 400;
           color        : ${colors.accent.goldLight};

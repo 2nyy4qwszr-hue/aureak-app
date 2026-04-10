@@ -5,7 +5,7 @@ import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native
 import { sendAdminMessage, listAdminMessages, listCoaches } from '@aureak/api-client'
 import type { CoachListRow } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 
 type AdminMessage = {
   id          : string
@@ -262,7 +262,7 @@ const s = StyleSheet.create({
     color            : colors.text.dark,
     minHeight        : 100,
     textAlignVertical: 'top',
-    fontFamily       : 'Montserrat',
+    fontFamily       : fonts.body,
     fontSize         : 14,
   },
   sendBtn       : {

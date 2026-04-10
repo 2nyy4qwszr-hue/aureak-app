@@ -137,7 +137,7 @@ export const TERRAIN_GRADIENT_HEADER = `linear-gradient(135deg, ${colors.terrain
 export const fonts = {
   display : 'Montserrat',  // titres, stats clés — weight 900 (Black)
   heading : 'Montserrat',  // H1, H2, H3 — weights 700/600
-  body    : 'Montserrat',  // paragraphes, labels, descriptions — weights 500/400
+  body    : 'Poppins',     // paragraphes, UI, CTA, labels — weights 400/500/600 (aligné site marketing)
   mono    : 'Geist Mono',  // valeurs numériques, données tabulaires
 } as const
 
@@ -150,11 +150,11 @@ export const typography = {
   h1      : { size: 28, weight: '700' as const, family: 'Montserrat', letterSpacing: 0.3 },
   h2      : { size: 22, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.2 },
   h3      : { size: 18, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.1 },
-  bodyLg  : { size: 16, weight: '400' as const, family: 'Montserrat', lineHeight: 24 },
-  body    : { size: 15, weight: '400' as const, family: 'Montserrat', lineHeight: 22 },
-  bodySm  : { size: 13, weight: '400' as const, family: 'Montserrat', lineHeight: 18 },
-  caption : { size: 11, weight: '400' as const, family: 'Montserrat', lineHeight: 14 },
-  label   : { size: 12, weight: '600' as const, family: 'Montserrat', letterSpacing: 0.8, textTransform: 'uppercase' as const },
+  bodyLg  : { size: 16, weight: '400' as const, family: 'Poppins', lineHeight: 28 },
+  body    : { size: 15, weight: '400' as const, family: 'Poppins', lineHeight: 26 },
+  bodySm  : { size: 13, weight: '400' as const, family: 'Poppins', lineHeight: 22 },
+  caption : { size: 11, weight: '400' as const, family: 'Poppins', lineHeight: 16 },
+  label   : { size: 12, weight: '600' as const, family: 'Poppins', letterSpacing: 0.8, textTransform: 'uppercase' as const },
   stat    : { size: 24, weight: '700' as const, family: 'Geist Mono' },
 } as const
 

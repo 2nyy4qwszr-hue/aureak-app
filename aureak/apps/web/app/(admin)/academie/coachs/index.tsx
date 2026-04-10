@@ -7,7 +7,7 @@ import { useRouter, usePathname } from 'expo-router'
 import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText, UserCheckIcon } from '@aureak/ui'
-import { colors, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────
 type CoachWithGrade = CoachListRow & {
@@ -325,7 +325,7 @@ const s = StyleSheet.create({
   // ── headerBlock ──
   headerBlock  : { gap: 12 },
   headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: 'Montserrat', color: colors.text.dark, letterSpacing: 0.5 },
+  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
   newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   newBtnPressed: { opacity: 0.8 },
   newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
@@ -378,7 +378,7 @@ const s = StyleSheet.create({
   statCardPicto: { fontSize: 22, marginBottom: 2 },
   statCardLabel: {
     fontSize     : 10,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     fontWeight   : '700',
     color        : colors.text.muted,
     letterSpacing: 1,
@@ -387,7 +387,7 @@ const s = StyleSheet.create({
   },
   statCardValue: {
     fontSize  : 28,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     fontWeight: '900',
   },
 
@@ -413,8 +413,8 @@ const s = StyleSheet.create({
     borderWidth      : 1,
     borderColor      : colors.border.light,
   },
-  pillTextActive  : { fontSize: 12, fontWeight: '600', fontFamily: 'Montserrat', color: colors.text.dark },
-  pillTextInactive: { fontSize: 12, fontWeight: '600', fontFamily: 'Montserrat', color: colors.text.muted },
+  pillTextActive  : { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.dark },
+  pillTextInactive: { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.muted },
 
   // ── SegmentedToggle ──
   toggleRow: {
@@ -450,7 +450,7 @@ const s = StyleSheet.create({
   thText: {
     fontSize     : 10,
     fontWeight   : '700',
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     color        : colors.text.subtle,
     textTransform: 'uppercase',
     letterSpacing: 1,

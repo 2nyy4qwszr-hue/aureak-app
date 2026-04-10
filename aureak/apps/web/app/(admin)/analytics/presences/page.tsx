@@ -7,7 +7,7 @@ import { listImplantations, getAttendanceByGroupMonth } from '@aureak/api-client
 import type { AttendanceMonthlyData } from '@aureak/types'
 import { LineChart, SERIES_COLORS, SkeletonBase } from '@aureak/ui'
 import type { Implantation } from '@aureak/types'
-import { colors, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 
 export default function PresencesAnalyticsPage() {
   const router = useRouter()
@@ -154,7 +154,7 @@ const s = StyleSheet.create({
   backLink : { marginBottom: space.md, alignSelf: 'flex-start' },
   backText : { color: colors.text.secondary, fontSize: 13 },
   title    : {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     fontSize  : 24,
     fontWeight: '800',
     color     : colors.text.primary,
@@ -228,6 +228,6 @@ const s = StyleSheet.create({
   summaryRate: {
     fontSize  : 18,
     fontWeight: '800',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
   },
 })

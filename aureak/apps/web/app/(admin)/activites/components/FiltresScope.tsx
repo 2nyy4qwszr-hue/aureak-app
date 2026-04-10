@@ -6,7 +6,7 @@ import { View, Pressable, StyleSheet, ScrollView, TextInput } from 'react-native
 import type { TextStyle, ViewStyle } from 'react-native'
 import { listImplantations, listGroupsByImplantation, listJoueurs } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import type { Implantation } from '@aureak/types'
 import type { JoueurListItem } from '@aureak/api-client'
 
@@ -118,7 +118,7 @@ export function FiltresScope({ value, onChange }: Props) {
     return {
       fontSize  : 12,
       fontWeight: '600',
-      fontFamily: 'Montserrat',
+      fontFamily: fonts.body,
       color     : active ? colors.text.dark : colors.text.muted,
     }
   }
@@ -303,13 +303,13 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     fontSize  : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.dark,
   },
   dropdownEmpty: {
     padding  : space.md,
     fontSize : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color    : colors.text.muted,
     textAlign: 'center',
   },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderColor      : colors.border.light,
     borderRadius     : radius.xs,
     fontSize         : 13,
-    fontFamily       : 'Montserrat',
+    fontFamily       : fonts.body,
     color            : colors.text.dark,
     backgroundColor  : colors.light.primary,
   },

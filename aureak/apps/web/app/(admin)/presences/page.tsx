@@ -17,7 +17,7 @@ import type {
   TrialConversionSuggestion,
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { colors, shadows, radius, space, transitions } from '@aureak/theme'
+import { colors, fonts, shadows, radius, space, transitions } from '@aureak/theme'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ function SessionStatusBadge({ status }: { status: string }) {
       borderRadius   : radius.badge,
       textTransform  : 'uppercase' as const,
       letterSpacing  : 0.5,
-      fontFamily     : 'Montserrat',
+      fontFamily     : fonts.display,
       whiteSpace     : 'nowrap' as const,
     }}>
       {label}
@@ -141,21 +141,21 @@ function PresenceCard({
         border        : `1px solid ${colors.border.divider}`,
         cursor        : 'pointer',
         transition    : `box-shadow ${transitions.fast}`,
-        fontFamily    : 'Montserrat',
+        fontFamily    : fonts.body,
       }}
       onMouseEnter={e => ((e.currentTarget as HTMLElement).style.boxShadow = shadows.md)}
       onMouseLeave={e => ((e.currentTarget as HTMLElement).style.boxShadow = shadows.sm)}
     >
       {/* Row 1 : Date + badge statut */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: colors.text.muted, fontFamily: 'Montserrat' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: colors.text.muted, fontFamily: fonts.body }}>
           {fmtDate(session.scheduledAt)} · {fmtTime(session.scheduledAt)}
         </span>
         <SessionStatusBadge status={session.sessionStatus} />
       </div>
 
       {/* Row 2 : Nom du groupe */}
-      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginBottom: 6, fontFamily: 'Montserrat' }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text.dark, marginBottom: 6, fontFamily: fonts.body }}>
         {groupName}
       </div>
 
@@ -166,19 +166,19 @@ function PresenceCard({
 
       {/* Row 4 : KPI compact ligne */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const }}>
-        <span style={{ fontSize: 12, color: colors.status.present, fontFamily: 'Montserrat' }}>
+        <span style={{ fontSize: 12, color: colors.status.present, fontFamily: fonts.body }}>
           ✓ {session.memberPresent}
         </span>
-        <span style={{ fontSize: 12, color: colors.status.absent, fontFamily: 'Montserrat' }}>
+        <span style={{ fontSize: 12, color: colors.status.absent, fontFamily: fonts.body }}>
           ✗ {session.absentCount}
         </span>
         {session.trialPresent > 0 && (
-          <span style={{ fontSize: 12, color: colors.status.info, fontFamily: 'Montserrat' }}>
+          <span style={{ fontSize: 12, color: colors.status.info, fontFamily: fonts.body }}>
             ⊕ {session.trialPresent}
           </span>
         )}
         {session.unconfirmedCount > 0 && (
-          <span style={{ fontSize: 12, color: colors.text.subtle, fontFamily: 'Montserrat' }}>
+          <span style={{ fontSize: 12, color: colors.text.subtle, fontFamily: fonts.body }}>
             ? {session.unconfirmedCount}
           </span>
         )}
@@ -187,11 +187,11 @@ function PresenceCard({
           fontSize     : 12,
           fontWeight   : 700,
           color        : rate >= 80 ? colors.status.present : rate >= 60 ? colors.status.attention : colors.status.absent,
-          fontFamily   : 'Montserrat',
+          fontFamily   : fonts.display,
         }}>
           {total > 0 ? `${rate}%` : '—'}
         </span>
-        <span style={{ fontSize: 10, color: hasDebrief ? colors.status.present : colors.text.subtle, fontFamily: 'Montserrat' }}>
+        <span style={{ fontSize: 10, color: hasDebrief ? colors.status.present : colors.text.subtle, fontFamily: fonts.body }}>
           {hasDebrief ? '✓' : '○'}
         </span>
       </div>

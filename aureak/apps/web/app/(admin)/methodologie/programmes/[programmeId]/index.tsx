@@ -15,7 +15,7 @@ import {
   listMethodologySessions,
 } from '@aureak/api-client'
 import { AureakText, ConfirmDialog } from '@aureak/ui'
-import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, fonts, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import type { MethodologyProgrammeWithSessions, MethodologyProgrammeSessionWithEntrainement, MethodologySession, MethodologyMethod } from '@aureak/types'
 
 // ── Pictos méthode ────────────────────────────────────────────────────────────
@@ -514,7 +514,7 @@ const st = StyleSheet.create({
   // Header nav (réutilisé depuis programmes/index.tsx)
   headerBlock  : { gap: 12 },
   headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: 'Montserrat', color: colors.text.dark, letterSpacing: 0.5 },
+  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
   tabsRow: {
     flexDirection    : 'row',
     gap              : 24,
@@ -568,7 +568,7 @@ const st = StyleSheet.create({
     fontSize  : 18,
     fontWeight: '700',
     color     : colors.text.dark,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
   },
   badge: {
     borderRadius     : 20,
@@ -625,7 +625,7 @@ const st = StyleSheet.create({
     color        : colors.text.subtle,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
   },
   tableRow: {
     flexDirection    : 'row',

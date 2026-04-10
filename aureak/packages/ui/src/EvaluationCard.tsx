@@ -4,7 +4,7 @@
 
 import React from 'react'
 import { Platform, View, StyleSheet, Image } from 'react-native'
-import { colors, radius, shadows, space } from '@aureak/theme'
+import { colors, fonts, radius, shadows, space } from '@aureak/theme'
 import type { EvaluationWithChild } from '@aureak/types'
 import { Text as AureakText } from './components/Text'
 
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   noteText: {
     fontWeight  : '900' as never,
     lineHeight  : 1 as never,
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.display,
   },
   noteSub: {
     fontSize  : 14,

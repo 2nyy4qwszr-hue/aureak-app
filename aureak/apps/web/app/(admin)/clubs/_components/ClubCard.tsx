@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Image, Pressable, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, shadows } from '@aureak/theme'
+import { colors, fonts, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, ClubRelationType } from '@aureak/types'
 import { CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
 import RbfaStatusBadge from './RbfaStatusBadge'
@@ -188,7 +188,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    fontFamily   : 'Montserrat-Bold',
+    fontFamily   : fonts.display,
     fontSize     : 17,
     color        : colors.text.dark,
     textAlign    : 'center',
@@ -197,7 +197,7 @@ const s = StyleSheet.create({
     lineHeight   : 22,
   },
   location: {
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: fonts.body,
     fontSize  : 11,
     color     : colors.text.muted,
     textAlign : 'center',
@@ -215,7 +215,7 @@ const s = StyleSheet.create({
     gap       : 4,
   },
   statLabel: {
-    fontFamily   : 'Montserrat-SemiBold',
+    fontFamily   : fonts.body,
     fontSize     : 9,
     letterSpacing: 1.1,
     textTransform: 'uppercase' as const,
@@ -230,7 +230,7 @@ const s = StyleSheet.create({
     fontSize: 32,
   },
   statNumber: {
-    fontFamily: 'Montserrat-ExtraBold',
+    fontFamily: fonts.display,
     fontSize  : 40,
     color     : colors.text.dark,
     lineHeight: 44,
@@ -255,7 +255,7 @@ const s = StyleSheet.create({
     backgroundColor  : 'rgba(255,255,255,0.85)',
   },
   relationBadgeText: {
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: fonts.display,
     fontSize  : 9,
   },
 
@@ -272,7 +272,7 @@ const s = StyleSheet.create({
     backgroundColor  : 'rgba(255,255,255,0.85)',
   },
   matriculeBadgeText: {
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: fonts.body,
     fontSize  : 10,
     color     : colors.text.muted,
   },

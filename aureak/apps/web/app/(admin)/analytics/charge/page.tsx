@@ -7,7 +7,7 @@ import { listImplantations, getSessionHeatmap } from '@aureak/api-client'
 import type { HeatmapPeriod } from '@aureak/types'
 import type { Implantation } from '@aureak/types'
 import { HeatmapGrid } from '@aureak/ui'
-import { colors, radius, space, shadows } from '@aureak/theme'
+import { colors, fonts, radius, space, shadows } from '@aureak/theme'
 import type { HeatmapCell } from '@aureak/types'
 
 const PERIOD_OPTIONS: { value: HeatmapPeriod; label: string }[] = [
@@ -135,7 +135,7 @@ const s = StyleSheet.create({
   backLink: { marginBottom: space.md, alignSelf: 'flex-start' },
   backText: { color: colors.text.secondary, fontSize: 13 },
   title   : {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     fontSize  : 24,
     fontWeight: '800',
     color     : colors.text.primary,

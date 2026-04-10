@@ -4,7 +4,7 @@
 // RÈGLE : clearInterval OBLIGATOIRE dans le cleanup
 import React, { useEffect, useRef, useState } from 'react'
 import { Pressable, Text as RNText, View } from 'react-native'
-import { colors } from '@aureak/theme'
+import { colors, fonts } from '@aureak/theme'
 import type { ActiveSessionInfo } from '@aureak/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ export function ActiveSessionHUD({
               fontSize    : 12,
               fontWeight  : '600',
               color       : colors.dark.text,
-              fontFamily  : 'Montserrat',
+              fontFamily  : fonts.body,
             }}
           >
             {session.groupName}

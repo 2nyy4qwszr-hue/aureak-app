@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border.divider,
   },
   colHeader: {
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     fontSize     : 10,
     fontWeight   : '700',
     letterSpacing: 1,
