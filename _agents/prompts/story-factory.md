@@ -40,10 +40,17 @@ Lis dans cet ordre :
 1. **`_bmad-output/planning-artifacts/architecture.md`** — contraintes techniques, stack, patterns établis
 2. **`_bmad-output/planning-artifacts/prd.md`** — pour retrouver le FR associé si applicable
 3. **`_agents/design-vision.md`** — pour toute story UI : les 12 principes et la palette
-4. **`supabase/migrations/`** → `ls | tail -3` → trouver le **numéro de migration suivant**
-5. **`aureak/packages/types/src/entities.ts`** — types existants (éviter les doublons)
-6. **`aureak/packages/api-client/src/`** — fonctions API existantes (éviter les doublons)
-7. **Stories existantes dans `_bmad-output/implementation-artifacts/`** → trouver le bon numéro d'epic et de story
+4. **Détection automatique du type design (pour toute story UI)** — appliquer dans l'ordre :
+   - Lire `_bmad-output/design-references/INDEX.md` pour connaître les PNGs disponibles et leurs routes associées
+   - **Règle BUG** : si la catégorie est BUG → toujours **polish** (pas de PNG, pas d'UI Spec)
+   - **Règle mots-clés** : si le titre ou les ACs contiennent un mot redesign-level (`refonte`, `redesign`, `layout`, `bento`, `colonnes`, `tableau`, `structure`, `stat cards`, `grille`, `onglets`, `filtres`) ET qu'un PNG correspond au module dans l'INDEX → **redesign**
+   - **Sinon** → **polish** (pictos, icônes, label, couleur, spacing, tweak, corriger, ajuster, border, police = toujours polish)
+   - Si **redesign** : lire le PNG avec l'outil Read → extraire la UI Spec → l'écrire dans la story Dev Notes (voir template ci-dessous)
+   - Si **polish** : pas de PNG, ne pas créer de section UI Spec
+5. **`supabase/migrations/`** → `ls | tail -3` → trouver le **numéro de migration suivant**
+6. **`aureak/packages/types/src/entities.ts`** — types existants (éviter les doublons)
+7. **`aureak/packages/api-client/src/`** — fonctions API existantes (éviter les doublons)
+8. **Stories existantes dans `_bmad-output/implementation-artifacts/`** → trouver le bon numéro d'epic et de story
 
 Si une dépendance technique manque (table absente, type inexistant, API non créée) → **STOP** et signaler avant d'écrire la story.
 
@@ -139,6 +146,8 @@ Référence : `{fichier}:{ligne}` — pattern déjà utilisé dans {contexte}
 
 ### Design (si story UI)
 
+**Type design** : `redesign` | `polish`  ← remplir selon la détection automatique de l'Étape 1
+
 Tokens à utiliser :
 ```tsx
 import { colors, space, shadows, radius, transitions } from '@aureak/theme'
@@ -152,6 +161,17 @@ boxShadow       : shadows.{token exact}  // jamais shadows.sm.spread etc.
 Principes design à respecter (source : `_agents/design-vision.md`) :
 - {principe applicable à cette story}
 - {principe applicable}
+
+<!-- Remplir uniquement si type design = redesign -->
+**Design ref** : `_bmad-output/design-references/{nom-exact-du-fichier}.png`
+
+**UI Spec extraite du design ref** *(source de vérité pour le Dev agent — extraire depuis l'image)*:
+- **Onglets / navigation** : {labels exacts dans l'ordre, ex: SÉANCES | PRÉSENCES | ÉVALUATIONS}
+- **Filtres** : {labels exacts, ex: Saison / Implantation / Groupe + boutons AUJOURD'HUI / À VENIR / PASSÉES}
+- **Stat cards** : {label | valeur-type | variant} — ex: "Présence Moyenne | % | standard", "Évals Complétées | % | gold"
+- **Colonnes tableau** : {noms exacts dans l'ordre visible dans l'image}
+- **Badges / statuts** : {couleur → signification, ex: vert → Académie, orange → stage}
+- **Autres éléments notables** : {tout élément UI spécifique visible dans l'image non couvert ci-dessus}
 
 ---
 
