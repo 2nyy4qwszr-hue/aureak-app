@@ -1,102 +1,126 @@
 ---
 name: 'patrol'
-description: 'Lance les 4 agents de patrouille autonomes (Design Patrol, Bug Crawler, UX Inspector, Feature Scout) et produit un rapport consolidé dans _qa/reports/. Utilisé automatiquement par /morning si les rapports sont vieux.'
+description: 'Lance les 4 agents de patrouille en parallèle et produit un rapport consolidé dans _qa/reports/. Utilisé automatiquement par /morning si les rapports sont vieux.'
 ---
 
 Tu es le Patrol Coordinator d'Aureak.
 
-Ta mission : lancer les 4 agents de patrouille en séquence, produire leurs rapports, puis synthétiser les findings les plus importants en une liste consolidée prête pour le Morning Brief.
+Ta mission : lancer les 4 agents en parallèle, collecter leurs résultats, produire le rapport consolidé.
 
 ---
 
-## Étape 0 — Vérifier que l'app tourne
+## Étape 0 — Vérifier app + Playwright MCP
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8081
+APP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081)
 ```
 
-- Si 200 → continuer
-- Si non → noter "app non démarrée" dans le rapport consolidé. Les agents qui nécessitent Playwright seront marqués SKIPPED — lancer l'app avec `cd aureak && npx turbo dev --filter=web` puis relancer `/patrol`.
+Puis tester Playwright MCP :
+```
+mcp__playwright__browser_navigate → url: "about:blank"
+```
+- Si succès → `PLAYWRIGHT_STATUS=ready` → `mcp__playwright__browser_close`
+- Si erreur/timeout → `PLAYWRIGHT_STATUS=unavailable`
+
+Résultat :
+- Si `APP_STATUS=200` ET `PLAYWRIGHT_STATUS=ready` → mode complet (screenshots + console check)
+- Si `APP_STATUS=200` ET `PLAYWRIGHT_STATUS=unavailable` → mode statique (analyse de code uniquement)
+- Si `APP_STATUS != 200` → mode statique. Les agents visuels marqueront SKIPPED.
+
+Passer `APP_STATUS` et `PLAYWRIGHT_STATUS` à chaque agent.
 
 ---
 
-## Étape 1 — Design Patrol
+## Étape 1 — Lancer les 4 agents en parallèle
 
-Lire et exécuter intégralement `_agents/prompts/design-patrol.md`.
+Spawner les 4 sous-agents **simultanément** (un message avec 4 Agent tool calls) :
 
-Produire le rapport : `_qa/reports/{DATE}_design-patrol.md`
+**Agent 1 — Design Patrol**
+```
+Lis et exécute `_agents/prompts/design-patrol.md`. APP_STATUS={APP_STATUS}. PLAYWRIGHT_STATUS={PLAYWRIGHT_STATUS}.
+Produis le rapport : `_qa/reports/{DATE}_design-patrol.md`
+Retourne UNIQUEMENT ce bloc structuré :
+nb_blocker:{N} | nb_warning:{N} | top3:["{type} — {titre} — {page}:{fichier}", ...]
+```
 
-Résumé intermédiaire à retenir :
-- Nombre de BLOCKER
-- Nombre de WARNING
-- Les 3 dérives les plus critiques (titre + page + fichier)
+**Agent 2 — Bug Crawler**
+```
+Lis et exécute `_agents/prompts/bug-crawler.md`. APP_STATUS={APP_STATUS}. PLAYWRIGHT_STATUS={PLAYWRIGHT_STATUS}.
+Produis le rapport : `_qa/reports/{DATE}_bug-crawler.md`
+Retourne UNIQUEMENT :
+nb_critical:{N} | nb_high:{N} | top3:["{titre} — {page}:{fichier}", ...]
+```
 
----
+**Agent 3 — UX Inspector**
+```
+Lis et exécute `_agents/prompts/ux-inspector.md`. APP_STATUS={APP_STATUS}. PLAYWRIGHT_STATUS={PLAYWRIGHT_STATUS}.
+Produis le rapport : `_qa/reports/{DATE}_ux-inspector.md`
+Retourne UNIQUEMENT :
+nb_p1:{N} | nb_p2:{N} | top3:["{friction} — {route}", ...]
+```
 
-## Étape 2 — Bug Crawler
+**Agent 4 — Feature Scout**
+```
+Lis et exécute `_agents/prompts/feature-scout.md`.
+Produis le rapport : `_qa/reports/{DATE}_feature-scout.md`
+Retourne UNIQUEMENT :
+pct_couverture:{N}% | nb_manquants:{N} | top3:["{FR} → {story_factory_call}", ...]
+```
 
-Lire et exécuter intégralement `_agents/prompts/bug-crawler.md`.
-
-Produire le rapport : `_qa/reports/{DATE}_bug-crawler.md`
-
-Résumé intermédiaire à retenir :
-- Nombre de CRITICAL
-- Nombre de HIGH
-- Les 3 bugs les plus critiques (message + page + fichier probable)
-
----
-
-## Étape 3 — UX Inspector
-
-Lire et exécuter intégralement `_agents/prompts/ux-inspector.md`.
-
-Produire le rapport : `_qa/reports/{DATE}_ux-inspector.md`
-
-Résumé intermédiaire à retenir :
-- Flux les plus lents (nb clics)
-- Les 3 frictions P1/P2 principales
-- États manquants critiques
-
----
-
-## Étape 4 — Feature Scout
-
-Lire et exécuter intégralement `_agents/prompts/feature-scout.md`.
-
-Produire le rapport : `_qa/reports/{DATE}_feature-scout.md`
-
-Résumé intermédiaire à retenir :
-- % couverture PRD Phase 1
-- Les 3 FRs manquants les plus importants
-- Les 2 meilleurs quick wins avec Story Factory call
+Attendre la fin des 4 agents avant de continuer.
 
 ---
 
-## Étape 5 — Rapport consolidé
+## Étape 2 — Delta avec la patrol précédente
 
-Créer `_qa/reports/{DATE}_patrol-consolidated.md` :
+```bash
+# Trouver les 2 rapports consolidés les plus récents
+ls -t _qa/reports/*patrol-consolidated* 2>/dev/null | head -2
+```
+
+Si un rapport précédent existe → le lire et comparer avec les résultats actuels :
+- **Nouveaux problèmes** : items dans les top3 actuels absents du précédent → marquer `🆕`
+- **Problèmes résolus** : items dans le précédent absents des résultats actuels → marquer `✅ résolu`
+- **Problèmes qui empirent** : même item mais sévérité montée (WARNING→BLOCKER, P2→P1) → marquer `↗ aggravé`
+
+Si aucun rapport précédent → skip le delta.
+
+---
+
+## Étape 3 — Rapport consolidé
+
+Créer `_qa/reports/{DATE}_patrol-consolidated.md` à partir des 4 retours :
 
 ```markdown
 # Patrol Consolidé — {DATE} {HEURE}
 
-## Statut app : {running / non démarrée}
+## Statut app : {running / non-démarrée}
 
 ---
 
 ## 🔴 CRITIQUES (action immédiate)
 
-{Liste des BLOCKER design + CRITICAL bugs — max 5 items}
+{BLOCKER design + CRITICAL bugs — max 5}
 - [{type}] {titre} — {page/fichier} — {impact}
 
 ## 🟠 IMPORTANTS (cette semaine)
 
-{Liste HIGH bugs + frictions P1 + FRs Phase 1 manquants — max 5 items}
+{HIGH bugs + frictions P1 + FRs Phase 1 manquants — max 5}
 - [{type}] {titre} — {description courte}
 
 ## ✨ OPPORTUNITÉS (quand disponible)
 
-{Quick wins Feature Scout — max 3 items}
-- {titre} → story "{Story Factory call}"
+{Quick wins Feature Scout — max 3}
+- {titre} → "{story_factory_call}"
+
+## 📊 Évolution (delta vs patrol précédente)
+
+{Si delta disponible :}
+- 🆕 {N} nouveaux problèmes : {titres}
+- ✅ {N} résolus : {titres}
+- ↗ {N} aggravés : {titres}
+
+{Si pas de patrol précédente : "Première patrol — pas de delta disponible."}
 
 ---
 
@@ -104,10 +128,10 @@ Créer `_qa/reports/{DATE}_patrol-consolidated.md` :
 
 | Agent | BLOCKER/CRITICAL | WARNING/HIGH | OK |
 |-------|-----------------|-------------|-----|
-| Design Patrol | {N} | {N} | {N} pages |
-| Bug Crawler | {N} | {N} | {N} pages |
-| UX Inspector | {N} P1 | {N} P2 | {N} flux |
-| Feature Scout | {N} manquants | {N} débloqués | {%} couverture |
+| Design Patrol | {N} | {N} | — |
+| Bug Crawler | {N} | {N} | — |
+| UX Inspector | {N} P1 | {N} P2 | — |
+| Feature Scout | {N} manquants | — | {%} couverture |
 
 ---
 
@@ -121,7 +145,7 @@ Créer `_qa/reports/{DATE}_patrol-consolidated.md` :
 
 ---
 
-## Étape 6 — Mise à jour `_qa/summary.md`
+## Étape 4 — Mise à jour `_qa/summary.md`
 
 Ajouter une ligne dans le tableau "Dernière patrouille" :
 
@@ -136,10 +160,9 @@ Ajouter une ligne dans le tableau "Dernière patrouille" :
 ```
 ✅ Patrouille terminée — {DATE}
 
-🔴 {N} critiques à traiter
+🔴 {N} critiques
 🟠 {N} importants
 ✨ {N} opportunités
 
-Rapport complet : _qa/reports/{DATE}_patrol-consolidated.md
-Lance /morning pour les propositions du jour.
+Rapport : _qa/reports/{DATE}_patrol-consolidated.md
 ```

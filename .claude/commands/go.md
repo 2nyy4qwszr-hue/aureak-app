@@ -1,101 +1,164 @@
 ---
 name: 'go'
-description: 'Reprend la queue de stories du jour et lance la prochaine implémentation via BMAD Dev. Utiliser si la session a été interrompue après /morning.'
+description: 'Reprend la queue de stories du jour et lance la prochaine implémentation. Utiliser si la session a été interrompue après /morning.'
 ---
 
-Tu es le Day Conductor d'Aureak.
+Tu es le Day Conductor d'Aureak. Jeremy tape `/go` — il veut reprendre la queue.
 
-Jeremy tape `/go` — il veut reprendre la queue là où elle s'était arrêtée.
+---
 
-## Ce que tu dois faire
-
-### 1. Lire l'état de la queue
+## 1. Lire l'état de la queue
 
 Lire `_qa/gates/day-queue.md`
+- Si absent → `Aucune queue active. Lance /morning pour démarrer.`
+- Si toutes `done` → `🎉 Queue terminée. Lance /morning pour une nouvelle journée.`
 
-- Si le fichier n'existe pas → répondre :
-  ```
-  Aucune queue active. Lance /morning pour démarrer ta journée.
-  ```
+## 2. Contexte rapide
 
-- Si toutes les stories sont `done` → répondre :
-  ```
-  🎉 Queue du {date} déjà terminée — toutes les stories sont done.
-  Lance /morning pour une nouvelle journée.
-  ```
+```bash
+# Activité récente (ce qui a changé depuis la dernière session)
+git log --oneline --since="12 hours ago" | head -5
 
-### 2. Trouver la prochaine story
-
-Chercher la première story avec `status: pending` ou `status: in-progress`.
-
-Si `in-progress` → la story a été interrompue. Lire le fichier story pour trouver la dernière task cochée. Reprendre à la task suivante non cochée.
-
-### 3. Annoncer et lancer
-
-```
-▶️  Reprise de la queue — {date}
-
-Prochaine story : story-{X}-{Y} — {titre}
-({N} stories restantes)
-
-Lancement pipeline BMAD...
+# Cleanup Chromium zombies (prévention Playwright)
+pkill -f "chromium.*--headless" 2>/dev/null
+pkill -f "chrome.*--headless" 2>/dev/null
+rm -rf /tmp/playwright-* 2>/dev/null
 ```
 
-→ Mettre à jour `day-queue.md` : story → `status: in-progress`
+## 3. Trouver la prochaine story
 
-### 4. Étape B — Implémentation BMAD Dev (sous-agent)
-
-Spawner un sous-agent général avec ce prompt :
+Première story `pending` ou `in-progress`.
+Si `in-progress` → lire le fichier story, trouver la dernière task cochée, reprendre à la suivante.
 
 ```
-Tu es le Developer Agent BMAD (Amelia) du projet Aureak. Mode autonome — continue sans pause jusqu'à la completion complète de la story.
-
-STORY À IMPLÉMENTER : {chemin complet du fichier story}
-CONTEXTE : reprise après interruption — la dernière task cochée est {dernière task cochée ou "aucune"}.
-
-ÉTAPES OBLIGATOIRES (dans l'ordre) :
-
-1. Lis `_bmad/bmm/config.yaml` — pour les chemins de projet
-2. Lis `_bmad/core/tasks/workflow.xml` — moteur d'exécution BMAD
-3. Lis `_bmad/bmm/workflows/4-implementation/dev-story/workflow.yaml`
-4. Lis `_bmad/bmm/workflows/4-implementation/dev-story/instructions.xml`
-5. Exécute le workflow dev-story avec story_path = "{chemin complet du fichier story}" :
-   - Lis la story COMPLÈTE pour identifier les tasks déjà cochées
-   - Reprendre à la première task non cochée [ ]
-   - Continuer sans s'arrêter jusqu'à ce que toutes les tasks soient cochées
-6. Lis aussi obligatoirement AVANT de coder :
-   - `_bmad-output/project-context.md` → règles critiques Aureak pour agents IA (BLOCKERs, patterns stack, design)
-   - `CLAUDE.md` → règles absolues du projet
-   - Les fichiers existants concernés (avant toute modification)
-
-CONTRAINTES STACK ABSOLUES :
-- Migrations : dans `supabase/migrations/` (racine) — JAMAIS dans aureak/supabase/
-- Accès Supabase : UNIQUEMENT via @aureak/api-client
-- Styles : UNIQUEMENT via tokens @aureak/theme — jamais de couleurs hardcodées
-- try/finally OBLIGATOIRE sur tout setState de chargement/sauvegarde
-- Console guards : if (process.env.NODE_ENV !== 'production') console.error(...)
-- Routing Expo : page.tsx = contenu, index.tsx = re-export de ./page
-- Ordre : Migration SQL → Types TS → API client → UI
-
-APRÈS L'IMPLÉMENTATION :
-- Mettre Status: done dans la story
-- Mettre à jour Dev Agent Record + File List
-- Mettre à jour sprint-status.yaml : story → done
+▶️ Reprise — {date}
+Story : story-{X}-{Y} — {titre}
+({N} restantes)
 ```
 
-### 5. Enchaîner review + gates
+Mettre `day-queue.md` → `in-progress`.
 
-Attendre la fin du sous-agent BMAD Dev, puis exécuter exactement le pipeline de /morning :
-- Étape C (BMAD Code Review — sous-agent, auto-fix HIGH/MEDIUM)
-- Étape D (Gate 1 — agents Aureak custom)
-- Étape E (Gate 2 — agents Aureak custom)
-- Étape F (verdict + commit)
-- Étape G (annonce story suivante)
+---
 
-### 6. Règles
+## 3bis. Référence visuelle design
 
-- Ne rien demander à Jeremy avant de lancer — il a dit GO en tapant `/go`
-- Ne jamais coder directement — déléguer au BMAD Dev sous-agent
-- Enchaîner les gates automatiquement après le sous-agent
-- Si blocker non corrigeable → signaler et demander SKIP ou FIX
-- Mettre à jour `day-queue.md` au fur et à mesure
+- PNG dans la story → `🖼️ Ref : {nom}`
+- Aucun PNG + story UI → sous-agent Stitch (skip silencieux si échec)
+
+---
+
+## 4. Sanity check + complexité
+
+```bash
+ac_count=$(awk '/## Acceptance Criteria/,/^## [^A]/' {story} | grep -cE "^[0-9]+\.|^- ")
+task_count=$(awk '/## Tasks/,/^## [^T]/' {story} | grep -c "^- \[ \]")
+devnotes=$(grep -c "## Dev Notes" {story})
+```
+Si `ac_count < 3` ou `task_count < 2` ou `devnotes = 0` → `⚠️ Story incomplète. Continuer ? (GO/SKIP)`
+
+```bash
+file_count=$(awk '/### Fichiers à créer/,/### Fichiers à NE PAS/' {story} | grep -c "aureak/")
+has_migration=$(awk '/### Fichiers à créer/,/### Fichiers à NE PAS/' {story} | grep -ci "\.sql")
+complexity=$((task_count + has_migration * 3 + file_count))
+```
+- `< 5` → **EXPRESS** · `5-10` → **NORMAL** · `> 10` → **DEEP**
+
+---
+
+## 5. Dev (sous-agent)
+
+Construire contexte inter-story : stories `done` dans `day-queue.md` → lire leurs "File List" → fichiers partagés.
+
+```
+Lis et exécute `_agents/prompts/pipeline-dev.md`. Mode autonome.
+STORY : {chemin}
+COMPLEXITÉ : {EXPRESS|NORMAL|DEEP}
+REPRISE : {dernière task cochée ou "début"}
+{CONTEXTE INTER-STORY : {fichiers partagés}}
+{ATTENTION RENFORCÉE : {patterns récurrents si boucle d'apprentissage active}}
+```
+
+Attendre la fin.
+
+---
+
+## 6. Code Review (sous-agent)
+
+```
+Lis et exécute `_agents/prompts/pipeline-review.md`. Mode autonome.
+STORY : {chemin}
+```
+**FAIL** → signaler. FIX ou SKIP.
+
+---
+
+## 7. TypeScript check
+
+```bash
+cd aureak && npx tsc --noEmit 2>&1 | head -40
+```
+Si erreurs → sous-agent correcteur. Relancer tsc.
+
+---
+
+## 8. Gate 1 + Gate 2
+
+**Parallélisation** :
+```bash
+gate1_touches_tsx=$(awk '/### Fichiers à créer/,/### Fichiers à NE PAS/' {story} | grep -ci "\.tsx")
+```
+- `== 0` → Gate 1 + Gate 2 **en parallèle**
+- `> 0` → Gate 1 d'abord, micro-commit, puis Gate 2
+
+**Gate 1** :
+```
+Lis et exécute `_agents/prompts/pipeline-gate1.md`. Mode autonome.
+STORY : {chemin}
+```
+
+**Gate 2** :
+```
+Lis et exécute `_agents/prompts/pipeline-gate2.md`. Mode autonome.
+STORY : {chemin}
+```
+
+Day Conductor : lire `_qa/gates/gate1-*.txt` et `gate2-*.txt`.
+Si corrections → micro-commits `fix(qa-gate1)` / `fix(qa-gate2)`.
+FAIL → signaler, `blocked`. FIX ou SKIP.
+
+---
+
+## 9. DoD + commit
+
+```bash
+grep "Status: done" {story}
+grep "{story_id}" _bmad-output/implementation-artifacts/sprint-status.yaml | grep "done"
+git status --short | head -10
+```
+Si check échoue → corriger. Commit feature. `day-queue.md` → `done`.
+
+---
+
+## 10. Boucle d'apprentissage
+
+```bash
+cat _qa/gates/gate*-*.txt 2>/dev/null | tail -10
+```
+Extraire `types:`. Si un type ≥ 3×/10 → ajouter dans `project-context.md` + `ATTENTION RENFORCÉE` au prochain Dev.
+
+---
+
+## 11. Story suivante
+
+Retenir fichiers partagés. `Story {X}.{Y} ✅ — {N} restantes.`
+Si dernière → `🎉 Queue terminée. Patrouille ?`
+
+---
+
+## Règles
+
+- `/go` = GO implicite — ne rien demander avant de lancer
+- Ne jamais coder directement — déléguer au Dev sous-agent
+- Ne jamais skipper un gate
+- 1 commit feature + micro-commits QA si corrections Gate
+- FAIL non corrigeable → signaler. FIX ou SKIP.

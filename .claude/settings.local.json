@@ -1,17 +1,4 @@
 {
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/_agents/scripts/qa-hook.sh\""
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "WebFetch(domain:aureak.be)",
@@ -177,7 +164,41 @@
       "Bash(python3 -c \"import json,sys;:*)",
       "Bash(env)",
       "WebFetch(domain:jeremydevriendt.notion.site)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(cp '/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/apps/web/app/\\(admin\\)/evaluations/comparison.tsx' '/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/apps/web/app/\\(admin\\)/evaluations/comparison/page.tsx')",
+      "Bash(rm \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/aureak/apps/web/app/\\(admin\\)/evaluations/comparison.tsx\")",
+      "mcp__figma__get_metadata",
+      "Bash(openssl rand:*)",
+      "Bash(HOOK_CUSTOM_ACCESS_TOKEN_SECRET=\"v1,whsec_$\\(openssl rand -base64 32\\)\" supabase db dump --linked --schema public)",
+      "Bash(HOOK_CUSTOM_ACCESS_TOKEN_SECRET=\"v1,whsec_$\\(openssl rand -base64 32\\)\" supabase db push --linked)",
+      "Bash(HOOK_CUSTOM_ACCESS_TOKEN_SECRET=\"v1,whsec_$\\(openssl rand -base64 32\\)\" supabase migration list --linked)",
+      "Bash(HOOK_CUSTOM_ACCESS_TOKEN_SECRET=\"v1,whsec_$\\(openssl rand -base64 32\\)\" supabase inspect db table-stats --linked)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/_agents/scripts/preflight.sh\"",
+            "timeout": 30,
+            "statusMessage": "Preflight: dev server + Playwright..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"/Users/jeremydevriendt/Documents/Claude-projets/Application Aureak/_agents/scripts/qa-hook.sh\""
+          }
+        ]
+      }
     ]
   }
 }
