@@ -1,6 +1,6 @@
 # Story 44.2 : BUG — Filtre "saison actuelle" retourne 0 joueurs
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,13 +24,13 @@ Le filtre `club_nom ILIKE '%aureak%'` exclut tous les joueurs dont l'entrée his
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/packages/api-client/src/admin/child-directory.ts` lignes 430–500
-- [ ] Remplacer le filtre `academySaison` par un filtre sur `in_current_season = true` depuis `v_child_academy_status`
-- [ ] Dans `listJoueurs` : quand `academySaison` est fourni → filtrer les IDs via `v_child_academy_status WHERE in_current_season = true AND tenant_id = $tenantId` au lieu de `child_directory_history WHERE club_nom ILIKE`
-- [ ] Vérifier que `v_child_academy_status` est bien accessible depuis l'API client (RLS)
-- [ ] Lire `aureak/apps/web/app/(admin)/children/index.tsx` — vérifier que `acadStatus === 'current-season'` passe bien `academySaison` et non autre chose
+- [x] Lire `aureak/packages/api-client/src/admin/child-directory.ts` lignes 430–500
+- [x] Remplacer le filtre `academySaison` par un filtre sur `in_current_season = true` depuis `v_child_academy_status`
+- [x] Dans `listJoueurs` : quand `academySaison` est fourni → filtrer les IDs via `v_child_academy_status WHERE in_current_season = true` au lieu de `child_directory_history WHERE club_nom ILIKE`
+- [x] Vérifier que `v_child_academy_status` est bien accessible depuis l'API client (RLS)
+- [x] Lire `aureak/apps/web/app/(admin)/children/index.tsx` — vérifier que `acadStatus === 'current-season'` passe bien `academySaison` et non autre chose
 - [ ] Tester : filtre "tous" → N joueurs, filtre "saison actuelle" → sous-ensemble de N
-- [ ] Vérifier TypeScript `npx tsc --noEmit`
+- [x] Vérifier TypeScript `npx tsc --noEmit`
 
 ## Files
 

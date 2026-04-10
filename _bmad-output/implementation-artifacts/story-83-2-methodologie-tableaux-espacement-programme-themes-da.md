@@ -1,6 +1,6 @@
 # Story 83.2 : Méthodologie — Espacement tableaux + Programme simplification + Thèmes refonte DA
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

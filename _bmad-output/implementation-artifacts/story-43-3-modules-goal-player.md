@@ -1,6 +1,6 @@
 # Story 43.3 : Modules structurés dans un entraînement Goal & Player
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,16 +19,16 @@ afin d'organiser les exercices par thème avec une plage de numéros cohérente.
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/methodologie/seances/new.tsx`
-- [ ] Lire `aureak/apps/web/app/(admin)/methodologie/seances/[sessionId]/page.tsx`
-- [ ] Lire `aureak/packages/types/src/entities.ts` — type `MethodologySession`
-- [ ] Vérifier si un champ `modules` existe sur `methodology_sessions` — sinon utiliser le champ `notes` avec format JSON `[{num:1, titre:"...", range:"1-5"}, ...]`
-- [ ] Si migration nécessaire : `ALTER TABLE methodology_sessions ADD COLUMN IF NOT EXISTS modules JSONB`
-- [ ] Ajouter la section Modules dans le formulaire — conditionnelle sur `method === 'Goal & Player'`
-- [ ] 3 champs titre éditables avec labels fixes "Module 1 (ex. 1→5)", "Module 2 (ex. 6→10)", "Module 3 (ex. 11→15)"
-- [ ] Sauvegarder via l'API `updateMethodologySession` ou `createMethodologySession`
-- [ ] Afficher les modules dans la fiche détail
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/methodologie/seances/new.tsx`
+- [x] Lire `aureak/apps/web/app/(admin)/methodologie/seances/[sessionId]/page.tsx`
+- [x] Lire `aureak/packages/types/src/entities.ts` — type `MethodologySession`
+- [x] Vérifier si un champ `modules` existe sur `methodology_sessions` — sinon utiliser le champ `notes` avec format JSON `[{num:1, titre:"...", range:"1-5"}, ...]`
+- [x] Si migration nécessaire : `ALTER TABLE methodology_sessions ADD COLUMN IF NOT EXISTS modules JSONB`
+- [x] Ajouter la section Modules dans le formulaire — conditionnelle sur `method === 'Goal & Player'`
+- [x] 3 champs titre éditables avec labels fixes "Module 1 (ex. 1→5)", "Module 2 (ex. 6→10)", "Module 3 (ex. 11→15)"
+- [x] Sauvegarder via l'API `updateMethodologySession` ou `createMethodologySession`
+- [x] Afficher les modules dans la fiche détail
+- [x] Vérifier TypeScript
 
 ## Files
 

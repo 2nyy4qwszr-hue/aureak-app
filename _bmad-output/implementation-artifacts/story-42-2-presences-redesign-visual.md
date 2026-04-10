@@ -1,6 +1,6 @@
 # Story 42.2 : Page Présences — redesign visuel compact
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,11 +19,11 @@ afin de consulter rapidement les taux de présence sans scroll excessif.
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/presences/page.tsx` (ou index.tsx)
-- [ ] Réduire la hauteur des cards : padding vertical `space.sm` au lieu de `space.md/xl`
-- [ ] Remplacer les blocs KPI par une ligne compacte : `✓ 12  ✗ 3  ⏱ 1`
-- [ ] Ajouter une `ProgressBar` inline sous le nom de séance
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/presences/page.tsx` (ou index.tsx)
+- [x] Réduire la hauteur des cards : padding vertical `space.sm` au lieu de `space.md/xl`
+- [x] Remplacer les blocs KPI par une ligne compacte : `✓ 12  ✗ 3  ⏱ 1`
+- [x] Ajouter une `PresenceProgressBar` inline sous le nom de séance
+- [x] Vérifier TypeScript
 
 ## Files
 

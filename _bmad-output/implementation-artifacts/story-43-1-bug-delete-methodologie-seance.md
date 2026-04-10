@@ -1,6 +1,6 @@
 # Story 43.1 : BUG — Impossible de supprimer un entraînement pédagogique
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,14 +19,14 @@ afin de nettoyer les entraînements erronés ou obsolètes.
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/methodologie/seances/index.tsx` entièrement
-- [ ] Vérifier `aureak/packages/api-client/src/methodology.ts` — fonction `deleteMethodologySession` existe ?
-- [ ] Si absente : ajouter `softDeleteMethodologySession(id)` dans `methodology.ts` (UPDATE `deleted_at = NOW()`)
-- [ ] Ajouter bouton supprimer sur chaque card avec `ConfirmDialog` (déjà dans `@aureak/ui`)
-- [ ] Optimistic update : filtrer l'item supprimé du state local immédiatement
-- [ ] Toast : `useToast()` depuis `ToastContext`
-- [ ] try/finally obligatoire sur le setter de chargement
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/methodologie/seances/index.tsx` entièrement
+- [x] Vérifier `aureak/packages/api-client/src/methodology.ts` — fonction `deleteMethodologySession` existe ?
+- [x] Si absente : ajouter `softDeleteMethodologySession(id)` dans `methodology.ts` (UPDATE `deleted_at = NOW()`)
+- [x] Ajouter bouton supprimer sur chaque card avec `ConfirmDialog` (déjà dans `@aureak/ui`)
+- [x] Optimistic update : filtrer l'item supprimé du state local immédiatement
+- [x] Toast : `useToast()` depuis `ToastContext`
+- [x] try/finally obligatoire sur le setter de chargement
+- [x] Vérifier TypeScript
 
 ## Files
 

@@ -1,6 +1,6 @@
 # Story 44.5 : Mini stats joueur dans la fiche groupe
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,13 +18,13 @@ afin d'avoir un aperçu rapide du profil et de l'assiduité sans ouvrir chaque f
 
 ## Technical Tasks
 
-- [ ] Lire `aureak/apps/web/app/(admin)/groups/[groupId]/page.tsx` entièrement — comprendre la liste membres
-- [ ] Lire `aureak/packages/api-client/src/` — vérifier si une fonction retourne les stats présence par child + group
-- [ ] Si absente : ajouter `listAttendanceStatsByGroup(groupId, tenantId)` dans `sessions/` ou `evaluations/` qui retourne `{ childId, present, total }[]`
-- [ ] Charger les stats au mount du groupe avec try/finally + state `attendanceStats`
-- [ ] Afficher sous le nom : `[DD/MM/YYYY] · [club] · [X%]` avec couleur taux
-- [ ] Styles via tokens uniquement, zéro hardcode
-- [ ] Vérifier TypeScript
+- [x] Lire `aureak/apps/web/app/(admin)/groups/[groupId]/page.tsx` entièrement — comprendre la liste membres
+- [x] Lire `aureak/packages/api-client/src/` — vérifier si une fonction retourne les stats présence par child + group
+- [x] Si absente : ajouter `listAttendanceStatsByGroup(groupId, tenantId)` dans `sessions/` ou `evaluations/` qui retourne `{ childId, present, total }[]`
+- [x] Charger les stats au mount du groupe avec try/finally + state `attendanceStats`
+- [x] Afficher sous le nom : `[DD/MM/YYYY] · [club] · [X%]` avec couleur taux
+- [x] Styles via tokens uniquement, zéro hardcode
+- [x] Vérifier TypeScript
 
 ## Files
 
