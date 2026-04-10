@@ -3,7 +3,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors } from '@aureak/theme'
+import { colors, fonts } from '@aureak/theme'
 import type { RbfaStatus } from '@aureak/types'
 
 type Props = {
@@ -38,7 +38,7 @@ const s = StyleSheet.create({
     paddingVertical  : 3,
   },
   label: {
-    fontFamily   : 'Montserrat-SemiBold',
+    fontFamily   : fonts.body,
     fontSize     : 9,
     letterSpacing: 0.8,
     textTransform: 'uppercase' as const,

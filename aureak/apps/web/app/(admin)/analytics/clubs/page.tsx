@@ -7,7 +7,7 @@ import { getImplantationRankings } from '@aureak/api-client'
 import type { ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
 import { BarChart, SkeletonBase } from '@aureak/ui'
 import type { BarChartItem } from '@aureak/types'
-import { colors, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
+import { colors, fonts, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
 
 // ── Couleur selon performance — délégue à getStatColor de @aureak/theme ────────
 function getStatColor(value: number, metric: 'attendance' | 'mastery'): string {
@@ -145,7 +145,7 @@ const s = StyleSheet.create({
   backLink: { marginBottom: space.md, alignSelf: 'flex-start' },
   backText: { color: colors.text.secondary, fontSize: 13 },
   title   : {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     fontSize  : 24,
     fontWeight: '800',
     color     : colors.text.primary,

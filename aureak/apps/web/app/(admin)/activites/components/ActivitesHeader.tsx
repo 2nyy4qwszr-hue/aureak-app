@@ -5,7 +5,7 @@ import { View, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 
 const TABS = [
   { key: 'seances',     label: 'SÉANCES',     href: '/activites' },
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize     : 24,
     fontWeight   : '700',
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     color        : colors.text.dark,
     letterSpacing: 0.5,
   },

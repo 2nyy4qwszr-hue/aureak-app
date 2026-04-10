@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router'
 import { getStatsRoomKpis, getMonthlyReportData, useLiveSessionCounts } from '@aureak/api-client'
 import type { StatsRoomKpis } from '@aureak/api-client'
 import { LiveCounter } from '@aureak/ui'
-import { colors, radius, shadows, transitions, space, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { colors, fonts, radius, shadows, transitions, space, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 import { generateMonthlyReport } from './generateMonthlyReport'
 import type { ReportOptions } from '@aureak/types'
 
@@ -244,7 +244,7 @@ const em = StyleSheet.create({
     fontSize    : 18,
     fontWeight  : '700',
     color       : colors.text.dark,
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.display,
     marginBottom: 20,
   },
   label: {
@@ -455,7 +455,7 @@ const s = StyleSheet.create({
     color     : colors.text.dark,
   },
   title: {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     fontSize  : 32,
     fontWeight: '900',
     color     : colors.accent.gold,
@@ -546,7 +546,7 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     fontSize  : 18,
     fontWeight: '700',
     color     : colors.text.dark,

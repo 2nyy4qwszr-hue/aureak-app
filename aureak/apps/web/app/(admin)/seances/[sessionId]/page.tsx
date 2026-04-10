@@ -36,7 +36,7 @@ import { MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
 import { SessionTimeline } from '../_components/SessionTimeline'
 import type { PlayerRecentStreak, AbsenceAlertRow } from '@aureak/api-client'
 import { AureakButton, AureakText, Badge, AttendanceToggle, BestSessionBadge, SwipeableRow } from '@aureak/ui'
-import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, fonts, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, Attendance, SessionAttendee, ChildDirectoryEntry, SessionThemeBlock, SessionWorkshop, GroupMemberWithDetails, MethodologyTheme, AttendanceStatus, SessionType, Evaluation } from '@aureak/types'
 import { contentRefLabel } from '../_utils'
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     color     : colors.accent.gold,
     fontSize  : 13,
     fontWeight: '600',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
   },
   breadcrumb      : { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.xs },
   breadcrumbLink  : { color: colors.accent.gold, fontWeight: '600' },

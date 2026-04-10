@@ -6,7 +6,7 @@ import { createTicket, listMyTickets } from '@aureak/api-client'
 import type { Ticket, TicketCategory } from '@aureak/api-client'
 import { TICKET_SUBJECT_TEMPLATES } from '@aureak/business-logic'
 import { AureakButton, Input, AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 
 const CATEGORIES: { value: TicketCategory; label: string }[] = [
   { value: 'absence',    label: 'Absence' },
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     color: colors.text.dark,
     minHeight: 100,
     textAlignVertical: 'top',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     fontSize: 14,
   },
 })

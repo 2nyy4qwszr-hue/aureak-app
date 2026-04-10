@@ -2,7 +2,7 @@
 // Les tokens $ (ex: $backgroundPrimary, $gold) sont utilisables dans tous les styled components
 
 import { createFont, createTamagui, createTokens } from 'tamagui'
-import { colors, space, radius } from './tokens'
+import { colors, space, radius, typography } from './tokens'
 
 // =============================================================================
 // Tokens Tamagui — mapping des tokens AUREAK vers les variables $
@@ -125,6 +125,48 @@ const geistFont = createFont({
   },
 })
 
+// Montserrat — display / heading (titres, stats, mots forts) — aligné DS
+const displayFont = createFont({
+  family: 'Montserrat',
+  size: {
+    1: 18, 2: 22, 3: 28, 4: 36, 5: 48, 6: 64,
+    true: typography.display.size,
+  },
+  lineHeight: {
+    1: 24, 2: 28, 3: 36, 4: 44, 5: 56, 6: 72,
+    true: Math.round(typography.display.size * 1.2),
+  },
+  weight: {
+    7: '700', 8: '800', 9: '900',
+    true: '700',
+  },
+  letterSpacing: {
+    1: 0.2, 2: 0.3, 3: 0.5,
+    true: 0.3,
+  },
+})
+
+// Poppins — body / UI / CTA / labels (aligné site marketing Aureak)
+const bodyFont = createFont({
+  family: 'Poppins',
+  size: {
+    1: 11, 2: 12, 3: 13, 4: 15, 5: 16, 6: 18,
+    true: typography.body.size,
+  },
+  lineHeight: {
+    1: 16, 2: 18, 3: 22, 4: 26, 5: 28, 6: 30,
+    true: typography.body.lineHeight ?? 26,
+  },
+  weight: {
+    4: '400', 5: '500', 6: '600',
+    true: '400',
+  },
+  letterSpacing: {
+    1: 0, 2: 0.3, 3: 0.8,
+    true: 0,
+  },
+})
+
 // =============================================================================
 // Config Tamagui
 // =============================================================================
@@ -173,8 +215,10 @@ export const tamaguiConfig = createTamagui({
   },
   defaultTheme: 'dark',
   fonts: {
-    heading: rajdhaniFont,
-    body   : geistFont,
+    heading : rajdhaniFont,
+    body    : geistFont,
+    display : displayFont,
+    bodyNew : bodyFont,
   },
   settings: {
     allowedStyleValues: 'somewhat-strict',

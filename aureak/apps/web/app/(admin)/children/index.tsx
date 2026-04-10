@@ -7,7 +7,7 @@ import { View, StyleSheet, ScrollView, TextInput, Pressable, Image, Platform } f
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { listJoueurs, createChildDirectoryEntry, type JoueurListItem } from '@aureak/api-client'
 import { AureakText, EmptyStateIllustrated, PlayerCard } from '@aureak/ui'
-import { colors, space, shadows, radius } from '@aureak/theme'
+import { colors, fonts, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
 import type { AcademyStatus } from '@aureak/types'
@@ -596,14 +596,14 @@ const pZone = StyleSheet.create({
   prenomText: {
     fontSize    : 12,
     color       : colors.text.muted,
-    fontFamily  : 'Montserrat-Regular',
+    fontFamily  : fonts.body,
     letterSpacing: 0.5,
     textAlign   : 'right' as never,
   },
   nomText: {
     fontSize    : 22,
     color       : colors.text.dark,
-    fontFamily  : 'Montserrat-ExtraBold',
+    fontFamily  : fonts.display,
     letterSpacing: 0.2,
     lineHeight  : 26,
     textAlign   : 'right' as never,
@@ -869,7 +869,7 @@ const pd = StyleSheet.create({
     backgroundColor: colors.accent.gold,
     borderColor    : colors.accent.gold,
   },
-  pillText  : { fontSize: 12, fontWeight: '600' as never, fontFamily: 'Montserrat', color: colors.text.muted },
+  pillText  : { fontSize: 12, fontWeight: '600' as never, fontFamily: fonts.body, color: colors.text.muted },
   pillTextActive: { color: colors.text.dark },
   dropdown  : {
     position       : 'absolute',
@@ -887,7 +887,7 @@ const pd = StyleSheet.create({
   },
   item        : { paddingHorizontal: space.md, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   itemSelected: { backgroundColor: colors.accent.gold + '20' },
-  itemText    : { fontSize: 13, fontFamily: 'Montserrat', color: colors.text.dark },
+  itemText    : { fontSize: 13, fontFamily: fonts.body, color: colors.text.dark },
   itemTextSelected: { fontWeight: '700' as never },
 })
 
@@ -941,7 +941,7 @@ const cpd = StyleSheet.create({
     borderColor      : colors.border.light,
     borderRadius     : radius.xs,
     fontSize         : 13,
-    fontFamily       : 'Montserrat',
+    fontFamily       : fonts.body,
     color            : colors.text.dark,
     backgroundColor  : colors.light.primary,
   },
@@ -1580,7 +1580,7 @@ const s = StyleSheet.create({
   pageTitle: {
     fontSize     : 24,
     fontWeight   : '700' as never,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     color        : colors.text.dark,
     letterSpacing: 0.5,
   },
@@ -1596,7 +1596,7 @@ const s = StyleSheet.create({
   utilBtnLabel: {
     fontSize  : 12,
     fontWeight: '600' as never,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.text.muted,
   },
   newBtn: {
@@ -1609,7 +1609,7 @@ const s = StyleSheet.create({
     color     : colors.text.dark,
     fontWeight: '700' as never,
     fontSize  : 13,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
   },
 
   // ── filtresRow (DA Activités Séances) ──────────────────────────────────────
@@ -1655,7 +1655,7 @@ const s = StyleSheet.create({
     fontWeight   : '700' as never,
     letterSpacing: 0.8,
     color        : colors.text.muted,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
   },
   toggleLabelActive: {
     color: colors.text.dark,

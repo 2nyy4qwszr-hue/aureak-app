@@ -46,16 +46,29 @@ export default function RootLayout() {
   }, [authState.user?.id])
 
   const [fontsLoaded, fontError] = useFonts({
-    // Rajdhani — headings, stats (Google Fonts)
+    // Rajdhani — headings, stats (Google Fonts) — conservé pour compatibilité composants existants
     'Rajdhani-Regular' : require('../assets/fonts/Rajdhani/Rajdhani-Regular.ttf'),
     'Rajdhani-SemiBold': require('../assets/fonts/Rajdhani/Rajdhani-SemiBold.ttf'),
     'Rajdhani-Bold'    : require('../assets/fonts/Rajdhani/Rajdhani-Bold.ttf'),
-    // Geist — body, labels (Vercel)
+    // Geist — body, labels (Vercel) — conservé pour compatibilité composants existants
     'Geist-Regular'    : require('../assets/fonts/Geist/Geist-Regular.otf'),
     'Geist-Medium'     : require('../assets/fonts/Geist/Geist-Medium.otf'),
     'Geist-SemiBold'   : require('../assets/fonts/Geist/Geist-SemiBold.otf'),
     // Geist Mono — valeurs numériques, données tabulaires
     'GeistMono-Regular': require('../assets/fonts/Geist/GeistMono-Regular.otf'),
+    // Montserrat — display / heading (titres, stats, mots forts) — aligné DS
+    // weights : 400 Regular, 500 Medium, 600 SemiBold, 700 Bold, 800 ExtraBold, 900 Black
+    'Montserrat-Regular'  : require('../assets/fonts/Montserrat/Montserrat-Regular.ttf'),
+    'Montserrat-Medium'   : require('../assets/fonts/Montserrat/Montserrat-Medium.ttf'),
+    'Montserrat-SemiBold' : require('../assets/fonts/Montserrat/Montserrat-SemiBold.ttf'),
+    'Montserrat-Bold'     : require('../assets/fonts/Montserrat/Montserrat-Bold.ttf'),
+    'Montserrat-ExtraBold': require('../assets/fonts/Montserrat/Montserrat-ExtraBold.ttf'),
+    'Montserrat-Black'    : require('../assets/fonts/Montserrat/Montserrat-Black.ttf'),
+    // Poppins — body / UI / CTA / labels (aligné site marketing Aureak) — aligné DS
+    // weights : 400 Regular, 500 Medium, 600 SemiBold
+    'Poppins-Regular'     : require('../assets/fonts/Poppins/Poppins-Regular.ttf'),
+    'Poppins-Medium'      : require('../assets/fonts/Poppins/Poppins-Medium.ttf'),
+    'Poppins-SemiBold'    : require('../assets/fonts/Poppins/Poppins-SemiBold.ttf'),
   })
 
   useEffect(() => {

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import { listImplantations, getPlayerRankings } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
 import type { PlayerRankingItem, RankingMetric } from '@aureak/types'
-import { colors, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -241,7 +241,7 @@ const s = StyleSheet.create({
   backLink: { marginBottom: space.md, alignSelf: 'flex-start' },
   backText: { color: colors.text.secondary, fontSize: 13 },
   title   : {
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     fontSize     : 24,
     fontWeight   : '800',
     color        : colors.text.primary,
@@ -303,7 +303,7 @@ const s = StyleSheet.create({
     textTransform : 'uppercase' as never,
     letterSpacing : 0.8,
     marginBottom  : space.md,
-    fontFamily    : 'Montserrat',
+    fontFamily    : fonts.display,
   },
 
   // Tableau
@@ -329,7 +329,7 @@ const s = StyleSheet.create({
   groupName : { fontSize: 11, color: colors.text.muted, marginTop: 2 },
 
   // Valeur
-  valueText: { fontSize: 16, fontWeight: '800', fontFamily: 'Montserrat', minWidth: 56, textAlign: 'right' as never },
+  valueText: { fontSize: 16, fontWeight: '800', fontFamily: fonts.display, minWidth: 56, textAlign: 'right' as never },
 
   // Empty state
   emptyState: { paddingVertical: 40, alignItems: 'center' },

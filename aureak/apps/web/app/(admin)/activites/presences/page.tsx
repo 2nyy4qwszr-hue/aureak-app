@@ -222,21 +222,21 @@ const cardStyles = StyleSheet.create({
   },
   cardStat: {
     fontSize    : 28,
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.display,
     fontWeight  : '900',
     color       : colors.text.dark,
     marginBottom: space.xs,
   },
   cardStatGold: {
     fontSize    : 28,
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.display,
     fontWeight  : '900',
     color       : colors.accent.gold,
     marginBottom: space.xs,
   },
   cardStatGoldSolid: {
     fontSize    : 28,
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.display,
     fontWeight  : '900',
     color       : colors.border.goldSolid,
     marginBottom: space.xs,
@@ -486,7 +486,7 @@ const tableStyles = StyleSheet.create({
   },
   th: {
     fontSize     : 10,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     fontWeight   : '700',
     color        : colors.text.subtle,
     letterSpacing: 1,

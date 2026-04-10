@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { listSessionsWithAttendance } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { ScopeState } from './FiltresScope'
 
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   badgeTrendText: {
     fontSize  : 11,
     fontWeight: '600',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.accent.gold,
   },
 
@@ -241,14 +241,14 @@ const styles = StyleSheet.create({
   badgeVioletText: {
     fontSize  : 11,
     fontWeight: '600',
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.status.warning,
   },
 
   // Label commun (uppercase)
   statLabel: {
     fontSize     : 10,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     fontWeight   : '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize    : 28,
     fontWeight  : '900',
-    fontFamily  : 'Montserrat',
+    fontFamily  : fonts.display,
     color       : colors.text.dark,
     marginBottom: space.xs,
   },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   // Sous-label or (neutre/négatif)
   statSub: {
     fontSize  : 11,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.accent.gold,
     marginTop : 6,
   },
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   // Sous-label vert (positif)
   statSubGreen: {
     fontSize  : 11,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.body,
     color     : colors.status.success,
     marginTop : 6,
   },
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.8,
     textTransform: 'uppercase',
     color        : colors.accent.goldPale,
-    fontFamily   : 'Montserrat',
+    fontFamily   : fonts.display,
     fontWeight   : '500',
     marginBottom : 8,
     marginTop    : 8,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize  : 20,
     fontWeight: '700',
     color     : colors.text.primary,
-    fontFamily: 'Montserrat',
+    fontFamily: fonts.display,
     lineHeight : 28,
   },
 

@@ -7,7 +7,7 @@ import React, { useRef, useEffect } from 'react'
 import { Pressable, View, TextInput, ScrollView, ActivityIndicator } from 'react-native'
 import { Text } from 'tamagui'
 import { useRouter } from 'expo-router'
-import { colors, shadows, radius } from '@aureak/theme'
+import { colors, fonts, shadows, radius } from '@aureak/theme'
 import { useCommandPalette } from '../hooks/useCommandPalette'
 import type { CommandResult, CommandResultType } from '@aureak/types'
 
@@ -233,7 +233,7 @@ export function CommandPalette() {
               flex      : 1,
               fontSize  : 15,
               color     : colors.text.dark,
-              fontFamily: 'Montserrat',
+              fontFamily: fonts.body,
               outline   : 'none',
               border    : 'none',
               background: 'transparent',
