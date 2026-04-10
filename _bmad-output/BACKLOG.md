@@ -738,6 +738,21 @@ Refonte visuelle de la page Activités/Séances pour correspondre précisément 
 
 ---
 
+## Epic 83 — DS Alignment Site Homepage
+
+> Aligner le look de l'app sur le design system du site Aureak (homepage). Source de vérité : `_bmad-output/design-references/DESIGN-SYSTEM-HOMEPAGE.md`. Objectif : perception "éditorial premium" au lieu de "productivity app".
+
+- [ ] 83-1 : ds-purge-palette-non-semantique (**REFACTOR** — purge `entity`/`phase`/`methodologyMethodColors` hors charts / `accent.red` / `statBands` → règle "un seul accent gold") `ready-for-dev`
+- [ ] 83-2 : ds-fond-blanc-par-defaut (**REFACTOR** — inverser `colors.light.primary` → `#FFFFFF`, beige devient `colors.light.warm` pour sections alternées uniquement) `ready-for-dev`
+- [ ] 83-3 : ds-typo-bump-weights-mesure (**REFACTOR** — h1/h2 en 900, h3 en 800, letterSpacing négatif sur titres, `proseMaxWidth` pour body) `ready-for-dev`
+- [ ] 83-4 : ds-spacing-sections-premium (**REFACTOR** — nouveaux tokens `sectionPaddingY.editorial/standard/dense`, appliqués sur 5 écrans éditoriaux ciblés) `ready-for-dev`
+- [ ] 83-5 : ds-composants-signature-ui (**FEATURE** — `GoldHairline`, `CTAPrimary`, `CTASecondary`, `LocationPill`, `StatsInline`, `GrainOverlay` dans `@aureak/ui` + page démo `/design-system/signature`) `ready-for-dev`
+- [ ] 83-6 : ds-motion-premium (**FEATURE** — ease signature `[0.16,1,0.3,1]`, hook `useEntryAnimation`, focus ring gold, règle transform/opacity au QA post-edit) `ready-for-dev`
+
+**Dépendances** : 83-5 dépend de 83-1 + 83-3. 83-6 dépend de 83-5. 83-2 / 83-4 indépendantes, peuvent partir en parallèle. Ordre d'exécution recommandé : **83-1 → 83-3 → 83-2 → 83-4 → 83-5 → 83-6**. Aucune migration DB.
+
+---
+
 ## Chantier parallèle — DB Baseline Recovery
 
 > Ne bloque pas le développement immédiat. À traiter en parallèle.
