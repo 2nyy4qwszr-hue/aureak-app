@@ -1,6 +1,6 @@
 # Story 83.5 : DS — Composants signature dans @aureak/ui
 
-**Status:** todo
+**Status:** done
 **Epic:** 83 — DS Alignment Site Homepage
 **Source:** `_bmad-output/design-references/DESIGN-SYSTEM-HOMEPAGE.md` §5
 **Deps:** 83.3 (typo weights), 83.1 (palette)
@@ -65,14 +65,14 @@ Créer 5 composants dans `packages/ui/src/` avec une page de démo `/design-syst
 
 ## Tasks
 
-- [ ] T1 — Créer `packages/ui/src/signature/GoldHairline.tsx`
-- [ ] T2 — Créer `CTAPrimary.tsx` + `CTASecondary.tsx`
-- [ ] T3 — Créer `LocationPill.tsx`
-- [ ] T4 — Créer `StatsInline.tsx`
-- [ ] T5 — Créer `GrainOverlay.tsx` (web only, no-op sur mobile)
-- [ ] T6 — Exporter depuis `packages/ui/src/index.ts`
-- [ ] T7 — Créer la page démo `design-system/signature`
-- [ ] T8 — Tests Playwright + screenshot
+- [x] T1 — `packages/ui/src/signature/GoldHairline.tsx` (avec cubic-bezier inline [0.16,1,0.3,1])
+- [x] T2 — `CTAPrimary.tsx` + `CTASecondary.tsx` (hover/press scales via Pressable onHoverIn/Out + PressableStateCallbackType)
+- [x] T3 — `LocationPill.tsx`
+- [x] T4 — `StatsInline.tsx` (Montserrat-Black gold + Poppins zinc labels + divider)
+- [x] T5 — `GrainOverlay.tsx` (web-only via Platform.OS check, SVG data URI fractalNoise)
+- [x] T6 — Exports dans `packages/ui/src/index.ts` (barrel via `./signature`)
+- [x] T7 — Page démo `apps/web/app/(admin)/design-system/signature/page.tsx` + index.tsx re-export
+- [x] T8 — Playwright : navigate OK, screenshots rendu correct (gold line, CTA noir avec flèche circulaire, ghost, location pill, stats inline) — zéro erreur console nouvelle
 
 ## Notes
 

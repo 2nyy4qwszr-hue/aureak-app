@@ -193,3 +193,21 @@ export {
   SunIcon,
   MoonIcon,
 } from './icons'
+
+// Story 83-5 — composants signature DS site homepage
+export {
+  GoldHairline,
+  CTAPrimary,
+  CTASecondary,
+  LocationPill,
+  StatsInline,
+  GrainOverlay,
+} from './signature'
+export type {
+  GoldHairlineProps,
+  CTAPrimaryProps,
+  CTASecondaryProps,
+  LocationPillProps,
+  StatsInlineItem,
+  StatsInlineProps,
+} from './signature'
