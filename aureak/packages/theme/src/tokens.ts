@@ -18,13 +18,15 @@ export const colors = {
     bg    : '#2D2318',  // brun chaud — fond sidebar admin (entre #1A1A1A et beige)
     border: '#3D3020',  // bordure latérale sidebar
   },
-  // ── Light theme (admin web, inspiré aureak.be) ────────────────────────────
+  // ── Light theme (admin web, aligné site homepage) ─────────────────────────
+  // Story 83.2 : fond blanc par défaut, beige en alterné (warm)
   light: {
-    primary : '#F3EFE7',  // beige crème — fond principal admin web
+    primary : '#FFFFFF',  // blanc pur — fond principal admin web (défaut)
     surface : '#FFFFFF',  // cards blanches
     elevated: '#FFFFFF',  // modals blancs
-    hover   : '#EDE9DF',  // beige légèrement plus foncé pour hover
-    muted   : '#F8F6F1',  // surface atténuée (table headers, panels)
+    hover   : '#F8F8F8',  // gris très léger — hover neutre
+    muted   : '#FAFAFA',  // surface atténuée neutre (table headers, panels)
+    warm    : '#F3EFE7',  // beige crème — sections alternées "premium" (hero, featured cards)
   },
   // ── Dark theme (admin web dark mode — Story 51.8 + 61.1) ─────────────────────────
   dark: {
