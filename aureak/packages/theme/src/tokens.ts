@@ -193,8 +193,19 @@ export const shadows = {
 export const layout = {
   containerMaxWidth: 1152,
   sidebarWidth     : 220,
-  sectionPaddingY  : { mobile: 24, desktop: 32 },
+  // Story 83.4 : spacing premium aligné site homepage (py-24 mini = 96px).
+  // Trois niveaux selon densité d'info de l'écran.
+  sectionPaddingY  : {
+    // Écrans éditoriaux : hero, landing, onboarding, empty states premium — py-16/py-30 site
+    editorial: { mobile: 64, desktop: 120 },
+    // Écrans standards : détail joueur header, dashboard hero — niveau intermédiaire
+    standard : { mobile: 32, desktop: 64 },
+    // Écrans data-dense : tables admin, listes — compact, densité d'info prioritaire
+    dense    : { mobile: 16, desktop: 24 },
+  },
   contentPaddingX  : { mobile: 16, tablet: 24, desktop: 32 },
+  // Mesure de lecture optimale (50ch à 16px) pour paragraphes longs
+  proseMaxWidth    : 560,
 } as const
 
 // =============================================================================

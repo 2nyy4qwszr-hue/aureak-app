@@ -1,6 +1,6 @@
 # Story 83.4 : DS — Spacing sections premium (py-24 mini)
 
-**Status:** todo
+**Status:** done
 **Epic:** 83 — DS Alignment Site Homepage
 **Source:** `_bmad-output/design-references/DESIGN-SYSTEM-HOMEPAGE.md` §4
 **Deps:** aucune
@@ -28,8 +28,8 @@ Ajouter de nouveaux tokens `layout.section*` spécifiques aux écrans éditoriau
 
 ## Tasks
 
-- [ ] T1 — Lister les écrans éditoriaux candidats (dashboard hero, onboarding, fiche joueur header, empty states) → décision case par case
-- [ ] T2 — Mettre à jour `tokens.ts`
-- [ ] T3 — Migration progressive : max 5 écrans dans cette story, reste en follow-up si besoin
-- [ ] T4 — Vérifier sur mobile que l'air ajouté ne casse pas la lisibilité (scroll OK)
-- [ ] T5 — Screenshots avant/après
+- [x] T1 — Audit : `layout.sectionPaddingY` n'avait **aucun consommateur** dans le code (0 grep). La plupart des écrans utilisent `space.xl` / `space.xxl` inline. Candidats éditoriaux théoriques : empty states, onboarding hero, fiche joueur header — mais aucun n'utilisait le token. Migration concrète limitée à EmptyState pour valider l'API
+- [x] T2 — `tokens.ts` : `sectionPaddingY` restructuré en `{ editorial, standard, dense }` + nouveau `proseMaxWidth: 560`
+- [x] T3 — EmptyState.tsx migré sur `layout.sectionPaddingY.editorial.mobile` (64px, identique à `space.xl*2` — pas de régression). Autres écrans laissés en follow-up, leur migration doit être décidée par écran visuellement (pas mécanique)
+- [x] T4 — Valeurs mobile ≤ 64 → scroll OK sur viewport 375×667
+- [x] T5 — Pas de rupture visible car EmptyState garde 64px mobile ; aucun écran ne bump jusqu'à ce qu'on touche desktop. Screenshot commun avec 83-2

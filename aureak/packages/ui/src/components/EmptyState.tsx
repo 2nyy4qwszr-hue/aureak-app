@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
 import { AureakText } from './Text'
-import { colors, space, radius } from '@aureak/theme'
+import { colors, space, radius, layout } from '@aureak/theme'
 
 type Props = {
   icon?    : string
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems    : 'center',
     justifyContent: 'center',
-    paddingVertical: space.xl * 2,
+    paddingVertical: layout.sectionPaddingY.editorial.mobile,
     gap           : space.sm,
   },
   icon    : { fontSize: 40, marginBottom: space.sm },
