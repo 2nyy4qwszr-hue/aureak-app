@@ -54,6 +54,7 @@ export default function SignatureDemoPage() {
       {/* StatsInline */}
       <Section title="StatsInline">
         <StatsInline
+          staggered
           items={[
             { value: '96',  label: 'Joueurs actifs' },
             { value: '14',  label: 'Coachs certifiés' },

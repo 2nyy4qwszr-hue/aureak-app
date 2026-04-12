@@ -152,6 +152,10 @@ export type { OfflineBannerProps } from './OfflineBanner'
 export { useMicroInteraction } from './hooks/useMicroInteraction'
 export type { UseMicroInteractionResult } from './hooks/useMicroInteraction'
 
+// Story 83.6 — hook d'entrée signature (fade + slide, ease site)
+export { useEntryAnimation } from './hooks/useEntryAnimation'
+export type { UseEntryAnimationResult } from './hooks/useEntryAnimation'
+
 // Story 62.2 — EmptyState illustré SVG gold/blanc
 export { EmptyStateIllustrated } from './EmptyStateIllustrated'
 export type { EmptyStateIllustratedProps, EmptyStateVariant } from './EmptyStateIllustrated'

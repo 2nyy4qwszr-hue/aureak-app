@@ -217,6 +217,35 @@ export const transitions = {
   normal : '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   slow   : '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   slide  : '0.25s cubic-bezier(0.4, 0, 0.2, 1)',  // transitions de route, slide-in panels
+  // Story 83.6 — ease signature premium (aligné site homepage)
+  easeSite: 'cubic-bezier(0.16, 1, 0.3, 1)',
+} as const
+
+// =============================================================================
+// Motion (Story 83.6) — système d'animation aligné site homepage
+// Règle d'or : n'animer que `transform` et `opacity`, jamais width/height/top/left/margin
+// =============================================================================
+
+export const motion = {
+  ease: {
+    // Cubic-bezier signature premium, utilisable en tableau RN Animated ou en chaîne CSS
+    site: [0.16, 1, 0.3, 1] as const,
+  },
+  duration: {
+    micro  : 180,   // hover/press/toggle (feedback immédiat)
+    entry  : 700,   // entrée composant (fade + slide + scale)
+    section: 700,   // apparition section (scroll-driven)
+  },
+  stagger: {
+    default: 60,    // ms entre items d'une liste animée
+  },
+} as const
+
+// Focus ring signature (Story 83.6 AC5)
+export const focusRing = {
+  color : 'rgba(193,172,92,0.6)',
+  width : 2,
+  offset: 2,
 } as const
 
 // =============================================================================
@@ -334,5 +363,5 @@ export const playerTiers = {
 // Export agrégé
 // =============================================================================
 
-const tokens = { colors, fonts, typography, space, radius, shadows, layout, transitions, methodologyMethodColors, gamification, playerTiers }
+const tokens = { colors, fonts, typography, space, radius, shadows, layout, transitions, motion, focusRing, methodologyMethodColors, gamification, playerTiers }
 export default tokens

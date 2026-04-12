@@ -1,6 +1,7 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import { colors } from '@aureak/theme'
+import { Animated, View, Text, StyleSheet } from 'react-native'
+import { colors, motion } from '@aureak/theme'
+import { useEntryAnimation } from '../hooks/useEntryAnimation'
 
 export type StatsInlineItem = {
   value: string
@@ -8,22 +9,30 @@ export type StatsInlineItem = {
 }
 
 export type StatsInlineProps = {
-  items: StatsInlineItem[]
+  items    : StatsInlineItem[]
+  staggered?: boolean
 }
 
-export function StatsInline({ items }: StatsInlineProps) {
+export function StatsInline({ items, staggered = false }: StatsInlineProps) {
   return (
     <View style={styles.row}>
       {items.map((item, i) => (
         <React.Fragment key={`${item.label}-${i}`}>
           {i > 0 && <View style={styles.divider} />}
-          <View style={styles.item}>
-            <Text style={styles.value}>{item.value}</Text>
-            <Text style={styles.label}>{item.label}</Text>
-          </View>
+          <StatItem item={item} delay={staggered ? i * motion.stagger.default : 0} trigger={staggered} />
         </React.Fragment>
       ))}
     </View>
+  )
+}
+
+function StatItem({ item, delay, trigger }: { item: StatsInlineItem; delay: number; trigger: boolean }) {
+  const entry = useEntryAnimation({ trigger, delay })
+  return (
+    <Animated.View style={[styles.item, trigger && entry.style]}>
+      <Text style={styles.value}>{item.value}</Text>
+      <Text style={styles.label}>{item.label}</Text>
+    </Animated.View>
   )
 }
 
@@ -46,7 +55,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   label: {
-    color     : colors.text.subtle,  // zinc-400
+    color     : colors.text.subtle,
     fontFamily: 'Poppins-Regular',
     fontWeight: '400',
     fontSize  : 12,
@@ -54,6 +63,6 @@ const styles = StyleSheet.create({
   divider: {
     width          : 1,
     height         : 32,
-    backgroundColor: colors.border.light,  // zinc-200-ish
+    backgroundColor: colors.border.light,
   },
 })

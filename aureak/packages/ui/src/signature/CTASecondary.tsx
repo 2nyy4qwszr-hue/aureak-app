@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Pressable, View, Text, StyleSheet, Platform, type PressableStateCallbackType } from 'react-native'
+import { focusRing } from '@aureak/theme'
 
 export type CTASecondaryProps = {
   label   : string
@@ -9,6 +10,7 @@ export type CTASecondaryProps = {
 
 export function CTASecondary({ label, onPress, size = 'desktop' }: CTASecondaryProps) {
   const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
   const padding = size === 'desktop'
     ? { paddingVertical: 20, paddingHorizontal: 28 }
     : { paddingVertical: 14, paddingHorizontal: 20 }
@@ -18,6 +20,11 @@ export function CTASecondary({ label, onPress, size = 'desktop' }: CTASecondaryP
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={Platform.OS === 'web' && focused
+        ? ({ outlineColor: focusRing.color, outlineWidth: focusRing.width, outlineOffset: focusRing.offset, outlineStyle: 'solid' } as never)
+        : undefined}
     >
       {({ pressed }: PressableStateCallbackType) => (
         <View

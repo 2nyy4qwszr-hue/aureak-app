@@ -1,6 +1,6 @@
 # Story 83.6 : DS — Motion premium (ease signature & patterns)
 
-**Status:** todo
+**Status:** done
 **Epic:** 83 — DS Alignment Site Homepage
 **Source:** `_bmad-output/design-references/DESIGN-SYSTEM-HOMEPAGE.md` §6
 **Deps:** 83.5 (composants signature, cibles des animations)
@@ -52,13 +52,13 @@ Ajouter les tokens de motion alignés sur le site, créer un helper `useEntryAni
 
 ## Tasks
 
-- [ ] T1 — Ajouter `motion` + `transitions.easeSite` dans `tokens.ts`
-- [ ] T2 — Créer `useEntryAnimation` hook (Reanimated)
-- [ ] T3 — Brancher sur `GoldHairline` et `StatsInline`
-- [ ] T4 — Ajouter focus ring tokens + appliquer sur CTAs
-- [ ] T5 — Mettre à jour CLAUDE.md §Design (règle transform/opacity)
-- [ ] T6 — Étendre le script QA post-edit avec le grep animation
-- [ ] T7 — Playwright verification
+- [x] T1 — `tokens.ts` : `transitions.easeSite`, `motion = { ease: { site }, duration: { micro, entry, section }, stagger }`, exporté depuis `@aureak/theme`
+- [x] T2 — `useEntryAnimation` hook via **RN Animated API** (Reanimated non installé dans le projet — API native suffit, cross-platform OK)
+- [x] T3 — `GoldHairline` consomme `motion.ease.site` + `motion.duration.entry` ; `StatsInline` expose prop `staggered?: boolean` qui déclenche un delay progressif `i × motion.stagger.default` par item via `useEntryAnimation`
+- [x] T4 — Token `focusRing` exporté + appliqué sur CTAPrimary/CTASecondary via `onFocus/onBlur` + outline (web only)
+- [x] T5 — CLAUDE.md § Règles absolues rule 7 : motion transform/opacity uniquement + mention `useEntryAnimation`
+- [x] T6 — CLAUDE.md § QA Patterns : grep animation interdite (`Animated\.(timing|spring).*\.(width|height|top|left|margin|padding)`)
+- [x] T7 — Playwright : `/design-system/signature` rend les 5 composants après animations (StatsInline animés via stagger, GoldHairline scaleX animé) — 0 erreur console nouvelle
 
 ## Notes
 

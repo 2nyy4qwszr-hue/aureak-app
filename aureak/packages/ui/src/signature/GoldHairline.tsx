@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { Animated, View, StyleSheet } from 'react-native'
-import { colors } from '@aureak/theme'
+import { colors, motion } from '@aureak/theme'
 
 export type GoldHairlineProps = {
   width?: number
@@ -17,13 +17,11 @@ export function GoldHairline({
 
   useEffect(() => {
     if (!animated) return
+    const [x1, y1, x2, y2] = motion.ease.site
     Animated.timing(scaleX, {
       toValue        : 1,
-      duration       : 700,
-      easing         : (t: number) => {
-        const x1 = 0.16, y1 = 1, x2 = 0.3, y2 = 1
-        return cubicBezier(x1, y1, x2, y2, t)
-      },
+      duration       : motion.duration.entry,
+      easing         : (t: number) => cubicBezier(x1, y1, x2, y2, t),
       useNativeDriver: true,
     }).start()
   }, [animated, scaleX])

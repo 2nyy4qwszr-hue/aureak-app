@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Pressable, View, Text, StyleSheet, Platform, type PressableStateCallbackType } from 'react-native'
-import { colors } from '@aureak/theme'
+import { colors, focusRing } from '@aureak/theme'
 
 export type CTAPrimaryProps = {
   label   : string
@@ -10,6 +10,7 @@ export type CTAPrimaryProps = {
 
 export function CTAPrimary({ label, onPress, size = 'desktop' }: CTAPrimaryProps) {
   const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
   const padding = size === 'desktop'
     ? { paddingVertical: 20, paddingHorizontal: 28 }
     : { paddingVertical: 14, paddingHorizontal: 20 }
@@ -19,6 +20,11 @@ export function CTAPrimary({ label, onPress, size = 'desktop' }: CTAPrimaryProps
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={Platform.OS === 'web' && focused
+        ? ({ outlineColor: focusRing.color, outlineWidth: focusRing.width, outlineOffset: focusRing.offset, outlineStyle: 'solid' } as never)
+        : undefined}
     >
       {({ pressed }: PressableStateCallbackType) => (
         <View

@@ -33,6 +33,7 @@ Monorepo TypeScript : Expo Router (web + mobile), Supabase (PostgreSQL + RLS + E
    ```
 5. **Routing Expo Router** : `page.tsx` = contenu, `index.tsx` = re-export de `./page`
 6. **Soft-delete uniquement** : `deleted_at nullable` — jamais de suppression physique sauf jobs RGPD
+7. **Motion : `transform` / `opacity` uniquement** (Story 83-6). Jamais animer `width`, `height`, `top`, `left`, `margin`, `padding`. Utiliser `motion.ease.site` + `motion.duration.*` depuis `@aureak/theme` ou le hook `useEntryAnimation` depuis `@aureak/ui` pour les patterns d'entrée signature.
 
 ## Tooling
 
@@ -138,6 +139,12 @@ grep -n "console\." <fichier> | grep -v "NODE_ENV"
 **WARNING** — catch silencieux :
 ```bash
 grep -n "catch(() => {})" <fichier>
+```
+
+**WARNING** — animation sur propriétés interdites (Story 83-6) :
+```bash
+# Une animation/transition ne doit toucher que transform et opacity
+grep -En "Animated\.(timing|spring).*\.(width|height|top|left|margin|padding)|transition:.*\b(width|height|top|left|margin|padding)\b" <fichier>
 ```
 
 ---
