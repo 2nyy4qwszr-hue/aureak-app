@@ -38,19 +38,44 @@ function mapRowWithCommercial(r: Record<string, unknown>): CommercialContactWith
 // ── Requêtes ───────────────────────────────────────────────────────────────
 
 /**
+ * Enrichit les contacts avec le display_name du commercial via profiles.
+ * Pas de FK directe commercial_contacts → profiles, donc lookup séparé.
+ */
+async function enrichWithCommercialNames(
+  rows: Record<string, unknown>[],
+): Promise<CommercialContactWithCommercial[]> {
+  if (rows.length === 0) return []
+
+  const commercialIds = [...new Set(rows.map(r => r.commercial_id as string))]
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, display_name')
+    .in('user_id', commercialIds)
+
+  const nameMap = new Map<string, string>()
+  if (profiles) {
+    for (const p of profiles as { user_id: string; display_name: string }[]) {
+      nameMap.set(p.user_id, p.display_name)
+    }
+  }
+
+  return rows.map(r => mapRowWithCommercial({
+    ...r,
+    commercial_display_name: nameMap.get(r.commercial_id as string) ?? null,
+    commercial_email       : null,
+  }))
+}
+
+/**
  * Liste tous les contacts commerciaux d'un club donné.
- * Retourne les contacts avec le nom d'affichage du commercial.
  */
 export async function listCommercialContactsByClub(
   clubDirectoryId: string,
 ): Promise<CommercialContactWithCommercial[]> {
-  // On fait un select avec un join manuel via profiles pour le display name
   const { data, error } = await supabase
     .from('commercial_contacts')
-    .select(`
-      *,
-      profiles!commercial_contacts_commercial_id_fkey(display_name, email)
-    `)
+    .select('*')
     .eq('club_directory_id', clubDirectoryId)
     .is('deleted_at', null)
     .order('contacted_at', { ascending: false })
@@ -60,14 +85,7 @@ export async function listCommercialContactsByClub(
     return []
   }
 
-  return (data as Record<string, unknown>[]).map((r) => {
-    const profile = r.profiles as Record<string, unknown> | null
-    return mapRowWithCommercial({
-      ...r,
-      commercial_display_name: profile?.display_name ?? null,
-      commercial_email       : profile?.email ?? null,
-    })
-  })
+  return enrichWithCommercialNames(data as Record<string, unknown>[])
 }
 
 /**
@@ -77,10 +95,7 @@ export async function listCommercialContactsByClub(
 export async function listAllCommercialContacts(): Promise<CommercialContactWithCommercial[]> {
   const { data, error } = await supabase
     .from('commercial_contacts')
-    .select(`
-      *,
-      profiles!commercial_contacts_commercial_id_fkey(display_name, email)
-    `)
+    .select('*')
     .is('deleted_at', null)
     .order('contacted_at', { ascending: false })
 
@@ -89,14 +104,7 @@ export async function listAllCommercialContacts(): Promise<CommercialContactWith
     return []
   }
 
-  return (data as Record<string, unknown>[]).map((r) => {
-    const profile = r.profiles as Record<string, unknown> | null
-    return mapRowWithCommercial({
-      ...r,
-      commercial_display_name: profile?.display_name ?? null,
-      commercial_email       : profile?.email ?? null,
-    })
-  })
+  return enrichWithCommercialNames(data as Record<string, unknown>[])
 }
 
 /**
