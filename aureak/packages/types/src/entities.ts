@@ -2368,3 +2368,45 @@ export type MethodologyProgrammeWithSessions = MethodologyProgramme & {
   sessions: MethodologyProgrammeSessionWithEntrainement[]
 }
 
+// ============================================================
+// Epic 85 — Registre Commercial Clubs (migration 00147)
+// ============================================================
+
+/** Contact commercial logué par un commercial pour un club de l'annuaire */
+export type CommercialContact = {
+  id             : string
+  tenantId       : string
+  clubDirectoryId: string
+  commercialId   : string
+  contactName    : string
+  contactRole    : string | null
+  status         : import('./enums').CommercialContactStatus
+  note           : string | null
+  contactedAt    : string
+  createdAt      : string
+  updatedAt      : string
+  deletedAt      : string | null
+}
+
+/** CommercialContact enrichi du nom d'affichage du commercial */
+export type CommercialContactWithCommercial = CommercialContact & {
+  commercialDisplayName: string
+}
+
+/** Params création d'un contact commercial */
+export type CreateCommercialContactParams = {
+  clubDirectoryId: string
+  contactName    : string
+  contactRole?   : string
+  status?        : import('./enums').CommercialContactStatus
+  note?          : string
+  contactedAt?   : string
+}
+
+/** Params mise à jour d'un contact commercial */
+export type UpdateCommercialContactParams = {
+  id      : string
+  status? : import('./enums').CommercialContactStatus
+  note?   : string
+}
+

@@ -4,7 +4,7 @@
 // Source DB : supabase/migrations/00002_create_enums.sql
 
 /** Rôles utilisateur — miroir de l'enum PostgreSQL `user_role` (étendu en Story 2.5 avec 'club') */
-export type UserRole = 'admin' | 'coach' | 'parent' | 'child' | 'club'
+export type UserRole = 'admin' | 'coach' | 'parent' | 'child' | 'club' | 'commercial'
 
 /** Grades pédagogiques coach — miroir de l'enum PostgreSQL `coach_grade_level` (Story 11.1) */
 export type CoachGradeLevel = 'bronze' | 'silver' | 'gold' | 'platinum'
@@ -303,3 +303,16 @@ export const MODULE_LABELS: Record<MethodologyModuleType, string> = {
 
 /** Ordre canonique des phases */
 export const MODULE_TYPES: MethodologyModuleType[] = ['activation', 'development', 'conclusion']
+
+// ── Epic 85 — Registre Commercial Clubs ────────────────────────────────────
+
+/** Statut d'un contact commercial — miroir de l'enum PostgreSQL `commercial_contact_status` */
+export type CommercialContactStatus = 'premier_contact' | 'en_cours' | 'en_attente' | 'pas_de_suite'
+
+/** Labels affichage UI des statuts commerciaux */
+export const COMMERCIAL_CONTACT_STATUS_LABELS: Record<CommercialContactStatus, string> = {
+  premier_contact: 'Premier contact',
+  en_cours       : 'En cours',
+  en_attente     : 'En attente',
+  pas_de_suite   : 'Pas de suite',
+}

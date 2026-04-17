@@ -622,3 +622,11 @@ export {
 } from './offline'
 export type { OfflineQueueItem } from './offline'
 
+// ── Epic 85 — Registre Commercial Clubs ─────────────────────────────────────
+export {
+  listCommercialContactsByClub,
+  listAllCommercialContacts,
+  createCommercialContact,
+  updateCommercialContact,
+} from './admin/commercial-contacts'
+

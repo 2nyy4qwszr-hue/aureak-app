@@ -18,11 +18,12 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>
 
 const ROLE_ROUTES: Record<UserRole, string> = {
-  admin : '/dashboard',
-  coach : '/coach/dashboard',
-  parent: '/parent/dashboard',
-  child : '/child/dashboard',
-  club  : '/(auth)/login',
+  admin     : '/dashboard',
+  coach     : '/coach/dashboard',
+  parent    : '/parent/dashboard',
+  child     : '/child/dashboard',
+  club      : '/(auth)/login',
+  commercial: '/developpement/prospection',
 }
 
 const styles = StyleSheet.create({

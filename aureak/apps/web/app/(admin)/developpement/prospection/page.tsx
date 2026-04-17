@@ -1,52 +1,151 @@
-// Story 63.3 — Page Prospection avec KPIs placeholder
-import React from 'react'
-import { View, StyleSheet, Pressable } from 'react-native'
-import { useRouter } from 'expo-router'
+// Epic 85 — Story 85.3 + 85.5 — Page Prospection : liste clubs + KPIs + filtres admin
+'use client'
+import React, { useEffect, useMemo, useState } from 'react'
+import { View, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius, shadows } from '@aureak/theme'
-
-interface KpiItem {
-  label: string
-  value: string
-}
-
-const KPI_ITEMS: KpiItem[] = [
-  { label: 'Contacts prospectés',   value: '—' },
-  { label: 'Rendez-vous planifiés', value: '—' },
-  { label: 'Taux de conversion',    value: '—' },
-]
+import { colors, space } from '@aureak/theme'
+import { listClubDirectory, listAllCommercialContacts } from '@aureak/api-client'
+import { useAuthStore } from '@aureak/business-logic'
+import type { ClubDirectoryEntry, CommercialContactWithCommercial } from '@aureak/types'
+import { ProspectionKPIs } from './_components/ProspectionKPIs'
+import type { ProspectionStats } from './_components/ProspectionKPIs'
+import { ClubList } from './_components/ClubList'
+import { AdminFilters } from './_components/AdminFilters'
+import type { ClubCommercialStatus } from './_components/ClubCard'
 
 export default function ProspectionPage() {
-  const router = useRouter()
+  const { role } = useAuthStore()
+  const [clubs, setClubs]       = useState<ClubDirectoryEntry[]>([])
+  const [contacts, setContacts] = useState<CommercialContactWithCommercial[]>([])
+  const [loading, setLoading]   = useState(true)
+
+  // Story 85.5 — Filtres admin
+  const [filterCommercial, setFilterCommercial] = useState<string | null>(null)
+  const [filterStatus, setFilterStatus]         = useState<ClubCommercialStatus | null>(null)
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      try {
+        const [clubsRes, contactsRes] = await Promise.all([
+          listClubDirectory({ pageSize: 1000 }),
+          listAllCommercialContacts(),
+        ])
+        setClubs(clubsRes.data)
+        setContacts(contactsRes)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[ProspectionPage] load error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  // Filtrage contacts par commercial (admin only)
+  const filteredContacts = useMemo(() => {
+    if (!filterCommercial) return contacts
+    return contacts.filter(c => c.commercialId === filterCommercial)
+  }, [contacts, filterCommercial])
+
+  // Calculer les stats KPI
+  const stats: ProspectionStats = useMemo(() => {
+    const contactedClubIds = new Set(filteredContacts.map(c => c.clubDirectoryId))
+    const partenaires = clubs.filter(c =>
+      c.clubRelationType === 'partenaire' || c.clubRelationType === 'associe'
+    ).length
+
+    const enCoursIds = new Set<string>()
+    for (const c of filteredContacts) {
+      if (c.status !== 'pas_de_suite') enCoursIds.add(c.clubDirectoryId)
+    }
+
+    const nonPartnerClubs = clubs.filter(c =>
+      c.clubRelationType !== 'partenaire' && c.clubRelationType !== 'associe'
+    )
+    const neverContacted = nonPartnerClubs.filter(c => !contactedClubIds.has(c.id)).length
+
+    // Story 85.5 — Compteur "bloqués" (en attente > 14 jours)
+    const now = Date.now()
+    const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000
+    const blockedClubIds = new Set<string>()
+    for (const c of filteredContacts) {
+      if (c.status === 'en_attente') {
+        const contactAge = now - new Date(c.contactedAt).getTime()
+        if (contactAge > FOURTEEN_DAYS) blockedClubIds.add(c.clubDirectoryId)
+      }
+    }
+
+    return {
+      total        : clubs.length,
+      contacted    : contactedClubIds.size,
+      enCours      : enCoursIds.size,
+      neverContacted,
+      partenaires,
+      blocked      : blockedClubIds.size,
+    }
+  }, [clubs, filteredContacts])
+
+  // Filtrage clubs par statut (admin only)
+  const displayClubs = useMemo(() => {
+    if (!filterStatus) return clubs
+    const contactsByClub = new Map<string, CommercialContactWithCommercial[]>()
+    for (const c of filteredContacts) {
+      const arr = contactsByClub.get(c.clubDirectoryId) ?? []
+      arr.push(c)
+      contactsByClub.set(c.clubDirectoryId, arr)
+    }
+
+    return clubs.filter(club => {
+      const isPartner = club.clubRelationType === 'partenaire' || club.clubRelationType === 'associe'
+      const clubContacts = contactsByClub.get(club.id) ?? []
+
+      switch (filterStatus) {
+        case 'partenaire':
+          return isPartner
+        case 'pas_contacte':
+          return !isPartner && clubContacts.length === 0
+        case 'en_cours':
+          return !isPartner && clubContacts.length > 0 && clubContacts.some(c => c.status !== 'pas_de_suite')
+        case 'pas_de_suite':
+          return !isPartner && clubContacts.length > 0 && clubContacts.every(c => c.status === 'pas_de_suite')
+        default:
+          return true
+      }
+    })
+  }, [clubs, filteredContacts, filterStatus])
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <AureakText variant="body" style={styles.loadingText}>Chargement des clubs...</AureakText>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
-      <Pressable
-        style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
-        onPress={() => router.back()}
-      >
-        <AureakText style={styles.backText}>← Développement</AureakText>
-      </Pressable>
-
       <View style={styles.header}>
         <AureakText variant="h1" style={styles.title}>Prospection</AureakText>
-        <AureakText variant="body" style={styles.sub}>Suivi des contacts et opportunités de développement</AureakText>
-      </View>
-
-      <View style={styles.banner}>
-        <AureakText variant="body" style={styles.bannerText}>
-          🚀 Cette section est en cours de développement. Les fonctionnalités complètes arrivent prochainement.
+        <AureakText variant="body" style={styles.sub}>
+          Registre des contacts clubs — vérifiez avant de contacter
         </AureakText>
       </View>
 
-      <View style={styles.kpiRow}>
-        {KPI_ITEMS.map(k => (
-          <View key={k.label} style={styles.kpiCard}>
-            <AureakText variant="h1" style={styles.kpiValue}>{k.value}</AureakText>
-            <AureakText variant="caption" style={styles.kpiLabel}>{k.label}</AureakText>
-          </View>
-        ))}
-      </View>
+      <ProspectionKPIs stats={stats} />
+
+      {/* Story 85.5 — Filtres admin uniquement */}
+      {role === 'admin' && (
+        <AdminFilters
+          contacts={contacts}
+          selectedCommercial={filterCommercial}
+          selectedStatus={filterStatus}
+          onCommercialChange={setFilterCommercial}
+          onStatusChange={setFilterStatus}
+        />
+      )}
+
+      <ClubList clubs={displayClubs} contacts={filteredContacts} />
     </View>
   )
 }
@@ -67,60 +166,9 @@ const styles = StyleSheet.create({
   sub: {
     color: colors.text.muted,
   },
-  banner: {
-    backgroundColor: colors.border.goldBg,
-    borderWidth    : 1,
-    borderColor    : colors.border.gold,
-    borderRadius   : radius.card,
-    padding        : space.md,
-    marginBottom   : space.xl,
-  },
-  bannerText: {
-    color     : colors.accent.gold,
-    lineHeight: 20,
-  },
-  kpiRow: {
-    flexDirection: 'row',
-    flexWrap     : 'wrap',
-    gap          : space.md,
-  },
-  kpiCard: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    padding        : space.lg,
-    minWidth       : 160,
-    alignItems     : 'center',
-    // @ts-ignore — web only boxShadow
-    boxShadow      : shadows.sm,
-  },
-  kpiValue: {
-    color       : colors.text.subtle,
-    marginBottom: space.xs,
-  },
-  kpiLabel: {
+  loadingText: {
     color    : colors.text.muted,
     textAlign: 'center',
+    marginTop: space.xl,
   },
-  backBtn: {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    alignSelf        : 'flex-start',
-    marginBottom     : space.md,
-    paddingHorizontal: space.sm,
-    paddingVertical  : space.xs,
-    borderRadius     : radius.xs,
-    backgroundColor  : colors.light.hover,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-  },
-  backBtnPressed: {
-    opacity: 0.6,
-  },
-  backText: {
-    color     : colors.text.muted,
-    fontSize  : 13,
-    fontWeight: '600',
-  } as never,
 })
