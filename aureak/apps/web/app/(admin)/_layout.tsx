@@ -381,7 +381,7 @@ function AdminLayoutInner() {
   const [toastQueue, setToastQueue] = useState<(AchievementToastData & { id: string })[]>([])
 
   useEffect(() => {
-    // Souscrire uniquement pour admin et coach
+    // Souscrire uniquement pour admin et coach (pas commercial)
     if (role !== 'admin' && role !== 'coach') return
 
     const channel = supabase
@@ -418,11 +418,14 @@ function AdminLayoutInner() {
     setAdminPanelOpen(false)
   }, [pathname, isMobile])
 
+  // Epic 85 — commerciaux accèdent au layout admin (vue réduite)
+  const isAdminOrCommercial = role === 'admin' || role === 'commercial'
+
   useEffect(() => {
-    if (!isLoading && role !== 'admin') {
+    if (!isLoading && !isAdminOrCommercial) {
       router.replace('/(auth)/login' as never)
     }
-  }, [role, isLoading, router])
+  }, [role, isLoading, router, isAdminOrCommercial])
 
   // Marquer que le premier rendu est terminé — guard animation initiale (AC6)
   useEffect(() => {
@@ -444,7 +447,12 @@ function AdminLayoutInner() {
     return () => clearTimeout(timeout) // BLOCKER cleanup
   }, [pathname])
 
-  if (isLoading || role !== 'admin') return null
+  if (isLoading || !isAdminOrCommercial) return null
+
+  // Epic 85 — commerciaux : sidebar filtrée (Développement uniquement)
+  const visibleNavGroups = role === 'commercial'
+    ? NAV_GROUPS.filter(g => g.items.some(i => i.href.startsWith('/developpement')))
+    : NAV_GROUPS
 
   const handleSignOut = async () => {
     await signOut()
@@ -574,7 +582,7 @@ function AdminLayoutInner() {
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
-          {NAV_GROUPS.map((group, gi) => (
+          {visibleNavGroups.map((group, gi) => (
             <YStack key={group.label || `group-${gi}`} marginBottom={4}>
               {/* Story 51.7 — label groupe avec opacity animée (AC2, AC3) */}
               {group.label ? (
@@ -833,8 +841,8 @@ function AdminLayoutInner() {
             )}
           </Pressable>
 
-          {/* ── Story 63.1 — Bouton ⚙️ Admin caché ── */}
-          <HoverablePressable
+          {/* ── Story 63.1 — Bouton ⚙️ Admin caché (masqué pour commerciaux) ── */}
+          {role === 'admin' && <HoverablePressable
             onPress={() => setAdminPanelOpen(v => !v)}
             style={{
               padding        : 0,
@@ -872,10 +880,10 @@ function AdminLayoutInner() {
                 )}
               </YStack>
             )}
-          </HoverablePressable>
+          </HoverablePressable>}
 
           {/* ── Story 63.1 — Panneau Admin flottant ── */}
-          {adminPanelOpen && (
+          {role === 'admin' && adminPanelOpen && (
             <>
               {/* Overlay transparent pour fermer au clic extérieur */}
               <Pressable
