@@ -4,7 +4,7 @@
 
 - **Epic** : 53 — Séances "Training Ground"
 - **Story** : 53-2
-- **Status** : ready-for-dev
+- **Status** : done
 - **Priority** : P2
 - **Type** : UX / Design
 - **Estimated effort** : S (2–4h)

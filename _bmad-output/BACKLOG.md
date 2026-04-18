@@ -446,8 +446,8 @@ Remplacement des TextInput texte libre format AAAA-MM-JJ par des `<input type="d
 
 ### Epic 34 — Programme pédagogique
 
-- [ ] 34-1 : architecture-programme-pedagogique-formulaire-intelligent (P1)
-- [ ] 34-2 : navigation-programme-ux-bibliotheque (P1 — dépend 34-1)
+- [x] 34-1 : architecture-programme-pedagogique-formulaire-intelligent (P1)
+- [x] 34-2 : navigation-programme-ux-bibliotheque (P1 — dépend 34-1)
 
 ### Epic 51 — Navigation & Shell Game HUD
 

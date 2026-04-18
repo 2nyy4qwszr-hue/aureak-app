@@ -90,7 +90,7 @@ interface FilterPillProps {
 function FilterPill({ label, active, onPress }: FilterPillProps) {
   const { Pressable } = require('react-native')
   return (
-    <Pressable onPress={onPress} style={[styles.pill, active && styles.pillActive]}>
+    <Pressable onPress={onPress} style={[styles.pill, active && styles.pillActive] as never}>
       <AureakText
         variant="caption"
         style={{ color: active ? colors.light.surface : colors.text.muted, fontWeight: '600' } as never}

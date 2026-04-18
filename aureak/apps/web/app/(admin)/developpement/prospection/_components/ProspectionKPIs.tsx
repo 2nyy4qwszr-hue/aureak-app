@@ -39,10 +39,10 @@ export function ProspectionKPIs({ stats }: ProspectionKPIsProps) {
     <View style={styles.row}>
       <KpiCard label="Total clubs"      value={stats.total} />
       <KpiCard label="Contactés"        value={stats.contacted}      color={colors.accent.gold} />
-      <KpiCard label="En cours"         value={stats.enCours}        color="#D97706" />
+      <KpiCard label="En cours"         value={stats.enCours}        color={colors.status.amberText} />
       <KpiCard label="Jamais contactés" value={stats.neverContacted} color={colors.text.muted} />
       {stats.blocked !== undefined && stats.blocked > 0 && (
-        <KpiCard label="Bloqués (>14j)" value={stats.blocked} color="#DC2626" />
+        <KpiCard label="Bloqués (>14j)" value={stats.blocked} color={colors.status.redText} />
       )}
       <KpiCard label="Partenaires"      value={stats.partenaires}    color={colors.accent.gold} />
     </View>

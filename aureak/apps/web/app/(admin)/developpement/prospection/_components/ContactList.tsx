@@ -11,10 +11,10 @@ interface ContactListProps {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  premier_contact: { bg: '#DBEAFE', text: '#2563EB' },
-  en_cours       : { bg: '#FEF3C7', text: '#D97706' },
-  en_attente     : { bg: '#FDE68A', text: '#92400E' },
-  pas_de_suite   : { bg: '#FEE2E2', text: '#DC2626' },
+  premier_contact: { bg: colors.status.blueBg,    text: colors.status.blueText },
+  en_cours       : { bg: colors.status.amberBg,   text: colors.status.amberText },
+  en_attente     : { bg: colors.status.amberDarkBg, text: colors.status.warningText },
+  pas_de_suite   : { bg: colors.status.redBg,     text: colors.status.redText },
 }
 
 function formatDate(iso: string): string {
@@ -53,7 +53,7 @@ export function ContactList({ contacts }: ContactListProps) {
                   </AureakText>
                 )}
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg }]}>
+              <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg }] as never}>
                 <AureakText variant="caption" style={{ color: statusCfg.text, fontWeight: '600' } as never}>
                   {COMMERCIAL_CONTACT_STATUS_LABELS[contact.status] ?? contact.status}
                 </AureakText>

@@ -84,7 +84,7 @@ export function ContactForm({ clubDirectoryId, onCreated }: ContactFormProps) {
           <Pressable
             key={s}
             onPress={() => setStatus(s)}
-            style={[styles.statusPill, status === s && styles.statusPillActive]}
+            style={[styles.statusPill, status === s && styles.statusPillActive] as never}
           >
             <AureakText
               variant="caption"
@@ -97,7 +97,7 @@ export function ContactForm({ clubDirectoryId, onCreated }: ContactFormProps) {
       </View>
 
       <TextInput
-        style={[styles.input, styles.noteInput]}
+        style={[styles.input, styles.noteInput] as never}
         placeholder="Note libre (optionnel)"
         placeholderTextColor={colors.text.muted}
         value={note}
@@ -135,7 +135,7 @@ export function ContactForm({ clubDirectoryId, onCreated }: ContactFormProps) {
 const styles = StyleSheet.create({
   addBtn: {
     backgroundColor  : colors.accent.gold,
-    borderRadius     : radius.card,
+    borderRadius     : radius.button,
     paddingVertical  : space.sm,
     paddingHorizontal: space.lg,
     alignSelf        : 'flex-start',

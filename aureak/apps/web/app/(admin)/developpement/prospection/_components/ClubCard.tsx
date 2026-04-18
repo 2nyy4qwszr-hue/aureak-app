@@ -15,10 +15,10 @@ interface ClubCardProps {
 }
 
 const STATUS_CONFIG: Record<ClubCommercialStatus, { label: string; bg: string; text: string }> = {
-  partenaire   : { label: 'Partenaire',    bg: colors.border.goldBg ?? '#FDF6E3', text: colors.accent.gold },
-  en_cours     : { label: 'En cours',      bg: '#FEF3C7',                         text: '#D97706' },
-  pas_de_suite : { label: 'Pas de suite',  bg: '#FEE2E2',                         text: '#DC2626' },
-  pas_contacte : { label: 'Pas contacté',  bg: colors.light.hover ?? '#F5F5F5',   text: colors.text.muted },
+  partenaire   : { label: 'Partenaire',    bg: colors.border.goldBg, text: colors.accent.gold },
+  en_cours     : { label: 'En cours',      bg: colors.status.amberBg, text: colors.status.amberText },
+  pas_de_suite : { label: 'Pas de suite',  bg: colors.status.redBg,   text: colors.status.redText },
+  pas_contacte : { label: 'Pas contacté',  bg: colors.light.hover,    text: colors.text.muted },
 }
 
 export function ClubCard({ club, status, contactCount }: ClubCardProps) {
@@ -50,7 +50,7 @@ export function ClubCard({ club, status, contactCount }: ClubCardProps) {
             <AureakText variant="caption" style={styles.ville}>{club.ville}</AureakText>
           )}
         </View>
-        <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
+        <View style={[styles.badge, { backgroundColor: cfg.bg }] as never}>
           <AureakText variant="caption" style={{ color: cfg.text, fontWeight: '600' } as never}>
             {cfg.label}
           </AureakText>

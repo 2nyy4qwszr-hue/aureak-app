@@ -1,0 +1,36 @@
+Gate 1 — Story 87.1 : Academie Commerciaux LayoutActivites
+Date: 2026-04-18
+Reviewer: Claude Opus 4.6 (1M context)
+
+============================================================
+RESULT: PASS (avec 2 warnings)
+============================================================
+
+--- BLOCKERS (try/finally sur state setters) ---
+
+[PASS] commerciaux/page.tsx ligne 51-66 : setLoading(true) + try/finally correct
+[PASS] [commercialId]/page.tsx ligne 43-57 : setLoading(true) + try/finally correct
+
+--- CONSOLE GUARDS ---
+
+[PASS] commerciaux/page.tsx ligne 63 : console.error guarde par NODE_ENV
+[PASS] [commercialId]/page.tsx ligne 54 : console.error guarde par NODE_ENV
+[PASS] api-client/commercials.ts ligne 47 : getCommercialProfile — guarde OK
+
+[WARNING] api-client/commercials.ts ligne 24 : listCommercials error path
+  -> `if (error) return { data: [], count: 0, error }` sans console.error
+  -> Ajouter : if (process.env.NODE_ENV !== 'production') console.error('[commercials] listCommercials error:', error)
+
+--- COULEURS HARDCODEES ---
+
+[PASS] Aucune couleur hardcodee detectee — toutes via colors.* tokens
+
+--- CATCH SILENCIEUX ---
+
+[PASS] Aucun catch(() => {}) detecte
+
+--- SHARED COMPONENT ---
+
+[WARNING] AcademieNavBar.tsx (_components/) n'a pas ete mis a jour avec COMMERCIAUX
+  -> Le composant n'est pas utilise actuellement (tabs inline dans chaque page)
+  -> Mettre a jour par coherence pour eviter confusion future
