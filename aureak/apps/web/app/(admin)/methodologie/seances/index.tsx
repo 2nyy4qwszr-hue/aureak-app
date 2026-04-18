@@ -12,6 +12,7 @@ import {
 } from '@aureak/types'
 import type { MethodologySession, MethodologyExercise } from '@aureak/types'
 import { useToast } from '../../../../components/ToastContext'
+import { MethodologieNavBar } from '../_components/MethodologieNavBar'
 
 type FilterMethod  = MethodologyMethod | 'all'
 type ContentType   = 'entrainement' | 'exercice'
@@ -26,13 +27,7 @@ const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Intégration'     : '👥',
 }
 
-const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',    active: true  },
-  { label: 'PROGRAMMES',    href: '/methodologie/programmes', active: false },
-  { label: 'THÈMES',        href: '/methodologie/themes',     active: false },
-  { label: 'SITUATIONS',    href: '/methodologie/situations', active: false },
-  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations',active: false },
-]
+// Story 34.2 — NAV_TABS remplacé par MethodologieNavBar partagé
 
 const COL_WIDTHS = { method: 52, num: 90, title: 1, themes: 100, situations: 90, pdf: 50, status: 60 }
 const COL_WIDTHS_EX = { method: 52, num: 90, title: 1, pdf: 50, status: 60 }
@@ -126,17 +121,8 @@ export default function SeancesPage() {
           </Pressable>
         </View>
 
-        {/* Nav tabs : 5 onglets */}
-        <View style={st.tabsRow}>
-          {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
-              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {tab.active && <View style={st.tabUnderline} />}
-            </Pressable>
-          ))}
-        </View>
+        {/* Nav tabs : MethodologieNavBar partagé (Story 34.2) */}
+        <MethodologieNavBar />
       </View>
 
       {/* ── StatCards — 7 cards méthodes horizontales ── */}

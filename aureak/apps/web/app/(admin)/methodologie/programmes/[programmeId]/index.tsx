@@ -17,6 +17,7 @@ import {
 import { AureakText, ConfirmDialog } from '@aureak/ui'
 import { colors, fonts, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import type { MethodologyProgrammeWithSessions, MethodologyProgrammeSessionWithEntrainement, MethodologySession, MethodologyMethod } from '@aureak/types'
+import { MethodologieNavBar } from '../../_components/MethodologieNavBar'
 
 // ── Pictos méthode ────────────────────────────────────────────────────────────
 
@@ -32,13 +33,7 @@ const METHOD_PICTOS: Record<string, string> = {
 
 // ── Nav tabs ──────────────────────────────────────────────────────────────────
 
-const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',    active: false },
-  { label: 'PROGRAMMES',    href: '/methodologie/programmes', active: true  },
-  { label: 'THÈMES',        href: '/methodologie/themes',     active: false },
-  { label: 'SITUATIONS',    href: '/methodologie/situations', active: false },
-  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations',active: false },
-]
+// Story 34.2 — NAV_TABS remplacé par MethodologieNavBar partagé
 
 // ── Composant méthode badge ───────────────────────────────────────────────────
 
@@ -260,16 +255,8 @@ export default function ProgrammeDetailPage() {
         <View style={st.headerTopRow}>
           <AureakText style={st.pageTitle}>MÉTHODOLOGIE</AureakText>
         </View>
-        <View style={st.tabsRow}>
-          {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
-              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {tab.active && <View style={st.tabUnderline} />}
-            </Pressable>
-          ))}
-        </View>
+        {/* Nav tabs : MethodologieNavBar partagé (Story 34.2) */}
+        <MethodologieNavBar />
       </View>
 
       {/* ── Breadcrumb ── */}

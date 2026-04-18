@@ -4,7 +4,7 @@
 
 - **Epic** : 53 — Séances "Training Ground"
 - **Story** : 53-4
-- **Status** : ready-for-dev
+- **Status** : done
 - **Priority** : P2
 - **Type** : UX / Design
 - **Estimated effort** : S (2–3h)
@@ -121,3 +121,19 @@ Cette story est 100% front-end.
 ```
 feat(epic-53): story 53-4 — sélecteur méthode grandes tuiles visuelles dans création séance
 ```
+
+## Dev Agent Record
+
+### Agent Model Used
+claude-opus-4-6
+
+### Completion Notes List
+- MethodTileGrid déjà implémenté dans new.tsx (lignes 601-690) par un commit précédent
+- Vérifié : 7 tuiles (6 méthodes + equipe), icônes, descriptions, sélection visuelle, checkmark
+- step1Valid fonctionne correctement avec la sélection par tuile
+- QA conforme : tokens uniquement, pas de hardcoded colors
+
+### File List
+| Fichier | Statut |
+|---------|--------|
+| `aureak/apps/web/app/(admin)/seances/new.tsx` | Déjà implémenté — aucune modification nécessaire |

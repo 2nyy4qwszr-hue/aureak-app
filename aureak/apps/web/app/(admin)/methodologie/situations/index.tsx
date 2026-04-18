@@ -7,6 +7,7 @@ import { AureakButton, AureakText, SituationCard } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { MethodologySituation, MethodologyMethod } from '@aureak/types'
 import { DIFFICULTY_LABELS } from '@aureak/types'
+import { MethodologieNavBar } from '../_components/MethodologieNavBar'
 
 // Méthodes disponibles pour les filtres
 const METHODS: MethodologyMethod[] = [
@@ -79,6 +80,9 @@ export default function SituationsPage() {
           variant="primary"
         />
       </View>
+
+      {/* Nav tabs : MethodologieNavBar partagé (Story 34.2) */}
+      <MethodologieNavBar />
 
       {/* Filtres par méthode */}
       <View style={styles.filterRow}>

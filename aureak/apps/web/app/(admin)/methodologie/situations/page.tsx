@@ -6,6 +6,7 @@ import { listSituations, listThemeGroups } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, shadows, radius } from '@aureak/theme'
 import type { Situation, ThemeGroup } from '@aureak/types'
+import { MethodologieNavBar } from '../_components/MethodologieNavBar'
 
 const BLOC_PICTOS: Record<string, string> = {
   'tir au but'         : '🎯',
@@ -21,13 +22,7 @@ function getBlocPicto(name: string): string {
   return BLOC_PICTOS[name.toLowerCase()] ?? '📋'
 }
 
-const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',     active: false },
-  { label: 'PROGRAMMES',    href: '/methodologie/programmes',  active: false },
-  { label: 'THÈMES',        href: '/methodologie/themes',      active: false },
-  { label: 'SITUATIONS',    href: '/methodologie/situations',  active: true  },
-  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations', active: false },
-]
+// Story 34.2 — NAV_TABS remplacé par MethodologieNavBar partagé
 
 export default function SituationsPage() {
   const router = useRouter()
@@ -79,16 +74,8 @@ export default function SituationsPage() {
           </Pressable>
         </View>
 
-        <View style={st.tabsRow}>
-          {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
-              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {tab.active && <View style={st.tabUnderline} />}
-            </Pressable>
-          ))}
-        </View>
+        {/* Nav tabs : MethodologieNavBar partagé (Story 34.2) */}
+        <MethodologieNavBar />
       </View>
 
       {/* ── StatCards — 1 card par ThemeGroup ── */}

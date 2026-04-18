@@ -11,6 +11,7 @@ import {
   type MethodologyMethod, type MethodologyContextType,
 } from '@aureak/types'
 import type { MethodologyExercise } from '@aureak/types'
+import { MethodologieNavBar } from '../_components/MethodologieNavBar'
 
 type FilterMethod = MethodologyMethod | 'all'
 
@@ -24,13 +25,7 @@ const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Intégration'     : '👥',
 }
 
-const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',     active: false },
-  { label: 'PROGRAMMES',    href: '/methodologie/programmes',  active: false },
-  { label: 'THÈMES',        href: '/methodologie/themes',      active: false },
-  { label: 'SITUATIONS',    href: '/methodologie/situations',  active: false },
-  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations', active: true  },
-]
+// Story 34.2 — NAV_TABS remplacé par MethodologieNavBar partagé
 
 const COL_WIDTHS = { method: 52, num: 90, title: 1, themes: 100, status: 60 }
 
@@ -82,16 +77,8 @@ export default function EvaluationsPage() {
           </Pressable>
         </View>
 
-        <View style={st.tabsRow}>
-          {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
-              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {tab.active && <View style={st.tabUnderline} />}
-            </Pressable>
-          ))}
-        </View>
+        {/* Nav tabs : MethodologieNavBar partagé (Story 34.2) */}
+        <MethodologieNavBar />
       </View>
 
       {/* ── StatCards — 7 cards méthodes ── */}

@@ -1,6 +1,6 @@
 # Story 75.1 : Académie Hub — Nav globale + Refonte page Joueurs
 
-Status: review
+Status: done
 
 ## Story
 
