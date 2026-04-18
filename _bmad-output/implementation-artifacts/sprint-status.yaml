@@ -423,6 +423,44 @@ development_status:
   53-10-seances-coaches-drag-drop: done
   epic-53-retrospective: optional
 
+  # Epic 55 : Évaluations FUT-style (card, radar, growth, PDF scouting)
+  epic-55: in-progress
+  55-1-evaluations-card-fut-style-note-centrale: done
+  55-2-evaluations-radar-chart-comparaison-2-joueurs: done
+  55-3-evaluations-timeline-croissance-joueur: done
+  55-4-evaluations-badge-best-session-animation: done
+  55-5-evaluations-comparaison-biais-coach: done
+  55-6-evaluations-filtre-joueurs-en-danger: done
+  55-7-evaluations-export-scouting-pdf: done
+  55-8-evaluations-joueur-de-la-semaine-dashboard: done
+  epic-55-retrospective: optional
+
+  # Epic 56 : Groupes Team-Sheet (formation, drag-drop, capacité)
+  epic-56: in-progress
+  56-1-groupes-card-team-sheet-formation-visuelle: done
+  56-2-groupes-formation-tactique-visuelle-terrain: done
+  56-3-groupes-player-avatars-grille-card: done
+  56-4-groupes-drag-drop-transfer-joueur: done
+  56-5-groupes-badge-groupe-du-mois: done
+  56-6-groupes-capacite-indicateur-alerte: done
+  56-7-groupes-generateur-auto-groupes-par-age: done
+  56-8-groupes-transition-slide-fiche-joueur: done
+  epic-56-retrospective: optional
+
+  # Epic 59 : Gamification XP (ledger, badges, leaderboard, quests, admin profile)
+  epic-59: in-progress
+  59-1-gamification-migration-xp-ledger-edge-function-award-xp: done
+  59-2-gamification-levelup-animation-spring-flash-or: done
+  59-3-gamification-leaderboard-academie-top10: done
+  59-4-gamification-20-badges-definitions-ui-grid: done
+  59-5-gamification-quetes-hebdomadaires-coaches: done
+  59-6-gamification-score-academie-global-kpi: done
+  59-7-gamification-celebration-milestone-academie: done
+  59-8-gamification-profil-manager-admin-level-xp: done
+  59-9-gamification-achievement-toast-realtime: done
+  59-10-gamification-season-trophy-fin-saison: done
+  epic-59-retrospective: optional
+
   # Epic 75 : Académie Hub — Nav globale + Refonte page Joueurs
   epic-75: in-progress
   75-2-academie-hub-sidebar-coachs: review

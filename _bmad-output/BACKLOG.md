@@ -466,14 +466,14 @@ Remplacement des TextInput texte libre format AAAA-MM-JJ par des `<input type="d
 
 Ordre d'implémentation recommandé (dépendances en cascade) :
 
-- [ ] 55-1 : evaluations-card-fut-style-note-centrale (P1 — composant EvaluationCard FUT gold/silver/rouge, `@aureak/ui`)
-- [ ] 55-3 : evaluations-timeline-croissance-joueur (P1 — GrowthChart SVG ligne gradient, fiche joueur — dépend 55-1)
-- [ ] 55-4 : evaluations-badge-best-session-animation (P1 — BestSessionBadge spring + isPersonalBest API — dépend 55-1)
-- [ ] 55-6 : evaluations-filtre-joueurs-en-danger (P1 — listDangerousPlayers, alertes rouge, filtre children — dépend 55-1)
-- [ ] 55-2 : evaluations-radar-chart-comparaison-2-joueurs (P2 — RadarChart SVG 6 axes, page comparison — dépend 55-1)
-- [ ] 55-5 : evaluations-comparaison-biais-coach (P2 — tableau delta coachs, export CSV, admin only — dépend 55-1)
-- [ ] 55-8 : evaluations-joueur-de-la-semaine-dashboard (P2 — PlayerOfWeekTile, confetti localStorage — dépend 55-1)
-- [ ] 55-7 : evaluations-export-scouting-pdf (P3 — @react-pdf/renderer, ScoutingPDF A4 — dépend 55-2 + 55-3)
+- [x] 55-1 : evaluations-card-fut-style-note-centrale (P1 — composant EvaluationCard FUT gold/silver/rouge, `@aureak/ui`)
+- [x] 55-3 : evaluations-timeline-croissance-joueur (P1 — GrowthChart SVG ligne gradient, fiche joueur — dépend 55-1)
+- [x] 55-4 : evaluations-badge-best-session-animation (P1 — BestSessionBadge spring + isPersonalBest API — dépend 55-1)
+- [x] 55-6 : evaluations-filtre-joueurs-en-danger (P1 — listDangerousPlayers, alertes rouge, filtre children — dépend 55-1)
+- [x] 55-2 : evaluations-radar-chart-comparaison-2-joueurs (P2 — RadarChart SVG 6 axes, page comparison — dépend 55-1)
+- [x] 55-5 : evaluations-comparaison-biais-coach (P2 — tableau delta coachs, export CSV, admin only — dépend 55-1)
+- [x] 55-8 : evaluations-joueur-de-la-semaine-dashboard (P2 — PlayerOfWeekTile, confetti localStorage — dépend 55-1)
+- [x] 55-7 : evaluations-export-scouting-pdf (P3 — @react-pdf/renderer, ScoutingPDF A4 — dépend 55-2 + 55-3)
 
 ---
 
@@ -481,14 +481,14 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 
 Ordre d'implémentation recommandé (dépendances en cascade) :
 
-- [ ] 56-1 : groupes-card-team-sheet-formation-visuelle (P1 — GroupCard mini-terrain SVG, grille groups/index — `@aureak/ui`)
-- [ ] 56-3 : groupes-player-avatars-grille-card (P1 — PlayerAvatarGrid avatars colorés tiers, intégration GroupCard — dépend 56-1)
-- [ ] 56-6 : groupes-capacite-indicateur-alerte (P1 — CapacityIndicator rouge/orange/neutre, max_players — dépend 56-1)
-- [ ] 56-5 : groupes-badge-groupe-du-mois (P2 — GroupOfMonthBadge shimmer, getTopGroupByAttendance — dépend 56-1)
-- [ ] 56-2 : groupes-formation-tactique-visuelle-terrain (P2 — TacticalBoard SVG 11 positions, migration 00114 — dépend 56-1)
-- [ ] 56-4 : groupes-drag-drop-transfer-joueur (P2 — drag HTML5, modal confirmation, transferGroupMember — dépend 56-1 + 56-3)
-- [ ] 56-7 : groupes-generateur-auto-groupes-par-age (P2 — GroupGeneratorModal, catégories U10/U12/U14/U17 — dépend 56-1)
-- [ ] 56-8 : groupes-transition-slide-fiche-joueur (P3 — slide 300ms cubic-bezier, prefers-reduced-motion — dépend 56-2)
+- [x] 56-1 : groupes-card-team-sheet-formation-visuelle (P1 — GroupCard mini-terrain SVG, grille groups/index — `@aureak/ui`)
+- [x] 56-3 : groupes-player-avatars-grille-card (P1 — PlayerAvatarGrid avatars colorés tiers, intégration GroupCard — dépend 56-1)
+- [x] 56-6 : groupes-capacite-indicateur-alerte (P1 — CapacityIndicator rouge/orange/neutre, max_players — dépend 56-1)
+- [x] 56-5 : groupes-badge-groupe-du-mois (P2 — GroupOfMonthBadge shimmer, getTopGroupByAttendance — dépend 56-1)
+- [x] 56-2 : groupes-formation-tactique-visuelle-terrain (P2 — TacticalBoard SVG 11 positions, migration 00114 — dépend 56-1)
+- [x] 56-4 : groupes-drag-drop-transfer-joueur (P2 — drag HTML5, modal confirmation, transferGroupMember — dépend 56-1 + 56-3)
+- [x] 56-7 : groupes-generateur-auto-groupes-par-age (P2 — GroupGeneratorModal, catégories U10/U12/U14/U17 — dépend 56-1)
+- [x] 56-8 : groupes-transition-slide-fiche-joueur (P3 — slide 300ms cubic-bezier, prefers-reduced-motion — dépend 56-2)
 
 ---
 
@@ -543,16 +543,16 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 > Ordre d'implémentation recommandé : 59-1 (fondation) → 59-4 (badges) → 59-2 (animation) → 59-3 (leaderboard) → 59-6 (score académie) → 59-9 (toasts RT) → 59-5 (quêtes coaches) → 59-7 (milestones) → 59-8 (profil admin) → 59-10 (trophée)
 > Migrations : 00118 (xp_ledger + progression), 00119 (badges_definitions), 00120 (coach_quests), 00121 (academy_milestones)
 
-- [ ] 59-1 : gamification-migration-xp-ledger-edge-function-award-xp (P0 — fondation, migration 00118 + Edge Function award-xp)
-- [ ] 59-4 : gamification-20-badges-definitions-ui-grid (P1 — migration 00119, BadgeGrid amélioré, intégration fiche joueur)
-- [ ] 59-2 : gamification-levelup-animation-spring-flash-or (P1 — LevelUpAnimation + useLevelUp, CSS spring 0.8s)
-- [ ] 59-3 : gamification-leaderboard-academie-top10 (P1 — podium or/argent/bronze, évolution hebdo, tile dashboard)
-- [ ] 59-6 : gamification-score-academie-global-kpi (P1 — KPI composite présence+progression+activité, tile hero dashboard)
-- [ ] 59-9 : gamification-achievement-toast-realtime (P1 — Supabase Realtime, AchievementToast, FIFO queue)
-- [ ] 59-5 : gamification-quetes-hebdomadaires-coaches (P2 — migration 00120, 5 quêtes coaches, fiche coach)
-- [ ] 59-7 : gamification-celebration-milestone-academie (P2 — migration 00121, confetti CSS pur, MilestoneCelebration)
-- [ ] 59-8 : gamification-profil-manager-admin-level-xp (P2 — route profile, barre XP, badges admin, lien sidebar)
-- [ ] 59-10 : gamification-season-trophy-fin-saison (P2 — SeasonTrophy SVG paramétrique, export PNG canvas natif)
+- [x] 59-1 : gamification-migration-xp-ledger-edge-function-award-xp (P0 — fondation, migration 00118 + Edge Function award-xp)
+- [x] 59-4 : gamification-20-badges-definitions-ui-grid (P1 — migration 00119, BadgeGrid amélioré, intégration fiche joueur)
+- [x] 59-2 : gamification-levelup-animation-spring-flash-or (P1 — LevelUpAnimation + useLevelUp, CSS spring 0.8s)
+- [x] 59-3 : gamification-leaderboard-academie-top10 (P1 — podium or/argent/bronze, évolution hebdo, tile dashboard)
+- [x] 59-6 : gamification-score-academie-global-kpi (P1 — KPI composite présence+progression+activité, tile hero dashboard)
+- [x] 59-9 : gamification-achievement-toast-realtime (P1 — Supabase Realtime, AchievementToast, FIFO queue)
+- [x] 59-5 : gamification-quetes-hebdomadaires-coaches (P2 — migration 00120, 5 quêtes coaches, fiche coach)
+- [x] 59-7 : gamification-celebration-milestone-academie (P2 — migration 00121, confetti CSS pur, MilestoneCelebration)
+- [x] 59-8 : gamification-profil-manager-admin-level-xp (P2 — route profile, barre XP, badges admin, lien sidebar)
+- [x] 59-10 : gamification-season-trophy-fin-saison (P2 — SeasonTrophy SVG paramétrique, export PNG canvas natif)
 
 ---
 
