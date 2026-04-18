@@ -8,6 +8,7 @@ import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach, getCo
 import type { CoachGroupEntry, CoachSessionStats, CoachRecentSession } from '@aureak/api-client'
 import type { CoachQualityMetrics, CoachQuestWithDefinition } from '@aureak/types'
 import { colors, shadows, radius, transitions, gamification } from '@aureak/theme'
+import SectionPermissionsPanel from '../../_components/SectionPermissionsPanel'
 
 function MetricTile({
   label, value, unit = '', note,
@@ -59,8 +60,8 @@ export default function CoachQualityPage() {
   const [coachQuests,    setCoachQuests]    = useState<CoachQuestWithDefinition[]>([])
   const [loadingQuests,  setLoadingQuests]  = useState(true)
 
-  // Story 69-8 — Onglet Activité
-  const [activeTab,        setActiveTab]        = useState<'qualite' | 'activite'>('qualite')
+  // Story 69-8 — Onglet Activité + Story 86.3 — Onglet Accès
+  const [activeTab,        setActiveTab]        = useState<'qualite' | 'activite' | 'acces'>('qualite')
   const [sessionStats,     setSessionStats]     = useState<CoachSessionStats | null>(null)
   const [recentSessions,   setRecentSessions]   = useState<CoachRecentSession[]>([])
   const [loadingActivite,  setLoadingActivite]  = useState(false)
@@ -168,6 +169,7 @@ export default function CoachQualityPage() {
         {([
           { key: 'qualite',  label: 'Qualité' },
           { key: 'activite', label: 'Activité' },
+          { key: 'acces',    label: 'Accès' },
         ] as const).map(tab => {
           const isActive = activeTab === tab.key
           return (
@@ -479,6 +481,11 @@ export default function CoachQualityPage() {
           </div>
         )}
       </div>
+
+      {/* ── Onglet Accès (Story 86.3) ── */}
+      {activeTab === 'acces' && (
+        <SectionPermissionsPanel userId={coachId} role="coach" />
+      )}
 
       {/* Navigation links */}
       <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>

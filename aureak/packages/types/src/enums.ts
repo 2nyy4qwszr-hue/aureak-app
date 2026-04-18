@@ -304,6 +304,37 @@ export const MODULE_LABELS: Record<MethodologyModuleType, string> = {
 /** Ordre canonique des phases */
 export const MODULE_TYPES: MethodologyModuleType[] = ['activation', 'development', 'conclusion']
 
+// ── Story 86.3 — Permissions granulaires par section ────────────────────────
+
+/** Section applicative — miroir de l'enum PostgreSQL `app_section` (migration 00150) */
+export type AppSection =
+  | 'dashboard'
+  | 'activites'
+  | 'methodologie'
+  | 'academie'
+  | 'evenements'
+  | 'prospection'
+  | 'marketing'
+  | 'partenariat'
+  | 'performances'
+
+export const APP_SECTIONS: AppSection[] = [
+  'dashboard', 'activites', 'methodologie', 'academie', 'evenements',
+  'prospection', 'marketing', 'partenariat', 'performances',
+]
+
+export const APP_SECTION_LABELS: Record<AppSection, string> = {
+  dashboard    : 'Dashboard',
+  activites    : 'Activités',
+  methodologie : 'Méthodologie',
+  academie     : 'Académie',
+  evenements   : 'Événements',
+  prospection  : 'Prospection',
+  marketing    : 'Marketing',
+  partenariat  : 'Partenariat',
+  performances : 'Performances',
+}
+
 // ── Epic 85 — Registre Commercial Clubs ────────────────────────────────────
 
 /** Statut d'un contact commercial — miroir de l'enum PostgreSQL `commercial_contact_status` */

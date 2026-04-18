@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getUserProfile, suspendUser, reactivateUser, requestUserDeletion, listLifecycleEvents } from '@aureak/api-client'
 import type { UserRow } from '@aureak/api-client'
+import type { UserRole } from '@aureak/types'
 import { colors } from '@aureak/theme'
+import SectionPermissionsPanel from '../../_components/SectionPermissionsPanel'
 
 // UserProfile = alias local de UserRow (même shape)
 type UserProfile = UserRow
@@ -359,6 +361,15 @@ export default function UserFichePage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Story 86.3 — Permissions par section ── */}
+      <div style={P.card}>
+        <div style={P.cardTitle}>Acces aux sections</div>
+        <SectionPermissionsPanel
+          userId={profile.userId}
+          role={profile.userRole as UserRole}
+        />
       </div>
 
     </div>

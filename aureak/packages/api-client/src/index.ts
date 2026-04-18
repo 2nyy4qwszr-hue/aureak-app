@@ -627,6 +627,14 @@ export {
   listUserRoles, setActiveRole, addUserRole, removeUserRole,
 } from './admin/user-roles'
 
+// ── Story 86.3 — Permissions granulaires par section ────────────────────────
+export {
+  getUserPermissions,
+  setUserSectionOverride,
+  removeUserSectionOverride,
+  resetUserSectionOverrides,
+} from './admin/section-permissions'
+
 // ── Epic 85 — Registre Commercial Clubs ─────────────────────────────────────
 export {
   listCommercialContactsByClub,

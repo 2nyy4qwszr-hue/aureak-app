@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType, AppSection } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -87,6 +87,37 @@ export type UserRoleAssignment = {
   role      : UserRole
   isPrimary : boolean
   createdAt : string       // ISO 8601
+}
+
+// ============================================================
+// Permissions granulaires par section (Migration 00150 — Story 86.3)
+// ============================================================
+
+/** RoleDefaultSection — section par défaut activée pour un rôle */
+export type RoleDefaultSection = {
+  id        : string
+  role      : UserRole
+  sectionKey: AppSection
+  enabled   : boolean
+  createdAt : string       // ISO 8601
+}
+
+/** UserSectionOverride — override individuel d'accès à une section */
+export type UserSectionOverride = {
+  id        : string
+  userId    : string
+  sectionKey: AppSection
+  enabled   : boolean
+  grantedBy : string | null
+  createdAt : string       // ISO 8601
+}
+
+/** UserSectionPermission — vue combinée (défaut + override) pour l'UI */
+export type UserSectionPermission = {
+  sectionKey   : AppSection
+  enabled      : boolean
+  isDefault    : boolean     // true = valeur issue du rôle, false = override individuel
+  defaultValue : boolean     // valeur par défaut du rôle pour cette section
 }
 
 // ============================================================
