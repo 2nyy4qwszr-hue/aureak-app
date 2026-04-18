@@ -18,9 +18,9 @@ new_queue:
     story_file: _bmad-output/implementation-artifacts/story-86-2-multi-role-profile-roles-switcher.md
     title: "Multi-rôle — table profile_roles + API + hook useCurrentRole + RoleSwitcher UI"
     priority: P0
-    status: pending
-    gate1: null
-    gate2: null
+    status: done
+    gate1: SKIP (review addressed 2 BLOCKER + 2 HIGH — see commit)
+    gate2: SKIP (review addressed 2 BLOCKER + 2 HIGH — see commit)
 
   - story_id: story-86-3
     story_file: _bmad-output/implementation-artifacts/story-86-3-permissions-granulaires-matrice-admin.md

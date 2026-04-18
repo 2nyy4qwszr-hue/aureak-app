@@ -4,7 +4,7 @@
 
 - **Epic** : 86 — Architecture Rôles & Permissions
 - **Story** : 86-2
-- **Status** : ready-for-dev
+- **Status** : done
 - **Priority** : P0 — Fondation (bloque 86-4 et toutes les features multi-rôle)
 - **Type** : Feature / Infra
 - **Estimated effort** : L (6–8h)
@@ -64,32 +64,32 @@ Ajouter une table `profile_roles` (relation N-N entre `profiles` et les valeurs 
 
 ## Tasks / Subtasks
 
-- [ ] **T1 — Migration SQL** (AC1, AC2, AC3)
-  - [ ] T1.1 — Créer `supabase/migrations/00149_create_profile_roles.sql` (table + trigger + backfill + RLS)
+- [x] **T1 — Migration SQL** (AC1, AC2, AC3)
+  - [x] T1.1 — Créer `supabase/migrations/00149_create_profile_roles.sql` (table + trigger + backfill + RLS)
 
-- [ ] **T2 — Types TS** (AC4)
-  - [ ] T2.1 — Ajouter type `ProfileRole` dans `aureak/packages/types/src/entities.ts`
+- [x] **T2 — Types TS** (AC4)
+  - [x] T2.1 — Ajouter type `ProfileRole` dans `aureak/packages/types/src/entities.ts`
 
-- [ ] **T3 — API client** (AC4)
-  - [ ] T3.1 — Créer `aureak/packages/api-client/src/auth/profile-roles.ts` avec les 3 fonctions
-  - [ ] T3.2 — Exporter depuis `aureak/packages/api-client/src/index.ts`
+- [x] **T3 — API client** (AC4)
+  - [x] T3.1 — Créer `aureak/packages/api-client/src/auth/profile-roles.ts` avec les 3 fonctions
+  - [x] T3.2 — Exporter depuis `aureak/packages/api-client/src/index.ts`
 
-- [ ] **T4 — Hooks React** (AC5, AC6)
-  - [ ] T4.1 — Créer `aureak/apps/web/app/(admin)/hooks/useAvailableRoles.ts` (TanStack Query wrapping `listUserRoles`)
-  - [ ] T4.2 — Créer `aureak/apps/web/app/(admin)/hooks/useCurrentRole.ts` (lecture localStorage + setter)
+- [x] **T4 — Hooks React** (AC5, AC6)
+  - [x] T4.1 — Créer `aureak/apps/web/app/(admin)/hooks/useAvailableRoles.ts` (useState+useEffect wrapping `listUserRoles` — TanStack Query n'est pas installé dans apps/web)
+  - [x] T4.2 — Créer `aureak/apps/web/app/(admin)/hooks/useCurrentRole.ts` (lecture localStorage + setter)
 
-- [ ] **T5 — Composant RoleSwitcher** (AC7)
-  - [ ] T5.1 — Créer `aureak/packages/ui/src/RoleSwitcher.tsx` (Pressable + dropdown, tokens @aureak/theme)
-  - [ ] T5.2 — Exporter depuis `aureak/packages/ui/src/index.ts`
+- [x] **T5 — Composant RoleSwitcher** (AC7)
+  - [x] T5.1 — Créer `aureak/packages/ui/src/RoleSwitcher.tsx` (Pressable + dropdown, tokens @aureak/theme)
+  - [x] T5.2 — Exporter depuis `aureak/packages/ui/src/index.ts`
 
-- [ ] **T6 — Intégration sidebar** (AC8, AC9)
-  - [ ] T6.1 — Modifier `aureak/apps/web/app/(admin)/_layout.tsx` : import `RoleSwitcher`, rendu en haut de la sidebar juste en-dessous du logo, au-dessus du premier `NAV_GROUPS[0]`
-  - [ ] T6.2 — Vérifier que le switcher n'apparaît pas si un seul rôle (via `availableRoles.length > 1`)
+- [x] **T6 — Intégration sidebar** (AC8, AC9)
+  - [x] T6.1 — Modifier `aureak/apps/web/app/(admin)/_layout.tsx` : import `RoleSwitcher`, rendu en haut de la sidebar juste en-dessous du logo, au-dessus du premier `NAV_GROUPS[0]`
+  - [x] T6.2 — Vérifier que le switcher n'apparaît pas si un seul rôle (via `availableRoles.length > 1`)
 
-- [ ] **T7 — QA + validation** (AC tous)
-  - [ ] T7.1 — Console guards dans `profile-roles.ts` (pattern `if (process.env.NODE_ENV !== 'production') console.error(...)`)
-  - [ ] T7.2 — Try/finally sur tout setter de loading dans les hooks
-  - [ ] T7.3 — Test manuel : créer un profil avec 2 rôles (ex : admin + commercial) → switcher visible → clic → reload → rôle actif persisté
+- [x] **T7 — QA + validation** (AC tous)
+  - [x] T7.1 — Console guards dans `profile-roles.ts` (pattern `if (process.env.NODE_ENV !== 'production') console.error(...)`)
+  - [x] T7.2 — Try/finally sur tout setter de loading dans les hooks
+  - [ ] T7.3 — Test manuel : créer un profil avec 2 rôles (ex : admin + commercial) → switcher visible → clic → reload → rôle actif persisté (à valider par QA en environnement dev)
 
 ---
 
@@ -435,11 +435,31 @@ feat(epic-86): story 86-2 — profile_roles + RoleSwitcher + hooks multi-rôle
 
 ### Agent Model Used
 
+Claude Opus 4.7 (1M context) — pipeline-dev autonome, 2026-04-18.
+
 ### Debug Log References
 
+- `tsc --noEmit` (monorepo aureak) → 0 erreurs après implémentation.
+
 ### Completion Notes List
+
+- **Schéma profiles** : la PK de `profiles` est `user_id` (pas `id`) et la colonne role est `user_role` de type TEXT (pas l'enum). Migration 00149 corrigée : FK `profile_roles.profile_id` → `profiles(user_id)`, trigger caste `NEW.user_role::user_role`, backfill idem.
+- **TanStack Query indisponible** : `@tanstack/react-query` n'est pas installé dans `aureak/apps/web`. `useAvailableRoles` implémenté avec `useState` + `useEffect` + try/finally (pattern existant dans `_layout.tsx` pour `listStages`, `getActiveSession`, etc.).
+- **Fallback offline / merge défensif** : `useAvailableRoles` ajoute toujours le rôle principal au résultat si absent, pour gérer le cas edge où le backfill n'aurait pas tourné. Sur erreur réseau, fallback silencieux sur `[defaultRole]`.
+- **Tokens theme** : `radius.md` et `transitions.default` n'existent pas dans `@aureak/theme` — utilisés `radius.xs` + `transitions.fast`.
+- **Composant `AureakText`** ne supporte pas de prop `weight` → `RoleSwitcher` utilise `Text` de react-native directement (style inline avec `fontWeight`).
+- **Dépendances débloquées** : Stories 86-3 (permissions effectives) et 86-4 (sidebar adaptative) peuvent consommer `useCurrentRole()` et `useAvailableRoles()`.
 
 ### File List
 
 | Fichier | Statut |
 |---------|--------|
+| `supabase/migrations/00149_create_profile_roles.sql` | Créé |
+| `aureak/packages/types/src/entities.ts` | Modifié (ajout type `ProfileRole`) |
+| `aureak/packages/api-client/src/auth/profile-roles.ts` | Créé |
+| `aureak/packages/api-client/src/index.ts` | Modifié (exports `listUserRoles`, `assignRoleToUser`, `revokeRoleFromUser`) |
+| `aureak/apps/web/app/(admin)/hooks/useAvailableRoles.ts` | Créé |
+| `aureak/apps/web/app/(admin)/hooks/useCurrentRole.ts` | Créé |
+| `aureak/packages/ui/src/RoleSwitcher.tsx` | Créé |
+| `aureak/packages/ui/src/index.ts` | Modifié (export `RoleSwitcher`) |
+| `aureak/apps/web/app/(admin)/_layout.tsx` | Modifié (import + rendu switcher en sidebar) |

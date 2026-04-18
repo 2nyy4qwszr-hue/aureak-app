@@ -39,6 +39,7 @@ import {
   ActiveSessionHUD,
   PWAInstallBanner,
   OfflineBanner,
+  RoleSwitcher,
 } from '@aureak/ui'
 import type { NavIconProps } from '@aureak/ui'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
@@ -58,6 +59,9 @@ import { Breadcrumb } from '../../components/Breadcrumb'
 import { ActiveSessionProvider, useActiveSession } from './contexts/ActiveSessionContext'
 // Story 61.6 — SplashScreen
 import { SplashScreen, SPLASH_MIN_MS, SPLASH_TIMEOUT_MS } from './SplashScreen'
+// Story 86-2 — Multi-rôle : switcher "Changer de casquette"
+import { useAvailableRoles } from './hooks/useAvailableRoles'
+import { useCurrentRole } from './hooks/useCurrentRole'
 
 // ── Story 51.7 — HoverablePressable : Pressable avec onMouseEnter/Leave (RN Web) ─
 // Les props hover ne sont pas dans les types RN natifs — cast via interface étendue.
@@ -196,6 +200,10 @@ function AdminLayoutInner() {
   const [mobileOpen,      setMobileOpen]      = useState(false)
   // Story 63.1 — panneau Administration caché derrière ⚙️
   const [adminPanelOpen, setAdminPanelOpen] = useState(false)
+
+  // ── Story 86-2 — Multi-rôle : rôles disponibles + rôle actif ─────────────
+  const { roles: availableRoles } = useAvailableRoles()
+  const { activeRole, setCurrentRole } = useCurrentRole()
 
   // ── Story 61.5 — Offline cache + banner ──────────────────────────────────
   const { isOnline, cacheTimestamp, isSyncing, syncResult } = useOfflineCache()
@@ -565,6 +573,27 @@ function AdminLayoutInner() {
             </Pressable>
           </XStack>
         </YStack>
+
+        {/* ── Story 86-2 — RoleSwitcher multi-rôle (masqué en collapsed) ── */}
+        {activeRole && availableRoles.length > 1 && (
+          <YStack
+            paddingHorizontal={12}
+            paddingBottom={8}
+            style={{
+              opacity   : labelsVisible ? 1 : 0,
+              transition: 'opacity 0.1s ease',
+              overflow  : 'visible',
+              maxHeight : labelsVisible ? 200 : 0,
+              flexShrink: 0,
+            } as never}
+          >
+            <RoleSwitcher
+              availableRoles={availableRoles}
+              activeRole    ={activeRole}
+              onChange      ={setCurrentRole}
+            />
+          </YStack>
+        )}
 
         {/* ── Global search — masqué en collapsed (opacity animée) ── */}
         <YStack

@@ -76,6 +76,26 @@ export type CoachAccessGrant = {
 // Re-export UserRole pour usage dans les entités suivantes (Stories 2.x+)
 export type { UserRole }
 
+/**
+ * ProfileRoleEntry — Story 86-2
+ * Rôle additionnel attribué à un profil (relation N-N profiles × user_role).
+ * profiles.role reste la source de vérité pour les policies RLS ; profile_roles est additif.
+ * Miroir de la table `profile_roles` (migration 00149).
+ *
+ * Nommé `Entry` pour éviter la collision avec `ProfileRole` exporté depuis
+ * `@aureak/api-client/admin/profiles` (union `'child' | 'parent' | 'coach' | 'club'`
+ * utilisée pour la création de profil).
+ */
+export type ProfileRoleEntry = {
+  id        : string
+  profileId : string
+  role      : UserRole
+  grantedAt : string        // ISO 8601
+  grantedBy : string | null
+  deletedAt : string | null
+  tenantId  : string
+}
+
 // ============================================================
 // Historique football par saison (Migration 00010)
 // ============================================================
