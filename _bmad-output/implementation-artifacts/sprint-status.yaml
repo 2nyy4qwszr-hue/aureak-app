@@ -397,6 +397,18 @@ development_status:
   54-8-presences-export-pdf-hebdomadaire: done
   epic-54-retrospective: optional
 
+  # Epic 51 : Navigation Premium (sidebar/topbar/breadcrumb/raccourcis/dark mode)
+  epic-51: in-progress
+  51-1-sidebar-active-state-barre-or-icones-svg: done
+  51-2-topbar-seance-active-permanente: done
+  51-3-command-palette-cmd-k: done
+  51-4-notification-badges-sidebar: done
+  51-5-breadcrumb-anime-retour-cliquable: done
+  51-6-raccourcis-clavier-navigation: done
+  51-7-sidebar-collapse-smooth-animation: done
+  51-8-dark-mode-complet-toggle-persistant: done
+  epic-51-retrospective: optional
+
   # Epic 75 : Académie Hub — Nav globale + Refonte page Joueurs
   epic-75: in-progress
   75-2-academie-hub-sidebar-coachs: review
