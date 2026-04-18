@@ -341,14 +341,14 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 
 Ordre d'implémentation recommandé (dépendances en cascade) :
 
-- [ ] 54-1 : presences-squad-overview (P1 — grille 4 colonnes cartes joueurs avec statut — remplace liste verticale 49-4)
-- [ ] 54-2 : presences-toggle-neumorphique (P2 — composant AttendanceToggle dans @aureak/ui, shadow inset spring 150ms)
-- [ ] 54-3 : presences-streak-joueur-affiche (P2 — sous-texte streak par joueur — batch API getGroupMembersRecentStreaks)
-- [ ] 54-4 : presences-zone-retardataires (P2 — section séparée joueurs status='late' + bouton → Présent)
-- [ ] 54-5 : presences-validation-groupee (P2 — bouton Tous présents + Promise.allSettled + micro-confetti)
-- [ ] 54-6 : presences-heatmap-mensuelle-joueur (P2 — composant AttendanceHeatmap dans @aureak/ui + section fiche joueur)
-- [ ] 54-7 : presences-alertes-absence-pattern (P2 — inline dans recordAttendance, inapp_notifications, bandeau orange)
-- [ ] 54-8 : presences-export-pdf-hebdomadaire (P3 — window.print() + HTML report builder + bouton vue Semaine)
+- [x] 54-1 : presences-squad-overview (P1 — grille 4 colonnes cartes joueurs avec statut — remplace liste verticale 49-4)
+- [x] 54-2 : presences-toggle-neumorphique (P2 — composant AttendanceToggle dans @aureak/ui, shadow inset spring 150ms)
+- [x] 54-3 : presences-streak-joueur-affiche (P2 — sous-texte streak par joueur — batch API getGroupMembersRecentStreaks)
+- [x] 54-4 : presences-zone-retardataires (P2 — section séparée joueurs status='late' + bouton → Présent)
+- [x] 54-5 : presences-validation-groupee (P2 — bouton Tous présents + Promise.allSettled + micro-confetti)
+- [x] 54-6 : presences-heatmap-mensuelle-joueur (P2 — composant AttendanceHeatmap dans @aureak/ui + section fiche joueur)
+- [x] 54-7 : presences-alertes-absence-pattern (P2 — inline dans recordAttendance, inapp_notifications, bandeau orange)
+- [x] 54-8 : presences-export-pdf-hebdomadaire (P3 — window.print() + HTML report builder + bouton vue Semaine)
 
 **Dépendances** :
 - 54-1 dépend de 49-4 (ou l'intègre — à vérifier si 49-4 est done)
@@ -364,7 +364,7 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 
 ### Epic 49 — Bugfix + UX + Design batch avril 2026 #2
 
-- [ ] 49-4 : ux-presences-liste-enfants-groupe (P1 — toggle présent/absent pré-rempli pour tous les joueurs du groupe)
+- [x] 49-4 : ux-presences-liste-enfants-groupe (P1 — toggle présent/absent pré-rempli pour tous les joueurs du groupe)
 - [x] 49-2 : ux-blocs-themes-editables-fiche-seance (P2 — section thèmes non éditable post-création)
 - [x] 49-5 : design-dashboard-game-manager-premium (P2 — hero band, sparkline KPIs, ImplantationCard terrain, next session tile)
 - [x] 49-6 : design-implantations-photo-logo-redesign (P2 — photo/logo implantation Storage + header premium + groupes cards)
@@ -731,8 +731,8 @@ Refonte visuelle de la page Activités/Séances pour correspondre précisément 
 
 > Epic distinct de "Epic 75 — Bugs Patrol" ci-dessus. Utilise les mêmes numéros d'epic dans sprint-status.yaml (section Académie Hub).
 
-- [ ] 75-2 (Académie Hub) : academie-hub-sidebar-coachs (**P1 FEATURE** — sidebar refactor : supprime Joueurs/Coachs/Groupes/Implantations/Clubs → 1 seul item "Académie" ; hub `/academie/*` avec AcademieNavBar 6 onglets ; page `/academie/coachs` redesignée : 4 stat cards + filtres chips + tableau STATUT picto/PHOTO/NOM/PRÉNOM/IMPLANTATION/GRADE/DIPLÔMÉ/FORMATION) `ready-for-dev`
-- [ ] 75-1 (Académie Hub) : academie-hub-refonte-page-joueurs (**P1 FEATURE** — redesign `/academie/joueurs` : 4 métriques + toggle AUREAK/PROSPECT + tableau redesigné — dépend 75-2 done) `ready-for-dev`
+- [x] 75-2 (Académie Hub) : academie-hub-sidebar-coachs (**P1 FEATURE** — sidebar refactor : supprime Joueurs/Coachs/Groupes/Implantations/Clubs → 1 seul item "Académie" ; hub `/academie/*` avec AcademieNavBar 6 onglets ; page `/academie/coachs` redesignée : 4 stat cards + filtres chips + tableau STATUT picto/PHOTO/NOM/PRÉNOM/IMPLANTATION/GRADE/DIPLÔMÉ/FORMATION) `done`
+- [x] 75-1 (Académie Hub) : academie-hub-refonte-page-joueurs (**P1 FEATURE** — redesign `/academie/joueurs` : 4 métriques + toggle AUREAK/PROSPECT + tableau redesigné — dépend 75-2 done) `done`
 
 **Dépendances** : 75-2 avant 75-1 (75-2 crée la structure hub + AcademieNavBar que 75-1 utilise). Aucune migration DB.
 
