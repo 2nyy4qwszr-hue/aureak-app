@@ -146,6 +146,7 @@ const ADMIN_ITEMS: NavItem[] = [
   { label: 'Anomalies',           href: '/anomalies',                Icon: AlertTriangleIcon },
   { label: 'Messages coaches',    href: '/messages',                 Icon: ChatIcon },
   { label: 'Permissions grades',  href: '/grade-permissions',        Icon: LockIcon },
+  { label: 'Permissions',         href: '/settings/permissions',     Icon: ShieldIcon },
 ]
 
 // ── AdminLayout wrappé dans ThemeProvider + ActiveSessionProvider ─────────────

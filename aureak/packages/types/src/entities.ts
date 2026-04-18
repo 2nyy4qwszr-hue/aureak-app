@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType, SectionKey, PermissionAccess } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -2429,4 +2429,45 @@ export type UpdateCommercialContactParams = {
   status? : import('./enums').CommercialContactStatus
   note?   : string
 }
+
+// ============================================================
+// Epic 86 — Permissions granulaires (Story 86-3, migrations 00150/00151)
+// ============================================================
+
+/**
+ * SectionPermissionRow — défaut de permission par rôle × section (config globale).
+ * Miroir de la table `section_permissions`. Pas de tenant_id (config plateforme).
+ * Nommé `Row` pour éviter toute collision avec noms internes de hooks/API.
+ */
+export type SectionPermissionRow = {
+  role       : UserRole
+  sectionKey : SectionKey
+  granted    : boolean
+  updatedAt  : string         // ISO 8601
+  updatedBy  : string | null
+}
+
+/**
+ * UserSectionOverrideRow — override individuel rôle/section pour un utilisateur.
+ * Miroir de la table `user_section_overrides`. Tenant-scoped via tenant_id (RLS).
+ * Soft-delete via deletedAt — supprimer un override = réactiver le défaut de rôle.
+ */
+export type UserSectionOverrideRow = {
+  profileId  : string
+  sectionKey : SectionKey
+  tenantId   : string
+  granted    : boolean
+  grantedAt  : string          // ISO 8601
+  grantedBy  : string | null
+  deletedAt  : string | null
+}
+
+/**
+ * EffectivePermissions — résultat composé (rôle actif + overrides) pour un profil.
+ * Clé = SectionKey, valeur = boolean granted. Consommé par la sidebar dynamique (86-4).
+ */
+export type EffectivePermissions = Record<SectionKey, boolean>
+
+// Re-export des enums Permission pour les consommateurs de ces types
+export type { SectionKey, PermissionAccess }
 

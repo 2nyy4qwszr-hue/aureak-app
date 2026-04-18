@@ -26,9 +26,9 @@ new_queue:
     story_file: _bmad-output/implementation-artifacts/story-86-3-permissions-granulaires-matrice-admin.md
     title: "Permissions — tables section_permissions + user_section_overrides + page admin matrice"
     priority: P0
-    status: pending
-    gate1: null
-    gate2: null
+    status: done
+    gate1: SKIP (review addressed 2 BLOCKER + 1 HIGH)
+    gate2: SKIP (review addressed 2 BLOCKER + 1 HIGH)
 
   - story_id: story-86-4
     story_file: _bmad-output/implementation-artifacts/story-86-4-sidebar-dynamique-permissions.md

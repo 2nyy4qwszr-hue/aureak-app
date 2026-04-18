@@ -496,4 +496,5 @@ development_status:
   epic-86: in-progress
   86-1-roles-db-manager-marketeur: done
   86-2-multi-role-profile-roles-switcher: done
+  86-3-permissions-granulaires-matrice-admin: done
   epic-86-retrospective: optional

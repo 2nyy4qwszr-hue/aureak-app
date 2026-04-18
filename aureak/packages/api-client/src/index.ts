@@ -10,6 +10,16 @@ export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromPr
 // Story 86-2 — Multi-rôle : table profile_roles
 export { listUserRoles, assignRoleToUser, revokeRoleFromUser } from './auth/profile-roles'
 
+// Story 86-3 — Permissions granulaires : matrice section_permissions + overrides
+export {
+  listDefaultPermissions,
+  upsertDefaultPermission,
+  listUserOverrides,
+  upsertUserOverride,
+  deleteUserOverride,
+  getEffectivePermissions,
+} from './auth/section-permissions'
+
 export {
   getChildAcademyStatus,
   listAcademySeasons,
