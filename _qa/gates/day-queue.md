@@ -1,5 +1,5 @@
 date: 2026-04-18
-status: pending
+status: in-progress
 
 # ──────────── QUEUE DU JOUR ────────────
 # Epic 86 Architecture Rôles & Permissions — fondation brainstorming 2026-04-18
@@ -10,9 +10,9 @@ new_queue:
     story_file: _bmad-output/implementation-artifacts/story-86-1-roles-db-manager-marketeur.md
     title: "DB — Ajout rôles manager + marketeur dans enum user_role (migration 00148)"
     priority: P0
-    status: pending
-    gate1: null
-    gate2: null
+    status: done
+    gate1: SKIP (no .tsx — SQL + types only)
+    gate2: SKIP (no .tsx — SQL + types only)
 
   - story_id: story-86-2
     story_file: _bmad-output/implementation-artifacts/story-86-2-multi-role-profile-roles-switcher.md

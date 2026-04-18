@@ -24,6 +24,9 @@ const ROLE_ROUTES: Record<UserRole, string> = {
   child     : '/child/dashboard',
   club      : '/(auth)/login',
   commercial: '/developpement/prospection',
+  // manager et marketeur : routes dédiées à créer en Epic 88/91/92 (Story 86-1 : enum + types uniquement)
+  manager   : '/(auth)/login',
+  marketeur : '/(auth)/login',
 }
 
 const styles = StyleSheet.create({
