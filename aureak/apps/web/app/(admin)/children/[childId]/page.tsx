@@ -332,7 +332,7 @@ const TIER_HEADER_CONFIG: Record<PlayerTier, { bg: string; textColor: string; bo
   Prospect   : { bg: colors.light.muted, textColor: colors.text.muted, borderColor: colors.border.light },
   Académicien: { bg: colors.light.surface, textColor: colors.text.dark, borderColor: colors.border.light },
   Confirmé   : { bg: colors.status.warningBg, textColor: colors.status.warningText, borderColor: colors.border.gold },
-  Elite      : { bg: '#2A2006', textColor: '#FFE566', borderColor: '#C1AC5C' },
+  Elite      : { bg: '#2A2006', textColor: '#FFE566', borderColor: colors.accent.gold },
 }
 
 // ── PlayerHeader — 280px fullwidth avec photo/avatar + overlay + tabs ─────────
@@ -443,7 +443,7 @@ const ph2 = {
   name: {
     fontSize  : 28,
     fontWeight: '700',
-    color     : '#ffffff',
+    color     : colors.text.primary,
     lineHeight: 34,
   } as never,
   tierBadge: {
@@ -2069,8 +2069,8 @@ export default function ChildDetailPage() {
         <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center' }}>
           {/* Toggle actif/inactif */}
           <Pressable onPress={handleToggleActif} disabled={togglingActif} style={s.actifToggle}>
-            <View style={[s.actifDot, { backgroundColor: child.actif ? '#10B981' : '#9E9E9E' }]} />
-            <AureakText variant="caption" style={{ color: child.actif ? '#10B981' : colors.text.muted, fontSize: 11, fontWeight: '600' }}>
+            <View style={[s.actifDot, { backgroundColor: child.actif ? colors.status.success : colors.status.neutral }]} />
+            <AureakText variant="caption" style={{ color: child.actif ? colors.status.success : colors.text.muted, fontSize: 11, fontWeight: '600' }}>
               {child.actif ? 'Actif' : 'Inactif'}
             </AureakText>
           </Pressable>

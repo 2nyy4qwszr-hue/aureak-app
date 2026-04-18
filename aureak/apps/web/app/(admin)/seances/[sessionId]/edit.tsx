@@ -37,7 +37,7 @@ const TYPE_COLOR: Record<string, string> = {
   decisionnel     : methodologyMethodColors['Décisionnel'],
   perfectionnement: methodologyMethodColors['Perfectionnement'],
   integration     : methodologyMethodColors['Intégration'],
-  equipe          : '#94A3B8',
+  equipe          : colors.status.neutral,
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -372,7 +372,7 @@ export default function EditSessionPage() {
           <AureakText variant="caption" style={st.breadcrumbCurrent}>{sessionDateLabel} › Modifier</AureakText>
         </View>
         <View style={st.warningBanner}>
-          <AureakText style={{ color: '#92400E', fontWeight: '700' as never }}>
+          <AureakText style={{ color: colors.status.warningText, fontWeight: '700' as never }}>
             Cette séance est réalisée et ne peut plus être modifiée.
           </AureakText>
           <Pressable style={[st.btnSecondary, { marginTop: space.sm, alignSelf: 'flex-start' as never }]} onPress={() => router.back()}>
@@ -730,7 +730,7 @@ const st = StyleSheet.create({
     backgroundColor: colors.light.primary,
     fontSize       : 13,
   },
-  inputError: { borderColor: '#DC2626' },
+  inputError: { borderColor: colors.accent.red },
 
   chipRow : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip    : {
@@ -745,18 +745,18 @@ const st = StyleSheet.create({
   chipText      : { fontSize: 11, color: colors.text.muted },
   chipTextActive: { color: colors.text.dark, fontWeight: '700' as never },
 
-  errorText  : { fontSize: 10, color: '#DC2626', marginTop: 2 },
+  errorText  : { fontSize: 10, color: colors.accent.red, marginTop: 2 },
   errorBanner: {
-    backgroundColor: '#FEE2E2', borderRadius: 6,
-    padding: space.sm, borderWidth: 1, borderColor: '#FECACA',
+    backgroundColor: colors.status.errorBorderSevere, borderRadius: 6,
+    padding: space.sm, borderWidth: 1, borderColor: colors.status.errorBorder,
   },
-  errorBannerText: { fontSize: 12, color: '#DC2626', fontWeight: '600' as never },
+  errorBannerText: { fontSize: 12, color: colors.accent.red, fontWeight: '600' as never },
 
   coachRow   : { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
   coachName  : { fontSize: 13, fontWeight: '600' as never, color: colors.text.dark },
   coachRole  : { fontSize: 10, color: colors.text.muted },
-  removeBtn  : { width: 28, height: 28, borderRadius: 14, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center' },
-  removeBtnText: { fontSize: 16, color: '#DC2626', lineHeight: 20 },
+  removeBtn  : { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.status.errorBorderSevere, alignItems: 'center', justifyContent: 'center' },
+  removeBtnText: { fontSize: 16, color: colors.accent.red, lineHeight: 20 },
 
   addCoachWrap : { gap: space.xs },
   addCoachEntry: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 4 },
@@ -765,8 +765,8 @@ const st = StyleSheet.create({
   readOnlyRow  : { flexDirection: 'row', gap: space.sm, alignItems: 'center' },
 
   warningBanner: {
-    backgroundColor: '#FEF3C7', borderRadius: 8, padding: space.md,
-    borderWidth: 1, borderColor: '#FDE68A', gap: space.sm,
+    backgroundColor: colors.status.amberBg, borderRadius: 8, padding: space.md,
+    borderWidth: 1, borderColor: colors.status.amberDarkBg, gap: space.sm,
   },
 
   footer: { flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end', marginTop: space.sm },
