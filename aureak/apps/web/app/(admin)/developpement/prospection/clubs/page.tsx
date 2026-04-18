@@ -1,153 +1,112 @@
-// Epic 85 — Story 85.3 + 85.5 — Page Prospection Clubs : liste clubs + KPIs + filtres admin
-// Story 88.1 — Déplacée dans /clubs/ pour intégration hub Prospection
+// Story 88.2 — Page CRM Pipeline Clubs : StatCards + Filtres + Tableau prospects
 'use client'
-import React, { useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet } from 'react-native'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
-import { listClubDirectory, listAllCommercialContacts } from '@aureak/api-client'
+import { colors, fonts, space, radius } from '@aureak/theme'
+import { listClubProspects } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import type { ClubDirectoryEntry, CommercialContactWithCommercial } from '@aureak/types'
-import { ProspectionKPIs } from '../_components/ProspectionKPIs'
-import type { ProspectionStats } from '../_components/ProspectionKPIs'
-import { ClubList } from '../_components/ClubList'
-import { AdminFilters } from '../_components/AdminFilters'
-import type { ClubCommercialStatus } from '../_components/ClubCard'
+import { PROSPECT_STATUSES, PROSPECT_STATUS_LABELS } from '@aureak/types'
+import type { ClubProspectListItem, ProspectStatus } from '@aureak/types'
+import { ProspectionStatCards } from './_components/ProspectionStatCards'
+import { ProspectTable } from './_components/ProspectTable'
+import { CreateProspectModal } from './_components/CreateProspectModal'
 
 export default function ProspectionClubsPage() {
   const { role } = useAuthStore()
-  const [clubs, setClubs]       = useState<ClubDirectoryEntry[]>([])
-  const [contacts, setContacts] = useState<CommercialContactWithCommercial[]>([])
-  const [loading, setLoading]   = useState(true)
+  const [prospects, setProspects]           = useState<ClubProspectListItem[]>([])
+  const [loading, setLoading]               = useState(true)
+  const [filterStatus, setFilterStatus]     = useState<ProspectStatus | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
-  // Story 85.5 — Filtres admin
-  const [filterCommercial, setFilterCommercial] = useState<string | null>(null)
-  const [filterStatus, setFilterStatus]         = useState<ClubCommercialStatus | null>(null)
+  const loadProspects = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await listClubProspects(
+        filterStatus ? { status: filterStatus } : undefined,
+      )
+      setProspects(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ProspectionClubsPage] load error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [filterStatus])
 
   useEffect(() => {
-    async function load() {
-      setLoading(true)
-      try {
-        const [clubsRes, contactsRes] = await Promise.all([
-          listClubDirectory({ pageSize: 1000 }),
-          listAllCommercialContacts(),
-        ])
-        setClubs(clubsRes.data)
-        setContacts(contactsRes)
-      } catch (err) {
-        if (process.env.NODE_ENV !== 'production') console.error('[ProspectionClubsPage] load error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
+    loadProspects()
+  }, [loadProspects])
 
-  // Filtrage contacts par commercial (admin only)
-  const filteredContacts = useMemo(() => {
-    if (!filterCommercial) return contacts
-    return contacts.filter(c => c.commercialId === filterCommercial)
-  }, [contacts, filterCommercial])
-
-  // Calculer les stats KPI
-  const stats: ProspectionStats = useMemo(() => {
-    const contactedClubIds = new Set(filteredContacts.map(c => c.clubDirectoryId))
-    const partenaires = clubs.filter(c =>
-      c.clubRelationType === 'partenaire' || c.clubRelationType === 'associe'
-    ).length
-
-    const enCoursIds = new Set<string>()
-    for (const c of filteredContacts) {
-      if (c.status !== 'pas_de_suite') enCoursIds.add(c.clubDirectoryId)
-    }
-
-    const nonPartnerClubs = clubs.filter(c =>
-      c.clubRelationType !== 'partenaire' && c.clubRelationType !== 'associe'
-    )
-    const neverContacted = nonPartnerClubs.filter(c => !contactedClubIds.has(c.id)).length
-
-    // Story 85.5 — Compteur "bloqués" (en attente > 14 jours)
-    const now = Date.now()
-    const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000
-    const blockedClubIds = new Set<string>()
-    for (const c of filteredContacts) {
-      if (c.status === 'en_attente') {
-        const contactAge = now - new Date(c.contactedAt).getTime()
-        if (contactAge > FOURTEEN_DAYS) blockedClubIds.add(c.clubDirectoryId)
-      }
-    }
-
-    return {
-      total        : clubs.length,
-      contacted    : contactedClubIds.size,
-      enCours      : enCoursIds.size,
-      neverContacted,
-      partenaires,
-      blocked      : blockedClubIds.size,
-    }
-  }, [clubs, filteredContacts])
-
-  // Filtrage clubs par statut (admin only)
-  const displayClubs = useMemo(() => {
-    if (!filterStatus) return clubs
-    const contactsByClub = new Map<string, CommercialContactWithCommercial[]>()
-    for (const c of filteredContacts) {
-      const arr = contactsByClub.get(c.clubDirectoryId) ?? []
-      arr.push(c)
-      contactsByClub.set(c.clubDirectoryId, arr)
-    }
-
-    return clubs.filter(club => {
-      const isPartner = club.clubRelationType === 'partenaire' || club.clubRelationType === 'associe'
-      const clubContacts = contactsByClub.get(club.id) ?? []
-
-      switch (filterStatus) {
-        case 'partenaire':
-          return isPartner
-        case 'pas_contacte':
-          return !isPartner && clubContacts.length === 0
-        case 'en_cours':
-          return !isPartner && clubContacts.length > 0 && clubContacts.some(c => c.status !== 'pas_de_suite')
-        case 'pas_de_suite':
-          return !isPartner && clubContacts.length > 0 && clubContacts.every(c => c.status === 'pas_de_suite')
-        default:
-          return true
-      }
+  // All prospects (unfiltered) for stat cards
+  const [allProspects, setAllProspects] = useState<ClubProspectListItem[]>([])
+  useEffect(() => {
+    listClubProspects().then(setAllProspects).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[ProspectionClubsPage] allProspects error:', err)
     })
-  }, [clubs, filteredContacts, filterStatus])
+  }, [prospects]) // re-fetch when prospects change (after create)
 
-  if (loading) {
+  if (loading && prospects.length === 0) {
     return (
       <View style={styles.container}>
-        <AureakText variant="body" style={styles.loadingText}>Chargement des clubs...</AureakText>
+        <AureakText variant="body" style={styles.loadingText}>Chargement du pipeline...</AureakText>
       </View>
     )
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Header */}
       <View style={styles.header}>
-        <AureakText variant="h1" style={styles.title}>Prospection Clubs</AureakText>
-        <AureakText variant="body" style={styles.sub}>
-          Registre des contacts clubs — vérifiez avant de contacter
-        </AureakText>
+        <View style={styles.headerLeft}>
+          <AureakText variant="h1" style={styles.title}>Pipeline Clubs</AureakText>
+          <AureakText variant="body" style={styles.sub}>
+            CRM prospection — gérez vos clubs prospects et contacts
+          </AureakText>
+        </View>
+        <Pressable style={styles.addBtn} onPress={() => setShowCreateModal(true)}>
+          <AureakText style={styles.addBtnText}>+ Ajouter un prospect</AureakText>
+        </Pressable>
       </View>
 
-      <ProspectionKPIs stats={stats} />
+      {/* Stat Cards */}
+      <ProspectionStatCards prospects={allProspects} />
 
-      {/* Story 85.5 — Filtres admin uniquement */}
-      {role === 'admin' && (
-        <AdminFilters
-          contacts={contacts}
-          selectedCommercial={filterCommercial}
-          selectedStatus={filterStatus}
-          onCommercialChange={setFilterCommercial}
-          onStatusChange={setFilterStatus}
-        />
-      )}
+      {/* Filtres pipeline pills */}
+      <View style={styles.filtersRow}>
+        <Pressable
+          style={[styles.filterPill, filterStatus === null && styles.filterPillActive]}
+          onPress={() => setFilterStatus(null)}
+        >
+          <AureakText style={[styles.filterPillText, filterStatus === null && styles.filterPillTextActive] as never}>
+            Tous
+          </AureakText>
+        </Pressable>
+        {PROSPECT_STATUSES.map(s => (
+          <Pressable
+            key={s}
+            style={[styles.filterPill, filterStatus === s && styles.filterPillActive]}
+            onPress={() => setFilterStatus(filterStatus === s ? null : s)}
+          >
+            <AureakText style={[styles.filterPillText, filterStatus === s && styles.filterPillTextActive] as never}>
+              {PROSPECT_STATUS_LABELS[s]}
+            </AureakText>
+          </Pressable>
+        ))}
+      </View>
 
-      <ClubList clubs={displayClubs} contacts={filteredContacts} />
-    </View>
+      {/* Tableau */}
+      <ProspectTable prospects={prospects} />
+
+      {/* Modale création */}
+      <CreateProspectModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={() => {
+          setShowCreateModal(false)
+          loadProspects()
+        }}
+      />
+    </ScrollView>
   )
 }
 
@@ -155,10 +114,21 @@ const styles = StyleSheet.create({
   container: {
     flex           : 1,
     backgroundColor: colors.light.primary,
-    padding        : space.xl,
+  },
+  content: {
+    padding: space.xl,
   },
   header: {
-    marginBottom: space.xl,
+    flexDirection : 'row',
+    justifyContent: 'space-between',
+    alignItems    : 'flex-start',
+    marginBottom  : space.xl,
+    flexWrap      : 'wrap',
+    gap           : space.md,
+  },
+  headerLeft: {
+    flex: 1,
+    minWidth: 200,
   },
   title: {
     color       : colors.text.dark,
@@ -166,6 +136,45 @@ const styles = StyleSheet.create({
   },
   sub: {
     color: colors.text.muted,
+  },
+  addBtn: {
+    backgroundColor  : colors.accent.gold,
+    paddingVertical  : space.sm,
+    paddingHorizontal: space.lg,
+    borderRadius     : radius.xs,
+  },
+  addBtnText: {
+    fontSize  : 14,
+    fontFamily: fonts.body,
+    fontWeight: '700',
+    color     : colors.text.primary,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    flexWrap     : 'wrap',
+    gap          : space.xs,
+    marginBottom : space.lg,
+  },
+  filterPill: {
+    paddingHorizontal: 14,
+    paddingVertical  : 6,
+    borderRadius     : 16,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.surface,
+  },
+  filterPillActive: {
+    backgroundColor: colors.accent.gold,
+    borderColor    : colors.accent.gold,
+  },
+  filterPillText: {
+    fontSize  : 12,
+    fontFamily: fonts.body,
+    color     : colors.text.muted,
+  },
+  filterPillTextActive: {
+    color     : colors.text.primary,
+    fontWeight: '600',
   },
   loadingText: {
     color    : colors.text.muted,

@@ -316,3 +316,45 @@ export const COMMERCIAL_CONTACT_STATUS_LABELS: Record<CommercialContactStatus, s
   en_attente     : 'En attente',
   pas_de_suite   : 'Pas de suite',
 }
+
+// ── Story 88.2 — Pipeline CRM Clubs (migration 00148) ──────────────────────
+
+/** Statut pipeline prospect — miroir de l'enum PostgreSQL `prospect_status` */
+export type ProspectStatus =
+  | 'premier_contact'
+  | 'mapping_orga'
+  | 'decisionnaire_identifie'
+  | 'rdv_qualifie'
+  | 'closing'
+  | 'converti'
+  | 'perdu'
+
+export const PROSPECT_STATUSES: ProspectStatus[] = [
+  'premier_contact', 'mapping_orga', 'decisionnaire_identifie',
+  'rdv_qualifie', 'closing', 'converti', 'perdu',
+]
+
+export const PROSPECT_STATUS_LABELS: Record<ProspectStatus, string> = {
+  premier_contact        : 'Premier contact',
+  mapping_orga           : 'Mapping orga',
+  decisionnaire_identifie: 'Décisionnaire identifié',
+  rdv_qualifie           : 'RDV qualifié',
+  closing                : 'Closing',
+  converti               : 'Converti',
+  perdu                  : 'Perdu',
+}
+
+/** Rôle d'un contact prospect — miroir de l'enum PostgreSQL `club_contact_role` */
+export type ClubContactRole = 'entraineur' | 'directeur_sportif' | 'president' | 'secretaire' | 'autre'
+
+export const CLUB_CONTACT_ROLES: ClubContactRole[] = [
+  'entraineur', 'directeur_sportif', 'president', 'secretaire', 'autre',
+]
+
+export const CLUB_CONTACT_ROLE_LABELS: Record<ClubContactRole, string> = {
+  entraineur       : 'Entraîneur',
+  directeur_sportif: 'Directeur sportif',
+  president        : 'Président',
+  secretaire       : 'Secrétaire',
+  autre            : 'Autre',
+}

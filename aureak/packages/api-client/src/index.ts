@@ -630,3 +630,15 @@ export {
   updateCommercialContact,
 } from './admin/commercial-contacts'
 
+// ── Story 88.2 — Pipeline CRM Clubs ─────────────────────────────────────────
+export {
+  listClubProspects,
+  getClubProspect,
+  createClubProspect,
+  updateClubProspect,
+  updateClubProspectStatus,
+  addProspectContact,
+  updateProspectContact,
+  deleteProspectContact,
+} from './admin/prospection'
+

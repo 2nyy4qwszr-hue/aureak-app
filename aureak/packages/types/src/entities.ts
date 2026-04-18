@@ -2410,3 +2410,93 @@ export type UpdateCommercialContactParams = {
   note?   : string
 }
 
+// ============================================================
+// Story 88.2 — Pipeline CRM Clubs (migration 00148)
+// ============================================================
+
+/** Club prospect dans le pipeline CRM */
+export type ClubProspect = {
+  id                    : string
+  tenantId              : string
+  clubName              : string
+  city                  : string
+  targetImplantationId  : string | null
+  status                : import('./enums').ProspectStatus
+  assignedCommercialId  : string
+  source                : string | null
+  notes                 : string | null
+  createdAt             : string
+  updatedAt             : string
+  deletedAt             : string | null
+}
+
+/** Contact d'un club prospect */
+export type ProspectContact = {
+  id              : string
+  clubProspectId  : string
+  firstName       : string
+  lastName        : string
+  role            : import('./enums').ClubContactRole
+  email           : string | null
+  phone           : string | null
+  isDecisionnaire : boolean
+  notes           : string | null
+  createdAt       : string
+  updatedAt       : string
+  deletedAt       : string | null
+}
+
+/** Club prospect enrichi de ses contacts */
+export type ClubProspectWithContacts = ClubProspect & {
+  contacts: ProspectContact[]
+}
+
+/** Prospect pour liste (avec count contacts + nom décisionnaire) */
+export type ClubProspectListItem = ClubProspect & {
+  contactsCount       : number
+  decisionnaireNom    : string | null
+  commercialDisplayName: string
+}
+
+/** Params création d'un club prospect */
+export type CreateClubProspectParams = {
+  clubName             : string
+  city                 : string
+  targetImplantationId?: string
+  source?              : string
+  notes?               : string
+}
+
+/** Params mise à jour d'un club prospect */
+export type UpdateClubProspectParams = {
+  clubName?            : string
+  city?                : string
+  targetImplantationId?: string | null
+  status?              : import('./enums').ProspectStatus
+  assignedCommercialId?: string
+  source?              : string
+  notes?               : string
+}
+
+/** Params création d'un contact prospect */
+export type CreateProspectContactParams = {
+  firstName       : string
+  lastName        : string
+  role?           : import('./enums').ClubContactRole
+  email?          : string
+  phone?          : string
+  isDecisionnaire?: boolean
+  notes?          : string
+}
+
+/** Params mise à jour d'un contact prospect */
+export type UpdateProspectContactParams = {
+  firstName?       : string
+  lastName?        : string
+  role?            : import('./enums').ClubContactRole
+  email?           : string
+  phone?           : string
+  isDecisionnaire? : boolean
+  notes?           : string
+}
+
