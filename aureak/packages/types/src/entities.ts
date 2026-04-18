@@ -2601,3 +2601,92 @@ export type UpdateCommercialResourceParams = {
   externalUrl?: string | null
 }
 
+// ── Story 88.4 — Règles d'attribution commerciale (migration 00154) ────────
+
+/** Pourcentages d'attribution (qualifier + closer = 100) */
+export type AttributionPercentages = {
+  qualifier: number
+  closer   : number
+  [key: string]: number
+}
+
+/** Règle d'attribution — miroir de la table `attribution_rules` */
+export type AttributionRule = {
+  id          : string
+  tenantId    : string
+  ruleName    : string
+  description : string
+  conditions  : Record<string, unknown>
+  percentages : AttributionPercentages
+  isDefault   : boolean
+  createdAt   : string
+  updatedAt   : string
+  deletedAt   : string | null
+}
+
+/** Suggestion d'attribution calculée pour un prospect */
+export type AttributionSuggestion = {
+  ruleApplied : AttributionRule
+  commercials : Array<{
+    commercialId       : string
+    displayName        : string
+    actionCount        : number
+    suggestedPercentage: number
+  }>
+}
+
+/** Params création d'une règle d'attribution */
+export type CreateAttributionRuleParams = {
+  ruleName    : string
+  description?: string
+  percentages : AttributionPercentages
+  conditions? : Record<string, unknown>
+  isDefault?  : boolean
+}
+
+/** Params mise à jour d'une règle d'attribution */
+export type UpdateAttributionRuleParams = {
+  ruleName?   : string
+  description?: string
+  percentages?: AttributionPercentages
+  conditions? : Record<string, unknown>
+  isDefault?  : boolean
+}
+
+// ── Story 89.3 — Évaluations scout gardiens ─────────────────────────────────
+
+/** Critères structurés d'évaluation scout (JSON) */
+export type ScoutEvaluationCriteria = {
+  reflexes        : number  // 1–5
+  positionnement  : number  // 1–5
+  jeuAuPied       : number  // 1–5
+  communication   : number  // 1–5
+  mental          : number  // 1–5
+}
+
+/** Évaluation scout d'un gardien prospect — miroir table `scout_evaluations` */
+export type ScoutEvaluation = {
+  id        : string
+  childId   : string
+  scoutId   : string
+  rating    : number         // 1–5
+  notes     : string | null
+  criteria  : ScoutEvaluationCriteria
+  tenantId  : string
+  createdAt : string
+  deletedAt : string | null
+}
+
+/** Évaluation scout enrichie avec le nom du scout */
+export type ScoutEvaluationWithScout = ScoutEvaluation & {
+  scoutDisplayName: string
+}
+
+/** Params pour créer une évaluation scout */
+export type CreateScoutEvaluationParams = {
+  childId  : string
+  rating   : number
+  notes?   : string
+  criteria : ScoutEvaluationCriteria
+}
+

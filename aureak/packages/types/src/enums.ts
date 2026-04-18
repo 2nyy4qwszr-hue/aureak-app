@@ -440,6 +440,46 @@ export const COACH_PROSPECT_STATUS_LABELS: Record<CoachProspectStatus, string> =
   recruited : 'Recruté',
 }
 
+// ── Story 92.2 — Sponsors : type sponsoring + statut capsule vidéo ──────────
+
+/** Type de sponsoring — miroir de l'enum PostgreSQL `sponsorship_type` */
+export type SponsorshipType = 'individual' | 'club' | 'corporate' | 'media'
+
+export const SPONSORSHIP_TYPES: SponsorshipType[] = ['individual', 'club', 'corporate', 'media']
+
+export const SPONSORSHIP_TYPE_LABELS: Record<SponsorshipType, string> = {
+  individual: 'Individuel',
+  club      : 'Club',
+  corporate : 'Entreprise',
+  media     : 'Média',
+}
+
+/** Statut capsule vidéo — miroir de l'enum PostgreSQL `capsule_status` */
+export type CapsuleStatus = 'not_started' | 'filming' | 'editing' | 'published'
+
+export const CAPSULE_STATUSES: CapsuleStatus[] = ['not_started', 'filming', 'editing', 'published']
+
+export const CAPSULE_STATUS_LABELS: Record<CapsuleStatus, string> = {
+  not_started: 'Non démarré',
+  filming    : 'Tournage',
+  editing    : 'Montage',
+  published  : 'Publié',
+}
+
+// ── Story 91.2 — Médiathèque upload coachs + validation admin ───────────────
+
+/** Statut d'un média dans la médiathèque — miroir de l'enum PostgreSQL `media_item_status` */
+export type MediaItemStatus = 'draft' | 'pending' | 'approved' | 'rejected'
+
+export const MEDIA_ITEM_STATUSES: MediaItemStatus[] = ['draft', 'pending', 'approved', 'rejected']
+
+export const MEDIA_ITEM_STATUS_LABELS: Record<MediaItemStatus, string> = {
+  draft   : 'Brouillon',
+  pending : 'En attente',
+  approved: 'Approuvé',
+  rejected: 'Rejeté',
+}
+
 // ── Story 88.5 — Bibliothèque ressources commerciales ────────────────────────
 
 /** Type de ressource commerciale — miroir de l'enum PostgreSQL `commercial_resource_type` */

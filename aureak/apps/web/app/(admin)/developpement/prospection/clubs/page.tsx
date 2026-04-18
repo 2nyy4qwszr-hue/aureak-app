@@ -1,4 +1,4 @@
-// Story 88.2 + 88.3 — Page CRM Pipeline Clubs : StatCards + Filtres + Tableau + Mes actions
+// Story 88.2 + 88.3 + 88.6 — Page CRM Pipeline Clubs : StatCards + Filtres + Tableau + Closing + Actions rapides
 'use client'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
@@ -11,14 +11,21 @@ import type { ClubProspectListItem, ProspectStatus, ProspectAction } from '@aure
 import { ProspectionStatCards } from './_components/ProspectionStatCards'
 import { ProspectTable } from './_components/ProspectTable'
 import { CreateProspectModal } from './_components/CreateProspectModal'
+import { ConvertProspectModal } from './_components/ConvertProspectModal'
+import { LostProspectModal } from './_components/LostProspectModal'
 
 export default function ProspectionClubsPage() {
   const { role } = useAuthStore()
   const [prospects, setProspects]           = useState<ClubProspectListItem[]>([])
   const [loading, setLoading]               = useState(true)
   const [filterStatus, setFilterStatus]     = useState<ProspectStatus | null>(null)
+  const [closingFilter, setClosingFilter]   = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [myActions, setMyActions] = useState<ProspectAction[]>([])
+
+  // Story 88.6 — Action modals state
+  const [convertTarget, setConvertTarget] = useState<ClubProspectListItem | null>(null)
+  const [lostTarget, setLostTarget]       = useState<ClubProspectListItem | null>(null)
 
   const loadProspects = useCallback(async () => {
     setLoading(true)
@@ -53,6 +60,19 @@ export default function ProspectionClubsPage() {
     })
   }, [prospects])
 
+  // Story 88.6 — Closing count for badge
+  const closingCount = useMemo(() =>
+    allProspects.filter(p => p.status === 'rdv_qualifie' || p.status === 'closing').length
+  , [allProspects])
+
+  // Story 88.6 — Filtered prospects
+  const displayedProspects = useMemo(() => {
+    if (closingFilter) {
+      return prospects.filter(p => p.status === 'rdv_qualifie' || p.status === 'closing')
+    }
+    return prospects
+  }, [prospects, closingFilter])
+
   if (loading && prospects.length === 0) {
     return (
       <View style={styles.container}>
@@ -82,28 +102,53 @@ export default function ProspectionClubsPage() {
       {/* Filtres pipeline pills */}
       <View style={styles.filtersRow}>
         <Pressable
-          style={[styles.filterPill, filterStatus === null && styles.filterPillActive]}
-          onPress={() => setFilterStatus(null)}
+          style={[styles.filterPill, filterStatus === null && !closingFilter && styles.filterPillActive]}
+          onPress={() => { setFilterStatus(null); setClosingFilter(false) }}
         >
-          <AureakText style={[styles.filterPillText, filterStatus === null && styles.filterPillTextActive] as never}>
+          <AureakText style={[styles.filterPillText, filterStatus === null && !closingFilter && styles.filterPillTextActive] as never}>
             Tous
           </AureakText>
         </Pressable>
-        {PROSPECT_STATUSES.map(s => (
+        {PROSPECT_STATUSES.map(st => (
           <Pressable
-            key={s}
-            style={[styles.filterPill, filterStatus === s && styles.filterPillActive]}
-            onPress={() => setFilterStatus(filterStatus === s ? null : s)}
+            key={st}
+            style={[styles.filterPill, filterStatus === st && !closingFilter && styles.filterPillActive]}
+            onPress={() => { setFilterStatus(filterStatus === st ? null : st); setClosingFilter(false) }}
           >
-            <AureakText style={[styles.filterPillText, filterStatus === s && styles.filterPillTextActive] as never}>
-              {PROSPECT_STATUS_LABELS[s]}
+            <AureakText style={[styles.filterPillText, filterStatus === st && !closingFilter && styles.filterPillTextActive] as never}>
+              {PROSPECT_STATUS_LABELS[st]}
             </AureakText>
           </Pressable>
         ))}
+
+        {/* Story 88.6 — CLOSING pill */}
+        <Pressable
+          style={[styles.filterPill, closingFilter && styles.closingPillActive]}
+          onPress={() => {
+            setClosingFilter(!closingFilter)
+            if (!closingFilter) setFilterStatus(null)
+          }}
+        >
+          <View style={styles.closingPillContent}>
+            <AureakText style={[styles.filterPillText, closingFilter && styles.closingPillTextActive] as never}>
+              CLOSING
+            </AureakText>
+            {closingCount > 0 && (
+              <View style={styles.closingBadge}>
+                <AureakText style={styles.closingBadgeText}>{closingCount}</AureakText>
+              </View>
+            )}
+          </View>
+        </Pressable>
       </View>
 
       {/* Tableau */}
-      <ProspectTable prospects={prospects} />
+      <ProspectTable
+        prospects={displayedProspects}
+        closingMode={closingFilter}
+        onConvert={(p) => setConvertTarget(p)}
+        onLost={(p) => setLostTarget(p)}
+      />
 
       {/* Mes actions (Story 88.3) */}
       {myActions.length > 0 && (
@@ -143,6 +188,34 @@ export default function ProspectionClubsPage() {
           loadProspects()
         }}
       />
+
+      {/* Story 88.6 — Modale conversion */}
+      {convertTarget && (
+        <ConvertProspectModal
+          visible={!!convertTarget}
+          clubProspectId={convertTarget.id}
+          clubName={convertTarget.clubName}
+          onClose={() => setConvertTarget(null)}
+          onConverted={() => {
+            setConvertTarget(null)
+            loadProspects()
+          }}
+        />
+      )}
+
+      {/* Story 88.6 — Modale perdu */}
+      {lostTarget && (
+        <LostProspectModal
+          visible={!!lostTarget}
+          clubProspectId={lostTarget.id}
+          clubName={lostTarget.clubName}
+          onClose={() => setLostTarget(null)}
+          onLost={() => {
+            setLostTarget(null)
+            loadProspects()
+          }}
+        />
+      )}
     </ScrollView>
   )
 }
@@ -217,6 +290,36 @@ const styles = StyleSheet.create({
     color    : colors.text.muted,
     textAlign: 'center',
     marginTop: space.xl,
+  },
+
+  // Story 88.6 — Closing pill
+  closingPillActive: {
+    backgroundColor: colors.accent.gold,
+    borderColor    : colors.accent.gold,
+  },
+  closingPillContent: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : 6,
+  },
+  closingPillTextActive: {
+    color     : colors.text.primary,
+    fontWeight: '700',
+  },
+  closingBadge: {
+    backgroundColor  : colors.text.primary,
+    borderRadius     : 10,
+    minWidth         : 18,
+    height           : 18,
+    alignItems       : 'center',
+    justifyContent   : 'center',
+    paddingHorizontal: 4,
+  },
+  closingBadgeText: {
+    fontSize  : 10,
+    fontFamily: fonts.body,
+    fontWeight: '700',
+    color     : colors.accent.gold,
   },
 
   // Mes actions (Story 88.3)

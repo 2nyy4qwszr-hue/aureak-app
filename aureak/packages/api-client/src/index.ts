@@ -666,6 +666,23 @@ export {
 } from './admin/coachProspects'
 export type { CreateCoachRecommendationParams } from './admin/coachProspects'
 
+// Story 89.3 — Évaluations scout gardiens
+export {
+  listScoutEvaluations,
+  createScoutEvaluation,
+  deleteScoutEvaluation,
+} from './admin/scoutEvaluations'
+
+// Story 88.4 — Règles d'attribution commerciale
+export {
+  listAttributionRules,
+  createAttributionRule,
+  updateAttributionRule,
+  deleteAttributionRule,
+  suggestAttribution,
+  saveAttributionResult,
+} from './admin/attribution'
+
 // Story 88.5 — Bibliothèque ressources commerciales
 export {
   listCommercialResources,
@@ -674,3 +691,26 @@ export {
   getResourceDownloadUrl,
 } from './admin/commercial-resources'
 
+// Story 91.2 — Médiathèque upload coachs + validation admin
+export {
+  uploadMediaItem,
+  listMediaItems,
+  approveMediaItem,
+  rejectMediaItem,
+  softDeleteMediaItem,
+  getMediaSignedUrl,
+} from './admin/mediaItems'
+export type { UploadMediaItemParams, ListMediaItemsOpts } from './admin/mediaItems'
+
+// Story 92.2 — Sponsors CRUD + lien enfant + capsule vidéo
+// Story 92.3 — Stats clubs partenaires
+export {
+  listSponsors,
+  getSponsor,
+  createSponsor,
+  updateSponsor,
+  deleteSponsor,
+  getPartnershipClubStats,
+  listPartnerClubsSummary,
+} from './admin/sponsors'
+export type { ListSponsorsOpts, PartnershipClubStats, PartnerClubSummaryItem } from './admin/sponsors'

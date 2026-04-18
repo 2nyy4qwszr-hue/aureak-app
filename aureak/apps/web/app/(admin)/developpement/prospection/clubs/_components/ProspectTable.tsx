@@ -1,5 +1,5 @@
 'use client'
-// Story 88.2 — Tableau CRM prospects avec 7 colonnes
+// Story 88.2 + 88.6 — Tableau CRM prospects : 7 colonnes standard + colonnes enrichies en mode closing
 import React from 'react'
 import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -9,7 +9,10 @@ import { PROSPECT_STATUS_LABELS } from '@aureak/types'
 import type { ClubProspectListItem, ProspectStatus } from '@aureak/types'
 
 type Props = {
-  prospects: ClubProspectListItem[]
+  prospects   : ClubProspectListItem[]
+  closingMode?: boolean
+  onConvert?  : (p: ClubProspectListItem) => void
+  onLost?     : (p: ClubProspectListItem) => void
 }
 
 /** Couleur badge par statut pipeline */
@@ -22,7 +25,7 @@ function statusBadgeColors(status: ProspectStatus): { bg: string; text: string }
     case 'decisionnaire_identifie':
       return { bg: colors.status.orangeBg, text: colors.status.orangeText }
     case 'rdv_qualifie':
-      return { bg: colors.status.successBg, text: colors.status.successText }
+      return { bg: colors.status.orangeBg, text: colors.status.orangeText }
     case 'closing':
       return { bg: colors.border.goldBg, text: colors.accent.gold }
     case 'converti':
@@ -46,14 +49,16 @@ function formatRelativeDate(isoDate: string): string {
   return `il y a ${months} mois`
 }
 
-export function ProspectTable({ prospects }: Props) {
+export function ProspectTable({ prospects, closingMode, onConvert, onLost }: Props) {
   const router = useRouter()
 
   if (prospects.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <AureakText variant="body" style={styles.emptyText}>
-          Aucun prospect pour le moment. Ajoutez votre premier club !
+          {closingMode
+            ? 'Aucun prospect en phase de closing pour le moment.'
+            : 'Aucun prospect pour le moment. Ajoutez votre premier club !'}
         </AureakText>
       </View>
     )
@@ -71,19 +76,32 @@ export function ProspectTable({ prospects }: Props) {
           <View style={[styles.cell, styles.cellDecis]}><AureakText style={styles.headerText}>DECISIONNAIRE</AureakText></View>
           <View style={[styles.cell, styles.cellCommercial]}><AureakText style={styles.headerText}>COMMERCIAL</AureakText></View>
           <View style={[styles.cell, styles.cellAction]}><AureakText style={styles.headerText}>DERNIERE ACTION</AureakText></View>
+          {closingMode && (
+            <View style={[styles.cell, styles.cellActions]}><AureakText style={styles.headerText}>ACTIONS</AureakText></View>
+          )}
         </View>
 
         {/* Data rows */}
         {prospects.map(p => {
           const badgeColors = statusBadgeColors(p.status)
+          // Story 88.6 — Highlight closing rows
+          const isClosing = p.status === 'closing'
+          const isRdvQualifie = p.status === 'rdv_qualifie'
+
           return (
             <Pressable
               key={p.id}
-              style={({ pressed }) => [styles.dataRow, pressed && styles.dataRowPressed]}
+              style={({ pressed }) => [
+                styles.dataRow,
+                closingMode && isClosing && styles.dataRowClosing,
+                pressed && styles.dataRowPressed,
+              ] as never}
               onPress={() => router.push(`/developpement/prospection/clubs/${p.id}` as never)}
             >
               <View style={[styles.cell, styles.cellClub]}>
-                <AureakText style={styles.cellText} numberOfLines={1}>{p.clubName}</AureakText>
+                <AureakText style={[styles.cellText, closingMode && styles.cellTextClosing] as never} numberOfLines={1}>
+                  {p.clubName}
+                </AureakText>
               </View>
               <View style={[styles.cell, styles.cellCity]}>
                 <AureakText style={styles.cellTextMuted} numberOfLines={1}>{p.city}</AureakText>
@@ -109,6 +127,30 @@ export function ProspectTable({ prospects }: Props) {
               <View style={[styles.cell, styles.cellAction]}>
                 <AureakText style={styles.cellTextMuted}>{formatRelativeDate(p.updatedAt)}</AureakText>
               </View>
+              {closingMode && (
+                <View style={[styles.cell, styles.cellActions]}>
+                  <View style={styles.actionBtns}>
+                    <Pressable
+                      style={styles.convertBtn}
+                      onPress={(e) => {
+                        e.stopPropagation?.()
+                        onConvert?.(p)
+                      }}
+                    >
+                      <AureakText style={styles.convertBtnText}>Converti</AureakText>
+                    </Pressable>
+                    <Pressable
+                      style={styles.lostBtn}
+                      onPress={(e) => {
+                        e.stopPropagation?.()
+                        onLost?.(p)
+                      }}
+                    >
+                      <AureakText style={styles.lostBtnText}>Perdu</AureakText>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
             </Pressable>
           )
         })}
@@ -146,6 +188,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.sm,
     alignItems       : 'center',
   },
+  dataRowClosing: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.accent.gold,
+  },
   dataRowPressed: {
     backgroundColor: colors.light.hover,
   },
@@ -160,11 +206,16 @@ const styles = StyleSheet.create({
   cellDecis     : { width: 160 },
   cellCommercial: { width: 140 },
   cellAction    : { width: 120 },
+  cellActions   : { width: 180 },
   cellText: {
     fontSize  : 13,
     fontFamily: fonts.body,
     fontWeight: '600',
     color     : colors.text.dark,
+  },
+  cellTextClosing: {
+    fontSize  : 14,
+    fontWeight: '700',
   },
   cellTextMuted: {
     fontSize  : 13,
@@ -189,5 +240,35 @@ const styles = StyleSheet.create({
   emptyText: {
     color    : colors.text.muted,
     textAlign: 'center',
+  },
+
+  // Story 88.6 — Action buttons
+  actionBtns: {
+    flexDirection: 'row',
+    gap          : space.xs,
+  },
+  convertBtn: {
+    backgroundColor  : colors.status.successText,
+    paddingHorizontal: 10,
+    paddingVertical  : 4,
+    borderRadius     : radius.badge,
+  },
+  convertBtnText: {
+    fontSize  : 11,
+    fontFamily: fonts.body,
+    fontWeight: '700',
+    color     : '#fff',
+  },
+  lostBtn: {
+    backgroundColor  : colors.status.errorText,
+    paddingHorizontal: 10,
+    paddingVertical  : 4,
+    borderRadius     : radius.badge,
+  },
+  lostBtnText: {
+    fontSize  : 11,
+    fontFamily: fonts.body,
+    fontWeight: '700',
+    color     : '#fff',
   },
 })

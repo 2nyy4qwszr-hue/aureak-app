@@ -19,6 +19,7 @@ import type { ClubProspectWithContacts, ProspectStatus, ProspectContact, Prospec
 import { AddContactModal } from '../_components/AddContactModal'
 import { ProspectTimeline } from '../_components/ProspectTimeline'
 import { AddActionModal } from '../_components/AddActionModal'
+import { ConvertProspectModal } from '../_components/ConvertProspectModal'
 
 export default function ProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()
@@ -30,6 +31,7 @@ export default function ProspectDetailPage() {
   const [showAddAction, setShowAddAction]   = useState(false)
   const [statusOpen, setStatusOpen]   = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [showConvertModal, setShowConvertModal] = useState(false)
 
   const load = useCallback(async () => {
     if (!prospectId) return
@@ -52,6 +54,12 @@ export default function ProspectDetailPage() {
 
   async function handleStatusChange(newStatus: ProspectStatus) {
     if (!prospect) return
+    // Intercept "converti" to show attribution modal (Story 88.4)
+    if (newStatus === 'converti') {
+      setStatusOpen(false)
+      setShowConvertModal(true)
+      return
+    }
     setUpdatingStatus(true)
     try {
       await updateClubProspectStatus(prospect.id, newStatus)
@@ -183,6 +191,19 @@ export default function ProspectDetailPage() {
         onClose={() => setShowAddContact(false)}
         onCreated={() => {
           setShowAddContact(false)
+          load()
+        }}
+      />
+
+      {/* Modale conversion avec attribution (Story 88.4) */}
+      <ConvertProspectModal
+        visible={showConvertModal}
+        clubProspectId={prospect.id}
+        clubName={prospect.clubName}
+        onClose={() => setShowConvertModal(false)}
+        onConverted={() => {
+          setShowConvertModal(false)
+          setProspect(prev => prev ? { ...prev, status: 'converti' } : prev)
           load()
         }}
       />

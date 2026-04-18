@@ -14,6 +14,7 @@ import {
   CHILD_PROSPECT_STATUSES,
   CHILD_PROSPECT_STATUS_LABELS,
 } from '@aureak/types'
+import { useRouter } from 'expo-router'
 import { AddProspectForm } from './_components/AddProspectForm'
 
 // ── ProspectBadge ────────────────────────────────────────────────────────────
@@ -94,6 +95,7 @@ export default function ProspectionGardiensPage() {
   const [statusFilter, setStatusFilter] = useState<ChildProspectStatus | 'all_prospects' | 'all'>('all_prospects')
   const [page, setPage] = useState(0)
   const [showForm, setShowForm] = useState(false)
+  const router = useRouter()
   const pageSize = 50
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -218,9 +220,14 @@ export default function ProspectionGardiensPage() {
           {/* Table rows */}
           {entries.map((entry) => (
             <View key={entry.id} style={styles.tableRow}>
-              <AureakText style={styles.colName as never} numberOfLines={1}>
-                {entry.displayName}
-              </AureakText>
+              <Pressable
+                style={styles.colName as never}
+                onPress={() => router.push(`/developpement/prospection/gardiens/${entry.id}` as never)}
+              >
+                <AureakText style={styles.colNameLink as never} numberOfLines={1}>
+                  {entry.displayName}
+                </AureakText>
+              </Pressable>
               <AureakText style={[styles.colClub, { color: colors.text.muted }] as never} numberOfLines={1}>
                 {entry.currentClub ?? '—'}
               </AureakText>
@@ -389,7 +396,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
   },
-  colName    : { flex: 2, fontSize: 14, color: colors.text.dark },
+  colName    : { flex: 2 },
+  colNameLink: { fontSize: 14, color: colors.accent.gold, fontWeight: '600' as const },
   colClub    : { flex: 2, fontSize: 13 },
   colCategory: { flex: 1, fontSize: 13 },
   colBadge   : { flex: 1.2, alignItems: 'flex-start' as const },
