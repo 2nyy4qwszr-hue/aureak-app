@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex           : 1,
     backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
+    borderRadius   : radius.xs,
     borderWidth    : 1,
     borderColor    : colors.border.light,
     padding        : space.md,

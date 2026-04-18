@@ -82,6 +82,14 @@ export const colors = {
     orangeBg : '#FFF7ED',  // fond orange clair — blessure légère
     orangeBorder: '#FED7AA', // bordure orange légère
     orangeText: '#9A3412',  // texte sur fond orangeBg
+    // Palette badges CRM prospection (Epic 85) — Tailwind 100/800 pour contraste WCAG AA
+    amberBg    : '#FEF3C7',  // fond ambre saturé — badges "en cours"
+    amberDarkBg: '#FDE68A',  // fond ambre plus marqué — badges "en attente"
+    amberText  : '#92400E',  // texte sur fond amberBg/amberDarkBg
+    redBg      : '#FEE2E2',  // fond rouge saturé — badges "pas de suite" / "bloqué"
+    redText    : '#991B1B',  // texte sur fond redBg
+    blueBg     : '#DBEAFE',  // fond bleu saturé — badges "premier contact"
+    blueText   : '#1E40AF',  // texte sur fond blueBg
   },
   overlay: {
     dark : 'rgba(0,0,0,0.5)',          // fond modal standard

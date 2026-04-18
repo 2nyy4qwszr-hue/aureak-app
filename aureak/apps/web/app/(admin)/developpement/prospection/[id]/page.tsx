@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.sm,
     paddingVertical  : space.xs,
     borderRadius     : radius.xs,
-    backgroundColor  : colors.light.hover ?? '#F5F5F5',
+    backgroundColor  : colors.light.hover,
     borderWidth      : 1,
     borderColor      : colors.border.light,
   },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
   },
   partnerBadge: {
-    backgroundColor  : colors.border.goldBg ?? '#FDF6E3',
+    backgroundColor  : colors.border.goldBg,
     paddingHorizontal: space.md,
     paddingVertical  : space.xs,
     borderRadius     : radius.xs,
