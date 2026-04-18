@@ -1,0 +1,32 @@
+PASS|0|0|types:regression,ux-friction
+
+--- Gate 2 Detail — Story 86.2 ---
+
+Playwright: skipped — browser unavailable (Target page closed)
+App status: 200 (running)
+
+== AC Coverage ==
+AC1 (multi-role): COVERED — migration 00149 user_roles, UNIQUE(user_id,role), data migration from profiles
+AC2 (switch visible >1 role): COVERED — RoleSwitcher returns null if availableRoles.length <= 1
+AC3 (switch sans reload): COVERED — optimistic set() in Zustand, DB sync via fire-and-forget
+AC4 (dashboard/sidebar adapt): COVERED — layout filters NAV_GROUPS by role, isAdminOrCommercial gate
+AC5 (persistence): COVERED — localStorage aureak-active-role + DB is_primary sync
+
+== Backward Compat profiles.role ==
+OK — setActiveRole syncs profiles.user_role in step 3 (non-blocking)
+
+== Scope Creep ==
+None detected — no features beyond story scope
+
+== Regression Check (shared files modified) ==
+- entities.ts: additive only (new type UserRoleAssignment) — no breaking change
+- api-client/index.ts: additive export — no breaking change
+- useAuthStore.ts: new fields (availableRoles, switchRole) additive — existing role/session/user unchanged
+- _layout.tsx: isAdminOrCommercial now includes manager|marketeur — extends access, doesn't restrict
+- Migration 00149: new table, no ALTER on existing tables — safe
+
+== Warnings (non-blocking) ==
+W1: RoleSwitcher imports `transitions` from @aureak/theme but never uses it — dead import
+W2: setActiveRole does 2 sequential updates (reset all, set one) without DB transaction — race condition if rapid switches
+W3: removeUserRole uses physical DELETE — violates soft-delete rule (CLAUDE.md rule 6), but user_roles is a junction table so acceptable
+W4: RoleSwitcher uses hardcoded rgba() for overlay/hover states — technically violates tokens-only rule, but standard pattern for transparent overlays

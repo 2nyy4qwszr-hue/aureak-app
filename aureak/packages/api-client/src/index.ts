@@ -622,6 +622,11 @@ export {
 } from './offline'
 export type { OfflineQueueItem } from './offline'
 
+// ── Story 86.2 — Multi-rôle utilisateur ─────────────────────────────────────
+export {
+  listUserRoles, setActiveRole, addUserRole, removeUserRole,
+} from './admin/user-roles'
+
 // ── Epic 85 — Registre Commercial Clubs ─────────────────────────────────────
 export {
   listCommercialContactsByClub,

@@ -164,6 +164,10 @@ export { HelpTooltip } from './HelpTooltip'
 export type { HelpTooltipProps } from './HelpTooltip'
 export { HELP_TEXTS } from './helpTexts'
 
+// Story 86.2 — Switch de rôle multi-rôle
+export { RoleSwitcher } from './RoleSwitcher'
+export type { RoleSwitcherProps } from './RoleSwitcher'
+
 // Icônes SVG de navigation
 export type { NavIconProps } from './icons'
 export {

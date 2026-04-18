@@ -39,6 +39,7 @@ import {
   ActiveSessionHUD,
   PWAInstallBanner,
   OfflineBanner,
+  RoleSwitcher,
 } from '@aureak/ui'
 import type { NavIconProps } from '@aureak/ui'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
@@ -190,7 +191,7 @@ function AdminLayoutInner() {
 
   // ── Story 62.5 — Référence au conteneur de contenu pour la transition de page ─
   const contentAreaRef = useRef<HTMLDivElement>(null)
-  const { role, isLoading, signOut, user } = useAuthStore()
+  const { role, isLoading, signOut, user, availableRoles, switchRole } = useAuthStore()
   useTheme()
   const themeColors = useThemeColors()
   const [mobileOpen,      setMobileOpen]      = useState(false)
@@ -418,8 +419,8 @@ function AdminLayoutInner() {
     setAdminPanelOpen(false)
   }, [pathname, isMobile])
 
-  // Epic 85 — commerciaux accèdent au layout admin (vue réduite)
-  const isAdminOrCommercial = role === 'admin' || role === 'commercial'
+  // Epic 85/86 — rôles accédant au layout admin (vue adaptée selon rôle actif)
+  const isAdminOrCommercial = role === 'admin' || role === 'commercial' || role === 'manager' || role === 'marketeur'
 
   useEffect(() => {
     if (!isLoading && !isAdminOrCommercial) {
@@ -737,6 +738,18 @@ function AdminLayoutInner() {
 
         {/* ── Admin info + sign out ── */}
         <YStack paddingHorizontal={12} paddingTop={8} style={{ flexShrink: 0 } as never}>
+          {/* Story 86.2 — RoleSwitcher (visible si >1 rôle, AC2) */}
+          {role && availableRoles.length > 1 && (
+            <YStack marginBottom={8}>
+              <RoleSwitcher
+                currentRole={role}
+                availableRoles={availableRoles}
+                onSwitch={switchRole}
+                collapsed={sidebarCollapsed}
+              />
+            </YStack>
+          )}
+
           <Separator borderColor={colors.border.dark} opacity={0.4} marginBottom={10} />
 
           {/* Admin user pill — masqué en collapsed avec opacity animée */}
@@ -799,7 +812,7 @@ function AdminLayoutInner() {
                     color={colors.text.secondary}
                     style={{ textTransform: 'uppercase' as never, letterSpacing: 1 }}
                   >
-                    Admin
+                    {role === 'admin' ? 'Admin' : role === 'commercial' ? 'Commercial' : role === 'manager' ? 'Manager' : role === 'marketeur' ? 'Marketeur' : 'Admin'}
                   </Text>
                 </YStack>
               </XStack>

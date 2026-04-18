@@ -77,6 +77,19 @@ export type CoachAccessGrant = {
 export type { UserRole }
 
 // ============================================================
+// Multi-rôle utilisateur (Migration 00149 — Story 86.2)
+// ============================================================
+
+/** UserRoleAssignment — association many-to-many utilisateur ↔ rôle */
+export type UserRoleAssignment = {
+  id        : string
+  userId    : string
+  role      : UserRole
+  isPrimary : boolean
+  createdAt : string       // ISO 8601
+}
+
+// ============================================================
 // Historique football par saison (Migration 00010)
 // ============================================================
 
