@@ -1,13 +1,16 @@
 'use client'
 // Story 83.1 — Académie Joueurs : refonte LayoutActivités
+// Story 52-5 — Filtres tier pills colorées multi-sélection
 // header + StatCards + filtresRow pills/dropdowns + search row + table alignée
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, Image, TextInput } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows, playerTiers } from '@aureak/theme'
 import { avatarBgColor } from '../../children/_avatarHelpers'
+import { computePlayerTier } from '@aureak/business-logic'
+import type { PlayerTier } from '@aureak/types'
 
 // ── Badges statut ─────────────────────────────────────────────────────────────────
 const BADGE_IMAGES: Record<string, ReturnType<typeof require>> = {
@@ -88,6 +91,108 @@ function Stars({ count }: { count: number | null }) {
   )
 }
 
+// ── Tier pills config — Story 52-5 ────────────────────────────────────────────────
+
+type TierPillConfig = {
+  tier : PlayerTier | 'all'
+  label: string
+  bg   : string
+  text : string
+  border: string
+}
+
+const TIER_PILLS_CONFIG: TierPillConfig[] = [
+  { tier: 'all',          label: 'Tous',         bg: colors.light.muted,      text: colors.text.dark,  border: colors.border.light       },
+  { tier: 'Prospect',     label: 'Prospect',     bg: playerTiers.prospect.bg, text: '#555555',         border: playerTiers.prospect.border },
+  { tier: 'Académicien',  label: 'Académicien',  bg: colors.light.surface,    text: colors.text.dark,  border: colors.border.light       },
+  { tier: 'Confirmé',     label: 'Confirmé',     bg: '#FFF8E8',               text: '#8A6800',         border: 'rgba(193,172,92,0.4)'    },
+  { tier: 'Elite',        label: 'Elite',        bg: playerTiers.elite.bg,    text: '#FFE566',         border: playerTiers.elite.border   },
+]
+
+const TIER_STORAGE_KEY = 'aureak_players_tier_filter'
+
+function loadTierSelection(): PlayerTier[] {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(TIER_STORAGE_KEY) : null
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed as PlayerTier[]
+  } catch {
+    // ignore
+  }
+  return []
+}
+
+function saveTierSelection(tiers: PlayerTier[]): void {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(TIER_STORAGE_KEY, JSON.stringify(tiers))
+    }
+  } catch {
+    // ignore
+  }
+}
+
+// ── TierPills — Story 52-5 ────────────────────────────────────────────────────────
+
+function TierPills({
+  selectedTiers, onToggle, tierCounts,
+}: {
+  selectedTiers: PlayerTier[]
+  onToggle     : (tier: PlayerTier | 'all') => void
+  tierCounts   : Record<PlayerTier | 'all', number>
+}) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tp.row}>
+      {TIER_PILLS_CONFIG.map(cfg => {
+        const isSelected = cfg.tier === 'all'
+          ? selectedTiers.length === 0
+          : selectedTiers.includes(cfg.tier)
+        const count = tierCounts[cfg.tier]
+        return (
+          <Pressable
+            key={cfg.tier}
+            style={[
+              tp.pill,
+              {
+                backgroundColor: isSelected ? cfg.bg : colors.light.muted,
+                borderColor    : isSelected ? cfg.border : colors.border.light,
+              },
+            ] as never}
+            onPress={() => onToggle(cfg.tier)}
+            accessibilityRole="button"
+            accessibilityLabel={`Filtrer par ${cfg.label}`}
+          >
+            <AureakText
+              style={[
+                tp.pillText,
+                { color: isSelected ? cfg.text : colors.text.muted },
+              ] as never}
+            >
+              {cfg.label} ({count})
+            </AureakText>
+          </Pressable>
+        )
+      })}
+    </ScrollView>
+  )
+}
+
+const tp = StyleSheet.create({
+  row     : { flexDirection: 'row', gap: space.sm, paddingVertical: space.xs },
+  pill    : {
+    paddingHorizontal: 14,
+    paddingVertical  : 8,
+    borderRadius     : radius.badge,
+    borderWidth      : 1,
+  },
+  pillText: {
+    fontSize     : 12,
+    fontWeight   : '600',
+    fontFamily   : fonts.body,
+  },
+})
+
 // ── Page principale ───────────────────────────────────────────────────────────────
 export default function AcademieJoueursPage() {
   const router   = useRouter()
@@ -110,6 +215,9 @@ export default function AcademieJoueursPage() {
   const [niveau,       setNiveau]       = useState('all')
   const [clubFilter,   setClubFilter]   = useState('all')
   const [page,         setPage]         = useState(0)
+
+  // ── Tier filter — Story 52-5 ──
+  const [selectedTiers, setSelectedTiers] = useState<PlayerTier[]>(loadTierSelection)
 
   // ── Dropdown state ──
   const [statusDropOpen, setStatusDropOpen] = useState(false)
@@ -181,8 +289,8 @@ export default function AcademieJoueursPage() {
     return ['all', ...Array.from(set).sort().slice(0, 30)]
   }, [joueurs])
 
-  // ── Filtrage ──
-  const filtered = useMemo(() => {
+  // ── Filtrage (pré-tier) ──
+  const filteredPreTier = useMemo(() => {
     const PROSPECT_STATUS = 'PROSPECT'
     return joueurs.filter(j => {
       if (toggle === 'prospect') {
@@ -206,18 +314,58 @@ export default function AcademieJoueursPage() {
     })
   }, [joueurs, toggle, statusFilter, search, birthYear, niveau, clubFilter])
 
+  // ── Tier counts — Story 52-5 ──
+  const tierCounts = useMemo(() => {
+    const counts: Record<PlayerTier | 'all', number> = {
+      all         : filteredPreTier.length,
+      Prospect    : 0,
+      'Académicien': 0,
+      'Confirmé'  : 0,
+      Elite       : 0,
+    }
+    filteredPreTier.forEach(j => {
+      const tier = computePlayerTier(j)
+      counts[tier] = (counts[tier] || 0) + 1
+    })
+    return counts
+  }, [filteredPreTier])
+
+  // ── Filtrage par tier — Story 52-5 ──
+  const filtered = useMemo(() => {
+    if (selectedTiers.length === 0) return filteredPreTier
+    return filteredPreTier.filter(j => selectedTiers.includes(computePlayerTier(j)))
+  }, [filteredPreTier, selectedTiers])
+
+  // ── Persist tier selection — Story 52-5 ──
+  useEffect(() => {
+    saveTierSelection(selectedTiers)
+  }, [selectedTiers])
+
   // ── Handlers ──
+  const handleTierToggle = useCallback((tier: PlayerTier | 'all') => {
+    if (tier === 'all') {
+      setSelectedTiers([])
+    } else {
+      setSelectedTiers(prev => {
+        const next = prev.includes(tier)
+          ? prev.filter(t => t !== tier)
+          : [...prev, tier]
+        return next
+      })
+    }
+    setPage(0)
+  }, [])
   const handleToggle = useCallback((t: MainToggle) => { setToggle(t); setStatusFilter('all'); setPage(0) }, [])
   const handleSearch = useCallback((v: string)      => { setSearch(v); setPage(0) }, [])
   const handleReset  = useCallback(() => {
-    setSearch(''); setBirthYear('all'); setNiveau('all'); setStatusFilter('all'); setClubFilter('all'); setPage(0); closeAllDrops()
+    setSearch(''); setBirthYear('all'); setNiveau('all'); setStatusFilter('all'); setClubFilter('all'); setSelectedTiers([]); setPage(0); closeAllDrops()
   }, [])
 
   const totalPages   = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated    = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const displayStart = page * PAGE_SIZE + 1
   const displayEnd   = Math.min((page + 1) * PAGE_SIZE, filtered.length)
-  const hasFilters   = !!(search || birthYear !== 'all' || niveau !== 'all' || statusFilter !== 'all' || clubFilter !== 'all')
+  const hasFilters   = !!(search || birthYear !== 'all' || niveau !== 'all' || statusFilter !== 'all' || clubFilter !== 'all' || selectedTiers.length > 0)
   const isGlobal     = statusFilter === 'all' && birthYear === 'all' && niveau === 'all' && clubFilter === 'all'
 
   // ── Labels pills ──
@@ -435,6 +583,15 @@ export default function AcademieJoueursPage() {
         placeholderTextColor={colors.text.muted}
         style={st.searchInput as never}
       />
+
+      {/* ── Tier pills — Story 52-5 ── */}
+      {!loading && (
+        <TierPills
+          selectedTiers={selectedTiers}
+          onToggle={handleTierToggle}
+          tierCounts={tierCounts}
+        />
+      )}
 
       {/* ── Table ── */}
       {loading ? (
