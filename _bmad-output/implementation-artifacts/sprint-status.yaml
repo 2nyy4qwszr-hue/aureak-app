@@ -491,3 +491,8 @@ development_status:
   82-3-polish-programmes-statcards-evaluations: done
   82-4-themes-table-dropdown-fix-spacing: done
   epic-82-retrospective: optional
+
+  # Epic 86 : Architecture Rôles & Permissions
+  epic-86: in-progress
+  86-1-roles-db-manager-marketeur: done
+  epic-86-retrospective: optional
