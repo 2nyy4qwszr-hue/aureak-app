@@ -11,6 +11,7 @@ const TABS = [
   { label: 'SCOUTS',        href: '/academie/scouts' },
   { label: 'MANAGERS',      href: '/academie/managers' },
   { label: 'COMMERCIAUX',  href: '/academie/commerciaux' },
+  { label: 'MARKETEURS',   href: '/academie/marketeurs' },
   { label: 'CLUBS',         href: '/academie/clubs' },
   { label: 'IMPLANTATIONS', href: '/academie/implantations' },
 ] as const

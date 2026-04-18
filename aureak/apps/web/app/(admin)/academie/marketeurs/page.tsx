@@ -1,15 +1,15 @@
 'use client'
-// Story 87.1 — Page Académie > Commerciaux avec LayoutActivités
+// Story 87.2 — Page Académie > Marketeurs avec LayoutActivités
 import { useEffect, useState } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
-import { listCommercials } from '@aureak/api-client'
-import type { CommercialListRow } from '@aureak/api-client'
+import { listMarketers } from '@aureak/api-client'
+import type { MarketerListRow } from '@aureak/api-client'
 import { AureakText, UserCheckIcon } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────
-type CommercialDisplay = CommercialListRow & {
+type MarketerDisplay = MarketerListRow & {
   nom   : string
   prenom: string
 }
@@ -37,13 +37,13 @@ function splitName(displayName: string | null): { prenom: string; nom: string } 
 }
 
 // ── Page principale ──────────────────────────────────────────────────────────────
-export default function AcademieCommerciauxPage() {
+export default function AcademieMarketeursPage() {
   const router   = useRouter()
   const pathname = usePathname()
 
-  const [commercials, setCommercials] = useState<CommercialDisplay[]>([])
-  const [loading,     setLoading]     = useState(true)
-  const [page,        setPage]        = useState(0)
+  const [marketers, setMarketers] = useState<MarketerDisplay[]>([])
+  const [loading,   setLoading]   = useState(true)
+  const [page,      setPage]      = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -51,17 +51,17 @@ export default function AcademieCommerciauxPage() {
     const load = async () => {
       setLoading(true)
       try {
-        const { data: allRows } = await listCommercials({ page: 0, pageSize: 500 })
+        const { data: allRows } = await listMarketers({ page: 0, pageSize: 500 })
         if (cancelled) return
 
-        const withNames: CommercialDisplay[] = allRows.map(c => {
-          const { prenom, nom } = splitName(c.displayName)
-          return { ...c, nom, prenom }
+        const withNames: MarketerDisplay[] = allRows.map(m => {
+          const { prenom, nom } = splitName(m.displayName)
+          return { ...m, nom, prenom }
         })
 
-        setCommercials(withNames)
+        setMarketers(withNames)
       } catch (err) {
-        if (process.env.NODE_ENV !== 'production') console.error('[AcademieCommerciauxPage] load error:', err)
+        if (process.env.NODE_ENV !== 'production') console.error('[AcademieMarketeursPage] load error:', err)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -71,10 +71,10 @@ export default function AcademieCommerciauxPage() {
     return () => { cancelled = true }
   }, [])
 
-  const totalPages   = Math.max(1, Math.ceil(commercials.length / PAGE_SIZE))
-  const paginated    = commercials.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const totalPages   = Math.max(1, Math.ceil(marketers.length / PAGE_SIZE))
+  const paginated    = marketers.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const displayStart = page * PAGE_SIZE + 1
-  const displayEnd   = Math.min((page + 1) * PAGE_SIZE, commercials.length)
+  const displayEnd   = Math.min((page + 1) * PAGE_SIZE, marketers.length)
 
   return (
     <View style={s.page}>
@@ -85,10 +85,10 @@ export default function AcademieCommerciauxPage() {
           <View style={s.headerTopRow}>
             <AureakText style={s.pageTitle as TextStyle}>ACADÉMIE</AureakText>
             <Pressable
-              onPress={() => router.push('/academie/commerciaux/new' as never)}
+              onPress={() => router.push('/academie/marketeurs/new' as never)}
               style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
             >
-              <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau commercial</AureakText>
+              <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau marketeur</AureakText>
             </Pressable>
           </View>
           <View style={s.tabsRow}>
@@ -108,33 +108,33 @@ export default function AcademieCommerciauxPage() {
 
         {/* ── StatCards ── */}
         <View style={s.statCardsRow}>
-          {/* COMMERCIAUX total */}
+          {/* MARKETEURS total */}
           <View style={s.statCard as never}>
-            <AureakText style={s.statCardPicto as TextStyle}>📊</AureakText>
-            <AureakText style={s.statCardLabel as TextStyle}>COMMERCIAUX</AureakText>
+            <AureakText style={s.statCardPicto as TextStyle}>📱</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>MARKETEURS</AureakText>
             <AureakText style={{ ...s.statCardValue, color: colors.text.dark } as TextStyle}>
-              {loading ? '—' : String(commercials.length)}
+              {loading ? '—' : String(marketers.length)}
             </AureakText>
           </View>
 
-          {/* CLUBS CONVERTIS */}
+          {/* MÉDIAS CE MOIS */}
           <View style={s.statCard as never}>
-            <AureakText style={s.statCardPicto as TextStyle}>🏆</AureakText>
-            <AureakText style={s.statCardLabel as TextStyle}>CLUBS CONVERTIS</AureakText>
+            <AureakText style={s.statCardPicto as TextStyle}>📸</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>MÉDIAS CE MOIS</AureakText>
             <AureakText style={{ ...s.statCardValue, color: colors.accent.gold } as TextStyle}>—</AureakText>
           </View>
 
-          {/* CONTACTS CE MOIS */}
+          {/* POSTS PUBLIÉS */}
           <View style={s.statCard as never}>
-            <AureakText style={s.statCardPicto as TextStyle}>📞</AureakText>
-            <AureakText style={s.statCardLabel as TextStyle}>CONTACTS CE MOIS</AureakText>
+            <AureakText style={s.statCardPicto as TextStyle}>📝</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>POSTS PUBLIÉS</AureakText>
             <AureakText style={{ ...s.statCardValue, color: colors.text.muted } as TextStyle}>—</AureakText>
           </View>
 
-          {/* TAUX CONVERSION */}
+          {/* ENGAGEMENT */}
           <View style={s.statCard as never}>
-            <AureakText style={s.statCardPicto as TextStyle}>⭐</AureakText>
-            <AureakText style={s.statCardLabel as TextStyle}>TAUX CONVERSION</AureakText>
+            <AureakText style={s.statCardPicto as TextStyle}>📈</AureakText>
+            <AureakText style={s.statCardLabel as TextStyle}>ENGAGEMENT</AureakText>
             <AureakText style={{ ...s.statCardValue, color: colors.accent.gold } as TextStyle}>—</AureakText>
           </View>
         </View>
@@ -146,34 +146,33 @@ export default function AcademieCommerciauxPage() {
           </Pressable>
         </View>
 
-        {/* ── CommerciauxTable ── */}
+        {/* ── MarketeursTable ── */}
         {loading ? (
           <View style={s.emptyState}>
             <AureakText variant="body" style={s.emptyText}>Chargement…</AureakText>
           </View>
-        ) : commercials.length === 0 ? (
+        ) : marketers.length === 0 ? (
           <View style={s.emptyState}>
-            <AureakText variant="body" style={s.emptyText}>Aucun commercial</AureakText>
+            <AureakText variant="body" style={s.emptyText}>Aucun marketeur</AureakText>
           </View>
         ) : (
           <View style={s.tableWrapper}>
             {/* En-têtes */}
             <View style={s.tableHeader}>
               <View style={s.cellStatut} />
-              <AureakText style={[s.thText, s.cellNom]         as never}>NOM</AureakText>
-              <AureakText style={[s.thText, s.cellPrenom]      as never}>PRÉNOM</AureakText>
-              <AureakText style={[s.thText, s.cellClubs]       as never}>CLUBS ASSIGNÉS</AureakText>
-              <AureakText style={[s.thText, s.cellContacts]    as never}>CONTACTS</AureakText>
-              <AureakText style={[s.thText, s.cellConversions] as never}>CONVERSIONS</AureakText>
+              <AureakText style={[s.thText, s.cellNom]    as never}>NOM</AureakText>
+              <AureakText style={[s.thText, s.cellPrenom]  as never}>PRÉNOM</AureakText>
+              <AureakText style={[s.thText, s.cellMedias]  as never}>MÉDIAS REÇUS</AureakText>
+              <AureakText style={[s.thText, s.cellPosts]   as never}>POSTS</AureakText>
             </View>
 
             {/* Lignes */}
-            {paginated.map((commercial, idx) => {
+            {paginated.map((marketer, idx) => {
               const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
               return (
                 <Pressable
-                  key={commercial.userId}
-                  onPress={() => router.push(`/academie/commerciaux/${commercial.userId}` as never)}
+                  key={marketer.userId}
+                  onPress={() => router.push(`/academie/marketeurs/${marketer.userId}` as never)}
                   style={({ pressed }) => [
                     s.tableRow,
                     { backgroundColor: rowBg },
@@ -183,11 +182,10 @@ export default function AcademieCommerciauxPage() {
                   <View style={[s.cellStatut, s.cellCenter]}>
                     <UserCheckIcon color={colors.text.muted} size={18} strokeWidth={1.5} />
                   </View>
-                  <AureakText variant="body" style={[s.cellNom,         s.cellText]  as never} numberOfLines={1}>{commercial.nom}</AureakText>
-                  <AureakText variant="body" style={[s.cellPrenom,      s.cellText]  as never} numberOfLines={1}>{commercial.prenom}</AureakText>
-                  <AureakText variant="body" style={[s.cellClubs,       s.cellMuted] as never} numberOfLines={1}>—</AureakText>
-                  <AureakText variant="body" style={[s.cellContacts,    s.cellMuted] as never}>—</AureakText>
-                  <AureakText variant="body" style={[s.cellConversions, s.cellMuted] as never}>—</AureakText>
+                  <AureakText variant="body" style={[s.cellNom,    s.cellText]  as never} numberOfLines={1}>{marketer.nom}</AureakText>
+                  <AureakText variant="body" style={[s.cellPrenom, s.cellText]  as never} numberOfLines={1}>{marketer.prenom}</AureakText>
+                  <AureakText variant="body" style={[s.cellMedias, s.cellMuted] as never} numberOfLines={1}>—</AureakText>
+                  <AureakText variant="body" style={[s.cellPosts,  s.cellMuted] as never}>—</AureakText>
                 </Pressable>
               )
             })}
@@ -195,9 +193,9 @@ export default function AcademieCommerciauxPage() {
             {/* Pagination */}
             <View style={s.pagination}>
               <AureakText variant="caption" style={s.paginationInfo}>
-                {commercials.length > 0
-                  ? `Affichage de ${displayStart}–${displayEnd} / ${commercials.length} commerciaux`
-                  : 'Aucun commercial'}
+                {marketers.length > 0
+                  ? `Affichage de ${displayStart}–${displayEnd} / ${marketers.length} marketeurs`
+                  : 'Aucun marketeur'}
               </AureakText>
               <View style={s.paginationBtns}>
                 <Pressable
@@ -316,7 +314,7 @@ const s = StyleSheet.create({
   },
   pillTextActive: { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.dark },
 
-  // ── CommerciauxTable ──
+  // ── MarketeursTable ──
   tableWrapper: {
     borderRadius: 10,
     borderWidth : 1,
@@ -351,12 +349,11 @@ const s = StyleSheet.create({
   rowPressed: { opacity: 0.75 },
 
   // ── Columns ──
-  cellStatut     : { width: 40 },
-  cellNom        : { flex: 1.2, minWidth: 80 },
-  cellPrenom     : { flex: 1.2, minWidth: 80 },
-  cellClubs      : { flex: 1.5, minWidth: 100 },
-  cellContacts   : { width: 90 },
-  cellConversions: { width: 100 },
+  cellStatut: { width: 40 },
+  cellNom   : { flex: 1.2, minWidth: 80 },
+  cellPrenom: { flex: 1.2, minWidth: 80 },
+  cellMedias: { flex: 1.5, minWidth: 100 },
+  cellPosts : { width: 90 },
 
   cellCenter: { alignItems: 'center', justifyContent: 'center' },
   cellText  : { color: colors.text.dark, fontSize: 13 },

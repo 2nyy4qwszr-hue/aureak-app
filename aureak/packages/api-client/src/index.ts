@@ -647,3 +647,7 @@ export {
 export { listCommercials, getCommercialProfile } from './admin/commercials'
 export type { CommercialListRow } from './admin/commercials'
 
+// ── Epic 87 — Académie Marketeurs ───────────────────────────────────────────
+export { listMarketers, getMarketerProfile } from './admin/marketers'
+export type { MarketerListRow } from './admin/marketers'
+
