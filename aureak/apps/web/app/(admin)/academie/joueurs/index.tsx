@@ -24,6 +24,7 @@ const ACADEMIE_TABS = [
   { label: 'COACHS',        href: '/academie/coachs'        },
   { label: 'SCOUTS',        href: '/academie/scouts'        },
   { label: 'MANAGERS',      href: '/academie/managers'      },
+  { label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
   { label: 'CLUBS',         href: '/academie/clubs'         },
   { label: 'IMPLANTATIONS', href: '/academie/implantations' },
 ] as const

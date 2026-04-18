@@ -643,3 +643,7 @@ export {
   updateCommercialContact,
 } from './admin/commercial-contacts'
 
+// ── Epic 87 — Académie Commerciaux ──────────────────────────────────────────
+export { listCommercials, getCommercialProfile } from './admin/commercials'
+export type { CommercialListRow } from './admin/commercials'
+
