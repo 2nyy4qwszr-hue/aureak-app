@@ -1,0 +1,71 @@
+QA Retro PR #18 — Stories 91-1 + 92-1 (Marketing + Partenariat hubs)
+=====================================================================
+Date: 2026-04-18
+Agent: Claude Opus 4.6 (1M context)
+
+RESULT: PASS (after 1 fix)
+
+== Gate 1 — Code Quality ==
+
+[PASS] try/finally on state setters
+  -> No state setters in any file (UI-only placeholder stories, no async logic)
+
+[PASS] Console guards
+  -> No console.* statements found in any file
+
+[PASS] No silent catch blocks
+  -> No catch blocks found
+
+[PASS] No hardcoded hex colors
+  -> All colors via @aureak/theme tokens (colors.*)
+  -> 'transparent' used for borderBottomColor default — matches AcademieNavBar reference pattern
+
+[PASS] Supabase access only via @aureak/api-client
+  -> No Supabase imports in any file (UI-only stories)
+
+[PASS] Radius tokens
+  -> No radius usage in these files
+
+[PASS] Shadows
+  -> No shadow usage in these files
+
+[PASS] Style arrays with `as never`
+  -> Both NavBars use `as never` on style arrays (Pressable style + AureakText style)
+
+[PASS] paddingVertical: 14
+  -> Hardcoded 14 matches AcademieNavBar reference pattern exactly — acceptable
+
+== Gate 2 — Functional ==
+
+Story 91-1 ACs:
+  [PASS] AC1: /marketing route with MarketingNavBar — 4 tabs in _layout.tsx
+  [PASS] AC2: Tabs = Mediatheque / Reseaux sociaux / Campagnes / Analytics
+  [PASS] AC3: Each tab routes to correct sub-route
+  [PASS] AC4: Layout follows AcademieNavBar pattern (horizontal tabs)
+  [PASS] AC5: Empty state placeholder on each tab page
+  [PASS] AC6: page.tsx replaced with <Redirect> to /marketing/mediatheque
+  [PASS] AC7: Sidebar unchanged (no sidebar modification in diff)
+
+Story 92-1 ACs:
+  [PASS] AC1: /developpement/partenariats with PartenariatNavBar — 3 tabs in _layout.tsx
+  [PASS] AC2: Tabs = Sponsors / Clubs Partenaires / Capsules Video
+  [PASS] AC3: Each tab routes to correct sub-route
+  [PASS] AC4: Layout follows AcademieNavBar pattern
+  [PASS] AC5: Empty state placeholder on each tab page
+  [PASS] AC6: page.tsx replaced with redirect to sponsors
+  [PASS] AC7: Sidebar unchanged
+
+[PASS] Routing Expo Router
+  -> All sub-routes have page.tsx + index.tsx (re-export)
+  -> marketing/index.tsx re-exports marketing/page.tsx (redirect)
+
+[PASS] No scope creep
+  -> Only files listed in stories are modified/created
+
+== Corrections Applied ==
+
+1. FIX: partenariats/page.tsx — replaced useEffect+router.replace redirect with
+   <Redirect> component (matching marketing/page.tsx pattern).
+   Reason: useEffect redirect causes a blank frame flash; <Redirect> is synchronous
+   and consistent with the marketing hub redirect approach.
+   File: aureak/apps/web/app/(admin)/developpement/partenariats/page.tsx
