@@ -738,6 +738,22 @@ Refonte visuelle de la page Activités/Séances pour correspondre précisément 
 
 ---
 
+## Epic 86 — Architecture Rôles & Permissions
+
+> Fondation permissions granulaires et multi-rôle. Bloque Epics 87 (Académie Commerciaux/Marketeurs), 88 (Prospection Clubs), 90 (Prospection Entraîneurs), 91 (Marketing), 92 (Partenariat).
+> Source : brainstorming `_bmad-output/brainstorming/brainstorming-session-2026-04-18-1000.md` — idées #6, #7, #34, #35, #36, #39.
+
+- [ ] 86-1 : roles-db-manager-marketeur (**P0 INFRA** — migration 00148 : `ALTER TYPE user_role ADD VALUE 'manager', 'marketeur'` + miroir `UserRole` dans `@aureak/types/enums.ts`. `commercial` déjà présent en 00147) `ready-for-dev`
+- [ ] 86-2 : multi-role-profile-roles-switcher (**P0 FEATURE** — table `profile_roles` N-N + trigger backfill + API `listUserRoles/assignRoleToUser/revokeRoleFromUser` + hooks `useCurrentRole`/`useAvailableRoles` + composant `@aureak/ui/RoleSwitcher` — migration 00149) `ready-for-dev`
+- [ ] 86-3 : permissions-granulaires-matrice-admin (**P0 FEATURE** — enums `section_key`/`permission_access` + tables `section_permissions` (défaut par rôle, seedée) + `user_section_overrides` (individuel) + API `getEffectivePermissions` + page `/settings/permissions` matrice éditable — migration 00150) `ready-for-dev`
+- [ ] 86-4 : sidebar-dynamique-permissions (**P0 FEATURE** — refactor `_layout.tsx` : `NAV_GROUPS` statique → `buildNavGroups(activeRole, permissions)` + labels contextualisés par rôle + skeleton loading + intégration `RoleSwitcher` — aucune migration) `ready-for-dev`
+
+**Dépendances** : 86-1 → 86-2, 86-3 (parallèle possible après 86-1) → 86-4 (consomme 86-2 et 86-3). Ordre dev strict : 86-1 → 86-2 → 86-3 → 86-4.
+
+**Migrations réservées** : 00148 (86-1), 00149 (86-2), 00150 (86-3). 86-4 sans migration.
+
+---
+
 ## Chantier parallèle — DB Baseline Recovery
 
 > Ne bloque pas le développement immédiat. À traiter en parallèle.
