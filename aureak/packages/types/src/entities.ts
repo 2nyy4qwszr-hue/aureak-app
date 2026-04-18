@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType, ChildProspectStatus } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -1159,6 +1159,9 @@ export type ChildDirectoryEntry = {
   actif           : boolean
   notesInternes   : string | null
   contactDeclined : boolean          // Story 13.3 — parent a refusé de donner ses coordonnées
+
+  // Prospection (Story 89.1)
+  prospectStatus  : ChildProspectStatus | null  // child_prospect_status enum PostgreSQL
 
   // Notion sync
   notionPageId    : string | null
@@ -2498,5 +2501,76 @@ export type UpdateProspectContactParams = {
   phone?           : string
   isDecisionnaire? : boolean
   notes?           : string
+}
+
+// ── Story 88.3 — Actions commerciales (migration 00149) ─────────────────────
+
+/** Action commerciale loguée sur un prospect (append-only) */
+export type ProspectAction = {
+  id                 : string
+  clubProspectId     : string
+  performedBy        : string
+  actionType         : import('./enums').ProspectActionType
+  description        : string | null
+  createdAt          : string
+  /** Nom du commercial résolu côté API (optionnel) */
+  performerDisplayName?: string
+}
+
+/** Params création d'une action commerciale */
+export type CreateProspectActionParams = {
+  clubProspectId : string
+  actionType     : import('./enums').ProspectActionType
+  description?   : string
+}
+
+// ── Story 90.1 — Pipeline Entraîneurs (migration 00149) ────────────────────
+
+/** Coach prospect dans le pipeline de recrutement */
+export type CoachProspect = {
+  id                : string
+  tenantId          : string
+  name              : string
+  email             : string | null
+  phone             : string | null
+  status            : import('./enums').CoachProspectStatus
+  experienceYears   : number | null
+  diplomas          : string[]
+  assignedManagerId : string | null
+  source            : string | null
+  notes             : string | null
+  createdAt         : string
+  updatedAt         : string
+  deletedAt         : string | null
+}
+
+/** Coach prospect enrichi pour la liste (avec nom manager) */
+export type CoachProspectListItem = CoachProspect & {
+  managerDisplayName: string | null
+}
+
+/** Params création d'un coach prospect */
+export type CreateCoachProspectParams = {
+  name             : string
+  email?           : string
+  phone?           : string
+  experienceYears? : number
+  diplomas?        : string[]
+  assignedManagerId?: string
+  source?          : string
+  notes?           : string
+}
+
+/** Params mise à jour d'un coach prospect */
+export type UpdateCoachProspectParams = {
+  name?             : string
+  email?            : string | null
+  phone?            : string | null
+  status?           : import('./enums').CoachProspectStatus
+  experienceYears?  : number | null
+  diplomas?         : string[]
+  assignedManagerId?: string | null
+  source?           : string | null
+  notes?            : string | null
 }
 

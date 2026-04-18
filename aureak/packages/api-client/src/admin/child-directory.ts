@@ -4,7 +4,7 @@
 
 import { supabase } from '../supabase'
 import { getCachedUrl, setCachedUrl } from '../utils/signed-url-cache'
-import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory } from '@aureak/types'
+import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory, ChildProspectStatus } from '@aureak/types'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +34,7 @@ function toEntry(row: Record<string, unknown>): ChildDirectoryEntry {
     actif           : row.actif          as boolean,
     notesInternes   : (row.notes_internes   as string | null) ?? null,
     contactDeclined : (row.contact_declined as boolean | null) ?? false,
+    prospectStatus  : (row.prospect_status  as ChildProspectStatus | null) ?? null,
     ageCategory     : (row.age_category     as FootballAgeCategory | null) ?? null,
     playerType      : (row.player_type      as 'youth' | 'senior' | null) ?? null,
     youthLevel      : (row.youth_level      as string | null) ?? null,
@@ -267,17 +268,18 @@ export async function createChildDirectoryEntry(
 // ── List ───────────────────────────────────────────────────────────────────────
 
 export type ListChildDirectoryOpts = {
-  search?  : string
-  statut?  : string
-  actif?   : boolean
-  page?    : number
-  pageSize?: number
+  search?         : string
+  statut?         : string
+  prospectStatus? : ChildProspectStatus | 'all_prospects'
+  actif?          : boolean
+  page?           : number
+  pageSize?       : number
 }
 
 export async function listChildDirectory(
   opts: ListChildDirectoryOpts = {},
 ): Promise<{ data: ChildDirectoryEntry[]; count: number }> {
-  const { search, statut, actif, page = 0, pageSize = 50 } = opts
+  const { search, statut, prospectStatus, actif, page = 0, pageSize = 50 } = opts
 
   let q = supabase
     .from('child_directory')
@@ -287,6 +289,8 @@ export async function listChildDirectory(
 
   if (search) q = q.ilike('display_name', `%${search}%`)
   if (statut !== undefined) q = q.eq('statut', statut)
+  if (prospectStatus === 'all_prospects') q = q.not('prospect_status', 'is', null)
+  else if (prospectStatus) q = q.eq('prospect_status', prospectStatus)
   if (actif  !== undefined) q = q.eq('actif',  actif)
 
   q = q.range(page * pageSize, (page + 1) * pageSize - 1)
@@ -339,6 +343,8 @@ export type UpdateChildDirectoryParams = Partial<{
   ageCategory    : FootballAgeCategory | null
   youthLevel     : string | null
   seniorDivision : string | null
+  // Story 89.1 — prospect status
+  prospectStatus : ChildProspectStatus | null
 }>
 
 export async function updateChildDirectoryEntry(
@@ -370,6 +376,7 @@ export async function updateChildDirectoryEntry(
   if (fields.ageCategory     !== undefined) payload.age_category     = fields.ageCategory
   if (fields.youthLevel      !== undefined) payload.youth_level      = fields.youthLevel
   if (fields.seniorDivision  !== undefined) payload.senior_division  = fields.seniorDivision
+  if (fields.prospectStatus  !== undefined) payload.prospect_status  = fields.prospectStatus
 
   const { error } = await supabase
     .from('child_directory')
@@ -775,4 +782,21 @@ export async function getChildCurrentClubFromHistory(
     clubDirectoryId : (row.club_directory_id as string | null) ?? null,
     clubNomAnnuaire : (row.club_nom_annuaire as string | null) ?? null,
   }
+}
+
+// ── Story 89.1 — Prospect status update ─────────────────────────────────────
+
+/**
+ * Met à jour le statut prospect d'un gardien dans l'annuaire.
+ * Passer `null` pour retirer le statut prospect.
+ */
+export async function updateChildProspectStatus(
+  childId: string,
+  status : ChildProspectStatus | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from('child_directory')
+    .update({ prospect_status: status, updated_at: new Date().toISOString() })
+    .eq('id', childId)
+  if (error) throw error
 }

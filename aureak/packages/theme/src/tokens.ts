@@ -124,6 +124,19 @@ export const colors = {
 } as const
 
 // =============================================================================
+// Story 89.1 — Couleurs prospect gardien (child_prospect_status)
+// =============================================================================
+
+export const childProspectStatusColors: Record<string, { bg: string; text: string }> = {
+  identified     : { bg: '#EFF6FF', text: '#1D4ED8' },  // bleu clair — info
+  contacted      : { bg: '#FFF7ED', text: '#9A3412' },  // orange clair — en approche
+  trial_scheduled: { bg: '#FFFBEB', text: '#92400E' },  // ambre — planifié
+  trial_done     : { bg: '#F5F3FF', text: '#6D28D9' },  // violet clair — évalué
+  converted      : { bg: '#D1FAE5', text: '#065F46' },  // vert — succès
+  lost           : { bg: '#FEF2F2', text: '#B91C1C' },  // rouge — perdu
+} as const
+
+// =============================================================================
 // Gradients pré-construits (terrain football — story 47-7)
 // =============================================================================
 

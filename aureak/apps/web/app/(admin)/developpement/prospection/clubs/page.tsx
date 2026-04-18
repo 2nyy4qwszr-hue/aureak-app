@@ -1,13 +1,13 @@
-// Story 88.2 — Page CRM Pipeline Clubs : StatCards + Filtres + Tableau prospects
+// Story 88.2 + 88.3 — Page CRM Pipeline Clubs : StatCards + Filtres + Tableau + Mes actions
 'use client'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius } from '@aureak/theme'
-import { listClubProspects } from '@aureak/api-client'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { listClubProspects, listMyActions } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
-import { PROSPECT_STATUSES, PROSPECT_STATUS_LABELS } from '@aureak/types'
-import type { ClubProspectListItem, ProspectStatus } from '@aureak/types'
+import { PROSPECT_STATUSES, PROSPECT_STATUS_LABELS, PROSPECT_ACTION_TYPE_LABELS, PROSPECT_ACTION_TYPE_ICONS } from '@aureak/types'
+import type { ClubProspectListItem, ProspectStatus, ProspectAction } from '@aureak/types'
 import { ProspectionStatCards } from './_components/ProspectionStatCards'
 import { ProspectTable } from './_components/ProspectTable'
 import { CreateProspectModal } from './_components/CreateProspectModal'
@@ -18,6 +18,7 @@ export default function ProspectionClubsPage() {
   const [loading, setLoading]               = useState(true)
   const [filterStatus, setFilterStatus]     = useState<ProspectStatus | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [myActions, setMyActions] = useState<ProspectAction[]>([])
 
   const loadProspects = useCallback(async () => {
     setLoading(true)
@@ -44,6 +45,13 @@ export default function ProspectionClubsPage() {
       if (process.env.NODE_ENV !== 'production') console.error('[ProspectionClubsPage] allProspects error:', err)
     })
   }, [prospects]) // re-fetch when prospects change (after create)
+
+  // Mes dernières actions (Story 88.3)
+  useEffect(() => {
+    listMyActions({ limit: 5 }).then(setMyActions).catch(err => {
+      if (process.env.NODE_ENV !== 'production') console.error('[ProspectionClubsPage] myActions error:', err)
+    })
+  }, [prospects])
 
   if (loading && prospects.length === 0) {
     return (
@@ -96,6 +104,35 @@ export default function ProspectionClubsPage() {
 
       {/* Tableau */}
       <ProspectTable prospects={prospects} />
+
+      {/* Mes actions (Story 88.3) */}
+      {myActions.length > 0 && (
+        <View style={styles.myActionsCard as object}>
+          <AureakText variant="h2" style={styles.myActionsTitle}>
+            Mes dernieres actions
+          </AureakText>
+          {myActions.map(action => (
+            <View key={action.id} style={styles.myActionRow}>
+              <AureakText style={styles.myActionIcon}>
+                {PROSPECT_ACTION_TYPE_ICONS[action.actionType]}
+              </AureakText>
+              <View style={styles.myActionContent}>
+                <AureakText style={styles.myActionType}>
+                  {PROSPECT_ACTION_TYPE_LABELS[action.actionType]}
+                </AureakText>
+                {action.description && (
+                  <AureakText style={styles.myActionDesc} numberOfLines={1}>
+                    {action.description}
+                  </AureakText>
+                )}
+              </View>
+              <AureakText style={styles.myActionDate}>
+                {new Date(action.createdAt).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })}
+              </AureakText>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Modale création */}
       <CreateProspectModal
@@ -180,5 +217,52 @@ const styles = StyleSheet.create({
     color    : colors.text.muted,
     textAlign: 'center',
     marginTop: space.xl,
+  },
+
+  // Mes actions (Story 88.3)
+  myActionsCard: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.card,
+    padding        : space.lg,
+    marginTop      : space.xl,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    boxShadow      : shadows.sm,
+  },
+  myActionsTitle: {
+    color       : colors.text.dark,
+    marginBottom: space.md,
+  },
+  myActionRow: {
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    gap            : space.sm,
+    paddingVertical: space.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  myActionIcon: {
+    fontSize: 16,
+    width   : 24,
+  },
+  myActionContent: {
+    flex: 1,
+  },
+  myActionType: {
+    fontSize  : 13,
+    fontFamily: fonts.body,
+    fontWeight: '600',
+    color     : colors.text.dark,
+  },
+  myActionDesc: {
+    fontSize  : 12,
+    fontFamily: fonts.body,
+    color     : colors.text.muted,
+    marginTop : 2,
+  },
+  myActionDate: {
+    fontSize  : 11,
+    fontFamily: fonts.body,
+    color     : colors.text.subtle,
   },
 })

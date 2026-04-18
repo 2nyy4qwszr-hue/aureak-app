@@ -1,4 +1,4 @@
-// Story 88.2 — Fiche détail prospect : en-tête + contacts + placeholder timeline
+// Story 88.2 + 88.3 — Fiche détail prospect : en-tête + contacts + timeline actions
 'use client'
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
@@ -8,21 +8,26 @@ import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import {
   getClubProspect,
   updateClubProspectStatus,
+  listProspectActions,
 } from '@aureak/api-client'
 import {
   PROSPECT_STATUSES,
   PROSPECT_STATUS_LABELS,
   CLUB_CONTACT_ROLE_LABELS,
 } from '@aureak/types'
-import type { ClubProspectWithContacts, ProspectStatus, ProspectContact } from '@aureak/types'
+import type { ClubProspectWithContacts, ProspectStatus, ProspectContact, ProspectAction } from '@aureak/types'
 import { AddContactModal } from '../_components/AddContactModal'
+import { ProspectTimeline } from '../_components/ProspectTimeline'
+import { AddActionModal } from '../_components/AddActionModal'
 
 export default function ProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()
   const router = useRouter()
   const [prospect, setProspect]       = useState<ClubProspectWithContacts | null>(null)
+  const [actions, setActions]         = useState<ProspectAction[]>([])
   const [loading, setLoading]         = useState(true)
   const [showAddContact, setShowAddContact] = useState(false)
+  const [showAddAction, setShowAddAction]   = useState(false)
   const [statusOpen, setStatusOpen]   = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
 
@@ -30,8 +35,12 @@ export default function ProspectDetailPage() {
     if (!prospectId) return
     setLoading(true)
     try {
-      const data = await getClubProspect(prospectId)
+      const [data, actionsData] = await Promise.all([
+        getClubProspect(prospectId),
+        listProspectActions(prospectId),
+      ])
       setProspect(data)
+      setActions(actionsData)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[ProspectDetailPage] load error:', err)
     } finally {
@@ -143,15 +152,29 @@ export default function ProspectDetailPage() {
         )}
       </View>
 
-      {/* Placeholder timeline (story 88-3) */}
+      {/* Section Historique des actions (Story 88.3) */}
       <View style={styles.section}>
-        <AureakText variant="h2" style={styles.sectionTitle}>Timeline actions</AureakText>
-        <View style={styles.placeholderBox}>
-          <AureakText style={styles.placeholderText}>
-            Timeline des actions commerciales — Story 88-3
+        <View style={styles.sectionHeader}>
+          <AureakText variant="h2" style={styles.sectionTitle}>
+            Historique des actions ({actions.length})
           </AureakText>
+          <Pressable style={styles.addContactBtn} onPress={() => setShowAddAction(true)}>
+            <AureakText style={styles.addContactBtnText}>+ Ajouter une action</AureakText>
+          </Pressable>
         </View>
+        <ProspectTimeline actions={actions} />
       </View>
+
+      {/* Modale ajout action */}
+      <AddActionModal
+        visible={showAddAction}
+        clubProspectId={prospect.id}
+        onClose={() => setShowAddAction(false)}
+        onCreated={() => {
+          setShowAddAction(false)
+          load()
+        }}
+      />
 
       {/* Modale ajout contact */}
       <AddContactModal
@@ -400,20 +423,4 @@ const styles = StyleSheet.create({
     marginTop : space.xs,
   },
 
-  // Placeholder
-  placeholderBox: {
-    backgroundColor: colors.light.muted,
-    borderRadius   : radius.card,
-    padding        : space.lg,
-    alignItems     : 'center',
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    borderStyle    : 'dashed',
-  },
-  placeholderText: {
-    fontSize  : 13,
-    fontFamily: fonts.body,
-    color     : colors.text.subtle,
-    fontStyle : 'italic',
-  },
 })

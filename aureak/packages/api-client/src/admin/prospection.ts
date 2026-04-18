@@ -1,4 +1,5 @@
 // Story 88.2 — Pipeline CRM Clubs : CRUD club_prospects + prospect_contacts
+// Story 88.3 — Actions commerciales (prospect_actions)
 import { supabase } from '../supabase'
 import type {
   ClubProspect,
@@ -9,6 +10,8 @@ import type {
   UpdateClubProspectParams,
   CreateProspectContactParams,
   UpdateProspectContactParams,
+  ProspectAction,
+  CreateProspectActionParams,
 } from '@aureak/types'
 import type { ProspectStatus } from '@aureak/types'
 
@@ -283,4 +286,112 @@ export async function deleteProspectContact(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw error
+}
+
+// ── Story 88.3 — Actions commerciales ──────────────────────────────────────
+
+function mapActionRow(r: Record<string, unknown>): ProspectAction {
+  return {
+    id              : r.id as string,
+    clubProspectId  : r.club_prospect_id as string,
+    performedBy     : r.performed_by as string,
+    actionType      : r.action_type as ProspectAction['actionType'],
+    description     : (r.description as string | null) ?? null,
+    createdAt       : r.created_at as string,
+  }
+}
+
+/**
+ * Liste les actions d'un prospect (chronologie inversée).
+ * Résout les displayNames des performers via profiles.
+ */
+export async function listProspectActions(clubProspectId: string): Promise<ProspectAction[]> {
+  const { data, error } = await supabase
+    .from('prospect_actions')
+    .select('*')
+    .eq('club_prospect_id', clubProspectId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  if (!data || data.length === 0) return []
+
+  const rows = data as Record<string, unknown>[]
+  const actions = rows.map(mapActionRow)
+
+  // Résolution noms performers
+  const performerIds = [...new Set(actions.map(a => a.performedBy))]
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, display_name')
+    .in('user_id', performerIds)
+
+  const nameMap = new Map<string, string>()
+  if (profiles) {
+    for (const p of profiles as { user_id: string; display_name: string }[]) {
+      nameMap.set(p.user_id, p.display_name)
+    }
+  }
+
+  return actions.map(a => ({
+    ...a,
+    performerDisplayName: nameMap.get(a.performedBy) ?? 'Inconnu',
+  }))
+}
+
+/**
+ * Ajoute une action commerciale manuelle sur un prospect.
+ */
+export async function addProspectAction(params: CreateProspectActionParams): Promise<ProspectAction> {
+  const { data: session } = await supabase.auth.getSession()
+  const userId = session?.session?.user?.id
+  if (!userId) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('prospect_actions')
+    .insert({
+      club_prospect_id: params.clubProspectId,
+      performed_by    : userId,
+      action_type     : params.actionType,
+      description     : params.description ?? null,
+    })
+    .select('*')
+    .single()
+
+  if (error) throw error
+  return mapActionRow(data as Record<string, unknown>)
+}
+
+/**
+ * Liste les actions du commercial courant (toutes prospects).
+ * Pour la vue "Mes actions".
+ */
+export async function listMyActions(
+  filters?: { limit?: number; offset?: number },
+): Promise<ProspectAction[]> {
+  const { data: session } = await supabase.auth.getSession()
+  const userId = session?.session?.user?.id
+  if (!userId) throw new Error('Not authenticated')
+
+  let query = supabase
+    .from('prospect_actions')
+    .select('*')
+    .eq('performed_by', userId)
+    .order('created_at', { ascending: false })
+
+  if (filters?.limit) {
+    query = query.limit(filters.limit)
+  }
+  if (filters?.offset) {
+    query = query.range(filters.offset, filters.offset + (filters.limit ?? 50) - 1)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  if (!data || data.length === 0) return []
+
+  const rows = data as Record<string, unknown>[]
+  return rows.map(r => ({
+    ...mapActionRow(r),
+    performerDisplayName: undefined,
+  }))
 }

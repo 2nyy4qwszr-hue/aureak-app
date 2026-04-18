@@ -412,6 +412,8 @@ export {
   listChildrenByClubDirectoryId,
   // Story 49-7 — club calculé depuis l'historique football (vue v_child_current_club)
   getChildCurrentClubFromHistory,
+  // Story 89.1 — statut prospect gardien
+  updateChildProspectStatus,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,
@@ -640,5 +642,18 @@ export {
   addProspectContact,
   updateProspectContact,
   deleteProspectContact,
+  // Story 88.3 — Actions commerciales
+  listProspectActions,
+  addProspectAction,
+  listMyActions,
 } from './admin/prospection'
+
+// Story 90.1 — Pipeline Entraîneurs
+export {
+  listCoachProspects,
+  createCoachProspect,
+  updateCoachProspect,
+  updateCoachProspectStatus,
+  deleteCoachProspect,
+} from './admin/coachProspects'
 

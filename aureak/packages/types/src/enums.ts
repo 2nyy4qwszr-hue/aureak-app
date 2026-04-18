@@ -358,3 +358,84 @@ export const CLUB_CONTACT_ROLE_LABELS: Record<ClubContactRole, string> = {
   secretaire       : 'Secrétaire',
   autre            : 'Autre',
 }
+
+// ── Story 88.3 — Actions commerciales (migration 00149) ─────────────────────
+
+/** Type d'action commerciale — miroir de l'enum PostgreSQL `prospect_action_type` */
+export type ProspectActionType =
+  | 'premier_contact'
+  | 'relance'
+  | 'identification_contact'
+  | 'obtention_rdv'
+  | 'presentation'
+  | 'closing'
+  | 'note'
+  | 'changement_statut'
+
+export const PROSPECT_ACTION_TYPES: ProspectActionType[] = [
+  'premier_contact', 'relance', 'identification_contact', 'obtention_rdv',
+  'presentation', 'closing', 'note', 'changement_statut',
+]
+
+export const PROSPECT_ACTION_TYPE_LABELS: Record<ProspectActionType, string> = {
+  premier_contact       : 'Premier contact',
+  relance               : 'Relance',
+  identification_contact: 'Identification contact',
+  obtention_rdv         : 'Obtention RDV',
+  presentation          : 'Présentation',
+  closing               : 'Closing',
+  note                  : 'Note',
+  changement_statut     : 'Changement de statut',
+}
+
+/** Icônes par type d'action (emoji pour le rendu timeline) */
+export const PROSPECT_ACTION_TYPE_ICONS: Record<ProspectActionType, string> = {
+  premier_contact       : '📞',
+  relance               : '🔄',
+  identification_contact: '🔍',
+  obtention_rdv         : '📅',
+  presentation          : '📊',
+  closing               : '🤝',
+  note                  : '📝',
+  changement_statut     : '🔀',
+}
+
+// ── Story 89.1 — Statut prospect gardien (child_directory) ─────────────────
+
+/** Statut prospect gardien — miroir de l'enum PostgreSQL `child_prospect_status` */
+export type ChildProspectStatus =
+  | 'identified'
+  | 'contacted'
+  | 'trial_scheduled'
+  | 'trial_done'
+  | 'converted'
+  | 'lost'
+
+export const CHILD_PROSPECT_STATUSES: ChildProspectStatus[] = [
+  'identified', 'contacted', 'trial_scheduled', 'trial_done', 'converted', 'lost',
+]
+
+export const CHILD_PROSPECT_STATUS_LABELS: Record<ChildProspectStatus, string> = {
+  identified     : 'Identifié',
+  contacted      : 'Contacté',
+  trial_scheduled: 'Test planifié',
+  trial_done     : 'Test effectué',
+  converted      : 'Converti',
+  lost           : 'Perdu',
+}
+
+// ── Story 90.1 — Pipeline Entraîneurs (migration 00149) ────────────────────
+
+/** Statut pipeline coach prospect — miroir de l'enum PostgreSQL `coach_prospect_status` */
+export type CoachProspectStatus = 'identified' | 'contacted' | 'interview' | 'recruited'
+
+export const COACH_PROSPECT_STATUSES: CoachProspectStatus[] = [
+  'identified', 'contacted', 'interview', 'recruited',
+]
+
+export const COACH_PROSPECT_STATUS_LABELS: Record<CoachProspectStatus, string> = {
+  identified: 'Identifié',
+  contacted : 'Contacté',
+  interview : 'Entretien',
+  recruited : 'Recruté',
+}
