@@ -521,7 +521,7 @@ const S: Record<string, React.CSSProperties> = {
   fieldGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 16px' },
   field    : { display: 'flex', flexDirection: 'column' as const, gap: 6 },
   label    : { fontSize: 11, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase' as const, letterSpacing: '0.08em' },
-  input    : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' as const, fontFamily: 'Geist, sans-serif' },
+  input    : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' as const, fontFamily: 'Poppins, sans-serif' },
   select   : { padding: '9px 12px', borderRadius: 8, border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface, color: colors.text.dark, fontSize: 14, outline: 'none', cursor: 'pointer' },
   checkRow : { display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' as const },
   checkbox : { width: 20, height: 20, borderRadius: 5, border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1, transition: 'all 0.15s' },

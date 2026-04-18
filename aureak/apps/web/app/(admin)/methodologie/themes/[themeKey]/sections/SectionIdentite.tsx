@@ -20,7 +20,7 @@ type Props = {
 const SH: React.CSSProperties = {
   fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
   textTransform: 'uppercase', color: colors.accent.gold,
-  fontFamily: 'Geist, sans-serif', margin: '0 0 4px',
+  fontFamily: 'Poppins, sans-serif', margin: '0 0 4px',
 }
 
 const CARD: React.CSSProperties = {
@@ -41,7 +41,7 @@ const LABEL_STYLE: React.CSSProperties = {
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%', padding: '10px 12px', borderRadius: radius.xs,
   border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface,
-  color: colors.text.dark, fontSize: 13, fontFamily: 'Geist, sans-serif',
+  color: colors.text.dark, fontSize: 13, fontFamily: 'Poppins, sans-serif',
   outline: 'none', boxSizing: 'border-box',
 }
 
@@ -238,7 +238,7 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
                 border         : `1px solid ${colors.border.light}`,
                 backgroundColor: colors.light.muted,
                 color          : colors.text.dark,
-                fontFamily     : 'Geist, sans-serif',
+                fontFamily     : 'Poppins, sans-serif',
                 fontSize       : 12,
                 fontWeight     : 500,
                 cursor         : positionSaving ? 'not-allowed' : 'pointer',
@@ -286,7 +286,7 @@ export default function SectionIdentite({ theme, groups, onUpdate }: Props) {
             fontSize: 13,
             fontWeight: 600,
             cursor: 'pointer',
-            fontFamily: 'Geist, sans-serif',
+            fontFamily: 'Poppins, sans-serif',
             transition: `all ${transitions.fast}`,
           }}
         >
@@ -304,7 +304,7 @@ function chipStyle(active: boolean): React.CSSProperties {
     border: `1.5px solid ${active ? colors.accent.gold : colors.border.light}`,
     backgroundColor: active ? colors.accent.gold + '15' : colors.light.surface,
     color: active ? colors.accent.gold : colors.text.muted,
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
     fontSize: 12,
     fontWeight: active ? 600 : 400,
     cursor: 'pointer',

@@ -468,7 +468,7 @@ const webInputStyle = {
   backgroundColor: colors.light.surface,
   color          : colors.text.dark,
   fontSize       : '13px',
-  fontFamily     : 'Geist, sans-serif',
+  fontFamily     : 'Poppins, sans-serif',
   outline        : 'none',
   transition     : `border-color ${transitions.fast}`,
 } as React.CSSProperties

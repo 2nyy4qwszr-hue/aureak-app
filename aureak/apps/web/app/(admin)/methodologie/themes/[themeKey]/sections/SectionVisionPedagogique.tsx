@@ -12,7 +12,7 @@ type Props = {
 const SH: React.CSSProperties = {
   fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
   textTransform: 'uppercase', color: colors.accent.gold,
-  fontFamily: 'Geist, sans-serif', margin: '0 0 4px',
+  fontFamily: 'Poppins, sans-serif', margin: '0 0 4px',
 }
 
 const CARD: React.CSSProperties = {
@@ -33,7 +33,7 @@ const LABEL_STYLE: React.CSSProperties = {
 const TEXTAREA_STYLE: React.CSSProperties = {
   width: '100%', padding: '10px 12px', borderRadius: radius.xs,
   border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface,
-  color: colors.text.dark, fontSize: 13, fontFamily: 'Geist, sans-serif',
+  color: colors.text.dark, fontSize: 13, fontFamily: 'Poppins, sans-serif',
   outline: 'none', resize: 'vertical', boxSizing: 'border-box',
 }
 
@@ -158,7 +158,7 @@ export default function SectionVisionPedagogique({ themeId, tenantId }: Props) {
             fontSize: 13,
             fontWeight: 600,
             cursor: 'pointer',
-            fontFamily: 'Geist, sans-serif',
+            fontFamily: 'Poppins, sans-serif',
             transition: `all ${transitions.fast}`,
           }}
         >
