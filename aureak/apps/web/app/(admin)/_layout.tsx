@@ -62,6 +62,10 @@ import { SplashScreen, SPLASH_MIN_MS, SPLASH_TIMEOUT_MS } from './SplashScreen'
 // Story 86-2 — Multi-rôle : switcher "Changer de casquette"
 import { useAvailableRoles } from './hooks/useAvailableRoles'
 import { useCurrentRole } from './hooks/useCurrentRole'
+// Story 86-4 — Sidebar dynamique selon rôle actif + permissions effectives
+import { useEffectivePermissions } from './hooks/useEffectivePermissions'
+import { buildNavGroups } from './_nav-config'
+import type { NavGroup } from './_nav-config'
 
 // ── Story 51.7 — HoverablePressable : Pressable avec onMouseEnter/Leave (RN Web) ─
 // Les props hover ne sont pas dans les types RN natifs — cast via interface étendue.
@@ -96,45 +100,10 @@ function KeyboardHandler() {
 type NavIconComponent = React.FC<NavIconProps>
 
 type NavItem = { label: string; href: string; Icon: NavIconComponent }
-type NavGroup = {
-  label : string
-  items : NavItem[]
-}
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: '',
-    items: [
-      { label: 'Dashboard',    href: '/dashboard',            Icon: HomeIcon },
-      { label: 'Activités',    href: '/activites',            Icon: CalendarDaysIcon },
-      { label: 'Méthodologie', href: '/methodologie/seances', Icon: BookOpenIcon },
-    ],
-  },
-  {
-    label: '',
-    items: [
-      { label: 'Académie', href: '/academie', Icon: UsersIcon },
-    ],
-  },
-  {
-    label: '',
-    items: [
-      { label: 'Événements', href: '/evenements', Icon: TargetIcon },
-    ],
-  },
-  {
-    label: '',
-    items: [
-      { label: 'Développement', href: '/developpement/prospection', Icon: SearchIcon },
-    ],
-  },
-  {
-    label: '',
-    items: [
-      { label: 'Performance', href: '/analytics', Icon: BarChartIcon },
-    ],
-  },
-]
+// Story 86-4 — NAV_GROUPS statique supprimé : la sidebar est maintenant pilotée
+// par `buildNavGroups(activeRole, permissions)` depuis `./_nav-config`.
+// Le type `NavGroup` est importé de `_nav-config.ts`.
 
 // Séparé — accessible via ⚙️ uniquement (Story 63.1)
 const ADMIN_ITEMS: NavItem[] = [
@@ -205,6 +174,9 @@ function AdminLayoutInner() {
   // ── Story 86-2 — Multi-rôle : rôles disponibles + rôle actif ─────────────
   const { roles: availableRoles } = useAvailableRoles()
   const { activeRole, setCurrentRole } = useCurrentRole()
+
+  // ── Story 86-4 — Permissions effectives pour la sidebar dynamique ────────
+  const { permissions, isLoading: permsLoading } = useEffectivePermissions(user?.id, activeRole)
 
   // ── Story 61.5 — Offline cache + banner ──────────────────────────────────
   const { isOnline, cacheTimestamp, isSyncing, syncResult } = useOfflineCache()
@@ -458,10 +430,18 @@ function AdminLayoutInner() {
 
   if (isLoading || !isAdminOrCommercial) return null
 
-  // Epic 85 — commerciaux : sidebar filtrée (Développement uniquement)
-  const visibleNavGroups = role === 'commercial'
-    ? NAV_GROUPS.filter(g => g.items.some(i => i.href.startsWith('/developpement')))
-    : NAV_GROUPS
+  // ── Story 86-4 — Sidebar dynamique pilotée par permissions effectives ─────
+  // Fallback sécurité : admin voit toujours toutes les sections même si permissions
+  // n'ont pas encore été chargées (ou ont échoué). Les autres rôles attendent le load.
+  const ADMIN_FULL_PERMS: Record<string, boolean> = {
+    dashboard   : true, activites   : true, methodologie: true, academie    : true,
+    evenements  : true, prospection : true, marketing   : true, partenariat : true,
+    performances: true, admin       : true,
+  }
+  const effectivePerms = permissions
+    ?? (activeRole === 'admin' ? (ADMIN_FULL_PERMS as never) : null)
+
+  const visibleNavGroups: NavGroup[] = buildNavGroups(activeRole, effectivePerms)
 
   const handleSignOut = async () => {
     await signOut()
@@ -612,7 +592,21 @@ function AdminLayoutInner() {
 
         {/* ── Nav groups — seule zone scrollable ── */}
         <YStack flex={1} paddingTop={8} style={{ overflowY: 'auto', minHeight: 0 } as never}>
-          {visibleNavGroups.map((group, gi) => (
+          {/* Story 86-4 — Skeleton pendant le chargement des permissions (AC6).
+              Admin bypass le skeleton grâce au fallback `ADMIN_FULL_PERMS` ci-dessus. */}
+          {permsLoading && visibleNavGroups.length === 0 ? (
+            <YStack paddingVertical={12} gap={8}>
+              {[0, 1, 2].map(i => (
+                <YStack
+                  key={i}
+                  marginHorizontal={12}
+                  height={32}
+                  borderRadius={radius.xs}
+                  backgroundColor={colors.overlay.whiteSubtle}
+                />
+              ))}
+            </YStack>
+          ) : visibleNavGroups.map((group, gi) => (
             <YStack key={group.label || `group-${gi}`} marginBottom={4}>
               {/* Story 51.7 — label groupe avec opacity animée (AC2, AC3) */}
               {group.label ? (
