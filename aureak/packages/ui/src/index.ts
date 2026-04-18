@@ -196,4 +196,6 @@ export {
   LockIcon,
   SunIcon,
   MoonIcon,
+  MegaphoneIcon,
+  HandshakeIcon,
 } from './icons'

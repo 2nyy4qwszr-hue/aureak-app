@@ -1,0 +1,69 @@
+Gate 2 — Acceptance Criteria & Scope — Story 86.4 (Sidebar dynamique selon permissions)
+========================================================================================
+Date: 2026-04-18
+Agent: Claude Opus 4.6 (1M context)
+
+== Acceptance Criteria Coverage ==
+
+AC1: La sidebar se construit dynamiquement en fonction des permissions de l'utilisateur connecte
+  PASS — _layout.tsx ligne 494-499: visibleNavGroups filtre NAV_GROUPS via hasSection().
+         useUserSections() appelle getUserPermissions(user.id, role) et retourne les sections autorisees.
+
+AC2: L'admin voit les 9 sections (Dashboard, Activites, Methodologie, Academie, Evenements, Prospection, Marketing, Partenariat, Performances)
+  PASS — useUserSections.ts ligne 52-53: fallback admin = new Set(APP_SECTIONS) = toutes les 9 sections.
+         APP_SECTIONS dans @aureak/types/enums.ts confirme les 9 sections.
+         NAV_GROUPS dans _layout.tsx mappe les 9 sections correctement.
+
+AC3: Un commercial ne voit que Dashboard + Prospection (+ overrides eventuels)
+  PASS — useUserSections.ts retourne les sections d'apres getUserPermissions() en DB.
+         Dashboard toujours inclus (ligne 66: enabled.add('dashboard')).
+         Le filtrage est base sur les permissions DB, pas sur un hardcode de role.
+
+AC4: Un coach ne voit que Dashboard + Activites + Methodologie (+ overrides eventuels)
+  PASS — Meme logique que AC3 — dynamique via DB, pas de hardcode.
+
+AC5: La sidebar se met a jour en temps reel si les permissions changent (via le switch de role)
+  PASS — useUserSections.ts useEffect depend de [user, role] (ligne 85).
+         role vient de useAuthStore() (Zustand), reactif au switch via RoleSwitcher.
+         fetchIdRef evite les race conditions lors de switchs rapides (ligne 40-48).
+
+AC6: Aucune route cachee n'est accessible par URL directe si l'utilisateur n'a pas la permission
+  PASS — _layout.tsx lignes 477-489: route guard useEffect.
+         ROUTE_SECTION_MAP (lignes 145-155) couvre toutes les sections.
+         Redirige vers /dashboard si section non autorisee.
+         Dashboard et /profile sont exempts (ligne 480).
+         Console guard sur tentative d'acces (ligne 486).
+
+== Sections ajoutees ==
+
+PASS — 3 nouvelles sections dans NAV_GROUPS:
+  - Prospection (SearchIcon, /developpement/prospection, section: 'prospection')
+  - Marketing (MegaphoneIcon, /marketing, section: 'marketing')
+  - Partenariat (HandshakeIcon, /partenariat, section: 'partenariat')
+
+PASS — Icones creees: MegaphoneIcon.tsx, HandshakeIcon.tsx — suivent le pattern NavIconProps existant.
+PASS — Exportees dans icons/index.ts et ui/src/index.ts.
+PASS — Pages placeholder pour /marketing et /partenariat (page.tsx + index.tsx).
+
+== Route guard ==
+
+PASS — ROUTE_SECTION_MAP couvre: activites, methodologie, academie, evenements,
+       developpement/prospection, developpement (fallback), marketing, partenariat, analytics.
+PASS — Match par prefix exact ou prefix + '/' (ligne 483).
+PASS — Guard skip pendant isLoading ou sectionsLoading (ligne 478).
+
+== Scope creep ==
+
+PASS — Aucun ajout hors scope detecte.
+  - Pas de migration DB (non requise — cette story consomme les permissions de 86-3).
+  - Pas de modification de types (AppSection et APP_SECTIONS existaient deja via 86-3).
+  - Placeholder pages sont minimalistes (aucune logique metier).
+  - Aucune modification de composant UI existant au-dela du necessaire.
+
+== Dependances ==
+
+OK — Story 86-2 (switch role / RoleSwitcher) = done (importe dans _layout.tsx).
+OK — Story 86-3 (permissions granulaires) = done (getUserPermissions existe dans api-client).
+
+== RESULTAT GATE 2 ==
+PASS — 6/6 ACs couverts, route guard fonctionnel, sidebar dynamique correct, 0 scope creep.

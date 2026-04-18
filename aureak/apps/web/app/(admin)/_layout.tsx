@@ -36,6 +36,8 @@ import {
   AlertTriangleIcon,
   ChatIcon,
   LockIcon,
+  MegaphoneIcon,
+  HandshakeIcon,
   ActiveSessionHUD,
   PWAInstallBanner,
   OfflineBanner,
@@ -50,6 +52,8 @@ import { SearchProvider } from '../../components/SearchContext'
 import { GlobalSearch } from '../../components/GlobalSearch'
 import { NotificationBadge } from '../../components/NotificationBadge'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
+import { useUserSections } from '../../hooks/useUserSections'
+import type { AppSection } from '@aureak/types'
 import { CommandPalette } from '../../components/CommandPalette'
 import { ShortcutsHelp } from '../../components/ShortcutsHelp'
 import { KeyboardPrefixHint } from '../../components/KeyboardPrefixHint'
@@ -78,6 +82,8 @@ const ITEM_SHORTCUTS: Record<string, string> = {
   '/evenements'                : 'G V',   // Évènements
   '/analytics'                 : 'G R',   // peRformance
   '/developpement/prospection' : 'G X',
+  '/marketing'                 : 'G M',
+  '/partenariat'               : 'G P',
 }
 
 function KeyboardHandler() {
@@ -92,7 +98,7 @@ function KeyboardHandler() {
 
 type NavIconComponent = React.FC<NavIconProps>
 
-type NavItem = { label: string; href: string; Icon: NavIconComponent }
+type NavItem = { label: string; href: string; Icon: NavIconComponent; section: AppSection }
 type NavGroup = {
   label : string
   items : NavItem[]
@@ -102,39 +108,55 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '',
     items: [
-      { label: 'Dashboard',    href: '/dashboard',            Icon: HomeIcon },
-      { label: 'Activités',    href: '/activites',            Icon: CalendarDaysIcon },
-      { label: 'Méthodologie', href: '/methodologie/seances', Icon: BookOpenIcon },
+      { label: 'Dashboard',    href: '/dashboard',            Icon: HomeIcon,         section: 'dashboard' },
+      { label: 'Activités',    href: '/activites',            Icon: CalendarDaysIcon,  section: 'activites' },
+      { label: 'Méthodologie', href: '/methodologie/seances', Icon: BookOpenIcon,      section: 'methodologie' },
     ],
   },
   {
     label: '',
     items: [
-      { label: 'Académie', href: '/academie', Icon: UsersIcon },
+      { label: 'Académie', href: '/academie', Icon: UsersIcon, section: 'academie' },
     ],
   },
   {
     label: '',
     items: [
-      { label: 'Événements', href: '/evenements', Icon: TargetIcon },
+      { label: 'Événements', href: '/evenements', Icon: TargetIcon, section: 'evenements' },
     ],
   },
   {
     label: '',
     items: [
-      { label: 'Développement', href: '/developpement/prospection', Icon: SearchIcon },
+      { label: 'Prospection', href: '/developpement/prospection', Icon: SearchIcon,    section: 'prospection' },
+      { label: 'Marketing',   href: '/marketing',                 Icon: MegaphoneIcon, section: 'marketing' },
+      { label: 'Partenariat', href: '/partenariat',                Icon: HandshakeIcon, section: 'partenariat' },
     ],
   },
   {
     label: '',
     items: [
-      { label: 'Performance', href: '/analytics', Icon: BarChartIcon },
+      { label: 'Performance', href: '/analytics', Icon: BarChartIcon, section: 'performances' },
     ],
   },
 ]
 
+// ── Story 86.4 — Mapping route prefix → section pour le route guard ──────────
+const ROUTE_SECTION_MAP: { prefix: string; section: AppSection }[] = [
+  { prefix: '/activites',                section: 'activites' },
+  { prefix: '/methodologie',             section: 'methodologie' },
+  { prefix: '/academie',                 section: 'academie' },
+  { prefix: '/evenements',               section: 'evenements' },
+  { prefix: '/developpement/prospection', section: 'prospection' },
+  { prefix: '/developpement',            section: 'prospection' },
+  { prefix: '/marketing',                section: 'marketing' },
+  { prefix: '/partenariat',              section: 'partenariat' },
+  { prefix: '/analytics',                section: 'performances' },
+]
+
 // Séparé — accessible via ⚙️ uniquement (Story 63.1)
-const ADMIN_ITEMS: NavItem[] = [
+type AdminPanelItem = { label: string; href: string; Icon: NavIconComponent }
+const ADMIN_ITEMS: AdminPanelItem[] = [
   { label: 'Utilisateurs',        href: '/users',                    Icon: UserIcon },
   { label: 'Accès temporaires',   href: '/access-grants',            Icon: KeyIcon },
   { label: 'Tickets support',     href: '/tickets',                  Icon: MessageSquareIcon },
@@ -197,6 +219,9 @@ function AdminLayoutInner() {
   const [mobileOpen,      setMobileOpen]      = useState(false)
   // Story 63.1 — panneau Administration caché derrière ⚙️
   const [adminPanelOpen, setAdminPanelOpen] = useState(false)
+
+  // ── Story 86.4 — Sections autorisées dynamiques (réactif au switch de rôle) ─
+  const { allowedSections, hasSection, isLoading: sectionsLoading } = useUserSections()
 
   // ── Story 61.5 — Offline cache + banner ──────────────────────────────────
   const { isOnline, cacheTimestamp, isSyncing, syncResult } = useOfflineCache()
@@ -448,12 +473,30 @@ function AdminLayoutInner() {
     return () => clearTimeout(timeout) // BLOCKER cleanup
   }, [pathname])
 
+  // ── Story 86.4 — Route guard : rediriger vers Dashboard si accès non autorisé ─
+  useEffect(() => {
+    if (isLoading || sectionsLoading || !user) return
+    // Dashboard et profil toujours accessibles
+    if (pathname === '/dashboard' || pathname === '/profile') return
+
+    const matchedRoute = ROUTE_SECTION_MAP.find(
+      r => pathname === r.prefix || pathname.startsWith(r.prefix + '/'),
+    )
+    if (matchedRoute && !hasSection(matchedRoute.section)) {
+      if (process.env.NODE_ENV !== 'production') console.error('[AdminLayout] Accès non autorisé à la section:', matchedRoute.section)
+      router.replace('/dashboard' as never)
+    }
+  }, [pathname, isLoading, sectionsLoading, user, hasSection, router])
+
   if (isLoading || !isAdminOrCommercial) return null
 
-  // Epic 85 — commerciaux : sidebar filtrée (Développement uniquement)
-  const visibleNavGroups = role === 'commercial'
-    ? NAV_GROUPS.filter(g => g.items.some(i => i.href.startsWith('/developpement')))
-    : NAV_GROUPS
+  // ── Story 86.4 — Sidebar dynamique selon permissions ────────────────────
+  const visibleNavGroups = NAV_GROUPS
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item => hasSection(item.section)),
+    }))
+    .filter(group => group.items.length > 0)
 
   const handleSignOut = async () => {
     await signOut()

@@ -1,0 +1,46 @@
+Gate 1 — QA Patterns — Story 86.4 (Sidebar dynamique selon permissions)
+=========================================================================
+Date: 2026-04-18
+Agent: Claude Opus 4.6 (1M context)
+
+Fichiers analysés:
+  - aureak/apps/web/hooks/useUserSections.ts (NEW)
+  - aureak/packages/ui/src/icons/MegaphoneIcon.tsx (NEW)
+  - aureak/packages/ui/src/icons/HandshakeIcon.tsx (NEW)
+  - aureak/apps/web/app/(admin)/marketing/page.tsx (NEW)
+  - aureak/apps/web/app/(admin)/marketing/index.tsx (NEW)
+  - aureak/apps/web/app/(admin)/partenariat/page.tsx (NEW)
+  - aureak/apps/web/app/(admin)/partenariat/index.tsx (NEW)
+  - aureak/apps/web/app/(admin)/_layout.tsx (MODIFIED)
+  - aureak/packages/ui/src/icons/index.ts (MODIFIED)
+  - aureak/packages/ui/src/index.ts (MODIFIED)
+
+== 1. Try/finally sur state setters de chargement ==
+PASS — useUserSections.ts: setIsLoading(true) ligne 43, finally setIsLoading(false) ligne 78-80
+       Le finally inclut un guard fetchId pour éviter le reset en cas de race condition. Correct.
+
+== 2. Console guards (NODE_ENV) ==
+PASS — useUserSections.ts ligne 70: if (process.env.NODE_ENV !== 'production') console.error(...)
+PASS — _layout.tsx ligne 486: if (process.env.NODE_ENV !== 'production') console.error(...)
+PASS — Aucun console.* non gardé dans les fichiers modifiés/créés par cette story.
+
+== 3. Catch silencieux ==
+PASS — Aucun catch(() => {}) trouvé dans les fichiers de la story.
+
+== 4. Couleurs hardcodées ==
+PASS — Aucun hex hardcodé (#xxx) dans les fichiers créés.
+       marketing/page.tsx et partenariat/page.tsx utilisent colors.text.primary et colors.text.secondary.
+       MegaphoneIcon.tsx et HandshakeIcon.tsx utilisent le prop `color` (dynamique, passé par le parent).
+
+== 5. Accès Supabase via @aureak/api-client ==
+PASS — useUserSections.ts importe getUserPermissions depuis @aureak/api-client (ligne 7).
+       Aucun import supabase direct dans les fichiers de la story.
+       marketing/page.tsx et partenariat/page.tsx: aucun accès API (placeholders).
+
+== 6. Routing Expo Router (page.tsx + index.tsx) ==
+PASS — marketing/index.tsx: export { default } from './page'
+PASS — partenariat/index.tsx: export { default } from './page'
+
+== RESULTAT GATE 1 ==
+PASS — 0 BLOCKER, 0 WARNING
+Tous les patterns QA respectés.
