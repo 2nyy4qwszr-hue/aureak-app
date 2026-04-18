@@ -20,11 +20,14 @@ type LifecycleEvent = {
 // ── Labels ────────────────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<string, string> = {
-  admin : 'Administrateur',
-  coach : 'Coach',
-  parent: 'Parent',
-  child : 'Joueur',
-  club  : 'Club partenaire',
+  admin     : 'Administrateur',
+  coach     : 'Coach',
+  parent    : 'Parent',
+  child     : 'Joueur',
+  club      : 'Club partenaire',
+  commercial: 'Commercial',
+  manager   : 'Manager',
+  marketeur : 'Marketeur',
 }
 
 const STATUS_LABELS: Record<string, string> = {

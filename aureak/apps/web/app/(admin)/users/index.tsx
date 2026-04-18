@@ -8,25 +8,31 @@ import type { UserRow } from '@aureak/api-client'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 
-type RoleFilter = 'all' | 'admin' | 'coach' | 'parent' | 'child' | 'club'
+type RoleFilter = 'all' | 'admin' | 'coach' | 'parent' | 'child' | 'club' | 'commercial' | 'manager' | 'marketeur'
 
 const PAGE_SIZE = 30
 
 // ── Labels / couleurs ──────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<string, string> = {
-  admin : 'Admin',
-  coach : 'Coach',
-  parent: 'Parent',
-  child : 'Joueur',
-  club  : 'Club',
+  admin     : 'Admin',
+  coach     : 'Coach',
+  parent    : 'Parent',
+  child     : 'Joueur',
+  club      : 'Club',
+  commercial: 'Commercial',
+  manager   : 'Manager',
+  marketeur : 'Marketeur',
 }
 const ROLE_VARIANTS: Record<string, 'gold' | 'zinc' | 'present' | 'attention' | 'goldOutline'> = {
-  admin : 'gold',
-  coach : 'present',
-  parent: 'goldOutline',
-  child : 'attention',
-  club  : 'zinc',
+  admin     : 'gold',
+  coach     : 'present',
+  parent    : 'goldOutline',
+  child     : 'attention',
+  club      : 'zinc',
+  commercial: 'zinc',
+  manager   : 'zinc',
+  marketeur : 'zinc',
 }
 
 const STATUS_LABELS: Record<string, string> = {

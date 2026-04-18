@@ -24,6 +24,8 @@ const ROLE_ROUTES: Record<UserRole, string> = {
   child     : '/child/dashboard',
   club      : '/(auth)/login',
   commercial: '/developpement/prospection',
+  manager   : '/dashboard',
+  marketeur : '/dashboard',
 }
 
 const styles = StyleSheet.create({

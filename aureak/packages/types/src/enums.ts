@@ -4,7 +4,7 @@
 // Source DB : supabase/migrations/00002_create_enums.sql
 
 /** Rôles utilisateur — miroir de l'enum PostgreSQL `user_role` (étendu en Story 2.5 avec 'club') */
-export type UserRole = 'admin' | 'coach' | 'parent' | 'child' | 'club' | 'commercial'
+export type UserRole = 'admin' | 'coach' | 'parent' | 'child' | 'club' | 'commercial' | 'manager' | 'marketeur'
 
 /** Grades pédagogiques coach — miroir de l'enum PostgreSQL `coach_grade_level` (Story 11.1) */
 export type CoachGradeLevel = 'bronze' | 'silver' | 'gold' | 'platinum'
