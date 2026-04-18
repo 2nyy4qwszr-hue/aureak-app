@@ -314,6 +314,40 @@ export const MODULE_LABELS: Record<MethodologyModuleType, string> = {
 /** Ordre canonique des phases */
 export const MODULE_TYPES: MethodologyModuleType[] = ['activation', 'development', 'conclusion']
 
+// ── Story 86-3 — Sections de navigation (permissions granulaires) ─────────────
+
+/** Sections de navigation — miroir de l'enum PostgreSQL `section_key` (migration 00150).
+ *  Ordre stable garanti — consommé par la sidebar dynamique (Story 86-4).
+ */
+export type SectionKey =
+  | 'dashboard' | 'activites' | 'methodologie' | 'academie'
+  | 'evenements' | 'prospection' | 'marketing' | 'partenariat'
+  | 'performances' | 'admin'
+
+export const SECTION_KEYS: SectionKey[] = [
+  'dashboard', 'activites', 'methodologie', 'academie',
+  'evenements', 'prospection', 'marketing', 'partenariat',
+  'performances', 'admin',
+]
+
+export const SECTION_KEY_LABELS: Record<SectionKey, string> = {
+  dashboard   : 'Dashboard',
+  activites   : 'Activités',
+  methodologie: 'Méthodologie',
+  academie    : 'Académie',
+  evenements  : 'Événements',
+  prospection : 'Prospection',
+  marketing   : 'Marketing',
+  partenariat : 'Partenariat',
+  performances: 'Performances',
+  admin       : 'Administration',
+}
+
+/** Niveau d'accès d'une permission — miroir de l'enum PostgreSQL `permission_access` (migration 00150).
+ *  Réservé pour granularité future (ex: read-only). Pour l'instant le booléen `granted` suffit.
+ */
+export type PermissionAccess = 'granted' | 'denied'
+
 // ── Epic 85 — Registre Commercial Clubs ────────────────────────────────────
 
 /** Statut d'un contact commercial — miroir de l'enum PostgreSQL `commercial_contact_status` */
