@@ -414,6 +414,8 @@ export {
   getChildCurrentClubFromHistory,
   // Story 89.1 — statut prospect gardien
   updateChildProspectStatus,
+  // Story 89.2 — ajout gardien prospect
+  createProspectChild,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,
@@ -422,6 +424,8 @@ export type {
   JoueurListItem, ListJoueursOpts,
   // Story 18.2
   AddChildPhotoParams,
+  // Story 89.2
+  CreateProspectChildParams,
 } from './admin/child-directory'
 
 export {
@@ -598,6 +602,7 @@ export type {
 // Story tbd-notifs-inapp — Notifications in-app
 export {
   listInAppNotifications, markNotificationRead, markAllNotificationsRead, countUnreadNotifications,
+  createInAppNotification,
 } from './notifications'
 export type { InAppNotification } from './notifications'
 
@@ -655,5 +660,17 @@ export {
   updateCoachProspect,
   updateCoachProspectStatus,
   deleteCoachProspect,
+  createCoachRecommendation,
+  listMyRecommendations,
+  listAdminUserIds,
 } from './admin/coachProspects'
+export type { CreateCoachRecommendationParams } from './admin/coachProspects'
+
+// Story 88.5 — Bibliothèque ressources commerciales
+export {
+  listCommercialResources,
+  updateCommercialResource,
+  uploadCommercialResourceFile,
+  getResourceDownloadUrl,
+} from './admin/commercial-resources'
 

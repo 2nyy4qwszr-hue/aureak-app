@@ -265,6 +265,46 @@ export async function createChildDirectoryEntry(
   return toEntry(data)
 }
 
+// ── Create prospect child (Story 89.2) ────────────────────────────────────────
+
+export type CreateProspectChildParams = {
+  tenantId       : string
+  nom            : string
+  prenom         : string
+  birthDate?     : string | null
+  currentClub?   : string | null
+  ageCategory?   : FootballAgeCategory | null
+  parent1Tel?    : string | null
+  parent1Email?  : string | null
+  notesInternes? : string | null
+}
+
+export async function createProspectChild(
+  params: CreateProspectChildParams,
+): Promise<ChildDirectoryEntry> {
+  const displayName = `${params.prenom} ${params.nom}`.trim()
+  const { data, error } = await supabase
+    .from('child_directory')
+    .insert({
+      tenant_id      : params.tenantId,
+      display_name   : displayName,
+      nom            : params.nom,
+      prenom         : params.prenom,
+      birth_date     : params.birthDate     ?? null,
+      current_club   : params.currentClub   ?? null,
+      age_category   : params.ageCategory   ?? null,
+      parent1_tel    : params.parent1Tel    ?? null,
+      parent1_email  : params.parent1Email  ?? null,
+      notes_internes : params.notesInternes ?? null,
+      prospect_status: 'identified',
+      actif          : true,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return toEntry(data)
+}
+
 // ── List ───────────────────────────────────────────────────────────────────────
 
 export type ListChildDirectoryOpts = {
@@ -287,7 +327,7 @@ export async function listChildDirectory(
     .is('deleted_at', null)
     .order('display_name', { ascending: true })
 
-  if (search) q = q.ilike('display_name', `%${search}%`)
+  if (search) q = q.or(`display_name.ilike.%${search}%,nom.ilike.%${search}%,prenom.ilike.%${search}%,current_club.ilike.%${search}%`)
   if (statut !== undefined) q = q.eq('statut', statut)
   if (prospectStatus === 'all_prospects') q = q.not('prospect_status', 'is', null)
   else if (prospectStatus) q = q.eq('prospect_status', prospectStatus)

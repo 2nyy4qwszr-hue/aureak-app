@@ -9,6 +9,7 @@ const TABS = [
   { label: 'CLUBS',        href: '/developpement/prospection/clubs' },
   { label: 'GARDIENS',     href: '/developpement/prospection/gardiens' },
   { label: 'ENTRAÎNEURS',  href: '/developpement/prospection/entraineurs' },
+  { label: 'RESSOURCES',  href: '/developpement/prospection/ressources' },
 ] as const
 
 export function ProspectionNavBar() {

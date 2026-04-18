@@ -1,12 +1,16 @@
 'use client'
 // Coach Dashboard — centre de contrôle premium
 // Story 13.3 : bannière "Séance en cours" auto-surface (AC1)
+// Story 90.2 : Recommandation entraîneur + historique
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { listSessionsByCoach, getActiveSessionsForCoach, listEvaluatedSessionIds } from '@aureak/api-client'
+import { listSessionsByCoach, getActiveSessionsForCoach, listEvaluatedSessionIds, listMyRecommendations } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import type { Session } from '@aureak/types'
+import type { CoachProspect } from '@aureak/types'
+import { COACH_PROSPECT_STATUS_LABELS } from '@aureak/types'
+import { RecommendCoachModal } from './_components/RecommendCoachModal'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 function fmtDate(d: Date, opts: Intl.DateTimeFormatOptions) {
@@ -67,6 +71,11 @@ export default function CoachDashboardPage() {
   const [missingEvals, setMissingEvals] = useState<string[]>([])
   const [loading,      setLoading]      = useState(true)
 
+  // Story 90.2 — Recommandation entraîneur
+  const [showRecommendModal, setShowRecommendModal] = useState(false)
+  const [recommendations,    setRecommendations]    = useState<CoachProspect[]>([])
+  const [successMsg,         setSuccessMsg]         = useState<string | null>(null)
+
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
@@ -87,6 +96,9 @@ export default function CoachDashboardPage() {
           const evaluated = new Set(evaluatedIds)
           setMissingEvals(recentClosed.filter(id => !evaluated.has(id)))
         }
+        // Story 90.2 — Charger les recommandations du coach
+        const recs = await listMyRecommendations(user.id)
+        setRecommendations(recs)
       } catch (err) {
         if (process.env.NODE_ENV !== 'production') console.error('[CoachDashboard] load error:', err)
       } finally {
@@ -135,14 +147,36 @@ export default function CoachDashboardPage() {
             {now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <button
-          className="cd-btn"
-          style={S.btnSecondary}
-          onClick={() => router.push('/coach/sessions' as never)}
-        >
-          Toutes mes séances →
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            className="cd-btn"
+            style={S.btnRecommend}
+            onClick={() => setShowRecommendModal(true)}
+          >
+            + Recommander un entraîneur
+          </button>
+          <button
+            className="cd-btn"
+            style={S.btnSecondary}
+            onClick={() => router.push('/coach/sessions' as never)}
+          >
+            Toutes mes séances →
+          </button>
+        </div>
       </div>
+
+      {/* Story 90.2 — Toast de confirmation */}
+      {successMsg && (
+        <div style={S.successToast}>
+          <span style={{ fontSize: 13, color: colors.status.present, fontWeight: 600 }}>{successMsg}</span>
+          <button
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: colors.text.muted, padding: 0 }}
+            onClick={() => setSuccessMsg(null)}
+          >
+            x
+          </button>
+        </div>
+      )}
 
       {/* ── KPI strip ── */}
       <div style={S.kpiGrid}>
@@ -364,6 +398,65 @@ export default function CoachDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Story 90.2 — Mes recommandations ── */}
+      {recommendations.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={S.sectionLabel}>Mes recommandations ({recommendations.length})</div>
+          <div style={S.sessionTable}>
+            <div style={S.tableHead}>
+              <span style={{ ...S.th, flex: 2 }}>Nom</span>
+              <span style={{ ...S.th, flex: 1 }}>Contact</span>
+              <span style={{ ...S.th, flex: 1 }}>Statut</span>
+              <span style={{ ...S.th, flex: 1 }}>Date</span>
+            </div>
+            {recommendations.map((rec, idx) => (
+              <div
+                key={rec.id}
+                style={{
+                  ...S.tableRow,
+                  ...(idx % 2 === 1 ? S.tableRowAlt : {}),
+                }}
+              >
+                <span style={{ flex: 2, fontSize: 14, fontWeight: 600, color: colors.text.dark }}>
+                  {rec.name}
+                </span>
+                <span style={{ flex: 1, fontSize: 13, color: colors.text.muted }}>
+                  {rec.email || rec.phone || '—'}
+                </span>
+                <span style={{ flex: 1 }}>
+                  <span style={S.statusBadge}>
+                    {COACH_PROSPECT_STATUS_LABELS[rec.status]}
+                  </span>
+                </span>
+                <span style={{ flex: 1, fontSize: 12, color: colors.text.muted }}>
+                  {new Date(rec.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Story 90.2 — Modale recommandation */}
+      <RecommendCoachModal
+        visible={showRecommendModal}
+        onClose={() => setShowRecommendModal(false)}
+        onCreated={async () => {
+          setShowRecommendModal(false)
+          setSuccessMsg('Recommandation envoyée avec succès !')
+          setTimeout(() => setSuccessMsg(null), 4000)
+          // Refresh recommendations
+          if (user?.id) {
+            try {
+              const recs = await listMyRecommendations(user.id)
+              setRecommendations(recs)
+            } catch (err) {
+              if (process.env.NODE_ENV !== 'production') console.error('[CoachDashboard] refresh recs:', err)
+            }
+          }
+        }}
+      />
     </div>
   )
 }
@@ -395,4 +488,8 @@ const S: Record<string, React.CSSProperties> = {
   activeBanner : { display: 'flex', alignItems: 'center', gap: 16, backgroundColor: colors.status.present, borderRadius: 12, padding: '16px 20px', marginBottom: 20, boxShadow: '0 4px 12px rgba(76,175,80,0.25)' },
   activeDot    : { width: 10, height: 10, borderRadius: 5, backgroundColor: '#fff', flexShrink: 0, boxShadow: '0 0 0 3px rgba(255,255,255,0.35)' },
   btnAnimer    : { padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: '#fff', color: colors.status.present, fontWeight: 800, fontSize: 14, cursor: 'pointer', flexShrink: 0 },
+  // Story 90.2 — Recommandation entraîneur
+  btnRecommend : { padding: '8px 16px', borderRadius: 7, border: 'none', backgroundColor: colors.accent.gold, color: colors.text.dark, fontWeight: 700, fontSize: 13, cursor: 'pointer' },
+  successToast : { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderRadius: 8, backgroundColor: 'rgba(76,175,80,0.08)', border: '1px solid rgba(76,175,80,0.25)', marginBottom: 20 },
+  statusBadge  : { fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4, backgroundColor: 'rgba(193,172,92,0.12)', color: colors.accent.gold },
 }

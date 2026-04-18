@@ -21,6 +21,7 @@ function mapRow(r: Record<string, unknown>): CoachProspect {
     experienceYears  : (r.experience_years as number | null) ?? null,
     diplomas         : (r.diplomas as string[] | null) ?? [],
     assignedManagerId: (r.assigned_manager_id as string | null) ?? null,
+    recommendedById  : (r.recommended_by_id as string | null) ?? null,
     source           : (r.source as string | null) ?? null,
     notes            : (r.notes as string | null) ?? null,
     createdAt        : r.created_at as string,
@@ -104,6 +105,7 @@ export async function createCoachProspect(
       experience_years   : params.experienceYears ?? null,
       diplomas           : params.diplomas ?? [],
       assigned_manager_id: params.assignedManagerId ?? null,
+      recommended_by_id  : params.recommendedById ?? null,
       source             : params.source ?? null,
       notes              : params.notes ?? null,
     })
@@ -163,4 +165,68 @@ export async function deleteCoachProspect(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw error
+}
+
+// ── Story 90.2 — Recommandation coach ─────────────────────────────────────
+
+export type CreateCoachRecommendationParams = {
+  name      : string
+  contact   : string
+  relation  : string
+  comment?  : string
+}
+
+/**
+ * Crée un coach prospect via recommandation d'un coach.
+ * Détecte si le contact est un email ou un téléphone.
+ */
+export async function createCoachRecommendation(
+  params: CreateCoachRecommendationParams,
+  tenantId: string,
+  coachUserId: string,
+): Promise<CoachProspect> {
+  const isEmail = params.contact.includes('@')
+  return createCoachProspect({
+    name           : params.name,
+    email          : isEmail ? params.contact : undefined,
+    phone          : isEmail ? undefined : params.contact,
+    source         : 'recommendation_coach',
+    recommendedById: coachUserId,
+    notes          : `Relation : ${params.relation}${params.comment ? `\n${params.comment}` : ''}`,
+  }, tenantId)
+}
+
+/**
+ * Liste les recommandations faites par un coach spécifique.
+ */
+export async function listMyRecommendations(
+  coachUserId: string,
+): Promise<CoachProspect[]> {
+  const { data, error } = await supabase
+    .from('coach_prospects')
+    .select('*')
+    .eq('recommended_by_id', coachUserId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  if (!data || data.length === 0) return []
+  return (data as Record<string, unknown>[]).map(mapRow)
+}
+
+/**
+ * Récupère les user_id des admins du tenant courant (pour notifications).
+ */
+export async function listAdminUserIds(tenantId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('user_id')
+    .eq('tenant_id', tenantId)
+    .eq('user_role', 'admin')
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[coachProspects] listAdminUserIds:', error)
+    return []
+  }
+  return (data ?? []).map(p => (p as { user_id: string }).user_id)
 }

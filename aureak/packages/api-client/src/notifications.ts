@@ -78,6 +78,30 @@ export async function markAllNotificationsRead(): Promise<{ error: unknown }> {
   return { error }
 }
 
+/** Crée une notification in-app pour un utilisateur spécifique */
+export async function createInAppNotification(params: {
+  tenantId : string
+  userId   : string
+  title    : string
+  body     : string
+  type?    : 'info' | 'warning' | 'success' | 'error'
+}): Promise<{ error: unknown }> {
+  const { error } = await supabase
+    .from('inapp_notifications')
+    .insert({
+      tenant_id : params.tenantId,
+      user_id   : params.userId,
+      title     : params.title,
+      body      : params.body,
+      type      : params.type ?? 'info',
+    })
+
+  if (error && process.env.NODE_ENV !== 'production') {
+    if ((process.env.NODE_ENV as string) !== 'production') console.error('[notifications] createInAppNotification:', error)
+  }
+  return { error }
+}
+
 /** Compte les notifications non lues */
 export async function countUnreadNotifications(): Promise<{ count: number; error: unknown }> {
   const { count, error } = await supabase

@@ -439,3 +439,26 @@ export const COACH_PROSPECT_STATUS_LABELS: Record<CoachProspectStatus, string> =
   interview : 'Entretien',
   recruited : 'Recruté',
 }
+
+// ── Story 88.5 — Bibliothèque ressources commerciales ────────────────────────
+
+/** Type de ressource commerciale — miroir de l'enum PostgreSQL `commercial_resource_type` */
+export type CommercialResourceType = 'powerpoint' | 'flyer' | 'webpage' | 'tarifs'
+
+export const COMMERCIAL_RESOURCE_TYPES: CommercialResourceType[] = [
+  'powerpoint', 'flyer', 'webpage', 'tarifs',
+]
+
+export const COMMERCIAL_RESOURCE_TYPE_LABELS: Record<CommercialResourceType, string> = {
+  powerpoint: 'PowerPoint Club',
+  flyer     : 'Flyer Parents',
+  webpage   : 'One-pager Web',
+  tarifs    : 'Grille Tarifaire',
+}
+
+export const COMMERCIAL_RESOURCE_TYPE_ICONS: Record<CommercialResourceType, string> = {
+  powerpoint: '📊',
+  flyer     : '📄',
+  webpage   : '🌐',
+  tarifs    : '💰',
+}

@@ -2,7 +2,7 @@
 // Convention : camelCase en TypeScript, snake_case uniquement en DB
 // Transformation snake_case → camelCase : uniquement dans @aureak/api-client/src/transforms.ts
 
-import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType, ChildProspectStatus } from './enums'
+import type { UserRole, AttendanceStatus, NotificationChannel, FootballAgeCategory, FootballTeamLevel, BelgianProvince, MethodologyMethod, MethodologyContextType, MethodologyLevel, SessionType, SituationalBlocCode, ClubRelationType, CoachGradeLevel, EventType, ChildProspectStatus, CommercialResourceType } from './enums'
 
 export type { MethodologyMethod, MethodologyContextType, MethodologyLevel }
 
@@ -2537,6 +2537,7 @@ export type CoachProspect = {
   experienceYears   : number | null
   diplomas          : string[]
   assignedManagerId : string | null
+  recommendedById   : string | null
   source            : string | null
   notes             : string | null
   createdAt         : string
@@ -2557,6 +2558,7 @@ export type CreateCoachProspectParams = {
   experienceYears? : number
   diplomas?        : string[]
   assignedManagerId?: string
+  recommendedById? : string
   source?          : string
   notes?           : string
 }
@@ -2572,5 +2574,30 @@ export type UpdateCoachProspectParams = {
   assignedManagerId?: string | null
   source?           : string | null
   notes?            : string | null
+}
+
+// ── Story 88.5 — Bibliothèque ressources commerciales ────────────────────────
+
+/** Ressource commerciale — miroir de la table `commercial_resources` */
+export type CommercialResource = {
+  id          : string
+  tenantId    : string
+  title       : string
+  description : string
+  resourceType: CommercialResourceType
+  filePath    : string | null
+  externalUrl : string | null
+  fileSize    : number | null
+  mimeType    : string | null
+  uploadedBy  : string | null
+  createdAt   : string
+  updatedAt   : string
+}
+
+/** Params mise à jour métadonnées d'une ressource commerciale */
+export type UpdateCommercialResourceParams = {
+  title?      : string
+  description?: string
+  externalUrl?: string | null
 }
 

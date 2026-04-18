@@ -1,6 +1,6 @@
-// Story 89.1 — Pipeline Gardiens : liste child_directory avec statut prospect
+// Story 89.1 + 89.2 — Pipeline Gardiens : liste, recherche, ajout prospect
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows, childProspectStatusColors } from '@aureak/theme'
@@ -14,6 +14,7 @@ import {
   CHILD_PROSPECT_STATUSES,
   CHILD_PROSPECT_STATUS_LABELS,
 } from '@aureak/types'
+import { AddProspectForm } from './_components/AddProspectForm'
 
 // ── ProspectBadge ────────────────────────────────────────────────────────────
 
@@ -89,16 +90,29 @@ export default function ProspectionGardiensPage() {
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ChildProspectStatus | 'all_prospects' | 'all'>('all_prospects')
   const [page, setPage] = useState(0)
+  const [showForm, setShowForm] = useState(false)
   const pageSize = 50
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Debounce search input (300ms)
+  const handleSearchChange = useCallback((text: string) => {
+    setSearch(text)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(text)
+      setPage(0)
+    }, 300)
+  }, [])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const prospectOpt = statusFilter === 'all' ? undefined : statusFilter
       const { data, count: total } = await listChildDirectory({
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         prospectStatus: prospectOpt,
         page,
         pageSize,
@@ -110,7 +124,7 @@ export default function ProspectionGardiensPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, statusFilter, page])
+  }, [debouncedSearch, statusFilter, page])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -120,10 +134,17 @@ export default function ProspectionGardiensPage() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
-        <AureakText variant="h2" style={styles.title}>Pipeline Gardiens</AureakText>
-        <AureakText variant="body" style={styles.subtitle}>
-          {count} gardien{count !== 1 ? 's' : ''} dans le pipeline
-        </AureakText>
+        <View style={styles.headerRow}>
+          <View>
+            <AureakText variant="h2" style={styles.title}>Pipeline Gardiens</AureakText>
+            <AureakText variant="body" style={styles.subtitle}>
+              {count} gardien{count !== 1 ? 's' : ''} dans le pipeline
+            </AureakText>
+          </View>
+          <Pressable style={styles.addBtn} onPress={() => setShowForm(true)}>
+            <AureakText style={styles.addBtnText}>+ Ajouter un gardien</AureakText>
+          </Pressable>
+        </View>
       </View>
 
       {/* Filtres */}
@@ -134,7 +155,7 @@ export default function ProspectionGardiensPage() {
           placeholder="Rechercher un gardien..."
           placeholderTextColor={colors.text.muted}
           value={search}
-          onChangeText={(t) => { setSearch(t); setPage(0) }}
+          onChangeText={handleSearchChange}
         />
 
         {/* Status pills */}
@@ -243,6 +264,12 @@ export default function ProspectionGardiensPage() {
           </Pressable>
         </View>
       )}
+      {/* Formulaire ajout prospect */}
+      <AddProspectForm
+        visible={showForm}
+        onClose={() => setShowForm(false)}
+        onCreated={() => { setShowForm(false); fetchData() }}
+      />
     </ScrollView>
   )
 }
@@ -260,12 +287,30 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: space.lg,
   },
+  headerRow: {
+    flexDirection : 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems    : 'flex-start' as const,
+    flexWrap      : 'wrap' as const,
+    gap           : space.md,
+  },
   title: {
     color       : colors.text.dark,
     marginBottom: space.xs,
   },
   subtitle: {
     color: colors.text.muted,
+  },
+  addBtn: {
+    backgroundColor  : colors.accent.gold,
+    paddingVertical  : space.sm,
+    paddingHorizontal: space.lg,
+    borderRadius     : radius.card,
+  },
+  addBtnText: {
+    color     : colors.text.primary,
+    fontSize  : 14,
+    fontWeight: '700' as const,
   },
 
   // Filters
