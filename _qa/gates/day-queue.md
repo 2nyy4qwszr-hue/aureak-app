@@ -1,5 +1,5 @@
 date: 2026-04-18
-status: pending
+status: in-progress
 
 # ──────────── QUEUE DU JOUR ────────────
 # Epic 54 Présences premium + Story 49-4 (fix prérequis 54-1)
@@ -10,9 +10,9 @@ new_queue:
     story_file: _bmad-output/implementation-artifacts/story-49-4-ux-presences-liste-enfants-groupe.md
     title: "UX — Présences : toggle présent/absent pré-rempli pour tous les joueurs du groupe"
     priority: P1
-    status: pending
-    gate1: null
-    gate2: null
+    status: done
+    gate1: SKIP (no code change — already implemented, AC1-9 validated)
+    gate2: SKIP (no code change — already implemented, AC1-9 validated)
 
   - story_id: story-54-1
     story_file: _bmad-output/implementation-artifacts/story-54-1-presences-squad-overview.md

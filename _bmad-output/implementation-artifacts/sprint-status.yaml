@@ -342,6 +342,7 @@ development_status:
 
   # Epic 49 : Bugfix + UX + Design batch avril 2026 #2
   epic-49: in-progress
+  49-4-ux-presences-liste-enfants-groupe: done
   49-9-bug-attendance-table-manquante-remote: done
   49-10-bug-profiles-id-milestones: done
   49-11-bug-nav-badges-session-attendees: done
