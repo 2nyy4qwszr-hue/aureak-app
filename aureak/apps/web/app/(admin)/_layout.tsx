@@ -11,6 +11,7 @@ import { ThemeProvider, useTheme } from '../contexts/ThemeContext'
 import { useThemeColors } from '../hooks/useThemeColors'
 import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase, useOfflineCache, listStages } from '@aureak/api-client'
 import type { ActiveSessionInfo, NavBadgeCounts, AchievementToastData } from '@aureak/api-client'
+import type { EffectivePermissions } from '@aureak/types'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
 import { NavTooltip } from '../../components/NavTooltip'
@@ -433,13 +434,15 @@ function AdminLayoutInner() {
   // ── Story 86-4 — Sidebar dynamique pilotée par permissions effectives ─────
   // Fallback sécurité : admin voit toujours toutes les sections même si permissions
   // n'ont pas encore été chargées (ou ont échoué). Les autres rôles attendent le load.
-  const ADMIN_FULL_PERMS: Record<string, boolean> = {
+  // Typé en EffectivePermissions (Record<SectionKey, boolean>) pour que tsc détecte
+  // tout ajout futur à SectionKey non couvert ici — évite le piège silent du `as never`.
+  const ADMIN_FULL_PERMS: EffectivePermissions = {
     dashboard   : true, activites   : true, methodologie: true, academie    : true,
     evenements  : true, prospection : true, marketing   : true, partenariat : true,
     performances: true, admin       : true,
   }
   const effectivePerms = permissions
-    ?? (activeRole === 'admin' ? (ADMIN_FULL_PERMS as never) : null)
+    ?? (activeRole === 'admin' ? ADMIN_FULL_PERMS : null)
 
   const visibleNavGroups: NavGroup[] = buildNavGroups(activeRole, effectivePerms)
 
@@ -602,7 +605,7 @@ function AdminLayoutInner() {
                   marginHorizontal={12}
                   height={32}
                   borderRadius={radius.xs}
-                  backgroundColor={colors.overlay.whiteSubtle}
+                  backgroundColor={colors.overlay.whiteHover}
                 />
               ))}
             </YStack>

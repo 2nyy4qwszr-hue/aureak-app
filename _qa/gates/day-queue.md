@@ -1,5 +1,5 @@
 date: 2026-04-18
-status: in-progress
+status: done
 
 # ──────────── QUEUE DU JOUR ────────────
 # Epic 86 Architecture Rôles & Permissions — fondation brainstorming 2026-04-18
@@ -34,6 +34,6 @@ new_queue:
     story_file: _bmad-output/implementation-artifacts/story-86-4-sidebar-dynamique-permissions.md
     title: "Sidebar dynamique — refactor _layout.tsx selon getEffectivePermissions + RoleSwitcher"
     priority: P0
-    status: pending
-    gate1: null
-    gate2: null
+    status: done
+    gate1: SKIP (review PASS + 2 HIGH fixés — EffectivePermissions typing + skeleton contrast)
+    gate2: SKIP (review PASS + 2 HIGH fixés — EffectivePermissions typing + skeleton contrast)
