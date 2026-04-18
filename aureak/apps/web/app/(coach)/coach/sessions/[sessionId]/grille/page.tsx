@@ -41,8 +41,8 @@ function clearDraft(sessionId: string) {
 
 const STATUS_COLORS: Record<AttendanceStatus | 'null', { bg: string; border: string; label: string; text: string }> = {
   null         : { bg: colors.light.muted,                        border: colors.border.light,  label: '—',         text: colors.text.subtle },
-  present      : { bg: 'rgba(16,185,129,0.15)',                   border: '#10B981',             label: '✓ Présent', text: '#10B981' },
-  late         : { bg: 'rgba(251,191,36,0.15)',                   border: '#FBBF24',             label: '⏱ Retard',  text: '#FBBF24' },
+  present      : { bg: 'rgba(16,185,129,0.15)',                   border: colors.status.success, label: '✓ Présent', text: colors.status.success },
+  late         : { bg: 'rgba(251,191,36,0.15)',                   border: colors.status.attention, label: '⏱ Retard',  text: colors.status.attention },
   absent       : { bg: 'rgba(239,68,68,0.12)',                    border: colors.status.absent,  label: '✗ Absent',  text: colors.status.absent },
   injured      : { bg: 'rgba(239,68,68,0.08)',                    border: colors.status.absent,  label: '🩹 Blessé', text: colors.status.absent },
   trial        : { bg: `${colors.accent.gold}22`,                 border: colors.accent.gold,    label: '🔵 Essai',  text: colors.accent.gold },
@@ -177,11 +177,11 @@ function ChildFlipCard({
               <div style={{ fontSize: 10, color: colors.text.muted }}>
                 📅 {cardBack.presentThisMonth} présence{cardBack.presentThisMonth > 1 ? 's' : ''} ce mois
               </div>
-              <div style={{ fontSize: 10, color: cardBack.evalDone ? '#10B981' : colors.status.absent }}>
+              <div style={{ fontSize: 10, color: cardBack.evalDone ? colors.status.success : colors.status.absent }}>
                 {cardBack.evalDone ? '✅ Éval. faite' : '🔴 Éval. manquante'}
               </div>
               {cardBack.activeTechSignal && (
-                <div style={{ fontSize: 9, color: '#FBBF24', fontWeight: 600, lineHeight: 1.3 }}>
+                <div style={{ fontSize: 9, color: colors.status.attention, fontWeight: 600, lineHeight: 1.3 }}>
                   ⚡ {cardBack.activeTechSignal.errorObserved.slice(0, 40)}
                 </div>
               )}
@@ -251,8 +251,8 @@ function LatePopup({ onSelect }: { onSelect: (t: LateType) => void }) {
           </button>
           <button
             style={{
-              flex: 1, padding: '12px 0', borderRadius: 8, border: '2px solid #FBBF24',
-              backgroundColor: 'rgba(251,191,36,0.15)', color: '#D97706',
+              flex: 1, padding: '12px 0', borderRadius: 8, border: `2px solid ${colors.status.attention}`,
+              backgroundColor: 'rgba(251,191,36,0.15)', color: colors.status.warningText,
               fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}
             onClick={() => onSelect('over_15')}
@@ -534,17 +534,17 @@ export default function SessionGrillePage() {
       {/* ── Header stats ── */}
       <div style={S.statsRow}>
         <div style={S.statPill}>
-          <span style={{ color: '#10B981', fontWeight: 700 }}>{children.filter(c => c.status === 'present').length}</span> présents
+          <span style={{ color: colors.status.success, fontWeight: 700 }}>{children.filter(c => c.status === 'present').length}</span> présents
         </div>
         <div style={S.statPill}>
-          <span style={{ color: '#FBBF24', fontWeight: 700 }}>{children.filter(c => c.status === 'late').length}</span> retards
+          <span style={{ color: colors.status.attention, fontWeight: 700 }}>{children.filter(c => c.status === 'late').length}</span> retards
         </div>
         <div style={S.statPill}>
           <span style={{ color: colors.status.absent, fontWeight: 700 }}>{children.filter(c => c.status === 'absent').length}</span> absents
         </div>
         {unconfirmedCount > 0 && (
-          <div style={{ ...S.statPill, backgroundColor: 'rgba(251,191,36,0.15)', borderColor: '#FBBF24' }}>
-            <span style={{ color: '#D97706', fontWeight: 700 }}>⚠ {unconfirmedCount}</span> non conf.
+          <div style={{ ...S.statPill, backgroundColor: 'rgba(251,191,36,0.15)', borderColor: colors.status.attention }}>
+            <span style={{ color: colors.status.warningText, fontWeight: 700 }}>⚠ {unconfirmedCount}</span> non conf.
           </div>
         )}
       </div>

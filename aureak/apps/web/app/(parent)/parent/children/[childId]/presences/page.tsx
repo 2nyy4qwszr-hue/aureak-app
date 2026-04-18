@@ -17,11 +17,11 @@ import type { AttendanceStats } from '@aureak/api-client'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const HEATMAP_COLORS: Record<HeatmapStatus, { bg: string; border: string; label: string }> = {
-  present     : { bg: 'rgba(16,185,129,0.7)',  border: '#10B981', label: '🟢 Présent'          },
-  absent      : { bg: 'rgba(239,68,68,0.7)',   border: '#EF4444', label: '🔴 Absent'            },
-  justified   : { bg: 'rgba(59,130,246,0.7)',  border: '#3B82F6', label: '🔵 Absent (justifié)' },
-  injured     : { bg: 'rgba(107,114,128,0.7)', border: '#6B7280', label: '⚫ Blessé'            },
-  unconfirmed : { bg: 'rgba(156,163,175,0.3)', border: '#9CA3AF', label: '⬜ Non confirmé'      },
+  present     : { bg: 'rgba(16,185,129,0.7)',  border: colors.status.success, label: '🟢 Présent'          },
+  absent      : { bg: 'rgba(239,68,68,0.7)',   border: colors.accent.red,     label: '🔴 Absent'            },
+  justified   : { bg: 'rgba(59,130,246,0.7)',  border: colors.status.info,    label: '🔵 Absent (justifié)' },
+  injured     : { bg: 'rgba(107,114,128,0.7)', border: colors.status.neutral, label: '⚫ Blessé'            },
+  unconfirmed : { bg: 'rgba(156,163,175,0.3)', border: colors.status.neutral, label: '⬜ Non confirmé'      },
 }
 
 const ABSENCE_REASONS: { value: AbsenceReason; label: string; legitimate: boolean }[] = [
@@ -217,7 +217,7 @@ function JustificationModal({
             >
               {r.label}
               {r.legitimate && (
-                <span style={{ fontSize: 10, color: '#3B82F6', marginLeft: 8, fontWeight: 600 }}>
+                <span style={{ fontSize: 10, color: colors.status.info, marginLeft: 8, fontWeight: 600 }}>
                   (assiduité préservée)
                 </span>
               )}
@@ -347,7 +347,7 @@ export default function ChildPresencesPage() {
             label="Présences"
             value={`${stats.present}`}
             sub={stats.attendanceRate !== null ? `${stats.attendanceRate}%` : undefined}
-            color="#10B981"
+            color={colors.status.success}
           />
           <StatCard
             label="Absents"
@@ -355,14 +355,14 @@ export default function ChildPresencesPage() {
             color={stats.absent > 0 ? colors.status.absent : undefined}
           />
           {stats.justified > 0 && (
-            <StatCard label="Justifiés" value={String(stats.justified)} color="#3B82F6" />
+            <StatCard label="Justifiés" value={String(stats.justified)} color={colors.status.info} />
           )}
           {stats.qualityRate !== null && stats.qualityRate !== stats.attendanceRate && (
             <StatCard
               label="Assiduité nette"
               value={`${stats.qualityRate}%`}
               sub="excl. justifiés"
-              color={stats.qualityRate >= 80 ? '#10B981' : '#FBBF24'}
+              color={stats.qualityRate >= 80 ? colors.status.success : colors.status.attention}
             />
           )}
         </div>
@@ -414,7 +414,7 @@ export default function ChildPresencesPage() {
                     {sc.label}
                   </span>
                   {e.heatmapStatus === 'absent' && (
-                    <span style={{ fontSize: 11, color: '#3B82F6' }}>Justifier →</span>
+                    <span style={{ fontSize: 11, color: colors.status.info }}>Justifier →</span>
                   )}
                 </div>
               )
