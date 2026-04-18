@@ -1,81 +1,79 @@
-date: 2026-04-09
-status: in-progress
+date: 2026-04-18
+status: pending
 
 # ──────────── QUEUE DU JOUR ────────────
+# Epic 54 Présences premium + Story 49-4 (fix prérequis 54-1)
+# Ordre : 49-4 d'abord (toggle pré-rempli) → 54-1 (grille squad remplace liste 49-4) → reste Epic 54 par priorité P2 → P3
+
 new_queue:
-  - story_id: story-77-5
-    title: "BUG CRITICAL — Vue session_evaluations_merged absente migrations → 406"
-    priority: P0
-    status: done
-    gate1: PASS
-    gate2: PASS
-
-  - story_id: story-78-1
-    title: "BUG — evalMap clé scheduled_at vs session_id → évaluations jamais affichées"
+  - story_id: story-49-4
+    story_file: _bmad-output/implementation-artifacts/story-49-4-ux-presences-liste-enfants-groupe.md
+    title: "UX — Présences : toggle présent/absent pré-rempli pour tous les joueurs du groupe"
     priority: P1
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
 
-  - story_id: story-72-14
-    title: "BUG — TYPE_COLOR + methodColor() manquent 'performance'"
+  - story_id: story-54-1
+    story_file: _bmad-output/implementation-artifacts/story-54-1-presences-squad-overview.md
+    title: "Présences — Squad Overview grille 4 colonnes cartes joueurs (remplace liste 49-4)"
     priority: P1
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
 
-  - story_id: story-77-4
-    title: "DESIGN — Analytics hex hardcodés → tokens"
+  - story_id: story-54-2
+    story_file: _bmad-output/implementation-artifacts/story-54-2-presences-toggle-neumorphique.md
+    title: "Présences — AttendanceToggle neumorphique @aureak/ui (shadow inset spring 150ms)"
     priority: P2
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
 
-  - story_id: story-77-3
-    title: "DESIGN — Implantations dégradé vert + FFFFFF → tokens"
+  - story_id: story-54-3
+    story_file: _bmad-output/implementation-artifacts/story-54-3-presences-streak-joueur-affiche.md
+    title: "Présences — Streak par joueur (sous-texte card, batch API getGroupMembersRecentStreaks)"
     priority: P2
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
 
-  - story_id: story-77-2
-    title: "UX — Recherche joueurs live debounce 300ms"
+  - story_id: story-54-4
+    story_file: _bmad-output/implementation-artifacts/story-54-4-presences-zone-retardataires.md
+    title: "Présences — Zone retardataires (section séparée status=late + bouton → Présent)"
     priority: P2
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
 
-  - story_id: story-80-1
-    title: "UX — Stages dates input natif HTML type=date"
+  - story_id: story-54-5
+    story_file: _bmad-output/implementation-artifacts/story-54-5-presences-validation-groupee.md
+    title: "Présences — Validation groupée (Tous présents + Promise.allSettled + micro-confetti)"
     priority: P2
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
 
-  - story_id: story-75-7
-    title: "FEATURE — Quiz QCM board parent /quiz/[sessionId]"
+  - story_id: story-54-6
+    story_file: _bmad-output/implementation-artifacts/story-54-6-presences-heatmap-mensuelle-joueur.md
+    title: "Présences — AttendanceHeatmap mensuelle @aureak/ui + section fiche joueur"
+    priority: P2
+    status: pending
+    gate1: null
+    gate2: null
+
+  - story_id: story-54-7
+    story_file: _bmad-output/implementation-artifacts/story-54-7-presences-alertes-absence-pattern.md
+    title: "Présences — Alertes absence pattern (recordAttendance + inapp_notifications)"
+    priority: P2
+    status: pending
+    gate1: null
+    gate2: null
+
+  - story_id: story-54-8
+    story_file: _bmad-output/implementation-artifacts/story-54-8-presences-export-pdf-hebdomadaire.md
+    title: "Présences — Export PDF hebdomadaire (window.print + HTML report builder)"
     priority: P3
-    status: done
-    gate1: PASS
-    gate2: PASS
-
-  - story_id: story-79-1
-    title: "FEATURE — Widget coachs inactifs >7j dashboard admin"
-    priority: P3
-    status: done
-    gate1: PASS
-    gate2: PASS
-
-  - story_id: story-78-2
-    title: "FEATURE — Tickets parent page détail + soft-delete + migration 00144"
-    priority: P3
-    status: done
-    gate1: PASS
-    gate2: PASS
-
-  - story_id: story-82-1
-    title: "DESIGN — Académie Coachs LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)"
-    priority: P2
-    status: done
-    gate1: PASS
-    gate2: PASS
+    status: pending
+    gate1: null
+    gate2: null
