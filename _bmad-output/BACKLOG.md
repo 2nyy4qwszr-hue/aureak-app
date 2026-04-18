@@ -453,14 +453,14 @@ Remplacement des TextInput texte libre format AAAA-MM-JJ par des `<input type="d
 
 > Ordre d'implémentation recommandé : 51-1 → 51-7 → 51-4 → 51-2 → 51-5 → 51-6 → 51-3 → 51-8
 
-- [ ] 51-1 : sidebar-active-state-barre-or-icones-svg (P1 — icônes SVG remplacement emojis + active state gold consolidé)
-- [ ] 51-7 : sidebar-collapse-smooth-animation (P2 — animation 280ms + tooltips mode collapsed — dépend 51-1)
-- [ ] 51-4 : notification-badges-sidebar (P2 — pastilles rouge/or présences+séances — dépend 51-1)
-- [ ] 51-2 : topbar-seance-active-permanente (P2 — barre gold séance en cours + polling 60s — API getActiveSession)
-- [ ] 51-5 : breadcrumb-anime-retour-cliquable (P2 — fil d'Ariane + BreadcrumbContext + animation 200ms)
-- [ ] 51-6 : raccourcis-clavier-navigation (P2 — chords G J / N S + overlay aide ? — coordonner avec 51-3)
-- [ ] 51-3 : command-palette-cmd-k (P3 — overlay ⌘K recherche unifiée joueurs+clubs+séances+nav)
-- [ ] 51-8 : dark-mode-complet-toggle-persistant (P3 — tokens dark.* + ThemeContext + toggle sidebar — dépend 51-1)
+- [x] 51-1 : sidebar-active-state-barre-or-icones-svg (P1 — icônes SVG remplacement emojis + active state gold consolidé)
+- [x] 51-7 : sidebar-collapse-smooth-animation (P2 — animation 280ms + tooltips mode collapsed — dépend 51-1)
+- [x] 51-4 : notification-badges-sidebar (P2 — pastilles rouge/or présences+séances — dépend 51-1)
+- [x] 51-2 : topbar-seance-active-permanente (P2 — barre gold séance en cours + polling 60s — API getActiveSession)
+- [x] 51-5 : breadcrumb-anime-retour-cliquable (P2 — fil d'Ariane + BreadcrumbContext + animation 200ms)
+- [x] 51-6 : raccourcis-clavier-navigation (P2 — chords G J / N S + overlay aide ? — coordonner avec 51-3)
+- [x] 51-3 : command-palette-cmd-k (P3 — overlay ⌘K recherche unifiée joueurs+clubs+séances+nav)
+- [x] 51-8 : dark-mode-complet-toggle-persistant (P3 — tokens dark.* + ThemeContext + toggle sidebar — dépend 51-1)
 
 ### Epic 55 — Évaluations "Player Report"
 
