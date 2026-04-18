@@ -7,6 +7,9 @@ export { supabase } from './supabase'
 export { compressImage } from './utils/compress-image'
 export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
+// Story 86-2 — Multi-rôle : table profile_roles
+export { listUserRoles, assignRoleToUser, revokeRoleFromUser } from './auth/profile-roles'
+
 export {
   getChildAcademyStatus,
   listAcademySeasons,

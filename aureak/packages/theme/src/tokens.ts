@@ -95,6 +95,9 @@ export const colors = {
     dark : 'rgba(0,0,0,0.5)',          // fond modal standard
     modal: 'rgba(0,0,0,0.7)',          // fond modal plein écran
     light: 'rgba(255,255,255,0.85)',   // surface translucide sur fond sombre
+    // Story 86-2 — hover/pressed states subtils sur surfaces sombres (sidebar, HUD)
+    whiteSubtle : 'rgba(255,255,255,0.06)',  // hover/rest subtil sur fond sombre
+    whiteHover  : 'rgba(255,255,255,0.12)',  // pressed/active sur fond sombre
   },
   entity: {
     stage : '#4ADE80',  // vert — statut "en cours" stage
