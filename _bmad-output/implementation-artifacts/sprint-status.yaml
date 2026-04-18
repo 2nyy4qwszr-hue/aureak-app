@@ -385,6 +385,18 @@ development_status:
   74-4-design-dashboard-gold-concatenations-tokens: done
   epic-74-retrospective: optional
 
+  # Epic 54 : Présences "Squad Status Board"
+  epic-54: in-progress
+  54-1-presences-squad-overview: done
+  54-2-presences-toggle-neumorphique: done
+  54-3-presences-streak-joueur-affiche: done
+  54-4-presences-zone-retardataires: done
+  54-5-presences-validation-groupee: done
+  54-6-presences-heatmap-mensuelle-joueur: done
+  54-7-presences-alertes-absence-pattern: done
+  54-8-presences-export-pdf-hebdomadaire: done
+  epic-54-retrospective: optional
+
   # Epic 75 : Académie Hub — Nav globale + Refonte page Joueurs
   epic-75: in-progress
   75-2-academie-hub-sidebar-coachs: review
