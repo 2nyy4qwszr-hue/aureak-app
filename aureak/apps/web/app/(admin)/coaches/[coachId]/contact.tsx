@@ -140,7 +140,7 @@ const styles: Record<string, React.CSSProperties> = {
   container      : { padding: '28px 32px', backgroundColor: colors.light.primary, minHeight: '100vh', color: colors.text.dark, maxWidth: '720px' },
   loading        : { padding: '24px', textAlign: 'center', color: colors.text.muted },
   breadcrumb     : { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' },
-  breadcrumbLink : { fontSize: '12px', color: colors.accent.gold, textDecoration: 'none', fontWeight: 600 },
+  breadcrumbLink : { fontSize: '12px', color: colors.accent.gold, textDecorationLine: 'none', fontWeight: 600 },
   breadcrumbSep  : { fontSize: '12px', color: colors.text.muted },
   breadcrumbCurrent: { fontSize: '12px', color: colors.text.dark, fontWeight: 600 },
   title          : { fontSize: '26px', fontWeight: 700, marginBottom: '24px', fontFamily: 'Montserrat, sans-serif' },

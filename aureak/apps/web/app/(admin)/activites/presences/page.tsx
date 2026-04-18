@@ -766,9 +766,7 @@ const heatStyles = StyleSheet.create({
     fontFamily   : fonts.body,
     fontWeight   : '500',
     color        : colors.text.dark,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore web textDecoration
-    textDecoration: 'underline',
+    textDecorationLine: 'underline',
   },
   dot: {
     width       : 20,
