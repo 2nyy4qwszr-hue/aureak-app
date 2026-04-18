@@ -415,7 +415,7 @@ export default function NewUserScreen() {
                       ) : clubs.length === 0 ? (
                         <div style={s.emptyClub}>
                           <span style={{ fontSize: 13, color: colors.text.muted }}>Aucun club enregistré.</span>
-                          <a href="/admin/clubs" style={{ fontSize: 12, color: colors.accent.gold, textDecoration: 'none', marginTop: 2 }}>
+                          <a href="/admin/clubs" style={{ fontSize: 12, color: colors.accent.gold, textDecorationLine: 'none', marginTop: 2 }}>
                             Créer un club →
                           </a>
                         </div>

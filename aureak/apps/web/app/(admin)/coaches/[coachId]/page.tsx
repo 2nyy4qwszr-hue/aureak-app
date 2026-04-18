@@ -147,7 +147,7 @@ export default function CoachQualityPage() {
     <div style={{ padding: 32, maxWidth: 900, margin: '0 auto' }}>
       {/* Breadcrumb */}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 16 }}>
-        <a href='/coaches' style={{ fontSize: 12, color: colors.accent.gold, textDecoration: 'none' }}>
+        <a href='/coaches' style={{ fontSize: 12, color: colors.accent.gold, textDecorationLine: 'none' }}>
           Coachs
         </a>
         <span style={{ color: colors.text.subtle, fontSize: 12 }}>/</span>
@@ -227,7 +227,7 @@ export default function CoachQualityPage() {
                   <a
                     key={s.id}
                     href={`/seances/${s.id}`}
-                    style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: `1px solid ${colors.border.divider}`, textDecoration: 'none', gap: 16 }}
+                    style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: `1px solid ${colors.border.divider}`, textDecorationLine: 'none', gap: 16 }}
                   >
                     <span style={{ fontSize: 12, color: colors.text.muted, minWidth: 80 }}>
                       {new Date(s.scheduledAt).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })}
@@ -496,7 +496,7 @@ export default function CoachQualityPage() {
               borderRadius : radius.xs,
               fontSize     : 12,
               color        : colors.text.muted,
-              textDecoration: 'none',
+              textDecorationLine: 'none',
               transition   : `all ${transitions.fast}`,
             }}
           >

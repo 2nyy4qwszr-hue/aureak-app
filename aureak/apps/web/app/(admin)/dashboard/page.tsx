@@ -3366,7 +3366,7 @@ export default function DashboardPage() {
               Erreur de chargement{' '}
               <span
                 onClick={handleRetryInactiveCoaches}
-                style={{ textDecoration: 'underline', cursor: 'pointer', color: colors.text.muted }}
+                style={{ textDecorationLine: 'underline', cursor: 'pointer', color: colors.text.muted }}
               >
                 Réessayer
               </span>
