@@ -1,0 +1,58 @@
+Gate 2 — Story 87.1 : Academie Commerciaux LayoutActivites
+Date: 2026-04-18
+Reviewer: Claude Opus 4.6 (1M context)
+
+============================================================
+RESULT: PASS
+============================================================
+
+--- ACCEPTANCE CRITERIA ---
+
+AC#1 — Onglet COMMERCIAUX dans AcademieNavBar
+  [PASS] Ajoute dans ACADEMIE_TABS de joueurs/index.tsx, coachs/index.tsx, commerciaux/page.tsx
+  [NOTE] AcademieNavBar.tsx legacy non mis a jour (non utilise — tabs inline)
+
+AC#2 — Page /academie/commerciaux liste les profils role=commercial
+  [PASS] listCommercials() filtre .eq('user_role', 'commercial').is('deleted_at', null)
+  [PASS] Role 'commercial' existe en DB (migration 00147)
+
+AC#3 — Layout suit template LayoutActivites
+  [PASS] headerBlock : titre ACADEMIE 24/700 + bouton + Nouveau commercial gold
+  [PASS] StatCards : 4 cards (COMMERCIAUX total, CLUBS CONVERTIS, CONTACTS CE MOIS, TAUX CONVERSION)
+  [PASS] FiltresRow : pill TOUS active
+  [PASS] Tableau : colonnes STATUT/NOM/PRENOM/CLUBS ASSIGNES/CONTACTS/CONVERSIONS
+  [NOTE] AC demandait colonne PHOTO — non presente (coherent avec coachs qui n'a pas non plus de colonne photo)
+
+AC#4 — Clic commercial -> fiche detail avec onglets Profil/Acces/Activite
+  [PASS] Route [commercialId]/page.tsx avec 3 onglets
+  [PASS] Onglet Profil : nom, prenom, role
+  [PASS] Onglet Acces : SectionPermissionsPanel (import correct)
+  [PASS] Onglet Activite : placeholder epic 88
+
+AC#5 — Lien "Voir activite prospection" dans onglet Activite
+  [PASS] Lien "Voir activite prospection ->" pointe vers /prospection (ligne 129)
+  [NOTE] Le filtrage par commercial n'est pas dans l'URL — acceptable car epic 88 pas encore fait
+
+--- SCOPE CREEP ---
+
+[PASS] Aucun scope creep detecte — implementation strictement dans le perimetre story
+
+--- DONNEES PLACEHOLDER ---
+
+[PASS] Stats CLUBS CONVERTIS, CONTACTS CE MOIS, TAUX CONVERSION affichent "—"
+[PASS] Colonnes CLUBS ASSIGNES, CONTACTS, CONVERSIONS affichent "—"
+[PASS] Message explicite "Les donnees de prospection seront disponibles avec l'epic 88"
+
+--- PATTERNS ---
+
+[PASS] Routing Expo Router : page.tsx + index.tsx re-export OK (4 fichiers)
+[PASS] snake_case -> camelCase mapping explicite dans commercials.ts (user_id -> userId)
+[PASS] Soft-delete respecte (.is('deleted_at', null))
+[PASS] Supabase uniquement via @aureak/api-client
+[PASS] Styles via @aureak/theme tokens uniquement
+
+--- API ---
+
+[PASS] listCommercials() : pagination, count exact, mapping camelCase
+[PASS] getCommercialProfile() : single() + error guard
+[PASS] Exports ajoutes dans index.ts (fonctions + type CommercialListRow)

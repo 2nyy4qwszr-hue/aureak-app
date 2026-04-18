@@ -1,0 +1,80 @@
+QA Retroactive — PR #20 Part 1 — Prospection clubs (Stories 85.1–85.5)
+=======================================================================
+Date: 2026-04-18
+Scope: migrations, api-client, UI prospection
+
+NOTE: Les fichiers demandés (migrations 00149, 00154, 00158, attribution/)
+n'existent pas. Les fichiers réels audités sont les stories 85.1–85.5 :
+  - supabase/migrations/00147_create_commercial_contacts.sql
+  - aureak/packages/api-client/src/admin/commercial-contacts.ts
+  - aureak/apps/web/app/(admin)/developpement/prospection/ (tous fichiers)
+
+=== GATE 1 : Code Quality ===
+
+[OK] try/finally — Tous les state setters (setLoading, setSaving) wrappés
+     dans try/finally. 3/3 vérifiés.
+
+[OK] Console guards — Tous les console.error protégés par
+     process.env.NODE_ENV !== 'production'. 7/7 vérifiés (4 api-client, 3 UI).
+
+[OK] Pas de catch silencieux — 0 occurrences.
+
+[FIXED] Couleurs hardcodées — 12 hex values hardcodées remplacées par tokens :
+  - ProspectionKPIs.tsx : #D97706 → colors.status.amberText,
+    #DC2626 → colors.status.redText
+  - ClubCard.tsx : #FEF3C7/#D97706/#FEE2E2/#DC2626/#F5F5F5/#FDF6E3
+    → tokens status.amberBg/amberText/redBg/redText + light.hover/border.goldBg
+  - ContactList.tsx : #DBEAFE/#2563EB/#FEF3C7/#D97706/#FDE68A/#92400E/#FEE2E2/#DC2626
+    → tokens status.blueBg/blueText/amberBg/amberText/amberDarkBg/warningText/redBg/redText
+  - [id]/page.tsx : fallbacks #F5F5F5 et #FDF6E3 supprimés (tokens existent)
+  Nouveaux tokens ajoutés dans tokens.ts : amberBg, amberText, amberDarkBg,
+  redBg, redText, blueBg, blueText (sous colors.status).
+
+[FIXED] Radius incorrect :
+  - ContactForm.tsx addBtn : radius.card → radius.button (c'est un bouton)
+  - ClubList.tsx searchInput : radius.card → radius.xs (c'est un input)
+
+[OK] radius — Aucun radius.md ou radius.lg détecté.
+
+[OK] shadows — Toutes les utilisations via tokens (shadows.sm, shadows.md).
+
+[FIXED] Style arrays sans `as never` — 5 occurrences corrigées :
+  - ClubCard.tsx : [styles.badge, { backgroundColor: cfg.bg }]
+  - AdminFilters.tsx : [styles.pill, active && styles.pillActive]
+  - ContactForm.tsx : [styles.statusPill, ...] et [styles.input, styles.noteInput]
+  - ContactList.tsx : [styles.statusBadge, { backgroundColor: statusCfg.bg }]
+
+=== GATE 2 : Architecture & Cohérence ===
+
+[OK] Migration 00147 — idempotente (IF NOT EXISTS), enum, RLS, index, trigger.
+     Conforme aux ACs story 85.1.
+
+[OK] RLS — SELECT même tenant, INSERT/UPDATE même tenant + own commercial_id.
+     Conforme aux ACs.
+
+[OK] Types/API cohérents — mapRow snake→camelCase explicite, pas de
+     `as Type[]` direct sur data brute.
+
+[OK] Soft-delete — deleted_at nullable, .is('deleted_at', null) sur toutes
+     les requêtes.
+
+[OK] API via @aureak/api-client — aucun accès direct Supabase dans apps/.
+
+[OK] ACs 85.1–85.5 couverts par le code existant.
+
+=== Fichiers modifiés ===
+
+aureak/packages/theme/src/tokens.ts                              (7 tokens ajoutés)
+aureak/apps/web/app/(admin)/developpement/prospection/
+  _components/ProspectionKPIs.tsx                                 (2 couleurs fixées)
+  _components/ClubCard.tsx                                        (4 couleurs + 1 style array)
+  _components/ClubList.tsx                                        (1 radius fixé)
+  _components/ContactList.tsx                                     (4 couleurs + 1 style array)
+  _components/ContactForm.tsx                                     (1 radius + 2 style arrays)
+  _components/AdminFilters.tsx                                    (1 style array)
+  [id]/page.tsx                                                   (2 fallbacks supprimés)
+
+=== Verdict ===
+
+PASS — 8 corrections appliquées (couleurs, radius, style arrays).
+Aucun blocker restant.
