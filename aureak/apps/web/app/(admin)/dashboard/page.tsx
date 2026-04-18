@@ -1349,17 +1349,29 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
             </span>
           </>
         )}
-        {!loadingUpcoming && upcomingSession && (
-          <>
-            <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
-            <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 700, color: colors.text.dark }}>
-              {fmtHM(upcomingSession.scheduledAt)}
-            </span>
-            <span style={{ fontSize: 12, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>
-              {upcomingSession.groupName}
-            </span>
-          </>
-        )}
+        {!loadingUpcoming && upcomingSession && (() => {
+          const sessionHour = new Date(upcomingSession.scheduledAt).getHours()
+          const isEvening   = sessionHour >= 17
+          return (
+            <>
+              <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13 }}>{isEvening ? '🌙' : '☀️'}</span>
+                <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 700, color: colors.text.dark }}>
+                  {fmtHM(upcomingSession.scheduledAt)}
+                </span>
+                <span style={{ fontSize: 12, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>
+                  {upcomingSession.groupName}
+                </span>
+                {upcomingSession.location && (
+                  <span style={{ fontSize: 11, color: colors.text.subtle, fontFamily: 'Montserrat, sans-serif' }}>
+                    · {upcomingSession.location}
+                  </span>
+                )}
+              </span>
+            </>
+          )
+        })()}
         <span style={{
           width          : 8,
           height         : 8,
@@ -1728,7 +1740,7 @@ function AcademyScoreTile({
         borderRadius   : radius.card,
         border         : `1px solid ${colors.border.light}`,
         boxShadow      : shadows.sm,
-        padding        : 24,
+        padding        : '16px 16px',
         overflow       : 'hidden',
       }}
     >
@@ -1748,9 +1760,9 @@ function AcademyScoreTile({
       `}</style>
 
       {/* Titre */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <span style={{ fontSize: 18 }}>🎓</span>
-        <span style={{ fontSize: 15, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: colors.text.dark }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+        <span style={{ fontSize: 16 }}>🎓</span>
+        <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1 }}>
           Niveau Académie
         </span>
       </div>
@@ -1795,23 +1807,27 @@ function AcademyScoreTile({
       {/* Score */}
       {!loading && !error && score && (
         <>
-          {/* Hero score + niveau */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 16 }}>
+          {/* Hero score + niveau — Story 70-6 : overflow hidden */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: 12, overflow: 'hidden' }}>
             <div style={{
               fontFamily  : 'Montserrat, sans-serif',
               fontWeight  : 900,
-              fontSize    : 48,
+              fontSize    : 40,
               color       : levelColor,
               lineHeight  : 1,
+              flexShrink  : 0,
             }}>
               {score.score}
             </div>
-            <div style={{ paddingBottom: 8 }}>
+            <div style={{ paddingBottom: 6, minWidth: 0, overflow: 'hidden' }}>
               <div style={{
                 fontFamily  : 'Montserrat, sans-serif',
                 fontWeight  : 600,
-                fontSize    : 18,
+                fontSize    : 15,
                 color       : colors.text.dark,
+                overflow    : 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace  : 'nowrap',
               }}>
                 {score.level}
               </div>
@@ -1833,7 +1849,7 @@ function AcademyScoreTile({
             backgroundColor: gamification.xp.trackColor,
             borderRadius   : gamification.xp.barRadius,
             overflow       : 'hidden',
-            marginBottom   : 16,
+            marginBottom   : 10,
           }}>
             <div
               className="academy-score-bar-fill"
@@ -1846,8 +1862,8 @@ function AcademyScoreTile({
             />
           </div>
 
-          {/* Mini-stats composantes */}
-          <div style={{ display: 'flex', gap: 6 }}>
+          {/* Mini-stats composantes — Story 70-6 : compactées, overflow hidden */}
+          <div style={{ display: 'flex', gap: 4, overflow: 'hidden' }}>
             {[
               { label: 'Présence',   value: score.components.presenceRate,     icon: '📅' },
               { label: 'Progression', value: score.components.progressionScore, icon: '📈' },
@@ -1861,24 +1877,29 @@ function AcademyScoreTile({
                   backgroundColor: colors.light.muted,
                   border         : `1px solid ${colors.border.light}`,
                   borderRadius   : radius.xs,
-                  padding        : '6px 8px',
+                  padding        : '4px 6px',
                   textAlign      : 'center',
+                  overflow       : 'hidden',
                 }}
               >
-                <div style={{ fontSize: 12 }}>{icon}</div>
+                <div style={{ fontSize: 11 }}>{icon}</div>
                 <div style={{
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontWeight: 700,
-                  fontSize  : 13,
-                  color     : colors.text.dark,
+                  fontFamily  : 'Montserrat, sans-serif',
+                  fontWeight  : 700,
+                  fontSize    : 12,
+                  color       : colors.text.dark,
+                  lineHeight  : 1.2,
                 }}>
                   {value}%
                 </div>
                 <div style={{
-                  fontSize  : typography.caption.size,
-                  color     : colors.text.muted,
-                  fontFamily: 'Montserrat, sans-serif',
-                  lineHeight : 1.2,
+                  fontSize    : 9,
+                  color       : colors.text.muted,
+                  fontFamily  : 'Montserrat, sans-serif',
+                  lineHeight  : 1.1,
+                  overflow    : 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace  : 'nowrap',
                 }}>
                   {label}
                 </div>
@@ -2760,7 +2781,7 @@ export default function DashboardPage() {
       <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
 
         {/* Label section */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10, fontFamily: 'Montserrat, sans-serif' }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 10, fontFamily: 'Montserrat, sans-serif' }}>
           La journée
         </div>
 
@@ -2976,20 +2997,21 @@ export default function DashboardPage() {
       ════════════════════════════════ */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* Label section */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 0, fontFamily: 'Montserrat, sans-serif' }}>
+        {/* Label section — Story 70-2 : titre lisible, sans filtres */}
+        <div style={{ fontSize: 16, fontWeight: 800, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 4, fontFamily: 'Montserrat, sans-serif' }}>
           L&apos;Académie
         </div>
 
-      {/* ── Ligne stats 4 chiffres ── */}
+      {/* ── Ligne stats 4 chiffres — Story 70-3 : gold uniforme ── */}
         <div style={{
           display        : 'flex',
           flexDirection  : 'row',
           backgroundColor: colors.light.surface,
           borderRadius   : radius.card,
           border         : `1px solid ${colors.border.light}`,
+          borderTop      : `3px solid ${colors.accent.gold}`,
           boxShadow      : shadows.sm,
-          padding        : '16px 20px',
+          padding        : '14px 20px',
           gap            : 0,
         }}>
           {[
@@ -3013,19 +3035,19 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* ── Card Activité 4 semaines ── */}
+        {/* ── Card Activité 4 semaines — Story 70-4 : compact ── */}
         <div style={{
           backgroundColor: colors.light.surface,
           borderRadius   : radius.card,
           border         : `1px solid ${colors.border.light}`,
           boxShadow      : shadows.sm,
-          padding        : '12px 16px',
+          padding        : '8px 14px',
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 10, fontFamily: 'Montserrat, sans-serif' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: 6, fontFamily: 'Montserrat, sans-serif' }}>
             Activité — 4 semaines
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
               <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>Présence</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgAttendance), fontFamily: 'Montserrat, sans-serif' }}>
                 {avgAttendance !== null ? `${avgAttendance}%` : '—'}
@@ -3036,7 +3058,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
               <span style={{ fontSize: 11, color: colors.text.muted, fontFamily: 'Montserrat, sans-serif' }}>Maîtrise</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: rateColor(avgMastery), fontFamily: 'Montserrat, sans-serif' }}>
                 {avgMastery !== null ? `${avgMastery}%` : '—'}
@@ -3234,8 +3256,8 @@ export default function DashboardPage() {
       ════════════════════════════════ */}
       <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* Label section */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase' as React.CSSProperties['textTransform'], letterSpacing: 1.5, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
+        {/* Label section — Story 70-5 : titre lisible */}
+        <div style={{ fontSize: 16, fontWeight: 800, color: colors.text.dark, textTransform: 'uppercase' as React.CSSProperties['textTransform'], letterSpacing: 2, marginBottom: 8, fontFamily: 'Montserrat, sans-serif' }}>
           Performance
         </div>
 
@@ -3459,80 +3481,7 @@ const S: Record<string, React.CSSProperties> = {
     boxSizing      : 'border-box',
   },
 
-  // Filter row (was pageHeader — hero replaced the title)
-  filterRow       : {
-    display        : 'flex',
-    alignItems     : 'flex-end',
-    gap            : 8,
-    flexWrap       : 'wrap',
-    marginBottom   : 20,
-  },
-  dateGroup       : {
-    display        : 'flex',
-    flexDirection  : 'column',
-    gap            : 5,
-  },
-  dateLabel       : {
-    fontSize       : 10,
-    fontWeight     : 600,
-    letterSpacing  : 1,
-    textTransform  : 'uppercase',
-    color          : colors.text.muted,
-  },
-  dateInput       : {
-    padding        : '7px 11px',
-    borderRadius   : radius.xs,
-    border         : `1px solid ${colors.border.light}`,
-    backgroundColor: colors.light.surface,
-    color          : colors.text.dark,
-    fontSize       : 13,
-    outline        : 'none',
-    cursor         : 'pointer',
-    fontFamily     : 'Montserrat, sans-serif',
-    transition     : `border-color ${transitions.fast}`,
-  },
-  implantSelect   : {
-    padding        : '7px 32px 7px 11px',
-    borderRadius   : radius.xs,
-    border         : `1px solid ${colors.border.light}`,
-    backgroundColor: colors.light.surface,
-    color          : colors.text.dark,
-    fontSize       : 13,
-    outline        : 'none',
-    cursor         : 'pointer',
-    fontFamily     : 'Montserrat, sans-serif',
-    minWidth       : 210,
-    appearance     : 'none',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717A' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-    backgroundRepeat  : 'no-repeat',
-    backgroundPosition: 'right 10px center',
-    transition     : `border-color ${transitions.fast}`,
-  },
-  refreshBtn      : {
-    padding        : '7px 16px',
-    borderRadius   : radius.xs,
-    border         : `1px solid ${colors.border.light}`,
-    backgroundColor: colors.light.surface,
-    color          : colors.text.muted,
-    fontSize       : 13,
-    cursor         : 'pointer',
-    fontFamily     : 'Montserrat, sans-serif',
-    transition     : `all ${transitions.fast}`,
-    whiteSpace     : 'nowrap',
-  },
-  applyBtn        : {
-    padding        : '7px 16px',
-    borderRadius   : radius.xs,
-    border         : 'none',
-    backgroundColor: colors.accent.gold,
-    color          : colors.text.dark,
-    fontSize       : 13,
-    fontWeight     : 700,
-    cursor         : 'pointer',
-    fontFamily     : 'Montserrat, sans-serif',
-    whiteSpace     : 'nowrap',
-    alignSelf      : 'flex-end',
-  },
+  // (Story 70-2: filter styles removed — no longer used)
 
   // KPI Card (bento)
   kpiCard         : {
