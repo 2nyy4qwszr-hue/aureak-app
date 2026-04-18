@@ -15,8 +15,8 @@ export const colors = {
   },
   // ── Sidebar admin (brun chaud intermédiaire) ──────────────────────────────
   sidebar: {
-    bg    : '#2D2318',  // brun chaud — fond sidebar admin (entre #1A1A1A et beige)
-    border: '#3D3020',  // bordure latérale sidebar
+    bg    : '#1A1A1A',  // noir chaud — aligné sur dark.surface (card prochaine séance)
+    border: '#2A2A2A',  // bordure latérale sidebar — aligné sur dark.hover
   },
   // ── Light theme (admin web, inspiré aureak.be) ────────────────────────────
   light: {

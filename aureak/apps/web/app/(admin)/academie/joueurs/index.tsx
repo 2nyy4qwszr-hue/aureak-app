@@ -229,7 +229,8 @@ export default function AcademieJoueursPage() {
   const clubLabel   = clubFilter !== 'all'  ? `${clubFilter} ▾`  : 'CLUB ▾'
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <View style={st.page}>
+    <ScrollView style={st.scroll} contentContainerStyle={st.scrollContent}>
 
       {/* ── Header ── */}
       <View style={st.headerBlock}>
@@ -438,13 +439,14 @@ export default function AcademieJoueursPage() {
 
       {/* ── Table ── */}
       {loading ? (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
+        <View style={st.loadingWrapper}>
+          <AureakText style={st.loadingText}>Chargement…</AureakText>
+        </View>
       ) : filtered.length === 0 ? (
         <View style={st.emptyState}>
           <AureakText style={st.emptyText}>Aucun joueur pour ces filtres</AureakText>
         </View>
       ) : (
-        <>
           <View style={st.tableWrapper}>
 
             {/* Header */}
@@ -543,47 +545,49 @@ export default function AcademieJoueursPage() {
                 </Pressable>
               )
             })}
-          </View>
 
-          {/* Pagination */}
-          <View style={st.pagination}>
-            <AureakText style={st.paginationInfo}>
-              {filtered.length > 0
-                ? `Affichage de ${displayStart}–${displayEnd} / ${filtered.length} joueurs`
-                : 'Aucun joueur'}
-            </AureakText>
-            <View style={st.paginationBtns}>
-              <Pressable
-                onPress={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-                style={[st.paginationBtn, page === 0 && st.paginationBtnDisabled] as never}
-              >
-                <AureakText style={{ color: page === 0 ? colors.text.muted : colors.text.dark, fontSize: 12 }}>←</AureakText>
-              </Pressable>
-              <AureakText style={st.paginationPage}>{page + 1} / {totalPages}</AureakText>
-              <Pressable
-                onPress={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                style={[st.paginationBtn, page >= totalPages - 1 && st.paginationBtnDisabled] as never}
-              >
-                <AureakText style={{ color: page >= totalPages - 1 ? colors.text.muted : colors.text.dark, fontSize: 12 }}>→</AureakText>
-              </Pressable>
+
+            {/* Pagination */}
+            <View style={st.pagination}>
+              <AureakText style={st.paginationInfo}>
+                {filtered.length > 0
+                  ? `Affichage de ${displayStart}–${displayEnd} / ${filtered.length} joueurs`
+                  : 'Aucun joueur'}
+              </AureakText>
+              <View style={st.paginationBtns}>
+                <Pressable
+                  onPress={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  style={[st.paginationBtn, page === 0 && st.paginationBtnDisabled] as never}
+                >
+                  <AureakText style={{ color: page === 0 ? colors.text.muted : colors.text.dark, fontSize: 12 }}>←</AureakText>
+                </Pressable>
+                <AureakText style={st.paginationPage}>{page + 1} / {totalPages}</AureakText>
+                <Pressable
+                  onPress={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  style={[st.paginationBtn, page >= totalPages - 1 && st.paginationBtnDisabled] as never}
+                >
+                  <AureakText style={{ color: page >= totalPages - 1 ? colors.text.muted : colors.text.dark, fontSize: 12 }}>→</AureakText>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </>
       )}
     </ScrollView>
+    </View>
   )
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────────
 const st = StyleSheet.create({
-  container : { flex: 1, backgroundColor: colors.light.primary },
-  content   : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+  page         : { flex: 1, backgroundColor: colors.light.primary },
+  scroll       : { flex: 1, backgroundColor: colors.light.primary },
+  scrollContent: { paddingTop: space.md, paddingBottom: space.xxl, backgroundColor: colors.light.primary, maxWidth: 1200, alignSelf: 'center', width: '100%' },
 
   // Header
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerBlock  : { backgroundColor: colors.light.primary, gap: 12 },
+  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space.lg, paddingTop: space.lg },
   pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
   newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
@@ -593,6 +597,7 @@ const st = StyleSheet.create({
     gap              : 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
   tabLabel: {
     fontSize     : 11,
@@ -653,11 +658,14 @@ const st = StyleSheet.create({
 
   // FiltresRow
   filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
-    flexWrap      : 'wrap',
-    gap           : space.sm,
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    justifyContent   : 'space-between',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
+    flexWrap         : 'wrap',
+    gap              : space.sm,
   },
   filtresLeft: {
     flexDirection: 'row',
@@ -668,8 +676,8 @@ const st = StyleSheet.create({
 
   // Pills dropdowns
   dropdownWrapper : { position: 'relative', zIndex: 9999 },
-  pillActive      : { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.badge, backgroundColor: colors.accent.gold, borderWidth: 1, borderColor: colors.accent.gold },
-  pillInactive    : { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.badge, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light },
+  pillActive      : { paddingHorizontal: 14, paddingVertical: 6, borderRadius: radius.badge, backgroundColor: colors.accent.gold, borderWidth: 1, borderColor: colors.accent.gold },
+  pillInactive    : { paddingHorizontal: 14, paddingVertical: 6, borderRadius: radius.badge, backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.border.light },
   pillTextActive  : { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.dark },
   pillTextInactive: { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.muted },
   dropdown: {
@@ -715,10 +723,15 @@ const st = StyleSheet.create({
     paddingVertical  : 8,
     fontSize         : 13,
     color            : colors.text.dark,
+    marginHorizontal : space.lg,
   },
 
+  // Loading
+  loadingWrapper: { padding: space.xl, alignItems: 'center' },
+  loadingText   : { color: colors.text.muted, fontSize: 14, fontFamily: fonts.body },
+
   // Table
-  tableWrapper: { borderRadius: 10, borderWidth: 1, borderColor: colors.border.divider, overflow: 'hidden' },
+  tableWrapper: { borderRadius: 10, borderWidth: 1, borderColor: colors.border.divider, overflow: 'hidden', marginHorizontal: space.lg, marginBottom: space.lg },
   tableHeader : {
     flexDirection    : 'row',
     alignItems       : 'center',
@@ -764,6 +777,6 @@ const st = StyleSheet.create({
   paginationBtnDisabled: { opacity: 0.4 },
   paginationPage       : { color: colors.text.muted, fontSize: 12, paddingHorizontal: space.xs },
 
-  emptyState: { padding: space.xl, alignItems: 'center' },
+  emptyState: { padding: space.xl, alignItems: 'center', marginHorizontal: space.lg },
   emptyText : { color: colors.text.muted, fontSize: 13, fontStyle: 'italic' },
 })

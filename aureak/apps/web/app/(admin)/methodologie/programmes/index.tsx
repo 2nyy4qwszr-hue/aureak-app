@@ -60,7 +60,6 @@ export default function ProgrammesPage() {
     return true
   })
 
-  // Stats row — count par méthode
   const methodCounts = METHODOLOGY_METHODS.map(m => ({
     method: m,
     count : programmes.filter(p => p.method === m).length,
@@ -69,18 +68,17 @@ export default function ProgrammesPage() {
   const isGlobal = contextFilter === 'all'
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <View style={st.container}>
 
       {/* ── Header : titre + nav tabs + bouton ── */}
       <View style={st.headerBlock}>
         <View style={st.headerTopRow}>
           <AureakText style={st.pageTitle}>MÉTHODOLOGIE</AureakText>
-          <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/programmes/new' as never)}>
-            <AureakText style={st.newBtnLabel}>+ Nouveau programme</AureakText>
+          <Pressable style={st.cta} onPress={() => router.push('/methodologie/programmes/new' as never)}>
+            <AureakText style={st.ctaLabel}>+ Nouveau programme</AureakText>
           </Pressable>
         </View>
 
-        {/* Nav tabs : 5 onglets */}
         <View style={st.tabsRow}>
           {NAV_TABS.map(tab => (
             <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
@@ -93,34 +91,33 @@ export default function ProgrammesPage() {
         </View>
       </View>
 
-      {/* ── StatCards — 7 cards méthodes horizontales ── */}
-      <View style={st.statCardsRow}>
-        {methodCounts.map(({ method, count }) => {
-          const color = methodologyMethodColors[method] ?? colors.accent.gold
-          return (
-            <View key={method} style={st.statCard}>
-              <AureakText style={st.statCardPicto}>{METHOD_PICTOS[method]}</AureakText>
-              <AureakText style={st.statCardLabel}>{method}</AureakText>
-              <AureakText style={{ ...st.statCardValue, color } as TextStyle}>{count}</AureakText>
-            </View>
-          )
-        })}
-      </View>
+      <ScrollView style={st.scroll} contentContainerStyle={st.scrollContent}>
 
-      {/* ── FiltresRow — gauche | droite ── */}
-      <View style={st.filtresRow}>
-        {/* Gauche : GLOBAL pill + MÉTHODE pill */}
-        <View style={st.filtresLeft}>
-          <Pressable
-            style={isGlobal ? st.pillActive : st.pillInactive}
-            onPress={() => setContextFilter('all')}
-          >
-            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
-          </Pressable>
+        {/* ── StatCards — 7 cards méthodes horizontales ── */}
+        <View style={st.statCardsRow}>
+          {methodCounts.map(({ method, count }) => {
+            const color = methodologyMethodColors[method] ?? colors.accent.gold
+            return (
+              <View key={method} style={st.statCard}>
+                <AureakText style={st.statCardPicto}>{METHOD_PICTOS[method]}</AureakText>
+                <AureakText style={st.statCardLabel}>{method}</AureakText>
+                <AureakText style={{ ...st.statCardValue, color } as TextStyle}>{count}</AureakText>
+              </View>
+            )
+          })}
         </View>
 
-        {/* Droite : Toggle ACADÉMIE / STAGE */}
-        <View style={st.filtresRight}>
+        {/* ── FiltresRow — gauche | droite ── */}
+        <View style={st.filtresRow}>
+          <View style={st.filtresLeft}>
+            <Pressable
+              style={isGlobal ? st.pillActive : st.pillInactive}
+              onPress={() => setContextFilter('all')}
+            >
+              <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
+            </Pressable>
+          </View>
+
           <View style={st.toggleRow}>
             <Pressable
               style={[st.toggleBtn, contextFilter === 'academie' && st.toggleBtnActive] as never}
@@ -140,21 +137,23 @@ export default function ProgrammesPage() {
             </Pressable>
           </View>
         </View>
-      </View>
 
-      {/* ── Contenu : table programmes ── */}
-      {loading ? (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
-      ) : (
-        <ProgrammesTable
-          programmes={filtered}
-          totalProgrammes={programmes.length}
-          methodColors={methodologyMethodColors}
-          onPress={(id) => router.push(`/methodologie/programmes/${id}` as never)}
-        />
-      )}
+        {/* ── Contenu : table programmes ── */}
+        {loading ? (
+          <View style={st.loadingWrapper}>
+            <AureakText style={st.loadingText}>Chargement…</AureakText>
+          </View>
+        ) : (
+          <ProgrammesTable
+            programmes={filtered}
+            totalProgrammes={programmes.length}
+            methodColors={methodologyMethodColors}
+            onPress={(id) => router.push(`/methodologie/programmes/${id}` as never)}
+          />
+        )}
 
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
@@ -181,25 +180,23 @@ function ProgrammesTable({ programmes, totalProgrammes, methodColors, onPress }:
   }
 
   return (
-    <View style={st.tableWrapper}>
-      {/* Header */}
-      <View style={st.tableHeader}>
+    <View style={st.tableContainer}>
+      <View style={st.tableHeaderRow}>
         <View style={{ width: COL_WIDTHS.method }}>
-          <AureakText style={st.thText}>MÉTHODE</AureakText>
+          <AureakText style={st.tableHeaderText}>MÉTHODE</AureakText>
         </View>
         <View style={{ flex: COL_WIDTHS.title }}>
-          <AureakText style={st.thText}>TITRE</AureakText>
+          <AureakText style={st.tableHeaderText}>TITRE</AureakText>
         </View>
         <View style={{ width: COL_WIDTHS.season }}>
-          <AureakText style={st.thText}>SAISON</AureakText>
+          <AureakText style={st.tableHeaderText}>SAISON</AureakText>
         </View>
         <View style={{ width: COL_WIDTHS.accomplishment }}>
-          <AureakText style={st.thText}>ACCOMPLISSEMENT</AureakText>
+          <AureakText style={st.tableHeaderText}>ACCOMPLISSEMENT</AureakText>
         </View>
         <View style={{ width: COL_WIDTHS.chevron }} />
       </View>
 
-      {/* Rows */}
       {programmes.map((programme, idx) => {
         const rowBg       = idx % 2 === 0 ? colors.light.surface : colors.light.muted
         const methodColor = methodColors[programme.method] ?? colors.border.light
@@ -211,39 +208,33 @@ function ProgrammesTable({ programmes, totalProgrammes, methodColors, onPress }:
             onPress={() => onPress(programme.id)}
             style={({ pressed }) => [
               st.tableRow,
-              { backgroundColor: rowBg },
-              pressed && { opacity: 0.8 },
+              { backgroundColor: pressed ? colors.light.hover : rowBg },
             ]}
           >
-            {/* MÉTHODE */}
             <View style={{ width: COL_WIDTHS.method, alignItems: 'center' }}>
               <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
                 <AureakText style={st.methodPicto}>{picto}</AureakText>
               </View>
             </View>
 
-            {/* TITRE */}
             <View style={{ flex: COL_WIDTHS.title, justifyContent: 'center' }}>
               <AureakText style={st.titleText} numberOfLines={2}>
                 {programme.title}
               </AureakText>
             </View>
 
-            {/* SAISON */}
             <View style={{ width: COL_WIDTHS.season, justifyContent: 'center' }}>
               <AureakText style={st.titleText}>
                 {programme.seasonLabel ?? '—'}
               </AureakText>
             </View>
 
-            {/* ACCOMPLISSEMENT */}
             <View style={{ width: COL_WIDTHS.accomplishment, justifyContent: 'center' }}>
               <AureakText style={st.numText}>
                 {programme.accomplishment.done}/{programme.accomplishment.total}
               </AureakText>
             </View>
 
-            {/* CHEVRON */}
             <View style={{ width: COL_WIDTHS.chevron, alignItems: 'center', justifyContent: 'center' }}>
               <AureakText style={{ fontSize: 16, color: colors.text.muted }}>›</AureakText>
             </View>
@@ -257,22 +248,59 @@ function ProgrammesTable({ programmes, totalProgrammes, methodColors, onPress }:
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+  container: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scroll: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scrollContent: {
+    paddingTop     : space.md,
+    paddingBottom  : space.xxl,
+    backgroundColor: colors.light.primary,
+    maxWidth       : 1200,
+    alignSelf      : 'center',
+    width          : '100%',
+  },
 
-  // Header block
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
+  },
+  headerTopRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingTop       : space.lg,
+  },
+  pageTitle: {
+    fontSize     : 24,
+    fontWeight   : '700',
+    fontFamily   : fonts.display,
+    color        : colors.text.dark,
+    letterSpacing: 0.5,
+  },
+  cta: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+  },
+  ctaLabel: {
+    color     : colors.text.dark,
+    fontWeight: '700',
+    fontSize  : 13,
+  },
 
-  // Nav tabs (5 onglets navigation)
   tabsRow: {
     flexDirection    : 'row',
     gap              : 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
   tabItem: {
     position     : 'relative',
@@ -286,7 +314,7 @@ const st = StyleSheet.create({
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
+  tabUnderline: {
     position       : 'absolute',
     bottom         : 0,
     left           : 0,
@@ -296,7 +324,6 @@ const st = StyleSheet.create({
     borderRadius   : 1,
   },
 
-  // StatCards — 7 cards méthodes horizontales
   statCardsRow: {
     flexDirection    : 'row',
     gap              : space.md,
@@ -305,12 +332,13 @@ const st = StyleSheet.create({
     flexWrap         : 'wrap',
   },
   statCard: {
+    flex           : 1,
+    minWidth       : 120,
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     padding        : space.md,
     borderWidth    : 1,
     borderColor    : colors.border.divider,
-    minWidth       : 130,
     alignItems     : 'center',
     gap            : 4,
     // @ts-ignore web
@@ -336,30 +364,23 @@ const st = StyleSheet.create({
     color     : colors.text.dark,
   },
 
-  // FiltresRow — gauche | droite
   filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
-    flexWrap      : 'wrap',
-    gap           : space.sm,
-    zIndex        : 9999,
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
   },
   filtresLeft: {
     flexDirection: 'row',
     alignItems   : 'center',
     gap          : space.sm,
   },
-  filtresRight: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    gap          : space.sm,
-  },
 
-  // Pills FiltresScope design (hauteur alignée sur toggles : paddingVertical 8)
   pillActive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.accent.gold,
     borderWidth      : 1,
@@ -367,7 +388,7 @@ const st = StyleSheet.create({
   },
   pillInactive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.light.muted,
     borderWidth      : 1,
@@ -386,7 +407,6 @@ const st = StyleSheet.create({
     color     : colors.text.muted,
   },
 
-  // SegmentedToggle (pattern exact de academie/joueurs)
   toggleRow: {
     flexDirection: 'row',
     gap          : 0,
@@ -414,15 +434,30 @@ const st = StyleSheet.create({
     color: colors.text.dark,
   },
 
-  // Table
-  empty: { padding: space.lg, alignItems: 'center' },
-  tableWrapper: {
-    borderRadius: 10,
-    borderWidth : 1,
-    borderColor : colors.border.divider,
-    overflow    : 'hidden',
+  loadingWrapper: {
+    padding   : space.xl,
+    alignItems: 'center',
   },
-  tableHeader: {
+  loadingText: {
+    color     : colors.text.muted,
+    fontSize  : 14,
+    fontFamily: fonts.body,
+  },
+
+  empty: {
+    marginHorizontal: space.lg,
+    padding         : space.lg,
+    alignItems      : 'center',
+  },
+  tableContainer: {
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
+    borderRadius    : 10,
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+    overflow        : 'hidden',
+  },
+  tableHeaderRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
     paddingHorizontal: 16,
@@ -431,13 +466,13 @@ const st = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
-  thText: {
+  tableHeaderText: {
     fontSize     : 10,
-    fontWeight   : '700',
     fontFamily   : fonts.display,
+    fontWeight   : '700',
     color        : colors.text.subtle,
-    textTransform: 'uppercase',
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   tableRow: {
     flexDirection    : 'row',
@@ -448,7 +483,6 @@ const st = StyleSheet.create({
     borderBottomColor: colors.border.divider,
   },
 
-  // Row cells
   methodCircle: {
     width         : 32,
     height        : 32,

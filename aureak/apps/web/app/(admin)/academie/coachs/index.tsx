@@ -319,12 +319,12 @@ export default function AcademieCoachsPage() {
 // ── Styles ────────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   page         : { flex: 1, backgroundColor: colors.light.primary },
-  scroll       : { flex: 1 },
-  scrollContent: { padding: space.lg, paddingBottom: space.xl, gap: space.md },
+  scroll       : { flex: 1, backgroundColor: colors.light.primary },
+  scrollContent: { paddingTop: space.md, paddingBottom: space.xxl, backgroundColor: colors.light.primary, maxWidth: 1200, alignSelf: 'center', width: '100%' },
 
   // ── headerBlock ──
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerBlock  : { backgroundColor: colors.light.primary, gap: 12 },
+  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: space.lg, paddingTop: space.lg },
   pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
   newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
   newBtnPressed: { opacity: 0.8 },
@@ -335,6 +335,7 @@ const s = StyleSheet.create({
     gap              : 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
   tabLabel: {
     fontSize     : 11,
@@ -364,6 +365,7 @@ const s = StyleSheet.create({
     flexWrap         : 'wrap',
   },
   statCard: {
+    flex           : 1,
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     padding        : space.md,
@@ -393,13 +395,16 @@ const s = StyleSheet.create({
 
   // ── FiltresRow ──
   filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    justifyContent   : 'space-between',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
   },
   pillActive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.accent.gold,
     borderWidth      : 1,
@@ -407,7 +412,7 @@ const s = StyleSheet.create({
   },
   pillInactive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.light.muted,
     borderWidth      : 1,
@@ -433,10 +438,12 @@ const s = StyleSheet.create({
 
   // ── CoachsTable ──
   tableWrapper: {
-    borderRadius: 10,
-    borderWidth : 1,
-    borderColor : colors.border.divider,
-    overflow    : 'hidden',
+    borderRadius    : 10,
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+    overflow        : 'hidden',
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
   },
   tableHeader: {
     flexDirection    : 'row',

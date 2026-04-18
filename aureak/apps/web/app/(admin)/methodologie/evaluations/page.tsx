@@ -71,14 +71,14 @@ export default function EvaluationsPage() {
   const isGlobal = methodFilter === 'all' && contextFilter === 'all'
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <View style={st.container}>
 
       {/* ── Header : titre + nav tabs + bouton ── */}
       <View style={st.headerBlock}>
         <View style={st.headerTopRow}>
           <AureakText style={st.pageTitle}>MÉTHODOLOGIE</AureakText>
-          <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/evaluations/new' as never)}>
-            <AureakText style={st.newBtnLabel}>+ Nouvelle évaluation</AureakText>
+          <Pressable style={st.cta} onPress={() => router.push('/methodologie/evaluations/new' as never)}>
+            <AureakText style={st.ctaLabel}>+ Nouvelle évaluation</AureakText>
           </Pressable>
         </View>
 
@@ -94,60 +94,60 @@ export default function EvaluationsPage() {
         </View>
       </View>
 
-      {/* ── StatCards — 7 cards méthodes ── */}
-      <View style={st.statCardsRow}>
-        {methodCounts.map(({ method, count }) => {
-          const color = methodologyMethodColors[method] ?? colors.accent.gold
-          return (
-            <View key={method} style={st.statCard}>
-              <AureakText style={st.statCardPicto}>{METHOD_PICTOS[method]}</AureakText>
-              <AureakText style={st.statCardLabel}>{method}</AureakText>
-              <AureakText style={{ ...st.statCardValue, color } as TextStyle}>{count}</AureakText>
-            </View>
-          )
-        })}
-      </View>
+      <ScrollView style={st.scroll} contentContainerStyle={st.scrollContent}>
 
-      {/* ── FiltresRow — gauche | droite ── */}
-      <View style={st.filtresRow}>
-        <View style={st.filtresLeft}>
-          <Pressable
-            style={isGlobal ? st.pillActive : st.pillInactive}
-            onPress={() => { setMethodFilter('all'); setContextFilter('all'); setMethodDropOpen(false) }}
-          >
-            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
-          </Pressable>
-
-          <View style={st.dropdownWrapper}>
-            <Pressable
-              style={methodFilter !== 'all' ? st.pillActive : st.pillInactive}
-              onPress={() => setMethodDropOpen(o => !o)}
-            >
-              <AureakText style={methodFilter !== 'all' ? st.pillTextActive : st.pillTextInactive}>
-                {methodFilter === 'all' ? 'MÉTHODE ▾' : `${methodFilter} ▾`}
-              </AureakText>
-            </Pressable>
-
-            {methodDropOpen && (
-              <View style={st.methodDropdown}>
-                {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
-                  <Pressable
-                    key={m}
-                    style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
-                    onPress={() => { setMethodFilter(m); setMethodDropOpen(false) }}
-                  >
-                    <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
-                      {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
-                    </AureakText>
-                  </Pressable>
-                ))}
+        {/* ── StatCards — 7 cards méthodes ── */}
+        <View style={st.statCardsRow}>
+          {methodCounts.map(({ method, count }) => {
+            const color = methodologyMethodColors[method] ?? colors.accent.gold
+            return (
+              <View key={method} style={st.statCard}>
+                <AureakText style={st.statCardPicto}>{METHOD_PICTOS[method]}</AureakText>
+                <AureakText style={st.statCardLabel}>{method}</AureakText>
+                <AureakText style={{ ...st.statCardValue, color } as TextStyle}>{count}</AureakText>
               </View>
-            )}
-          </View>
+            )
+          })}
         </View>
 
-        {/* Droite : Toggle ACADÉMIE / STAGE */}
-        <View style={st.filtresRight}>
+        {/* ── FiltresRow — gauche | droite ── */}
+        <View style={st.filtresRow}>
+          <View style={st.filtresLeft}>
+            <Pressable
+              style={isGlobal ? st.pillActive : st.pillInactive}
+              onPress={() => { setMethodFilter('all'); setContextFilter('all'); setMethodDropOpen(false) }}
+            >
+              <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
+            </Pressable>
+
+            <View style={st.dropdownWrapper}>
+              <Pressable
+                style={methodFilter !== 'all' ? st.pillActive : st.pillInactive}
+                onPress={() => setMethodDropOpen(o => !o)}
+              >
+                <AureakText style={methodFilter !== 'all' ? st.pillTextActive : st.pillTextInactive}>
+                  {methodFilter === 'all' ? 'MÉTHODE ▾' : `${methodFilter} ▾`}
+                </AureakText>
+              </Pressable>
+
+              {methodDropOpen && (
+                <View style={st.methodDropdown}>
+                  {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
+                    <Pressable
+                      key={m}
+                      style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
+                      onPress={() => { setMethodFilter(m); setMethodDropOpen(false) }}
+                    >
+                      <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
+                        {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+
           <View style={st.toggleRow}>
             <Pressable
               style={[st.toggleBtn, contextFilter === 'academie' && st.toggleBtnActive] as never}
@@ -167,20 +167,22 @@ export default function EvaluationsPage() {
             </Pressable>
           </View>
         </View>
-      </View>
 
-      {/* ── Tableau ── */}
-      {loading ? (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
-      ) : (
-        <EvaluationsTable
-          exercises={filteredExercises}
-          totalExercises={exercises.length}
-          methodColors={methodologyMethodColors}
-        />
-      )}
+        {/* ── Tableau ── */}
+        {loading ? (
+          <View style={st.loadingWrapper}>
+            <AureakText style={st.loadingText}>Chargement…</AureakText>
+          </View>
+        ) : (
+          <EvaluationsTable
+            exercises={filteredExercises}
+            totalExercises={exercises.length}
+            methodColors={methodologyMethodColors}
+          />
+        )}
 
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
@@ -204,27 +206,25 @@ function EvaluationsTable({ exercises, totalExercises, methodColors }: Evaluatio
   }
 
   return (
-    <View style={st.tableWrapper}>
-      {/* Header */}
-      <View style={st.tableHeader}>
+    <View style={st.tableContainer}>
+      <View style={st.tableHeaderRow}>
         <View style={{ width: COL_WIDTHS.method }}>
-          <AureakText style={st.thText}>MÉTHODE</AureakText>
+          <AureakText style={st.tableHeaderText}>MÉTHODE</AureakText>
         </View>
         <View style={{ width: COL_WIDTHS.num }}>
-          <AureakText style={st.thText}>NUM</AureakText>
+          <AureakText style={st.tableHeaderText}>NUM</AureakText>
         </View>
         <View style={{ flex: COL_WIDTHS.title }}>
-          <AureakText style={st.thText}>TITRE</AureakText>
+          <AureakText style={st.tableHeaderText}>TITRE</AureakText>
         </View>
         <View style={{ width: COL_WIDTHS.themes }}>
-          <AureakText style={st.thText}>THÈMES</AureakText>
+          <AureakText style={st.tableHeaderText}>THÈMES</AureakText>
         </View>
         <View style={{ width: COL_WIDTHS.status }}>
-          <AureakText style={st.thText}>STATUT</AureakText>
+          <AureakText style={st.tableHeaderText}>STATUT</AureakText>
         </View>
       </View>
 
-      {/* Rows */}
       {exercises.map((exercise, idx) => {
         const rowBg       = idx % 2 === 0 ? colors.light.surface : colors.light.muted
         const methodColor = methodColors[exercise.method] ?? colors.border.light
@@ -232,33 +232,28 @@ function EvaluationsTable({ exercises, totalExercises, methodColors }: Evaluatio
 
         return (
           <View key={exercise.id} style={[st.tableRow, { backgroundColor: rowBg }]}>
-            {/* MÉTHODE */}
             <View style={{ width: COL_WIDTHS.method, alignItems: 'center' }}>
               <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
                 <AureakText style={st.methodPicto}>{picto}</AureakText>
               </View>
             </View>
 
-            {/* NUM */}
             <View style={{ width: COL_WIDTHS.num, justifyContent: 'center' }}>
               <AureakText style={st.numText}>
                 {exercise.trainingRef ? `#${exercise.trainingRef}` : '—'}
               </AureakText>
             </View>
 
-            {/* TITRE */}
             <View style={{ flex: COL_WIDTHS.title, justifyContent: 'center' }}>
               <AureakText style={st.titleText} numberOfLines={2}>
                 {exercise.title}
               </AureakText>
             </View>
 
-            {/* THÈMES */}
             <View style={{ width: COL_WIDTHS.themes, justifyContent: 'center' }}>
               <AureakText style={st.dashText}>—</AureakText>
             </View>
 
-            {/* STATUT */}
             <View style={{ width: COL_WIDTHS.status, alignItems: 'center', justifyContent: 'center' }}>
               <View style={[st.statusDot, {
                 backgroundColor: exercise.isActive ? colors.status.present : colors.border.light,
@@ -274,22 +269,59 @@ function EvaluationsTable({ exercises, totalExercises, methodColors }: Evaluatio
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+  container: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scroll: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scrollContent: {
+    paddingTop     : space.md,
+    paddingBottom  : space.xxl,
+    backgroundColor: colors.light.primary,
+    maxWidth       : 1200,
+    alignSelf      : 'center',
+    width          : '100%',
+  },
 
-  // Header block
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
+  },
+  headerTopRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingTop       : space.lg,
+  },
+  pageTitle: {
+    fontSize     : 24,
+    fontWeight   : '700',
+    fontFamily   : fonts.display,
+    color        : colors.text.dark,
+    letterSpacing: 0.5,
+  },
+  cta: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+  },
+  ctaLabel: {
+    color     : colors.text.dark,
+    fontWeight: '700',
+    fontSize  : 13,
+  },
 
-  // Nav tabs
   tabsRow: {
     flexDirection    : 'row',
     gap              : 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
   tabItem: {
     position     : 'relative',
@@ -303,7 +335,7 @@ const st = StyleSheet.create({
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
+  tabUnderline: {
     position       : 'absolute',
     bottom         : 0,
     left           : 0,
@@ -313,7 +345,6 @@ const st = StyleSheet.create({
     borderRadius   : 1,
   },
 
-  // StatCards
   statCardsRow: {
     flexDirection    : 'row',
     gap              : space.md,
@@ -322,12 +353,13 @@ const st = StyleSheet.create({
     flexWrap         : 'wrap',
   },
   statCard: {
+    flex           : 1,
+    minWidth       : 120,
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     padding        : space.md,
     borderWidth    : 1,
     borderColor    : colors.border.divider,
-    minWidth       : 130,
     alignItems     : 'center',
     gap            : 4,
     // @ts-ignore web
@@ -353,29 +385,23 @@ const st = StyleSheet.create({
     color     : colors.text.dark,
   },
 
-  // FiltresRow
   filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
-    flexWrap      : 'wrap',
-    gap           : space.sm,
-    zIndex        : 9999,
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
   },
   filtresLeft: {
     flexDirection: 'row',
     alignItems   : 'center',
     gap          : space.sm,
   },
-  filtresRight: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-  },
 
-  // Pills
   pillActive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.accent.gold,
     borderWidth      : 1,
@@ -383,7 +409,7 @@ const st = StyleSheet.create({
   },
   pillInactive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.light.muted,
     borderWidth      : 1,
@@ -406,8 +432,23 @@ const st = StyleSheet.create({
     position: 'relative',
     zIndex  : 9999,
   },
+  methodDropdown: {
+    position       : 'absolute',
+    top            : 38,
+    left           : 0,
+    zIndex         : 9999,
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.xs,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    padding        : 6,
+    minWidth       : 220,
+    // @ts-ignore web
+    boxShadow      : shadows.lg,
+  },
+  methodDropdownItem      : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
+  methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
 
-  // Segmented toggle ACADÉMIE/STAGE
   toggleRow: {
     flexDirection: 'row',
     gap          : 0,
@@ -435,33 +476,30 @@ const st = StyleSheet.create({
     color: colors.text.dark,
   },
 
-  // Méthode dropdown
-  methodDropdown: {
-    position       : 'absolute',
-    top            : 38,
-    left           : 0,
-    zIndex         : 9999,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.xs,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    padding        : 6,
-    minWidth       : 220,
-    // @ts-ignore web
-    boxShadow      : shadows.lg,
+  loadingWrapper: {
+    padding   : space.xl,
+    alignItems: 'center',
   },
-  methodDropdownItem      : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
-  methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
+  loadingText: {
+    color     : colors.text.muted,
+    fontSize  : 14,
+    fontFamily: fonts.body,
+  },
 
-  // Table
-  empty: { padding: space.lg, alignItems: 'center' },
-  tableWrapper: {
-    borderRadius: 10,
-    borderWidth : 1,
-    borderColor : colors.border.divider,
-    overflow    : 'hidden',
+  empty: {
+    marginHorizontal: space.lg,
+    padding         : space.lg,
+    alignItems      : 'center',
   },
-  tableHeader: {
+  tableContainer: {
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
+    borderRadius    : 10,
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+    overflow        : 'hidden',
+  },
+  tableHeaderRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
     paddingHorizontal: 16,
@@ -471,25 +509,24 @@ const st = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
-  thText: {
+  tableHeaderText: {
     fontSize     : 10,
-    fontWeight   : '700',
     fontFamily   : fonts.display,
+    fontWeight   : '700',
     color        : colors.text.subtle,
-    textTransform: 'uppercase',
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   tableRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
     paddingHorizontal: 16,
-    paddingVertical  : 12,
+    minHeight        : 52,
     gap              : 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
 
-  // Row cells
   methodCircle: {
     width         : 32,
     height        : 32,

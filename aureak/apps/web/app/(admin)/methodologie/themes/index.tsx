@@ -89,7 +89,7 @@ export default function ThemesPage() {
   const isGlobal = selectedGroupId === null
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <View style={st.container}>
 
       {/* ── Header : titre + nav tabs + bouton ── */}
       <View style={st.headerBlock}>
@@ -99,8 +99,8 @@ export default function ThemesPage() {
             <Pressable style={st.manageBtn} onPress={() => setModalVisible(true)}>
               <AureakText style={st.manageBtnLabel}>⚙ Gérer les blocs</AureakText>
             </Pressable>
-            <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/themes/new' as never)}>
-              <AureakText style={st.newBtnLabel}>+ Nouveau thème</AureakText>
+            <Pressable style={st.cta} onPress={() => router.push('/methodologie/themes/new' as never)}>
+              <AureakText style={st.ctaLabel}>+ Nouveau thème</AureakText>
             </Pressable>
           </View>
         </View>
@@ -117,177 +117,173 @@ export default function ThemesPage() {
         </View>
       </View>
 
-      {/* ── StatCards — 1 card par ThemeGroup ── */}
-      <View style={st.statCardsRow}>
-        {groups.map(g => {
-          const count = orderedThemes.filter(t => t.groupId === g.id).length
-          return (
-            <Pressable
-              key={g.id}
-              style={[st.statCard, selectedGroupId === g.id && st.statCardActive] as never}
-              onPress={() => setSelectedGroupId(g.id === selectedGroupId ? null : g.id)}
-            >
-              <AureakText style={st.statCardPicto}>{getBlocPicto(g.name)}</AureakText>
-              <AureakText style={st.statCardLabel}>{g.name}</AureakText>
-              <AureakText style={st.statCardValue}>{count}</AureakText>
-            </Pressable>
-          )
-        })}
-      </View>
+      <ScrollView style={st.scroll} contentContainerStyle={st.scrollContent}>
 
-      {/* ── FiltresRow — gauche ── */}
-      <View style={st.filtresRow}>
-        <View style={st.filtresLeft}>
-          <Pressable
-            style={isGlobal ? st.pillActive : st.pillInactive}
-            onPress={() => { setSelectedGroupId(null); setThemeDropOpen(false) }}
-          >
-            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
-          </Pressable>
-
-          <View style={st.dropdownWrapper}>
-            <Pressable
-              style={!isGlobal ? st.pillActive : st.pillInactive}
-              onPress={() => setThemeDropOpen(o => !o)}
-            >
-              <AureakText style={!isGlobal ? st.pillTextActive : st.pillTextInactive}>
-                {isGlobal ? 'BLOC ▾' : `${selectedGroup?.name ?? 'BLOC'} ▾`}
-              </AureakText>
-            </Pressable>
-
-            {themeDropOpen && (
-              <View style={st.themeDropdown}>
-                {groups.map(g => (
-                  <Pressable
-                    key={g.id}
-                    style={[st.themeDropdownItem, selectedGroupId === g.id && st.themeDropdownItemActive]}
-                    onPress={() => { setSelectedGroupId(g.id); setThemeDropOpen(false) }}
-                  >
-                    <AureakText style={{ fontSize: 12, fontWeight: selectedGroupId === g.id ? '700' : '400', color: selectedGroupId === g.id ? colors.text.dark : colors.text.muted }}>
-                      {getBlocPicto(g.name)} {g.name}
-                    </AureakText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-
-      {/* ── Contenu ── */}
-      {loading && (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
-      )}
-
-      {errorMsg && (
-        <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
-      )}
-
-      {!loading && !errorMsg && themes.length === 0 && (
-        <View>
-          <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
-            Aucun thème configuré.
-          </AureakText>
-          <Pressable
-            onPress={() => router.push('/methodologie/themes/new' as never)}
-            style={{ backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8, marginTop: space.sm, alignSelf: 'flex-start' }}
-          >
-            <AureakText style={{ color: colors.text.dark, fontWeight: '700', fontSize: 13 } as never}>
-              → Créer un thème
-            </AureakText>
-          </Pressable>
-        </View>
-      )}
-
-      {!loading && themes.length > 0 && visibleThemes.length === 0 && (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
-          Aucun thème dans ce bloc.
-        </AureakText>
-      )}
-
-      {!loading && visibleThemes.length > 0 && (
-        <View style={st.tableWrapper}>
-          {/* Header */}
-          <View style={st.tableHeader}>
-            <View style={{ width: COL_WIDTHS.num }}>
-              <AureakText style={st.thText}>NUMÉRO</AureakText>
-            </View>
-            <View style={{ flex: COL_WIDTHS.title }}>
-              <AureakText style={st.thText}>TITRE</AureakText>
-            </View>
-            <View style={{ width: COL_WIDTHS.bloc }}>
-              <AureakText style={st.thText}>BLOC</AureakText>
-            </View>
-            <View style={{ width: COL_WIDTHS.metaphore }}>
-              <AureakText style={st.thText}>MÉTAPHORE</AureakText>
-            </View>
-            <View style={{ width: COL_WIDTHS.video }}>
-              <AureakText style={st.thText}>VIDÉO</AureakText>
-            </View>
-            <View style={{ width: COL_WIDTHS.status }}>
-              <AureakText style={st.thText}>STATUT</AureakText>
-            </View>
-          </View>
-
-          {/* Rows */}
-          {visibleThemes.map((theme, idx) => {
-            const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
+        {/* ── StatCards — 1 card par ThemeGroup ── */}
+        <View style={st.statCardsRow}>
+          {groups.map(g => {
+            const count = orderedThemes.filter(t => t.groupId === g.id).length
             return (
               <Pressable
-                key={theme.id}
-                onPress={() => router.push(`/methodologie/themes/${theme.themeKey}` as never)}
-                style={({ pressed }) => [
-                  st.tableRow,
-                  { backgroundColor: rowBg },
-                  pressed && { opacity: 0.8 },
-                ]}
+                key={g.id}
+                style={[st.statCard, selectedGroupId === g.id && st.statCardActive] as never}
+                onPress={() => setSelectedGroupId(g.id === selectedGroupId ? null : g.id)}
               >
-                {/* NUMÉRO */}
-                <View style={{ width: COL_WIDTHS.num, justifyContent: 'center' }}>
-                  <AureakText style={st.numText}>
-                    {theme.orderIndex != null ? theme.orderIndex : '—'}
-                  </AureakText>
-                </View>
-
-                {/* TITRE */}
-                <View style={{ flex: COL_WIDTHS.title, justifyContent: 'center' }}>
-                  <AureakText style={st.titleText} numberOfLines={2}>
-                    {theme.name}
-                  </AureakText>
-                </View>
-
-                {/* BLOC */}
-                <View style={{ width: COL_WIDTHS.bloc, justifyContent: 'center' }}>
-                  <AureakText style={st.dashText}>
-                    {groupMap[theme.groupId ?? ''] ?? '—'}
-                  </AureakText>
-                </View>
-
-                {/* MÉTAPHORE */}
-                <View style={{ width: COL_WIDTHS.metaphore, alignItems: 'center', justifyContent: 'center' }}>
-                  <View style={[st.statusDot, {
-                    backgroundColor: themeIdsWithMetaphors.has(theme.id) ? colors.status.present : colors.border.light,
-                  }]} />
-                </View>
-
-                {/* VIDÉO */}
-                <View style={{ width: COL_WIDTHS.video, alignItems: 'center', justifyContent: 'center' }}>
-                  <View style={[st.statusDot, {
-                    backgroundColor: themeIdsWithVideo.has(theme.id) ? colors.status.present : colors.border.light,
-                  }]} />
-                </View>
-
-                {/* STATUT */}
-                <View style={{ width: COL_WIDTHS.status, alignItems: 'center', justifyContent: 'center' }}>
-                  <View style={[st.statusDot, {
-                    backgroundColor: theme.isCurrent ? colors.status.present : colors.border.light,
-                  }]} />
-                </View>
+                <AureakText style={st.statCardPicto}>{getBlocPicto(g.name)}</AureakText>
+                <AureakText style={st.statCardLabel}>{g.name}</AureakText>
+                <AureakText style={st.statCardValue}>{count}</AureakText>
               </Pressable>
             )
           })}
         </View>
-      )}
+
+        {/* ── FiltresRow — gauche ── */}
+        <View style={st.filtresRow}>
+          <View style={st.filtresLeft}>
+            <Pressable
+              style={isGlobal ? st.pillActive : st.pillInactive}
+              onPress={() => { setSelectedGroupId(null); setThemeDropOpen(false) }}
+            >
+              <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
+            </Pressable>
+
+            <View style={st.dropdownWrapper}>
+              <Pressable
+                style={!isGlobal ? st.pillActive : st.pillInactive}
+                onPress={() => setThemeDropOpen(o => !o)}
+              >
+                <AureakText style={!isGlobal ? st.pillTextActive : st.pillTextInactive}>
+                  {isGlobal ? 'BLOC ▾' : `${selectedGroup?.name ?? 'BLOC'} ▾`}
+                </AureakText>
+              </Pressable>
+
+              {themeDropOpen && (
+                <View style={st.themeDropdown}>
+                  {groups.map(g => (
+                    <Pressable
+                      key={g.id}
+                      style={[st.themeDropdownItem, selectedGroupId === g.id && st.themeDropdownItemActive]}
+                      onPress={() => { setSelectedGroupId(g.id); setThemeDropOpen(false) }}
+                    >
+                      <AureakText style={{ fontSize: 12, fontWeight: selectedGroupId === g.id ? '700' : '400', color: selectedGroupId === g.id ? colors.text.dark : colors.text.muted }}>
+                        {getBlocPicto(g.name)} {g.name}
+                      </AureakText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* ── Contenu ── */}
+        {loading && (
+          <View style={st.loadingWrapper}>
+            <AureakText style={st.loadingText}>Chargement…</AureakText>
+          </View>
+        )}
+
+        {errorMsg && (
+          <View style={st.empty}>
+            <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
+          </View>
+        )}
+
+        {!loading && !errorMsg && themes.length === 0 && (
+          <View style={st.empty}>
+            <AureakText style={{ color: colors.text.muted, fontSize: 13, marginBottom: space.sm }}>
+              Aucun thème configuré.
+            </AureakText>
+            <Pressable style={st.cta} onPress={() => router.push('/methodologie/themes/new' as never)}>
+              <AureakText style={st.ctaLabel}>→ Créer un thème</AureakText>
+            </Pressable>
+          </View>
+        )}
+
+        {!loading && themes.length > 0 && visibleThemes.length === 0 && (
+          <View style={st.empty}>
+            <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
+              Aucun thème dans ce bloc.
+            </AureakText>
+          </View>
+        )}
+
+        {!loading && visibleThemes.length > 0 && (
+          <View style={st.tableContainer}>
+            <View style={st.tableHeaderRow}>
+              <View style={{ width: COL_WIDTHS.num }}>
+                <AureakText style={st.tableHeaderText}>NUMÉRO</AureakText>
+              </View>
+              <View style={{ flex: COL_WIDTHS.title }}>
+                <AureakText style={st.tableHeaderText}>TITRE</AureakText>
+              </View>
+              <View style={{ width: COL_WIDTHS.bloc }}>
+                <AureakText style={st.tableHeaderText}>BLOC</AureakText>
+              </View>
+              <View style={{ width: COL_WIDTHS.metaphore }}>
+                <AureakText style={st.tableHeaderText}>MÉTAPHORE</AureakText>
+              </View>
+              <View style={{ width: COL_WIDTHS.video }}>
+                <AureakText style={st.tableHeaderText}>VIDÉO</AureakText>
+              </View>
+              <View style={{ width: COL_WIDTHS.status }}>
+                <AureakText style={st.tableHeaderText}>STATUT</AureakText>
+              </View>
+            </View>
+
+            {visibleThemes.map((theme, idx) => {
+              const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
+              return (
+                <Pressable
+                  key={theme.id}
+                  onPress={() => router.push(`/methodologie/themes/${theme.themeKey}` as never)}
+                  style={({ pressed }) => [
+                    st.tableRow,
+                    { backgroundColor: pressed ? colors.light.hover : rowBg },
+                  ]}
+                >
+                  <View style={{ width: COL_WIDTHS.num, justifyContent: 'center' }}>
+                    <AureakText style={st.numText}>
+                      {theme.orderIndex != null ? theme.orderIndex : '—'}
+                    </AureakText>
+                  </View>
+
+                  <View style={{ flex: COL_WIDTHS.title, justifyContent: 'center' }}>
+                    <AureakText style={st.titleText} numberOfLines={2}>
+                      {theme.name}
+                    </AureakText>
+                  </View>
+
+                  <View style={{ width: COL_WIDTHS.bloc, justifyContent: 'center' }}>
+                    <AureakText style={st.dashText}>
+                      {groupMap[theme.groupId ?? ''] ?? '—'}
+                    </AureakText>
+                  </View>
+
+                  <View style={{ width: COL_WIDTHS.metaphore, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={[st.statusDot, {
+                      backgroundColor: themeIdsWithMetaphors.has(theme.id) ? colors.status.present : colors.border.light,
+                    }]} />
+                  </View>
+
+                  <View style={{ width: COL_WIDTHS.video, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={[st.statusDot, {
+                      backgroundColor: themeIdsWithVideo.has(theme.id) ? colors.status.present : colors.border.light,
+                    }]} />
+                  </View>
+
+                  <View style={{ width: COL_WIDTHS.status, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={[st.statusDot, {
+                      backgroundColor: theme.isCurrent ? colors.status.present : colors.border.light,
+                    }]} />
+                  </View>
+                </Pressable>
+              )
+            })}
+          </View>
+        )}
+
+      </ScrollView>
 
       <BlocsManagerModal
         visible={modalVisible}
@@ -297,34 +293,82 @@ export default function ThemesPage() {
           loadData()
         }}
       />
-    </ScrollView>
+    </View>
   )
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+  container: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scroll: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scrollContent: {
+    paddingTop     : space.md,
+    paddingBottom  : space.xxl,
+    backgroundColor: colors.light.primary,
+    maxWidth       : 1200,
+    alignSelf      : 'center',
+    width          : '100%',
+  },
 
-  // Header block
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
-  manageBtn    : { paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.surface },
-  manageBtnLabel: { color: colors.text.muted, fontWeight: '600', fontSize: 13 },
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
+  },
+  headerTopRow: {
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingTop       : space.lg,
+  },
+  pageTitle: {
+    fontSize     : 24,
+    fontWeight   : '700',
+    fontFamily   : fonts.display,
+    color        : colors.text.dark,
+    letterSpacing: 0.5,
+  },
+  cta: {
+    backgroundColor  : colors.accent.gold,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+  },
+  ctaLabel: {
+    color     : colors.text.dark,
+    fontWeight: '700',
+    fontSize  : 13,
+  },
+  manageBtn: {
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    borderRadius     : 8,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    backgroundColor  : colors.light.surface,
+  },
+  manageBtnLabel: {
+    color     : colors.text.muted,
+    fontWeight: '600',
+    fontSize  : 13,
+  },
 
-  // Nav tabs
   tabsRow: {
     flexDirection    : 'row',
     gap              : 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
   tabItem: {
-    position    : 'relative',
+    position     : 'relative',
     paddingBottom: 10,
   },
   tabLabel: {
@@ -335,7 +379,7 @@ const st = StyleSheet.create({
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
+  tabUnderline: {
     position       : 'absolute',
     bottom         : 0,
     left           : 0,
@@ -345,7 +389,6 @@ const st = StyleSheet.create({
     borderRadius   : 1,
   },
 
-  // StatCards — 1 card par ThemeGroup
   statCardsRow: {
     flexDirection    : 'row',
     gap              : space.md,
@@ -354,12 +397,13 @@ const st = StyleSheet.create({
     flexWrap         : 'wrap',
   },
   statCard: {
+    flex           : 1,
+    minWidth       : 120,
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     padding        : space.md,
     borderWidth    : 1,
     borderColor    : colors.border.divider,
-    minWidth       : 130,
     alignItems     : 'center',
     gap            : 4,
     // @ts-ignore web
@@ -389,14 +433,13 @@ const st = StyleSheet.create({
     color     : colors.text.dark,
   },
 
-  // FiltresRow
   filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
-    flexWrap      : 'wrap',
-    gap           : space.sm,
-    zIndex        : 9999,
+    flexDirection    : 'row',
+    justifyContent   : 'space-between',
+    alignItems       : 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical  : space.sm,
+    zIndex           : 9999,
   },
   filtresLeft: {
     flexDirection: 'row',
@@ -404,10 +447,9 @@ const st = StyleSheet.create({
     gap          : space.sm,
   },
 
-  // Pills
   pillActive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.accent.gold,
     borderWidth      : 1,
@@ -415,7 +457,7 @@ const st = StyleSheet.create({
   },
   pillInactive: {
     paddingHorizontal: 14,
-    paddingVertical  : 8,
+    paddingVertical  : 6,
     borderRadius     : radius.badge,
     backgroundColor  : colors.light.muted,
     borderWidth      : 1,
@@ -434,7 +476,6 @@ const st = StyleSheet.create({
     color     : colors.text.muted,
   },
 
-  // Dropdown wrapper
   dropdownWrapper: {
     position: 'relative',
     zIndex  : 9999,
@@ -453,17 +494,33 @@ const st = StyleSheet.create({
     // @ts-ignore web
     boxShadow      : shadows.lg,
   },
-  themeDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
+  themeDropdownItem      : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   themeDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
 
-  // Table
-  tableWrapper: {
-    borderRadius: 10,
-    borderWidth : 1,
-    borderColor : colors.border.divider,
-    overflow    : 'hidden',
+  loadingWrapper: {
+    padding   : space.xl,
+    alignItems: 'center',
   },
-  tableHeader: {
+  loadingText: {
+    color     : colors.text.muted,
+    fontSize  : 14,
+    fontFamily: fonts.body,
+  },
+
+  empty: {
+    marginHorizontal: space.lg,
+    padding         : space.lg,
+    alignItems      : 'center',
+  },
+  tableContainer: {
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
+    borderRadius    : 10,
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+    overflow        : 'hidden',
+  },
+  tableHeaderRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
     paddingHorizontal: 16,
@@ -473,27 +530,26 @@ const st = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
-  thText: {
+  tableHeaderText: {
     fontSize     : 10,
-    fontWeight   : '700',
     fontFamily   : fonts.display,
+    fontWeight   : '700',
     color        : colors.text.subtle,
-    textTransform: 'uppercase',
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   tableRow: {
     flexDirection    : 'row',
     alignItems       : 'center',
     paddingHorizontal: 16,
-    paddingVertical  : 12,
+    minHeight        : 52,
     gap              : 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
 
-  // Row cells
-  numText   : { fontSize: 13, fontWeight: '700', color: colors.accent.gold },
-  titleText : { fontSize: 13, fontWeight: '600', color: colors.text.dark },
-  dashText  : { fontSize: 12, color: colors.text.muted },
-  statusDot : { width: 8, height: 8, borderRadius: 4 },
+  numText  : { fontSize: 13, fontWeight: '700', color: colors.accent.gold },
+  titleText: { fontSize: 13, fontWeight: '600', color: colors.text.dark },
+  dashText : { fontSize: 12, color: colors.text.muted },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
 })

@@ -45,13 +45,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.primary,
   },
   scroll: {
-    flex: 1,
+    flex           : 1,
+    backgroundColor: colors.light.primary,
   },
   scrollContent: {
-    paddingTop: space.md,
-    maxWidth  : 1200,
-    alignSelf : 'center',
-    width     : '100%',
+    paddingTop     : space.md,
+    paddingBottom  : space.xxl,
+    backgroundColor: colors.light.primary,
+    maxWidth       : 1200,
+    alignSelf      : 'center',
+    width          : '100%',
   },
   filtresRow: {
     flexDirection    : 'row',

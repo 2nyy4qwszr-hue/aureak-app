@@ -410,9 +410,9 @@ export default function EvaluationsPage() {
 
         {/* Contenu selon sous-filtre */}
         {evalType === 'badges' && (
-          <View style={styles.section}>
+          <>
             {loading ? (
-              <View style={styles.loadingRow}>
+              <View style={styles.loadingWrapper}>
                 <AureakText style={styles.loadingText}>Chargement des évaluations...</AureakText>
               </View>
             ) : paginated.length === 0 ? (
@@ -466,7 +466,7 @@ export default function EvaluationsPage() {
                             {row.groupName}
                           </AureakText>
                         ) : (row as AdminEvalRow).topSeance ? (
-                          <AureakText style={{ fontSize: 10, color: colors.accent.gold, fontFamily: fonts.body, fontWeight: '700' }}>⭐ Top séance</AureakText>
+                          <AureakText style={styles.topSeanceLabel}>⭐ Top séance</AureakText>
                         ) : null}
                       </View>
                     </View>
@@ -519,7 +519,7 @@ export default function EvaluationsPage() {
                 )}
               </View>
             )}
-          </View>
+          </>
         )}
 
         {evalType === 'connaissances' && (
@@ -554,7 +554,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.primary,
   },
   scroll: {
-    flex: 1,
+    flex           : 1,
+    backgroundColor: colors.light.primary,
   },
   scrollContent: {
     paddingTop      : space.md,
@@ -579,7 +580,7 @@ const styles = StyleSheet.create({
     flexDirection    : 'row',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    marginBottom     : space.lg,
+    paddingVertical  : space.md,
     flexWrap         : 'wrap',
   },
   statCard: {
@@ -609,10 +610,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize  : 10,
     fontWeight: '700',
-    color     : colors.text.primary,
+    color     : colors.text.dark,
   },
   statValue: {
-    fontFamily  : fonts.body,
+    fontFamily  : fonts.display,
     fontSize    : 28,
     fontWeight  : '900',
     color       : colors.text.dark,
@@ -620,10 +621,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValueDark: {
-    color: colors.text.primary,
+    color: colors.accent.goldPale,
   },
   statLabel: {
-    fontFamily   : fonts.body,
+    fontFamily   : fonts.heading,
     fontSize     : 10,
     fontWeight   : '700',
     color        : colors.text.muted,
@@ -632,10 +633,10 @@ const styles = StyleSheet.create({
     marginBottom : 4,
   },
   statLabelDark: {
-    fontFamily   : fonts.body,
+    fontFamily   : fonts.heading,
     fontSize     : 10,
     fontWeight   : '700',
-    color        : colors.accent.goldLight,
+    color        : colors.accent.goldPale,
     textTransform: 'uppercase' as const,
     letterSpacing: 1,
     marginBottom : 4,
@@ -643,13 +644,13 @@ const styles = StyleSheet.create({
   statSub: {
     fontFamily: fonts.body,
     fontSize  : 11,
-    color     : colors.text.subtle,
+    color     : colors.text.muted,
     marginTop : 4,
   },
   statSubDark: {
     fontFamily: fonts.body,
     fontSize  : 11,
-    color     : colors.text.primary + '99',
+    color     : colors.accent.goldPale,
     marginTop : 4,
   },
   statIcon: {
@@ -659,7 +660,7 @@ const styles = StyleSheet.create({
   statIconLight: {
     fontSize    : 22,
     marginBottom: 4,
-    color       : colors.text.primary,
+    color       : colors.accent.goldPale,
   },
 
   // ── Eval Type SegmentedToggle ──────────────────────────────────────────────
@@ -692,11 +693,13 @@ const styles = StyleSheet.create({
 
   // ── Tableau évaluations ───────────────────────────────────────────────────
   tableContainer: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 10,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    overflow       : 'hidden',
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
+    backgroundColor : colors.light.surface,
+    borderRadius    : 10,
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+    overflow        : 'hidden',
   },
   tableHeader: {
     flexDirection    : 'row',
@@ -784,7 +787,7 @@ const styles = StyleSheet.create({
     flexShrink     : 0,
   },
   avatarText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize  : 14,
     fontWeight: '700',
     color     : colors.text.dark,
@@ -795,17 +798,23 @@ const styles = StyleSheet.create({
     color     : colors.text.muted,
     marginTop : 1,
   },
+  topSeanceLabel: {
+    fontSize  : 10,
+    color     : colors.accent.gold,
+    fontFamily: fonts.body,
+    fontWeight: '700',
+  },
 
   // ── Pagination ────────────────────────────────────────────────────────────
   pagination: {
-    flexDirection  : 'row',
-    alignItems     : 'center',
-    justifyContent : 'center',
-    gap            : space.md,
-    paddingVertical: space.md,
-    backgroundColor: colors.light.muted,
-    borderTopWidth : 1,
-    borderTopColor : colors.border.divider,
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    justifyContent   : 'space-between',
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    backgroundColor  : colors.light.muted,
+    borderTopWidth   : 1,
+    borderTopColor   : colors.border.divider,
   },
   pageBtn: {
     paddingHorizontal: space.md,
@@ -831,16 +840,18 @@ const styles = StyleSheet.create({
   },
 
   // ── Loading / Empty ───────────────────────────────────────────────────────
-  loadingRow: {
-    paddingVertical: space.xl,
-    alignItems     : 'center',
+  loadingWrapper: {
+    padding   : space.xl,
+    alignItems: 'center',
   },
   loadingText: {
     fontFamily: fonts.body,
-    fontSize  : 13,
+    fontSize  : 14,
     color     : colors.text.muted,
   },
   emptyRow: {
+    marginHorizontal : space.lg,
+    marginBottom     : space.lg,
     paddingVertical  : space.xxl,
     paddingHorizontal: space.lg,
     alignItems       : 'center',

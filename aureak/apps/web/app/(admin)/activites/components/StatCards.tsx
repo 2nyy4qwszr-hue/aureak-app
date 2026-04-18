@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection    : 'row',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    paddingBottom    : space.md,
+    paddingVertical  : space.md,
     flexWrap         : 'wrap',
   },
 
@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
     marginBottom: space.xs,
   },
 
-  // Sous-label or (neutre/négatif)
+  // Sous-label (neutre/négatif)
   statSub: {
     fontSize  : 11,
     fontFamily: fonts.body,
-    color     : colors.accent.gold,
+    color     : colors.text.muted,
     marginTop : 6,
   },
 
@@ -292,21 +292,21 @@ const styles = StyleSheet.create({
     position       : 'relative',
   },
   cardGoldLabel: {
-    fontSize     : 12,
-    letterSpacing: 1.8,
+    fontSize     : 10,
+    letterSpacing: 1,
     textTransform: 'uppercase',
     color        : colors.accent.goldPale,
     fontFamily   : fonts.display,
-    fontWeight   : '500',
+    fontWeight   : '700',
     marginBottom : 8,
     marginTop    : 8,
   },
   cardGoldValue: {
-    fontSize  : 20,
-    fontWeight: '700',
-    color     : colors.text.primary,
+    fontSize  : 28,
+    fontWeight: '900',
+    color     : colors.accent.goldPale,
     fontFamily: fonts.display,
-    lineHeight : 28,
+    lineHeight : 36,
   },
 
   // Icône flèche card 4 (position absolue haut droite, 76×44px)
@@ -328,14 +328,14 @@ const styles = StyleSheet.create({
   // Barre de progression card 4
   progressBar: {
     marginTop      : space.sm,
-    height         : 8,
-    backgroundColor: colors.border.light,
-    borderRadius   : 4,
+    height         : 4,
+    backgroundColor: colors.border.divider,
+    borderRadius   : 2,
     overflow       : 'hidden',
   },
   progressFill: {
-    height        : 8,
-    borderRadius  : 4,
+    height        : 4,
+    borderRadius  : 2,
     // gradient appliqué via style inline dans le JSX
   },
 })

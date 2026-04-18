@@ -1051,7 +1051,7 @@ function AdminLayoutInner() {
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
         {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
-        {!isMobile && !pathname.startsWith('/activites') && !pathname.startsWith('/methodologie') && <Breadcrumb />}
+        {!isMobile && !pathname.startsWith('/activites') && !pathname.startsWith('/methodologie') && !pathname.startsWith('/academie') && !pathname.startsWith('/evenements') && <Breadcrumb />}
 
         {/* Story 62.5 — conteneur page-enter animation */}
         <div ref={contentAreaRef} style={{ flex: 1 }}>
