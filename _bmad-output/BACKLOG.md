@@ -315,16 +315,16 @@ Ordre d'implémentation recommandé (dépendances en cascade) :
 
 Ordre d'implémentation recommandé (dépendances en cascade) :
 
-- [ ] 53-1 : seances-vue-semaine-tactical-board (P1 — grille slots colorés par méthode + charge hebdo — WeekView.tsx)
-- [ ] 53-2 : seances-fiche-header-match-report (P2 — header premium dark + stripe or + badge méthode grand format)
-- [ ] 53-3 : seances-intensite-indicator (P2 — barre 5 niveaux ⬤⬤⬤⬤○ or/rouge — migration + API updateSessionIntensity)
-- [ ] 53-4 : seances-selecteur-methode-tuiles (P2 — grandes tuiles icône+couleur remplaçant le dropdown)
-- [ ] 53-5 : seances-duplication-rapide (P2 — bouton Dupliquer → prefill query params dans new.tsx)
-- [ ] 53-6 : seances-rapport-post-entrainement (P2 — section Résumé sur séance réalisée : présence%, note moy., top joueur)
-- [ ] 53-7 : seances-badge-serie-sans-absence (P3 — badge fire sur joueurs avec 5+ présences consécutives)
-- [ ] 53-8 : seances-season-planner (P3 — nouvelle page /seances/planner grid 5 semaines × groupes)
-- [ ] 53-9 : seances-filtres-presets-enregistrables (P3 — pills présets sauvegardés localStorage)
-- [ ] 53-10 : seances-coaches-drag-drop (P3 — DnD HTML5 natif zones Disponibles/Assignés)
+- [x] 53-1 : seances-vue-semaine-tactical-board (P1 — grille slots colorés par méthode + charge hebdo — WeekView.tsx)
+- [x] 53-2 : seances-fiche-header-match-report (P2 — header premium dark + stripe or + badge méthode grand format)
+- [x] 53-3 : seances-intensite-indicator (P2 — barre 5 niveaux ⬤⬤⬤⬤○ or/rouge — migration + API updateSessionIntensity)
+- [x] 53-4 : seances-selecteur-methode-tuiles (P2 — grandes tuiles icône+couleur remplaçant le dropdown)
+- [x] 53-5 : seances-duplication-rapide (P2 — bouton Dupliquer → prefill query params dans new.tsx)
+- [x] 53-6 : seances-rapport-post-entrainement (P2 — section Résumé sur séance réalisée : présence%, note moy., top joueur)
+- [x] 53-7 : seances-badge-serie-sans-absence (P3 — badge fire sur joueurs avec 5+ présences consécutives)
+- [x] 53-8 : seances-season-planner (P3 — nouvelle page /seances/planner grid 5 semaines × groupes)
+- [x] 53-9 : seances-filtres-presets-enregistrables (P3 — pills présets sauvegardés localStorage)
+- [x] 53-10 : seances-coaches-drag-drop (P3 — DnD HTML5 natif zones Disponibles/Assignés)
 
 **Dépendances** :
 - 53-1 : indépendant (améliore WeekView existant)

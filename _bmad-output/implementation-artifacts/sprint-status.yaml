@@ -409,6 +409,20 @@ development_status:
   51-8-dark-mode-complet-toggle-persistant: done
   epic-51-retrospective: optional
 
+  # Epic 53 : Séances "Training Ground" premium
+  epic-53: in-progress
+  53-1-seances-vue-semaine-tactical-board: done
+  53-2-seances-fiche-header-match-report: done
+  53-3-seances-intensite-indicator: done
+  53-4-seances-selecteur-methode-tuiles: done
+  53-5-seances-duplication-rapide: done
+  53-6-seances-rapport-post-entrainement: done
+  53-7-seances-badge-serie-sans-absence: done
+  53-8-seances-season-planner: done
+  53-9-seances-filtres-presets-enregistrables: done
+  53-10-seances-coaches-drag-drop: done
+  epic-53-retrospective: optional
+
   # Epic 75 : Académie Hub — Nav globale + Refonte page Joueurs
   epic-75: in-progress
   75-2-academie-hub-sidebar-coachs: review
