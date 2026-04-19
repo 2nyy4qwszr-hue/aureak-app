@@ -754,6 +754,28 @@ Refonte visuelle de la page Activités/Séances pour correspondre précisément 
 
 ---
 
+### Epic 89 — Prospection Gardiens (funnel commercial)
+
+Objectif : outiller le scout/commercial pour identifier, inviter, tracer et convertir des gardiens prospects — de la détection terrain jusqu'à l'inscription Académie.
+
+Ordre d'implémentation recommandé : 89-4 → 89-5 → 89-6 → 89-1 → 89-2 → 89-3
+
+- [x] 89-4 : invitation-seance-gratuite-depuis-app (migration 00153, enum `prospect_status`, table `prospect_invitations`, Edge Fn `send-trial-invitation`)
+- [x] 89-5 : liste-attente-intelligente-notification-absence (migration 00154, table `trial_waitlist`, Edge Fn `confirm-trial-slot`)
+- [x] 89-6 : seance-gratuite-usage-unique-tracable (migration 00155, colonnes `trial_used`/`trial_date`/`trial_outcome`, valeur enum `'candidat'`, funnel stats)
+- [ ] 89-1 : recherche-ajout-gardien-scout-terrain (P1 — mobile-first scout field, migration 00156 index doublon + `searchChildDirectoryByName` + formulaire minimal 6 champs + garde-fou doublon)
+- [ ] 89-2 : note-evaluation-scout-rapide (P1 — migration 00157 table dédiée `prospect_scout_evaluations` + enum `scout_observation_context` + `StarRating` 1-5 + commentaire libre + contexte observation + historique desc + stats moyenne/dernière + fenêtre édition 24h + soft-delete)
+- [ ] 89-3 : visibilite-donnees-conditionnelle-rgpd (P1 — migrations 00158 + 00159 tables `prospect_access_grants`/`_requests`/`_log` + enums + triggers auto-grant + vue `v_child_directory_rgpd` + RPC `get_child_directory_rgpd[_list]` + fonctions `mask_email`/`mask_phone`/... + Edge Fn `notify-rgpd-access-request`/`_resolved` + composant `MaskedField` + page admin `/admin/rgpd/prospect-access`)
+
+**Dépendances** :
+- 89-1 : requiert 89-4 (enum `prospect_status` + colonne). Indépendant de 89-5 et 89-6 au niveau code mais complémentaire au funnel.
+- 89-2 : indépendante des autres 89. S'intègre à la fiche joueur `/children/[childId]`. Table dédiée distincte de `evaluations` coach.
+- 89-3 : **requiert 89-2 mergée** (trigger `trg_prospect_scout_evaluation_auto_grant` pose sur la table de 89-2). Requiert aussi 89-4 (mergé ✅ pour `prospect_invitations`). S'intègre via triggers non-invasifs sur les tables des stories satellites. Grain de permission orthogonal à Epic 86.
+
+**Migrations réservées** : 00153 (89-4 ✅), 00154 (89-5 ✅), 00155 (89-6 ✅), 00156 (89-1), 00157 (89-2), 00158 + 00159 (89-3).
+
+---
+
 ## Chantier parallèle — DB Baseline Recovery
 
 > Ne bloque pas le développement immédiat. À traiter en parallèle.

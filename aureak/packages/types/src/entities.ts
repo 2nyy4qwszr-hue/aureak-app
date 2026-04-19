@@ -1180,8 +1180,13 @@ export type ChildDirectoryEntry = {
   notesInternes   : string | null
   contactDeclined : boolean          // Story 13.3 — parent a refusé de donner ses coordonnées
 
-  // Prospection (Story 89.4)
-  prospectStatus  : ProspectStatus | null  // null = non-prospect, sinon cycle prospect → contacte → invite
+  // Prospection (Story 89.4 + 89.6)
+  prospectStatus  : ProspectStatus | null  // null = non-prospect, sinon cycle prospect → contacte → invite → candidat
+
+  // Séance gratuite usage unique (Story 89.6)
+  trialUsed       : boolean                // true = essai gratuit déjà consommé (un seul par prospect)
+  trialDate       : string | null          // horodatage confirmation de la séance d'essai
+  trialOutcome    : TrialOutcome | null    // résultat de la séance une fois passée
 
   // Notion sync
   notionPageId    : string | null
@@ -1193,8 +1198,11 @@ export type ChildDirectoryEntry = {
   updatedAt       : string
 }
 
-/** ProspectStatus — statut dans le cycle de prospection (Story 89.4) */
-export type ProspectStatus = 'prospect' | 'contacte' | 'invite'
+/** ProspectStatus — statut dans le cycle de prospection (Story 89.4 + 89.6) */
+export type ProspectStatus = 'prospect' | 'contacte' | 'invite' | 'candidat'
+
+/** TrialOutcome — résultat de la séance gratuite consommée (Story 89.6) */
+export type TrialOutcome = 'present' | 'absent' | 'cancelled'
 
 /** ProspectInvitation — trace d'envoi d'invitation séance gratuite (Story 89.4) */
 export type ProspectInvitation = {

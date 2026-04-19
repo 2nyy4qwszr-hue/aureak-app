@@ -44,3 +44,7 @@ export type { PlayerStats } from './playerStats'
 
 // Story 57-7 — Score de santé implantation
 export { computeImplantationHealth } from './implantation-health'
+
+// Story 89-6 — Séance gratuite usage unique traçable
+export { processTrialOutcome } from './prospection/processTrialOutcome'
+export type { TrialOutcomePatch, ProcessTrialOutcomeInput } from './prospection/processTrialOutcome'

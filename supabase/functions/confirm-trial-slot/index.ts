@@ -1,4 +1,4 @@
-// Story 89.5 — Edge Function : confirm-trial-slot
+// Story 89.5 + 89.6 — Edge Function : confirm-trial-slot
 // Confirmée par le parent via le lien email (contient confirm_token).
 //
 // Entrée (body JSON) :
@@ -9,6 +9,10 @@
 //   2. UPDATE trial_waitlist : status='confirmed', confirmed_at=NOW
 //   3. INSERT session_attendees(session_id, child_id, attendance_type='trial')
 //      → le gardien apparaît dans le roster "essai" de la séance
+//   4. (Story 89.6) UPDATE child_directory : trial_used=true, trial_date=NOW
+//      → trace le fait que le droit à l'essai gratuit est maintenant consommé.
+//      `trial_outcome` reste null — on l'écrira quand l'admin enregistrera
+//      l'attendance réelle (present/absent/cancelled) via recordTrialOutcome.
 //
 // Sécurité : SERVICE_ROLE_KEY requis (token = secret suffisant, lien public depuis email).
 
@@ -120,6 +124,23 @@ Deno.serve(async (req) => {
     if (insertErr && Deno.env.get('DENO_ENV') !== 'production') {
       console.warn('[confirm-trial-slot] session_attendees insert skipped:', insertErr.message)
     }
+  }
+
+  // 4. (Story 89.6) Marque l'essai gratuit comme consommé sur child_directory.
+  //    AC #4 : dès confirmation → trial_used=true, trial_date=NOW.
+  //    `trial_outcome` reste null → sera renseigné après la séance réelle
+  //    (present/absent/cancelled) via recordTrialOutcome côté admin.
+  //    Non bloquant — un échec ici n'empêche pas la confirmation waitlist.
+  const { error: trialErr } = await supabase
+    .from('child_directory')
+    .update({
+      trial_used: true,
+      trial_date: new Date().toISOString(),
+    })
+    .eq('id', entry.child_id)
+
+  if (trialErr && Deno.env.get('DENO_ENV') !== 'production') {
+    console.warn('[confirm-trial-slot] child_directory trial_used update skipped:', trialErr.message)
   }
 
   return json({ ok: true, entry: updated })
