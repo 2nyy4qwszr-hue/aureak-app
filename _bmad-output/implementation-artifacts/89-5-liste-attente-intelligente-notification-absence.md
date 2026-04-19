@@ -1,6 +1,6 @@
 # Story 89.5 : Liste d'attente intelligente + notification absence
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -20,22 +20,21 @@ afin que mon enfant puisse participer à sa séance d'essai gratuite au plus vit
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase (AC: #1)
-  - [ ] Créer table `trial_waitlist`
-  - [ ] RLS policies (admin + parent concerné)
-- [ ] Task 2 — Trigger détection absence (AC: #3, #4)
-  - [ ] Trigger ou Edge Function : quand `attendance_records` enregistre une absence → check `trial_waitlist` pour le groupe
-  - [ ] Envoi notification via Resend (email) + optionnel Twilio (SMS)
-- [ ] Task 3 — API client (AC: #2, #5, #6)
-  - [ ] `addToWaitlist(childId, groupId, parentEmail)` dans `@aureak/api-client`
-  - [ ] `confirmTrialSlot(waitlistId)` — parent confirme
-  - [ ] `listWaitlist(groupId?)` — vue admin
-- [ ] Task 4 — UI admin (AC: #2, #7)
-  - [ ] Section "Liste d'attente" dans la page prospection gardiens
-  - [ ] Tableau : gardien, groupe, statut, date demande, date notification
-- [ ] Task 5 — Expiration automatique (AC: #5)
-  - [ ] Cron ou trigger pour expirer les confirmations non répondues après 24h
-  - [ ] Passage au prospect suivant dans la file
+- [x] Task 1 — Migration Supabase (AC: #1) — `00154_create_trial_waitlist.sql`
+  - [x] Table `trial_waitlist` + enum `waitlist_status`
+  - [x] RLS admin-tenant-scoped (confirmation parent via Edge Function avec service role)
+- [x] Task 2 — Trigger détection absence (AC: #3, #4)
+  - [x] Trigger SQL `trg_notify_waitlist_on_absence` → pg_net.http_post vers Edge Function `notify-waitlist`
+  - [x] Edge Function notify-waitlist : FIFO + envoi Resend + update status='notified'
+- [x] Task 3 — API client (AC: #2, #5, #6) — `@aureak/api-client/src/admin/trial-waitlist.ts`
+  - [x] `addToWaitlist`, `listWaitlist`, `listWaitlistByChild`, `removeFromWaitlist`, `confirmTrialSlot`
+  - [x] Confirmation parent via Edge Function `confirm-trial-slot` (token + 24h window + roster insert)
+- [x] Task 4 — UI admin (AC: #2, #7)
+  - [x] Page dédiée `/(admin)/waitlist/page.tsx` : StatCards par statut + filtres + tableau
+  - [x] Bouton "+ Liste d'attente" + `_WaitlistModal.tsx` sur fiche gardien prospect
+- [x] Task 5 — Expiration automatique (AC: #5)
+  - [x] SQL function `expire_waitlist_entries()` + Edge Function `expire-waitlist` (à scheduler)
+  - [x] Notification automatique du prospect suivant après expiration
 
 ## Dev Notes
 

@@ -57,6 +57,7 @@ import { useToast } from '../../../../components/ToastContext'
 import { exportCardToPng } from '../exportCardToPng'
 import { avatarBgColor } from '../_avatarHelpers'
 import { TrialInvitationModal } from './_TrialInvitationModal'
+import { WaitlistModal } from './_WaitlistModal'
 import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
@@ -1651,6 +1652,8 @@ export default function ChildDetailPage() {
 
   // Story 89.4 — invitation séance gratuite
   const [showTrialInvite, setShowTrialInvite] = useState(false)
+  // Story 89.5 — liste d'attente
+  const [showWaitlist, setShowWaitlist] = useState(false)
 
   const loadChild = useCallback(async () => {
     if (!childId) return
@@ -2153,6 +2156,25 @@ export default function ChildDetailPage() {
                 Invitation envoyée
               </AureakText>
             </View>
+          )}
+          {/* Story 89.5 — Ajouter en liste d'attente (prospects uniquement) */}
+          {Platform.OS === 'web' && (child.prospectStatus === 'prospect' || child.prospectStatus === 'contacte' || child.prospectStatus === 'invite') && (
+            <Pressable
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                borderWidth      : 1,
+                borderColor      : colors.accent.gold,
+              }}
+              onPress={() => setShowWaitlist(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter en liste d'attente"
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' as never }}>
+                + Liste d'attente
+              </AureakText>
+            </Pressable>
           )}
         </View>
       </View>
@@ -3040,6 +3062,17 @@ export default function ChildDetailPage() {
             // Rafraîchir la fiche pour refléter prospect_status = 'invite'
             setChild(prev => prev ? { ...prev, prospectStatus: 'invite' } : prev)
           }}
+        />
+      )}
+
+      {/* Story 89.5 — Ajout en liste d'attente */}
+      {child && (
+        <WaitlistModal
+          visible={showWaitlist}
+          onClose={() => setShowWaitlist(false)}
+          childId={child.id}
+          gardienDisplayName={displayName}
+          defaultParentEmail={child.parent1Email ?? child.parent2Email ?? null}
         />
       )}
     </>
