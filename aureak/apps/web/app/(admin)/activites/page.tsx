@@ -1,5 +1,4 @@
 'use client'
-// Story 65-1 — Activités Hub : page principale (onglet Séances)
 import React, { useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
@@ -45,13 +44,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.primary,
   },
   scroll: {
-    flex: 1,
+    flex           : 1,
+    backgroundColor: colors.light.primary,
   },
   scrollContent: {
-    paddingTop: space.md,
-    maxWidth  : 1200,
-    alignSelf : 'center',
-    width     : '100%',
+    paddingTop     : space.md,
+    paddingBottom  : space.xxl,
+    backgroundColor: colors.light.primary,
   },
   filtresRow: {
     flexDirection    : 'row',
