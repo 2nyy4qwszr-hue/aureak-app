@@ -1,6 +1,6 @@
 # Story 89.6 : Séance gratuite usage unique traçable
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -21,21 +21,26 @@ afin d'éviter les abus et de mesurer le taux de conversion essai → inscriptio
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase (AC: #1, #2, #3)
-  - [ ] `ALTER TABLE child_directory ADD COLUMN trial_used boolean DEFAULT false`
-  - [ ] `ALTER TABLE child_directory ADD COLUMN trial_date timestamptz`
-  - [ ] Créer enum `trial_outcome` + colonne
-- [ ] Task 2 — Logique métier (AC: #4, #5, #6)
-  - [ ] Dans `@aureak/business-logic` : `processTrialOutcome(childId, outcome)`
-  - [ ] Si `present` → update `prospect_status = 'candidat'`
-  - [ ] Si `absent` → update `trial_outcome = 'absent'`, pas de reset
-- [ ] Task 3 — API client (AC: #7, #8)
-  - [ ] `recordTrialOutcome(childId, outcome)` dans `@aureak/api-client`
-  - [ ] `resetTrialRight(childId)` — admin only, override exceptionnel
-  - [ ] `getProspectFunnelStats()` — compteurs par étape
-- [ ] Task 4 — UI funnel stats (AC: #7)
-  - [ ] StatCards ou mini-funnel visuel dans `/prospection/gardiens`
-  - [ ] Compteurs par étape avec % de conversion
+- [x] Task 1 — Migration Supabase (AC: #1, #2, #3)
+  - [x] `ALTER TABLE child_directory ADD COLUMN trial_used boolean DEFAULT false`
+  - [x] `ALTER TABLE child_directory ADD COLUMN trial_date timestamptz`
+  - [x] Créer enum `trial_outcome` + colonne
+  - [x] Étendre enum `prospect_status` avec valeur `'candidat'` (AC #6)
+- [x] Task 2 — Logique métier (AC: #4, #5, #6)
+  - [x] Dans `@aureak/business-logic` : `processTrialOutcome(input)` (fonction pure)
+  - [x] Si `present` → update `prospect_status = 'candidat'` (conditionnel sur funnel)
+  - [x] Si `absent` → trace sans reset, pas de promotion (AC #5)
+  - [x] Tests unitaires vitest
+- [x] Task 3 — API client (AC: #4, #7, #8)
+  - [x] `recordTrialOutcome({childId, outcome})` dans `@aureak/api-client`
+  - [x] `resetTrialRight(childId)` — admin only, override exceptionnel (AC #8)
+  - [x] `getProspectFunnelStats()` — compteurs par étape (AC #7)
+  - [x] Edge Function `confirm-trial-slot` : maj `trial_used=true` + `trial_date=NOW` à confirmation (AC #4)
+- [x] Task 4 — UI funnel stats (AC: #7)
+  - [x] Page `/developpement/prospection/gardiens` — dashboard funnel complet
+  - [x] Compteurs par étape avec % de conversion
+  - [x] Listing des essais consommés + actions (setOutcome, resetTrial)
+  - [x] Lien vers cette page depuis `/developpement/prospection`
 
 ## Dev Notes
 
@@ -50,9 +55,32 @@ afin d'éviter les abus et de mesurer le taux de conversion essai → inscriptio
 ## Dev Agent Record
 
 ### Agent Model Used
+Claude Opus 4.7 (1M context) — pipeline dev agent
 
 ### Debug Log References
+—
 
 ### Completion Notes List
+- Extension `prospect_status` enum (valeur `'candidat'`) via `ALTER TYPE ... ADD VALUE` idempotent (Context7 PostgreSQL docs).
+- `processTrialOutcome` est une **pure function** dans `@aureak/business-logic` — pas d'accès DB. L'api-client `recordTrialOutcome` fait la lecture + la fusion + l'UPDATE.
+- La promotion `invite → candidat` est **conditionnelle** sur le statut courant (prospect/contacte/invite), pour ne pas écraser un statut plus avancé.
+- L'Edge Function `confirm-trial-slot` (Story 89.5) a été étendue : dès confirmation parent, on marque `trial_used=true` + `trial_date=NOW`. `trial_outcome` reste null tant que la séance n'a pas eu lieu (admin l'enregistre ensuite).
+- La RLS de `child_directory` est gérée au niveau table (policies UPDATE admin-only via `current_user_role()`) — les 3 nouvelles colonnes sont donc déjà protégées sans nouvelle policy.
+- Le funnel UI est **cumulatif** (chaque étape inclut tous les plus avancés) pour calculer des taux de conversion inter-étape.
 
 ### File List
+**Nouveaux**
+- `supabase/migrations/00155_trial_usage_unique.sql`
+- `aureak/packages/business-logic/src/prospection/processTrialOutcome.ts`
+- `aureak/packages/business-logic/src/__tests__/processTrialOutcome.test.ts`
+- `aureak/packages/api-client/src/admin/trial-usage.ts`
+- `aureak/apps/web/app/(admin)/developpement/prospection/gardiens/page.tsx`
+- `aureak/apps/web/app/(admin)/developpement/prospection/gardiens/index.tsx`
+
+**Modifiés**
+- `aureak/packages/types/src/entities.ts` — ajout `TrialOutcome`, extension `ProspectStatus` avec `'candidat'`, 3 champs `ChildDirectoryEntry` (trialUsed/trialDate/trialOutcome)
+- `aureak/packages/api-client/src/admin/child-directory.ts` — mapping `toEntry` des 3 nouveaux champs
+- `aureak/packages/api-client/src/index.ts` — export `recordTrialOutcome`/`resetTrialRight`/`getProspectFunnelStats`
+- `aureak/packages/business-logic/src/index.ts` — export `processTrialOutcome`
+- `supabase/functions/confirm-trial-slot/index.ts` — maj `trial_used`/`trial_date` à la confirmation (AC #4)
+- `aureak/apps/web/app/(admin)/developpement/prospection/page.tsx` — bouton lien vers le funnel gardiens

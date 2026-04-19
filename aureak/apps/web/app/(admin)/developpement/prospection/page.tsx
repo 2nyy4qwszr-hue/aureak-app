@@ -1,9 +1,11 @@
 // Epic 85 — Story 85.3 + 85.5 — Page Prospection : liste clubs + KPIs + filtres admin
+// Epic 89 — Story 89.6 : lien vers dashboard funnel gardiens
 'use client'
 import React, { useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, space, radius } from '@aureak/theme'
 import { listClubDirectory, listAllCommercialContacts } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import type { ClubDirectoryEntry, CommercialContactWithCommercial } from '@aureak/types'
@@ -15,6 +17,7 @@ import type { ClubCommercialStatus } from './_components/ClubCard'
 
 export default function ProspectionPage() {
   const { role } = useAuthStore()
+  const router = useRouter()
   const [clubs, setClubs]       = useState<ClubDirectoryEntry[]>([])
   const [contacts, setContacts] = useState<CommercialContactWithCommercial[]>([])
   const [loading, setLoading]   = useState(true)
@@ -132,6 +135,16 @@ export default function ProspectionPage() {
         </AureakText>
       </View>
 
+      {/* Story 89.6 — lien vers dashboard funnel gardiens */}
+      <Pressable
+        style={styles.funnelLink}
+        onPress={() => router.push('/developpement/prospection/gardiens' as never)}
+      >
+        <AureakText variant="caption" style={styles.funnelLinkLabel}>
+          🎯 Voir le funnel Gardiens (conversion + essais gratuits) →
+        </AureakText>
+      </Pressable>
+
       <ProspectionKPIs stats={stats} />
 
       {/* Story 85.5 — Filtres admin uniquement */}
@@ -170,5 +183,19 @@ const styles = StyleSheet.create({
     color    : colors.text.muted,
     textAlign: 'center',
     marginTop: space.xl,
+  },
+  funnelLink: {
+    alignSelf        : 'flex-start',
+    backgroundColor  : colors.accent.gold + '22',
+    borderColor      : colors.accent.gold,
+    borderWidth      : 1,
+    borderRadius     : radius.xs,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    marginBottom     : space.md,
+  },
+  funnelLinkLabel: {
+    color     : colors.text.dark,
+    fontWeight: '600' as const,
   },
 })

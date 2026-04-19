@@ -456,6 +456,14 @@ export type {
   ListWaitlistParams, AddToWaitlistParams, ConfirmTrialSlotResult,
 } from './admin/trial-waitlist'
 
+// Story 89.6 — Séance gratuite usage unique traçable
+export {
+  recordTrialOutcome, resetTrialRight, getProspectFunnelStats,
+} from './admin/trial-usage'
+export type {
+  RecordTrialOutcomeParams, ProspectFunnelStats,
+} from './admin/trial-usage'
+
 export {
   listClubDirectory, getClubDirectoryEntry,
   createClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,

@@ -4,7 +4,7 @@
 
 import { supabase } from '../supabase'
 import { getCachedUrl, setCachedUrl } from '../utils/signed-url-cache'
-import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory, ProspectStatus } from '@aureak/types'
+import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory, ProspectStatus, TrialOutcome } from '@aureak/types'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +40,9 @@ function toEntry(row: Record<string, unknown>): ChildDirectoryEntry {
     seniorDivision  : (row.senior_division  as string | null) ?? null,
     teamLevelStars  : (row.team_level_stars as number | null) ?? null,
     prospectStatus  : (row.prospect_status  as ProspectStatus | null) ?? null,
+    trialUsed       : (row.trial_used       as boolean | null) ?? false,
+    trialDate       : (row.trial_date       as string | null) ?? null,
+    trialOutcome    : (row.trial_outcome    as TrialOutcome | null) ?? null,
     notionPageId    : (row.notion_page_id   as string | null) ?? null,
     notionSyncedAt  : (row.notion_synced_at as string | null) ?? null,
     deletedAt       : (row.deleted_at       as string | null) ?? null,
