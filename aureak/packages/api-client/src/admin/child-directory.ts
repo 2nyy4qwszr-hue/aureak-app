@@ -243,6 +243,13 @@ export type CreateChildDirectoryParams = {
   niveauClub?    : string | null
   clubDirectoryId?: string | null
   actif?         : boolean
+  // Story 89.1 — ajouts pour l'ajout rapide prospect terrain
+  email?          : string | null
+  tel?            : string | null
+  parent1Email?   : string | null
+  parent1Tel?     : string | null
+  notesInternes?  : string | null
+  prospectStatus? : ProspectStatus | null
 }
 
 export async function createChildDirectoryEntry(
@@ -261,11 +268,69 @@ export async function createChildDirectoryEntry(
       niveau_club      : params.niveauClub     ?? null,
       club_directory_id: params.clubDirectoryId ?? null,
       actif            : params.actif          ?? true,
+      email            : params.email          ?? null,
+      tel              : params.tel            ?? null,
+      parent1_email    : params.parent1Email   ?? null,
+      parent1_tel      : params.parent1Tel     ?? null,
+      notes_internes   : params.notesInternes  ?? null,
+      prospect_status  : params.prospectStatus ?? null,
     })
     .select()
     .single()
   if (error) throw error
   return toEntry(data)
+}
+
+// ── Search by name (Story 89.1) ───────────────────────────────────────────────
+
+/**
+ * Recherche l'annuaire child_directory par display_name (ilike).
+ * - Retourne [] si query < 2 caractères
+ * - Filtre deleted_at IS NULL, ordre alphabétique ASC
+ * - RLS tenant isolation appliquée automatiquement
+ */
+export async function searchChildDirectoryByName(
+  query: string,
+  opts: { limit?: number } = {},
+): Promise<ChildDirectoryEntry[]> {
+  if (query.trim().length < 2) return []
+  const { data, error } = await supabase
+    .from('child_directory')
+    .select('*')
+    .is('deleted_at', null)
+    .ilike('display_name', `%${query.trim()}%`)
+    .order('display_name', { ascending: true })
+    .limit(opts.limit ?? 10)
+  if (error) throw error
+  return (data ?? []).map(toEntry)
+}
+
+// ── Find prospect duplicates (Story 89.1) ─────────────────────────────────────
+
+/**
+ * Détecte les doublons probables pour un nouveau prospect :
+ * même prénom + nom (case-insensitive) + même année de naissance dans le tenant.
+ * Aucune contrainte DB — garde-fou UI uniquement (AC #10 : "Créer quand même" doit rester possible).
+ */
+export async function findProspectDuplicates(params: {
+  tenantId : string
+  prenom   : string
+  nom      : string
+  birthYear: number
+}): Promise<ChildDirectoryEntry[]> {
+  const { tenantId, prenom, nom, birthYear } = params
+  if (!prenom.trim() || !nom.trim() || !Number.isFinite(birthYear)) return []
+  const { data, error } = await supabase
+    .from('child_directory')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .is('deleted_at', null)
+    .ilike('prenom', prenom.trim())
+    .ilike('nom', nom.trim())
+    .gte('birth_date', `${birthYear}-01-01`)
+    .lt ('birth_date', `${birthYear + 1}-01-01`)
+  if (error) throw error
+  return (data ?? []).map(toEntry)
 }
 
 // ── List ───────────────────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import {
@@ -14,6 +15,7 @@ import {
   recordTrialOutcome,
   type ProspectFunnelStats,
 } from '@aureak/api-client'
+import { useAuthStore } from '@aureak/business-logic'
 import type { ChildDirectoryEntry, TrialOutcome } from '@aureak/types'
 
 // ── Funnel Card (1 étape) ─────────────────────────────────────────────────────
@@ -82,11 +84,16 @@ function OutcomeBadge({ outcome }: { outcome: TrialOutcome | null }) {
 // ── Page principale ───────────────────────────────────────────────────────────
 
 export default function ProspectionGardiensPage() {
-  const [stats, setStats]       = useState<ProspectFunnelStats | null>(null)
+  const router                    = useRouter()
+  const role                      = useAuthStore(s => s.role)
+  const [stats, setStats]         = useState<ProspectFunnelStats | null>(null)
   const [trialUsed, setTrialUsed] = useState<ChildDirectoryEntry[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [actionId, setActionId] = useState<string | null>(null)
-  const [error, setError]       = useState<string | null>(null)
+  const [loading, setLoading]     = useState(true)
+  const [actionId, setActionId]   = useState<string | null>(null)
+  const [error, setError]         = useState<string | null>(null)
+
+  // Story 89.1 — CTA scout terrain (admin + commercial)
+  const canAddProspect = role === 'admin' || role === 'commercial'
 
   async function loadAll() {
     setLoading(true)
@@ -168,6 +175,19 @@ export default function ProspectionGardiensPage() {
           Funnel de conversion et traçabilité des séances d'essai gratuites
         </AureakText>
       </View>
+
+      {/* Story 89.1 — CTA ajout rapide prospect terrain (admin | commercial) */}
+      {canAddProspect && (
+        <Pressable
+          style={st.addProspectCta}
+          onPress={() => router.push('/developpement/prospection/gardiens/ajouter' as never)}
+          accessibilityLabel="Ajouter un prospect terrain"
+        >
+          <AureakText style={st.addProspectCtaText as never}>
+            + Ajouter un prospect terrain
+          </AureakText>
+        </Pressable>
+      )}
 
       {error && (
         <View style={st.errorBanner}>
@@ -333,6 +353,25 @@ const st = StyleSheet.create({
   header: { gap: 6 },
   title : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
   sub   : { color: colors.text.muted, fontSize: 13 },
+
+  // Story 89.1 — CTA ajout rapide prospect terrain
+  addProspectCta: {
+    minHeight        : 48,
+    borderRadius     : radius.button,
+    backgroundColor  : colors.accent.gold,
+    alignItems       : 'center',
+    justifyContent   : 'center',
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    // @ts-ignore RN Web
+    boxShadow        : shadows.md,
+  },
+  addProspectCtaText: {
+    color     : colors.text.dark,
+    fontSize  : 14,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
 
   errorBanner: {
     backgroundColor  : colors.status.absent + '15',
