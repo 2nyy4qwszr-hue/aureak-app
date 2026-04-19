@@ -1,6 +1,6 @@
 # Story 89.4 : Invitation séance gratuite depuis l'app
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -20,19 +20,20 @@ afin que le parent du gardien prospect reçoive un email professionnel avec les 
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase (AC: #5)
-  - [ ] Table `prospect_invitations` (child_id, invited_by, parent_email, parent_name, implantation_id, message, sent_at, status)
-  - [ ] RLS policies
-- [ ] Task 2 — Edge Function email (AC: #3, #7)
-  - [ ] Créer ou étendre Edge Function pour envoi invitation via Resend
-  - [ ] Template HTML email Aureak (logo, infos séance, CTA)
-- [ ] Task 3 — API client (AC: #1, #2, #4)
-  - [ ] `sendTrialInvitation(data)` dans `@aureak/api-client`
-  - [ ] Auto-update `prospect_status` → `invite`
-- [ ] Task 4 — UI bouton + formulaire (AC: #1, #2, #6)
-  - [ ] Bouton "Inviter" dans la fiche gardien prospect
-  - [ ] Modale avec formulaire (React Hook Form + Zod)
-  - [ ] Champ email parent avec sauvegarde dans la fiche
+- [x] Task 1 — Migration Supabase (AC: #5)
+  - [x] Table `prospect_invitations` (child_id, invited_by, parent_email, parent_name, implantation_id, message, sent_at, status) + enum `prospect_status` + colonne `child_directory.prospect_status`
+  - [x] RLS policies (tenant_isolation select/insert/update)
+- [x] Task 2 — Edge Function email (AC: #3, #7)
+  - [x] Edge Function `send-trial-invitation` créée (envoi via Resend)
+  - [x] Template HTML email Aureak (logo, implantation, message scout, CTA mailto)
+- [x] Task 3 — API client (AC: #1, #2, #4)
+  - [x] `sendTrialInvitation(data)` + `listProspectInvitations(childId)` dans `@aureak/api-client`
+  - [x] Auto-update `prospect_status` → `invite` (effectué côté Edge Function, atomique avec l'insert invitation)
+- [x] Task 4 — UI bouton + formulaire (AC: #1, #2, #6)
+  - [x] Bouton "Inviter à une séance gratuite" dans l'en-tête de la fiche (visible si `prospect_status ∈ {prospect, contacte}`)
+  - [x] Modale `_TrialInvitationModal.tsx` avec formulaire (React Hook Form + Zod)
+  - [x] Champ email parent pré-rempli depuis la fiche, sauvegardé automatiquement si vide (Edge Function met à jour `parent1_email` ou `parent2_email`)
+  - [x] Badge "Invitation envoyée" après envoi
 
 ## Dev Notes
 
@@ -49,9 +50,24 @@ afin que le parent du gardien prospect reçoive un email professionnel avec les 
 ## Dev Agent Record
 
 ### Agent Model Used
+Claude Opus 4.7 (1M context)
 
 ### Debug Log References
+n/a
 
 ### Completion Notes List
+- Enum `prospect_status` ajouté + colonne nullable sur `child_directory` (un Académicien n'a pas de prospect_status)
+- L'Edge Function gère **à la fois** l'envoi Resend, la trace dans `prospect_invitations`, la mise à jour de `prospect_status`, et la sauvegarde de `parent1_email` / `parent2_email` si vide — tout se fait en 1 appel depuis l'UI
+- La trace est persistée même en cas d'échec Resend (status='failed'), pour l'audit
+- Le bouton n'apparaît que pour les gardiens avec `prospect_status ∈ {prospect, contacte}` — un badge "Invitation envoyée" remplace le bouton après envoi
+- La story 89-5 (liste d'attente auto) et 89-6 (one-shot tracable) s'appuieront sur cette trace
 
 ### File List
+- `supabase/migrations/00153_create_prospect_invitations.sql` (new)
+- `supabase/functions/send-trial-invitation/index.ts` (new)
+- `aureak/packages/types/src/entities.ts` (edit — ajout `ProspectStatus`, `ProspectInvitation`, champ sur `ChildDirectoryEntry`)
+- `aureak/packages/api-client/src/admin/child-directory.ts` (edit — mapping + UpdateParams)
+- `aureak/packages/api-client/src/admin/prospect-invitations.ts` (new)
+- `aureak/packages/api-client/src/index.ts` (edit — exports)
+- `aureak/apps/web/app/(admin)/children/[childId]/_TrialInvitationModal.tsx` (new)
+- `aureak/apps/web/app/(admin)/children/[childId]/page.tsx` (edit — bouton header + modale)

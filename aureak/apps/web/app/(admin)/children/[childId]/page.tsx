@@ -56,6 +56,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { useToast } from '../../../../components/ToastContext'
 import { exportCardToPng } from '../exportCardToPng'
 import { avatarBgColor } from '../_avatarHelpers'
+import { TrialInvitationModal } from './_TrialInvitationModal'
 import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
@@ -1648,6 +1649,9 @@ export default function ChildDetailPage() {
   const [togglingActif,         setTogglingActif]         = useState(false)
   const [confirmDeleteHistId,   setConfirmDeleteHistId]   = useState<string | null>(null)
 
+  // Story 89.4 — invitation séance gratuite
+  const [showTrialInvite, setShowTrialInvite] = useState(false)
+
   const loadChild = useCallback(async () => {
     if (!childId) return
     setLoading(true)
@@ -2114,6 +2118,41 @@ export default function ChildDetailPage() {
                 {isExporting ? '…' : 'Partager ↗'}
               </AureakText>
             </Pressable>
+          )}
+          {/* Inviter à une séance gratuite — Story 89.4 (gardiens prospects uniquement) */}
+          {Platform.OS === 'web' && (child.prospectStatus === 'prospect' || child.prospectStatus === 'contacte') && (
+            <Pressable
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                backgroundColor  : colors.accent.gold,
+              }}
+              onPress={() => setShowTrialInvite(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Inviter à une séance gratuite"
+            >
+              <AureakText variant="caption" style={{ color: '#fff', fontWeight: '700' as never }}>
+                Inviter à une séance gratuite
+              </AureakText>
+            </Pressable>
+          )}
+          {/* Badge — invitation déjà envoyée */}
+          {Platform.OS === 'web' && child.prospectStatus === 'invite' && (
+            <View
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                backgroundColor  : colors.status.present + '15',
+                borderWidth      : 1,
+                borderColor      : colors.status.present + '60',
+              }}
+            >
+              <AureakText variant="caption" style={{ color: colors.status.present, fontWeight: '700' as never }}>
+                Invitation envoyée
+              </AureakText>
+            </View>
           )}
         </View>
       </View>
@@ -2987,6 +3026,22 @@ export default function ChildDetailPage() {
         }}
         onCancel={() => setConfirmDeleteHistId(null)}
       />
+
+      {/* Story 89.4 — Invitation séance gratuite */}
+      {child && (
+        <TrialInvitationModal
+          visible={showTrialInvite}
+          onClose={() => setShowTrialInvite(false)}
+          childId={child.id}
+          gardienDisplayName={displayName}
+          defaultParentEmail={child.parent1Email ?? child.parent2Email ?? null}
+          defaultParentName={child.parent1Nom ?? child.parent2Nom ?? null}
+          onSuccess={() => {
+            // Rafraîchir la fiche pour refléter prospect_status = 'invite'
+            setChild(prev => prev ? { ...prev, prospectStatus: 'invite' } : prev)
+          }}
+        />
+      )}
     </>
   )
 }

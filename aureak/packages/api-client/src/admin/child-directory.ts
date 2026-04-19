@@ -4,7 +4,7 @@
 
 import { supabase } from '../supabase'
 import { getCachedUrl, setCachedUrl } from '../utils/signed-url-cache'
-import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory } from '@aureak/types'
+import type { ChildDirectoryEntry, ChildDirectoryHistory, ChildDirectoryPhoto, FootballAgeCategory, ChildCurrentClubFromHistory, ProspectStatus } from '@aureak/types'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +39,7 @@ function toEntry(row: Record<string, unknown>): ChildDirectoryEntry {
     youthLevel      : (row.youth_level      as string | null) ?? null,
     seniorDivision  : (row.senior_division  as string | null) ?? null,
     teamLevelStars  : (row.team_level_stars as number | null) ?? null,
+    prospectStatus  : (row.prospect_status  as ProspectStatus | null) ?? null,
     notionPageId    : (row.notion_page_id   as string | null) ?? null,
     notionSyncedAt  : (row.notion_synced_at as string | null) ?? null,
     deletedAt       : (row.deleted_at       as string | null) ?? null,
@@ -339,6 +340,8 @@ export type UpdateChildDirectoryParams = Partial<{
   ageCategory    : FootballAgeCategory | null
   youthLevel     : string | null
   seniorDivision : string | null
+  // Story 89.4 — prospection
+  prospectStatus : ProspectStatus | null
 }>
 
 export async function updateChildDirectoryEntry(
@@ -370,6 +373,7 @@ export async function updateChildDirectoryEntry(
   if (fields.ageCategory     !== undefined) payload.age_category     = fields.ageCategory
   if (fields.youthLevel      !== undefined) payload.youth_level      = fields.youthLevel
   if (fields.seniorDivision  !== undefined) payload.senior_division  = fields.seniorDivision
+  if (fields.prospectStatus  !== undefined) payload.prospect_status  = fields.prospectStatus
 
   const { error } = await supabase
     .from('child_directory')
