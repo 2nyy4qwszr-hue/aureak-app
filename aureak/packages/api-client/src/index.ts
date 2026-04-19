@@ -440,6 +440,12 @@ export {
 } from './admin/injuries'
 export type { AddInjuryParams } from './admin/injuries'
 
+// Story 89.4 — Invitations séance gratuite (prospection)
+export {
+  listProspectInvitations, sendTrialInvitation,
+} from './admin/prospect-invitations'
+export type { SendTrialInvitationParams, SendTrialInvitationResult } from './admin/prospect-invitations'
+
 export {
   listClubDirectory, getClubDirectoryEntry,
   createClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,

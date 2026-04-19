@@ -505,7 +505,7 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
 
 const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+  content    : { padding: space.lg, gap: space.md, paddingBottom: space.xxl },
 
   // Header block
   headerBlock  : { gap: 12 },

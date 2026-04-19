@@ -1180,6 +1180,9 @@ export type ChildDirectoryEntry = {
   notesInternes   : string | null
   contactDeclined : boolean          // Story 13.3 — parent a refusé de donner ses coordonnées
 
+  // Prospection (Story 89.4)
+  prospectStatus  : ProspectStatus | null  // null = non-prospect, sinon cycle prospect → contacte → invite
+
   // Notion sync
   notionPageId    : string | null
   notionSyncedAt  : string | null
@@ -1188,6 +1191,27 @@ export type ChildDirectoryEntry = {
   deletedAt       : string | null
   createdAt       : string
   updatedAt       : string
+}
+
+/** ProspectStatus — statut dans le cycle de prospection (Story 89.4) */
+export type ProspectStatus = 'prospect' | 'contacte' | 'invite'
+
+/** ProspectInvitation — trace d'envoi d'invitation séance gratuite (Story 89.4) */
+export type ProspectInvitation = {
+  id             : string
+  tenantId       : string
+  childId        : string
+  invitedBy      : string
+  parentEmail    : string
+  parentName     : string | null
+  implantationId : string | null
+  message        : string | null
+  sentAt         : string
+  status         : 'sent' | 'failed' | 'delivered'
+  resendId       : string | null
+  createdAt      : string
+  updatedAt      : string
+  deletedAt      : string | null
 }
 
 /** ChildDirectoryHistory — parcours football d'un joueur pour une saison */

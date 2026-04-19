@@ -579,7 +579,7 @@ export default function AcademieJoueursPage() {
 // ── Styles ────────────────────────────────────────────────────────────────────────
 const st = StyleSheet.create({
   container : { flex: 1, backgroundColor: colors.light.primary },
-  content   : { padding: space.lg, gap: space.md, maxWidth: 1200, alignSelf: 'center', width: '100%' },
+  content   : { padding: space.lg, gap: space.md, paddingBottom: space.xxl },
 
   // Header
   headerBlock  : { gap: 12 },
