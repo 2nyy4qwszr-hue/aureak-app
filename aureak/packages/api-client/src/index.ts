@@ -446,6 +446,16 @@ export {
 } from './admin/prospect-invitations'
 export type { SendTrialInvitationParams, SendTrialInvitationResult } from './admin/prospect-invitations'
 
+// Story 89.5 — Liste d'attente intelligente + notification absence
+export {
+  listWaitlist, listWaitlistByChild,
+  addToWaitlist, removeFromWaitlist,
+  confirmTrialSlot,
+} from './admin/trial-waitlist'
+export type {
+  ListWaitlistParams, AddToWaitlistParams, ConfirmTrialSlotResult,
+} from './admin/trial-waitlist'
+
 export {
   listClubDirectory, getClubDirectoryEntry,
   createClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,

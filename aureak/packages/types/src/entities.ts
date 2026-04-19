@@ -1214,6 +1214,31 @@ export type ProspectInvitation = {
   deletedAt      : string | null
 }
 
+/** WaitlistStatus — cycle de vie d'une entrée waitlist (Story 89.5) */
+export type WaitlistStatus = 'waiting' | 'notified' | 'confirmed' | 'expired'
+
+/** TrialWaitlistEntry — prospect en attente d'une place dans un groupe (Story 89.5) */
+export type TrialWaitlistEntry = {
+  id                : string
+  tenantId          : string
+  childId           : string
+  groupId           : string
+  implantationId    : string
+  parentEmail       : string
+  parentPhone       : string | null
+  status            : WaitlistStatus
+  requestedAt       : string
+  notifiedAt        : string | null
+  confirmedAt       : string | null
+  expiredAt         : string | null
+  notifiedSessionId : string | null
+  confirmToken      : string
+  createdBy         : string | null
+  createdAt         : string
+  updatedAt         : string
+  deletedAt         : string | null
+}
+
 /** ChildDirectoryHistory — parcours football d'un joueur pour une saison */
 export type ChildDirectoryHistory = {
   id              : string
