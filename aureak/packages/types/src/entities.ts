@@ -1247,6 +1247,43 @@ export type TrialWaitlistEntry = {
   deletedAt         : string | null
 }
 
+// ============================================================
+// Epic 89 — Story 89.2 — Évaluations scout sur prospects gardiens
+// ============================================================
+
+/** ScoutObservationContext — contexte d'observation d'un scout sur un prospect */
+export type ScoutObservationContext = 'match' | 'tournoi' | 'entrainement_club' | 'autre'
+
+/** ProspectScoutEvaluation — observation scout horodatée (1-5 étoiles + commentaire) */
+export type ProspectScoutEvaluation = {
+  id                 : string
+  tenantId           : string
+  childId            : string
+  evaluatorId        : string
+  ratingStars        : number                       // 1..5 CHECK DB
+  comment            : string | null
+  observationContext : ScoutObservationContext | null
+  observationDate    : string | null                // ISO date (nullable)
+  deletedAt          : string | null
+  createdAt          : string
+  updatedAt          : string
+}
+
+/** Avec infos auteur pour affichage liste historique */
+export type ProspectScoutEvaluationWithAuthor = ProspectScoutEvaluation & {
+  authorName  : string | null   // profiles.display_name
+  authorEmail : string | null   // profiles.email (fallback si pas de display_name)
+}
+
+/** Stats agrégées affichées en tête de section fiche joueur */
+export type ProspectScoutEvaluationStats = {
+  count         : number          // nombre d'évals non-deleted
+  averageRating : number | null   // arrondi 1 décimale, null si count=0
+  lastRating    : number | null   // rating de la dernière éval (null si count=0)
+  lastDate      : string | null   // observation_date ?? created_at de la plus récente
+  lastAuthorName: string | null
+}
+
 /** ChildDirectoryHistory — parcours football d'un joueur pour une saison */
 export type ChildDirectoryHistory = {
   id              : string

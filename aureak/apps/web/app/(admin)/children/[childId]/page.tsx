@@ -58,6 +58,7 @@ import { exportCardToPng } from '../exportCardToPng'
 import { avatarBgColor } from '../_avatarHelpers'
 import { TrialInvitationModal } from './_TrialInvitationModal'
 import { WaitlistModal } from './_WaitlistModal'
+import { ScoutEvaluationsSection } from './_ScoutEvaluationsSection'
 import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
@@ -1593,6 +1594,7 @@ export default function ChildDetailPage() {
   const { childId } = useLocalSearchParams<{ childId: string }>()
   const router      = useRouter()
   const tenantId    = useAuthStore((s) => s.tenantId)
+  const role        = useAuthStore((s) => s.role)
   const toast       = useToast()
 
   const [child,        setChild]        = useState<ChildDirectoryEntry | null>(null)
@@ -2326,6 +2328,13 @@ export default function ChildDetailPage() {
             </>
           )}
         </View>
+
+        {/* ── [A-bis] Observations scout — Story 89.2 ── */}
+        <ScoutEvaluationsSection
+          childId={child.id}
+          childName={displayName}
+          canEvaluate={role === 'admin' || role === 'commercial'}
+        />
 
         {/* ── Profil technique — Story 52-10 ── */}
         {joueurForTier && (

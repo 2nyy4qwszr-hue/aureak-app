@@ -464,6 +464,18 @@ export type {
   RecordTrialOutcomeParams, ProspectFunnelStats,
 } from './admin/trial-usage'
 
+// Story 89.2 — Évaluations scout sur prospects gardiens
+export {
+  listScoutEvaluationsByChild,
+  getScoutEvaluationStats,
+  createScoutEvaluation,
+  updateScoutEvaluation,
+  deleteScoutEvaluation,
+} from './admin/prospect-scout-evaluations'
+export type {
+  CreateScoutEvaluationParams, UpdateScoutEvaluationParams,
+} from './admin/prospect-scout-evaluations'
+
 export {
   listClubDirectory, getClubDirectoryEntry,
   createClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,
