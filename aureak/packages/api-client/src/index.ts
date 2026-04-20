@@ -425,6 +425,9 @@ export {
   listChildrenByClubDirectoryId,
   // Story 49-7 — club calculé depuis l'historique football (vue v_child_current_club)
   getChildCurrentClubFromHistory,
+  // Story 89.1 — recherche annuaire + détection doublons prospects
+  searchChildDirectoryByName,
+  findProspectDuplicates,
 } from './admin/child-directory'
 export type {
   ListChildDirectoryOpts, UpdateChildDirectoryParams,
