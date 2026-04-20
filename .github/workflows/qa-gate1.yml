@@ -9,6 +9,9 @@ jobs:
   qa-gate1:
     name: "Gate 1 — Agents QA"
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
 
     steps:
       - name: Checkout
