@@ -27,7 +27,7 @@ export default function SectionPedagogiePlaceholder() {
           letterSpacing : 1.5,
           textTransform : 'uppercase',
           color         : colors.accent.gold,
-          fontFamily    : 'Geist, sans-serif',
+          fontFamily    : 'Poppins, sans-serif',
           margin        : '0 0 4px',
         }}>
           🏗 Contenu pédagogique avancé
@@ -50,7 +50,7 @@ export default function SectionPedagogiePlaceholder() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 16 }}>{item.icon}</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: colors.text.dark, fontFamily: 'Geist, sans-serif' }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: colors.text.dark, fontFamily: 'Poppins, sans-serif' }}>
                 {item.label}
               </span>
             </div>

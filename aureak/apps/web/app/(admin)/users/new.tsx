@@ -664,7 +664,7 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 13,
     cursor: 'pointer',
     padding: '4px 0',
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
   },
   title: {
     fontFamily: 'Montserrat, sans-serif',
@@ -756,7 +756,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '10px 12px',
     outline: 'none',
     width: '100%',
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
     boxSizing: 'border-box',
   },
   inputError: {
@@ -771,7 +771,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '10px 12px',
     outline: 'none',
     width: '100%',
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
     cursor: 'pointer',
     appearance: 'none' as never,
   },
@@ -823,7 +823,7 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 500,
     cursor: 'pointer',
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
   },
   errorBanner: {
     background: 'rgba(224,82,82,0.12)',

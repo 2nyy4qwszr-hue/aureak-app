@@ -29,7 +29,7 @@ const LABEL_STYLE: React.CSSProperties = {
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%', padding: '8px 10px', borderRadius: radius.xs,
   border: `1px solid ${colors.border.light}`, backgroundColor: colors.light.surface,
-  color: colors.text.dark, fontSize: 13, fontFamily: 'Geist, sans-serif',
+  color: colors.text.dark, fontSize: 13, fontFamily: 'Poppins, sans-serif',
   outline: 'none', boxSizing: 'border-box',
 }
 
@@ -120,7 +120,7 @@ export default function SectionBadge({ themeId, tenantId }: Props) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: colors.accent.gold, fontFamily: 'Geist, sans-serif', margin: '0 0 4px' }}>
+        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: colors.accent.gold, fontFamily: 'Poppins, sans-serif', margin: '0 0 4px' }}>
           Badge & Progression
         </h2>
         <p style={{ fontSize: 12, color: colors.text.muted, margin: 0 }}>
@@ -201,7 +201,7 @@ export default function SectionBadge({ themeId, tenantId }: Props) {
                       padding: '7px 0', width: '100%',
                       backgroundColor: savingId === level.id ? colors.border.divider : color,
                       color: '#fff', border: 'none', borderRadius: radius.button,
-                      fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Geist, sans-serif',
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
                       transition: `all ${transitions.fast}`,
                     }}
                   >
@@ -223,7 +223,7 @@ export default function SectionBadge({ themeId, tenantId }: Props) {
                     backgroundColor: 'transparent', color,
                     border: `1px dashed ${color}`,
                     borderRadius: radius.button, fontSize: 12, fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'Geist, sans-serif',
+                    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
                     transition: `all ${transitions.fast}`,
                   }}
                 >

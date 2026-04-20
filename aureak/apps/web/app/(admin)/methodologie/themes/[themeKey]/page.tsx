@@ -216,7 +216,7 @@ const S: Record<string, React.CSSProperties> = {
   root: {
     backgroundColor: colors.light.primary,
     minHeight: '100vh',
-    fontFamily: 'Geist, system-ui, sans-serif',
+    fontFamily: 'Poppins, system-ui, sans-serif',
     color: colors.text.dark,
   },
   header: {
@@ -231,7 +231,7 @@ const S: Record<string, React.CSSProperties> = {
     color: colors.text.muted,
     fontSize: 12,
     cursor: 'pointer',
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
     padding: 0,
     marginBottom: 10,
     letterSpacing: 0.3,
@@ -297,7 +297,7 @@ const S: Record<string, React.CSSProperties> = {
     border: 'none',
     cursor: 'pointer',
     textAlign: 'left' as const,
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: 'Poppins, sans-serif',
     fontSize: 12,
     color: colors.text.muted,
     position: 'relative' as const,

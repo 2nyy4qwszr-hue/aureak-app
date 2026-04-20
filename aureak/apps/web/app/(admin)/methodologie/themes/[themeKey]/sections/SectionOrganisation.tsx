@@ -246,7 +246,7 @@ export default function SectionOrganisation({ themeId, onFreeCountChange }: Prop
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: colors.accent.gold, fontFamily: 'Geist, sans-serif', margin: '0 0 4px' }}>
+        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: colors.accent.gold, fontFamily: 'Poppins, sans-serif', margin: '0 0 4px' }}>
           Organisation pédagogique
         </h2>
         <p style={{ fontSize: 12, color: colors.text.muted, margin: 0 }}>
@@ -490,7 +490,7 @@ function InlineSelect({ label, value, options, onChange }: {
           backgroundColor: colors.light.surface,
           color          : colors.text.dark,
           fontSize       : 11,
-          fontFamily     : 'Geist, sans-serif',
+          fontFamily     : 'Poppins, sans-serif',
           cursor         : 'pointer',
           maxWidth       : 200,
         }}

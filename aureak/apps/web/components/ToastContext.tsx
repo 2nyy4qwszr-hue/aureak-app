@@ -119,7 +119,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               </span>
               <span
                 style={{
-                  fontFamily: 'Geist, sans-serif',
+                  fontFamily: 'Poppins, sans-serif',
                   fontSize  : 13,
                   color     : cfg.text,
                   flex      : 1,

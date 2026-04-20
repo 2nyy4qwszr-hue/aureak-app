@@ -90,7 +90,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             <p
               style={{
-                fontFamily: 'Geist, sans-serif',
+                fontFamily: 'Poppins, sans-serif',
                 fontSize  : 14,
                 color     : colors.text.muted,
                 marginBottom: 24,
@@ -129,7 +129,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 fontSize       : 14,
                 fontWeight     : 600,
                 cursor         : 'pointer',
-                fontFamily     : 'Geist, sans-serif',
+                fontFamily     : 'Poppins, sans-serif',
               }}
             >
               Réessayer
