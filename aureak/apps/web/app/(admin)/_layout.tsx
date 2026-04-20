@@ -110,6 +110,7 @@ type NavItem = { label: string; href: string; Icon: NavIconComponent }
 const ADMIN_ITEMS: NavItem[] = [
   { label: 'Utilisateurs',        href: '/users',                    Icon: UserIcon },
   { label: 'Accès temporaires',   href: '/access-grants',            Icon: KeyIcon },
+  { label: 'RGPD Prospects',      href: '/admin/rgpd/prospect-access', Icon: ShieldIcon },
   { label: 'Tickets support',     href: '/tickets',                  Icon: MessageSquareIcon },
   { label: 'Journal d\'audit',    href: '/audit',                    Icon: SearchIcon },
   { label: 'Calendrier scolaire', href: '/settings/school-calendar', Icon: CalendarDaysIcon },
