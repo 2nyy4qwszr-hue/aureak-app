@@ -1192,6 +1192,9 @@ export type ChildDirectoryEntry = {
   notionPageId    : string | null
   notionSyncedAt  : string | null
 
+  // Story 89.3 — auteur de création (pour auto-grant RGPD 'creator')
+  createdBy       : string | null
+
   // Timestamps
   deletedAt       : string | null
   createdAt       : string
@@ -1282,6 +1285,92 @@ export type ProspectScoutEvaluationStats = {
   lastRating    : number | null   // rating de la dernière éval (null si count=0)
   lastDate      : string | null   // observation_date ?? created_at de la plus récente
   lastAuthorName: string | null
+}
+
+// ============================================================
+// Epic 89 — Story 89.3 — Visibilité conditionnelle RGPD des coordonnées parent
+// ============================================================
+
+/** Motif d'octroi d'un grant RGPD (enum rgpd_grant_reason, migration 00158) */
+export type RgpdGrantReason =
+  | 'creator'           // auteur de la création de la fiche prospect
+  | 'invitation'        // a envoyé une invitation séance gratuite
+  | 'evaluation'        // a saisi une évaluation scout
+  | 'explicit_grant'    // grant manuel accordé par un admin
+  | 'admin'             // rôle admin (bypass du grant)
+  | 'request_approved'  // demande d'accès approuvée par un admin
+
+/** Statut d'une demande d'accès RGPD (enum rgpd_request_status, migration 00158) */
+export type RgpdRequestStatus = 'pending' | 'approved' | 'rejected'
+
+/** ProspectAccessGrant — grant effectif d'accès aux coordonnées RGPD d'un prospect */
+export type ProspectAccessGrant = {
+  id         : string
+  tenantId   : string
+  childId    : string
+  grantedTo  : string             // auth.uid()
+  grantedBy  : string | null      // NULL = trigger système
+  reason     : RgpdGrantReason
+  grantedAt  : string
+  deletedAt  : string | null
+  createdAt  : string
+  updatedAt  : string
+}
+
+/** ProspectAccessGrant enrichi avec métadonnées d'affichage (UI admin) */
+export type ProspectAccessGrantWithMeta = ProspectAccessGrant & {
+  grantedToName  : string | null    // profiles.display_name du bénéficiaire
+  grantedToEmail : string | null
+  childName      : string           // child_directory.display_name
+}
+
+/** ProspectAccessRequest — demande d'accès RGPD formulée par un utilisateur */
+export type ProspectAccessRequest = {
+  id             : string
+  tenantId       : string
+  childId        : string
+  requesterId    : string
+  reason         : string           // justification saisie (1-500 chars)
+  status         : RgpdRequestStatus
+  requestedAt    : string
+  resolvedAt     : string | null
+  resolvedBy     : string | null
+  resolvedNote   : string | null
+  deletedAt      : string | null
+  createdAt      : string
+  updatedAt      : string
+}
+
+/** ProspectAccessRequest enrichi avec noms requester + prospect (UI admin) */
+export type ProspectAccessRequestWithMeta = ProspectAccessRequest & {
+  requesterName  : string | null
+  requesterEmail : string | null
+  childName      : string
+}
+
+/** ProspectRgpdAccessLog — log immuable des accès démasqués (preuve RGPD) */
+export type ProspectRgpdAccessLog = {
+  id          : string
+  tenantId    : string
+  childId     : string
+  accessorId  : string
+  grantedVia  : RgpdGrantReason
+  accessedAt  : string
+}
+
+/** ProspectRgpdAccessLog enrichi (UI audit admin) */
+export type ProspectRgpdAccessLogWithMeta = ProspectRgpdAccessLog & {
+  accessorName  : string | null
+  accessorEmail : string | null
+  childName     : string
+}
+
+/** ChildDirectoryEntryRgpd — fiche joueur retournée par la vue v_child_directory_rgpd.
+ *  Identique à ChildDirectoryEntry + flags RGPD. Les champs parent1Email/Tel/parent2Email/Tel,
+ *  email/tel, adresseRue/codePostal/localite sont masqués si rgpdMasked=true. */
+export type ChildDirectoryEntryRgpd = ChildDirectoryEntry & {
+  rgpdMasked    : boolean
+  rgpdAccessVia : RgpdGrantReason | null
 }
 
 /** ChildDirectoryHistory — parcours football d'un joueur pour une saison */

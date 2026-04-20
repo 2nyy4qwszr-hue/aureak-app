@@ -45,6 +45,7 @@ function toEntry(row: Record<string, unknown>): ChildDirectoryEntry {
     trialOutcome    : (row.trial_outcome    as TrialOutcome | null) ?? null,
     notionPageId    : (row.notion_page_id   as string | null) ?? null,
     notionSyncedAt  : (row.notion_synced_at as string | null) ?? null,
+    createdBy       : (row.created_by       as string | null) ?? null,
     deletedAt       : (row.deleted_at       as string | null) ?? null,
     createdAt       : row.created_at        as string,
     updatedAt       : row.updated_at        as string,
@@ -255,6 +256,10 @@ export type CreateChildDirectoryParams = {
 export async function createChildDirectoryEntry(
   params: CreateChildDirectoryParams,
 ): Promise<ChildDirectoryEntry> {
+  // Story 89.3 — injection automatique de created_by = auth.uid() pour l'auto-grant RGPD 'creator'.
+  const { data: userRes } = await supabase.auth.getUser()
+  const createdBy = userRes?.user?.id ?? null
+
   const { data, error } = await supabase
     .from('child_directory')
     .insert({
@@ -274,6 +279,7 @@ export async function createChildDirectoryEntry(
       parent1_tel      : params.parent1Tel     ?? null,
       notes_internes   : params.notesInternes  ?? null,
       prospect_status  : params.prospectStatus ?? null,
+      created_by       : createdBy,
     })
     .select()
     .single()

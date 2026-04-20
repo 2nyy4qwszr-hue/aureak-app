@@ -479,6 +479,22 @@ export type {
   CreateScoutEvaluationParams, UpdateScoutEvaluationParams,
 } from './admin/prospect-scout-evaluations'
 
+// Story 89.3 — Visibilité conditionnelle RGPD coordonnées parent prospects
+export {
+  getChildDirectoryRgpd,
+  listChildDirectoryRgpd,
+  requestRgpdAccess,
+  listRgpdAccessRequests,
+  resolveRgpdAccessRequest,
+  hasPendingRgpdRequest,
+  listRgpdGrants,
+  revokeRgpdGrant,
+  listRgpdAccessLog,
+} from './admin/prospect-rgpd'
+export type {
+  CreateAccessRequestParams, ListAccessRequestsOpts,
+} from './admin/prospect-rgpd'
+
 export {
   listClubDirectory, getClubDirectoryEntry,
   createClubDirectoryEntry, updateClubDirectoryEntry, softDeleteClubDirectoryEntry,

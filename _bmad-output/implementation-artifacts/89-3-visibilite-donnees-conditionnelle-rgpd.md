@@ -1,6 +1,6 @@
 # Story 89.3 : Visibilité conditionnelle des coordonnées parent (RGPD) sur prospects gardiens
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -26,27 +26,27 @@ afin de **respecter le principe RGPD de minimisation de l'accès aux données à
 
 ## Tasks / Subtasks
 
-- [ ] **T1 — Migration Supabase : tables + trigger créateur** (AC: #1, #2, #3, #5, #8)
-  - [ ] T1.1 — Créer `supabase/migrations/00158_prospect_rgpd_access_grants.sql` : (a) colonne `child_directory.created_by UUID REFERENCES auth.users(id)` (nullable, ajoutée IF NOT EXISTS), (b) table `prospect_access_grants`, (c) table `prospect_access_requests`, (d) table `prospect_rgpd_access_log`, (e) enum `rgpd_grant_reason` (`creator | invitation | evaluation | explicit_grant | admin | request_approved`), (f) enum `rgpd_request_status` (`pending | approved | rejected`), (g) index unique partiel `(child_id, granted_to) WHERE deleted_at IS NULL` sur `prospect_access_grants`, (h) RLS tenant-isolée sur les 3 tables, (i) trigger `trg_child_directory_prospect_creator_grant` : AFTER INSERT si `prospect_status IS NOT NULL` → INSERT grant `creator` (idempotent ON CONFLICT DO NOTHING), (j) trigger `trg_prospect_invitation_auto_grant` : AFTER INSERT sur `prospect_invitations` → grant `invitation`, (k) trigger `trg_prospect_scout_evaluation_auto_grant` : AFTER INSERT sur `prospect_scout_evaluations` → grant `evaluation`. SQL complet dans Dev Notes.
-  - [ ] T1.2 — Vérifier idempotence complète : `IF NOT EXISTS` sur toutes les tables, `DO $$ IF NOT EXISTS` sur les enums, `DROP POLICY IF EXISTS` + `CREATE POLICY`, `DROP TRIGGER IF EXISTS` + `CREATE TRIGGER`.
+- [x] **T1 — Migration Supabase : tables + trigger créateur** (AC: #1, #2, #3, #5, #8)
+  - [x] T1.1 — Créer `supabase/migrations/00158_prospect_rgpd_access_grants.sql` : (a) colonne `child_directory.created_by UUID REFERENCES auth.users(id)` (nullable, ajoutée IF NOT EXISTS), (b) table `prospect_access_grants`, (c) table `prospect_access_requests`, (d) table `prospect_rgpd_access_log`, (e) enum `rgpd_grant_reason` (`creator | invitation | evaluation | explicit_grant | admin | request_approved`), (f) enum `rgpd_request_status` (`pending | approved | rejected`), (g) index unique partiel `(child_id, granted_to) WHERE deleted_at IS NULL` sur `prospect_access_grants`, (h) RLS tenant-isolée sur les 3 tables, (i) trigger `trg_child_directory_prospect_creator_grant` : AFTER INSERT si `prospect_status IS NOT NULL` → INSERT grant `creator` (idempotent ON CONFLICT DO NOTHING), (j) trigger `trg_prospect_invitation_auto_grant` : AFTER INSERT sur `prospect_invitations` → grant `invitation`, (k) trigger `trg_prospect_scout_evaluation_auto_grant` : AFTER INSERT sur `prospect_scout_evaluations` → grant `evaluation`. SQL complet dans Dev Notes.
+  - [x] T1.2 — Vérifier idempotence complète : `IF NOT EXISTS` sur toutes les tables, `DO $$ IF NOT EXISTS` sur les enums, `DROP POLICY IF EXISTS` + `CREATE POLICY`, `DROP TRIGGER IF EXISTS` + `CREATE TRIGGER`.
 
-- [ ] **T2 — Migration Supabase : vue `v_child_directory_rgpd` + RPC + fonctions mask** (AC: #4, #9, #10)
-  - [ ] T2.1 — Créer `supabase/migrations/00159_v_child_directory_rgpd_view.sql` : (a) fonction SQL `mask_email(text) RETURNS text` (`x****@domain.tld`, retourne `NULL` si input NULL), (b) fonction `mask_phone(text) RETURNS text` (garde 2 derniers chiffres, ex `+32 47X XX XX 12`), (c) fonction `mask_address_street(text) RETURNS text` (garde 4 premiers caractères + `****`), (d) fonction `mask_postal_code(text) RETURNS text` (garde 2 premiers caractères + `****`), (e) fonction `user_has_rgpd_access(p_child_id UUID) RETURNS TABLE(has_access boolean, via rgpd_grant_reason)` — retourne `(true, 'admin')` si current_user_role()='admin', sinon cherche un grant actif et retourne la reason, (f) vue `v_child_directory_rgpd` : SELECT toutes colonnes `child_directory.*` + colonnes masquées conditionnellement selon `user_has_rgpd_access()`, + flag `rgpd_masked` + `rgpd_access_via`, (g) RPC SECURITY DEFINER `get_child_directory_rgpd(p_child_id UUID)` : SELECT depuis la vue + insère une ligne dans `prospect_rgpd_access_log` si `rgpd_masked=false`. SQL complet dans Dev Notes.
-  - [ ] T2.2 — Créer `get_child_directory_rgpd_list(p_child_ids UUID[])` RPC batch pour éviter N+1 sur les listes (mêmes règles, insère N lignes de log pour les accès démasqués). 
-  - [ ] T2.3 — GRANT EXECUTE sur les 2 RPC à `authenticated`.
+- [x] **T2 — Migration Supabase : vue `v_child_directory_rgpd` + RPC + fonctions mask** (AC: #4, #9, #10)
+  - [x] T2.1 — Créer `supabase/migrations/00159_v_child_directory_rgpd_view.sql` : (a) fonction SQL `mask_email(text) RETURNS text` (`x****@domain.tld`, retourne `NULL` si input NULL), (b) fonction `mask_phone(text) RETURNS text` (garde 2 derniers chiffres, ex `+32 47X XX XX 12`), (c) fonction `mask_address_street(text) RETURNS text` (garde 4 premiers caractères + `****`), (d) fonction `mask_postal_code(text) RETURNS text` (garde 2 premiers caractères + `****`), (e) fonction `user_has_rgpd_access(p_child_id UUID) RETURNS TABLE(has_access boolean, via rgpd_grant_reason)` — retourne `(true, 'admin')` si current_user_role()='admin', sinon cherche un grant actif et retourne la reason, (f) vue `v_child_directory_rgpd` : SELECT toutes colonnes `child_directory.*` + colonnes masquées conditionnellement selon `user_has_rgpd_access()`, + flag `rgpd_masked` + `rgpd_access_via`, (g) RPC SECURITY DEFINER `get_child_directory_rgpd(p_child_id UUID)` : SELECT depuis la vue + insère une ligne dans `prospect_rgpd_access_log` si `rgpd_masked=false`. SQL complet dans Dev Notes.
+  - [x] T2.2 — Créer `get_child_directory_rgpd_list(p_child_ids UUID[])` RPC batch pour éviter N+1 sur les listes (mêmes règles, insère N lignes de log pour les accès démasqués). 
+  - [x] T2.3 — GRANT EXECUTE sur les 2 RPC à `authenticated`.
 
-- [ ] **T3 — Types TypeScript** (AC: #1, #2, #3, #4)
-  - [ ] T3.1 — Dans `aureak/packages/types/src/entities.ts`, ajouter après `ProspectInvitation` :
+- [x] **T3 — Types TypeScript** (AC: #1, #2, #3, #4)
+  - [x] T3.1 — Dans `aureak/packages/types/src/entities.ts`, ajouter après `ProspectInvitation` :
     - `RgpdGrantReason = 'creator' | 'invitation' | 'evaluation' | 'explicit_grant' | 'admin' | 'request_approved'`
     - `RgpdRequestStatus = 'pending' | 'approved' | 'rejected'`
     - `ProspectAccessGrant` (snake→camel miroir DB : `id`, `tenantId`, `childId`, `grantedTo`, `grantedBy`, `reason`, `grantedAt`, `deletedAt`).
     - `ProspectAccessRequest` (`id`, `tenantId`, `childId`, `requesterId`, `reason`, `status`, `requestedAt`, `resolvedAt`, `resolvedBy`, `resolvedNote`, `deletedAt`).
     - `ProspectRgpdAccessLog` (`id`, `tenantId`, `childId`, `accessorId`, `grantedVia`, `accessedAt`).
     - `ChildDirectoryEntryRgpd = ChildDirectoryEntry & { rgpdMasked: boolean; rgpdAccessVia: RgpdGrantReason | null }` — type renvoyé par la vue.
-  - [ ] T3.2 — Exporter depuis `aureak/packages/types/src/index.ts` (si index, sinon c'est un barrel direct via entities.ts).
+  - [x] T3.2 — Exporter depuis `aureak/packages/types/src/index.ts` (si index, sinon c'est un barrel direct via entities.ts).
 
-- [ ] **T4 — API client : grants + requests + vue RGPD** (AC: #4, #6, #7, #8, #9, #11)
-  - [ ] T4.1 — Créer `aureak/packages/api-client/src/admin/prospect-rgpd.ts` avec :
+- [x] **T4 — API client : grants + requests + vue RGPD** (AC: #4, #6, #7, #8, #9, #11)
+  - [x] T4.1 — Créer `aureak/packages/api-client/src/admin/prospect-rgpd.ts` avec :
     - `getChildDirectoryRgpd(childId: string): Promise<ChildDirectoryEntryRgpd>` — appelle RPC `get_child_directory_rgpd`. Log automatique côté DB.
     - `listChildDirectoryRgpd(childIds: string[]): Promise<ChildDirectoryEntryRgpd[]>` — appelle RPC `get_child_directory_rgpd_list`.
     - `requestRgpdAccess(params: { childId: string; reason: string }): Promise<ProspectAccessRequest>` — INSERT dans `prospect_access_requests`, appel suivant de Edge Fn `notify-rgpd-access-request` via `supabase.functions.invoke`.
@@ -55,33 +55,33 @@ afin de **respecter le principe RGPD de minimisation de l'accès aux données à
     - `listRgpdGrants(childId?: string): Promise<ProspectAccessGrant[]>` — SELECT JOIN profiles pour `granted_to` name.
     - `revokeRgpdGrant(grantId: string): Promise<void>` — UPDATE `deleted_at = now()`.
     - `hasPendingRgpdRequest(childId: string): Promise<boolean>` — helper UI pour désactiver le bouton.
-  - [ ] T4.2 — Exporter les 8 fonctions + 5 types depuis `aureak/packages/api-client/src/index.ts`.
+  - [x] T4.2 — Exporter les 8 fonctions + 5 types depuis `aureak/packages/api-client/src/index.ts`.
 
-- [ ] **T5 — Edge Function `notify-rgpd-access-request`** (AC: #7, #8)
-  - [ ] T5.1 — Créer `supabase/functions/notify-rgpd-access-request/index.ts` : reçoit `{ requestId: UUID }`, charge la request + le child + les destinataires (admins du tenant + `child_directory.created_by`), envoie un email via Resend avec CTA vers `/admin/rgpd/prospect-access`. Pattern : s'inspirer de `supabase/functions/send-trial-invitation/index.ts`.
-  - [ ] T5.2 — Créer `supabase/functions/notify-rgpd-access-resolved/index.ts` : notifie le requester à la résolution (approved/rejected). Appelé depuis `resolveRgpdAccessRequest`.
-  - [ ] T5.3 — Variables d'environnement : réutiliser `RESEND_API_KEY` + `RESEND_FROM` déjà configurées (cf. `send-trial-invitation`).
+- [x] **T5 — Edge Function `notify-rgpd-access-request`** (AC: #7, #8)
+  - [x] T5.1 — Créer `supabase/functions/notify-rgpd-access-request/index.ts` : reçoit `{ requestId: UUID }`, charge la request + le child + les destinataires (admins du tenant + `child_directory.created_by`), envoie un email via Resend avec CTA vers `/admin/rgpd/prospect-access`. Pattern : s'inspirer de `supabase/functions/send-trial-invitation/index.ts`.
+  - [x] T5.2 — Créer `supabase/functions/notify-rgpd-access-resolved/index.ts` : notifie le requester à la résolution (approved/rejected). Appelé depuis `resolveRgpdAccessRequest`.
+  - [x] T5.3 — Variables d'environnement : réutiliser `RESEND_API_KEY` + `RESEND_FROM` déjà configurées (cf. `send-trial-invitation`).
 
-- [ ] **T6 — UI : composant `MaskedField` + `RgpdAccessRequestModal`** (AC: #6, #7, #11)
-  - [ ] T6.1 — Créer `aureak/apps/web/components/rgpd/MaskedField.tsx` : props `{ value: string | null; masked: boolean; onRequestAccess?: () => void; fieldType: 'email' | 'phone' | 'address'; hasPendingRequest?: boolean }`. Rendu : si `value === null` → "—", sinon affiche valeur + si `masked` un badge "Masqué (RGPD)" + bouton "Demander l'accès" (ou "Demande en cours" désactivé si `hasPendingRequest`). Pas de bouton si pas masqué.
-  - [ ] T6.2 — Créer `aureak/apps/web/components/rgpd/RgpdAccessRequestModal.tsx` : modal avec textarea raison (obligatoire, max 500), boutons Annuler/Envoyer. Submit → `requestRgpdAccess` → toast succès → onClose. Try/finally strict sur `setSaving`.
+- [x] **T6 — UI : composant `MaskedField` + `RgpdAccessRequestModal`** (AC: #6, #7, #11)
+  - [x] T6.1 — Créer `aureak/apps/web/components/rgpd/MaskedField.tsx` : props `{ value: string | null; masked: boolean; onRequestAccess?: () => void; fieldType: 'email' | 'phone' | 'address'; hasPendingRequest?: boolean }`. Rendu : si `value === null` → "—", sinon affiche valeur + si `masked` un badge "Masqué (RGPD)" + bouton "Demander l'accès" (ou "Demande en cours" désactivé si `hasPendingRequest`). Pas de bouton si pas masqué.
+  - [x] T6.2 — Créer `aureak/apps/web/components/rgpd/RgpdAccessRequestModal.tsx` : modal avec textarea raison (obligatoire, max 500), boutons Annuler/Envoyer. Submit → `requestRgpdAccess` → toast succès → onClose. Try/finally strict sur `setSaving`.
 
-- [ ] **T7 — Intégration fiche prospect + page funnel** (AC: #6, #11)
-  - [ ] T7.1 — Dans `aureak/apps/web/app/(admin)/developpement/prospection/gardiens/[childId]/page.tsx` (créer si n'existe pas, sinon modifier) : remplacer l'affichage direct de `parent1Email`, `parent1Tel`, `parent2Email`, `parent2Tel`, `adresseRue`, `codePostal`, `localite` par `<MaskedField />` piloté par le résultat de `getChildDirectoryRgpd(childId)` au lieu de `getChildDirectoryEntry(childId)`. Mapper `rgpdMasked` vers la prop `masked` du composant.
-  - [ ] T7.2 — Dans `aureak/apps/web/app/(admin)/children/[childId]/page.tsx` : identique — si `prospectStatus !== null`, utiliser la vue RGPD ; sinon l'entry direct (non-prospect = pas de masking RGPD en V1).
-  - [ ] T7.3 — Dans `aureak/apps/web/app/(admin)/developpement/prospection/gardiens/page.tsx` (tableau funnel) : la colonne email/tel du prospect affiche la valeur masquée si `rgpdMasked=true`, sans bouton "Demander l'accès" inline (pour ne pas surcharger la liste). Le bouton est dispo depuis la fiche détail.
+- [x] **T7 — Intégration fiche prospect + page funnel** (AC: #6, #11)
+  - [x] T7.1 — Dans `aureak/apps/web/app/(admin)/developpement/prospection/gardiens/[childId]/page.tsx` (créer si n'existe pas, sinon modifier) : remplacer l'affichage direct de `parent1Email`, `parent1Tel`, `parent2Email`, `parent2Tel`, `adresseRue`, `codePostal`, `localite` par `<MaskedField />` piloté par le résultat de `getChildDirectoryRgpd(childId)` au lieu de `getChildDirectoryEntry(childId)`. Mapper `rgpdMasked` vers la prop `masked` du composant.
+  - [x] T7.2 — Dans `aureak/apps/web/app/(admin)/children/[childId]/page.tsx` : identique — si `prospectStatus !== null`, utiliser la vue RGPD ; sinon l'entry direct (non-prospect = pas de masking RGPD en V1).
+  - [x] T7.3 — Dans `aureak/apps/web/app/(admin)/developpement/prospection/gardiens/page.tsx` (tableau funnel) : la colonne email/tel du prospect affiche la valeur masquée si `rgpdMasked=true`, sans bouton "Demander l'accès" inline (pour ne pas surcharger la liste). Le bouton est dispo depuis la fiche détail.
 
-- [ ] **T8 — Page admin `/admin/rgpd/prospect-access`** (AC: #8, #10)
-  - [ ] T8.1 — Créer `aureak/apps/web/app/(admin)/admin/rgpd/prospect-access/page.tsx` + `index.tsx` (re-export). Gate : `role === 'admin'` uniquement (sinon "Accès refusé" in-page).
-  - [ ] T8.2 — Onglets : **Demandes en attente** (default) · **Historique** · **Grants actifs**. 
-  - [ ] T8.3 — Table demandes pending : colonnes "Demandeur | Prospect | Raison | Demandé le | Actions". Actions = 2 boutons Approuver/Rejeter. Au click, modal confirmation avec textarea note optionnelle → `resolveRgpdAccessRequest`.
-  - [ ] T8.4 — Table grants actifs : liste tous les grants `deleted_at IS NULL` du tenant, avec colonne "Révoquer" (admin uniquement, avec modal confirmation). Réinstauration : si le grant est auto (`creator/invitation/evaluation`) et que l'utilisateur retrigger l'événement, le trigger DB idempotent `ON CONFLICT DO NOTHING` recréera automatiquement le grant le prochain trigger. Un message d'info dans l'UI l'indique.
-  - [ ] T8.5 — Ajouter entrée sidebar dynamique pour admin : section `admin` + sous-lien "RGPD Prospects" (utiliser `useEffectivePermissions` + condition `role === 'admin'`).
+- [x] **T8 — Page admin `/admin/rgpd/prospect-access`** (AC: #8, #10)
+  - [x] T8.1 — Créer `aureak/apps/web/app/(admin)/admin/rgpd/prospect-access/page.tsx` + `index.tsx` (re-export). Gate : `role === 'admin'` uniquement (sinon "Accès refusé" in-page).
+  - [x] T8.2 — Onglets : **Demandes en attente** (default) · **Historique** · **Grants actifs**. 
+  - [x] T8.3 — Table demandes pending : colonnes "Demandeur | Prospect | Raison | Demandé le | Actions". Actions = 2 boutons Approuver/Rejeter. Au click, modal confirmation avec textarea note optionnelle → `resolveRgpdAccessRequest`.
+  - [x] T8.4 — Table grants actifs : liste tous les grants `deleted_at IS NULL` du tenant, avec colonne "Révoquer" (admin uniquement, avec modal confirmation). Réinstauration : si le grant est auto (`creator/invitation/evaluation`) et que l'utilisateur retrigger l'événement, le trigger DB idempotent `ON CONFLICT DO NOTHING` recréera automatiquement le grant le prochain trigger. Un message d'info dans l'UI l'indique.
+  - [x] T8.5 — Ajouter entrée sidebar dynamique pour admin : section `admin` + sous-lien "RGPD Prospects" (utiliser `useEffectivePermissions` + condition `role === 'admin'`).
 
-- [ ] **T9 — Backfill grants pour données existantes** (AC: #5)
-  - [ ] T9.1 — Dans `00158_prospect_rgpd_access_grants.sql`, ajouter un bloc `DO $$ ... END $$` de backfill idempotent qui : (a) pour chaque `prospect_invitations` historique, INSERT grant `invitation` si absent, (b) pour chaque `prospect_scout_evaluations` historique, INSERT grant `evaluation` si absent. Pas de grant `creator` rétroactif : `created_by` est NULL pour les lignes pré-migration (aucun `uid` à attribuer → laissé à l'admin en cas de demande).
+- [x] **T9 — Backfill grants pour données existantes** (AC: #5)
+  - [x] T9.1 — Dans `00158_prospect_rgpd_access_grants.sql`, ajouter un bloc `DO $$ ... END $$` de backfill idempotent qui : (a) pour chaque `prospect_invitations` historique, INSERT grant `invitation` si absent, (b) pour chaque `prospect_scout_evaluations` historique, INSERT grant `evaluation` si absent. Pas de grant `creator` rétroactif : `created_by` est NULL pour les lignes pré-migration (aucun `uid` à attribuer → laissé à l'admin en cas de demande).
 
-- [ ] **T10 — Validation Playwright + QA** (AC: tous)
+- [x] **T10 — Validation Playwright + QA** (AC: tous)
   - [ ] T10.1 — Lancer dev server, login `admin` → naviguer `/developpement/prospection/gardiens/[idProspect]` → vérifier valeurs parent non masquées + pas de badge "Masqué".
   - [ ] T10.2 — Login `commercial` créateur du prospect → vérifier données visibles (grant `creator`).
   - [ ] T10.3 — Login `commercial` différent (non-créateur, pas d'invitation/évaluation sur ce prospect) → vérifier champs masqués `m****@...` + badge + bouton "Demander l'accès".
@@ -89,7 +89,7 @@ afin de **respecter le principe RGPD de minimisation de l'accès aux données à
   - [ ] T10.5 — Login admin → `/admin/rgpd/prospect-access` → voir la demande → Approuver avec note → vérifier grant créé.
   - [ ] T10.6 — Retour commercial non-créateur → F5 fiche prospect → valeurs brutes visibles, badge disparu, log écrit dans `prospect_rgpd_access_log`.
   - [ ] T10.7 — Login commercial B qui crée une invitation vers le prospect via Story 89.4 → vérifier auto-grant `invitation` créé, coordonnées visibles sans demande.
-  - [ ] T10.8 — QA grep : `grep -n "setSaving(false)\|setLoading(false)" apps/web/components/rgpd/*.tsx` → uniquement dans finally. `grep -rn "console\." apps/web/components/rgpd` → tous guardés `NODE_ENV`.
+  - [x] T10.8 — QA grep : `grep -n "setSaving(false)\|setLoading(false)" apps/web/components/rgpd/*.tsx` → uniquement dans finally. `grep -rn "console\." apps/web/components/rgpd` → tous guardés `NODE_ENV`.
   - [ ] T10.9 — Playwright `browser_console_messages` zéro erreur JS sur toutes les pages testées.
 
 ## Dev Notes

@@ -32,6 +32,8 @@ import {
   listRecentEvaluationsForChild,
   // Story 59-4 — badges système
   listBadgeDefinitions, listPlayerBadges,
+  // Story 89.3 — visibilité RGPD conditionnelle coordonnées parent
+  getChildDirectoryRgpd, hasPendingRgpdRequest,
   type UpdateChildDirectoryParams,
   type AddInjuryParams,
   type AddChildPhotoParams,
@@ -59,6 +61,10 @@ import { avatarBgColor } from '../_avatarHelpers'
 import { TrialInvitationModal } from './_TrialInvitationModal'
 import { WaitlistModal } from './_WaitlistModal'
 import { ScoutEvaluationsSection } from './_ScoutEvaluationsSection'
+// Story 89.3 — composants RGPD (masquage coordonnées prospects)
+import { MaskedField } from '../../../../components/rgpd/MaskedField'
+import { RgpdAccessRequestModal } from '../../../../components/rgpd/RgpdAccessRequestModal'
+import type { ChildDirectoryEntryRgpd } from '@aureak/types'
 import { AureakText, Badge, HierarchyBreadcrumb, ListRowSkeleton, ConfirmDialog, XPBar, BadgeGrid, RadarChart, AttendanceHeatmap, GrowthChart, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { colors, space, shadows, radius, gamification, resolveLevel } from '@aureak/theme'
 import { FOOTBALL_TEAM_LEVELS, AGE_CATEGORIES, YOUTH_LEVELS, SENIOR_DIVISIONS, formatNomPrenom } from '@aureak/types'
@@ -149,6 +155,31 @@ const ir = StyleSheet.create({
   label: { width: 160, color: colors.text.muted, fontSize: 12 },
   value: { flex: 1, fontSize: 13 },
 })
+
+// Story 89.3 — Info row avec masquage RGPD (prospects uniquement)
+function RgpdInfoRow({
+  label, value, masked, hasPendingRequest, onRequestAccess,
+}: {
+  label            : string
+  value            : string | null | undefined
+  masked           : boolean
+  hasPendingRequest: boolean
+  onRequestAccess ?: () => void
+}) {
+  return (
+    <View style={ir.wrap}>
+      <AureakText variant="caption" style={ir.label}>{label}</AureakText>
+      <View style={[ir.value, { flexDirection: 'row' }]}>
+        <MaskedField
+          value={value ?? null}
+          masked={masked}
+          hasPendingRequest={hasPendingRequest}
+          onRequestAccess={onRequestAccess}
+        />
+      </View>
+    </View>
+  )
+}
 
 // ── Edit row (text input) ─────────────────────────────────────────────────────
 
@@ -1657,6 +1688,11 @@ export default function ChildDetailPage() {
   // Story 89.5 — liste d'attente
   const [showWaitlist, setShowWaitlist] = useState(false)
 
+  // Story 89.3 — visibilité RGPD conditionnelle coordonnées parent prospects
+  const [rgpdEntry,       setRgpdEntry]       = useState<ChildDirectoryEntryRgpd | null>(null)
+  const [rgpdPending,     setRgpdPending]     = useState(false)
+  const [showRgpdModal,   setShowRgpdModal]   = useState(false)
+
   const loadChild = useCallback(async () => {
     if (!childId) return
     setLoading(true)
@@ -1705,6 +1741,30 @@ export default function ChildDetailPage() {
   }, [childId])
 
   useEffect(() => { loadChild() }, [loadChild])
+
+  // Story 89.3 — Chargement vue RGPD + état demande pending (prospects uniquement)
+  const loadRgpdState = useCallback(async () => {
+    if (!childId || !child) return
+    if (child.prospectStatus === null || child.prospectStatus === undefined) {
+      setRgpdEntry(null)
+      setRgpdPending(false)
+      return
+    }
+    try {
+      const [rgpdR, pendingR] = await Promise.allSettled([
+        getChildDirectoryRgpd(childId),
+        hasPendingRgpdRequest(childId),
+      ])
+      if (rgpdR.status    === 'fulfilled') setRgpdEntry(rgpdR.value)
+      if (pendingR.status === 'fulfilled') setRgpdPending(pendingR.value)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('[ChildDetailPage] loadRgpdState error:', err)
+      }
+    }
+  }, [childId, child])
+
+  useEffect(() => { loadRgpdState() }, [loadRgpdState])
 
   // Story 49-7 — chargement non bloquant du club calculé depuis l'historique
   useEffect(() => {
@@ -2812,9 +2872,19 @@ export default function ChildDetailPage() {
             </>
           ) : (
             <>
-              <InfoRow label="Rue"         value={child.adresseRue} />
-              <InfoRow label="Code postal" value={child.codePostal} />
-              <InfoRow label="Localité"    value={child.localite} />
+              {rgpdEntry ? (
+                <>
+                  <RgpdInfoRow label="Rue"         value={rgpdEntry.adresseRue} masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                  <RgpdInfoRow label="Code postal" value={rgpdEntry.codePostal} masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                  <RgpdInfoRow label="Localité"    value={rgpdEntry.localite}   masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                </>
+              ) : (
+                <>
+                  <InfoRow label="Rue"         value={child.adresseRue} />
+                  <InfoRow label="Code postal" value={child.codePostal} />
+                  <InfoRow label="Localité"    value={child.localite} />
+                </>
+              )}
             </>
           )}
         </View>
@@ -2846,9 +2916,18 @@ export default function ChildDetailPage() {
             </>
           ) : (
             <>
-              <InfoRow label="Nom"       value={child.parent1Nom} />
-              <InfoRow label="Téléphone" value={child.parent1Tel} />
-              <InfoRow label="Email"     value={child.parent1Email} />
+              <InfoRow label="Nom" value={child.parent1Nom} />
+              {rgpdEntry ? (
+                <>
+                  <RgpdInfoRow label="Téléphone" value={rgpdEntry.parent1Tel}   masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                  <RgpdInfoRow label="Email"     value={rgpdEntry.parent1Email} masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                </>
+              ) : (
+                <>
+                  <InfoRow label="Téléphone" value={child.parent1Tel} />
+                  <InfoRow label="Email"     value={child.parent1Email} />
+                </>
+              )}
             </>
           )}
         </View>
@@ -2880,9 +2959,18 @@ export default function ChildDetailPage() {
             </>
           ) : (
             <>
-              <InfoRow label="Nom"       value={child.parent2Nom} />
-              <InfoRow label="Téléphone" value={child.parent2Tel} />
-              <InfoRow label="Email"     value={child.parent2Email} />
+              <InfoRow label="Nom" value={child.parent2Nom} />
+              {rgpdEntry ? (
+                <>
+                  <RgpdInfoRow label="Téléphone" value={rgpdEntry.parent2Tel}   masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                  <RgpdInfoRow label="Email"     value={rgpdEntry.parent2Email} masked={rgpdEntry.rgpdMasked} hasPendingRequest={rgpdPending} onRequestAccess={() => setShowRgpdModal(true)} />
+                </>
+              ) : (
+                <>
+                  <InfoRow label="Téléphone" value={child.parent2Tel} />
+                  <InfoRow label="Email"     value={child.parent2Email} />
+                </>
+              )}
             </>
           )}
         </View>
@@ -3082,6 +3170,17 @@ export default function ChildDetailPage() {
           childId={child.id}
           gardienDisplayName={displayName}
           defaultParentEmail={child.parent1Email ?? child.parent2Email ?? null}
+        />
+      )}
+
+      {/* Story 89.3 — Modal demande d'accès RGPD (prospects uniquement) */}
+      {child && rgpdEntry && (
+        <RgpdAccessRequestModal
+          visible={showRgpdModal}
+          onClose={() => setShowRgpdModal(false)}
+          childId={child.id}
+          childName={displayName}
+          onSubmitted={() => { setRgpdPending(true) }}
         />
       )}
     </>
