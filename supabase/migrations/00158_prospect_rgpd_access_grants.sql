@@ -173,7 +173,7 @@ BEGIN
   IF NEW.prospect_status IS NOT NULL AND NEW.created_by IS NOT NULL THEN
     INSERT INTO prospect_access_grants (tenant_id, child_id, granted_to, granted_by, reason)
     VALUES (NEW.tenant_id, NEW.id, NEW.created_by, NULL, 'creator')
-    ON CONFLICT ON CONSTRAINT ux_prospect_access_grants_active DO NOTHING;
+    ON CONFLICT (child_id, granted_to) WHERE deleted_at IS NULL DO NOTHING;
   END IF;
   RETURN NEW;
 END; $$;
@@ -189,7 +189,7 @@ RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   INSERT INTO prospect_access_grants (tenant_id, child_id, granted_to, granted_by, reason)
   VALUES (NEW.tenant_id, NEW.child_id, NEW.invited_by, NULL, 'invitation')
-  ON CONFLICT ON CONSTRAINT ux_prospect_access_grants_active DO NOTHING;
+  ON CONFLICT (child_id, granted_to) WHERE deleted_at IS NULL DO NOTHING;
   RETURN NEW;
 END; $$;
 
@@ -204,7 +204,7 @@ RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   INSERT INTO prospect_access_grants (tenant_id, child_id, granted_to, granted_by, reason)
   VALUES (NEW.tenant_id, NEW.child_id, NEW.evaluator_id, NULL, 'evaluation')
-  ON CONFLICT ON CONSTRAINT ux_prospect_access_grants_active DO NOTHING;
+  ON CONFLICT (child_id, granted_to) WHERE deleted_at IS NULL DO NOTHING;
   RETURN NEW;
 END; $$;
 
@@ -228,7 +228,7 @@ BEGIN
   SELECT tenant_id, child_id, invited_by, NULL, 'invitation'
   FROM prospect_invitations
   WHERE deleted_at IS NULL
-  ON CONFLICT ON CONSTRAINT ux_prospect_access_grants_active DO NOTHING;
+  ON CONFLICT (child_id, granted_to) WHERE deleted_at IS NULL DO NOTHING;
 
   -- Évaluations scout existantes → grant 'evaluation'
   IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'prospect_scout_evaluations') THEN
@@ -236,7 +236,7 @@ BEGIN
     SELECT tenant_id, child_id, evaluator_id, NULL, 'evaluation'
     FROM prospect_scout_evaluations
     WHERE deleted_at IS NULL
-    ON CONFLICT ON CONSTRAINT ux_prospect_access_grants_active DO NOTHING;
+    ON CONFLICT (child_id, granted_to) WHERE deleted_at IS NULL DO NOTHING;
   END IF;
 END $$;
 
