@@ -54,10 +54,9 @@ CREATE INDEX IF NOT EXISTS idx_child_directory_trial_used
   ON child_directory(tenant_id, trial_outcome)
   WHERE deleted_at IS NULL AND trial_used = true;
 
--- Recherche "candidats" = présents à l'essai, en attente d'inscription définitive
-CREATE INDEX IF NOT EXISTS idx_child_directory_candidat
-  ON child_directory(tenant_id)
-  WHERE deleted_at IS NULL AND prospect_status = 'candidat';
+-- NOTE : l'index sur prospect_status = 'candidat' a été déplacé dans
+-- une migration dédiée (00160) — PostgreSQL interdit l'usage d'une nouvelle
+-- valeur d'enum dans la même transaction que son ALTER TYPE ADD VALUE.
 
 -- 5. Commentaires pour documentation DB
 COMMENT ON COLUMN child_directory.trial_used    IS 'Story 89.6 — true = le prospect a déjà consommé sa séance d''essai gratuite (droit à 1 seul essai).';
