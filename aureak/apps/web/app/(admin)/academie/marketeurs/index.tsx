@@ -12,7 +12,7 @@ export default function AcademieMarketeursPage() {
     <PeopleListPage
       role={'marketeur'}
       newButtonLabel={'+ Nouveau marketeur'}
-      newButtonHref={'/settings/permissions#invite-marketeur'}
+      newButtonHref={'/academie/marketeurs/new'}
       emptyLabel={'Aucun marketeur'}
       renderStatCards={(rows) => {
         const total     = rows.length

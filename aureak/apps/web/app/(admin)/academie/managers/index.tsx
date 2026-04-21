@@ -31,7 +31,7 @@ export default function AcademieManagersPage() {
     <PeopleListPage
       role={'manager'}
       newButtonLabel={'+ Nouveau manager'}
-      newButtonHref={'/settings/permissions#invite-manager'}
+      newButtonHref={'/academie/managers/new'}
       emptyLabel={'Aucun manager'}
       renderStatCards={(rows) => {
         const total       = rows.length
