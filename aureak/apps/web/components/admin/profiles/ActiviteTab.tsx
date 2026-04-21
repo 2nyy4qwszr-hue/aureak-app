@@ -9,7 +9,7 @@ import { AureakText } from '@aureak/ui'
 import { listLifecycleEvents } from '@aureak/api-client'
 import type { UserRow } from '@aureak/api-client'
 import { colors, fonts, space } from '@aureak/theme'
-import { cardStyles } from './_card'
+import { cardStyles } from './card'
 
 type LifecycleEvent = {
   id        : string

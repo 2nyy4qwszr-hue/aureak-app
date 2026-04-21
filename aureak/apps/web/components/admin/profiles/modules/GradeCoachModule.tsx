@@ -9,7 +9,7 @@ import { AureakText } from '@aureak/ui'
 import { getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachGrade, CoachGradeLevel, UserRow } from '@aureak/api-client'
 import { colors, fonts, space, radius } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 const GRADE_LABELS: Record<CoachGradeLevel, string> = {
   bronze  : 'Bronze',

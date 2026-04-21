@@ -8,7 +8,7 @@ import { AureakText, ROLE_LABELS } from '@aureak/ui'
 import type { UserRow } from '@aureak/api-client'
 import type { UserRole } from '@aureak/types'
 import { colors, fonts, space } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 const STATUS_LABELS: Record<string, string> = {
   active   : 'Actif',

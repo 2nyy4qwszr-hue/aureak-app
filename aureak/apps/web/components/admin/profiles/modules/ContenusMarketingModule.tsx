@@ -7,7 +7,7 @@ import { View, StyleSheet, type TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import type { UserRow } from '@aureak/api-client'
 import { colors, fonts, space } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 type ContenusMarketingModuleProps = {
   profile: UserRow

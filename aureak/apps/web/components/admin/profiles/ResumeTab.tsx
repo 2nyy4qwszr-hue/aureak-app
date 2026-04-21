@@ -6,7 +6,7 @@
 import { View, StyleSheet } from 'react-native'
 import { space } from '@aureak/theme'
 import type { UserRow } from '@aureak/api-client'
-import type { ProfilePermissions } from '../index'
+import type { ProfilePermissions } from '../../../app/(admin)/profiles/[userId]/index'
 import { InformationsCompteCard }   from './modules/InformationsCompteCard'
 import { PipelineCommercialModule } from './modules/PipelineCommercialModule'
 import { AccesEtendusModule }       from './modules/AccesEtendusModule'

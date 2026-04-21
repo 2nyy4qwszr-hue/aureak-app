@@ -9,7 +9,7 @@ import { AureakText } from '@aureak/ui'
 import { suspendUser, reactivateUser, requestUserDeletion } from '@aureak/api-client'
 import type { UserRow } from '@aureak/api-client'
 import { colors, fonts, space, radius } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 type Action = 'suspend' | 'reactivate' | 'delete'
 

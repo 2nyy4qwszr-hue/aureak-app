@@ -12,8 +12,8 @@ import type {
 import { SECTION_KEY_LABELS } from '@aureak/types'
 import type { SectionKey } from '@aureak/types'
 import { colors, fonts, space } from '@aureak/theme'
-import { cardStyles } from '../_card'
-import { formatRelativeDate } from '../../../../../../components/admin/academie/formatRelativeDate'
+import { cardStyles } from '../card'
+import { formatRelativeDate } from '../../academie/formatRelativeDate'
 
 type AccessEvent = {
   kind      : 'role_assigned' | 'role_revoked' | 'override_created' | 'override_removed'

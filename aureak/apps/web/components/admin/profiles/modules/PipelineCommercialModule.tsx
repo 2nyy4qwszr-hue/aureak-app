@@ -10,7 +10,7 @@ import { AureakText } from '@aureak/ui'
 import { countActiveCommercialPipeline, countMonthlyClosedWon } from '@aureak/api-client'
 import type { UserRow } from '@aureak/api-client'
 import { colors, fonts, space } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 type Snapshot = {
   pipelineActive  : number | null

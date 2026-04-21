@@ -14,7 +14,7 @@ import type { UserRow } from '@aureak/api-client'
 import type { SectionKey, UserRole, SectionPermissionRow, UserSectionOverrideRow } from '@aureak/types'
 import { SECTION_KEYS, SECTION_KEY_LABELS } from '@aureak/types'
 import { colors, fonts, space, radius } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 type Origin = 'default' | 'override'
 

@@ -12,7 +12,7 @@ import {
 import type { UserRow } from '@aureak/api-client'
 import type { UserRole } from '@aureak/types'
 import { colors, fonts, space, radius } from '@aureak/theme'
-import { cardStyles } from '../_card'
+import { cardStyles } from '../card'
 
 const ALL_ROLES: UserRole[] = [
   'admin', 'coach', 'parent', 'child', 'club', 'commercial', 'manager', 'marketeur',
