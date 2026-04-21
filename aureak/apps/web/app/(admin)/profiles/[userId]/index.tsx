@@ -143,7 +143,7 @@ export default function UniversalProfilePage() {
         <ProfileTabs activeTab={activeTab} onChange={handleTabChange} />
         {activeTab === 'resume'   ? <ResumeTab   profile={profile} perms={perms} onChange={load} /> : null}
         {activeTab === 'activite' ? <ActiviteTab profile={profile} /> : null}
-        {activeTab === 'acces'    ? <AccesTab /> : null}
+        {activeTab === 'acces'    ? <AccesTab    profile={profile} /> : null}
       </ScrollView>
     </View>
   )

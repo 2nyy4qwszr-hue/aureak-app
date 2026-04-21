@@ -17,6 +17,15 @@ import type {
 } from '@aureak/types'
 import { SECTION_KEYS } from '@aureak/types'
 
+// Story 87.3 — Historique des overrides (actifs + soft-deleted).
+export type UserSectionOverrideHistoryEntry = {
+  sectionKey: SectionKey
+  granted   : boolean
+  grantedAt : string
+  grantedBy : string | null
+  deletedAt : string | null
+}
+
 // =============================================================================
 // 1. Défauts par rôle
 // =============================================================================
@@ -220,4 +229,34 @@ export async function getEffectivePermissions(
   })
 
   return result
+}
+
+/**
+ * Story 87.3 — listUserOverridesHistory
+ * Overrides actifs ET soft-deleted pour la timeline des changements d'accès.
+ * Ne filtre pas sur deleted_at (contrairement à listUserOverrides) — volontaire.
+ */
+export async function listUserOverridesHistory(profileId: string): Promise<UserSectionOverrideHistoryEntry[]> {
+  const { data, error } = await supabase
+    .from('user_section_overrides')
+    .select('section_key, granted, granted_at, granted_by, deleted_at')
+    .eq('profile_id', profileId)
+    .order('granted_at', { ascending: false })
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listUserOverridesHistory] error:', error)
+    throw error
+  }
+
+  type Raw = {
+    section_key: string; granted: boolean; granted_at: string
+    granted_by : string | null; deleted_at: string | null
+  }
+  return ((data ?? []) as Raw[]).map((r) => ({
+    sectionKey: r.section_key as SectionKey,
+    granted   : r.granted,
+    grantedAt : r.granted_at,
+    grantedBy : r.granted_by,
+    deletedAt : r.deleted_at,
+  }))
 }
