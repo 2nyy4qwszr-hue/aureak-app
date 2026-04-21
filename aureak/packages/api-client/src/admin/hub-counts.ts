@@ -4,6 +4,7 @@
 // → l'échec d'une query ne casse pas les autres (chaque count peut être null indépendamment).
 
 import { supabase } from '../supabase'
+import { isAbortError } from '../utils/is-abort-error'
 
 // =============================================================================
 // Helpers internes
@@ -11,24 +12,21 @@ import { supabase } from '../supabase'
 
 /** Exécute une query count et retourne le nombre ou null en cas d'erreur.
  *  Accepte un PostgrestFilterBuilder (thenable) — on le `await` pour obtenir la réponse.
- *  Story 93.6 — silence les AbortError de @supabase/gotrue-js Lock (faux-positifs en React Strict Mode). */
+ *  Story 93.6 / 94.1 — silence les AbortError de @supabase/gotrue-js Lock (faux-positifs en React Strict Mode). */
 async function safeCount(
   builder: PromiseLike<{ count: number | null; error: unknown }>,
 ): Promise<number | null> {
   try {
     const res = await builder
     if (res.error) {
-      const errName = (res.error as { name?: string } | null)?.name
-      // AbortError = lock auth volé par une requête concurrente au mount, retry transparent par Supabase
-      if (errName !== 'AbortError' && process.env.NODE_ENV !== 'production') {
+      if (!isAbortError(res.error) && process.env.NODE_ENV !== 'production') {
         console.error('[hub-counts] query error:', res.error)
       }
       return null
     }
     return res.count ?? 0
   } catch (err) {
-    const errName = (err as { name?: string } | null)?.name
-    if (errName !== 'AbortError' && process.env.NODE_ENV !== 'production') {
+    if (!isAbortError(err) && process.env.NODE_ENV !== 'production') {
       console.error('[hub-counts] query exception:', err)
     }
     return null

@@ -3,6 +3,7 @@
 // Story 55-8 — Joueur de la semaine
 
 import { supabase } from '../supabase'
+import { isAbortError } from '../utils/is-abort-error'
 import { countActivePlayersCurrentSeason } from './child-directory'
 import type { NavBadgeCounts, PlayerOfWeek } from '@aureak/types'
 
@@ -33,7 +34,7 @@ export async function getTopStreakPlayers(
     .order('child_id')
 
   if (recordsError) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers attendance error:', recordsError)
+    if (!isAbortError(recordsError) && (process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers attendance error:', recordsError)
     return { data: null, error: recordsError }
   }
 
@@ -78,7 +79,7 @@ export async function getTopStreakPlayers(
     .in('user_id', ids)
 
   if (profilesError) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers profiles error:', profilesError)
+    if (!isAbortError(profilesError) && (process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] getTopStreakPlayers profiles error:', profilesError)
   }
 
   const nameMap = new Map(
@@ -132,10 +133,10 @@ export async function fetchActivityFeed(): Promise<{ data: ActivityEventItem[]; 
   ])
 
   if (attendanceRes.error) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed attendance error:', attendanceRes.error)
+    if (!isAbortError(attendanceRes.error) && (process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed attendance error:', attendanceRes.error)
   }
   if (playersRes.error) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed players error:', playersRes.error)
+    if (!isAbortError(playersRes.error) && (process.env.NODE_ENV as string) !== 'production') console.error('[dashboard] fetchActivityFeed players error:', playersRes.error)
   }
 
   const presenceEvents: ActivityEventItem[] = ((attendanceRes.data ?? []) as {
@@ -286,11 +287,11 @@ export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
   ])
 
   if (unvalidatedRes.error) {
-    if ((process.env.NODE_ENV as string) !== 'production')
+    if (!isAbortError(unvalidatedRes.error) && (process.env.NODE_ENV as string) !== 'production')
       console.error('[dashboard] getNavBadgeCounts unvalidated error:', unvalidatedRes.error.message ?? unvalidatedRes.error)
   }
   if (upcoming24hRes.error) {
-    if ((process.env.NODE_ENV as string) !== 'production')
+    if (!isAbortError(upcoming24hRes.error) && (process.env.NODE_ENV as string) !== 'production')
       console.error('[dashboard] getNavBadgeCounts upcoming24h error:', upcoming24hRes.error.message ?? upcoming24hRes.error)
   }
 
@@ -305,7 +306,7 @@ export async function getNavBadgeCounts(): Promise<NavBadgeCounts> {
       .in('session_id', sessionIds)
 
     if (attErr) {
-      if ((process.env.NODE_ENV as string) !== 'production')
+      if (!isAbortError(attErr) && (process.env.NODE_ENV as string) !== 'production')
         console.error('[dashboard] getNavBadgeCounts attendances error:', attErr.message ?? attErr)
     }
 
@@ -345,7 +346,7 @@ export async function getPlayerOfWeek(): Promise<{ data: PlayerOfWeek | null; er
     .gte('updated_at', since7d)
 
   if (evalError) {
-    if ((process.env.NODE_ENV as string) !== 'production') console.error('[getPlayerOfWeek] evalError:', evalError)
+    if (!isAbortError(evalError) && (process.env.NODE_ENV as string) !== 'production') console.error('[getPlayerOfWeek] evalError:', evalError)
     return { data: null, error: evalError }
   }
 

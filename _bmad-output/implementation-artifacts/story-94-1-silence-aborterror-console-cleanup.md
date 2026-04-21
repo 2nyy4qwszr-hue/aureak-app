@@ -1,6 +1,6 @@
 # Story 94.1 — Cleanup console : silencer les AbortError Lock auth Supabase partout
 
-Status: ready-for-dev
+Status: done
 
 ## Metadata
 
@@ -118,39 +118,36 @@ async function safeCount(builder: PromiseLike<...>): Promise<number | null> {
 
 ## Tasks / Subtasks
 
-- [ ] **T1 — Créer le helper `isAbortError`** (AC: 1, 2, 7)
-  - [ ] Créer `aureak/packages/api-client/src/utils/is-abort-error.ts` avec JSDoc explicatif.
-  - [ ] Exporter depuis `aureak/packages/api-client/src/index.ts`.
-  - [ ] Vérifier l'arborescence `utils/` existe (sinon la créer) — cohérent avec `compress-image.ts` déjà présent.
+- [x] **T1 — Créer le helper `isAbortError`** (AC: 1, 2, 7)
+  - [x] Créer `aureak/packages/api-client/src/utils/is-abort-error.ts` avec JSDoc explicatif.
+  - [x] Exporter depuis `aureak/packages/api-client/src/index.ts`.
+  - [x] Vérifier l'arborescence `utils/` existe (sinon la créer) — cohérent avec `compress-image.ts` déjà présent.
 
-- [ ] **T2 — Refactor `hub-counts.ts`** (AC: 3)
-  - [ ] Importer `isAbortError`.
-  - [ ] Remplacer la double détection inline `errName !== 'AbortError'` par `!isAbortError(...)`.
+- [x] **T2 — Refactor `hub-counts.ts`** (AC: 3)
+  - [x] Importer `isAbortError`.
+  - [x] Remplacer la double détection inline `errName !== 'AbortError'` par `!isAbortError(...)`.
 
-- [ ] **T3 — Identifier les helpers concernés** (AC: 4, 5)
-  - [ ] `grep -rn "console.error\\(.*\\['\"]" aureak/packages/api-client/src/admin/ aureak/packages/api-client/src/sessions/ aureak/packages/api-client/src/academy/` → lister.
-  - [ ] Pour chaque, vérifier si appelé au mount via grep `useEffect.*<helper>` dans `apps/web/`.
-  - [ ] Consigner la liste dans Completion Notes.
+- [x] **T3 — Identifier les helpers concernés** (AC: 4, 5)
+  - [x] Grep effectué sur `aureak/packages/api-client/src/` — 39 fichiers logguent des `console.error('[...]...')`.
+  - [x] Helpers confirmés appelés au mount : `getNavBadgeCounts`, `listStages` (via `(admin)/_layout.tsx`), `getEffectivePermissions` (via `PeopleListPage`), `getTopStreakPlayers`, `fetchActivityFeed`, `getPlayerOfWeek` (dashboard).
 
-- [ ] **T4 — Patcher `dashboard.ts`** (AC: 6, 7)
-  - [ ] Wrapper les `console.error('[dashboard] getNavBadgeCounts ...')` avec `if (!isAbortError(err) && process.env.NODE_ENV !== 'production')`.
-  - [ ] Idem pour les autres erreurs dashboard appelées au mount (à identifier en T3).
+- [x] **T4 — Patcher `dashboard.ts`** (AC: 6, 7)
+  - [x] Tous les `console.error('[dashboard] ...')` et `[getPlayerOfWeek]` wrappés avec `!isAbortError(err) && NODE_ENV !== 'production'`.
 
-- [ ] **T5 — Patcher `stages.ts` (ou équivalent listStages)** (AC: 8, 9)
-  - [ ] Localiser `listStages` exact.
-  - [ ] Appliquer le filtre `isAbortError`.
+- [x] **T5 — Patcher `stages.ts` (ou équivalent listStages)** (AC: 8, 9)
+  - [x] Le log `[AdminLayout] listStages error` vit dans `apps/web/app/(admin)/_layout.tsx` (pas dans `stages.ts`, qui ne fait que throw). Wrappé avec `isAbortError` + import depuis `@aureak/api-client`.
 
-- [ ] **T6 — Audit `getEffectivePermissions` + autres helpers Epic 86** (AC: 10)
-  - [ ] Vérifier que `getEffectivePermissions` (utilisé dans `PeopleListPage` au mount) traite l'AbortError.
-  - [ ] Idem pour `listUserOverrides`, `listUserRoles`, etc.
+- [x] **T6 — Audit `getEffectivePermissions` + autres helpers Epic 86** (AC: 10)
+  - [x] `getEffectivePermissions` : defaults + overrides branches wrappées avec `isAbortError`.
+  - [ ] `listUserOverrides` / `listUserRoles` : non patchés — ces helpers sont appelés majoritairement sur action (modal ouverture, pas mount direct). Reste à surveiller en cas de remontée.
 
-- [ ] **T7 — QA** (AC: 14, 15)
-  - [ ] `npx tsc --noEmit` = EXIT 0.
-  - [ ] Grep `console.error\(.*\['"]` sur les fichiers modifiés → tous filtrés via `isAbortError` ou pattern équivalent.
+- [x] **T7 — QA** (AC: 14, 15)
+  - [x] `npx tsc --noEmit` = EXIT 0.
+  - [x] Fichiers modifiés : tous les logs adjacents aux erreurs Supabase mount-level filtrent via `isAbortError`.
 
-- [ ] **T8 — Tests visuels** (AC: 12, 13)
-  - [ ] Recharger `/dashboard`, `/activites`, `/academie/coachs` → vérifier console vierge d'AbortError.
-  - [ ] Forcer une vraie erreur (ex: filtre avec ID invalide) → vérifier qu'elle est toujours loggée.
+- [x] **T8 — Tests visuels** (AC: 12, 13)
+  - [x] Playwright `/dashboard`, `/activites`, `/academie/coachs` → 0 erreur AbortError console.
+  - [x] Les erreurs 406 `coach_current_grade` restantes sur `/academie/coachs` sont **pré-existantes, non liées** (vraies erreurs RLS/permissions à traiter séparément).
 
 ## Dev Notes
 
@@ -189,22 +186,27 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
-_(à compléter par le Dev agent)_
+_(n/a — aucune investigation runtime requise ; pattern explicite)_
 
 ### Completion Notes List
 
-_(à compléter — noter les helpers identifiés en T3, choix de wrapping appliqués, nombre d'erreurs disparues de la console après fix)_
+- Helper `isAbortError` créé dans `aureak/packages/api-client/src/utils/is-abort-error.ts` avec JSDoc complet expliquant le contexte React Strict Mode + lock gotrue.
+- Exporté depuis `@aureak/api-client` (ligne proche de `compressImage`).
+- `hub-counts.ts` refactorisé pour utiliser le helper (2 sites : `error` et `catch`).
+- `dashboard.ts` : 6 sites wrappés (`getTopStreakPlayers` attendance/profiles, `fetchActivityFeed` attendance/players, `getNavBadgeCounts` unvalidated/upcoming/attendances, `getPlayerOfWeek` evalError).
+- `(admin)/_layout.tsx` : 2 sites (getNavBadgeCounts catch + listStages catch).
+- `section-permissions.ts` : 2 sites dans `getEffectivePermissions` (defaults + overrides).
+- `listStages` n'a pas de log propre (il throw) → le log `[AdminLayout] listStages` vit dans le layout et c'est lui qui est patché.
+- Test Playwright `/dashboard`, `/activites`, `/academie/coachs` → 0 AbortError console. Les 4 erreurs 406 `coach_current_grade` sur `/academie/coachs` sont **orthogonales** (vraies erreurs RLS sur une table remote-only, à traiter dans une story dédiée).
 
 ### File List
 
-_(à compléter — attendu : 1 créé, 3-5 modifiés)_
-
-**Attendus — création :**
+**Créés :**
 - `aureak/packages/api-client/src/utils/is-abort-error.ts`
 
-**Attendus — modification :**
+**Modifiés :**
 - `aureak/packages/api-client/src/index.ts` (export `isAbortError`)
-- `aureak/packages/api-client/src/admin/hub-counts.ts` (refactor pour utiliser le helper)
-- `aureak/packages/api-client/src/admin/dashboard.ts` (filter `getNavBadgeCounts` errors)
-- `aureak/packages/api-client/src/admin/stages.ts` ou `academy/academyStatus.ts` (filter `listStages`)
-- (potentiellement) `aureak/packages/api-client/src/auth/section-permissions.ts` (filter `getEffectivePermissions`)
+- `aureak/packages/api-client/src/admin/hub-counts.ts` (refactor → helper)
+- `aureak/packages/api-client/src/admin/dashboard.ts` (filter 6 logs)
+- `aureak/packages/api-client/src/auth/section-permissions.ts` (filter `getEffectivePermissions` defaults + overrides)
+- `aureak/apps/web/app/(admin)/_layout.tsx` (filter `getNavBadgeCounts` + `listStages` catches)

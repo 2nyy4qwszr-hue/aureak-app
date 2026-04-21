@@ -8,6 +8,7 @@
 // Composition : getEffectivePermissions combine les deux → Record<SectionKey, boolean>.
 
 import { supabase } from '../supabase'
+import { isAbortError } from '../utils/is-abort-error'
 import type {
   SectionKey,
   UserRole,
@@ -199,7 +200,7 @@ export async function getEffectivePermissions(
     .eq('role', activeRole)
 
   if (defErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[getEffectivePermissions] defaults error:', defErr)
+    if (!isAbortError(defErr) && process.env.NODE_ENV !== 'production') console.error('[getEffectivePermissions] defaults error:', defErr)
     throw defErr
   }
 
@@ -211,7 +212,7 @@ export async function getEffectivePermissions(
     .is('deleted_at', null)
 
   if (ovErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('[getEffectivePermissions] overrides error:', ovErr)
+    if (!isAbortError(ovErr) && process.env.NODE_ENV !== 'production') console.error('[getEffectivePermissions] overrides error:', ovErr)
     throw ovErr
   }
 

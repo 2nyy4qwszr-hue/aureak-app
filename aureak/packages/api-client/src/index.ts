@@ -5,6 +5,9 @@ export { supabase } from './supabase'
 
 // Story 57-1 — utilitaire compression image côté client (web only)
 export { compressImage } from './utils/compress-image'
+
+// Story 94.1 — Filtre AbortError Lock auth Supabase (faux-positifs React Strict Mode)
+export { isAbortError } from './utils/is-abort-error'
 export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
 // Story 86-2 — Multi-rôle : table profile_roles
