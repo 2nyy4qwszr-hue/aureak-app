@@ -54,6 +54,7 @@ export const colors = {
     platinum : '#E5E4E2',  // platine
     // Or sombre / pâle — fond card premium (Story 74-1)
     goldDark : '#6e5d14',  // or sombre — fond card Évals Complétées
+    goldDarkText: '#6b5d2a',  // Story 93.7 — texte count actif sur fond gold-20 (template subtab actif)
     goldPale : '#F9E28C',  // or pâle — texte sur fond gold sombre
     // Équipe B (TacticalEditor)
     teamB    : '#B03030',  // rouge foncé équipe B
@@ -103,6 +104,8 @@ export const colors = {
     // Story 86-2 — hover/pressed states subtils sur surfaces sombres (sidebar, HUD)
     whiteSubtle : 'rgba(255,255,255,0.06)',  // hover/rest subtil sur fond sombre
     whiteHover  : 'rgba(255,255,255,0.12)',  // pressed/active sur fond sombre
+    // Story 93.7 — Topbar admin translucide (template)
+    lightTopbar : 'rgba(255,255,255,0.85)',  // fond Topbar admin avec backdrop blur
   },
   entity: {
     stage : '#4ADE80',  // vert — statut "en cours" stage
@@ -127,8 +130,10 @@ export const colors = {
     secondary: '#A0A0A0',         // texte secondaire sur fond sombre
     dark     : '#18181B',         // texte principal sur fond clair (zinc-900)
     muted    : '#71717A',         // texte atténué sur fond clair (zinc-500)
-    subtle   : '#A1A1AA',        // labels discrets sur fond clair (zinc-400)
+    subtle   : '#A1A1AA',         // labels discrets sur fond clair (zinc-400)
+    faint    : '#D4D4D8',         // Story 93.7 — séparateurs très discrets (zinc-300)
     onDarkMuted: 'rgba(255,255,255,0.55)',  // Story 93.6 — labels/unit sur fond hero gradient sombre
+    onGold   : '#1a1406',         // Story 93.7 — texte sur fond gold (boutons CTA gold + avatars)
   },
   border: {
     light   : '#E5E7EB',         // bordures inputs/tables fond clair

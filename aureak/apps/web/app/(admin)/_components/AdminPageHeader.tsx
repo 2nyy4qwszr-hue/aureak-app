@@ -22,6 +22,7 @@ export type AdminPageHeaderProps = {
 }
 
 const MOBILE_BREAKPOINT = 640
+const DESKTOP_BREAKPOINT = 1024
 
 export function AdminPageHeader({
   eyebrow,
@@ -30,8 +31,11 @@ export function AdminPageHeader({
   periodButton,
   actionButton,
 }: AdminPageHeaderProps) {
-  const { width } = useWindowDimensions()
-  const isMobile  = width < MOBILE_BREAKPOINT
+  const { width }  = useWindowDimensions()
+  const isMobile   = width < MOBILE_BREAKPOINT
+  const isDesktop  = width >= DESKTOP_BREAKPOINT
+  // Story 93.7 — Title responsive : 38px desktop / 34px tablet / 32px mobile (≈ template clamp 2rem 3.2vw 2.6rem)
+  const titleSize  = isDesktop ? 38 : isMobile ? 32 : 34
 
   return (
     <View style={[s.container, isMobile && s.containerMobile] as never}>
@@ -42,7 +46,7 @@ export function AdminPageHeader({
           <AureakText style={s.eyebrow as TextStyle}>{eyebrow}</AureakText>
           <View style={s.eyebrowBar} />
         </View>
-        <AureakText style={s.title as TextStyle}>{title}</AureakText>
+        <AureakText style={[s.title, { fontSize: titleSize, lineHeight: titleSize * 1.05 }] as never}>{title}</AureakText>
         {subtitle && (
           <AureakText style={[s.subtitle, isMobile && s.subtitleMobile] as never}>
             {subtitle}
@@ -84,13 +88,14 @@ export default AdminPageHeader
 
 const s = StyleSheet.create({
   container: {
+    // Story 93.7 — alignement template `.page-header { align-items: flex-end }`
     flexDirection    : 'row',
     justifyContent   : 'space-between',
-    alignItems       : 'flex-start',
-    gap              : space.lg,
-    paddingHorizontal: space.lg,
-    paddingTop       : space.xl,
-    paddingBottom    : space.lg,
+    alignItems       : 'flex-end',
+    gap              : 24,
+    paddingHorizontal: 36, // template `.page` padding 32px 36px
+    paddingTop       : 32,
+    paddingBottom    : 8,  // template `.page-header { margin-bottom: 8px }`
     backgroundColor  : colors.light.primary,
   },
   containerMobile: {
@@ -107,9 +112,10 @@ const s = StyleSheet.create({
     gap          : 10,
   },
   eyebrow: {
+    // Story 93.7 — letterSpacing 2.5 (template-spec 0.22em sur 11px ≈ 2.42)
     fontSize      : 11,
     fontWeight    : '900',
-    letterSpacing : 1,
+    letterSpacing : 2.5,
     textTransform : 'uppercase',
     color         : colors.accent.gold,
     fontFamily    : fonts.body,
@@ -128,12 +134,14 @@ const s = StyleSheet.create({
     lineHeight   : 38,
   },
   subtitle: {
+    // Story 93.7 — alignement template `.page-subtitle` (lineHeight 1.6, marginTop 10, maxWidth 56ch ≈ 520)
     fontSize  : 14,
     fontWeight: '400',
     color     : colors.text.subtle,
-    lineHeight: 21,
+    lineHeight: 22,
     maxWidth  : 520,
-    marginTop : space.xs,
+    marginTop : 10,
+    fontFamily: fonts.body,
   },
   subtitleMobile: {
     maxWidth: '100%',
@@ -147,28 +155,30 @@ const s = StyleSheet.create({
     flexWrap: 'wrap',
   },
   periodBtn: {
-    backgroundColor  : 'transparent',
+    // Story 93.7 — pill template (borderRadius 999, padding 18×10)
+    backgroundColor  : colors.light.surface,
     borderWidth      : 1,
-    borderColor      : colors.border.divider,
-    paddingHorizontal: space.md,
-    paddingVertical  : 8,
-    borderRadius     : 8,
+    borderColor      : colors.text.faint,
+    paddingHorizontal: 18,
+    paddingVertical  : 10,
+    borderRadius     : 999,
   },
   periodBtnLabel: {
     color     : colors.text.dark,
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize  : 13,
     fontFamily: fonts.body,
   },
   actionBtn: {
+    // Story 93.7 — pill gold template
     backgroundColor  : colors.accent.gold,
-    paddingHorizontal: space.md,
-    paddingVertical  : 8,
-    borderRadius     : 8,
+    paddingHorizontal: 18,
+    paddingVertical  : 10,
+    borderRadius     : 999,
   },
   actionBtnLabel: {
-    color     : colors.text.dark,
-    fontWeight: '700',
+    color     : colors.text.onGold,
+    fontWeight: '600',
     fontSize  : 13,
     fontFamily: fonts.body,
   },

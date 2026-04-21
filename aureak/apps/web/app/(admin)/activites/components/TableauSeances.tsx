@@ -19,6 +19,7 @@ import type { Evaluation } from '@aureak/types'
 import type { ScopeState } from './FiltresScope'
 import type { TemporalFilter } from './PseudoFiltresTemporels'
 import { NextSessionHero } from './NextSessionHero'
+import { TodaySessionCards } from './TodaySessionCards'
 
 const PAGE_SIZE = 20
 
@@ -344,6 +345,11 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
 
   const start = filtered.length === 0 ? 0 : page * PAGE_SIZE + 1
   const end   = Math.min((page + 1) * PAGE_SIZE, filtered.length)
+
+  // Story 93.7 T8 — Switching cards/table : si "today" + données → cards (pas table)
+  if (temporalFilter === 'today' && enriched.length > 0) {
+    return <TodaySessionCards sessions={enriched} groupNames={groupNames} coachNames={coachNames} />
+  }
 
   const COL_HEADERS = ['STATUT', 'DATE', 'MÉTHODE', 'GROUPE', 'COACH', 'PRÉSENCE', 'BADGES', 'ANOMALIE', '']
 
