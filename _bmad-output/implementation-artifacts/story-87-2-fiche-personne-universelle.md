@@ -1,6 +1,6 @@
 # Story 87.2 — Fiche personne universelle `/profiles/[userId]`
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

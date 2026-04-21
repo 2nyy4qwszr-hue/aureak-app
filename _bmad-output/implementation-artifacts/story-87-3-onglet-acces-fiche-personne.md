@@ -1,6 +1,6 @@
 # Story 87.3 — Onglet "Accès" sur fiche personne universelle
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

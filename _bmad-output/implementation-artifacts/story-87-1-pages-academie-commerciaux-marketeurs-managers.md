@@ -1,6 +1,6 @@
 # Story 87.1 — Pages Académie : Commerciaux, Marketeurs, Managers
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
