@@ -9,7 +9,7 @@ import { getStatsRoomKpis, getMonthlyReportData, useLiveSessionCounts } from '@a
 import type { StatsRoomKpis } from '@aureak/api-client'
 import { LiveCounter } from '@aureak/ui'
 import { colors, fonts, radius, shadows, transitions, space, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
-import { generateMonthlyReport } from './generateMonthlyReport'
+import { generateMonthlyReport } from '../../../lib/admin/analytics/generateMonthlyReport'
 import type { ReportOptions } from '@aureak/types'
 
 // ── Section cards config ──────────────────────────────────────────────────────

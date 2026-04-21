@@ -32,7 +32,8 @@ Monorepo TypeScript : Expo Router (web + mobile), Supabase (PostgreSQL + RLS + E
    if (process.env.NODE_ENV !== 'production') console.error('[Component] error:', err)
    ```
 5. **Routing Expo Router** : `page.tsx` = contenu, `index.tsx` = re-export de `./page`
-6. **Soft-delete uniquement** : `deleted_at nullable` — jamais de suppression physique sauf jobs RGPD
+6. **Pas de fichiers non-routes dans `app/`** : tout composant/util/hook/context sans `export default` vit sous `aureak/apps/web/components/`, `lib/`, `hooks/`, `contexts/` (+ sous-dossier par domaine ex. `components/admin/<domaine>/`). Expo Router v6 scanne tout `app/` et warning sur les fichiers sans default export — voir ADR 005.
+7. **Soft-delete uniquement** : `deleted_at nullable` — jamais de suppression physique sauf jobs RGPD
 
 ## Tooling
 

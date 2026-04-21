@@ -8,7 +8,7 @@ import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText, UserCheckIcon } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { SubtabCount } from '../../_components/SubtabCount'
+import { SubtabCount } from '../../../../components/admin/SubtabCount'
 import { AcademieCountsContext } from '../_layout'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────

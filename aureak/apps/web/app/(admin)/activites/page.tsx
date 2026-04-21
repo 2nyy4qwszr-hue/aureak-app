@@ -4,15 +4,15 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 
-import { AdminPageHeader }          from '../_components/AdminPageHeader'
-import { formatEyebrow, formatPeriodLabel } from '../_components/formatPeriodLabel'
+import { AdminPageHeader }          from '../../../components/admin/AdminPageHeader'
+import { formatEyebrow, formatPeriodLabel } from '../../../lib/admin/formatPeriodLabel'
 import { ActivitesCountsContext }   from './_layout'
-import { ActivitesHeader }          from './components/ActivitesHeader'
-import { ActivitesToolbar }         from './components/ActivitesToolbar'
-import { StatCards }                from './components/StatCards'
-import { TableauSeances }           from './components/TableauSeances'
-import type { ScopeState }          from './components/FiltresScope'
-import type { TemporalFilter }      from './components/PseudoFiltresTemporels'
+import { ActivitesHeader }          from '../../../components/admin/activites/ActivitesHeader'
+import { ActivitesToolbar }         from '../../../components/admin/activites/ActivitesToolbar'
+import { StatCards }                from '../../../components/admin/activites/StatCards'
+import { TableauSeances }           from '../../../components/admin/activites/TableauSeances'
+import type { ScopeState }          from '../../../components/admin/activites/FiltresScope'
+import type { TemporalFilter }      from '../../../components/admin/activites/PseudoFiltresTemporels'
 
 const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
 

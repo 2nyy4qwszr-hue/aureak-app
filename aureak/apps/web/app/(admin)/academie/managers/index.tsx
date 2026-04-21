@@ -5,8 +5,8 @@
 import { useEffect, useState } from 'react'
 import { countManagersWithOverrides } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
-import { PeopleListPage, StatCard, StatCardsRow } from '../_components/PeopleListPage'
-import { formatRelativeDate } from '../_components/formatRelativeDate'
+import { PeopleListPage, StatCard, StatCardsRow } from '../../../../components/admin/academie/PeopleListPage'
+import { formatRelativeDate } from '../../../../components/admin/academie/formatRelativeDate'
 
 export default function AcademieManagersPage() {
   const [overridesCount, setOverridesCount] = useState<number | null>(null)

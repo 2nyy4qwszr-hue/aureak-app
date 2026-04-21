@@ -11,7 +11,7 @@ import { colors, fonts, space, shadows, radius } from '@aureak/theme'
 import { ACADEMY_STATUS_CONFIG } from '@aureak/business-logic'
 import { formatNomPrenom } from '@aureak/types'
 import type { AcademyStatus } from '@aureak/types'
-import { avatarBgColor } from './_avatarHelpers'
+import { avatarBgColor } from '../../../lib/admin/children/avatarHelpers'
 
 // ── Toggle mode — AUREAK KEPER vs PROSPECT ────────────────────────────────────
 

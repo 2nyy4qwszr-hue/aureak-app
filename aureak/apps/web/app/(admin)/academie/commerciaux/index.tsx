@@ -7,7 +7,7 @@ import { View, StyleSheet, type TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { countActiveCommercialPipeline, countMonthlyClosedWon } from '@aureak/api-client'
 import { colors, fonts } from '@aureak/theme'
-import { PeopleListPage, StatCard, StatCardsRow } from '../_components/PeopleListPage'
+import { PeopleListPage, StatCard, StatCardsRow } from '../../../../components/admin/academie/PeopleListPage'
 
 type CommercialStats = {
   pipelineByCommercial: Record<string, number>

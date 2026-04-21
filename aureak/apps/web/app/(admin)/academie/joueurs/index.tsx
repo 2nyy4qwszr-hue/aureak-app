@@ -7,7 +7,7 @@ import { useRouter, usePathname } from 'expo-router'
 import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { avatarBgColor } from '../../children/_avatarHelpers'
+import { avatarBgColor } from '../../../../lib/admin/children/avatarHelpers'
 
 // ── Badges statut ─────────────────────────────────────────────────────────────────
 const BADGE_IMAGES: Record<string, ReturnType<typeof require>> = {

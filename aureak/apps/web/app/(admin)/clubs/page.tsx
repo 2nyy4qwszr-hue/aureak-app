@@ -6,7 +6,7 @@ import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
 import { colors, space, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
-import { ClubCard, ClubCardSkeleton } from './_components'
+import { ClubCard, ClubCardSkeleton } from '../../../components/admin/clubs'
 import { usePersistedFilters } from '../../../hooks/usePersistedFilters'
 import { useAuthStore } from '@aureak/business-logic'
 

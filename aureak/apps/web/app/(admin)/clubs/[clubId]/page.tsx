@@ -15,7 +15,7 @@ import { AureakText, Badge, HierarchyBreadcrumb, ConfirmDialog, ListRowSkeleton 
 import { colors, space, shadows } from '@aureak/theme'
 import type { ClubDirectoryEntry, BelgianProvince, ClubChildLinkType, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES, CLUB_RELATION_TYPE_LABELS } from '@aureak/types'
-import { RelationTypeSelector } from '../_components'
+import { RelationTypeSelector } from '../../../../components/admin/clubs'
 import RbfaStatusBadge from '../_components/RbfaStatusBadge'
 import type { ClubChildLinkRow } from '@aureak/api-client'
 import { useToast } from '../../../../components/ToastContext'

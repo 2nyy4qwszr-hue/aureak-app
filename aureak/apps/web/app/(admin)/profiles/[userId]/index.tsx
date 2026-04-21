@@ -14,11 +14,11 @@ import type { UserRow } from '@aureak/api-client'
 import type { UserRole } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import { ProfileHero }   from './_components/ProfileHero'
-import { ProfileTabs }   from './_components/ProfileTabs'
-import { ResumeTab }     from './_components/ResumeTab'
-import { ActiviteTab }   from './_components/ActiviteTab'
-import { AccesTab }      from './_components/AccesTab'
+import { ProfileHero }   from '../../../../components/admin/profiles/ProfileHero'
+import { ProfileTabs }   from '../../../../components/admin/profiles/ProfileTabs'
+import { ResumeTab }     from '../../../../components/admin/profiles/ResumeTab'
+import { ActiviteTab }   from '../../../../components/admin/profiles/ActiviteTab'
+import { AccesTab }      from '../../../../components/admin/profiles/AccesTab'
 
 export type ProfilePermissions = {
   canReadFiche     : boolean

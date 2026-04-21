@@ -529,3 +529,8 @@ development_status:
   epic-94: in-progress
   94-1-silence-aborterror-console-cleanup: ready-for-dev
   epic-94-retrospective: optional
+
+  # Epic 95 : Cleanup routing Expo Router (dette structure app/)
+  epic-95: in-progress
+  95-1-routing-cleanup-expo-router-warnings: review
+  epic-95-retrospective: optional

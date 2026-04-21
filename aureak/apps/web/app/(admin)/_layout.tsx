@@ -15,7 +15,7 @@ import type { EffectivePermissions } from '@aureak/types'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
 import { NavTooltip } from '../../components/NavTooltip'
-import { AdminTopbar } from './_components/AdminTopbar'
+import { AdminTopbar } from '../../components/admin/AdminTopbar'
 import {
   HomeIcon,
   CalendarIcon,
@@ -58,16 +58,16 @@ import { KeyboardPrefixHint } from '../../components/KeyboardPrefixHint'
 import { BreadcrumbProvider } from '../../contexts/BreadcrumbContext'
 import { Breadcrumb } from '../../components/Breadcrumb'
 // Story 61.2 — ActiveSessionContext
-import { ActiveSessionProvider, useActiveSession } from './contexts/ActiveSessionContext'
+import { ActiveSessionProvider, useActiveSession } from '../../contexts/admin/ActiveSessionContext'
 // Story 61.6 — SplashScreen
 import { SplashScreen, SPLASH_MIN_MS, SPLASH_TIMEOUT_MS } from '../../components/SplashScreen'
 // Story 86-2 — Multi-rôle : switcher "Changer de casquette"
-import { useAvailableRoles } from './hooks/useAvailableRoles'
-import { useCurrentRole } from './hooks/useCurrentRole'
+import { useAvailableRoles } from '../../hooks/admin/useAvailableRoles'
+import { useCurrentRole } from '../../hooks/admin/useCurrentRole'
 // Story 86-4 — Sidebar dynamique selon rôle actif + permissions effectives
-import { useEffectivePermissions } from './hooks/useEffectivePermissions'
-import { buildNavGroups } from './_nav-config'
-import type { NavGroup } from './_nav-config'
+import { useEffectivePermissions } from '../../hooks/admin/useEffectivePermissions'
+import { buildNavGroups } from '../../lib/admin/nav-config'
+import type { NavGroup } from '../../lib/admin/nav-config'
 
 // ── Story 51.7 — HoverablePressable : Pressable avec onMouseEnter/Leave (RN Web) ─
 // Les props hover ne sont pas dans les types RN natifs — cast via interface étendue.
