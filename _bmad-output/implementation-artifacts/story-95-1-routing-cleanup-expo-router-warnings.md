@@ -1,6 +1,6 @@
 # Story 95.1 — Cleanup routing Expo Router : supprimer les warnings "missing default export"
 
-Status: ready-for-dev
+Status: review
 
 ## Metadata
 
@@ -375,11 +375,9 @@ Si l'alias `@/` n'est pas configuré, envisager de l'ajouter dans le même PR po
 
 ## Change Log
 
-_À remplir au fur et à mesure de l'implémentation._
+- 2026-04-21 — Implémentation complète sur branche `feat/epic-95-1-routing-cleanup` (14 commits, 60+ fichiers déplacés).
 
 ## Dev Agent Record
-
-_À remplir par le Dev Agent lors de l'implémentation._
 
 ### Context Reference
 
@@ -388,16 +386,28 @@ _À remplir par le Dev Agent lors de l'implémentation._
 
 ### Agent Model Used
 
-- _À renseigner_
-
-### Debug Log References
-
-- _À renseigner_
+- Claude Opus 4.7 (1M context)
 
 ### Completion Notes List
 
-- _À renseigner_
+- **Scope réel** : seuls les fichiers sans `export default` ont été déplacés (AC2). Les fichiers avec default export (ex: DayView/WeekView/MonthView dans `seances/_components/`, ClubCard/RbfaStatusBadge/RelationTypeSelector dans `clubs/_components/`, PremiumThemeCard/BlocsManagerModal/ThemeCard/TacticalEditor dans `methodologie/_components/`) restent dans `app/` — Expo Router les accepte.
+- **Cas particulier T5b clubs** : `index.ts` (barrel) déplacé vers `components/admin/clubs/` pointe vers les 3 composants restés dans `app/(admin)/clubs/_components/` via un chemin ugly mais fonctionnel.
+- **Renommages** : `_card.ts` → `card.ts` (profiles), `_ChildDetail.tsx` → `ChildDetail.tsx` (children) + modals children perdent leur préfixe `_`.
+- **Context imports** : les imports de `AcademieCountsContext` / `ActivitesCountsContext` depuis `_layout.tsx` conservent un chemin ugly `'../../../app/(admin)/<domaine>/_layout'`. Future story possible : extraire les Contexts dans des fichiers dédiés hors `_layout.tsx`.
+- **QA Playwright** : SKIPPED — app non démarrée au moment du commit final (AC6 à valider manuellement après merge).
+- **tsc final** : EXIT 0.
 
 ### File List
 
-- _À renseigner après implémentation_
+Fichiers déplacés (60+) : voir les 14 commits de la branche `feat/epic-95-1-routing-cleanup` (67c5da7 → 4e63e2d).
+
+Structure créée :
+- `aureak/apps/web/components/admin/{activites,academie,children,clubs,evenements,groups,implantations,profiles,prospection,seances,stats}/`
+- `aureak/apps/web/lib/admin/{activites,academie,analytics,children,methodologie,seances,stats}/`
+- `aureak/apps/web/hooks/admin/`
+- `aureak/apps/web/contexts/admin/`
+
+Documentation :
+- `_bmad-output/planning-artifacts/adr/005-expo-router-v6-no-underscore-convention.md` (nouveau)
+- `CLAUDE.md` — règle 6 ajoutée (pas de non-routes dans `app/`)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — Epic 95 ajouté
