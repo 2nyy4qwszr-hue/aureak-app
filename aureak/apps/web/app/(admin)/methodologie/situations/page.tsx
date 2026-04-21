@@ -1,11 +1,17 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listSituations, listThemeGroups } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, shadows, radius } from '@aureak/theme'
 import type { Situation, ThemeGroup } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { formatEyebrow }   from '../../../../lib/admin/formatPeriodLabel'
+import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
+import { MethodologieCountsContext } from '../_layout'
+
+const METHODOLOGIE_SUBTITLE = 'Entraînements, programmes, thèmes, situations et évaluations — la bibliothèque pédagogique utilisée par les coachs sur le terrain.'
 
 const BLOC_PICTOS: Record<string, string> = {
   'tir au but'         : '🎯',
@@ -21,16 +27,9 @@ function getBlocPicto(name: string): string {
   return BLOC_PICTOS[name.toLowerCase()] ?? '📋'
 }
 
-const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',     active: false },
-  { label: 'PROGRAMMES',    href: '/methodologie/programmes',  active: false },
-  { label: 'THÈMES',        href: '/methodologie/themes',      active: false },
-  { label: 'SITUATIONS',    href: '/methodologie/situations',  active: true  },
-  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations', active: false },
-]
-
 export default function SituationsPage() {
   const router = useRouter()
+  const counts = useContext(MethodologieCountsContext)
 
   const [situations,     setSituations]     = useState<Situation[]>([])
   const [groups,         setGroups]         = useState<ThemeGroup[]>([])
@@ -70,26 +69,21 @@ export default function SituationsPage() {
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* ── Header : titre + nav tabs + bouton ── */}
-      <View style={st.headerBlock}>
-        <View style={st.headerTopRow}>
-          <AureakText style={st.pageTitle}>MÉTHODOLOGIE</AureakText>
-          <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/situations/new' as never)}>
-            <AureakText style={st.newBtnLabel}>+ Nouvelle situation</AureakText>
-          </Pressable>
-        </View>
+      {/* Story 93.5 — AdminPageHeader premium */}
+      <AdminPageHeader
+        eyebrow={formatEyebrow('Bibliothèque')}
+        title="Méthodologie"
+        subtitle={METHODOLOGIE_SUBTITLE}
+      />
 
-        <View style={st.tabsRow}>
-          {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
-              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {tab.active && <View style={st.tabUnderline} />}
-            </Pressable>
-          ))}
-        </View>
-      </View>
+      {/* Story 93.5 — NavBar 5 onglets + counts via Context */}
+      <MethodologieHeader
+        newLabel="+ Nouvelle situation"
+        newHref="/methodologie/situations/new"
+        counts={counts ?? undefined}
+      />
+
+      <View style={st.bodyWrap}>
 
       {/* ── StatCards — 1 card par ThemeGroup ── */}
       <View style={st.statCardsRow}>
@@ -183,6 +177,7 @@ export default function SituationsPage() {
           ))}
         </View>
       )}
+      </View>
     </ScrollView>
   )
 }
@@ -191,43 +186,8 @@ export default function SituationsPage() {
 
 const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, paddingBottom: space.xxl },
-
-  // Header block
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
-
-  // Nav tabs
-  tabsRow: {
-    flexDirection    : 'row',
-    gap              : 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-  },
-  tabItem: {
-    position    : 'relative',
-    paddingBottom: 10,
-  },
-  tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-    color        : colors.text.subtle,
-    textTransform: 'uppercase',
-  },
-  tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
-    position       : 'absolute',
-    bottom         : 0,
-    left           : 0,
-    right          : 0,
-    height         : 2,
-    backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
-  },
+  content    : { paddingBottom: space.xxl, gap: space.md },
+  bodyWrap   : { paddingHorizontal: space.lg, gap: space.md },
 
   // StatCards
   statCardsRow: {

@@ -1,8 +1,7 @@
 'use client'
 // Évaluations pédagogiques — bibliothèque de grilles d'évaluation
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
-import { useRouter } from 'expo-router'
 import { listMethodologyExercises } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
@@ -11,6 +10,12 @@ import {
   type MethodologyMethod, type MethodologyContextType,
 } from '@aureak/types'
 import type { MethodologyExercise } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { formatEyebrow }   from '../../../../lib/admin/formatPeriodLabel'
+import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
+import { MethodologieCountsContext } from '../_layout'
+
+const METHODOLOGIE_SUBTITLE = 'Entraînements, programmes, thèmes, situations et évaluations — la bibliothèque pédagogique utilisée par les coachs sur le terrain.'
 
 type FilterMethod = MethodologyMethod | 'all'
 
@@ -24,18 +29,13 @@ const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Intégration'     : '👥',
 }
 
-const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',     active: false },
-  { label: 'PROGRAMMES',    href: '/methodologie/programmes',  active: false },
-  { label: 'THÈMES',        href: '/methodologie/themes',      active: false },
-  { label: 'SITUATIONS',    href: '/methodologie/situations',  active: false },
-  { label: 'ÉVALUATIONS',   href: '/methodologie/evaluations', active: true  },
-]
-
 const COL_WIDTHS = { method: 52, num: 90, title: 1, themes: 100, status: 60 }
 
+// Route /methodologie/evaluations/new n'existe pas encore — hideNewButton={true}
+// TODO: implémenter la route /new dans une story dédiée (non-goal Story 93.5)
+
 export default function EvaluationsPage() {
-  const router = useRouter()
+  const counts = useContext(MethodologieCountsContext)
 
   const [exercises,      setExercises]      = useState<MethodologyExercise[]>([])
   const [loading,        setLoading]        = useState(true)
@@ -73,26 +73,22 @@ export default function EvaluationsPage() {
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* ── Header : titre + nav tabs + bouton ── */}
-      <View style={st.headerBlock}>
-        <View style={st.headerTopRow}>
-          <AureakText style={st.pageTitle}>MÉTHODOLOGIE</AureakText>
-          <Pressable style={st.newBtn} onPress={() => router.push('/methodologie/evaluations/new' as never)}>
-            <AureakText style={st.newBtnLabel}>+ Nouvelle évaluation</AureakText>
-          </Pressable>
-        </View>
+      {/* Story 93.5 — AdminPageHeader premium */}
+      <AdminPageHeader
+        eyebrow={formatEyebrow('Bibliothèque')}
+        title="Méthodologie"
+        subtitle={METHODOLOGIE_SUBTITLE}
+      />
 
-        <View style={st.tabsRow}>
-          {NAV_TABS.map(tab => (
-            <Pressable key={tab.href} style={st.tabItem} onPress={() => router.push(tab.href as never)}>
-              <AureakText style={{ ...st.tabLabel, ...(tab.active ? st.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {tab.active && <View style={st.tabUnderline} />}
-            </Pressable>
-          ))}
-        </View>
-      </View>
+      {/* Story 93.5 — NavBar 5 onglets + counts via Context (hideNewButton : route /new absente) */}
+      <MethodologieHeader
+        newLabel="+ Nouvelle évaluation"
+        newHref="/methodologie/evaluations/new"
+        hideNewButton
+        counts={counts ?? undefined}
+      />
+
+      <View style={st.bodyWrap}>
 
       {/* ── StatCards — 7 cards méthodes ── */}
       <View style={st.statCardsRow}>
@@ -180,6 +176,7 @@ export default function EvaluationsPage() {
         />
       )}
 
+      </View>
     </ScrollView>
   )
 }
@@ -275,43 +272,8 @@ function EvaluationsTable({ exercises, totalExercises, methodColors }: Evaluatio
 
 const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.lg, gap: space.md, paddingBottom: space.xxl },
-
-  // Header block
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
-
-  // Nav tabs
-  tabsRow: {
-    flexDirection    : 'row',
-    gap              : 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-  },
-  tabItem: {
-    position     : 'relative',
-    paddingBottom: 10,
-  },
-  tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-    color        : colors.text.subtle,
-    textTransform: 'uppercase',
-  },
-  tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
-    position       : 'absolute',
-    bottom         : 0,
-    left           : 0,
-    right          : 0,
-    height         : 2,
-    backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
-  },
+  content    : { paddingBottom: space.xxl, gap: space.md },
+  bodyWrap   : { paddingHorizontal: space.lg, gap: space.md },
 
   // StatCards
   statCardsRow: {
