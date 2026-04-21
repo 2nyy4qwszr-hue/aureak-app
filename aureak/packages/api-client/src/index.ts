@@ -8,9 +8,12 @@ export { compressImage } from './utils/compress-image'
 export { signIn, signOut, getSession, inviteUser, disableUser, getUserRoleFromProfile } from './auth'
 
 // Story 86-2 — Multi-rôle : table profile_roles
-export { listUserRoles, assignRoleToUser, revokeRoleFromUser } from './auth/profile-roles'
+// Story 87-3 — listUserRolesHistory : historique accès onglet Accès fiche personne
+export { listUserRoles, assignRoleToUser, revokeRoleFromUser, listUserRolesHistory } from './auth/profile-roles'
+export type { UserRoleHistoryEntry } from './auth/profile-roles'
 
 // Story 86-3 — Permissions granulaires : matrice section_permissions + overrides
+// Story 87-3 — listUserOverridesHistory : timeline overrides onglet Accès
 export {
   listDefaultPermissions,
   upsertDefaultPermission,
@@ -18,7 +21,9 @@ export {
   upsertUserOverride,
   deleteUserOverride,
   getEffectivePermissions,
+  listUserOverridesHistory,
 } from './auth/section-permissions'
+export type { UserSectionOverrideHistoryEntry } from './auth/section-permissions'
 
 export {
   getChildAcademyStatus,

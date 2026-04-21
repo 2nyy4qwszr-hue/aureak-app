@@ -6,6 +6,14 @@
 import { supabase } from '../supabase'
 import type { UserRole } from '@aureak/types'
 
+// Story 87.3 — Historique des rôles (actifs + soft-deleted) pour l'onglet Accès.
+export type UserRoleHistoryEntry = {
+  role      : UserRole
+  createdAt : string | null
+  deletedAt : string | null
+  deletedBy : string | null
+}
+
 /**
  * listUserRoles — rôles actifs (non soft-deleted) d'un profil.
  * Retourne un array de UserRole, tri non garanti.
@@ -58,4 +66,32 @@ export async function revokeRoleFromUser(profileId: string, role: UserRole): Pro
     if (process.env.NODE_ENV !== 'production') console.error('[revokeRoleFromUser] error:', error)
     throw error
   }
+}
+
+/**
+ * Story 87.3 — listUserRolesHistory
+ * Rôles actifs ET soft-deleted d'un profil pour construire l'historique des accès.
+ * Tri par granted_at DESC. Note : la table profile_roles n'a pas de colonne
+ * `deleted_by` — deletedBy est toujours null dans ce retour (future enrichissement
+ * possible via trigger audit_logs).
+ */
+export async function listUserRolesHistory(profileId: string): Promise<UserRoleHistoryEntry[]> {
+  const { data, error } = await supabase
+    .from('profile_roles')
+    .select('role, granted_at, deleted_at')
+    .eq('profile_id', profileId)
+    .order('granted_at', { ascending: false, nullsFirst: false })
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listUserRolesHistory] error:', error)
+    throw error
+  }
+
+  type Raw = { role: string; granted_at: string | null; deleted_at: string | null }
+  return ((data ?? []) as Raw[]).map((r) => ({
+    role      : r.role as UserRole,
+    createdAt : r.granted_at ?? null,
+    deletedAt : r.deleted_at ?? null,
+    deletedBy : null,
+  }))
 }

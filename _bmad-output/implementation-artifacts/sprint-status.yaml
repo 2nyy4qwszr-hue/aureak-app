@@ -502,9 +502,9 @@ development_status:
 
   # Epic 87 : Académie Commerciaux & Marketeurs
   epic-87: in-progress
-  87-1-pages-academie-commerciaux-marketeurs-managers: review
-  87-2-fiche-personne-universelle: review
-  87-3-onglet-acces-fiche-personne: ready-for-dev
+  87-1-pages-academie-commerciaux-marketeurs-managers: done
+  87-2-fiche-personne-universelle: done
+  87-3-onglet-acces-fiche-personne: review
   87-4-invitation-dediee-commercial-manager-marketeur: ready-for-dev
   87-5-users-redirect-profiles: ready-for-dev
   epic-87-retrospective: optional

@@ -1,35 +1,90 @@
 'use client'
-// Story 87.2 — Onglet Accès : placeholder.
-// Le contenu complet (rôles assignés, overrides, historique accès) sera
-// implémenté dans la story 87.3 sans changer cette interface.
+// Story 87.3 — Onglet ACCÈS complet (remplace le placeholder 87.2).
+// Orchestrateur : 3 sections indépendantes (rôles / permissions / historique).
+// Garde admin : seul un admin peut voir le contenu ; sinon bloc "Accès refusé".
 
+import { useEffect, useState } from 'react'
 import { View, StyleSheet, type TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
+import { useAuthStore } from '@aureak/business-logic'
+import { getEffectivePermissions } from '@aureak/api-client'
+import type { UserRow } from '@aureak/api-client'
+import type { UserRole } from '@aureak/types'
 import { colors, space } from '@aureak/theme'
+import { RolesSection }       from './acces/RolesSection'
+import { PermissionsSection } from './acces/PermissionsSection'
+import { HistoriqueSection }  from './acces/HistoriqueSection'
 
-export function AccesTab() {
+type AccesTabProps = {
+  profile: UserRow
+}
+
+export function AccesTab({ profile }: AccesTabProps) {
+  const { user, role: authRole } = useAuthStore()
+  const [canManageAccess, setCanManageAccess] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!user?.id || !authRole) {
+      setCanManageAccess(null)
+      return
+    }
+    let cancelled = false
+    const run = async () => {
+      try {
+        const perms = await getEffectivePermissions(user.id, authRole as UserRole)
+        if (cancelled) return
+        setCanManageAccess(perms.admin === true || perms.academie === true)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[AccesTab] permissions error:', err)
+        if (!cancelled) setCanManageAccess(false)
+      }
+    }
+    run()
+    return () => { cancelled = true }
+  }, [user?.id, authRole])
+
+  if (canManageAccess === null) {
+    return (
+      <View style={s.centered}>
+        <AureakText variant="body" style={s.muted as TextStyle}>Chargement…</AureakText>
+      </View>
+    )
+  }
+
+  if (canManageAccess === false) {
+    return (
+      <View style={s.denied}>
+        <AureakText variant="h2" style={s.deniedTitle as TextStyle}>Accès refusé</AureakText>
+        <AureakText variant="body" style={s.muted as TextStyle}>
+          Cette section est réservée aux administrateurs.
+        </AureakText>
+      </View>
+    )
+  }
+
+  const activeIsAdmin = authRole === 'admin'
+
   return (
     <View style={s.wrapper}>
-      <AureakText variant="h2" style={s.title as TextStyle}>Accès et permissions</AureakText>
-      <AureakText variant="body" style={s.body as TextStyle}>
-        Cet onglet sera implémenté dans la story 87-3. Il exposera les rôles assignés,
-        les overrides de permissions et l'historique des changements d'accès.
-      </AureakText>
+      <RolesSection       profile={profile} canMutate={activeIsAdmin} />
+      <PermissionsSection profile={profile} canMutate={activeIsAdmin} selfUserId={user?.id ?? null} />
+      <HistoriqueSection  profile={profile} />
     </View>
   )
 }
 
 const s = StyleSheet.create({
-  wrapper: {
+  wrapper     : { gap: space.md },
+  centered    : { padding: space.xl, alignItems: 'center' },
+  denied      : {
+    padding        : space.xl,
     alignItems     : 'center',
-    justifyContent : 'center',
-    padding        : space.xxl,
     backgroundColor: colors.light.surface,
     borderRadius   : 12,
     borderWidth    : 1,
     borderColor    : colors.border.divider,
-    gap            : space.md,
+    gap            : space.sm,
   },
-  title: { color: colors.text.dark },
-  body : { color: colors.text.muted, textAlign: 'center', maxWidth: 480 },
+  deniedTitle : { color: colors.text.dark },
+  muted       : { color: colors.text.muted, textAlign: 'center' },
 })
