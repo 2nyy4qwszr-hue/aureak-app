@@ -1,9 +1,13 @@
 'use client'
 // Fiche compte utilisateur — Story 10.1 + accès admin
+// TODO(story-87-4?): remplacer cette fiche par un Redirect vers /profiles/[userId]
+// une fois 87-2 + 87-3 mergées et la fiche universelle validée en prod.
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getUserProfile, suspendUser, reactivateUser, requestUserDeletion, listLifecycleEvents } from '@aureak/api-client'
 import type { UserRow } from '@aureak/api-client'
+import { ROLE_LABELS } from '@aureak/ui'
+import type { UserRole } from '@aureak/types'
 import { colors } from '@aureak/theme'
 
 // UserProfile = alias local de UserRow (même shape)
@@ -18,14 +22,6 @@ type LifecycleEvent = {
 }
 
 // ── Labels ────────────────────────────────────────────────────────────────────
-
-const ROLE_LABELS: Record<string, string> = {
-  admin : 'Administrateur',
-  coach : 'Coach',
-  parent: 'Parent',
-  child : 'Joueur',
-  club  : 'Club partenaire',
-}
 
 const STATUS_LABELS: Record<string, string> = {
   active   : 'Actif',
@@ -186,7 +182,7 @@ export default function UserFichePage() {
               {STATUS_LABELS[profile.status] ?? profile.status}
             </span>
             <span style={{ ...P.badge, color: colors.accent.gold, borderColor: colors.accent.gold + '40', backgroundColor: colors.accent.gold + '12' }}>
-              {ROLE_LABELS[profile.userRole] ?? profile.userRole}
+              {ROLE_LABELS[profile.userRole as UserRole] ?? profile.userRole}
             </span>
           </div>
           <div style={{ fontSize: 13, color: colors.text.muted, marginTop: 2 }}>
@@ -215,7 +211,7 @@ export default function UserFichePage() {
           {/* Rôle */}
           <div style={P.field}>
             <div style={P.fieldLabel}>Rôle</div>
-            <div style={P.fieldValue}>{ROLE_LABELS[profile.userRole] ?? profile.userRole}</div>
+            <div style={P.fieldValue}>{ROLE_LABELS[profile.userRole as UserRole] ?? profile.userRole}</div>
           </div>
 
           {/* Statut compte */}

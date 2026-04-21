@@ -126,6 +126,42 @@ export async function countManagersWithOverrides(): Promise<{ count: number; ava
 }
 
 // ============================================================================
+// Story 87.2 — Overrides actifs d'un manager donné (fiche universelle)
+// ============================================================================
+
+/**
+ * countManagerOverrides — nombre d'overrides actifs pour un profil + 5 premières
+ * section_key concernées. Utilisé par le module "Accès étendus" de la fiche
+ * universelle (/profiles/[userId]) pour les rôles manager.
+ */
+export async function countManagerOverrides(userId: string): Promise<{
+  count   : number
+  sections: string[]
+  error   : unknown
+}> {
+  try {
+    const { data, error } = await supabase
+      .from('user_section_overrides')
+      .select('section_key')
+      .eq('profile_id', userId)
+      .is('deleted_at', null)
+      .order('section_key', { ascending: true })
+
+    if (error) {
+      if (process.env.NODE_ENV !== 'production') console.error('[profiles-by-role] countManagerOverrides error:', error)
+      return { count: 0, sections: [], error }
+    }
+
+    const rows = (data ?? []) as { section_key: string }[]
+    const distinct = Array.from(new Set(rows.map(r => r.section_key)))
+    return { count: rows.length, sections: distinct.slice(0, 5), error: null }
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') console.error('[profiles-by-role] countManagerOverrides exception:', err)
+    return { count: 0, sections: [], error: err }
+  }
+}
+
+// ============================================================================
 // Story 87.1 — Stats pipeline commerciaux (CRM Epic 85 — fallback si absent)
 // ============================================================================
 
