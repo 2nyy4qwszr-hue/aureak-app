@@ -21,7 +21,7 @@ import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Situation, SituationCriterion, SituationThemeLink, Theme, CoachGradeLevel, MethodologySituation, DiagramData } from '@aureak/types'
 import { DIFFICULTY_LABELS } from '@aureak/types'
 import TacticalEditor from '../../_components/TacticalEditor'
-import { generateQRCode } from '../../_components/qr-utils'
+import { generateQRCode } from '../../../../../lib/admin/methodologie/qr-utils'
 
 // Détecte si le param ressemble à un UUID (MethodologySituation) ou une situationKey (ancien système)
 function isUUID(s: string): boolean {
