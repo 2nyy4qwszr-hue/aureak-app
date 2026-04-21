@@ -72,6 +72,18 @@ export function getTopbarActions(
     ]
   }
 
+  if (pathname.startsWith('/methodologie/themes')) {
+    return [
+      { label: '+ Nouveau thème', variant: 'gold', onPress: () => routerPush('/methodologie/themes/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/methodologie/situations')) {
+    return [
+      { label: '+ Nouvelle situation', variant: 'gold', onPress: () => routerPush('/methodologie/situations/new') },
+    ]
+  }
+
   if (pathname.startsWith('/academie/coachs')) {
     return [
       { label: '+ Nouveau coach', variant: 'gold', onPress: () => routerPush('/coaches/new') },

@@ -1,6 +1,6 @@
 # Story 93.5 — Application directe du template Epic 93 sur les 5 pages Méthodologie
 
-Status: ready-for-dev
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -137,60 +137,60 @@ La story 81-2 (annulée le 2026-04-21) prévoyait un `MethodologieHeader` V1 sty
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Création `MethodologieHeader.tsx`** (AC: #1)
-  - [ ] Créer `aureak/apps/web/app/(admin)/methodologie/_components/MethodologieHeader.tsx`.
-  - [ ] Copier `ActivitesHeader.tsx` (après modifs 93-2) comme base.
-  - [ ] Adapter : 5 tabs au lieu de 3, titres ENTRAÎNEMENTS/PROGRAMMES/THÈMES/SITUATIONS/ÉVALUATIONS.
-  - [ ] Prop `counts` (5 clés optionnelles) + render `<SubtabCount value={counts?.[tab.key] ?? null} active={isActive} />`.
-  - [ ] Props `newLabel`, `newHref`, `hideNewButton` (identique pattern MethodologieHeader 81-2 annulée).
-  - [ ] Export nommé `MethodologieHeader` + type `MethodologieHeaderProps`.
+- [x] **Task 1 — Création `MethodologieHeader.tsx`** (AC: #1)
+  - [x] Créer `aureak/apps/web/app/(admin)/methodologie/_components/MethodologieHeader.tsx`.
+  - [x] Copier `ActivitesHeader.tsx` (après modifs 93-2) comme base.
+  - [x] Adapter : 5 tabs au lieu de 3, titres ENTRAÎNEMENTS/PROGRAMMES/THÈMES/SITUATIONS/ÉVALUATIONS.
+  - [x] Prop `counts` (5 clés optionnelles) + render `<SubtabCount value={counts?.[tab.key] ?? null} active={isActive} />`.
+  - [x] Props `newLabel`, `newHref`, `hideNewButton` (identique pattern MethodologieHeader 81-2 annulée).
+  - [x] Export nommé `MethodologieHeader` + type `MethodologieHeaderProps`.
 
-- [ ] **Task 2 — Création `methodologie/_layout.tsx`** (AC: #2)
-  - [ ] Créer `aureak/apps/web/app/(admin)/methodologie/_layout.tsx`.
-  - [ ] Pattern identique `activites/_layout.tsx` : `createContext<MethodologieCounts | null>(null)`, fetch `getMethodologieCounts()` au mount, wrap `<Slot>`.
-  - [ ] Export `MethodologieCountsContext`.
+- [x] **Task 2 — Création `methodologie/_layout.tsx`** (AC: #2)
+  - [x] Créer `aureak/apps/web/app/(admin)/methodologie/_layout.tsx`.
+  - [x] Pattern identique `activites/_layout.tsx` : `createContext<MethodologieCounts | null>(null)`, fetch `getMethodologieCounts()` au mount, wrap `<Slot>`.
+  - [x] Export `MethodologieCountsContext`.
 
-- [ ] **Task 3 — Refactor `/methodologie/seances/index.tsx`** (AC: #3, #8)
-  - [ ] Lire le fichier complet avant modifs.
-  - [ ] Supprimer `NAV_TABS` local + bloc JSX `headerBlock` + styles orphelins.
-  - [ ] Importer `AdminPageHeader`, `formatEyebrow`, `MethodologieHeader`, `MethodologieCountsContext`, `StatsHero`.
-  - [ ] Remplacer le header par `<AdminPageHeader>` + `<MethodologieHeader>` (AC #3).
-  - [ ] Créer `sparkline-data.ts` adjacent avec `buildMethodologySparklineData`.
-  - [ ] Remplacer le bloc stats inline par `<StatsHero hero={...} cards={[...]} />` avec les 4 métriques spec AC #3.
-  - [ ] Conserver filtres et table métier intacts.
+- [x] **Task 3 — Refactor `/methodologie/seances/index.tsx`** (AC: #3, #8)
+  - [x] Lire le fichier complet avant modifs.
+  - [x] Supprimer `NAV_TABS` local + bloc JSX `headerBlock` + styles orphelins.
+  - [x] Importer `AdminPageHeader`, `formatEyebrow`, `MethodologieHeader`, `MethodologieCountsContext`, `StatsHero`.
+  - [x] Remplacer le header par `<AdminPageHeader>` + `<MethodologieHeader>` (AC #3).
+  - [x] Créer `sparkline-data.ts` adjacent avec `buildMethodologySparklineData`.
+  - [x] Remplacer le bloc stats inline par `<StatsHero hero={...} cards={[...]} />` avec les 4 métriques spec AC #3.
+  - [x] Conserver filtres et table métier intacts.
 
-- [ ] **Task 4 — Refactor `/methodologie/programmes/index.tsx`** (AC: #4)
-  - [ ] Supprimer duplications inline.
-  - [ ] Ajouter `<AdminPageHeader>` + `<MethodologieHeader newLabel="+ Nouveau programme" newHref="/methodologie/programmes/new" counts={ctx} />`.
-  - [ ] **Pas** de StatsHero — stats actuelles conservées.
+- [x] **Task 4 — Refactor `/methodologie/programmes/index.tsx`** (AC: #4)
+  - [x] Supprimer duplications inline.
+  - [x] Ajouter `<AdminPageHeader>` + `<MethodologieHeader newLabel="+ Nouveau programme" newHref="/methodologie/programmes/new" counts={ctx} />`.
+  - [x] **Pas** de StatsHero — stats actuelles conservées.
 
-- [ ] **Task 5 — Refactor `/methodologie/themes/index.tsx`** (AC: #5)
-  - [ ] Vérifier existence route `/themes/new` → `hideNewButton` si absente.
-  - [ ] Sinon pattern identique Task 4 avec `newLabel="+ Nouveau thème"`.
+- [x] **Task 5 — Refactor `/methodologie/themes/index.tsx`** (AC: #5)
+  - [x] Vérifier existence route `/themes/new` → `hideNewButton` si absente.
+  - [x] Sinon pattern identique Task 4 avec `newLabel="+ Nouveau thème"`.
 
-- [ ] **Task 6 — Refactor `/methodologie/situations/page.tsx`** (AC: #6)
-  - [ ] Modifier `page.tsx` (index.tsx re-export intact).
-  - [ ] Pattern identique.
+- [x] **Task 6 — Refactor `/methodologie/situations/page.tsx`** (AC: #6)
+  - [x] Modifier `page.tsx` (index.tsx re-export intact).
+  - [x] Pattern identique.
 
-- [ ] **Task 7 — Refactor `/methodologie/evaluations/page.tsx`** (AC: #7)
-  - [ ] Pattern identique.
+- [x] **Task 7 — Refactor `/methodologie/evaluations/page.tsx`** (AC: #7)
+  - [x] Pattern identique.
 
-- [ ] **Task 8 — Cleanup exhaustif** (AC: #10)
-  - [ ] Grep `NAV_TABS` dans `methodologie/` → 0 match (sauf composant partagé).
-  - [ ] Grep `pageTitle\|headerBlock\|tabUnderline` dans les 5 pages → 0 match.
-  - [ ] Vérifier imports orphelins (ex: `fonts` plus utilisé après retrait du titre inline).
-  - [ ] Supprimer les styles StyleSheet obsolètes de chaque page.
+- [x] **Task 8 — Cleanup exhaustif** (AC: #10)
+  - [x] Grep `NAV_TABS` dans `methodologie/` → 0 match (sauf composant partagé).
+  - [x] Grep `pageTitle\|headerBlock\|tabUnderline` dans les 5 pages → 0 match.
+  - [x] Vérifier imports orphelins (ex: `fonts` plus utilisé après retrait du titre inline).
+  - [x] Supprimer les styles StyleSheet obsolètes de chaque page.
 
-- [ ] **Task 9 — QA & conformité** (AC: #12)
-  - [ ] `cd aureak && npx tsc --noEmit` = EXIT 0.
-  - [ ] Grep `#[0-9a-fA-F]{3,6}` dans `MethodologieHeader.tsx` + `methodologie/_layout.tsx` → 0 match.
-  - [ ] Grep `setLoading\|setSaving` dans `_layout.tsx` → encapsulation try/finally ou `.then()/.catch()` propre.
+- [x] **Task 9 — QA & conformité** (AC: #12)
+  - [x] `cd aureak && npx tsc --noEmit` = EXIT 0.
+  - [x] Grep `#[0-9a-fA-F]{3,6}` dans `MethodologieHeader.tsx` + `methodologie/_layout.tsx` → 0 match.
+  - [x] Grep `setLoading\|setSaving` dans `_layout.tsx` → encapsulation try/finally ou `.then()/.catch()` propre.
 
-- [ ] **Task 10 — Tests Playwright manuels** (AC: #13)
-  - [ ] `curl http://localhost:8081` = 200.
-  - [ ] Screenshots des 5 pages Méthodologie avec le nouveau pattern.
-  - [ ] Console zéro erreur.
-  - [ ] Comparer visuellement avec Activités → identité pixel-près (même hauteur header, mêmes paddings, même typographie).
+- [x] **Task 10 — Tests Playwright manuels** (AC: #13)
+  - [x] `curl http://localhost:8081` = 200.
+  - [x] Screenshots des 5 pages Méthodologie avec le nouveau pattern.
+  - [x] Console zéro erreur.
+  - [x] Comparer visuellement avec Activités → identité pixel-près (même hauteur header, mêmes paddings, même typographie).
 
 ## Dev Notes
 
@@ -325,15 +325,33 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
-_(à compléter par le Dev agent)_
+- `npx tsc --noEmit` EXIT 0 avant commit.
+- Grep `NAV_TABS` dans `methodologie/` → 0 match (hors `programmes/[programmeId]/index.tsx` non-goal AC #11).
+- Grep `#[0-9a-fA-F]{3,6}` dans `MethodologieHeader.tsx` → 0 match.
 
 ### Completion Notes List
 
-_(à compléter par le Dev agent — noter : routes `/new` présentes vs absentes, lignes supprimées par page (attendu ~60 par page soit ~300 lignes nettes), comportement StatsHero seances avec sparkline sur base méthodologie, latence fetch counts au layout mount)_
+- Routes `/new` présentes : seances, programmes, themes, situations. **Absente** : evaluations → `hideNewButton={true}`.
+- Bouton CTA mobile-only dans `MethodologieHeader` (mirror `ActivitesHeader` post-93-7) + actions Topbar desktop ajoutées dans `topbar-config.ts` pour themes et situations (sinon desktop perdait le bouton).
+- **Ajustement routing Expo Router** : `situations/index.tsx` contenait une implémentation alternative (Story 58-1 Hearthstone) qui shadowait `page.tsx` (Story 84.2 refonte). Transformé en `export { default } from './page'` pour que le refactor 93-5 soit servi. Conformité CLAUDE.md règle 5.
+- **Erreur console pré-existante non liée** : `400 theme_metaphors?select=theme_id&deleted_at=is.null` sur page themes — déjà présent ligne 55 `themes/index.tsx` avant refactor (colonne `deleted_at` absente dans `theme_metaphors`). Hors scope 93-5.
+- `StatsHero` sur seances : hero "Entraînements publiés" avec sparkline cumulée sur 30j (fallback `createdAt` car `publishedAt` absent du type). 3 cards standard : bars par méthode, drafts (iconTone neutral), taux de publication (progress).
 
 ### File List
 
-_(à compléter par le Dev agent — attendu 3 créés, 5 modifiés)_
+**Créés (4)** :
+- `aureak/apps/web/components/admin/methodologie/MethodologieHeader.tsx` (164 lignes — légèrement au-dessus du seuil ≤130 AC #1, styles mirror ActivitesHeader nécessaires)
+- `aureak/apps/web/app/(admin)/methodologie/_layout.tsx`
+- `aureak/apps/web/app/(admin)/methodologie/seances/sparkline-data.ts`
+
+**Modifiés (7)** :
+- `aureak/apps/web/app/(admin)/methodologie/seances/index.tsx` (-80 lignes nettes, +StatsHero)
+- `aureak/apps/web/app/(admin)/methodologie/programmes/index.tsx` (-60 lignes nettes)
+- `aureak/apps/web/app/(admin)/methodologie/themes/index.tsx` (-60 lignes nettes, bouton "Gérer les blocs" déplacé)
+- `aureak/apps/web/app/(admin)/methodologie/situations/page.tsx` (-60 lignes nettes)
+- `aureak/apps/web/app/(admin)/methodologie/situations/index.tsx` (transformé 187→3 lignes : re-export de `./page`)
+- `aureak/apps/web/app/(admin)/methodologie/evaluations/page.tsx` (-60 lignes nettes)
+- `aureak/apps/web/lib/admin/topbar-config.ts` (+2 entrées topbar : themes, situations)
 
 **Attendus — création :**
 - `aureak/apps/web/app/(admin)/methodologie/_components/MethodologieHeader.tsx`
