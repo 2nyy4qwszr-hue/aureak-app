@@ -703,6 +703,10 @@ export {
   updateCommercialContact,
 } from './admin/commercial-contacts'
 
+// ── Story 87.4 — Invitation dédiée commercial/manager/marketeur ──────────────
+export { invitePerson } from './admin/invite-person'
+export type { InvitePersonParams, InvitePersonResult, InvitePersonMode, InvitePersonRole } from './admin/invite-person'
+
 // ── Story 87.1 — Profils Académie par rôle (commercial | manager | marketeur) ─
 // ── Story 87.2 — countManagerOverrides (fiche universelle module accès) ──────
 export {

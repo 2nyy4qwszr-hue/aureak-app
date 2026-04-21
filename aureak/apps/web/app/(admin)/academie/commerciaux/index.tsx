@@ -51,7 +51,7 @@ export default function AcademieCommerciauxPage() {
     <PeopleListPage
       role={'commercial'}
       newButtonLabel={'+ Nouveau commercial'}
-      newButtonHref={'/settings/permissions#invite-commercial'}
+      newButtonHref={'/academie/commerciaux/new'}
       emptyLabel={'Aucun commercial'}
       renderStatCards={(rows) => {
         const total  = rows.length
