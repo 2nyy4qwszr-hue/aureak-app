@@ -1,6 +1,13 @@
 # Temp files
 supabase/.temp/
 
+# Tamagui generated config
+aureak/apps/web/.tamagui/
+
+# Design references — gros templates ZIP + extractions (référence locale uniquement)
+_bmad-output/design-references/*.zip
+_bmad-output/design-references/_template_extracted/
+
 # Playwright MCP
 .playwright-mcp/
 
