@@ -480,8 +480,10 @@ development_status:
   epic-80-retrospective: optional
 
   # Epic 81 : Méthodologie — Uniformisation LayoutActivités
-  epic-81: done
+  # Réouvert : 81-1 n'a traité que /methodologie/seances. 81-2 complète sur programmes/themes/situations/evaluations.
+  epic-81: in-progress
   81-1-methodologie-entrainements-layout-activites: done
+  81-2-methodologie-uniformisation-pages-restantes: ready-for-dev
   epic-81-retrospective: optional
 
   # Epic 82 : Alignements visuels — Cards + Programmes
@@ -501,10 +503,10 @@ development_status:
   epic-86-retrospective: optional
 
   # Epic 87 : Académie Commerciaux & Marketeurs
-  epic-87: in-progress
+  epic-87: done
   87-1-pages-academie-commerciaux-marketeurs-managers: done
   87-2-fiche-personne-universelle: done
   87-3-onglet-acces-fiche-personne: done
   87-4-invitation-dediee-commercial-manager-marketeur: done
-  87-5-users-redirect-profiles: review
-  epic-87-retrospective: optional
+  87-5-users-redirect-profiles: done
+  epic-87-retrospective: done
