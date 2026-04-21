@@ -7,7 +7,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { BelgianProvince, ClubRelationType } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
-import { RelationTypeSelector } from './_components'
+import { RelationTypeSelector } from '../../../components/admin/clubs'
 import { useToast } from '../../../components/ToastContext'
 
 // ── Field components ─────────────────────────────────────────────────────────
