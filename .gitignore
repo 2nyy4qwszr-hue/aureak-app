@@ -26,6 +26,12 @@ supabase/.temp/
 /dashboard-*.png
 /stage-*.png
 /presences-*.png
+/epic-*.png
+/story-*.png
+/aureak-*.png
+
+# Claude Code lockfiles (ephemeral)
+.claude/scheduled_tasks.lock
 
 # Ad-hoc QA screenshot dirs (keep _qa/reports/screenshots/ only)
 _qa/screenshots/
