@@ -11,7 +11,7 @@ import { invitePerson } from '@aureak/api-client'
 import type { InvitePersonMode, InvitePersonRole } from '@aureak/api-client'
 import { AureakText, ROLE_LABELS } from '@aureak/ui'
 import { colors, fonts, space, radius } from '@aureak/theme'
-import { useToast } from '../../../../components/ToastContext'
+import { useToast } from '../../ToastContext'
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/
 

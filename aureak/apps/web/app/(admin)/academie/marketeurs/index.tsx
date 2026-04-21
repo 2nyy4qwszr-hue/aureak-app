@@ -4,8 +4,8 @@
 // sont pas déployées, donc on affiche "—" + label "à venir".
 
 import { colors } from '@aureak/theme'
-import { PeopleListPage, StatCard, StatCardsRow } from '../_components/PeopleListPage'
-import { formatRelativeDate } from '../_components/formatRelativeDate'
+import { PeopleListPage, StatCard, StatCardsRow } from '../../../../components/admin/academie/PeopleListPage'
+import { formatRelativeDate } from '../../../../components/admin/academie/formatRelativeDate'
 
 export default function AcademieMarketeursPage() {
   return (

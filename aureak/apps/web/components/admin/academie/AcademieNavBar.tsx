@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'expo-router'
 import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
-import { SubtabCount } from '../../../../components/admin/SubtabCount'
+import { SubtabCount } from '../SubtabCount'
 
 const TABS = [
   { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },

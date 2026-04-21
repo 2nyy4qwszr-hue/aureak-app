@@ -15,8 +15,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { splitName } from './splitName'
 import { formatRelativeDate } from './formatRelativeDate'
-import { SubtabCount } from '../../../../components/admin/SubtabCount'
-import { AcademieCountsContext } from '../_layout'
+import { SubtabCount } from '../SubtabCount'
+import { AcademieCountsContext } from '../../../app/(admin)/academie/_layout'
 
 type StatusFilter = 'actifs' | 'tous' | 'supprimes'
 const PAGE_SIZE = 25
