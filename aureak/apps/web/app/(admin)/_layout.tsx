@@ -9,7 +9,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, transitions, radius } from '@aureak/theme'
 import { ThemeProvider, useTheme } from '../../contexts/ThemeContext'
 import { useThemeColors } from '../../hooks/useThemeColors'
-import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase, useOfflineCache, listStages } from '@aureak/api-client'
+import { getActiveSession, getNavBadgeCounts, getAchievementDetails, supabase, useOfflineCache, listStages, isAbortError } from '@aureak/api-client'
 import type { ActiveSessionInfo, NavBadgeCounts, AchievementToastData } from '@aureak/api-client'
 import type { EffectivePermissions } from '@aureak/types'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
@@ -322,7 +322,7 @@ function AdminLayoutInner() {
         const counts = await getNavBadgeCounts()
         if (!cancelled) setNavBadges(counts)
       } catch (err) {
-        if (process.env.NODE_ENV !== 'production') console.error('[AdminLayout] getNavBadgeCounts error:', err)
+        if (!isAbortError(err) && process.env.NODE_ENV !== 'production') console.error('[AdminLayout] getNavBadgeCounts error:', err)
         // dégradation silencieuse — badges restent dans leur dernier état connu
       }
     }
@@ -349,7 +349,7 @@ function AdminLayoutInner() {
         const stages = await listStages({ status: 'en_cours' })
         if (!cancelled) setStagesActifsCount(stages.length)
       } catch (err) {
-        if (process.env.NODE_ENV !== 'production') console.error('[AdminLayout] listStages error:', err)
+        if (!isAbortError(err) && process.env.NODE_ENV !== 'production') console.error('[AdminLayout] listStages error:', err)
         // dégradation silencieuse — badge reste absent
       } finally {
         if (!cancelled) setStagesLoading(false)
