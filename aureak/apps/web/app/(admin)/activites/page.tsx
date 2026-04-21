@@ -1,9 +1,12 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 
+import { AdminPageHeader }          from '../_components/AdminPageHeader'
+import { formatEyebrow }            from '../_components/formatPeriodLabel'
+import { ActivitesCountsContext }   from './_layout'
 import { ActivitesHeader }          from './components/ActivitesHeader'
 import { FiltresScope }             from './components/FiltresScope'
 import { PseudoFiltresTemporels }   from './components/PseudoFiltresTemporels'
@@ -12,14 +15,24 @@ import { TableauSeances }           from './components/TableauSeances'
 import type { ScopeState }          from './components/FiltresScope'
 import type { TemporalFilter }      from './components/PseudoFiltresTemporels'
 
+const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
+
 export default function ActivitesPage() {
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('today')
+  const counts                              = useContext(ActivitesCountsContext)
 
   return (
     <View style={styles.container}>
-      {/* Header onglets + bouton */}
-      <ActivitesHeader />
+      {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
+      <AdminPageHeader
+        eyebrow={formatEyebrow('Pilotage')}
+        title="Activités"
+        subtitle={ACTIVITES_SUBTITLE}
+      />
+
+      {/* Header onglets + bouton (Story 93.2 — counts depuis Context layout) */}
+      <ActivitesHeader counts={counts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* 4 Stat cards */}

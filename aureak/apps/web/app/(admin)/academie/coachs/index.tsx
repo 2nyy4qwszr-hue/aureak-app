@@ -1,13 +1,15 @@
 'use client'
 // Story 75.2 — Page Coachs redesignée dans le hub Académie
 // Story 82.1 — Appliquer LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText, UserCheckIcon } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { SubtabCount } from '../../_components/SubtabCount'
+import { AcademieCountsContext } from '../_layout'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────
 type CoachWithGrade = CoachListRow & {
@@ -19,15 +21,16 @@ type CoachWithGrade = CoachListRow & {
 type RoleFilter = 'all' | 'coach' | 'assistant'
 
 // ── Navigation Académie ───────────────────────────────────────────────────────────
+// Story 93.2 — ajout des `key` pour indexer les counts via AcademieCountsContext
 const ACADEMIE_TABS = [
-  { label: 'JOUEURS',       href: '/academie/joueurs'       },
-  { label: 'COACHS',        href: '/academie/coachs'        },
-  { label: 'SCOUTS',        href: '/academie/scouts'        },
-  { label: 'MANAGERS',      href: '/academie/managers'      },
-  { label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
-  { label: 'MARKETEURS',    href: '/academie/marketeurs'    },
-  { label: 'CLUBS',         href: '/academie/clubs'         },
-  { label: 'IMPLANTATIONS', href: '/academie/implantations' },
+  { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },
+  { key: 'coachs',        label: 'COACHS',        href: '/academie/coachs'        },
+  { key: 'scouts',        label: 'SCOUTS',        href: '/academie/scouts'        },
+  { key: 'managers',      label: 'MANAGERS',      href: '/academie/managers'      },
+  { key: 'commerciaux',   label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
+  { key: 'marketeurs',    label: 'MARKETEURS',    href: '/academie/marketeurs'    },
+  { key: 'clubs',         label: 'CLUBS',         href: '/academie/clubs'         },
+  { key: 'implantations', label: 'IMPLANTATIONS', href: '/academie/implantations' },
 ] as const
 
 // ── Constantes ───────────────────────────────────────────────────────────────────
@@ -64,8 +67,9 @@ function splitName(displayName: string | null): { prenom: string; nom: string } 
 
 // ── Page principale ──────────────────────────────────────────────────────────────
 export default function AcademieCoachsPage() {
-  const router   = useRouter()
-  const pathname = usePathname()
+  const router         = useRouter()
+  const pathname       = usePathname()
+  const academieCounts = useContext(AcademieCountsContext)
 
   const [coaches,    setCoaches]    = useState<CoachWithGrade[]>([])
   const [loading,    setLoading]    = useState(true)
@@ -145,11 +149,15 @@ export default function AcademieCoachsPage() {
           <View style={s.tabsRow}>
             {ACADEMIE_TABS.map(tab => {
               const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+              const count    = academieCounts?.[tab.key] ?? null
               return (
                 <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
-                  <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
-                    {tab.label}
-                  </AureakText>
+                  <View style={s.tabLabelRow}>
+                    <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
+                      {tab.label}
+                    </AureakText>
+                    <SubtabCount value={count} active={isActive} />
+                  </View>
                   {isActive && <View style={s.tabUnderline} />}
                 </Pressable>
               )
@@ -338,12 +346,17 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
+  tabLabelRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.xs,
+    paddingBottom: 10,
+  },
   tabLabel: {
     fontSize     : 11,
     fontWeight   : '700',
     letterSpacing: 1,
     color        : colors.text.subtle,
-    paddingBottom: 10,
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },

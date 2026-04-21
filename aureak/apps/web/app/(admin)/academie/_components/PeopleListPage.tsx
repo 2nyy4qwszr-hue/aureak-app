@@ -4,7 +4,7 @@
 // factorisé pour éviter 3 duplications. Les pages concrètes passent leurs stat
 // cards et une colonne optionnelle (ex: PIPELINE pour commerciaux).
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, TextInput, Image, type TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { useAuthStore } from '@aureak/business-logic'
@@ -15,6 +15,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { splitName } from './splitName'
 import { formatRelativeDate } from './formatRelativeDate'
+import { SubtabCount } from '../../_components/SubtabCount'
+import { AcademieCountsContext } from '../_layout'
 
 type StatusFilter = 'actifs' | 'tous' | 'supprimes'
 const PAGE_SIZE = 25
@@ -35,15 +37,16 @@ type PeopleListPageProps = {
 }
 
 // Miroir exact de AcademieNavBar — 8 onglets Story 87.1
+// Story 93.2 — ajout des `key` pour indexer les counts du Context
 const ACADEMIE_TABS = [
-  { label: 'JOUEURS',       href: '/academie/joueurs'       },
-  { label: 'COACHS',        href: '/academie/coachs'        },
-  { label: 'SCOUTS',        href: '/academie/scouts'        },
-  { label: 'MANAGERS',      href: '/academie/managers'      },
-  { label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
-  { label: 'MARKETEURS',    href: '/academie/marketeurs'    },
-  { label: 'CLUBS',         href: '/academie/clubs'         },
-  { label: 'IMPLANTATIONS', href: '/academie/implantations' },
+  { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },
+  { key: 'coachs',        label: 'COACHS',        href: '/academie/coachs'        },
+  { key: 'scouts',        label: 'SCOUTS',        href: '/academie/scouts'        },
+  { key: 'managers',      label: 'MANAGERS',      href: '/academie/managers'      },
+  { key: 'commerciaux',   label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
+  { key: 'marketeurs',    label: 'MARKETEURS',    href: '/academie/marketeurs'    },
+  { key: 'clubs',         label: 'CLUBS',         href: '/academie/clubs'         },
+  { key: 'implantations', label: 'IMPLANTATIONS', href: '/academie/implantations' },
 ] as const
 
 export function PeopleListPage({
@@ -53,6 +56,7 @@ export function PeopleListPage({
   const router   = useRouter()
   const pathname = usePathname()
   const { user, role: authRole } = useAuthStore()
+  const academieCounts = useContext(AcademieCountsContext)
 
   const [rows,     setRows]     = useState<ProfileListRow[]>([])
   const [loading,  setLoading]  = useState(true)
@@ -165,11 +169,15 @@ export function PeopleListPage({
           <View style={s.tabsRow}>
             {ACADEMIE_TABS.map(tab => {
               const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+              const count    = academieCounts?.[tab.key] ?? null
               return (
                 <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
-                  <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
-                    {tab.label}
-                  </AureakText>
+                  <View style={s.tabLabelRow}>
+                    <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
+                      {tab.label}
+                    </AureakText>
+                    <SubtabCount value={count} active={isActive} />
+                  </View>
                   {isActive && <View style={s.tabUnderline} />}
                 </Pressable>
               )
@@ -393,12 +401,17 @@ const s = StyleSheet.create({
     borderBottomColor: colors.border.divider,
     flexWrap         : 'wrap',
   },
+  tabLabelRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.xs,
+    paddingBottom: 10,
+  },
   tabLabel: {
     fontSize     : 11,
     fontWeight   : '700',
     letterSpacing: 1,
     color        : colors.text.subtle,
-    paddingBottom: 10,
     textTransform: 'uppercase',
   },
   tabLabelActive: { color: colors.accent.gold },

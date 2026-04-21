@@ -1,11 +1,13 @@
 'use client'
 // Story 80-1 — Uniformisation design headerBlock (pattern Méthodologie)
+// Story 93-2 — Prop counts optionnelle pour badges de count sur onglets
 import React from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space } from '@aureak/theme'
+import { colors, space } from '@aureak/theme'
+import { SubtabCount } from '../../_components/SubtabCount'
 
 const TABS = [
   { key: 'seances',     label: 'SÉANCES',     href: '/activites' },
@@ -15,22 +17,29 @@ const TABS = [
 
 type TabKey = typeof TABS[number]['key']
 
+export type ActivitesHeaderProps = {
+  counts?: {
+    seances    ?: number | null
+    presences  ?: number | null
+    evaluations?: number | null
+  }
+}
+
 function getActiveTab(pathname: string): TabKey {
   if (pathname.endsWith('/presences'))   return 'presences'
   if (pathname.endsWith('/evaluations')) return 'evaluations'
   return 'seances'
 }
 
-export function ActivitesHeader() {
+export function ActivitesHeader({ counts }: ActivitesHeaderProps = {}) {
   const router    = useRouter()
   const pathname  = usePathname()
   const activeTab = getActiveTab(pathname)
 
   return (
     <View style={styles.headerBlock}>
-      {/* Titre + bouton */}
+      {/* Story 93.1 — pageTitle retiré (désormais rendu par <AdminPageHeader /> au niveau page). */}
       <View style={styles.headerTopRow}>
-        <AureakText style={styles.pageTitle}>ACTIVITÉS</AureakText>
         <Pressable
           onPress={() => router.push('/(admin)/seances/new')}
           style={styles.newBtn}
@@ -43,15 +52,19 @@ export function ActivitesHeader() {
       <View style={styles.tabsRow}>
         {TABS.map(tab => {
           const isActive = tab.key === activeTab
+          const count    = counts?.[tab.key] ?? null
           return (
             <Pressable
               key={tab.key}
               onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
               style={styles.tabItem}
             >
-              <AureakText style={{ ...styles.tabLabel, ...(isActive ? styles.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
+              <View style={styles.tabLabelRow}>
+                <AureakText style={{ ...styles.tabLabel, ...(isActive ? styles.tabLabelActive : {}) } as TextStyle}>
+                  {tab.label}
+                </AureakText>
+                <SubtabCount value={count} active={isActive} />
+              </View>
               {isActive && <View style={styles.tabUnderline} />}
             </Pressable>
           )
@@ -68,17 +81,10 @@ const styles = StyleSheet.create({
   },
   headerTopRow: {
     flexDirection    : 'row',
-    justifyContent   : 'space-between',
+    justifyContent   : 'flex-end',
     alignItems       : 'center',
     paddingHorizontal: space.lg,
-    paddingTop       : space.lg,
-  },
-  pageTitle: {
-    fontSize     : 24,
-    fontWeight   : '700',
-    fontFamily   : fonts.display,
-    color        : colors.text.dark,
-    letterSpacing: 0.5,
+    paddingTop       : space.sm,
   },
   newBtn: {
     backgroundColor  : colors.accent.gold,
@@ -101,6 +107,11 @@ const styles = StyleSheet.create({
   tabItem: {
     paddingBottom: 10,
     position     : 'relative',
+  },
+  tabLabelRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.xs,
   },
   tabLabel: {
     fontSize     : 11,

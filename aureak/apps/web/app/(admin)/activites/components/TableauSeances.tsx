@@ -10,13 +10,15 @@ import {
   listEvaluationsBySession,
   listActiveAbsenceAlerts,
   batchResolveCoachNames,
+  listNextUpcomingSessionRich,
 } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows, methodologyMethodColors } from '@aureak/theme'
-import type { SessionAttendanceSummary } from '@aureak/api-client'
+import type { SessionAttendanceSummary, UpcomingSessionRich } from '@aureak/api-client'
 import type { Evaluation } from '@aureak/types'
 import type { ScopeState } from './FiltresScope'
 import type { TemporalFilter } from './PseudoFiltresTemporels'
+import { NextSessionHero } from './NextSessionHero'
 
 const PAGE_SIZE = 20
 
@@ -245,6 +247,8 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
   const [anomalies,   setAnomalies]   = useState<Set<string>>(new Set())
   const [loading,     setLoading]     = useState(false)
   const [page,        setPage]        = useState(0)
+  // Story 93.4 — prochaine séance pour NextSessionHero (empty state today)
+  const [nextSession, setNextSession] = useState<UpcomingSessionRich | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -298,6 +302,17 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
     })()
   }, [scope.scope, scope.implantationId, scope.groupId])
 
+  // Story 93.4 — charge la prochaine séance pour le NextSessionHero (une seule fois)
+  useEffect(() => {
+    let cancelled = false
+    listNextUpcomingSessionRich({ daysAhead: 7 })
+      .then(({ data }) => { if (!cancelled) setNextSession(data) })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[TableauSeances] next session fetch error:', err)
+      })
+    return () => { cancelled = true }
+  }, [])
+
   // Filtrer par temporel
   const filtered = useMemo(
     () => applyTemporalFilter(sessions, temporalFilter),
@@ -346,12 +361,19 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
         ))}
       </View>
 
-      {/* Lignes vides */}
-      {enriched.length === 0 && (
+      {/* Story 93.4 — État vide premium : NextSessionHero si today+nextSession dispo, sinon fallback textuel */}
+      {enriched.length === 0 && temporalFilter === 'today' && nextSession && (
+        <NextSessionHero
+          session={nextSession}
+          onOpen ={() => router.push(`/seances/${nextSession.id}` as never)}
+          onEdit ={() => router.push(`/seances/${nextSession.id}/edit` as never)}
+        />
+      )}
+      {enriched.length === 0 && (temporalFilter !== 'today' || !nextSession) && (
         <View style={styles.emptyRow}>
           <AureakText style={styles.emptyText}>
             {temporalFilter === 'today'
-              ? "Aucune séance aujourd'hui. Consultez l'onglet «\u00a0À VENIR\u00a0» pour les prochaines séances."
+              ? 'Aucune séance planifiée dans les 7 prochains jours.'
               : 'Aucune séance pour ce filtre.'}
           </AureakText>
         </View>

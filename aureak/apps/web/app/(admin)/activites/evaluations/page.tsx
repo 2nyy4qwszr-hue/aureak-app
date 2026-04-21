@@ -1,6 +1,6 @@
 'use client'
 // Story 65-3 — Activités Hub : onglet Évaluations (vue transversale, 3 sous-filtres)
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react'
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -11,10 +11,15 @@ import {
 } from '@aureak/api-client'
 import type { AdminEvalRow } from '@aureak/api-client'
 
+import { AdminPageHeader }        from '../../_components/AdminPageHeader'
+import { formatEyebrow }          from '../../_components/formatPeriodLabel'
+import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../components/ActivitesHeader'
 import { FiltresScope }           from '../components/FiltresScope'
 import type { ScopeState }        from '../components/FiltresScope'
 import type { TemporalFilter }    from '../components/PseudoFiltresTemporels'
+
+const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
 
 // ─── Types internes ───────────────────────────────────────────────────────────
 
@@ -226,7 +231,8 @@ function PlayerSummaryCard({
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function EvaluationsPage() {
-  const router = useRouter()
+  const router        = useRouter()
+  const activitesCnts = useContext(ActivitesCountsContext)
 
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter]                    = useState<TemporalFilter>('past')
@@ -340,7 +346,13 @@ export default function EvaluationsPage() {
   // ─── Rendu ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      <ActivitesHeader />
+      {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
+      <AdminPageHeader
+        eyebrow={formatEyebrow('Pilotage')}
+        title="Activités"
+        subtitle={ACTIVITES_SUBTITLE}
+      />
+      <ActivitesHeader counts={activitesCnts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Vue Joueur — card résumé (scope joueur uniquement) */}

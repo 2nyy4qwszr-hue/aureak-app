@@ -480,14 +480,15 @@ development_status:
   epic-80-retrospective: optional
 
   # Epic 81 : Méthodologie — Uniformisation LayoutActivités
-  # Réouvert : 81-1 n'a traité que /methodologie/seances. 81-2 complète sur programmes/themes/situations/evaluations.
-  epic-81: in-progress
+  # 81-1 done. 81-2 ANNULÉE (décision 2026-04-21 : migration directe vers template Epic 93 sans étape intermédiaire).
+  epic-81: done
   81-1-methodologie-entrainements-layout-activites: done
-  81-2-methodologie-uniformisation-pages-restantes: ready-for-dev
+  81-2-methodologie-uniformisation-pages-restantes: cancelled
   epic-81-retrospective: optional
 
   # Epic 82 : Alignements visuels — Cards + Programmes
   epic-82: in-progress
+  # Note : Epic 93 "Premium UX Upgrade" ajouté après Epic 82 — voir fin du fichier.
   82-1-activites-statcards-hauteur-uniforme: done
   82-2-methodologie-programmes-layout-entrainements: done
   82-3-polish-programmes-statcards-evaluations: done
@@ -510,3 +511,15 @@ development_status:
   87-4-invitation-dediee-commercial-manager-marketeur: done
   87-5-users-redirect-profiles: done
   epic-87-retrospective: done
+
+  # Epic 93 : Premium UX Upgrade — pattern Template Admin
+  # Basé sur template `_bmad-output/design-references/Template - page admin Dashboard.zip`
+  # Fondations : 93-1 (AdminPageHeader) consommée par 93-2/93-3/93-4.
+  epic-93: in-progress
+  93-1-admin-page-header-premium: review
+  93-2-subtabs-with-count-badges: review
+  93-3-stats-hero-premium: review
+  93-4-next-session-hero: review
+  93-5-methodologie-apply-template: ready-for-dev
+  93-6-alignement-visuel-template-activites: ready-for-dev
+  epic-93-retrospective: optional

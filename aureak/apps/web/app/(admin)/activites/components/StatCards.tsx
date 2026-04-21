@@ -1,12 +1,15 @@
 'use client'
 // Story 72-2 — StatCards Séances : layout bento Figma
+// Story 93-3 — Migration vers StatsHero (1 card hero sparkline + 3 cards variants bars/progress/trend)
 import React, { useEffect, useState, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { listSessionsWithAttendance } from '@aureak/api-client'
-import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { colors, radius, space } from '@aureak/theme'
 import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { ScopeState } from './FiltresScope'
+
+import { StatsHero } from '../../_components/stats'
+import { buildActivitesSparklineData, buildWeeklySessionsData } from './sparkline-data'
 
 type Props = { scope: ScopeState }
 
@@ -49,25 +52,7 @@ function calcStats(sessions: SessionAttendanceSummary[]) {
     ? Math.round(a1 - a2)
     : null
 
-  // — T2 : Record annulations (AC2) —
-  const ym = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-  const currentMonth = ym(now)
-  const monthMap: Record<string, number> = {}
-  for (const s of sessions) {
-    if (s.status === 'annulée' || s.status === 'cancelled') {
-      const m = ym(new Date(s.scheduledAt))
-      monthMap[m] = (monthMap[m] ?? 0) + 1
-    }
-  }
-  const cancelledThisMonth = monthMap[currentMonth] ?? 0
-  const past6Months = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (i + 1), 1)
-    return ym(d)
-  })
-  const maxCancelledPast6 = past6Months.reduce((max, m) => Math.max(max, monthMap[m] ?? 0), 0)
-  const isRecord = cancelledThisMonth > 0 && maxCancelledPast6 > 0 && cancelledThisMonth >= maxCancelledPast6
-
-  return { total, cancelled, upcoming, avgPres, evalPct, trend, isRecord }
+  return { total, cancelled, upcoming, avgPres, evalPct, trend }
 }
 
 export function StatCards({ scope }: Props) {
@@ -95,87 +80,68 @@ export function StatCards({ scope }: Props) {
   }, [scope.scope, scope.implantationId, scope.groupId])
 
   const stats = useMemo(() => calcStats(sessions), [sessions])
+  const sparkline = useMemo(() => buildActivitesSparklineData(sessions), [sessions])
+  const weeklyBars = useMemo(() => buildWeeklySessionsData(sessions), [sessions])
 
   if (loading) {
     return (
-      <View style={styles.row}>
-        {[0, 1, 2, 3].map(i => <View key={i} style={styles.skeletonCard} />)}
+      <View style={loaderStyles.row}>
+        {[0, 1, 2, 3].map(i => <View key={i} style={loaderStyles.skeletonCard} />)}
       </View>
     )
   }
 
+  const trendDirection =
+    stats.trend === null ? 'neutral'
+      : stats.trend > 0 ? 'up'
+      : stats.trend < 0 ? 'down'
+      : 'neutral'
+
+  const trendLabel =
+    stats.trend === null ? 'Données insuffisantes'
+      : stats.trend === 0 ? 'Stable sur 30 jours'
+      : `${stats.trend > 0 ? '+' : ''}${stats.trend} pts vs mois dernier`
+
   return (
-    <View style={styles.row}>
-
-      {/* Card 1 — PRÉSENCE MOYENNE */}
-      <View style={styles.card as object}>
-        {/* Badge trend haut droite — conditionnel (AC1) */}
-        {stats.trend !== null && (
-          <View style={styles.badgeTrend as object}>
-            <AureakText style={styles.badgeTrendText}>
-              {stats.trend >= 0 ? `+${stats.trend}%` : `${stats.trend}%`}
-            </AureakText>
-          </View>
-        )}
-        {/* Picto */}
-        <AureakText style={styles.statIcon}>📈</AureakText>
-        <AureakText style={styles.statLabel}>PRÉSENCE MOYENNE</AureakText>
-        <AureakText style={styles.statValue}>{stats.avgPres}%</AureakText>
-        <AureakText style={stats.avgPres >= 75 ? styles.statSubGreen : styles.statSub}>
-          {stats.avgPres >= 75 ? '↑ Bonne dynamique' : '↓ À surveiller'}
-        </AureakText>
-      </View>
-
-      {/* Card 2 — TOTAL SÉANCES */}
-      <View style={styles.card as object}>
-        <AureakText style={styles.statIcon}>📅</AureakText>
-        <AureakText style={styles.statLabel}>TOTAL SÉANCES</AureakText>
-        <AureakText style={styles.statValue}>{stats.total}</AureakText>
-        <AureakText style={styles.statSub}>{stats.upcoming} à venir</AureakText>
-      </View>
-
-      {/* Card 3 — ANNULÉES */}
-      <View style={styles.card as object}>
-        {/* Badge "Record" haut droite — conditionnel (AC2) */}
-        {stats.isRecord && (
-          <View style={styles.badgeViolet as object}>
-            <AureakText style={styles.badgeVioletText}>Record</AureakText>
-          </View>
-        )}
-        <AureakText style={styles.statIcon}>⚠️</AureakText>
-        <AureakText style={styles.statLabel}>ANNULÉES</AureakText>
-        <AureakText style={styles.statValue}>{stats.cancelled}</AureakText>
-        <AureakText style={styles.statSub}>sur {stats.total} séances</AureakText>
-      </View>
-
-      {/* Card 4 — ÉVALS COMPLÉTÉES — fond gold solid */}
-      <View style={styles.cardGold as object}>
-        {/* Icône flèche haut droite */}
-        <View style={styles.arrowIcon as object}>
-          <AureakText style={styles.arrowIconText}>↑</AureakText>
-        </View>
-        <AureakText style={styles.cardGoldLabel}>ÉVALS COMPLÉTÉES</AureakText>
-        <AureakText style={styles.cardGoldValue}>{stats.evalPct}%</AureakText>
-        {/* Barre de progression */}
-        <View style={styles.progressBar}>
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${Math.min(stats.evalPct, 100)}%` as unknown as number,
-                // RN Web supporte les propriétés CSS inline via style object
-                background: `linear-gradient(90deg, ${colors.accent.gold} 0%, ${colors.accent.goldPale} 100%)`,
-              } as object,
-            ]}
-          />
-        </View>
-      </View>
-
-    </View>
+    <StatsHero
+      hero={{
+        label             : 'Présence moyenne · 30j',
+        value             : stats.avgPres,
+        unit              : '%',
+        trend             : { direction: trendDirection, label: trendLabel },
+        sparkline         : sparkline,
+        sparklineAriaLabel: `Évolution présence moyenne sur 30 jours, de ${Math.min(...sparkline)}% à ${Math.max(...sparkline)}%`,
+      }}
+      cards={[
+        {
+          label  : 'Total séances',
+          value  : stats.total,
+          meta   : `${stats.upcoming} à venir cette semaine`,
+          footer : { type: 'bars', bars: weeklyBars, dayLabels: ['L', 'M', 'M', 'J', 'V', 'S', 'D'] },
+          iconTone: 'gold',
+        },
+        {
+          label   : 'Annulées',
+          value   : stats.cancelled,
+          meta    : stats.total > 0 ? `sur ${stats.total} séances · taux ${Math.round((stats.cancelled / stats.total) * 100)}%` : 'sur 0 séance',
+          iconTone: 'red',
+        },
+        {
+          label  : 'Évaluations complétées',
+          value  : stats.evalPct,
+          unit   : '%',
+          trend  : stats.evalPct === 100
+            ? { direction: 'up', label: 'Toutes saisies' }
+            : { direction: 'neutral', label: `${stats.evalPct}% · en attente des coachs` },
+          footer : { type: 'progress', progress: stats.evalPct },
+          iconTone: 'gold',
+        },
+      ]}
+    />
   )
 }
 
-const styles = StyleSheet.create({
+const loaderStyles = StyleSheet.create({
   row: {
     flexDirection    : 'row',
     gap              : space.md,
@@ -183,159 +149,12 @@ const styles = StyleSheet.create({
     paddingBottom    : space.md,
     flexWrap         : 'wrap',
   },
-
-  // ── Cards 1–3 (fond blanc)
-  card: {
-    flex            : 1,
-    minWidth        : 160,
-    backgroundColor : colors.light.surface,
-    borderRadius    : radius.card,
-    padding         : space.md,
-    borderWidth     : 1,
-    borderColor     : colors.border.divider,
-    boxShadow       : shadows.sm,
-    position        : 'relative',
-  },
-
   skeletonCard: {
     flex           : 1,
     minWidth       : 160,
+    height         : 160,
     backgroundColor: colors.light.muted,
     borderRadius   : radius.card,
     opacity        : 0.6,
-  },
-
-  // Picto emoji direct
-  statIcon: {
-    fontSize    : 22,
-    marginBottom: 4,
-  },
-
-  // Badge trend or (card 1)
-  badgeTrend: {
-    position        : 'absolute',
-    top             : 16,
-    right           : 16,
-    backgroundColor : colors.border.gold,
-    paddingHorizontal: 8,
-    paddingVertical : 4,
-    borderRadius    : 12,
-  },
-  badgeTrendText: {
-    fontSize  : 11,
-    fontWeight: '600',
-    fontFamily: fonts.body,
-    color     : colors.accent.gold,
-  },
-
-  // Badge "Record" (card 3) — ambre/warning (violet exclu de la charte)
-  badgeViolet: {
-    position        : 'absolute',
-    top             : 16,
-    right           : 16,
-    backgroundColor : colors.status.warningBg,
-    paddingHorizontal: 8,
-    paddingVertical : 4,
-    borderRadius    : 12,
-  },
-  badgeVioletText: {
-    fontSize  : 11,
-    fontWeight: '600',
-    fontFamily: fonts.body,
-    color     : colors.status.warning,
-  },
-
-  // Label commun (uppercase)
-  statLabel: {
-    fontSize     : 10,
-    fontFamily   : fonts.display,
-    fontWeight   : '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    color        : colors.text.muted,
-    marginBottom : space.sm,
-  },
-
-  // Valeur commun (28px black)
-  statValue: {
-    fontSize    : 28,
-    fontWeight  : '900',
-    fontFamily  : fonts.display,
-    color       : colors.text.dark,
-    marginBottom: space.xs,
-  },
-
-  // Sous-label or (neutre/négatif)
-  statSub: {
-    fontSize  : 11,
-    fontFamily: fonts.body,
-    color     : colors.accent.gold,
-    marginTop : 6,
-  },
-
-  // Sous-label vert (positif)
-  statSubGreen: {
-    fontSize  : 11,
-    fontFamily: fonts.body,
-    color     : colors.status.success,
-    marginTop : 6,
-  },
-
-  // ── Card 4 (fond gold solid goldDark)
-  cardGold: {
-    flex           : 1,
-    minWidth       : 160,
-    backgroundColor: colors.accent.goldDark,
-    borderRadius   : radius.card,
-    padding        : space.md,
-    borderWidth    : 0,
-    position       : 'relative',
-  },
-  cardGoldLabel: {
-    fontSize     : 12,
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    color        : colors.accent.goldPale,
-    fontFamily   : fonts.display,
-    fontWeight   : '500',
-    marginBottom : 8,
-    marginTop    : 8,
-  },
-  cardGoldValue: {
-    fontSize  : 20,
-    fontWeight: '700',
-    color     : colors.text.primary,
-    fontFamily: fonts.display,
-    lineHeight : 28,
-  },
-
-  // Icône flèche card 4 (position absolue haut droite, 76×44px)
-  arrowIcon: {
-    position      : 'absolute',
-    top           : 0,
-    right         : 0,
-    width         : 76,
-    height        : 44,
-    alignItems    : 'center',
-    justifyContent: 'center',
-  },
-  arrowIconText: {
-    fontSize  : 28,
-    color     : colors.accent.goldPale,
-    fontWeight: '700',
-  },
-
-  // Barre de progression card 4
-  progressBar: {
-    marginTop      : space.sm,
-    height         : 8,
-    backgroundColor: colors.border.light,
-    borderRadius   : 4,
-    overflow       : 'hidden',
-  },
-  progressFill: {
-    height        : 8,
-    borderRadius  : 4,
-    // gradient appliqué via style inline dans le JSX
   },
 })

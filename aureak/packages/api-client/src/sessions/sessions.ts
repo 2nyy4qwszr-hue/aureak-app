@@ -187,6 +187,106 @@ export async function listNextSessionForDashboard(
   }
 }
 
+// ─── Next session hero rich (Story 93.4) ──────────────────────────────────────
+
+export type UpcomingSessionRich = {
+  id             : string
+  title          : string        // label session OU groupe — fallback '—'
+  groupName      : string
+  scheduledAt    : string        // ISO
+  durationMinutes: number
+  location       : string | null
+  coachName      : string | null
+  attendeesCount : number
+  method         : string | null
+}
+
+/** listNextUpcomingSessionRich — prochaine séance à venir enrichie (coach, attendees, méthode).
+ *  Utilisée par le NextSessionHero sur /activites onglet Aujourd'hui en état vide.
+ *  Fail-safe : chaque sous-query (coach, attendees, method) est isolée via Promise.allSettled. */
+export async function listNextUpcomingSessionRich(opts?: {
+  daysAhead?: number
+}): Promise<{ data: UpcomingSessionRich | null; error: unknown }> {
+  const daysAhead = opts?.daysAhead ?? 7
+  const now   = new Date().toISOString()
+  const limit = new Date(Date.now() + daysAhead * 24 * 3_600_000).toISOString()
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('id, scheduled_at, duration_minutes, location, label, groups(name)')
+    .gte('scheduled_at', now)
+    .lte('scheduled_at', limit)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: true })
+    .limit(1)
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[listNextUpcomingSessionRich] base error:', error)
+    return { data: null, error }
+  }
+
+  const raw = (data as Record<string, unknown>[] | null)?.[0]
+  if (!raw) return { data: null, error: null }
+
+  const sessionId       = raw['id']              as string
+  const scheduledAt     = raw['scheduled_at']    as string
+  const durationMinutes = (raw['duration_minutes'] as number | null) ?? 60
+  const location        = (raw['location']       as string | null) ?? null
+  const label           = (raw['label']          as string | null) ?? null
+  const groupName       = (raw['groups'] as { name?: string } | null)?.name ?? '—'
+  const title           = label ?? (groupName !== '—' ? groupName : 'Séance')
+
+  // Sous-queries enrichies (isolées, échec silencieux → null)
+  const [coachRes, attendeesRes, themeRes] = await Promise.allSettled([
+    supabase
+      .from('session_coaches')
+      .select('coach_id, profiles(display_name)')
+      .eq('session_id', sessionId)
+      .limit(1),
+    supabase
+      .from('session_attendees')
+      .select('child_id', { count: 'exact', head: true })
+      .eq('session_id', sessionId),
+    supabase
+      .from('session_themes')
+      .select('themes(label)')
+      .eq('session_id', sessionId)
+      .limit(1),
+  ])
+
+  let coachName: string | null = null
+  if (coachRes.status === 'fulfilled' && !coachRes.value.error) {
+    const row = (coachRes.value.data as Record<string, unknown>[] | null)?.[0]
+    if (row) coachName = (row['profiles'] as { display_name?: string } | null)?.display_name ?? null
+  }
+
+  let attendeesCount = 0
+  if (attendeesRes.status === 'fulfilled' && !attendeesRes.value.error) {
+    attendeesCount = attendeesRes.value.count ?? 0
+  }
+
+  let method: string | null = null
+  if (themeRes.status === 'fulfilled' && !themeRes.value.error) {
+    const row = (themeRes.value.data as Record<string, unknown>[] | null)?.[0]
+    if (row) method = (row['themes'] as { label?: string } | null)?.label ?? null
+  }
+
+  return {
+    data: {
+      id             : sessionId,
+      title,
+      groupName,
+      scheduledAt,
+      durationMinutes,
+      location,
+      coachName,
+      attendeesCount,
+      method,
+    },
+    error: null,
+  }
+}
+
 export type UpdateSessionParams = {
   scheduledAt?        : string
   durationMinutes?    : number
