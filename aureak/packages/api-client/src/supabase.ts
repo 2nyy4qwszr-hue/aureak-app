@@ -4,6 +4,7 @@
 // Source: architecture.md#Frontières-Architecturales + Story 1.2 AC7
 
 import { createClient } from '@supabase/supabase-js'
+import { processLock } from '@supabase/auth-js'
 
 // EXPO_PUBLIC_ prefix = inliné par Metro dans le bundle navigateur (Expo SDK 49+).
 // Fallback sur SUPABASE_* pour CI / Node.js (Edge Functions, scripts de migration).
@@ -29,6 +30,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Fallback localhost uniquement pour le dev local — jamais en production sans .env
 export const supabase = createClient(
   supabaseUrl || 'http://localhost:54321',
-  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7b9PG0CkZjb0bV0eMRUkqMDY5QSmN7nIkZs'
+  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7b9PG0CkZjb0bV0eMRUkqMDY5QSmN7nIkZs',
   // ↑ anon key locale standard Supabase CLI (supabase start) — valide pour dev uniquement
+  // Lock in-memory au lieu de navigator.locks — évite les AbortError "Lock broken by another
+  // request with the 'steal' option" en React Strict Mode (double-mount des effects) et les
+  // warnings "orphaned lock" du gotrue-js qui peuvent figer les requêtes 5s.
+  { auth: { lock: processLock } },
 )
