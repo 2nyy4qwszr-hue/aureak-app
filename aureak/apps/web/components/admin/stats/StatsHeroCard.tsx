@@ -6,7 +6,7 @@ import { View, StyleSheet, type TextStyle } from 'react-native'
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius } from '@aureak/theme'
-import { buildSparklinePath } from './sparkline'
+import { buildSparklinePath } from '../../../lib/admin/stats/sparkline'
 
 export type StatsHeroCardTrend = {
   direction: 'up' | 'down' | 'neutral'

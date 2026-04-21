@@ -15,7 +15,7 @@ import type { EffectivePermissions } from '@aureak/types'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
 import { NavTooltip } from '../../components/NavTooltip'
-import { AdminTopbar } from './_components/AdminTopbar'
+import { AdminTopbar } from '../../components/admin/AdminTopbar'
 import {
   HomeIcon,
   CalendarIcon,
@@ -66,8 +66,8 @@ import { useAvailableRoles } from './hooks/useAvailableRoles'
 import { useCurrentRole } from './hooks/useCurrentRole'
 // Story 86-4 — Sidebar dynamique selon rôle actif + permissions effectives
 import { useEffectivePermissions } from './hooks/useEffectivePermissions'
-import { buildNavGroups } from './_nav-config'
-import type { NavGroup } from './_nav-config'
+import { buildNavGroups } from '../../lib/admin/nav-config'
+import type { NavGroup } from '../../lib/admin/nav-config'
 
 // ── Story 51.7 — HoverablePressable : Pressable avec onMouseEnter/Leave (RN Web) ─
 // Les props hover ne sont pas dans les types RN natifs — cast via interface étendue.

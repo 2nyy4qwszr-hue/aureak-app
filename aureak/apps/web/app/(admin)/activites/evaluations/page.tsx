@@ -11,8 +11,8 @@ import {
 } from '@aureak/api-client'
 import type { AdminEvalRow } from '@aureak/api-client'
 
-import { AdminPageHeader }        from '../../_components/AdminPageHeader'
-import { formatEyebrow }          from '../../_components/formatPeriodLabel'
+import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
+import { formatEyebrow }          from '../../../../lib/admin/formatPeriodLabel'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../components/ActivitesHeader'
 import { FiltresScope }           from '../components/FiltresScope'

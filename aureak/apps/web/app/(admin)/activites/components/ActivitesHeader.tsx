@@ -9,7 +9,7 @@ import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
-import { SubtabCount } from '../../_components/SubtabCount'
+import { SubtabCount } from '../../../../components/admin/SubtabCount'
 
 const TABS = [
   { key: 'seances',     label: 'SÉANCES',     href: '/activites' },

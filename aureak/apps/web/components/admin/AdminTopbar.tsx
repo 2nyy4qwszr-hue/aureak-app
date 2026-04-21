@@ -7,7 +7,7 @@ import { View, Pressable, StyleSheet, useWindowDimensions, type TextStyle } from
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
-import { getBreadcrumbs, getTopbarActions, type TopbarAction } from './topbar-config'
+import { getBreadcrumbs, getTopbarActions, type TopbarAction } from '../../lib/admin/topbar-config'
 
 const MOBILE_BREAKPOINT = 768
 

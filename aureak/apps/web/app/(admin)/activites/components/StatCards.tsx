@@ -8,7 +8,7 @@ import { colors, radius, space } from '@aureak/theme'
 import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { ScopeState } from './FiltresScope'
 
-import { StatsHero } from '../../_components/stats'
+import { StatsHero } from '../../../../components/admin/stats'
 import { buildActivitesSparklineData, buildWeeklySessionsData } from './sparkline-data'
 
 type Props = { scope: ScopeState }
