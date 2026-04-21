@@ -698,3 +698,14 @@ export {
   updateCommercialContact,
 } from './admin/commercial-contacts'
 
+// ── Story 87.1 — Profils Académie par rôle (commercial | manager | marketeur) ─
+export {
+  listProfilesByRole,
+  countManagersWithOverrides,
+  countActiveCommercialPipeline,
+  countMonthlyClosedWon,
+} from './admin/profiles-by-role'
+export type {
+  ProfileListRow, ProfileRoleFilter, ListProfilesByRoleOpts,
+} from './admin/profiles-by-role'
+
