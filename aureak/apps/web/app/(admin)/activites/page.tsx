@@ -5,7 +5,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 
 import { AdminPageHeader }          from '../_components/AdminPageHeader'
-import { formatEyebrow }            from '../_components/formatPeriodLabel'
+import { formatEyebrow, formatPeriodLabel } from '../_components/formatPeriodLabel'
 import { ActivitesCountsContext }   from './_layout'
 import { ActivitesHeader }          from './components/ActivitesHeader'
 import { ActivitesToolbar }         from './components/ActivitesToolbar'
@@ -24,10 +24,15 @@ export default function ActivitesPage() {
   return (
     <View style={styles.container}>
       {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
+      {/* Story 93.7 — Filtre période mois (periodButton) à droite du header */}
       <AdminPageHeader
         eyebrow={formatEyebrow('Pilotage')}
         title="Activités"
         subtitle={ACTIVITES_SUBTITLE}
+        periodButton={{
+          label  : formatPeriodLabel(),
+          onPress: () => { /* TODO 93-X : ouvrir picker mois */ },
+        }}
       />
 
       {/* Header onglets + bouton (Story 93.2 — counts depuis Context layout) */}
