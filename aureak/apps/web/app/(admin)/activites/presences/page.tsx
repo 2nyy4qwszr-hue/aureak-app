@@ -1,6 +1,6 @@
 'use client'
 // Story 65-2 — Activités Hub : onglet Présences (vue transversale)
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react'
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
@@ -17,11 +17,16 @@ import {
 import type { GroupWithMeta, GroupMemberWithName, ChildDirectoryEntry } from '@aureak/types'
 import type { SessionAttendanceSummary, AttendanceHistoryRow } from '@aureak/api-client'
 
+import { AdminPageHeader }        from '../../_components/AdminPageHeader'
+import { formatEyebrow }          from '../../_components/formatPeriodLabel'
+import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../components/ActivitesHeader'
 import { FiltresScope }           from '../components/FiltresScope'
 import { PseudoFiltresTemporels } from '../components/PseudoFiltresTemporels'
 import type { ScopeState }        from '../components/FiltresScope'
 import type { TemporalFilter }    from '../components/PseudoFiltresTemporels'
+
+const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
 import type { AttendanceStatus }  from '@aureak/types'
 
 // ─── Types internes ───────────────────────────────────────────────────────────
@@ -1024,7 +1029,8 @@ const vueJoueurStyles = StyleSheet.create({
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function PresencesPage() {
-  const router = useRouter()
+  const router        = useRouter()
+  const activitesCnts = useContext(ActivitesCountsContext)
 
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('past')
@@ -1213,7 +1219,13 @@ export default function PresencesPage() {
 
   return (
     <View style={pageStyles.container}>
-      <ActivitesHeader />
+      {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
+      <AdminPageHeader
+        eyebrow={formatEyebrow('Pilotage')}
+        title="Activités"
+        subtitle={ACTIVITES_SUBTITLE}
+      />
+      <ActivitesHeader counts={activitesCnts ?? undefined} />
       <ScrollView style={pageStyles.scroll} contentContainerStyle={pageStyles.scrollContent}>
         {/* Stat cards */}
         <StatCardsPresences sessions={sessions} />

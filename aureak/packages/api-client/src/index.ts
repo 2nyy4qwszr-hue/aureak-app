@@ -140,8 +140,10 @@ export {
   getActiveSessionForCoach,
   // Story 72.1 — Dashboard "Sessions du jour"
   listTodaySessionsForDashboard,
+  // Story 93.4 — Next session hero rich
+  listNextUpcomingSessionRich,
 } from './sessions/sessions'
-export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow, TodaySessionRow } from './sessions/sessions'
+export type { CreateSessionParams, UpdateSessionParams, GenerateYearSessionsResult, SessionCalendarRow, CaptureNewChildParams, SessionRowAdmin, UpcomingSessionRow, TodaySessionRow, UpcomingSessionRich } from './sessions/sessions'
 export type { ActiveSessionInfo } from '@aureak/types'
 
 export {
@@ -719,4 +721,14 @@ export {
 export type {
   ProfileListRow, ProfileRoleFilter, ListProfilesByRoleOpts,
 } from './admin/profiles-by-role'
+
+// ── Story 93.2 — Compteurs par hub (Activités, Méthodologie, Académie) ───────
+export {
+  getActivitesCounts,
+  getMethodologieCounts,
+  getAcademieCounts,
+} from './admin/hub-counts'
+export type {
+  ActivitesCounts, MethodologieCounts, AcademieCounts,
+} from './admin/hub-counts'
 
