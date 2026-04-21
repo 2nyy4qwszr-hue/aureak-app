@@ -58,6 +58,11 @@ export const colors = {
     // Équipe B (TacticalEditor)
     teamB    : '#B03030',  // rouge foncé équipe B
   },
+  // Story 93.6 — Tons "ink" premium pour cards hero dark gradient
+  ink: {
+    premiumDark : '#0E0E10',  // début gradient hero (dark) — admin premium
+    premiumWarm : '#1F1B10',  // fin gradient hero (warm dark) — admin premium
+  },
   status: {
     present  : '#4CAF50',  // présent 🟢 — présences ET évaluation positive
     attention: '#FFC107',  // point d'attention 🟡 — évaluation uniquement
@@ -123,6 +128,7 @@ export const colors = {
     dark     : '#18181B',         // texte principal sur fond clair (zinc-900)
     muted    : '#71717A',         // texte atténué sur fond clair (zinc-500)
     subtle   : '#A1A1AA',        // labels discrets sur fond clair (zinc-400)
+    onDarkMuted: 'rgba(255,255,255,0.55)',  // Story 93.6 — labels/unit sur fond hero gradient sombre
   },
   border: {
     light   : '#E5E7EB',         // bordures inputs/tables fond clair

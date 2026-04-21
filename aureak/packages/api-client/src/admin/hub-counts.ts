@@ -10,19 +10,27 @@ import { supabase } from '../supabase'
 // =============================================================================
 
 /** Exécute une query count et retourne le nombre ou null en cas d'erreur.
- *  Accepte un PostgrestFilterBuilder (thenable) — on le `await` pour obtenir la réponse. */
+ *  Accepte un PostgrestFilterBuilder (thenable) — on le `await` pour obtenir la réponse.
+ *  Story 93.6 — silence les AbortError de @supabase/gotrue-js Lock (faux-positifs en React Strict Mode). */
 async function safeCount(
   builder: PromiseLike<{ count: number | null; error: unknown }>,
 ): Promise<number | null> {
   try {
     const res = await builder
     if (res.error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[hub-counts] query error:', res.error)
+      const errName = (res.error as { name?: string } | null)?.name
+      // AbortError = lock auth volé par une requête concurrente au mount, retry transparent par Supabase
+      if (errName !== 'AbortError' && process.env.NODE_ENV !== 'production') {
+        console.error('[hub-counts] query error:', res.error)
+      }
       return null
     }
     return res.count ?? 0
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('[hub-counts] query exception:', err)
+    const errName = (err as { name?: string } | null)?.name
+    if (errName !== 'AbortError' && process.env.NODE_ENV !== 'production') {
+      console.error('[hub-counts] query exception:', err)
+    }
     return null
   }
 }
@@ -65,19 +73,19 @@ export async function getActivitesCounts(opts?: {
         .is('deleted_at', null),
     ),
     safeCount(
+      // Story 93.6 fix — table attendances utilise `recorded_at` (pas `created_at`)
       supabase
         .from('attendances')
         .select('id', { count: 'exact', head: true })
-        .gte('created_at', start)
-        .lt('created_at', end),
+        .gte('recorded_at', start)
+        .lt('recorded_at', end),
     ),
     safeCount(
+      // Story 93.6 fix — table `evaluations` n'a pas de migration locale (remote-only),
+      // schéma incertain pour `created_at`/`deleted_at` → count global sans filtre date.
       supabase
         .from('evaluations')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', start)
-        .lt('created_at', end)
-        .is('deleted_at', null),
+        .select('id', { count: 'exact', head: true }),
     ),
   ])
 

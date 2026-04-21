@@ -37,7 +37,11 @@ export function AdminPageHeader({
     <View style={[s.container, isMobile && s.containerMobile] as never}>
       {/* Zone gauche : eyebrow + title + subtitle */}
       <View style={s.left}>
-        <AureakText style={s.eyebrow as TextStyle}>{eyebrow}</AureakText>
+        {/* Story 93.6 — eyebrow doré + barre 36×1px à droite */}
+        <View style={s.eyebrowRow}>
+          <AureakText style={s.eyebrow as TextStyle}>{eyebrow}</AureakText>
+          <View style={s.eyebrowBar} />
+        </View>
         <AureakText style={s.title as TextStyle}>{title}</AureakText>
         {subtitle && (
           <AureakText style={[s.subtitle, isMobile && s.subtitleMobile] as never}>
@@ -97,20 +101,30 @@ const s = StyleSheet.create({
     flex: 1,
     gap : space.xs,
   },
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : 10,
+  },
   eyebrow: {
     fontSize      : 11,
-    fontWeight    : '600',
+    fontWeight    : '900',
     letterSpacing : 1,
     textTransform : 'uppercase',
-    color         : colors.text.muted,
+    color         : colors.accent.gold,
     fontFamily    : fonts.body,
+  },
+  eyebrowBar: {
+    width          : 36,
+    height         : 1,
+    backgroundColor: colors.accent.gold,
   },
   title: {
     fontSize     : 32,
-    fontWeight   : '700',
+    fontWeight   : '900',
     fontFamily   : fonts.display,
     color        : colors.text.dark,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
     lineHeight   : 38,
   },
   subtitle: {
