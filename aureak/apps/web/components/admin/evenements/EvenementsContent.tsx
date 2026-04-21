@@ -10,8 +10,8 @@ import type { StageWithMeta } from '@aureak/types'
 import type { EventType } from '@aureak/types'
 
 import { EvenementsHeader }         from './EvenementsHeader'
-import { PseudoFiltresTemporels }   from '../../../../components/admin/activites/PseudoFiltresTemporels'
-import type { TemporalFilter }      from '../../../../components/admin/activites/PseudoFiltresTemporels'
+import { PseudoFiltresTemporels }   from '../activites/PseudoFiltresTemporels'
+import type { TemporalFilter }      from '../activites/PseudoFiltresTemporels'
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 

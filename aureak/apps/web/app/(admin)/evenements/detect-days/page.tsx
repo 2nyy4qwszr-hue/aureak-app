@@ -1,5 +1,5 @@
 'use client'
-import { EvenementsContent } from '../_components/EvenementsContent'
+import { EvenementsContent } from '../../../../components/admin/evenements/EvenementsContent'
 
 export default function DetectDaysPage() {
   return <EvenementsContent eventType="detect_day" typeLabel="Detect Days" />
