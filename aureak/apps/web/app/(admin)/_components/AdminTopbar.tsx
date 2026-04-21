@@ -66,7 +66,7 @@ export function AdminTopbar({
 
         {/* Icon-btn settings */}
         <Pressable style={({ pressed }) => [s.iconBtn, pressed && s.iconBtnPressed] as never}>
-          <AureakText style={s.iconBtnEmoji as TextStyle}>⚙</AureakText>
+          <AureakText style={s.iconBtnEmoji as TextStyle}>⚙️</AureakText>
         </Pressable>
 
         {topActions.length > 0 && (

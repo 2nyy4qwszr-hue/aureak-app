@@ -3,8 +3,8 @@ import { Animated, Pressable, useWindowDimensions } from 'react-native'
 import { XStack, Text } from 'tamagui'
 import { usePathname, useRouter } from 'expo-router'
 import { colors, transitions } from '@aureak/theme'
-import { parseBreadcrumbs } from '../app/utils/breadcrumbs'
-import { useBreadcrumbContext } from '../app/contexts/BreadcrumbContext'
+import { parseBreadcrumbs } from '../utils/breadcrumbs'
+import { useBreadcrumbContext } from '../contexts/BreadcrumbContext'
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 

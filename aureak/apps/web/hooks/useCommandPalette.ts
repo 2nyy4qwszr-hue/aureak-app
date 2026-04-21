@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'expo-router'
 import { searchUnified } from '@aureak/api-client'
 import type { CommandResult } from '@aureak/types'
-import { filterNavCommands } from '../app/constants/navCommands'
+import { filterNavCommands } from '../constants/navCommands'
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
