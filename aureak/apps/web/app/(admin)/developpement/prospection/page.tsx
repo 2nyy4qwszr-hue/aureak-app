@@ -9,11 +9,11 @@ import { colors, space, radius } from '@aureak/theme'
 import { listClubDirectory, listAllCommercialContacts } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import type { ClubDirectoryEntry, CommercialContactWithCommercial } from '@aureak/types'
-import { ProspectionKPIs } from './_components/ProspectionKPIs'
-import type { ProspectionStats } from './_components/ProspectionKPIs'
-import { ClubList } from './_components/ClubList'
-import { AdminFilters } from './_components/AdminFilters'
-import type { ClubCommercialStatus } from './_components/ClubCard'
+import { ProspectionKPIs } from '../../../../components/admin/prospection/ProspectionKPIs'
+import type { ProspectionStats } from '../../../../components/admin/prospection/ProspectionKPIs'
+import { ClubList } from '../../../../components/admin/prospection/ClubList'
+import { AdminFilters } from '../../../../components/admin/prospection/AdminFilters'
+import type { ClubCommercialStatus } from '../../../../components/admin/prospection/ClubCard'
 
 export default function ProspectionPage() {
   const { role } = useAuthStore()
