@@ -1,6 +1,6 @@
 # Story 87.4 — Invitation dédiée pour Commercial / Manager / Marketeur
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
