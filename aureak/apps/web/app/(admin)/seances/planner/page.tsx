@@ -8,7 +8,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { Implantation } from '@aureak/types'
 import type { SessionRowAdmin } from '@aureak/api-client'
-import { TYPE_COLOR, MONTHS_FR } from '../_components/constants'
+import { TYPE_COLOR, MONTHS_FR } from '../../../../lib/admin/seances/constants'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

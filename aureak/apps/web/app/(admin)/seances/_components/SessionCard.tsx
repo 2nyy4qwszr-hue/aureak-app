@@ -6,7 +6,7 @@ import { colors, space, shadows, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { SessionType } from '@aureak/types'
 import type { SessionRowAdmin } from '@aureak/api-client'
-import { TYPE_COLOR } from './constants'
+import { TYPE_COLOR } from '../../../../lib/admin/seances/constants'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

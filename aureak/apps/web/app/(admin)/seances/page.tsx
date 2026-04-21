@@ -15,8 +15,8 @@ import {
   listAttendancesBySession,
   listChildDirectory,
 } from '@aureak/api-client'
-import { buildPresenceReportHTML, printReport } from './_utils/generatePresenceReport'
-import type { PresenceReportData } from './_utils/generatePresenceReport'
+import { buildPresenceReportHTML, printReport } from '../../../lib/admin/seances/generatePresenceReport'
+import type { PresenceReportData } from '../../../lib/admin/seances/generatePresenceReport'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText, Badge } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
@@ -24,7 +24,7 @@ import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Implantation, SessionType, SchoolCalendarException } from '@aureak/types'
 import type { GenerateYearSessionsResult, SessionRowAdmin } from '@aureak/api-client'
 
-import { TYPE_COLOR, MONTHS_FR } from './_components/constants'
+import { TYPE_COLOR, MONTHS_FR } from '../../../lib/admin/seances/constants'
 import DayView   from './_components/DayView'
 import WeekView  from './_components/WeekView'
 import MonthView from './_components/MonthView'

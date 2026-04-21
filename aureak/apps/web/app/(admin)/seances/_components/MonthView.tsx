@@ -5,7 +5,7 @@ import { colors, space, radius } from '@aureak/theme'
 import { SESSION_TYPE_LABELS } from '@aureak/types'
 import type { SessionType } from '@aureak/types'
 import type { SessionRowAdmin } from '@aureak/api-client'
-import { TYPE_COLOR, toDateStr, isToday } from './constants'
+import { TYPE_COLOR, toDateStr, isToday } from '../../../../lib/admin/seances/constants'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
