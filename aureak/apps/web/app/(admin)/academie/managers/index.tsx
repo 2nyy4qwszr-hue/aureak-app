@@ -1,26 +1,55 @@
 'use client'
-// Story 75.2 — Stub Managers (nouveau profil — à implémenter dans une story dédiée)
-import { View, StyleSheet } from 'react-native'
-import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+// Story 87.1 — Page liste Managers de l'Académie
+// Remplace le stub "Bientôt disponible" par la page complète via PeopleListPage.
+
+import { useEffect, useState } from 'react'
+import { countManagersWithOverrides } from '@aureak/api-client'
+import { colors } from '@aureak/theme'
+import { PeopleListPage, StatCard, StatCardsRow } from '../_components/PeopleListPage'
+import { formatRelativeDate } from '../_components/formatRelativeDate'
 
 export default function AcademieManagersPage() {
+  const [overridesCount, setOverridesCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      try {
+        const res = await countManagersWithOverrides()
+        if (cancelled) return
+        setOverridesCount(res.available ? res.count : null)
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.error('[AcademieManagersPage] overrides count error:', err)
+        if (!cancelled) setOverridesCount(null)
+      }
+    }
+    run()
+    return () => { cancelled = true }
+  }, [])
+
   return (
-    <View style={s.container}>
-      <AureakText variant="h2" style={s.title}>Managers</AureakText>
-      <AureakText variant="body" style={s.sub}>Bientôt disponible</AureakText>
-    </View>
+    <PeopleListPage
+      role={'manager'}
+      newButtonLabel={'+ Nouveau manager'}
+      newButtonHref={'/settings/permissions#invite-manager'}
+      emptyLabel={'Aucun manager'}
+      renderStatCards={(rows) => {
+        const total       = rows.length
+        const actifs      = rows.filter(r => !r.deletedAt).length
+        const newestIso   = rows.reduce<string | null>((acc, r) => {
+          if (!r.createdAt) return acc
+          if (!acc || r.createdAt > acc) return r.createdAt
+          return acc
+        }, null)
+        return (
+          <StatCardsRow>
+            <StatCard picto={'👔'} label={'MANAGERS'}           value={String(total)} />
+            <StatCard picto={'✅'} label={'ACTIFS'}             value={String(actifs)} valueColor={colors.status.present} />
+            <StatCard picto={'🔓'} label={'AVEC ACCÈS ÉTENDUS'} value={overridesCount === null ? '—' : String(overridesCount)} valueColor={colors.accent.gold} />
+            <StatCard picto={'🕒'} label={'DERNIER AJOUT'}      value={formatRelativeDate(newestIso)} />
+          </StatCardsRow>
+        )
+      }}
+    />
   )
 }
-
-const s = StyleSheet.create({
-  container: {
-    flex           : 1,
-    backgroundColor: colors.light.primary,
-    padding        : space.xl,
-    alignItems     : 'center',
-    justifyContent : 'center',
-  },
-  title: { color: colors.text.dark, marginBottom: space.sm },
-  sub  : { color: colors.text.muted },
-})

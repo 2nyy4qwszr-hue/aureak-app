@@ -1,6 +1,8 @@
 // @aureak/ui — Composants UI partagés AUREAK
 // RÈGLE : aucune valeur hardcodée — toujours via @aureak/theme/tokens
 
+export { ROLE_LABELS } from './labels/roles'
+
 export { Button, AureakButton } from './components/Button'
 export type { ButtonProps, ButtonVariant } from './components/Button'
 
