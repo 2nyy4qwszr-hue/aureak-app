@@ -20,8 +20,8 @@ import type {
   ProspectScoutEvaluationStats,
   ScoutObservationContext,
 } from '@aureak/types'
-import { ScoutEvaluationModal } from './_ScoutEvaluationModal'
-import { useToast } from '../../../../components/ToastContext'
+import { ScoutEvaluationModal } from './ScoutEvaluationModal'
+import { useToast } from '../../ToastContext'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
