@@ -1,9 +1,11 @@
 name: "Aureak AI Review — Multi-agents"
 
+# Déclencheur automatique sur PR désactivé : la review 5 agents Claude consomme
+# du crédit Anthropic API. Le flow local /review-pr (via abonnement Claude Code,
+# gratuit) a remplacé cet usage. Gardé en workflow_dispatch pour pouvoir relancer
+# manuellement si besoin une fois le crédit rechargé.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   ai-review:
