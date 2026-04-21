@@ -93,7 +93,7 @@ function formatUpcomingDate(isoDate: string): string {
 
 // Story 57-4 — Lazy import mini-carte Leaflet (web only, évite erreur SSR)
 const LazyImplantationMap = React.lazy(() =>
-  import('./_components/ImplantationMap').then(m => ({ default: m.ImplantationMap }))
+  import('../../../components/admin/implantations/ImplantationMap').then(m => ({ default: m.ImplantationMap }))
 )
 
 // ── Group form state ──────────────────────────────────────────────────────────
