@@ -27,8 +27,9 @@ export type StatsStandardCardProps = {
 }
 
 function trendColor(direction: StatsStandardCardTrend['direction']): string {
-  if (direction === 'up')   return colors.status.present
-  if (direction === 'down') return colors.status.absent
+  // Story 93.6 — trend down rouge template (colors.accent.red), up vert succès, neutral muted
+  if (direction === 'up')   return colors.status.success
+  if (direction === 'down') return colors.accent.red
   return colors.text.muted
 }
 
@@ -162,9 +163,10 @@ const s = StyleSheet.create({
     marginBottom  : space.sm,
   },
   label: {
-    fontSize      : 11,
-    fontWeight    : '600',
-    letterSpacing : 1,
+    // Story 93.6 — typo alignée template (700/10px/2.2 letterSpacing)
+    fontSize      : 10,
+    fontWeight    : '700',
+    letterSpacing : 2.2,
     textTransform : 'uppercase',
     color         : colors.text.muted,
     fontFamily    : fonts.body,
@@ -183,21 +185,25 @@ const s = StyleSheet.create({
     marginBottom : space.xs,
   },
   value: {
-    fontSize  : 28,
-    fontWeight: '700',
-    fontFamily: fonts.display,
-    color     : colors.text.dark,
-    lineHeight: 34,
+    // Story 93.6 — value Montserrat 900 + letterSpacing -1.8
+    fontSize     : 28,
+    fontWeight   : '900',
+    fontFamily   : fonts.display,
+    color        : colors.text.dark,
+    letterSpacing: -1.8,
+    lineHeight   : 34,
   },
   unit: {
-    fontSize  : 14,
-    fontWeight: '500',
+    // Story 93.6 — unit 700/24px aligné template
+    fontSize  : 24,
+    fontWeight: '700',
     color     : colors.text.muted,
     fontFamily: fonts.body,
   },
   trendText: {
-    fontSize  : 12,
-    fontWeight: '500',
+    // Story 93.6 — trend 600/11px aligné template
+    fontSize  : 11,
+    fontWeight: '600',
     fontFamily: fonts.body,
     marginTop : 2,
   },

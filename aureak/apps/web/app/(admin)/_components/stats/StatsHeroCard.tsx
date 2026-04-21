@@ -1,11 +1,11 @@
 'use client'
 // Story 93.3 — StatsHeroCard : card "hero" avec sparkline SVG sous la valeur
-// Utilisée pour la métrique dominante (ex: "Présence moyenne · 30j").
+// Story 93.6 — variant dark premium : gradient noir + glow doré radial + typo Montserrat 900
 import React from 'react'
 import { View, StyleSheet, type TextStyle } from 'react-native'
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius } from '@aureak/theme'
 import { buildSparklinePath } from './sparkline'
 
 export type StatsHeroCardTrend = {
@@ -27,18 +27,6 @@ export type StatsHeroCardProps = {
 const SPARKLINE_WIDTH  = 280
 const SPARKLINE_HEIGHT = 50
 
-function trendColor(direction: StatsHeroCardTrend['direction']): string {
-  if (direction === 'up')   return colors.status.present
-  if (direction === 'down') return colors.status.absent
-  return colors.text.muted
-}
-
-function trendIcon(direction: StatsHeroCardTrend['direction']): string {
-  if (direction === 'up')   return '↗'
-  if (direction === 'down') return '↘'
-  return '↔'
-}
-
 export function StatsHeroCard({
   label,
   value,
@@ -55,6 +43,9 @@ export function StatsHeroCard({
 
   return (
     <View style={s.card}>
+      {/* Story 93.6 — Overlay radial doré (web-only, fallback no-op natif) */}
+      <View pointerEvents="none" style={s.glowOverlay} />
+
       {/* Header row : label + icon */}
       <View style={s.header}>
         <AureakText style={s.label as TextStyle}>{label}</AureakText>
@@ -67,11 +58,11 @@ export function StatsHeroCard({
         {unit && <AureakText style={s.unit as TextStyle}>{unit}</AureakText>}
       </View>
 
-      {/* Trend */}
+      {/* Trend — Story 93.6 : toujours doré sur variant hero (ignore direction) */}
       {trend && (
         <View style={s.trendRow}>
-          <AureakText style={{ ...s.trendText, color: trendColor(trend.direction) } as TextStyle}>
-            {trendIcon(trend.direction)} {trend.label}
+          <AureakText style={s.trendText as TextStyle}>
+            {trend.label}
           </AureakText>
         </View>
       )}
@@ -105,15 +96,28 @@ export default StatsHeroCard
 const s = StyleSheet.create({
   card: {
     flex           : 2,
-    backgroundColor: colors.light.surface,
+    // Story 93.6 — variant dark : fallback solide natif + gradient web via background
+    backgroundColor: colors.ink.premiumDark,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore — background CSS web-only (gradient non typé RN)
+    background     : `linear-gradient(135deg, ${colors.ink.premiumDark} 0%, ${colors.ink.premiumWarm} 100%)`,
     borderWidth    : 1,
-    borderColor    : colors.border.divider,
+    borderColor    : 'transparent',
     borderRadius   : radius.card,
     padding        : space.lg,
     minWidth       : 240,
+    overflow       : 'hidden',
+    position       : 'relative',
+  },
+  glowOverlay: {
+    position: 'absolute',
+    top     : 0,
+    left    : 0,
+    right   : 0,
+    bottom  : 0,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore — boxShadow supporté sur web
-    boxShadow      : shadows.sm,
+    // @ts-ignore — radial-gradient CSS web-only
+    background: 'radial-gradient(600px 200px at 100% 0%, rgba(193,172,92,0.22), transparent 60%)',
   },
   header: {
     flexDirection : 'row',
@@ -122,18 +126,18 @@ const s = StyleSheet.create({
     marginBottom  : space.sm,
   },
   label: {
-    fontSize      : 11,
-    fontWeight    : '600',
-    letterSpacing : 1,
+    fontSize      : 10,
+    fontWeight    : '700',
+    letterSpacing : 2,
     textTransform : 'uppercase',
-    color         : colors.text.muted,
+    color         : colors.text.onDarkMuted,
     fontFamily    : fonts.body,
   },
   iconWrap: {
     width         : 28,
     height        : 28,
     borderRadius  : 8,
-    backgroundColor: colors.border.goldBg, // rgba(193,172,92,0.10)
+    backgroundColor: colors.border.goldBg,
     alignItems    : 'center',
     justifyContent: 'center',
   },
@@ -145,25 +149,26 @@ const s = StyleSheet.create({
   },
   value: {
     fontSize     : 44,
-    fontWeight   : '700',
+    fontWeight   : '900',
     fontFamily   : fonts.display,
-    color        : colors.text.dark,
-    letterSpacing: -0.5,
+    color        : colors.text.primary,
+    letterSpacing: -1.8,
     lineHeight   : 52,
   },
   unit: {
-    fontSize  : 18,
-    fontWeight: '500',
-    color     : colors.text.muted,
+    fontSize  : 24,
+    fontWeight: '700',
+    color     : colors.text.onDarkMuted,
     fontFamily: fonts.body,
   },
   trendRow: {
     marginTop: space.xs,
   },
   trendText: {
-    fontSize  : 13,
-    fontWeight: '500',
+    fontSize  : 11,
+    fontWeight: '600',
     fontFamily: fonts.body,
+    color     : colors.accent.gold,
   },
   sparklineWrap: {
     marginTop: space.md,

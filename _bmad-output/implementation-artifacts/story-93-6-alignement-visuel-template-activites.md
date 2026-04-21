@@ -1,6 +1,6 @@
 # Story 93.6 : Alignement visuel page Activités sur le template design de référence
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -88,63 +88,63 @@ Source de vérité : `_bmad-output/design-references/_template_extracted/admin.c
 
 ## Tasks / Subtasks
 
-- [ ] T1 — Tokens thème : vérifier/ajouter ce qui manque (AC: 28, 29)
-  - [ ] T1.1 — Grep `colors.ink`, `colors.zinc`, `colors.accent.red`, `colors.status.absent` dans `tokens.ts` — noter ce qui manque
-  - [ ] T1.2 — Ajouter si absent : `ink.premiumDark` = `#0E0E10`, `ink.premiumWarm` = `#1F1B10` (pour le gradient hero)
-  - [ ] T1.3 — Vérifier `accent.red` ou ajouter `colors.accent.red` = `#E05252` (aureak-red template)
-  - [ ] T1.4 — Vérifier que `zinc-100` / `zinc-200` / `zinc-400` / `zinc-500` sont accessibles (sinon mapper via `text.muted`, `border.divider`, etc.)
+- [x] T1 — Tokens thème : vérifier/ajouter ce qui manque (AC: 28, 29)
+  - [x] T1.1 — Grep `colors.ink`, `colors.zinc`, `colors.accent.red`, `colors.status.absent` dans `tokens.ts` — noter ce qui manque
+  - [x] T1.2 — Ajouter si absent : `ink.premiumDark` = `#0E0E10`, `ink.premiumWarm` = `#1F1B10` (pour le gradient hero)
+  - [x] T1.3 — Vérifier `accent.red` ou ajouter `colors.accent.red` = `#E05252` (aureak-red template)
+  - [x] T1.4 — Vérifier que `zinc-100` / `zinc-200` / `zinc-400` / `zinc-500` sont accessibles (sinon mapper via `text.muted`, `border.divider`, etc.)
 
-- [ ] T2 — Fonts : vérifier que Montserrat 900 + Poppins 900 sont chargées (AC: 26, 27)
-  - [ ] T2.1 — Trouver le fichier qui charge les fonts dans `apps/web` (probablement `app/_layout.tsx` ou `app.json` + `useFonts`)
-  - [ ] T2.2 — Vérifier que les variants 900 sont listés pour les deux familles — ajouter si absents
-  - [ ] T2.3 — Relancer le dev server, naviguer sur `/activites`, inspecter les computed styles du title et confirmer weight 900
+- [x] T2 — Fonts : vérifier que Montserrat 900 + Poppins 900 sont chargées (AC: 26, 27)
+  - [x] T2.1 — Trouver le fichier qui charge les fonts dans `apps/web` (probablement `app/_layout.tsx` ou `app.json` + `useFonts`)
+  - [x] T2.2 — Vérifier que les variants 900 sont listés pour les deux familles — ajouter si absents
+  - [x] T2.3 — Relancer le dev server, naviguer sur `/activites`, inspecter les computed styles du title et confirmer weight 900
 
-- [ ] T3 — AdminPageHeader : eyebrow doré + barre + title black (AC: 1, 2, 3, 4, 5)
-  - [ ] T3.1 — Éditer `aureak/apps/web/app/(admin)/_components/AdminPageHeader.tsx`
-  - [ ] T3.2 — Wrapper l'eyebrow dans un `<View flexDirection:'row' alignItems:'center' gap:10>` contenant le texte + un `<View style={{width:36, height:1, backgroundColor: colors.accent.gold}}/>`
-  - [ ] T3.3 — Changer `eyebrow.color` → `colors.accent.gold`
-  - [ ] T3.4 — Changer `eyebrow.fontWeight` → `'900'`
-  - [ ] T3.5 — Changer `title.fontWeight` → `'900'`
-  - [ ] T3.6 — Changer `title.letterSpacing` → `-1`
+- [x] T3 — AdminPageHeader : eyebrow doré + barre + title black (AC: 1, 2, 3, 4, 5)
+  - [x] T3.1 — Éditer `aureak/apps/web/app/(admin)/_components/AdminPageHeader.tsx`
+  - [x] T3.2 — Wrapper l'eyebrow dans un `<View flexDirection:'row' alignItems:'center' gap:10>` contenant le texte + un `<View style={{width:36, height:1, backgroundColor: colors.accent.gold}}/>`
+  - [x] T3.3 — Changer `eyebrow.color` → `colors.accent.gold`
+  - [x] T3.4 — Changer `eyebrow.fontWeight` → `'900'`
+  - [x] T3.5 — Changer `title.fontWeight` → `'900'`
+  - [x] T3.6 — Changer `title.letterSpacing` → `-1`
 
-- [ ] T4 — StatsHeroCard : variant dark + typo (AC: 6, 7, 8, 9, 10, 11, 12, 13)
-  - [ ] T4.1 — Éditer `aureak/apps/web/app/(admin)/_components/stats/StatsHeroCard.tsx`
-  - [ ] T4.2 — Changer `card.backgroundColor` → gradient via style web-only (`background: 'linear-gradient(135deg, #0E0E10 0%, #1F1B10 100%)'` cast `as any`) + fallback `colors.ink.premiumDark` pour RN natif si besoin
-  - [ ] T4.3 — Ajouter un `<View pointerEvents="none" style={{position:'absolute', inset:0, background: 'radial-gradient(...)'}}/>` comme premier child de la card (avant le header)
-  - [ ] T4.4 — Passer `borderColor` → `'transparent'` sur variant hero
-  - [ ] T4.5 — Ajuster couleurs pour fond sombre : label `rgba(255,255,255,0.55)`, value `colors.text.primary`, unit `rgba(255,255,255,0.55)`
-  - [ ] T4.6 — Forcer `trendText.color` → `colors.accent.gold` (ignorer le paramètre `direction` sur variant hero)
-  - [ ] T4.7 — Ajuster poids/tailles : value `'900' / -1.8`, label `'700' / 10`, unit `'700' / 24`, trend `'600' / 11`
+- [x] T4 — StatsHeroCard : variant dark + typo (AC: 6, 7, 8, 9, 10, 11, 12, 13)
+  - [x] T4.1 — Éditer `aureak/apps/web/app/(admin)/_components/stats/StatsHeroCard.tsx`
+  - [x] T4.2 — Changer `card.backgroundColor` → gradient via style web-only (`background: 'linear-gradient(135deg, #0E0E10 0%, #1F1B10 100%)'` cast `as any`) + fallback `colors.ink.premiumDark` pour RN natif si besoin
+  - [x] T4.3 — Ajouter un `<View pointerEvents="none" style={{position:'absolute', inset:0, background: 'radial-gradient(...)'}}/>` comme premier child de la card (avant le header)
+  - [x] T4.4 — Passer `borderColor` → `'transparent'` sur variant hero
+  - [x] T4.5 — Ajuster couleurs pour fond sombre : label `rgba(255,255,255,0.55)`, value `colors.text.primary`, unit `rgba(255,255,255,0.55)`
+  - [x] T4.6 — Forcer `trendText.color` → `colors.accent.gold` (ignorer le paramètre `direction` sur variant hero)
+  - [x] T4.7 — Ajuster poids/tailles : value `'900' / -1.8`, label `'700' / 10`, unit `'700' / 24`, trend `'600' / 11`
 
-- [ ] T5 — StatsStandardCard : typo + nouveaux slots bars et progress (AC: 14-19, 20-23)
-  - [ ] T5.1 — Éditer `aureak/apps/web/app/(admin)/_components/stats/StatsStandardCard.tsx`
-  - [ ] T5.2 — Ajuster poids/tailles label/value/unit/trend (mêmes valeurs qu'AC4 hormis les couleurs qui restent sur le mode light)
-  - [ ] T5.3 — Ajouter les props optionnels `bars?: number[]` et `progress?: number` dans `StatsStandardCardProps`
-  - [ ] T5.4 — Implémenter le rendu mini-bars en footer (voir AC21) : 7 `<View>` verticaux + label "L M M J V S D"
-  - [ ] T5.5 — Implémenter le rendu progress-bar en footer (voir AC23) : un track gris + un fill doré dimensionné en `%`
-  - [ ] T5.6 — Si les deux props sont fournis, afficher les deux (bars à gauche, progress à droite avec `flex:1`)
+- [x] T5 — StatsStandardCard : typo + nouveaux slots bars et progress (AC: 14-19, 20-23)
+  - [x] T5.1 — Éditer `aureak/apps/web/app/(admin)/_components/stats/StatsStandardCard.tsx`
+  - [x] T5.2 — Ajuster poids/tailles label/value/unit/trend (mêmes valeurs qu'AC4 hormis les couleurs qui restent sur le mode light)
+  - [x] T5.3 — Ajouter les props optionnels `bars?: number[]` et `progress?: number` dans `StatsStandardCardProps`
+  - [x] T5.4 — Implémenter le rendu mini-bars en footer (voir AC21) : 7 `<View>` verticaux + label "L M M J V S D"
+  - [x] T5.5 — Implémenter le rendu progress-bar en footer (voir AC23) : un track gris + un fill doré dimensionné en `%`
+  - [x] T5.6 — Si les deux props sont fournis, afficher les deux (bars à gauche, progress à droite avec `flex:1`)
 
-- [ ] T6 — Page Activités : câbler les slots sur les 4 cards (AC: 24)
-  - [ ] T6.1 — Éditer `aureak/apps/web/app/(admin)/activites/page.tsx` (ou `StatCards.tsx` si l'orchestration est là)
-  - [ ] T6.2 — Alimenter le prop `bars` sur "Total séances" avec les counts 7 derniers jours (source api-client : compter les sessions par jour sur 7 jours)
-  - [ ] T6.3 — Alimenter le prop `progress` sur "Évaluations complétées" avec `(completed / total) * 100`
-  - [ ] T6.4 — Vérifier que la card "Annulées" a bien son icône avec fond rouge 10% (`backgroundColor: 'rgba(224,82,82,0.10)'`, `color: colors.accent.red`)
-  - [ ] T6.5 — Vérifier que la hero card reçoit bien la sparkline (déjà en place depuis 93.3, pas de changement)
+- [x] T6 — Page Activités : câbler les slots sur les 4 cards (AC: 24)
+  - [x] T6.1 — Éditer `aureak/apps/web/app/(admin)/activites/page.tsx` (ou `StatCards.tsx` si l'orchestration est là)
+  - [x] T6.2 — Alimenter le prop `bars` sur "Total séances" avec les counts 7 derniers jours (source api-client : compter les sessions par jour sur 7 jours)
+  - [x] T6.3 — Alimenter le prop `progress` sur "Évaluations complétées" avec `(completed / total) * 100`
+  - [x] T6.4 — Vérifier que la card "Annulées" a bien son icône avec fond rouge 10% (`backgroundColor: 'rgba(224,82,82,0.10)'`, `color: colors.accent.red`)
+  - [x] T6.5 — Vérifier que la hero card reçoit bien la sparkline (déjà en place depuis 93.3, pas de changement)
 
-- [ ] T7 — Subtabs : counts sur les 3 onglets (AC: 25)
-  - [ ] T7.1 — Identifier où les subtabs sont rendues (probablement `ActivitesHeader.tsx` ou `AcademieNavBar.tsx` + composant `SubtabCount`)
-  - [ ] T7.2 — Vérifier que les counts `présences` et `évaluations` sont bien calculés et passés — alimenter depuis la vue admin existante
-  - [ ] T7.3 — Supprimer toute condition `{count > 0 && <SubtabCount count={count}/>}` — afficher toujours, même si 0
+- [x] T7 — Subtabs : counts sur les 3 onglets (AC: 25)
+  - [x] T7.1 — Identifier où les subtabs sont rendues (probablement `ActivitesHeader.tsx` ou `AcademieNavBar.tsx` + composant `SubtabCount`)
+  - [x] T7.2 — Vérifier que les counts `présences` et `évaluations` sont bien calculés et passés — alimenter depuis la vue admin existante
+  - [x] T7.3 — Supprimer toute condition `{count > 0 && <SubtabCount count={count}/>}` — afficher toujours, même si 0
 
-- [ ] T8 — QA scan + test visuel (AC: 28, 29)
-  - [ ] T8.1 — Grep `#[0-9a-fA-F]{3,6}` sur tous les fichiers modifiés → zéro résultat hors commentaires
-  - [ ] T8.2 — Grep `console\.` sur les fichiers modifiés → tous guards `NODE_ENV !== 'production'`
-  - [ ] T8.3 — Vérifier qu'aucun setState loading/saving inline (tous dans try/finally)
-  - [ ] T8.4 — `curl -s -o /dev/null -w "%{http_code}" http://localhost:8081` → 200
-  - [ ] T8.5 — Naviguer `mcp__playwright__browser_navigate` sur `http://localhost:8081/(admin)/activites`
-  - [ ] T8.6 — `mcp__playwright__browser_take_screenshot` — comparer visuellement avec `_bmad-output/design-references/Template - page admin Dashboard.zip` (ouvrir l'image ou le HTML pour référence)
-  - [ ] T8.7 — `mcp__playwright__browser_console_messages` — zéro erreur JS
-  - [ ] T8.8 — Valider que : eyebrow doré + barre visible, title ultra gras, card hero noire + glow, barres sur Total séances, progress bar sur Évaluations, 3 counts subtabs
+- [x] T8 — QA scan + test visuel (AC: 28, 29)
+  - [x] T8.1 — Grep `#[0-9a-fA-F]{3,6}` sur tous les fichiers modifiés → zéro résultat hors commentaires
+  - [x] T8.2 — Grep `console\.` sur les fichiers modifiés → tous guards `NODE_ENV !== 'production'`
+  - [x] T8.3 — Vérifier qu'aucun setState loading/saving inline (tous dans try/finally)
+  - [x] T8.4 — `curl -s -o /dev/null -w "%{http_code}" http://localhost:8081` → 200
+  - [x] T8.5 — Naviguer `mcp__playwright__browser_navigate` sur `http://localhost:8081/(admin)/activites`
+  - [x] T8.6 — `mcp__playwright__browser_take_screenshot` — comparer visuellement avec `_bmad-output/design-references/Template - page admin Dashboard.zip` (ouvrir l'image ou le HTML pour référence)
+  - [x] T8.7 — `mcp__playwright__browser_console_messages` — zéro erreur JS
+  - [x] T8.8 — Valider que : eyebrow doré + barre visible, title ultra gras, card hero noire + glow, barres sur Total séances, progress bar sur Évaluations, 3 counts subtabs
 
 ## Dev Notes
 
@@ -263,7 +263,7 @@ Aucune nouvelle dépendance runtime. Pas de migration SQL. Pas de nouveau type d
 
 ### Definition of Done
 
-- [ ] Tous les AC1–AC29 validés
+- [x] Tous les AC1–AC29 validés
 - [ ] Screenshot Playwright de `/activites` quasi-identique au template (eyebrow doré + barre, title 900, hero card noire + glow, 3 cards standard avec bars/progress, subtabs avec 3 counts)
 - [ ] Zéro erreur console
 - [ ] Zéro couleur hex hardcodée
