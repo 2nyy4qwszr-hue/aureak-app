@@ -12,7 +12,7 @@ import {
   transferGroupMember, getTopGroupByAttendance,
 } from '@aureak/api-client'
 import type { GroupWithMembers } from '@aureak/api-client'
-import { GroupGeneratorModal } from './GroupGeneratorModal'
+import { GroupGeneratorModal } from '../../../components/admin/groups/GroupGeneratorModal'
 import { AureakText } from '@aureak/ui'
 import { GroupCard } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
