@@ -699,9 +699,11 @@ export {
 } from './admin/commercial-contacts'
 
 // ── Story 87.1 — Profils Académie par rôle (commercial | manager | marketeur) ─
+// ── Story 87.2 — countManagerOverrides (fiche universelle module accès) ──────
 export {
   listProfilesByRole,
   countManagersWithOverrides,
+  countManagerOverrides,
   countActiveCommercialPipeline,
   countMonthlyClosedWon,
 } from './admin/profiles-by-role'
