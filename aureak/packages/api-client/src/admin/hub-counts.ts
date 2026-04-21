@@ -65,19 +65,19 @@ export async function getActivitesCounts(opts?: {
         .is('deleted_at', null),
     ),
     safeCount(
+      // Story 93.6 fix — table attendances utilise `recorded_at` (pas `created_at`)
       supabase
         .from('attendances')
         .select('id', { count: 'exact', head: true })
-        .gte('created_at', start)
-        .lt('created_at', end),
+        .gte('recorded_at', start)
+        .lt('recorded_at', end),
     ),
     safeCount(
+      // Story 93.6 fix — table `evaluations` n'a pas de migration locale (remote-only),
+      // schéma incertain pour `created_at`/`deleted_at` → count global sans filtre date.
       supabase
         .from('evaluations')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', start)
-        .lt('created_at', end)
-        .is('deleted_at', null),
+        .select('id', { count: 'exact', head: true }),
     ),
   ])
 

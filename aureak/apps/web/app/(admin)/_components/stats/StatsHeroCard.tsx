@@ -42,9 +42,9 @@ export function StatsHeroCard({
     : { linePath: '', areaPath: '' }
 
   return (
-    <View style={s.card}>
+    <View style={[s.card, GRADIENT_STYLE] as never}>
       {/* Story 93.6 — Overlay radial doré (web-only, fallback no-op natif) */}
-      <View pointerEvents="none" style={s.glowOverlay} />
+      <View pointerEvents="none" style={[s.glowOverlay, GLOW_STYLE] as never} />
 
       {/* Header row : label + icon */}
       <View style={s.header}>
@@ -93,14 +93,20 @@ export function StatsHeroCard({
 
 export default StatsHeroCard
 
+// Story 93.6 — Styles CSS web-only (gradient + radial-gradient) appliqués en inline
+// via `as never` pour contourner le typage strict RN qui n'accepte pas `background`.
+// Metro/RN Web ne supporte pas ces props dans StyleSheet.create — d'où l'extraction.
+const GRADIENT_STYLE = {
+  background: `linear-gradient(135deg, ${colors.ink.premiumDark} 0%, ${colors.ink.premiumWarm} 100%)`,
+} as const
+const GLOW_STYLE = {
+  background: 'radial-gradient(600px 200px at 100% 0%, rgba(193,172,92,0.22), transparent 60%)',
+} as const
+
 const s = StyleSheet.create({
   card: {
     flex           : 2,
-    // Story 93.6 — variant dark : fallback solide natif + gradient web via background
-    backgroundColor: colors.ink.premiumDark,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore — background CSS web-only (gradient non typé RN)
-    background     : `linear-gradient(135deg, ${colors.ink.premiumDark} 0%, ${colors.ink.premiumWarm} 100%)`,
+    backgroundColor: colors.ink.premiumDark, // fallback solide natif
     borderWidth    : 1,
     borderColor    : 'transparent',
     borderRadius   : radius.card,
@@ -115,9 +121,6 @@ const s = StyleSheet.create({
     left    : 0,
     right   : 0,
     bottom  : 0,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore — radial-gradient CSS web-only
-    background: 'radial-gradient(600px 200px at 100% 0%, rgba(193,172,92,0.22), transparent 60%)',
   },
   header: {
     flexDirection : 'row',
