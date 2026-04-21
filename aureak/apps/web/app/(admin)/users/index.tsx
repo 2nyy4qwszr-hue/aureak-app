@@ -229,7 +229,7 @@ export default function UsersPage() {
               <View style={[s.td, { width: 110, alignItems: 'flex-end' }]}>
                 <Pressable
                   style={s.ficheBtn}
-                  onPress={() => router.push(`/users/${u.userId}` as never)}
+                  onPress={() => router.push(`/profiles/${u.userId}` as never)}
                 >
                   <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
                     Fiche compte
