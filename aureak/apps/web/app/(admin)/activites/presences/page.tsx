@@ -20,11 +20,11 @@ import type { SessionAttendanceSummary, AttendanceHistoryRow } from '@aureak/api
 import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
 import { formatEyebrow }          from '../../../../lib/admin/formatPeriodLabel'
 import { ActivitesCountsContext } from '../_layout'
-import { ActivitesHeader }        from '../components/ActivitesHeader'
-import { FiltresScope }           from '../components/FiltresScope'
-import { PseudoFiltresTemporels } from '../components/PseudoFiltresTemporels'
-import type { ScopeState }        from '../components/FiltresScope'
-import type { TemporalFilter }    from '../components/PseudoFiltresTemporels'
+import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
+import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
+import { PseudoFiltresTemporels } from '../../../../components/admin/activites/PseudoFiltresTemporels'
+import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
+import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
 
 const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
 import type { AttendanceStatus }  from '@aureak/types'
