@@ -522,4 +522,10 @@ development_status:
   93-4-next-session-hero: review
   93-5-methodologie-apply-template: ready-for-dev
   93-6-alignement-visuel-template-activites: review
+  93-7-refonte-page-activites-pixel-template: review
   epic-93-retrospective: optional
+
+  # Epic 94 : Cleanup tech (réduction bruit console + dette)
+  epic-94: in-progress
+  94-1-silence-aborterror-console-cleanup: ready-for-dev
+  epic-94-retrospective: optional

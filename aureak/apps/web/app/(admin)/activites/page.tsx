@@ -8,8 +8,7 @@ import { AdminPageHeader }          from '../_components/AdminPageHeader'
 import { formatEyebrow }            from '../_components/formatPeriodLabel'
 import { ActivitesCountsContext }   from './_layout'
 import { ActivitesHeader }          from './components/ActivitesHeader'
-import { FiltresScope }             from './components/FiltresScope'
-import { PseudoFiltresTemporels }   from './components/PseudoFiltresTemporels'
+import { ActivitesToolbar }         from './components/ActivitesToolbar'
 import { StatCards }                from './components/StatCards'
 import { TableauSeances }           from './components/TableauSeances'
 import type { ScopeState }          from './components/FiltresScope'
@@ -38,10 +37,14 @@ export default function ActivitesPage() {
         {/* 4 Stat cards */}
         <StatCards scope={scope} />
 
-        {/* Filtres scope + temporels sur une ligne */}
-        <View style={styles.filtresRow}>
-          <FiltresScope value={scope} onChange={setScope} />
-          <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+        {/* Story 93.7 — ActivitesToolbar : chips scope + bouton Filtres + segmented temporal alignés template */}
+        <View style={styles.toolbarWrap}>
+          <ActivitesToolbar
+            scope={scope}
+            onScopeChange={setScope}
+            temporal={temporalFilter}
+            onTemporalChange={setTemporalFilter}
+          />
         </View>
 
         {/* Tableau des séances */}
@@ -62,15 +65,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop     : space.md,
-    paddingBottom  : space.xxl,
+    paddingBottom  : 64, // Story 93.7 — alignement template `.page` padding-bottom 64
     backgroundColor: colors.light.primary,
   },
-  filtresRow: {
-    flexDirection    : 'row',
-    justifyContent   : 'space-between',
-    alignItems       : 'center',
+  toolbarWrap: {
     paddingHorizontal: space.lg,
-    paddingVertical  : space.sm,
-    zIndex           : 9999,
   },
 })

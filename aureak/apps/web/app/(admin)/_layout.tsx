@@ -15,6 +15,7 @@ import type { EffectivePermissions } from '@aureak/types'
 import { ActiveSessionBar } from '../../components/ActiveSessionBar'
 import { NavBadge } from '../../components/NavBadge'
 import { NavTooltip } from '../../components/NavTooltip'
+import { AdminTopbar } from './_components/AdminTopbar'
 import {
   HomeIcon,
   CalendarIcon,
@@ -1079,7 +1080,18 @@ function AdminLayoutInner() {
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
         {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
-        {!isMobile && !pathname.startsWith('/activites') && !pathname.startsWith('/methodologie') && <Breadcrumb />}
+        {/* Story 93.7 — AdminTopbar (template-based) prend le relais sur les hubs Epic 93/87 */}
+        {!isMobile
+          && !pathname.startsWith('/activites')
+          && !pathname.startsWith('/methodologie')
+          && !pathname.startsWith('/academie')
+          && <Breadcrumb />}
+
+        {/* Story 93.7 — Topbar premium (breadcrumbs + icon-btn + actions) sur les hubs alignés template */}
+        {(pathname.startsWith('/activites')
+          || pathname.startsWith('/methodologie')
+          || pathname.startsWith('/academie'))
+          && <AdminTopbar />}
 
         {/* Story 62.5 — conteneur page-enter animation */}
         <div ref={contentAreaRef} style={{ flex: 1 }}>

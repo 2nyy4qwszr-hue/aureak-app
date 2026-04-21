@@ -1,10 +1,10 @@
 'use client'
 // Story 93.2 — SubtabCount : badge de count pour onglets NavBar (Activités, Méthodologie, Académie)
-// Affiché à droite du label de tab, style différent selon actif/inactif.
+// Story 93.7 — Style aligné template : mono font + bg actif gold-20 + texte goldDarkText
 import React from 'react'
 import { View, StyleSheet, type TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors } from '@aureak/theme'
+import { colors, fonts } from '@aureak/theme'
 
 export type SubtabCountProps = {
   /** null → badge non rendu (loading / indisponible) */
@@ -30,23 +30,25 @@ export default SubtabCount
 
 const s = StyleSheet.create({
   badge: {
-    backgroundColor  : colors.light.hover,
-    paddingHorizontal: 6,
+    backgroundColor  : colors.light.muted, // zinc-100 template
+    paddingHorizontal: 7,
     paddingVertical  : 2,
-    borderRadius     : 4,
+    borderRadius     : 999,
     minWidth         : 20,
     alignItems       : 'center',
     justifyContent   : 'center',
   },
   badgeActive: {
-    backgroundColor: colors.border.gold, // rgba(193,172,92,0.25) — fond doré subtil cohérent badges
+    backgroundColor: colors.border.gold, // rgba(193,172,92,0.20-0.25) ≈ template gold-20
   },
   text: {
-    fontSize  : 11,
-    fontWeight: '600',
-    color     : colors.text.muted,
+    fontFamily   : fonts.mono,
+    fontSize     : 10,
+    fontWeight   : '500',
+    color        : colors.text.subtle,
+    letterSpacing: 0,
   },
   textActive: {
-    color: colors.accent.gold,
+    color: colors.accent.goldDarkText, // #6b5d2a template — visible sur fond gold-20
   },
 })
