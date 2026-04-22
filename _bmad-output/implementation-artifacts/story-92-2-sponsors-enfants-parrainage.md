@@ -1,6 +1,6 @@
 # Story 92.2 — Sponsors liés à enfants (parrainage académie)
 
-Status: ready-for-dev
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -432,3 +432,26 @@ Principes design à respecter :
 
 | Fichier | Statut |
 |---------|--------|
+| `supabase/migrations/00169_sponsors_and_links.sql` | CRÉÉ (migration renumérotée 00168→00169 car 00168 déjà pris par Epic 91 média-library) |
+| `aureak/packages/types/src/entities.ts` | MODIFIÉ (ajout `SponsorType`, `Sponsor`, `SponsorWithCounts`, `SponsorChildLink`, `SponsorChildLinkWithChild`) |
+| `aureak/packages/api-client/src/admin/sponsors.ts` | CRÉÉ (8 fonctions : list/get/create/update + listChildren/link/unlink + search) |
+| `aureak/packages/api-client/src/index.ts` | MODIFIÉ (exports) |
+| `aureak/apps/web/app/(admin)/partenariat/sponsors/page.tsx` | MODIFIÉ (placeholder Story 92.1 → liste réelle) |
+| `aureak/apps/web/app/(admin)/partenariat/sponsors/[sponsorId]/page.tsx` | CRÉÉ (fiche sponsor) |
+| `aureak/apps/web/app/(admin)/partenariat/sponsors/[sponsorId]/index.tsx` | CRÉÉ (re-export page) |
+| `aureak/apps/web/components/admin/partenariat/SponsorFormModal.tsx` | CRÉÉ (création/édition) |
+| `aureak/apps/web/components/admin/partenariat/LinkChildModal.tsx` | CRÉÉ (autocomplete enfants debounced 300ms) |
+
+### Completion Notes List
+
+- **Migration renumérotée 00168 → 00169** — le slot 00168 était déjà occupé par `00168_create_media_items.sql` (Epic 91 Story 91.2, mergée entre-temps).
+- FK `sponsor_child_links.child_id → profiles(user_id)` (pas `profiles(id)` — la PK de `profiles` est `user_id`).
+- Recherche enfant : `ilike('display_name', ...)` (champ réel, pas `full_name` comme suggéré par la story).
+- RLS admin-only tenant-isolated via helpers `current_tenant_id_with_fallback()` + `current_user_role_with_fallback()` (pattern memory : `project_rls_fallback_helpers.md`).
+- `tenant_id` injecté manuellement côté insert (pattern cohérent avec `coach/recommendations.ts`, `admin/coach-prospection.ts`).
+- `listSponsorChildren` fait un 2e round-trip pour récupérer les profils enfants (évite les pièges de join PostgREST sur FK nommée non-standard).
+- Trigger `update_sponsors_updated_at()` propre au sponsor (pas de fonction générique `set_updated_at` côté DB).
+- Validation `supabase db reset` skipped — Supabase local non démarré. À vérifier en CI / review.
+- Playwright skipped — app non démarrée.
+- `tsc --noEmit` = 0. Grep try/finally + console guards OK.
+
