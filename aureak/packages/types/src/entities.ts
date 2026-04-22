@@ -2793,6 +2793,35 @@ export type UpdateAttributionRuleParams = {
 }
 
 // ============================================================
+// Epic 88 — Story 88.5 : Ressources commerciales
+// ============================================================
+
+/** CommercialResource — miroir de la table `commercial_resources` (migration 00165) */
+export type CommercialResource = {
+  id           : string
+  tenantId     : string
+  resourceType : import('./enums').CommercialResourceType
+  title        : string
+  description  : string | null
+  /** Chemin dans le bucket Storage `commercial-resources` (null si webpage ou pas encore uploadé) */
+  filePath     : string | null
+  /** URL externe pour le type `webpage` */
+  externalUrl  : string | null
+  fileSize     : number | null
+  mimeType     : string | null
+  uploadedBy   : string | null
+  createdAt    : string
+  updatedAt    : string
+}
+
+export type UpdateCommercialResourceParams = {
+  id           : string
+  title?       : string
+  description? : string | null
+  externalUrl? : string | null
+}
+
+// ============================================================
 // Epic 86 — Permissions granulaires (Story 86-3, migrations 00150/00151)
 // ============================================================
 

@@ -708,6 +708,14 @@ export {
   updateCommercialContact,
 } from './admin/commercial-contacts'
 
+// ── Epic 88 — Story 88.5 : Ressources commerciales ──────────────────────────
+export {
+  listCommercialResources,
+  updateCommercialResource,
+  uploadCommercialResourceFile,
+  getResourceDownloadUrl,
+} from './admin/commercial-resources'
+
 // ── Epic 88 — Pipeline CRM Clubs Prospects (Story 88-2) ──────────────────────
 export {
   listClubProspects,
