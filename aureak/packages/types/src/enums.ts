@@ -474,3 +474,30 @@ export const MANUAL_PROSPECT_ACTION_TYPES: ProspectActionType[] = [
   'closing',
   'note',
 ]
+
+// ── Epic 88 — Story 88.5 : Bibliothèque ressources commerciales ────────────
+
+/** Type d'une ressource commerciale — miroir enum PostgreSQL `commercial_resource_type` (migration 00165) */
+export type CommercialResourceType =
+  | 'powerpoint'
+  | 'flyer'
+  | 'webpage'
+  | 'tarifs'
+
+export const COMMERCIAL_RESOURCE_TYPES: CommercialResourceType[] = [
+  'powerpoint', 'flyer', 'webpage', 'tarifs',
+]
+
+export const COMMERCIAL_RESOURCE_TYPE_LABELS: Record<CommercialResourceType, string> = {
+  powerpoint: 'PowerPoint',
+  flyer     : 'Flyer',
+  webpage   : 'Webpage',
+  tarifs    : 'Grille tarifaire',
+}
+
+export const COMMERCIAL_RESOURCE_TYPE_ICONS: Record<CommercialResourceType, string> = {
+  powerpoint: '🎬',
+  flyer     : '📄',
+  webpage   : '🌐',
+  tarifs    : '💰',
+}

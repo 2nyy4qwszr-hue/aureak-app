@@ -12,6 +12,7 @@ const TABS = [
   { key: 'gardiens',    label: 'GARDIENS',    href: '/developpement/prospection/gardiens'    },
   { key: 'entraineurs', label: 'ENTRAÎNEURS', href: '/developpement/prospection/entraineurs' },
   { key: 'attribution', label: 'ATTRIBUTION', href: '/developpement/prospection/attribution' },
+  { key: 'ressources',  label: 'RESSOURCES',  href: '/developpement/prospection/ressources'  },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
