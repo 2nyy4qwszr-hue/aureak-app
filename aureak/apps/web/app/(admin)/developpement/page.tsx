@@ -20,7 +20,7 @@ const SECTIONS: DevSection[] = [
     description: 'Suivez vos contacts, rendez-vous et taux de conversion pour développer l\'académie.',
   },
   {
-    href       : '/developpement/marketing',
+    href       : '/marketing',
     icon       : '📣',
     title      : 'Marketing',
     description: 'Campagnes, inscriptions et portée de vos actions de communication.',
