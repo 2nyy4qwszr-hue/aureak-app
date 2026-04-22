@@ -2730,6 +2730,69 @@ export type CreateProspectActionParams = {
 }
 
 // ============================================================
+// Epic 88 — Story 88.4 : Règles d'attribution commerciale
+// ============================================================
+
+/** Pourcentages d'attribution — clés libres, total attendu = 100 */
+export type AttributionPercentages = {
+  qualifier? : number
+  closer?    : number
+  [role: string]: number | undefined
+}
+
+/** Règle d'attribution — miroir de la table `attribution_rules` (migration 00164) */
+export type AttributionRule = {
+  id          : string
+  tenantId    : string
+  ruleName    : string
+  description : string | null
+  conditions  : Record<string, unknown>
+  percentages : AttributionPercentages
+  isDefault   : boolean
+  createdAt   : string
+  updatedAt   : string
+  deletedAt   : string | null
+}
+
+/** Suggestion d'attribution à la conversion d'un prospect — basée sur les actions + règle par défaut */
+export type AttributionSuggestion = {
+  ruleApplied : AttributionRule
+  commercials : Array<{
+    commercialId        : string
+    displayName         : string
+    actionCount         : number
+    suggestedPercentage : number
+  }>
+}
+
+/** Résultat final stocké dans `club_prospects.attribution_result` à la conversion */
+export type AttributionResult = {
+  ruleId      : string
+  commercials : Array<{
+    id          : string
+    displayName : string
+    percentage  : number
+  }>
+}
+
+export type CreateAttributionRuleParams = {
+  ruleName     : string
+  description? : string
+  percentages  : AttributionPercentages
+  isDefault?   : boolean
+  conditions?  : Record<string, unknown>
+}
+
+export type UpdateAttributionRuleParams = {
+  id           : string
+  ruleName?    : string
+  description? : string | null
+  percentages? : AttributionPercentages
+  isDefault?   : boolean
+  conditions?  : Record<string, unknown>
+}
+
+// ============================================================
 // Epic 86 — Permissions granulaires (Story 86-3, migrations 00150/00151)
 // ============================================================
 

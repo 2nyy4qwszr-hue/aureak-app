@@ -13,6 +13,12 @@ import type {
   ProspectAction,
   ProspectActionType,
   CreateProspectActionParams,
+  AttributionRule,
+  AttributionSuggestion,
+  AttributionPercentages,
+  AttributionResult,
+  CreateAttributionRuleParams,
+  UpdateAttributionRuleParams,
 } from '@aureak/types'
 
 // ── Mapping snake_case → camelCase ─────────────────────────────────────────
@@ -403,6 +409,192 @@ export async function listMyActions(filters: ListMyActionsFilters = {}): Promise
   return ((data ?? []) as Record<string, unknown>[]).map(r =>
     mapAction({ ...r, performer_display_name: null })
   )
+}
+
+// ── Règles d'attribution (story 88.4) ──────────────────────────────────────
+
+function mapAttributionRule(r: Record<string, unknown>): AttributionRule {
+  return {
+    id          : r.id as string,
+    tenantId    : r.tenant_id as string,
+    ruleName    : r.rule_name as string,
+    description : (r.description as string | null) ?? null,
+    conditions  : (r.conditions as Record<string, unknown>) ?? {},
+    percentages : (r.percentages as AttributionPercentages) ?? {},
+    isDefault   : Boolean(r.is_default),
+    createdAt   : r.created_at as string,
+    updatedAt   : r.updated_at as string,
+    deletedAt   : (r.deleted_at as string | null) ?? null,
+  }
+}
+
+export async function listAttributionRules(): Promise<AttributionRule[]> {
+  const { data, error } = await supabase
+    .from('attribution_rules')
+    .select('*')
+    .is('deleted_at', null)
+    .order('is_default', { ascending: false })
+    .order('rule_name', { ascending: true })
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] listAttributionRules error:', error)
+    return []
+  }
+  return ((data ?? []) as Record<string, unknown>[]).map(mapAttributionRule)
+}
+
+export async function createAttributionRule(params: CreateAttributionRuleParams): Promise<AttributionRule> {
+  const { tenantId } = await resolveTenantId()
+
+  // Si la nouvelle règle est marquée par défaut, on démarque l'ancienne
+  if (params.isDefault) {
+    await supabase
+      .from('attribution_rules')
+      .update({ is_default: false })
+      .eq('tenant_id', tenantId)
+      .eq('is_default', true)
+      .is('deleted_at', null)
+  }
+
+  const payload: Record<string, unknown> = {
+    tenant_id   : tenantId,
+    rule_name   : params.ruleName,
+    description : params.description ?? null,
+    conditions  : params.conditions ?? {},
+    percentages : params.percentages,
+    is_default  : params.isDefault ?? false,
+  }
+
+  const { data, error } = await supabase
+    .from('attribution_rules')
+    .insert(payload)
+    .select('*')
+    .single()
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] createAttributionRule error:', error)
+    throw error
+  }
+  return mapAttributionRule(data as Record<string, unknown>)
+}
+
+export async function updateAttributionRule(params: UpdateAttributionRuleParams): Promise<AttributionRule> {
+  // Si on marque comme défaut, démarquer les autres du tenant
+  if (params.isDefault) {
+    const { tenantId } = await resolveTenantId()
+    await supabase
+      .from('attribution_rules')
+      .update({ is_default: false })
+      .eq('tenant_id', tenantId)
+      .eq('is_default', true)
+      .neq('id', params.id)
+      .is('deleted_at', null)
+  }
+
+  const payload: Record<string, unknown> = {}
+  if (params.ruleName    !== undefined) payload.rule_name   = params.ruleName
+  if (params.description !== undefined) payload.description = params.description
+  if (params.percentages !== undefined) payload.percentages = params.percentages
+  if (params.isDefault   !== undefined) payload.is_default  = params.isDefault
+  if (params.conditions  !== undefined) payload.conditions  = params.conditions
+
+  const { data, error } = await supabase
+    .from('attribution_rules')
+    .update(payload)
+    .eq('id', params.id)
+    .select('*')
+    .single()
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] updateAttributionRule error:', error)
+    throw error
+  }
+  return mapAttributionRule(data as Record<string, unknown>)
+}
+
+/** Soft-delete (jamais la règle par défaut) */
+export async function deleteAttributionRule(id: string): Promise<void> {
+  const { data: rule } = await supabase
+    .from('attribution_rules')
+    .select('is_default')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (rule?.is_default) {
+    throw new Error('Impossible de supprimer la règle par défaut. Définissez-en une autre comme défaut d\'abord.')
+  }
+
+  const { error } = await supabase
+    .from('attribution_rules')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] deleteAttributionRule error:', error)
+    throw error
+  }
+}
+
+/**
+ * Suggestion d'attribution basée sur les actions commerciales + règle par défaut.
+ * Pondération simple : part proportionnelle au nombre d'actions par commercial.
+ */
+export async function suggestAttribution(clubProspectId: string): Promise<AttributionSuggestion | null> {
+  const rules = await listAttributionRules()
+  const defaultRule = rules.find(r => r.isDefault)
+  if (!defaultRule) return null
+
+  const { data: actions } = await supabase
+    .from('prospect_actions')
+    .select('performed_by, action_type')
+    .eq('club_prospect_id', clubProspectId)
+
+  const countsByPerformer = new Map<string, number>()
+  for (const a of (actions ?? []) as { performed_by: string; action_type: string }[]) {
+    // on exclut changement_statut (auto) pour la pondération
+    if (a.action_type === 'changement_statut') continue
+    countsByPerformer.set(a.performed_by, (countsByPerformer.get(a.performed_by) ?? 0) + 1)
+  }
+
+  const performerIds = [...countsByPerformer.keys()]
+  const nameMap = await buildDisplayNameMap(performerIds)
+  const totalActions = [...countsByPerformer.values()].reduce((a, b) => a + b, 0)
+
+  // Répartition proportionnelle (si 1 seul commercial → 100%, si 2 → selon actions)
+  const commercials = performerIds.map(id => {
+    const count = countsByPerformer.get(id) ?? 0
+    const pct = totalActions > 0 ? Math.round((count / totalActions) * 100) : 0
+    return {
+      commercialId        : id,
+      displayName         : nameMap.get(id) ?? 'Inconnu',
+      actionCount         : count,
+      suggestedPercentage : pct,
+    }
+  })
+
+  // Ajuste pour que la somme fasse bien 100 (arrondi cumulatif)
+  const sum = commercials.reduce((a, c) => a + c.suggestedPercentage, 0)
+  if (commercials.length > 0 && sum !== 100) {
+    commercials[0].suggestedPercentage += (100 - sum)
+  }
+
+  return { ruleApplied: defaultRule, commercials }
+}
+
+/** Stocke la répartition finale de l'attribution sur le prospect converti */
+export async function saveAttributionResult(
+  clubProspectId: string,
+  result: AttributionResult,
+): Promise<void> {
+  const { error } = await supabase
+    .from('club_prospects')
+    .update({ attribution_result: result })
+    .eq('id', clubProspectId)
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] saveAttributionResult error:', error)
+    throw error
+  }
 }
 
 // ── Stats ──────────────────────────────────────────────────────────────────

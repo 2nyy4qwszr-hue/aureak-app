@@ -21,6 +21,7 @@ import { ProspectStatusBadge } from '../../../../../../components/admin/prospect
 import { AddProspectContactModal } from '../../../../../../components/admin/prospection/AddProspectContactModal'
 import { ProspectTimeline } from '../../../../../../components/admin/prospection/ProspectTimeline'
 import { AddProspectActionModal } from '../../../../../../components/admin/prospection/AddProspectActionModal'
+import { ConvertProspectModal } from '../../../../../../components/admin/prospection/ConvertProspectModal'
 
 export default function ProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()
@@ -33,6 +34,7 @@ export default function ProspectDetailPage() {
   const [savingStatus, setSavingStatus]     = useState(false)
   const [contactModalOpen, setContactModalOpen] = useState(false)
   const [actionModalOpen, setActionModalOpen]   = useState(false)
+  const [convertModalOpen, setConvertModalOpen] = useState(false)
 
   const load = useCallback(async () => {
     if (!prospectId) return
@@ -69,6 +71,11 @@ export default function ProspectDetailPage() {
 
   async function handleStatusChange(nextStatus: ClubProspectStatus) {
     if (!prospect || nextStatus === prospect.status) return
+    // Story 88.4 — conversion = flux dédié avec attribution
+    if (nextStatus === 'converti') {
+      setConvertModalOpen(true)
+      return
+    }
     setSavingStatus(true)
     try {
       await updateClubProspect({ id: prospect.id, status: nextStatus })
@@ -223,6 +230,15 @@ export default function ProspectDetailPage() {
         clubProspectId={prospect.id}
         onClose={() => setActionModalOpen(false)}
         onSuccess={() => loadActions()}
+      />
+      <ConvertProspectModal
+        visible={convertModalOpen}
+        clubProspectId={prospect.id}
+        onClose={() => setConvertModalOpen(false)}
+        onSuccess={() => {
+          setConvertModalOpen(false)
+          Promise.all([load(), loadActions()])
+        }}
       />
     </ScrollView>
   )
