@@ -716,6 +716,17 @@ export {
   getResourceDownloadUrl,
 } from './admin/commercial-resources'
 
+// ── Epic 91 — Story 91.2 : Médiathèque ──────────────────────────────────────
+export {
+  listMediaItems,
+  uploadMediaItem,
+  approveMediaItem,
+  rejectMediaItem,
+  softDeleteMediaItem,
+  getMediaItemUrl,
+} from './admin/media-items'
+export type { ListMediaItemsFilters } from './admin/media-items'
+
 // ── Epic 88 — Pipeline CRM Clubs Prospects (Story 88-2) ──────────────────────
 export {
   listClubProspects,

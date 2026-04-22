@@ -1,6 +1,6 @@
 # Story 91.2 — Médiathèque : upload coachs + validation admin
 
-Status: ready-for-dev
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -64,46 +64,46 @@ afin de contrôler le contenu publié.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase `00168_create_media_items.sql` (AC: #1, #2, #10, #11)
-  - [ ] Enum `media_file_type` : `image`, `video`
-  - [ ] Enum `media_item_status` : `pending`, `approved`, `rejected`
-  - [ ] Table `media_items` avec toutes les colonnes spécifiées
-  - [ ] Index sur `media_items(tenant_id, status)` et `media_items(uploaded_by, created_at DESC)`
-  - [ ] RLS enable, policies coach own + admin/marketeur all-tenant
-  - [ ] Trigger `updated_at`
-  - [ ] Bucket Supabase Storage `media-library` (via SQL `insert into storage.buckets`)
-  - [ ] Policies Storage : INSERT coach own path, SELECT/UPDATE/DELETE admin/marketeur
-- [ ] Task 2 — Types TypeScript (AC: #3)
-  - [ ] `MediaFileType` type union + label map dans `enums.ts`
-  - [ ] `MediaItemStatus` type union + `MEDIA_ITEM_STATUS_LABELS` + color map dans `enums.ts`
-  - [ ] `MediaItem` entity dans `entities.ts` (avec `uploaderDisplayName` optionnel pour vue admin)
-  - [ ] `CreateMediaItemParams` : `{ title, description?, fileType, filePath, fileSize?, mimeType? }`
-  - [ ] Exporter dans `index.ts`
-- [ ] Task 3 — API client (AC: #4)
-  - [ ] Créer `aureak/packages/api-client/src/admin/media-items.ts`
-  - [ ] `listMediaItems` — select + join profiles pour uploaderDisplayName, order by `created_at DESC`
-  - [ ] `uploadMediaItem(file, metadata)` — `supabase.storage.from('media-library').upload(path, file)` + `insert into media_items` en transaction
-  - [ ] `approveMediaItem(id)` — update status + approved_by + approved_at
-  - [ ] `rejectMediaItem(id, reason)` — update status + rejection_reason (validation longueur reason côté API)
-  - [ ] `getMediaItemUrl(id)` — `createSignedUrl(path, 3600)`
-  - [ ] Snake_case → camelCase mapping explicite (jamais `as Type[]`)
-  - [ ] Exporter dans `aureak/packages/api-client/src/index.ts`
-- [ ] Task 4 — Vue coach upload (AC: #5, #6, #7)
-  - [ ] Modifier `aureak/apps/web/app/(admin)/marketing/mediatheque/page.tsx`
-  - [ ] Détection rôle via `useCurrentRole` : si `coach` → affichage UploadForm + liste perso
-  - [ ] Composant `UploadForm` dans `_components/` : file picker, input titre (RHF+Zod), textarea description, preview, progress bar
-  - [ ] Try/finally sur `setUploading`
-  - [ ] Validation côté client : taille max 50MB image / 500MB vidéo (rejeter avant upload), mime type allowlist
-- [ ] Task 5 — Vue admin/marketeur galerie (AC: #5, #8, #9)
-  - [ ] Si rôle `admin` ou `marketeur` → galerie grille responsive (2 colonnes mobile, 3-4 desktop)
-  - [ ] Composant `MediaGrid` : cards avec thumbnail, titre, uploader, date, badge statut
-  - [ ] Filtres pills : `Tous | En attente | Validés | Rejetés` (défaut : "En attente")
-  - [ ] Boutons inline "Approuver" (vert) / "Rejeter" (rouge) sur cards `pending`
-  - [ ] Modale `RejectModal` avec textarea raison obligatoire (min 5 chars, Zod)
-- [ ] Task 6 — Vue liste perso coach (AC: #5, #9)
-  - [ ] Sous le formulaire d'upload : liste compacte des médias uploadés par le coach
-  - [ ] Chaque entrée : thumbnail + titre + badge statut + raison rejet (si rejeté)
-  - [ ] Pas d'actions admin sur cette vue
+- [x] Task 1 — Migration Supabase `00168_create_media_items.sql` (AC: #1, #2, #10, #11)
+  - [x] Enum `media_file_type` : `image`, `video`
+  - [x] Enum `media_item_status` : `pending`, `approved`, `rejected`
+  - [x] Table `media_items` avec toutes les colonnes spécifiées
+  - [x] Index sur `media_items(tenant_id, status)` et `media_items(uploaded_by, created_at DESC)`
+  - [x] RLS enable, policies coach own + admin/marketeur all-tenant
+  - [x] Trigger `updated_at`
+  - [x] Bucket Supabase Storage `media-library` (via SQL `insert into storage.buckets`)
+  - [x] Policies Storage : INSERT coach own path, SELECT/UPDATE/DELETE admin/marketeur
+- [x] Task 2 — Types TypeScript (AC: #3)
+  - [x] `MediaFileType` type union + label map dans `enums.ts`
+  - [x] `MediaItemStatus` type union + `MEDIA_ITEM_STATUS_LABELS` + color map dans `enums.ts`
+  - [x] `MediaItem` entity dans `entities.ts` (avec `uploaderDisplayName` optionnel pour vue admin)
+  - [x] `CreateMediaItemParams` : `{ title, description?, fileType, filePath, fileSize?, mimeType? }`
+  - [x] Exporter dans `index.ts`
+- [x] Task 3 — API client (AC: #4)
+  - [x] Créer `aureak/packages/api-client/src/admin/media-items.ts`
+  - [x] `listMediaItems` — select + join profiles pour uploaderDisplayName, order by `created_at DESC`
+  - [x] `uploadMediaItem(file, metadata)` — `supabase.storage.from('media-library').upload(path, file)` + `insert into media_items` en transaction
+  - [x] `approveMediaItem(id)` — update status + approved_by + approved_at
+  - [x] `rejectMediaItem(id, reason)` — update status + rejection_reason (validation longueur reason côté API)
+  - [x] `getMediaItemUrl(id)` — `createSignedUrl(path, 3600)`
+  - [x] Snake_case → camelCase mapping explicite (jamais `as Type[]`)
+  - [x] Exporter dans `aureak/packages/api-client/src/index.ts`
+- [x] Task 4 — Vue coach upload (AC: #5, #6, #7)
+  - [x] Modifier `aureak/apps/web/app/(admin)/marketing/mediatheque/page.tsx`
+  - [x] Détection rôle via `useCurrentRole` : si `coach` → affichage UploadForm + liste perso
+  - [x] Composant `UploadForm` dans `_components/` : file picker, input titre (RHF+Zod), textarea description, preview, progress bar
+  - [x] Try/finally sur `setUploading`
+  - [x] Validation côté client : taille max 50MB image / 500MB vidéo (rejeter avant upload), mime type allowlist
+- [x] Task 5 — Vue admin/marketeur galerie (AC: #5, #8, #9)
+  - [x] Si rôle `admin` ou `marketeur` → galerie grille responsive (2 colonnes mobile, 3-4 desktop)
+  - [x] Composant `MediaGrid` : cards avec thumbnail, titre, uploader, date, badge statut
+  - [x] Filtres pills : `Tous | En attente | Validés | Rejetés` (défaut : "En attente")
+  - [x] Boutons inline "Approuver" (vert) / "Rejeter" (rouge) sur cards `pending`
+  - [x] Modale `RejectModal` avec textarea raison obligatoire (min 5 chars, Zod)
+- [x] Task 6 — Vue liste perso coach (AC: #5, #9)
+  - [x] Sous le formulaire d'upload : liste compacte des médias uploadés par le coach
+  - [x] Chaque entrée : thumbnail + titre + badge statut + raison rejet (si rejeté)
+  - [x] Pas d'actions admin sur cette vue
 
 ## Dev Notes
 
