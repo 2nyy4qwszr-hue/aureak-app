@@ -1,4 +1,5 @@
 // Story 88.4 — Page admin attribution : CRUD règles d'attribution commerciale
+// Story 97.11 — AdminPageHeader v2 + ProspectionNavBar
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
@@ -8,6 +9,8 @@ import {
   listAttributionRules, updateAttributionRule, deleteAttributionRule,
 } from '@aureak/api-client'
 import type { AttributionRule } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { AttributionRuleModal } from '../../../../components/admin/prospection/AttributionRuleModal'
 
 export default function AttributionRulesPage() {
@@ -65,18 +68,18 @@ export default function AttributionRulesPage() {
   }
 
   return (
-    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
-      <View style={st.header}>
-        <View style={st.headerText}>
-          <AureakText style={st.title as never}>Règles d'attribution</AureakText>
-          <AureakText style={st.sub as never}>
-            Répartition du crédit commercial entre qualifier (identification) et closer (conclusion).
-          </AureakText>
-        </View>
-        <Pressable style={st.addBtn} onPress={handleAdd}>
-          <AureakText style={st.addBtnLabel as never}>+ Ajouter une règle</AureakText>
-        </Pressable>
-      </View>
+    <View style={st.page}>
+      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
+      <AdminPageHeader
+        title="Attribution"
+        actionButton={{
+          label  : '+ Ajouter une règle',
+          onPress: handleAdd,
+        }}
+      />
+      <ProspectionNavBar />
+
+      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
 
       {error && (
         <View style={st.errorBanner}>
@@ -149,26 +152,15 @@ export default function AttributionRulesPage() {
         onClose={() => setModalOpen(false)}
         onSuccess={() => load()}
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const st = StyleSheet.create({
-  scroll : { flex: 1, backgroundColor: colors.light.primary },
+  page   : { flex: 1, backgroundColor: colors.light.primary },
+  scroll : { flex: 1 },
   content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-
-  header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.md, flexWrap: 'wrap' },
-  headerText: { gap: 4, flex: 1, minWidth: 240 },
-  title     : { color: colors.text.dark, fontWeight: '700', fontFamily: fonts.display, fontSize: 26 },
-  sub       : { color: colors.text.muted, fontSize: 13 },
-
-  addBtn: {
-    paddingHorizontal: space.lg, paddingVertical: space.sm,
-    borderRadius: radius.button, backgroundColor: colors.accent.gold,
-    // @ts-ignore
-    boxShadow: shadows.sm,
-  },
-  addBtnLabel: { color: colors.text.dark, fontSize: 14, fontWeight: '700' },
 
   errorBanner: {
     backgroundColor: colors.status.absent + '15',

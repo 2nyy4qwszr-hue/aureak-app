@@ -1,6 +1,7 @@
 // Epic 89 — Story 89.6 : Dashboard funnel prospection gardiens
 // AC #7 : taux de conversion par étape (prospect → invité → essai → candidat → inscrit)
 // + listing des essais consommés avec issue et override admin (reset trial right).
+// Story 97.11 — AdminPageHeader v2 ("Gardiens") + ProspectionNavBar
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
@@ -17,6 +18,8 @@ import {
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import type { ChildDirectoryEntry, TrialOutcome } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 
 // ── Funnel Card (1 étape) ─────────────────────────────────────────────────────
 
@@ -167,27 +170,18 @@ export default function ProspectionGardiensPage() {
   }
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
-      {/* Header */}
-      <View style={st.header}>
-        <AureakText style={st.title as never}>Prospection — Gardiens</AureakText>
-        <AureakText style={st.sub as never}>
-          Funnel de conversion et traçabilité des séances d'essai gratuites
-        </AureakText>
-      </View>
+    <View style={st.page}>
+      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
+      <AdminPageHeader
+        title="Gardiens"
+        actionButton={canAddProspect ? {
+          label  : '+ Nouveau gardien',
+          onPress: () => router.push('/prospection/gardiens/ajouter' as never),
+        } : undefined}
+      />
+      <ProspectionNavBar />
 
-      {/* Story 89.1 — CTA ajout rapide prospect terrain (admin | commercial) */}
-      {canAddProspect && (
-        <Pressable
-          style={st.addProspectCta}
-          onPress={() => router.push('/prospection/gardiens/ajouter' as never)}
-          accessibilityLabel="Ajouter un prospect terrain"
-        >
-          <AureakText style={st.addProspectCtaText as never}>
-            + Ajouter un prospect terrain
-          </AureakText>
-        </Pressable>
-      )}
+      <ScrollView style={st.container} contentContainerStyle={st.content}>
 
       {error && (
         <View style={st.errorBanner}>
@@ -340,38 +334,17 @@ export default function ProspectionGardiensPage() {
           })}
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.light.primary },
+  page     : { flex: 1, backgroundColor: colors.light.primary },
+  container: { flex: 1 },
   content  : { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-
-  header: { gap: 6 },
-  title : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  sub   : { color: colors.text.muted, fontSize: 13 },
-
-  // Story 89.1 — CTA ajout rapide prospect terrain
-  addProspectCta: {
-    minHeight        : 48,
-    borderRadius     : radius.button,
-    backgroundColor  : colors.accent.gold,
-    alignItems       : 'center',
-    justifyContent   : 'center',
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm,
-    // @ts-ignore RN Web
-    boxShadow        : shadows.md,
-  },
-  addProspectCtaText: {
-    color     : colors.text.dark,
-    fontSize  : 14,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
 
   errorBanner: {
     backgroundColor  : colors.status.absent + '15',
