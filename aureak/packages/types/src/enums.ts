@@ -418,6 +418,33 @@ export const CLUB_CONTACT_ROLE_LABELS: Record<ClubContactRole, string> = {
   autre            : 'Autre',
 }
 
+// ── Epic 90 — Pipeline Prospection Entraîneurs ─────────────────────────────
+
+/** Statut pipeline d'un coach prospect — miroir enum PostgreSQL `coach_prospect_status` (migration 00167).
+ *  4 étapes (`identifie` → `info_envoyee` → `en_formation` → `actif`) + 1 dead end (`perdu`). */
+export type CoachProspectStatus =
+  | 'identifie'
+  | 'info_envoyee'
+  | 'en_formation'
+  | 'actif'
+  | 'perdu'
+
+export const COACH_PROSPECT_STATUSES: CoachProspectStatus[] = [
+  'identifie',
+  'info_envoyee',
+  'en_formation',
+  'actif',
+  'perdu',
+]
+
+export const COACH_PROSPECT_STATUS_LABELS: Record<CoachProspectStatus, string> = {
+  identifie    : 'Identifié',
+  info_envoyee : 'Info envoyée',
+  en_formation : 'En formation',
+  actif        : 'Actif',
+  perdu        : 'Perdu',
+}
+
 // ── Epic 88 — Story 88.3 : Historique actions prospect ─────────────────────
 
 /** Type d'action commerciale — miroir enum PostgreSQL `prospect_action_type` (migration 00163) */
@@ -500,4 +527,34 @@ export const COMMERCIAL_RESOURCE_TYPE_ICONS: Record<CommercialResourceType, stri
   flyer     : '📄',
   webpage   : '🌐',
   tarifs    : '💰',
+}
+
+// ── Epic 91 — Story 91.2 : Médiathèque ─────────────────────────────────────
+
+/** Type de fichier média — miroir enum PostgreSQL `media_file_type` (migration 00168) */
+export type MediaFileType = 'image' | 'video'
+
+export const MEDIA_FILE_TYPES: MediaFileType[] = ['image', 'video']
+
+export const MEDIA_FILE_TYPE_LABELS: Record<MediaFileType, string> = {
+  image: 'Photo',
+  video: 'Vidéo',
+}
+
+/** Statut de validation d'un média — miroir enum PostgreSQL `media_item_status` (migration 00168) */
+export type MediaItemStatus = 'pending' | 'approved' | 'rejected'
+
+export const MEDIA_ITEM_STATUSES: MediaItemStatus[] = ['pending', 'approved', 'rejected']
+
+export const MEDIA_ITEM_STATUS_LABELS: Record<MediaItemStatus, string> = {
+  pending : 'En attente',
+  approved: 'Validé',
+  rejected: 'Rejeté',
+}
+
+/** Couleur sémantique (tokens @aureak/theme.colors.*) par statut média */
+export const MEDIA_ITEM_STATUS_COLORS: Record<MediaItemStatus, 'warning' | 'success' | 'danger'> = {
+  pending : 'warning',
+  approved: 'success',
+  rejected: 'danger',
 }
