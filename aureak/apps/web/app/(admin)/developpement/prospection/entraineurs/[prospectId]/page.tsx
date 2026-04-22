@@ -238,7 +238,7 @@ const st = StyleSheet.create({
     boxShadow      : shadows.sm,
   },
   headerInfo: { gap: 6 },
-  fullName  : { fontSize: 26, fontFamily: fonts.display, fontWeight: '700', color: colors.text.dark },
+  fullName  : { fontSize: 28, fontFamily: fonts.display, fontWeight: '700', color: colors.text.dark },
   headerSub : { color: colors.text.muted, fontSize: 13 },
 
   section      : { gap: space.sm },
@@ -247,9 +247,12 @@ const st = StyleSheet.create({
 
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip: {
-    paddingHorizontal: space.md, paddingVertical: 6,
-    borderRadius: 999, borderWidth: 1, borderColor: colors.border.divider,
-    backgroundColor: colors.light.surface,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs,
+    borderRadius     : radius.badge,
+    borderWidth      : 1,
+    borderColor      : colors.border.divider,
+    backgroundColor  : colors.light.surface,
   },
   chipActive     : { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
   chipLabel      : { color: colors.text.muted, fontSize: 12 },

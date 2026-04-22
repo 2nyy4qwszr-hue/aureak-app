@@ -1,7 +1,7 @@
 // Story 90.1 — Pipeline prospection entraîneurs (4 étapes + perdu).
 // Remplace le placeholder créé par la story 88.1.
 'use client'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -45,7 +45,7 @@ export default function ProspectionEntraineursPage() {
   const [filterStatus, setFilterStatus]         = useState<CoachProspectStatus | null>(null)
   const [filterCommercial, setFilterCommercial] = useState<string | null>(null)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
       const [rowsRes, commRes] = await Promise.all([
@@ -59,9 +59,9 @@ export default function ProspectionEntraineursPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   const stats = useMemo(() => computeStats(allRows), [allRows])
 
@@ -164,8 +164,9 @@ const st = StyleSheet.create({
   filterLabel : { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: space.sm },
   filterRow   : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   pill: {
-    paddingHorizontal: space.md, paddingVertical: 6,
-    borderRadius     : 999,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs,
+    borderRadius     : radius.badge,
     borderWidth      : 1,
     borderColor      : colors.border.divider,
     backgroundColor  : colors.light.surface,

@@ -93,8 +93,8 @@ const s = StyleSheet.create({
   tableHeader: {
     flexDirection    : 'row',
     alignItems       : 'center',
-    paddingHorizontal: 16,
-    paddingVertical  : 10,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
     backgroundColor  : colors.light.muted,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
@@ -111,8 +111,8 @@ const s = StyleSheet.create({
   row: {
     flexDirection    : 'row',
     alignItems       : 'center',
-    paddingHorizontal: 16,
-    paddingVertical  : 14,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
     gap              : space.md,

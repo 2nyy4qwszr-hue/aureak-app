@@ -220,7 +220,7 @@ export function CreateCoachProspectModal({ visible, onClose, onSuccess }: Props)
 }
 
 const s = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: space.md },
+  backdrop: { flex: 1, backgroundColor: colors.overlay.dark, justifyContent: 'center', alignItems: 'center', padding: space.md },
   modal   : { backgroundColor: colors.light.surface, borderRadius: radius.card, width: '100%', maxWidth: 640, maxHeight: '92%' },
   body    : { padding: space.lg, gap: space.md },
   title   : { color: colors.text.dark, fontWeight: '700' },
@@ -240,7 +240,7 @@ const s = StyleSheet.create({
 
   chipRow : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip    : {
-    paddingHorizontal: space.md, paddingVertical: 6, borderRadius: 999,
+    paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.badge,
     borderWidth: 1, borderColor: colors.border.divider, backgroundColor: colors.light.primary,
   },
   chipActive    : { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },

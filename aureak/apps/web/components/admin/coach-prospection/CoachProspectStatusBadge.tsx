@@ -3,27 +3,29 @@
 import React from 'react'
 import { View, StyleSheet, type ViewStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, radius } from '@aureak/theme'
+import { colors, radius, space } from '@aureak/theme'
 import type { CoachProspectStatus } from '@aureak/types'
 import { COACH_PROSPECT_STATUS_LABELS } from '@aureak/types'
 
-const COLOR_BY_STATUS: Record<CoachProspectStatus, string> = {
-  identifie    : colors.text.muted,
-  info_envoyee : colors.status.amberText,
-  en_formation : colors.accent.gold,
-  actif        : colors.status.present,
-  perdu        : colors.status.absent,
+type Tone = { bg: string; text: string; border: string }
+
+const TONE_BY_STATUS: Record<CoachProspectStatus, Tone> = {
+  identifie    : { bg: colors.light.muted,      text: colors.text.muted,         border: colors.border.divider    },
+  info_envoyee : { bg: colors.status.amberBg,   text: colors.status.amberText,   border: colors.status.amberText  },
+  en_formation : { bg: colors.border.goldBg,    text: colors.accent.gold,        border: colors.border.goldSolid  },
+  actif        : { bg: colors.status.successBg, text: colors.status.successText, border: colors.status.successText },
+  perdu        : { bg: colors.status.redBg,     text: colors.status.redText,     border: colors.status.redText    },
 }
 
 export function CoachProspectStatusBadge({ status }: { status: CoachProspectStatus }) {
-  const color = COLOR_BY_STATUS[status]
+  const tone = TONE_BY_STATUS[status]
   const badgeStyle: ViewStyle = {
-    backgroundColor: color + '22',
-    borderColor    : color,
+    backgroundColor: tone.bg,
+    borderColor    : tone.border,
   }
   return (
     <View style={[s.badge, badgeStyle] as never}>
-      <AureakText style={[s.text, { color }] as never}>
+      <AureakText style={[s.text, { color: tone.text }] as never}>
         {COACH_PROSPECT_STATUS_LABELS[status]}
       </AureakText>
     </View>
@@ -32,7 +34,7 @@ export function CoachProspectStatusBadge({ status }: { status: CoachProspectStat
 
 const s = StyleSheet.create({
   badge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: space.sm,
     paddingVertical  : 4,
     borderRadius     : radius.xs,
     borderWidth      : 1,
