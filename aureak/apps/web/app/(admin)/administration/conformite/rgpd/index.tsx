@@ -1,9 +1,11 @@
 'use client'
 // Story 10.3 — Panneau Admin demandes RGPD
+// Story 99.5 — AdminPageHeader v2 ("RGPD")
 import { useEffect, useState } from 'react'
 import { listAllGdprRequests, processGdprRequest } from '@aureak/api-client'
 import type { GdprRequest, GdprRequestStatus } from '@aureak/api-client'
 import { colors } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const STATUS_COLORS: Record<GdprRequestStatus, string> = {
   pending   : colors.accent.gold,
@@ -67,8 +69,10 @@ export default function GdprAdminPage() {
   if (loading) return <div style={styles.loading}>Chargement...</div>
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Demandes RGPD</h1>
+    <div>
+      {/* Story 99.5 — AdminPageHeader v2 */}
+      <AdminPageHeader title="RGPD" />
+      <div style={styles.container}>
 
       {requests.length === 0 && (
         <div style={styles.empty}>Aucune demande RGPD en cours.</div>
@@ -115,6 +119,7 @@ export default function GdprAdminPage() {
           )}
         </div>
       ))}
+      </div>
     </div>
   )
 }
