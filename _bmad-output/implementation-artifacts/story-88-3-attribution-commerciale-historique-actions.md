@@ -1,6 +1,6 @@
 # Story 88.3 — Attribution commerciale — historique d'actions
 
-Status: ready-for-dev
+Status: review
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -36,7 +36,12 @@ afin de tracer QUI a fait QUOI et décider équitablement de la rémunération.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase `00162_create_prospect_actions.sql` (AC: #1, #2, #3, #9, #10)
+> **Notes d'implémentation (2026-04-22)** :
+> - Numéro migration : `00163` (et non 00162 comme prévu — 00162 a été utilisé pour le fix RLS de la story 88.2).
+> - Section "Mes actions" (AC #8) = API `listMyActions` fournie, UI différée (sera ajoutée dans une story ultérieure si besoin — pas bloquante pour le core 88.3).
+> - Timeline intégrée dans fiche détail prospect à la place du placeholder 88.2.
+
+- [x] Task 1 — Migration Supabase `00163_create_prospect_actions.sql` (AC: #1, #2, #3, #9, #10)
   - [ ] Enum `prospect_action_type` (8 valeurs)
   - [ ] Table `prospect_actions` : `id` UUID PK, `club_prospect_id` FK `club_prospects`, `performed_by` FK `auth.users`, `action_type` enum, `description` text, `created_at` timestamptz default NOW()
   - [ ] PAS de `updated_at` ni `deleted_at` — table append-only

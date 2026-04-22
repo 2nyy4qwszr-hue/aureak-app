@@ -9,8 +9,9 @@ import {
   getClubProspect,
   updateClubProspect,
   deleteProspectContact,
+  listProspectActions,
 } from '@aureak/api-client'
-import type { ClubProspectWithContacts, ClubProspectStatus } from '@aureak/types'
+import type { ClubProspectWithContacts, ClubProspectStatus, ProspectAction } from '@aureak/types'
 import {
   CLUB_PROSPECT_STATUS_LABELS,
   CLUB_PROSPECT_STATUSES,
@@ -18,15 +19,20 @@ import {
 } from '@aureak/types'
 import { ProspectStatusBadge } from '../../../../../../components/admin/prospection/ProspectStatusBadge'
 import { AddProspectContactModal } from '../../../../../../components/admin/prospection/AddProspectContactModal'
+import { ProspectTimeline } from '../../../../../../components/admin/prospection/ProspectTimeline'
+import { AddProspectActionModal } from '../../../../../../components/admin/prospection/AddProspectActionModal'
 
 export default function ProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()
-  const router                           = useRouter()
-  const [prospect, setProspect]          = useState<ClubProspectWithContacts | null>(null)
-  const [loading, setLoading]            = useState(true)
-  const [notFound, setNotFound]          = useState(false)
-  const [savingStatus, setSavingStatus]  = useState(false)
+  const router                              = useRouter()
+  const [prospect, setProspect]             = useState<ClubProspectWithContacts | null>(null)
+  const [actions, setActions]               = useState<ProspectAction[]>([])
+  const [loading, setLoading]               = useState(true)
+  const [loadingActions, setLoadingActions] = useState(true)
+  const [notFound, setNotFound]             = useState(false)
+  const [savingStatus, setSavingStatus]     = useState(false)
   const [contactModalOpen, setContactModalOpen] = useState(false)
+  const [actionModalOpen, setActionModalOpen]   = useState(false)
 
   const load = useCallback(async () => {
     if (!prospectId) return
@@ -45,14 +51,28 @@ export default function ProspectDetailPage() {
     }
   }, [prospectId])
 
+  const loadActions = useCallback(async () => {
+    if (!prospectId) return
+    setLoadingActions(true)
+    try {
+      const list = await listProspectActions(prospectId)
+      setActions(list)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[ProspectDetailPage] loadActions error:', err)
+    } finally {
+      setLoadingActions(false)
+    }
+  }, [prospectId])
+
   useEffect(() => { load() }, [load])
+  useEffect(() => { loadActions() }, [loadActions])
 
   async function handleStatusChange(nextStatus: ClubProspectStatus) {
     if (!prospect || nextStatus === prospect.status) return
     setSavingStatus(true)
     try {
       await updateClubProspect({ id: prospect.id, status: nextStatus })
-      await load()
+      await Promise.all([load(), loadActions()])
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[ProspectDetailPage] status error:', err)
     } finally {
@@ -183,12 +203,13 @@ export default function ProspectDetailPage() {
       </View>
 
       <View style={st.section}>
-        <AureakText style={st.sectionTitle as never}>Historique des actions</AureakText>
-        <View style={st.emptyState}>
-          <AureakText style={st.emptyText as never}>
-            Timeline disponible avec la story 88.3 (prospect_actions).
-          </AureakText>
+        <View style={st.sectionHeader}>
+          <AureakText style={st.sectionTitle as never}>Historique des actions</AureakText>
+          <Pressable style={st.addSmallBtn} onPress={() => setActionModalOpen(true)}>
+            <AureakText style={st.addSmallBtnLabel as never}>+ Ajouter une action</AureakText>
+          </Pressable>
         </View>
+        <ProspectTimeline actions={actions} loading={loadingActions} />
       </View>
 
       <AddProspectContactModal
@@ -196,6 +217,12 @@ export default function ProspectDetailPage() {
         clubProspectId={prospect.id}
         onClose={() => setContactModalOpen(false)}
         onSuccess={() => load()}
+      />
+      <AddProspectActionModal
+        visible={actionModalOpen}
+        clubProspectId={prospect.id}
+        onClose={() => setActionModalOpen(false)}
+        onSuccess={() => loadActions()}
       />
     </ScrollView>
   )

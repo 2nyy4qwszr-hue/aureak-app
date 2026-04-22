@@ -719,10 +719,14 @@ export {
   updateProspectContact,
   deleteProspectContact,
   getProspectPipelineStats,
+  listProspectActions,
+  addProspectAction,
+  listMyActions,
 } from './admin/prospection'
 export type {
   ListClubProspectsFilters,
   ProspectPipelineStats,
+  ListMyActionsFilters,
 } from './admin/prospection'
 
 // ── Story 87.4 — Invitation dédiée commercial/manager/marketeur ──────────────
