@@ -1087,13 +1087,15 @@ function AdminLayoutInner() {
         {/* ── Story 51.2 — Topbar séance active (desktop uniquement) ── */}
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
-        {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement, hors hubs) ── */}
-        {/* Story 100.3 — AdminTopbar rendu ci-dessus gère mobile/tablette + desktop-hubs.
-            Breadcrumb reste le fallback desktop pour les pages hors hubs (≥ 1024px). */}
-        {width >= 1024
-          && !pathname.startsWith('/activites')
-          && !pathname.startsWith('/methodologie')
-          && !pathname.startsWith('/academie')
+        {/* ── Breadcrumb responsif (Story 51.5 + 100.4) ─────────────────────
+            - Mobile (< 640) : flèche retour + niveau courant (Story 100.4)
+            - Tablet (640-1024) : null (le topbar tablet affiche déjà le crumb)
+            - Desktop (>= 1024) : chaîne complète, sauf hubs Epic 93 (AdminTopbar le rend) */}
+        {(width < 640
+          || (width >= 1024
+              && !pathname.startsWith('/activites')
+              && !pathname.startsWith('/methodologie')
+              && !pathname.startsWith('/academie')))
           && <Breadcrumb />}
 
         {/* Story 62.5 — conteneur page-enter animation */}
