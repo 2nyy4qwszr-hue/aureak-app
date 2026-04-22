@@ -1,6 +1,8 @@
 'use client'
 // Story 55-2 — Page comparaison radar 2 joueurs
 // Sélecteur joueur A / joueur B → ComparisonRadarChart superposé
+// Story 98.3 — Migrée /evaluations/comparison → /performance/comparaisons/evaluations
+//              AdminPageHeader v2 ("Comparaison des évaluations")
 
 import { useEffect, useState, useMemo } from 'react'
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
@@ -10,6 +12,7 @@ import { AureakText, ComparisonRadarChart } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { ChildDirectoryEntry } from '@aureak/types'
 import type { RadarPlayer } from '@aureak/ui'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const AXES = ['Technique', 'Placement', 'Relance', 'Agilité', 'Mental', 'Communication']
 
@@ -169,19 +172,11 @@ export default function EvaluationsComparisonPage() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.page}>
+      {/* Story 98.3 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Comparaison des évaluations" />
 
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <AureakText style={styles.backText as never}>← Retour</AureakText>
-        </Pressable>
-        <AureakText variant="h2" color={colors.accent.gold}>Comparer deux joueurs</AureakText>
-        <AureakText variant="caption" style={{ color: colors.text.muted }}>
-          Moyennes des 5 dernières évaluations par axe
-        </AureakText>
-      </View>
-
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ── Sélecteurs ── */}
       <View style={styles.selectors}>
         <PlayerPicker
@@ -219,14 +214,15 @@ export default function EvaluationsComparisonPage() {
           />
         </View>
       )}
-
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  page         : { flex: 1, backgroundColor: colors.light.primary },
   container    : { flex: 1, backgroundColor: colors.light.primary },
   content      : { padding: space.xl, gap: space.lg },
   header       : { gap: space.xs },

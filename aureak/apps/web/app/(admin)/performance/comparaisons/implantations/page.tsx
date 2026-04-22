@@ -1,5 +1,7 @@
 'use client'
 // Story 57-6 — Vue comparaison deux implantations côte à côte
+// Story 98.3 — Migrée /implantations/compare → /performance/comparaisons/implantations
+//              AdminPageHeader v2 ("Comparaison des implantations")
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -12,6 +14,7 @@ import { computeImplantationHealth } from '@aureak/business-logic'
 import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Implantation, ImplantationHoverStats } from '@aureak/types'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,16 +82,11 @@ export default function ComparePage() {
   const health2 = result ? computeImplantationHealth(result.impl2.attendanceRatePct, result.impl2.masteryRatePct) : null
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.page}>
+      {/* Story 98.3 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Comparaison des implantations" />
 
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <Pressable style={styles.backBtn} onPress={() => router.push('/implantations' as never)}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '600' }}>← Retour aux implantations</AureakText>
-        </Pressable>
-        <AureakText variant="h2" color={colors.accent.gold}>Comparer deux implantations</AureakText>
-      </View>
-
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {loadError && (
         <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>
       )}
@@ -245,14 +243,15 @@ export default function ComparePage() {
           })}
         </View>
       ) : null}
-
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  page          : { flex: 1, backgroundColor: colors.light.primary },
   container     : { flex: 1, backgroundColor: colors.light.primary },
   content       : { padding: space.xl, gap: space.lg },
   header        : { gap: space.sm },

@@ -1112,7 +1112,7 @@ export default function ImplantationsPage() {
           {/* Story 57-6 — Bouton Comparer */}
           <AureakButton
             label="Comparer"
-            onPress={() => router.push('/implantations/compare' as never)}
+            onPress={() => router.push('/performance/comparaisons/implantations' as never)}
             variant="ghost"
           />
           <AureakButton
