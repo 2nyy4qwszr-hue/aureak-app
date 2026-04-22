@@ -86,7 +86,7 @@ const ITEM_SHORTCUTS: Record<string, string> = {
   '/methodologie/seances'      : 'G A',   // méthode
   '/evenements'                : 'G V',   // Évènements
   '/analytics'                 : 'G R',   // peRformance
-  '/developpement/prospection' : 'G X',
+  '/prospection'               : 'G X',
 }
 
 function KeyboardHandler() {

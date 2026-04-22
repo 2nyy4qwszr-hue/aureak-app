@@ -4,7 +4,7 @@ import React from 'react'
 import { Slot } from 'expo-router'
 import { View, StyleSheet } from 'react-native'
 import { colors } from '@aureak/theme'
-import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
+import { ProspectionNavBar } from '../../../components/admin/prospection/ProspectionNavBar'
 
 export default function ProspectionLayout() {
   return (

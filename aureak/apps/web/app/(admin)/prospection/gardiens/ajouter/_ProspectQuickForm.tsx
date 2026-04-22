@@ -13,7 +13,7 @@ import {
   listClubDirectory,
 } from '@aureak/api-client'
 import type { ChildDirectoryEntry } from '@aureak/types'
-import { useToast } from '../../../../../../components/ToastContext'
+import { useToast } from '../../../../../components/ToastContext'
 import DuplicateWarningModal from './_DuplicateWarningModal'
 
 // ── Props ────────────────────────────────────────────────────────────────────

@@ -84,7 +84,7 @@ export function PipelineCommercialModule({ profile }: PipelineCommercialModulePr
           ) : null}
           {snap && snap.crmAvailable ? (
             <Pressable
-              onPress={() => router.push(`/developpement/prospection?assigned_to=${profile.userId}` as never)}
+              onPress={() => router.push(`/prospection?assigned_to=${profile.userId}` as never)}
               style={({ pressed }) => [s.link, pressed && s.linkPressed] as never}
             >
               <AureakText style={s.linkLabel as TextStyle}>Voir pipeline complet →</AureakText>

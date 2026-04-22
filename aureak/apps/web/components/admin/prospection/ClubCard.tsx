@@ -28,7 +28,7 @@ export function ClubCard({ club, status, contactCount }: ClubCardProps) {
 
   const handlePress = () => {
     if (isPartner) return
-    router.push(`/developpement/prospection/${club.id}` as never)
+    router.push(`/prospection/${club.id}` as never)
   }
 
   return (

@@ -56,7 +56,7 @@ export function ProspectTable({ rows, onConvertClick, onLostClick }: Props) {
         return (
           <Pressable
             key={r.id}
-            onPress={() => router.push(`/developpement/prospection/clubs/${r.id}` as never)}
+            onPress={() => router.push(`/prospection/clubs/${r.id}` as never)}
             style={({ pressed }) => [s.row, { backgroundColor: rowBg }, pressed && { opacity: 0.75 }] as never}
           >
             <View style={{ flex: 2 }}>

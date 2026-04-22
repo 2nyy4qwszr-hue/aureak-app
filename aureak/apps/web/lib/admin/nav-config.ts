@@ -53,7 +53,7 @@ export const SECTION_TO_NAV: Record<SectionKey, Omit<NavItem, 'sectionKey'>> = {
   methodologie: { label: 'Méthodologie',   href: '/methodologie/seances',      Icon: BookOpenIcon },
   academie    : { label: 'Académie',       href: '/academie',                  Icon: UsersIcon },
   evenements  : { label: 'Événements',     href: '/evenements',                Icon: CalendarIcon },
-  prospection : { label: 'Prospection',    href: '/developpement/prospection', Icon: CompassIcon },
+  prospection : { label: 'Prospection',    href: '/prospection',               Icon: CompassIcon },
   marketing   : { label: 'Marketing',      href: '/marketing',                 Icon: MegaphoneIcon },
   partenariat : { label: 'Partenariat',    href: '/partenariat',               Icon: HandshakeIcon },
   performances: { label: 'Performance',    href: '/analytics',                 Icon: TrendingUpIcon },
