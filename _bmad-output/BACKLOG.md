@@ -832,6 +832,22 @@ Ordre d'implémentation recommandé : 90-1 → 90-2
 
 ---
 
+### Epic 92 — Partenariat
+
+Objectif : section Partenariat structurée (hub 2 onglets) avec suivi sponsors↔enfants (parrainage) et vue synthétique des clubs partenaires existants (Epic 11).
+
+Ordre d'implémentation recommandé : 92-1 → 92-3 (UI only, réutilise Epic 11) → 92-2 (sponsors, migration)
+
+- [ ] 92-1 : partenariat-sidebar-page-hub (**P2 FEATURE** — `PartenariatNavBar` 2 onglets (SPONSORS | CLUBS PARTENAIRES) pattern `AcademieNavBar`, `_layout.tsx` avec `Slot`, redirect `/partenariat` → `/partenariat/sponsors`, 2 pages placeholder, aucune migration) `ready-for-dev`
+- [ ] 92-2 : sponsors-enfants-parrainage (**P2 FEATURE** — migration 00168 : enum `sponsor_type` (4) + tables `sponsors` + `sponsor_child_links` avec RLS admin-tenant, types + API CRUD `sponsors.ts` + autocomplete enfants, page liste `/partenariat/sponsors` (remplace placeholder 92-1), fiche détail `[sponsorId]`, 2 modales RHF+Zod — multi-parrainage autorisé par enfant) `ready-for-dev`
+- [ ] 92-3 : recap-clubs-partenaires (**P2 FEATURE** — aucune migration, réutilise API `listPartnerships`/`listPartnerAccessStats`/`createPartnership`/`updatePartnership` de Story 11.3, page synthétique `/partenariat/clubs` (remplace placeholder 92-1) avec 4 StatCards + filtre statut + PartnershipCard + modale création, redirect ancienne route `/partnerships` → `/partenariat/clubs`) `ready-for-dev`
+
+**Dépendances** : Epic 86 done ✅ (item sidebar `partenariat` déjà configuré) + Epic 11 Story 11.3 done ✅ (API partenariats clubs réutilisée par 92-3). 92-2 et 92-3 requièrent 92-1 mergée.
+
+**Migrations réservées** : 00168 (92-2). 92-1 et 92-3 sans migration.
+
+---
+
 ## Chantier parallèle — DB Baseline Recovery
 
 > Ne bloque pas le développement immédiat. À traiter en parallèle.
