@@ -531,7 +531,7 @@ function ImplantationCard({
                     <Pressable
                       key={session.id}
                       style={styles.upcomingRow}
-                      onPress={() => router.push(`/seances/${session.id}` as never)}
+                      onPress={() => router.push(`/activites/seances/${session.id}` as never)}
                     >
                       <View style={[styles.upcomingDot, {
                         backgroundColor: session.groupMethod
@@ -705,7 +705,7 @@ function ImplantationDetail({
                 <Pressable
                   key={g.id}
                   style={detailStyles.groupCard}
-                  onPress={() => router.push(`/groups/${g.id}` as never)}
+                  onPress={() => router.push(`/academie/groupes/${g.id}` as never)}
                 >
                   {/* Dot méthode */}
                   <View style={[detailStyles.groupCardDot, { backgroundColor: methodColor }]} />
@@ -1288,7 +1288,7 @@ export default function ImplantationsPage() {
                     onCancelEdit={() => setEditId(null)}
                     onDeactivate={() => handleDeactivate(impl.id)}
                     onAddGroup={() => { setAddGroupFor(impl.id); setGroupForm(emptyForm()) }}
-                    onManageGroup={(groupId) => router.push(`/groups/${groupId}` as never)}
+                    onManageGroup={(groupId) => router.push(`/academie/groupes/${groupId}` as never)}
                     onPhotoUpload={(file) => handlePhotoUpload(impl.id, file)}
                     onDragOver={(e) => { e.preventDefault(); setDragOverId(impl.id) }}
                     onDragLeave={() => setDragOverId(null)}

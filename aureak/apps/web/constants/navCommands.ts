@@ -22,7 +22,7 @@ export const NAV_COMMANDS: CommandResult[] = [
     type   : 'navigation',
     label  : 'Séances',
     sublabel: 'Calendrier des séances',
-    href   : '/seances',
+    href   : '/activites/seances',
     icon   : '📅',
   },
   {
@@ -30,7 +30,7 @@ export const NAV_COMMANDS: CommandResult[] = [
     type   : 'navigation',
     label  : 'Nouvelle séance',
     sublabel: 'Créer une séance terrain',
-    href   : '/seances/new',
+    href   : '/activites/seances/new',
     icon   : '➕',
   },
   {
@@ -71,7 +71,7 @@ export const NAV_COMMANDS: CommandResult[] = [
     type   : 'navigation',
     label  : 'Coachs',
     sublabel: 'Liste des coachs',
-    href   : '/coaches',
+    href   : '/academie/coachs',
     icon   : '👤',
   },
   {
@@ -79,7 +79,7 @@ export const NAV_COMMANDS: CommandResult[] = [
     type   : 'navigation',
     label  : 'Groupes',
     sublabel: 'Groupes d\'entraînement',
-    href   : '/groups',
+    href   : '/academie/groupes',
     icon   : '👥',
   },
   {
@@ -96,7 +96,7 @@ export const NAV_COMMANDS: CommandResult[] = [
     type   : 'navigation',
     label  : 'Stages',
     sublabel: 'Gestion des stages',
-    href   : '/stages',
+    href   : '/evenements/stages',
     icon   : '🎯',
   },
   // ── Méthodologie ─────────────────────────────────────────────────────────────

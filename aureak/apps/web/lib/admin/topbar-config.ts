@@ -24,11 +24,20 @@ export function getBreadcrumbs(pathname: string): string[] {
   if (pathname.startsWith('/academie')) {
     return [root, 'Académie', 'Annuaire']
   }
-  if (pathname.startsWith('/seances')) {
+  if (pathname.startsWith('/activites/seances')) {
     return [root, 'Pilotage', 'Séances']
   }
-  if (pathname.startsWith('/coaches')) {
+  if (pathname.startsWith('/academie/coachs')) {
     return [root, 'Académie', 'Coachs']
+  }
+  if (pathname.startsWith('/academie/joueurs')) {
+    return [root, 'Académie', 'Joueurs']
+  }
+  if (pathname.startsWith('/academie/groupes')) {
+    return [root, 'Académie', 'Groupes']
+  }
+  if (pathname.startsWith('/evenements/stages')) {
+    return [root, 'Événements', 'Stages']
   }
   if (pathname.startsWith('/children')) {
     return [root, 'Académie', 'Joueurs']
@@ -56,7 +65,7 @@ export function getTopbarActions(
   if (pathname.startsWith('/activites')) {
     return [
       { label: 'Exporter',          variant: 'outline', onPress: () => { /* TODO: export sessions */ } },
-      { label: '+ Nouvelle séance', variant: 'gold',    onPress: () => routerPush('/seances/new') },
+      { label: '+ Nouvelle séance', variant: 'gold',    onPress: () => routerPush('/activites/seances/new') },
     ]
   }
 
@@ -86,7 +95,7 @@ export function getTopbarActions(
 
   if (pathname.startsWith('/academie/coachs')) {
     return [
-      { label: '+ Nouveau coach', variant: 'gold', onPress: () => routerPush('/coaches/new') },
+      { label: '+ Nouveau coach', variant: 'gold', onPress: () => routerPush('/academie/coachs/new') },
     ]
   }
 

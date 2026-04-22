@@ -65,7 +65,7 @@ export function TodaySessionCards({ sessions, groupNames, coachNames }: TodaySes
         return (
           <Pressable
             key={session.sessionId}
-            onPress={() => router.push(`/seances/${session.sessionId}` as never)}
+            onPress={() => router.push(`/activites/seances/${session.sessionId}` as never)}
             style={({ pressed }) => [s.card, pressed && s.cardPressed] as never}
           >
             {/* Status pill */}

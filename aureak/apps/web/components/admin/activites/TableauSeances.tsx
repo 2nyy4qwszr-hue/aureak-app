@@ -371,8 +371,8 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
       {enriched.length === 0 && temporalFilter === 'today' && nextSession && (
         <NextSessionHero
           session={nextSession}
-          onOpen ={() => router.push(`/seances/${nextSession.id}` as never)}
-          onEdit ={() => router.push(`/seances/${nextSession.id}/edit` as never)}
+          onOpen ={() => router.push(`/activites/seances/${nextSession.id}` as never)}
+          onEdit ={() => router.push(`/activites/seances/${nextSession.id}/edit` as never)}
         />
       )}
       {enriched.length === 0 && (temporalFilter !== 'today' || !nextSession) && (
@@ -406,7 +406,7 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
           <Pressable
             key={s.sessionId}
             style={rowStyle}
-            onPress={() => router.push(`/(admin)/seances/${s.sessionId}` as Parameters<typeof router.push>[0])}
+            onPress={() => router.push(`/(admin)/activites/seances/${s.sessionId}` as Parameters<typeof router.push>[0])}
           >
             {/* STATUT */}
             <View style={styles.colCell}>

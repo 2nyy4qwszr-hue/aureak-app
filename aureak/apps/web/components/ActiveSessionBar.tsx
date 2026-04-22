@@ -85,7 +85,7 @@ export function ActiveSessionBar({ sessions }: Props) {
       </Text>
 
       {/* Lien Voir → */}
-      <Pressable onPress={() => router.push(('/seances/' + first.sessionId) as never)}>
+      <Pressable onPress={() => router.push(('/activites/seances/' + first.sessionId) as never)}>
         <Text
           fontFamily="$body"
           fontSize={12}
@@ -99,7 +99,7 @@ export function ActiveSessionBar({ sessions }: Props) {
 
       {/* AC3 : plusieurs séances simultanées */}
       {others > 0 && (
-        <Pressable onPress={() => router.push('/seances' as never)}>
+        <Pressable onPress={() => router.push('/activites/seances' as never)}>
           <Text
             fontFamily="$body"
             fontSize={12}

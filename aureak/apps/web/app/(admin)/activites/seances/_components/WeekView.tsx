@@ -4,7 +4,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, space, radius } from '@aureak/theme'
 import type { SessionRowAdmin } from '@aureak/api-client'
 import SessionCard from './SessionCard'
-import { toDateStr, isToday, TYPE_COLOR } from '../../../../lib/admin/seances/constants'
+import { toDateStr, isToday, TYPE_COLOR } from '../../../../../lib/admin/seances/constants'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

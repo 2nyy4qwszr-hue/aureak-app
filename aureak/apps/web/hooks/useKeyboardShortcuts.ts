@@ -12,9 +12,9 @@ import { useSearch } from '../components/SearchContext'
 const NEW_ROUTES: Record<string, string> = {
   '/clubs'                      : '/clubs/new',
   '/children'                   : '/children/new',
-  '/stages'                     : '/stages/new',
-  '/seances'                    : '/seances/new',
-  '/groups'                     : '/groups/new',
+  '/evenements/stages'          : '/evenements/stages/new',
+  '/activites/seances'          : '/activites/seances/new',
+  '/academie/groupes'           : '/academie/groupes/new',
   '/users'                      : '/users/new',
   '/methodologie/themes'        : '/methodologie/themes/new',
   '/methodologie/situations'    : '/methodologie/situations/new',
@@ -24,16 +24,16 @@ const NEW_ROUTES: Record<string, string> = {
 export const CHORD_MAP: Record<string, Record<string, string>> = {
   'G': {
     'J': '/children',
-    'S': '/seances',
+    'S': '/activites/seances',
     'C': '/clubs',
     'P': '/presences',
     'E': '/evaluations',
     'M': '/methodologie',
-    'T': '/stages',
+    'T': '/evenements/stages',
     'D': '/dashboard',
   },
   'N': {
-    'S': '/seances/new',
+    'S': '/activites/seances/new',
     'J': '/children/new',
     'C': '/clubs/new',
   },

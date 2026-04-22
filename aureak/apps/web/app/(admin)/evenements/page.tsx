@@ -233,7 +233,7 @@ export default function EvenementsPage() {
   const handleSelectEventType = useCallback((type: EventType) => {
     setShowModal(false)
     if (type === 'stage') {
-      router.push('/stages/new' as never)
+      router.push('/evenements/stages/new' as never)
     } else {
       // Types non encore implémentés — stub message
       // La navigation reste sur /evenements avec le filtre du type sélectionné
@@ -243,7 +243,7 @@ export default function EvenementsPage() {
 
   const handleCardPress = useCallback((event: StageWithMeta) => {
     // Pour tous les types actuels, la fiche détail est sous /stages/[id]
-    router.push(`/stages/${event.id}` as never)
+    router.push(`/evenements/stages/${event.id}` as never)
   }, [router])
 
   // Message "bientôt disponible" pour types non-stage
@@ -323,7 +323,7 @@ export default function EvenementsPage() {
                 Voir tous les évènements
               </AureakText>
             </Pressable>
-            <Pressable style={s.resetFilterBtn} onPress={() => router.push('/stages/new' as never)}>
+            <Pressable style={s.resetFilterBtn} onPress={() => router.push('/evenements/stages/new' as never)}>
               <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
                 Créer un Stage
               </AureakText>

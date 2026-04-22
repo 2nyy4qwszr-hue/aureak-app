@@ -104,7 +104,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
               id      : c.userId,
               label   : c.displayName ?? c.userId,
               subLabel: 'Coach',
-              href    : `/coaches/${c.userId}`,
+              href    : `/academie/coachs/${c.userId}`,
               type    : 'coach',
             })
           }

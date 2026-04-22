@@ -71,7 +71,7 @@ export function GradeCoachModule({ profile }: GradeCoachModuleProps) {
         </View>
       )}
       <Pressable
-        onPress={() => router.push(`/coaches/${profile.userId}` as never)}
+        onPress={() => router.push(`/academie/coachs/${profile.userId}` as never)}
         style={({ pressed }) => [s.link, pressed && s.linkPressed] as never}
       >
         <AureakText style={s.linkLabel as TextStyle}>Voir fiche coach complète →</AureakText>

@@ -12,7 +12,7 @@ import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
 import { SESSION_TYPES, SESSION_TYPE_LABELS } from '@aureak/types'
 import type { Session, SessionCoach, CoachRole, SessionType, SessionWorkshop, SessionWorkshopDraft } from '@aureak/types'
-import { TERRAINS, HOURS, MINUTES, DURATIONS, contentRefLabel } from '../../../../lib/admin/seances/utils'
+import { TERRAINS, HOURS, MINUTES, DURATIONS, contentRefLabel } from '../../../../../lib/admin/seances/utils'
 import WorkshopBlockEditor from '../_components/WorkshopBlockEditor'
 
 // ── Constants & shared utils — imported from _utils ───────────────────────────

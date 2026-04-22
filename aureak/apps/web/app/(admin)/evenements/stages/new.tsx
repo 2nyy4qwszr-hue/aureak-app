@@ -7,7 +7,7 @@ import { createStage, listImplantations } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Implantation, StageType } from '@aureak/types'
-import { useToast } from '../../../components/ToastContext'
+import { useToast } from '../../../../components/ToastContext'
 
 const STAGE_TYPES: { value: StageType; label: string }[] = [
   { value: 'été',       label: 'Été'          },

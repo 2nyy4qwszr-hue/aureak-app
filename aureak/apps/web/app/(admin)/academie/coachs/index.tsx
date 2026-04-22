@@ -140,7 +140,7 @@ export default function AcademieCoachsPage() {
           <View style={s.headerTopRow}>
             <AureakText style={s.pageTitle as TextStyle}>ACADÉMIE</AureakText>
             <Pressable
-              onPress={() => router.push('/coaches/new' as never)}
+              onPress={() => router.push('/academie/coachs/new' as never)}
               style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
             >
               <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau coach</AureakText>
@@ -263,7 +263,7 @@ export default function AcademieCoachsPage() {
               return (
                 <Pressable
                   key={coach.userId}
-                  onPress={() => router.push(`/coaches/${coach.userId}` as never)}
+                  onPress={() => router.push(`/academie/coachs/${coach.userId}` as never)}
                   style={({ pressed }) => [
                     s.tableRow,
                     { backgroundColor: rowBg },

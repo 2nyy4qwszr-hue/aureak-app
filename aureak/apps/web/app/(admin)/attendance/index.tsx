@@ -448,7 +448,7 @@ export default function AttendancePage() {
               <PlayerRow
                 key={p.childId}
                 p={p}
-                onPress={() => router.push(`/players/${p.childId}` as never)}
+                onPress={() => router.push(`/academie/joueurs/${p.childId}` as never)}
               />
             ))}
           </View>
