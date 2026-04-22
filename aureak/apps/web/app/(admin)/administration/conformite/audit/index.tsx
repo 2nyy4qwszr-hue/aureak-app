@@ -1,10 +1,12 @@
 'use client'
 // Story 10.4 — Journal d'audit (admin)
+// Story 99.5 — AdminPageHeader v2 ("Audit")
 // tbd-audit-timeline : Timeline lisible + filtres utilisateur/type
 import { useEffect, useState, useMemo } from 'react'
 import { listAuditLogs } from '@aureak/api-client'
 import type { AuditLog, AuditFilters } from '@aureak/api-client'
 import { colors, shadows, radius } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 // ── Action icons ─────────────────────────────────────────────────────────────
 
@@ -196,8 +198,10 @@ export default function AuditPage() {
   }
 
   return (
-    <div style={st.container}>
-      <h1 style={st.title}>Journal d&apos;audit</h1>
+    <div>
+      {/* Story 99.5 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Audit" />
+      <div style={st.container}>
       <p style={st.subtitle}>
         {displayedLogs.length}{displayedLogs.length !== logs.length ? `/${logs.length}` : ''} entrée{displayedLogs.length !== 1 ? 's' : ''} · Timeline chronologique
       </p>
@@ -290,6 +294,7 @@ export default function AuditPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

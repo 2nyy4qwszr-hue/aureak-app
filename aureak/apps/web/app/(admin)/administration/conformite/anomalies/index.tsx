@@ -1,11 +1,13 @@
 'use client'
 // Story 9.2 — Dashboard anomalies admin
+// Story 99.5 — AdminPageHeader v2 ("Anomalies")
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { listAnomalies, resolveAnomaly } from '@aureak/api-client'
 import type { AnomalyEvent } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const TYPE_LABELS: Record<AnomalyEvent['anomalyType'], string> = {
   session_not_closed     : 'Séance non clôturée',
@@ -88,20 +90,17 @@ export default function AnomaliesPage() {
 
   return (
     <>
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-      {/* Header */}
-      <View style={s.header}>
-        <View>
-          <AureakText variant="h2">Anomalies</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>
-            {anomalies.length} anomalie{anomalies.length !== 1 ? 's' : ''} active{anomalies.length !== 1 ? 's' : ''}
-          </AureakText>
-        </View>
-        <Pressable style={s.refreshBtn} onPress={load}>
-          <AureakText variant="caption" style={{ color: colors.accent.gold }}>↻ Actualiser</AureakText>
-        </Pressable>
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.5 — AdminPageHeader v2 */}
+      <AdminPageHeader
+        title="Anomalies"
+        actionButton={{
+          label  : '↻ Actualiser',
+          onPress: load,
+        }}
+      />
 
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* KPI row */}
       <View style={s.kpiRow}>
         {([
@@ -201,6 +200,7 @@ export default function AnomaliesPage() {
         </AureakText>
       )}
     </ScrollView>
+    </View>
 
     {/* Panneau détail — inline (pas de redirection) */}
     {detail && (

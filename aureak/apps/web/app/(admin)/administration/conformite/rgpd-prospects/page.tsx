@@ -1,4 +1,5 @@
 // Story 89.3 — Page admin RGPD : demandes d'accès coordonnées prospects
+// Story 99.5 — AdminPageHeader v2 ("RGPD prospects")
 // 3 onglets :
 //   - Demandes en attente  (actions Approuver / Rejeter)
 //   - Grants actifs        (action Révoquer)
@@ -11,6 +12,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { View, Pressable, ScrollView, StyleSheet, TextInput, Modal } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 import {
   listRgpdAccessRequests,
   resolveRgpdAccessRequest,
@@ -178,15 +180,11 @@ export default function ProspectAccessAdminPage() {
   }
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
-      {/* Header */}
-      <View style={st.header}>
-        <AureakText style={st.title as never}>RGPD — Accès coordonnées prospects</AureakText>
-        <AureakText style={st.sub as never}>
-          Gestion des demandes d'accès, grants actifs et historique des consultations.
-        </AureakText>
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.5 — AdminPageHeader v2 */}
+      <AdminPageHeader title="RGPD prospects" />
 
+      <ScrollView style={st.container} contentContainerStyle={st.content}>
       {/* Tabs */}
       <View style={st.tabs}>
         {TABS.map(t => (
@@ -454,7 +452,8 @@ export default function ProspectAccessAdminPage() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
