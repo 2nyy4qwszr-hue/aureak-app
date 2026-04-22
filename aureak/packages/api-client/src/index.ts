@@ -764,6 +764,13 @@ export {
 } from './admin/coach-prospection'
 export type { ListCoachProspectsFilters } from './admin/coach-prospection'
 
+// ── Epic 90 — Story 90.2 : Recommandation coach → prospect entraîneur ───────
+export {
+  recommendCoachProspect,
+  listMyRecommendations,
+} from './coach/recommendations'
+export type { RecommendCoachProspectParams } from './coach/recommendations'
+
 // ── Story 87.4 — Invitation dédiée commercial/manager/marketeur ──────────────
 export { invitePerson } from './admin/invite-person'
 export type { InvitePersonParams, InvitePersonResult, InvitePersonMode, InvitePersonRole } from './admin/invite-person'
