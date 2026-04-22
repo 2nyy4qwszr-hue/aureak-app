@@ -10,6 +10,9 @@ import { ProspectStatusBadge } from './ProspectStatusBadge'
 
 type Props = {
   rows: ClubProspectListRow[]
+  /** Story 88.6 — actions rapides Converti/Perdu (mode closing). */
+  onConvertClick?: (row: ClubProspectListRow) => void
+  onLostClick?   : (row: ClubProspectListRow) => void
 }
 
 function relativeDate(iso: string): string {
@@ -23,8 +26,9 @@ function relativeDate(iso: string): string {
   return `Il y a ${Math.floor(days / 30)} mois`
 }
 
-export function ProspectTable({ rows }: Props) {
+export function ProspectTable({ rows, onConvertClick, onLostClick }: Props) {
   const router = useRouter()
+  const hasActions = !!(onConvertClick || onLostClick)
 
   if (rows.length === 0) {
     return (
@@ -44,6 +48,7 @@ export function ProspectTable({ rows }: Props) {
         <View style={{ flex: 1.2 }}><AureakText style={s.th as never}>DÉCISIONNAIRE</AureakText></View>
         <View style={{ flex: 1 }}><AureakText style={s.th as never}>COMMERCIAL</AureakText></View>
         <View style={{ width: 110 }}><AureakText style={s.th as never}>DERNIÈRE ACTION</AureakText></View>
+        {hasActions && <View style={{ width: 180 }}><AureakText style={s.th as never}>ACTIONS</AureakText></View>}
       </View>
 
       {rows.map((r, idx) => {
@@ -71,6 +76,26 @@ export function ProspectTable({ rows }: Props) {
             <AureakText style={[s.cellMuted, { width: 110 }] as never}>
               {relativeDate(r.updatedAt)}
             </AureakText>
+            {hasActions && (
+              <View style={[s.actionsCell, { width: 180 }] as never}>
+                {onConvertClick && (
+                  <Pressable
+                    style={s.convertBtn}
+                    onPress={e => { e.stopPropagation?.(); onConvertClick(r) }}
+                  >
+                    <AureakText style={s.convertBtnLabel as never}>✓ Converti</AureakText>
+                  </Pressable>
+                )}
+                {onLostClick && (
+                  <Pressable
+                    style={s.lostBtn}
+                    onPress={e => { e.stopPropagation?.(); onLostClick(r) }}
+                  >
+                    <AureakText style={s.lostBtnLabel as never}>✕ Perdu</AureakText>
+                  </Pressable>
+                )}
+              </View>
+            )}
           </Pressable>
         )
       })}
@@ -140,4 +165,21 @@ const s = StyleSheet.create({
     fontSize : 13,
     fontStyle: 'italic',
   },
+
+  actionsCell: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+  convertBtn : {
+    paddingHorizontal: 10,
+    paddingVertical  : 6,
+    borderRadius     : radius.xs,
+    backgroundColor  : colors.status.present,
+  },
+  convertBtnLabel: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  lostBtn : {
+    paddingHorizontal: 10,
+    paddingVertical  : 6,
+    borderRadius     : radius.xs,
+    borderWidth      : 1,
+    borderColor      : colors.status.absent,
+  },
+  lostBtnLabel: { color: colors.status.absent, fontSize: 11, fontWeight: '700' },
 })
