@@ -708,6 +708,23 @@ export {
   updateCommercialContact,
 } from './admin/commercial-contacts'
 
+// ── Epic 88 — Pipeline CRM Clubs Prospects (Story 88-2) ──────────────────────
+export {
+  listClubProspects,
+  getClubProspect,
+  createClubProspect,
+  updateClubProspect,
+  updateClubProspectStatusById,
+  addProspectContact,
+  updateProspectContact,
+  deleteProspectContact,
+  getProspectPipelineStats,
+} from './admin/prospection'
+export type {
+  ListClubProspectsFilters,
+  ProspectPipelineStats,
+} from './admin/prospection'
+
 // ── Story 87.4 — Invitation dédiée commercial/manager/marketeur ──────────────
 export { invitePerson } from './admin/invite-person'
 export type { InvitePersonParams, InvitePersonResult, InvitePersonMode, InvitePersonRole } from './admin/invite-person'

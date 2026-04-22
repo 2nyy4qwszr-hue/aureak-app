@@ -360,3 +360,60 @@ export const COMMERCIAL_CONTACT_STATUS_LABELS: Record<CommercialContactStatus, s
   en_attente     : 'En attente',
   pas_de_suite   : 'Pas de suite',
 }
+
+// ── Epic 88 — Pipeline CRM Clubs Prospects ─────────────────────────────────
+// Note : `ProspectStatus` (epic 89, enfants) existe déjà → on utilise `ClubProspectStatus` pour éviter le conflit.
+
+/** Statut pipeline d'un club prospect — miroir enum PostgreSQL `club_prospect_status` (migration 00161) */
+export type ClubProspectStatus =
+  | 'premier_contact'
+  | 'mapping_orga'
+  | 'decisionnaire_identifie'
+  | 'rdv_qualifie'
+  | 'closing'
+  | 'converti'
+  | 'perdu'
+
+export const CLUB_PROSPECT_STATUSES: ClubProspectStatus[] = [
+  'premier_contact',
+  'mapping_orga',
+  'decisionnaire_identifie',
+  'rdv_qualifie',
+  'closing',
+  'converti',
+  'perdu',
+]
+
+export const CLUB_PROSPECT_STATUS_LABELS: Record<ClubProspectStatus, string> = {
+  premier_contact        : 'Premier contact',
+  mapping_orga           : 'Mapping orga',
+  decisionnaire_identifie: 'Décisionnaire identifié',
+  rdv_qualifie           : 'RDV qualifié',
+  closing                : 'Closing',
+  converti               : 'Converti',
+  perdu                  : 'Perdu',
+}
+
+/** Rôle d'un contact chez un club prospect — miroir enum PostgreSQL `club_contact_role` (migration 00161) */
+export type ClubContactRole =
+  | 'entraineur'
+  | 'directeur_sportif'
+  | 'president'
+  | 'secretaire'
+  | 'autre'
+
+export const CLUB_CONTACT_ROLES: ClubContactRole[] = [
+  'entraineur',
+  'directeur_sportif',
+  'president',
+  'secretaire',
+  'autre',
+]
+
+export const CLUB_CONTACT_ROLE_LABELS: Record<ClubContactRole, string> = {
+  entraineur       : 'Entraîneur',
+  directeur_sportif: 'Directeur sportif',
+  president        : 'Président',
+  secretaire       : 'Secrétaire',
+  autre            : 'Autre',
+}
