@@ -1,6 +1,6 @@
 # Story 96.1 — Lier `club_prospects` à `club_directory` (anti-doublon)
 
-Status: ready-for-dev
+Status: review
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

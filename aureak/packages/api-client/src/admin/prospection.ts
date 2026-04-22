@@ -5,6 +5,7 @@ import type {
   ProspectContact,
   ClubProspectWithContacts,
   ClubProspectListRow,
+  ClubProspectDirectorySummary,
   CreateClubProspectParams,
   UpdateClubProspectParams,
   CreateProspectContactParams,
@@ -19,6 +20,7 @@ import type {
   AttributionResult,
   CreateAttributionRuleParams,
   UpdateAttributionRuleParams,
+  BelgianProvince,
 } from '@aureak/types'
 
 // ── Mapping snake_case → camelCase ─────────────────────────────────────────
@@ -30,6 +32,7 @@ function mapProspect(r: Record<string, unknown>): ClubProspect {
     clubName             : r.club_name as string,
     city                 : (r.city as string | null) ?? null,
     targetImplantationId : (r.target_implantation_id as string | null) ?? null,
+    clubDirectoryId      : (r.club_directory_id as string | null) ?? null,
     status               : r.status as ClubProspectStatus,
     assignedCommercialId : r.assigned_commercial_id as string,
     source               : (r.source as string | null) ?? null,
@@ -38,6 +41,37 @@ function mapProspect(r: Record<string, unknown>): ClubProspect {
     updatedAt            : r.updated_at as string,
     deletedAt            : (r.deleted_at as string | null) ?? null,
   }
+}
+
+async function fetchDirectorySummaries(
+  ids: string[],
+): Promise<Map<string, ClubProspectDirectorySummary>> {
+  const m = new Map<string, ClubProspectDirectorySummary>()
+  const filtered = [...new Set(ids.filter(Boolean))]
+  if (filtered.length === 0) return m
+
+  const { data, error } = await supabase
+    .from('club_directory')
+    .select('id, nom, matricule, ville, province, logo_path')
+    .in('id', filtered)
+    .is('deleted_at', null)
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] directory summaries error:', error)
+    return m
+  }
+
+  for (const r of (data ?? []) as Record<string, unknown>[]) {
+    m.set(r.id as string, {
+      id        : r.id as string,
+      nom       : r.nom as string,
+      matricule : (r.matricule as string | null) ?? null,
+      ville     : (r.ville as string | null) ?? null,
+      province  : (r.province as BelgianProvince | null) ?? null,
+      logoPath  : (r.logo_path as string | null) ?? null,
+    })
+  }
+  return m
 }
 
 function mapContact(r: Record<string, unknown>): ProspectContact {
@@ -124,7 +158,12 @@ export async function listClubProspects(
   }
 
   const commercialIds = [...new Set(rows.map(r => r.assigned_commercial_id as string))]
-  const nameMap = await buildDisplayNameMap(commercialIds)
+  const [nameMap, directoryMap] = await Promise.all([
+    buildDisplayNameMap(commercialIds),
+    fetchDirectorySummaries(
+      rows.map(r => r.club_directory_id as string | null).filter((v): v is string => !!v),
+    ),
+  ])
 
   return rows.map(r => {
     const base = mapProspect(r)
@@ -135,6 +174,7 @@ export async function listClubProspects(
       contactsCount       : contacts.length,
       decisionnaireName   : dec ? `${dec.firstName} ${dec.lastName}` : null,
       assignedDisplayName : nameMap.get(base.assignedCommercialId) ?? null,
+      directory           : base.clubDirectoryId ? directoryMap.get(base.clubDirectoryId) ?? null : null,
     }
   })
 }
@@ -166,10 +206,15 @@ export async function getClubProspect(id: string): Promise<ClubProspectWithConta
   const contacts = ((contactsRaw ?? []) as Record<string, unknown>[]).map(mapContact)
 
   const nameMap = await buildDisplayNameMap([base.assignedCommercialId])
+  const directoryMap = base.clubDirectoryId
+    ? await fetchDirectorySummaries([base.clubDirectoryId])
+    : new Map()
+
   return {
     ...base,
     contacts,
     assignedDisplayName: nameMap.get(base.assignedCommercialId) ?? null,
+    directory: base.clubDirectoryId ? directoryMap.get(base.clubDirectoryId) ?? null : null,
   }
 }
 
@@ -201,11 +246,31 @@ async function resolveTenantId(): Promise<{ userId: string; tenantId: string }> 
 export async function createClubProspect(params: CreateClubProspectParams): Promise<ClubProspect> {
   const { userId, tenantId } = await resolveTenantId()
 
+  // Epic 96 : check doublon applicatif (meilleur UX que l'erreur unique index)
+  if (params.clubDirectoryId) {
+    const { data: existing } = await supabase
+      .from('club_prospects')
+      .select('id, status, assigned_commercial_id')
+      .eq('tenant_id', tenantId)
+      .eq('club_directory_id', params.clubDirectoryId)
+      .is('deleted_at', null)
+      .not('status', 'in', '(converti,perdu)')
+      .maybeSingle()
+
+    if (existing) {
+      const dup = existing as { id: string; status: string; assigned_commercial_id: string }
+      const nameMap = await buildDisplayNameMap([dup.assigned_commercial_id])
+      const who = nameMap.get(dup.assigned_commercial_id) ?? 'un autre commercial'
+      throw new Error(`Ce club a déjà un prospect actif (statut: ${dup.status}) assigné à ${who}.`)
+    }
+  }
+
   const payload: Record<string, unknown> = {
     tenant_id              : tenantId,
     club_name              : params.clubName,
     city                   : params.city ?? null,
     target_implantation_id : params.targetImplantationId ?? null,
+    club_directory_id      : params.clubDirectoryId ?? null,
     status                 : params.status ?? 'premier_contact',
     assigned_commercial_id : params.assignedCommercialId ?? userId,
     source                 : params.source ?? null,
@@ -234,6 +299,7 @@ export async function updateClubProspect(params: UpdateClubProspectParams): Prom
   if (params.source               !== undefined) payload.source                 = params.source
   if (params.notes                !== undefined) payload.notes                  = params.notes
   if (params.assignedCommercialId !== undefined) payload.assigned_commercial_id = params.assignedCommercialId
+  if (params.clubDirectoryId      !== undefined) payload.club_directory_id      = params.clubDirectoryId
 
   const { data, error } = await supabase
     .from('club_prospects')

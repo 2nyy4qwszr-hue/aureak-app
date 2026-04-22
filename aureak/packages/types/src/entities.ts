@@ -2617,13 +2617,16 @@ export type UpdateCommercialContactParams = {
 // Epic 88 — Pipeline CRM Clubs Prospects (Story 88-2, migration 00161)
 // ============================================================
 
-/** ClubProspect — entrée pipeline CRM. Séparé de club_directory (annuaire). */
+/** ClubProspect — entrée pipeline CRM. Séparé de club_directory (annuaire).
+ *  Epic 96 : clubDirectoryId = lien optionnel vers l'annuaire (NULL autorisé). */
 export type ClubProspect = {
   id                    : string
   tenantId              : string
   clubName              : string
   city                  : string | null
   targetImplantationId  : string | null
+  /** FK nullable vers club_directory(id). NULL = club hors annuaire (story 96.1). */
+  clubDirectoryId       : string | null
   status                : import('./enums').ClubProspectStatus
   assignedCommercialId  : string
   source                : string | null
@@ -2631,6 +2634,16 @@ export type ClubProspect = {
   createdAt             : string
   updatedAt             : string
   deletedAt             : string | null
+}
+
+/** Sous-set de club_directory utilisé pour enrichir les prospects (join léger). */
+export type ClubProspectDirectorySummary = {
+  id        : string
+  nom       : string
+  matricule : string | null
+  ville     : string | null
+  province  : import('./enums').BelgianProvince | null
+  logoPath  : string | null
 }
 
 /** ProspectContact — contact rattaché à un club_prospects (multi-contacts par club) */
@@ -2653,6 +2666,8 @@ export type ProspectContact = {
 export type ClubProspectWithContacts = ClubProspect & {
   contacts             : ProspectContact[]
   assignedDisplayName  : string | null
+  /** Epic 96 : infos du club depuis club_directory si clubDirectoryId présent. */
+  directory?           : ClubProspectDirectorySummary | null
 }
 
 /** Row agrégé pour la vue liste : nb contacts + décisionnaire (évite les contacts complets) */
@@ -2660,6 +2675,8 @@ export type ClubProspectListRow = ClubProspect & {
   contactsCount        : number
   decisionnaireName    : string | null
   assignedDisplayName  : string | null
+  /** Epic 96 : infos du club depuis club_directory si clubDirectoryId présent. */
+  directory?           : ClubProspectDirectorySummary | null
 }
 
 export type CreateClubProspectParams = {
@@ -2671,6 +2688,8 @@ export type CreateClubProspectParams = {
   notes?                : string
   /** Admin seulement — commercial assigne à lui-même par défaut */
   assignedCommercialId? : string
+  /** Epic 96 : lien vers club_directory (optionnel, NULL autorisé). */
+  clubDirectoryId?      : string
 }
 
 export type UpdateClubProspectParams = {
@@ -2682,6 +2701,7 @@ export type UpdateClubProspectParams = {
   source?               : string | null
   notes?                : string | null
   assignedCommercialId? : string
+  clubDirectoryId?      : string | null
 }
 
 export type CreateProspectContactParams = {
