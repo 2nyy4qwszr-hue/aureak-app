@@ -1,14 +1,16 @@
 'use client'
 // Story 75.2 — Page Coachs redesignée dans le hub Académie
 // Story 82.1 — Appliquer LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)
+// Story 97.6 — AdminPageHeader v2 ("Coachs") + AcademieNavBar partagé
 import { useContext, useEffect, useState } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
-import { useRouter, usePathname } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText, UserCheckIcon } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { SubtabCount } from '../../../../components/admin/SubtabCount'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { AcademieCountsContext } from '../_layout'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────
@@ -19,19 +21,6 @@ type CoachWithGrade = CoachListRow & {
 }
 
 type RoleFilter = 'all' | 'coach' | 'assistant'
-
-// ── Navigation Académie ───────────────────────────────────────────────────────────
-// Story 93.2 — ajout des `key` pour indexer les counts via AcademieCountsContext
-const ACADEMIE_TABS = [
-  { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },
-  { key: 'coachs',        label: 'COACHS',        href: '/academie/coachs'        },
-  { key: 'scouts',        label: 'SCOUTS',        href: '/academie/scouts'        },
-  { key: 'managers',      label: 'MANAGERS',      href: '/academie/managers'      },
-  { key: 'commerciaux',   label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
-  { key: 'marketeurs',    label: 'MARKETEURS',    href: '/academie/marketeurs'    },
-  { key: 'clubs',         label: 'CLUBS',         href: '/academie/clubs'         },
-  { key: 'implantations', label: 'IMPLANTATIONS', href: '/academie/implantations' },
-] as const
 
 // ── Constantes ───────────────────────────────────────────────────────────────────
 const GRADE_VALUES: Record<CoachGradeLevel, number> = {
@@ -68,7 +57,6 @@ function splitName(displayName: string | null): { prenom: string; nom: string } 
 // ── Page principale ──────────────────────────────────────────────────────────────
 export default function AcademieCoachsPage() {
   const router         = useRouter()
-  const pathname       = usePathname()
   const academieCounts = useContext(AcademieCountsContext)
 
   const [coaches,    setCoaches]    = useState<CoachWithGrade[]>([])
@@ -133,37 +121,17 @@ export default function AcademieCoachsPage() {
 
   return (
     <View style={s.page}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+      {/* Story 97.6 — AdminPageHeader v2 + AcademieNavBar partagé */}
+      <AdminPageHeader
+        title="Coachs"
+        actionButton={{
+          label  : '+ Nouveau coach',
+          onPress: () => router.push('/academie/coachs/new' as never),
+        }}
+      />
+      <AcademieNavBar counts={academieCounts ?? undefined} />
 
-        {/* ── headerBlock ── */}
-        <View style={s.headerBlock}>
-          <View style={s.headerTopRow}>
-            <AureakText style={s.pageTitle as TextStyle}>ACADÉMIE</AureakText>
-            <Pressable
-              onPress={() => router.push('/academie/coachs/new' as never)}
-              style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
-            >
-              <AureakText style={s.newBtnLabel as TextStyle}>+ Nouveau coach</AureakText>
-            </Pressable>
-          </View>
-          <View style={s.tabsRow}>
-            {ACADEMIE_TABS.map(tab => {
-              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
-              const count    = academieCounts?.[tab.key] ?? null
-              return (
-                <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
-                  <View style={s.tabLabelRow}>
-                    <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
-                      {tab.label}
-                    </AureakText>
-                    <SubtabCount value={count} active={isActive} />
-                  </View>
-                  {isActive && <View style={s.tabUnderline} />}
-                </Pressable>
-              )
-            })}
-          </View>
-        </View>
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
 
         {/* ── StatCards ── */}
         <View style={s.statCardsRow}>
@@ -331,44 +299,6 @@ const s = StyleSheet.create({
   page         : { flex: 1, backgroundColor: colors.light.primary },
   scroll       : { flex: 1 },
   scrollContent: { padding: space.lg, paddingBottom: space.xl, gap: space.md },
-
-  // ── headerBlock ──
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnPressed: { opacity: 0.8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
-  // Nav tabs (pattern exact séances)
-  tabsRow: {
-    flexDirection    : 'row',
-    gap              : 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-  },
-  tabLabelRow: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    gap          : space.xs,
-    paddingBottom: 10,
-  },
-  tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-    color        : colors.text.subtle,
-    textTransform: 'uppercase',
-  },
-  tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
-    position       : 'absolute',
-    bottom         : 0,
-    left           : 0,
-    right          : 0,
-    height         : 2,
-    backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
-  },
 
   // ── StatCards ──
   statCardsRow: {

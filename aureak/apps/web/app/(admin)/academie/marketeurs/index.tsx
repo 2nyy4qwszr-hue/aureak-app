@@ -11,6 +11,7 @@ export default function AcademieMarketeursPage() {
   return (
     <PeopleListPage
       role={'marketeur'}
+      title={'Marketeurs'}
       newButtonLabel={'+ Nouveau marketeur'}
       newButtonHref={'/academie/marketeurs/new'}
       emptyLabel={'Aucun marketeur'}
