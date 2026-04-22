@@ -417,3 +417,60 @@ export const CLUB_CONTACT_ROLE_LABELS: Record<ClubContactRole, string> = {
   secretaire       : 'Secrétaire',
   autre            : 'Autre',
 }
+
+// ── Epic 88 — Story 88.3 : Historique actions prospect ─────────────────────
+
+/** Type d'action commerciale — miroir enum PostgreSQL `prospect_action_type` (migration 00163) */
+export type ProspectActionType =
+  | 'premier_contact'
+  | 'relance'
+  | 'identification_contact'
+  | 'obtention_rdv'
+  | 'presentation'
+  | 'closing'
+  | 'note'
+  | 'changement_statut'
+
+export const PROSPECT_ACTION_TYPES: ProspectActionType[] = [
+  'premier_contact',
+  'relance',
+  'identification_contact',
+  'obtention_rdv',
+  'presentation',
+  'closing',
+  'note',
+  'changement_statut',
+]
+
+export const PROSPECT_ACTION_TYPE_LABELS: Record<ProspectActionType, string> = {
+  premier_contact        : 'Premier contact',
+  relance                : 'Relance',
+  identification_contact : 'Identification contact',
+  obtention_rdv          : 'Obtention RDV',
+  presentation           : 'Présentation',
+  closing                : 'Closing',
+  note                   : 'Note',
+  changement_statut      : 'Changement statut',
+}
+
+export const PROSPECT_ACTION_TYPE_ICONS: Record<ProspectActionType, string> = {
+  premier_contact        : '📞',
+  relance                : '🔄',
+  identification_contact : '🔍',
+  obtention_rdv          : '📅',
+  presentation           : '🎤',
+  closing                : '🤝',
+  note                   : '📝',
+  changement_statut      : '🔁',
+}
+
+/** Types d'action que l'utilisateur peut ajouter manuellement (exclut changement_statut auto-trigger) */
+export const MANUAL_PROSPECT_ACTION_TYPES: ProspectActionType[] = [
+  'premier_contact',
+  'relance',
+  'identification_contact',
+  'obtention_rdv',
+  'presentation',
+  'closing',
+  'note',
+]

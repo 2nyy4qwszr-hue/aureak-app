@@ -2707,6 +2707,29 @@ export type UpdateProspectContactParams = {
 }
 
 // ============================================================
+// Epic 88 — Story 88.3 : Historique actions commerciales (append-only)
+// ============================================================
+
+/** ProspectAction — entrée audit trail d'une action commerciale sur un prospect.
+ *  Table append-only : jamais d'UPDATE ni DELETE. */
+export type ProspectAction = {
+  id                  : string
+  clubProspectId      : string
+  performedBy         : string
+  actionType          : import('./enums').ProspectActionType
+  description         : string | null
+  createdAt           : string
+  /** Enrichissement optionnel : display_name du performer (join profiles). */
+  performerDisplayName: string | null
+}
+
+export type CreateProspectActionParams = {
+  clubProspectId : string
+  actionType     : import('./enums').ProspectActionType
+  description?   : string
+}
+
+// ============================================================
 // Epic 86 — Permissions granulaires (Story 86-3, migrations 00150/00151)
 // ============================================================
 

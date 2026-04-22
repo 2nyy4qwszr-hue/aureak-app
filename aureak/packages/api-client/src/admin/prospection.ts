@@ -10,6 +10,9 @@ import type {
   CreateProspectContactParams,
   UpdateProspectContactParams,
   ClubProspectStatus,
+  ProspectAction,
+  ProspectActionType,
+  CreateProspectActionParams,
 } from '@aureak/types'
 
 // ── Mapping snake_case → camelCase ─────────────────────────────────────────
@@ -306,6 +309,100 @@ export async function deleteProspectContact(id: string): Promise<void> {
     if (process.env.NODE_ENV !== 'production') console.error('[prospection] deleteContact error:', error)
     throw error
   }
+}
+
+// ── Actions (story 88.3) ───────────────────────────────────────────────────
+
+function mapAction(r: Record<string, unknown>): ProspectAction {
+  return {
+    id                   : r.id as string,
+    clubProspectId       : r.club_prospect_id as string,
+    performedBy          : r.performed_by as string,
+    actionType           : r.action_type as ProspectActionType,
+    description          : (r.description as string | null) ?? null,
+    createdAt            : r.created_at as string,
+    performerDisplayName : (r.performer_display_name as string | null) ?? null,
+  }
+}
+
+/** Actions d'un prospect, triées du plus récent au plus ancien, avec display_name performer. */
+export async function listProspectActions(clubProspectId: string): Promise<ProspectAction[]> {
+  const { data, error } = await supabase
+    .from('prospect_actions')
+    .select('*')
+    .eq('club_prospect_id', clubProspectId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] listProspectActions error:', error)
+    return []
+  }
+
+  const rows = (data ?? []) as Record<string, unknown>[]
+  if (rows.length === 0) return []
+
+  const performerIds = [...new Set(rows.map(r => r.performed_by as string))]
+  const nameMap = await buildDisplayNameMap(performerIds)
+
+  return rows.map(r => mapAction({
+    ...r,
+    performer_display_name: nameMap.get(r.performed_by as string) ?? null,
+  }))
+}
+
+/** Ajoute une action manuelle. performed_by = auth.uid() (enforced RLS). */
+export async function addProspectAction(params: CreateProspectActionParams): Promise<ProspectAction> {
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData?.user) throw new Error('Non authentifié')
+
+  const payload: Record<string, unknown> = {
+    club_prospect_id : params.clubProspectId,
+    performed_by     : userData.user.id,
+    action_type      : params.actionType,
+    description      : params.description ?? null,
+  }
+
+  const { data, error } = await supabase
+    .from('prospect_actions')
+    .insert(payload)
+    .select('*')
+    .single()
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] addProspectAction error:', error)
+    throw error
+  }
+  return mapAction(data as Record<string, unknown>)
+}
+
+export type ListMyActionsFilters = {
+  limit?  : number
+  offset? : number
+}
+
+/** Actions de l'utilisateur courant (pour vue "Mes actions" commercial). */
+export async function listMyActions(filters: ListMyActionsFilters = {}): Promise<ProspectAction[]> {
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData?.user) return []
+
+  let q = supabase
+    .from('prospect_actions')
+    .select('*')
+    .eq('performed_by', userData.user.id)
+    .order('created_at', { ascending: false })
+
+  if (filters.limit)  q = q.limit(filters.limit)
+  if (filters.offset) q = q.range(filters.offset, (filters.offset + (filters.limit ?? 50)) - 1)
+
+  const { data, error } = await q
+
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[prospection] listMyActions error:', error)
+    return []
+  }
+  return ((data ?? []) as Record<string, unknown>[]).map(r =>
+    mapAction({ ...r, performer_display_name: null })
+  )
 }
 
 // ── Stats ──────────────────────────────────────────────────────────────────
