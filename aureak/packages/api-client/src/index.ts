@@ -415,6 +415,16 @@ export {
 } from './admin/partnerships'
 export type { PartnershipAccessLevel, ClubPartnership, CreatePartnershipParams } from './admin/partnerships'
 
+// Epic 92 — Story 92.2 : Sponsors liés à enfants (parrainage académie)
+export {
+  listSponsors, getSponsor, createSponsor, updateSponsor,
+  listSponsorChildren, linkChildToSponsor, unlinkChildFromSponsor,
+  searchChildrenForSponsor,
+} from './admin/sponsors'
+export type {
+  CreateSponsorParams, UpdateSponsorPatch, LinkChildToSponsorParams, SponsorCandidateChild,
+} from './admin/sponsors'
+
 export {
   listHistoryByChild, listAffiliatedChildrenByClub,
   addHistoryEntry, updateHistoryEntry, deleteHistoryEntry,

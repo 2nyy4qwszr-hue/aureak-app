@@ -2988,3 +2988,56 @@ export type CreateMediaItemParams = {
   mimeType?   : string | null
 }
 
+
+// ============================================================
+// Epic 92 — Story 92.2 : Sponsors liés à enfants (parrainage académie)
+// ============================================================
+
+/** SponsorType — enum sponsor_type côté DB (migration 00169) */
+export type SponsorType = 'entreprise' | 'individuel' | 'association' | 'club'
+
+/** Sponsor — miroir de la table `sponsors` (migration 00169) */
+export type Sponsor = {
+  id                : string
+  tenantId          : string
+  name              : string
+  sponsorType       : SponsorType
+  annualAmountCents : number | null
+  activeFrom        : string         // ISO date
+  activeUntil       : string | null  // ISO date
+  contactEmail      : string | null
+  contactPhone      : string | null
+  notes             : string | null
+  createdAt         : string
+  updatedAt         : string
+  createdBy         : string | null
+}
+
+/** SponsorWithCounts — Sponsor + champs dérivés (compteur liens actifs, statut calculé). */
+export type SponsorWithCounts = Sponsor & {
+  activeChildrenCount : number
+  isActive            : boolean
+}
+
+/** SponsorChildLink — miroir de la table `sponsor_child_links` (migration 00169). */
+export type SponsorChildLink = {
+  id                   : string
+  tenantId             : string
+  sponsorId            : string
+  childId              : string
+  startedAt            : string         // ISO date
+  endedAt              : string | null  // ISO date
+  allocatedAmountCents : number | null
+  notes                : string | null
+  createdAt            : string
+  createdBy            : string | null
+}
+
+/** SponsorChildLinkWithChild — lien + infos de l'enfant (hydraté côté API). */
+export type SponsorChildLinkWithChild = SponsorChildLink & {
+  child: {
+    userId      : string
+    displayName : string
+    birthDate   : string | null
+  }
+}

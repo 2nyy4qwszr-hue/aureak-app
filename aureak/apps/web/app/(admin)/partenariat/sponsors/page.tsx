@@ -1,32 +1,270 @@
 'use client'
-// Story 92.1 — Placeholder Sponsors (contenu réel livré par Story 92.2)
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
+// Story 92.2 — Liste des sponsors (parrainage académie)
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { listSponsors } from '@aureak/api-client'
+import type { SponsorType, SponsorWithCounts } from '@aureak/types'
+import { StatsStandardCard } from '../../../../components/admin/stats'
+import { SponsorFormModal } from '../../../../components/admin/partenariat/SponsorFormModal'
+
+const TYPE_LABELS: Record<SponsorType, string> = {
+  entreprise : 'Entreprise',
+  individuel : 'Individuel',
+  association: 'Association',
+  club       : 'Club',
+}
+
+function formatEuros(cents: number | null): string {
+  if (cents === null) return '—'
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+    .format(cents / 100)
+}
 
 export default function PartenariatSponsorsPage() {
+  const router = useRouter()
+  const [sponsors,  setSponsors]  = useState<SponsorWithCounts[]>([])
+  const [loading,   setLoading]   = useState(true)
+  const [showModal, setShowModal] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const { data, error } = await listSponsors()
+      if (error && process.env.NODE_ENV !== 'production') console.error('[partenariat/sponsors] list error:', error)
+      setSponsors(data ?? [])
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[partenariat/sponsors] load exception:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  const activeSponsors     = sponsors.filter(s => s.isActive)
+  const activeSponsorCount = activeSponsors.length
+  const totalLinksActive   = activeSponsors.reduce((sum, s) => sum + s.activeChildrenCount, 0)
+  const totalAnnualCents   = activeSponsors.reduce(
+    (sum, s) => sum + (s.annualAmountCents ?? 0),
+    0,
+  )
+
   return (
-    <View style={s.container}>
-      <AureakText variant="h1" style={s.title}>Sponsors</AureakText>
-      <AureakText variant="body" style={s.subtitle}>Bientôt disponible</AureakText>
-    </View>
+    <ScrollView style={st.wrapper} contentContainerStyle={st.content}>
+      <View style={st.headerRow}>
+        <View style={st.headerText}>
+          <AureakText variant="h1" style={st.title}>Sponsors</AureakText>
+          <AureakText style={st.subtitle}>
+            Parrainage enfants — entreprises, individuels, associations et clubs financeurs
+          </AureakText>
+        </View>
+        <Pressable style={st.primaryBtn} onPress={() => setShowModal(true)}>
+          <AureakText style={st.primaryBtnLabel}>+ Nouveau sponsor</AureakText>
+        </Pressable>
+      </View>
+
+      <View style={st.statsRow}>
+        <StatsStandardCard label="Sponsors actifs"          value={activeSponsorCount} iconTone="gold"    />
+        <StatsStandardCard label="Parrainages actifs"       value={totalLinksActive}   iconTone="neutral" />
+        <StatsStandardCard label="Montant annuel actif"     value={formatEuros(totalAnnualCents)} iconTone="neutral" />
+      </View>
+
+      {loading ? (
+        <View style={st.empty}>
+          <AureakText style={st.emptyLabel}>Chargement…</AureakText>
+        </View>
+      ) : sponsors.length === 0 ? (
+        <View style={st.empty}>
+          <AureakText variant="h3" style={st.emptyTitle}>Aucun sponsor configuré</AureakText>
+          <AureakText style={st.emptyLabel}>
+            Crée un sponsor pour commencer à parrainer des enfants de l'académie.
+          </AureakText>
+          <Pressable style={st.primaryBtn} onPress={() => setShowModal(true)}>
+            <AureakText style={st.primaryBtnLabel}>Créer le premier sponsor</AureakText>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={st.list}>
+          {sponsors.map(sp => (
+            <Pressable
+              key={sp.id}
+              style={sp.isActive ? st.card : { ...st.card, ...st.cardInactive }}
+              onPress={() => router.push(`/partenariat/sponsors/${sp.id}` as never)}
+            >
+              <View style={st.cardHeader}>
+                <AureakText style={st.cardName}>{sp.name}</AureakText>
+                <View style={sp.isActive ? { ...st.statusBadge, ...st.statusActive } : { ...st.statusBadge, ...st.statusInactive }}>
+                  <AureakText style={sp.isActive ? { ...st.statusLabel, ...st.statusLabelActive } : { ...st.statusLabel, ...st.statusLabelInactive }}>
+                    {sp.isActive ? 'Actif' : 'Inactif'}
+                  </AureakText>
+                </View>
+              </View>
+              <View style={st.cardMeta}>
+                <View style={st.chip}>
+                  <AureakText style={st.chipLabel}>{TYPE_LABELS[sp.sponsorType]}</AureakText>
+                </View>
+                <View style={st.chip}>
+                  <AureakText style={st.chipLabel}>
+                    {sp.activeChildrenCount} parrainage{sp.activeChildrenCount > 1 ? 's' : ''} actif{sp.activeChildrenCount > 1 ? 's' : ''}
+                  </AureakText>
+                </View>
+                <View style={st.chip}>
+                  <AureakText style={st.chipLabel}>{formatEuros(sp.annualAmountCents)} / an</AureakText>
+                </View>
+              </View>
+              <AureakText style={st.seeLink}>Voir la fiche →</AureakText>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      <SponsorFormModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={load}
+      />
+    </ScrollView>
   )
 }
 
-const s = StyleSheet.create({
-  container: {
-    flex            : 1,
-    alignItems      : 'center',
-    justifyContent  : 'center',
-    padding         : space.xl,
-    backgroundColor : colors.light.primary,
+const st = StyleSheet.create({
+  wrapper: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  content: {
+    padding: space.lg,
+    gap    : space.lg,
+  },
+  headerRow: {
+    flexDirection : 'row',
+    alignItems    : 'flex-end',
+    justifyContent: 'space-between',
+    gap           : space.md,
+    flexWrap      : 'wrap',
+  },
+  headerText: {
+    flex: 1,
+    gap : 4,
   },
   title: {
-    marginBottom: space.sm,
-    color       : colors.text.dark,
+    color: colors.text.dark,
   },
   subtitle: {
+    color     : colors.text.muted,
+    fontSize  : 14,
+    fontFamily: fonts.body,
+  },
+  primaryBtn: {
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    borderRadius     : radius.button,
+    backgroundColor  : colors.accent.gold,
+  },
+  primaryBtnLabel: {
+    color     : colors.text.onGold,
+    fontWeight: '700',
+    fontSize  : 14,
+    fontFamily: fonts.body,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap          : space.md,
+    flexWrap     : 'wrap',
+  },
+  list: {
+    gap: space.sm,
+  },
+  card: {
+    backgroundColor: colors.light.surface,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    borderRadius   : radius.card,
+    padding        : space.md,
+    gap            : space.sm,
+    boxShadow      : shadows.sm,
+  },
+  cardInactive: {
+    opacity: 0.6,
+  },
+  cardHeader: {
+    flexDirection : 'row',
+    alignItems    : 'center',
+    justifyContent: 'space-between',
+    gap           : space.sm,
+  },
+  cardName: {
+    flex      : 1,
+    fontSize  : 16,
+    fontWeight: '700',
+    color     : colors.text.dark,
+    fontFamily: fonts.heading,
+  },
+  cardMeta: {
+    flexDirection: 'row',
+    flexWrap     : 'wrap',
+    gap          : space.xs,
+  },
+  chip: {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 4,
+    borderRadius     : radius.badge,
+    backgroundColor  : colors.border.light,
+  },
+  chipLabel: {
+    color     : colors.text.muted,
+    fontSize  : 12,
+    fontFamily: fonts.body,
+  },
+  statusBadge: {
+    paddingHorizontal: space.sm,
+    paddingVertical  : 2,
+    borderRadius     : radius.badge,
+  },
+  statusActive: {
+    backgroundColor: colors.status.successBg,
+  },
+  statusInactive: {
+    backgroundColor: colors.border.light,
+  },
+  statusLabel: {
+    fontSize  : 11,
+    fontWeight: '700',
+    fontFamily: fonts.body,
+  },
+  statusLabelActive: {
+    color: colors.status.successText,
+  },
+  statusLabelInactive: {
     color: colors.text.muted,
+  },
+  seeLink: {
+    color     : colors.accent.gold,
+    fontSize  : 13,
+    fontWeight: '700',
+    fontFamily: fonts.body,
+    alignSelf : 'flex-end',
+  },
+  empty: {
+    alignItems     : 'center',
+    justifyContent : 'center',
+    padding        : space.xxl,
+    borderRadius   : radius.card,
+    backgroundColor: colors.light.surface,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    gap            : space.sm,
+  },
+  emptyTitle: {
+    color: colors.text.dark,
+  },
+  emptyLabel: {
+    color     : colors.text.muted,
+    fontSize  : 14,
+    textAlign : 'center',
+    fontFamily: fonts.body,
   },
 })
