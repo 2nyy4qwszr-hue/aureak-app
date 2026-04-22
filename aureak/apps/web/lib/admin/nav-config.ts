@@ -57,7 +57,7 @@ export const SECTION_TO_NAV: Record<SectionKey, Omit<NavItem, 'sectionKey'>> = {
   marketing   : { label: 'Marketing',      href: '/marketing',                 Icon: MegaphoneIcon },
   partenariat : { label: 'Partenariat',    href: '/partenariat',               Icon: HandshakeIcon },
   performances: { label: 'Performance',    href: '/performance',               Icon: TrendingUpIcon },
-  admin       : { label: 'Administration', href: '/users',                     Icon: UserIcon },
+  admin       : { label: 'Administration', href: '/administration',            Icon: UserIcon },
 }
 
 // =============================================================================
