@@ -1,27 +1,31 @@
 'use client'
+// Story 97.10 — EvenementsHeader simplifié : nav secondaire 5 onglets
+// (Stages / Tournois / Fun Days / Detect Days / Séminaires). Titre + action
+// déplacés vers <AdminPageHeader /> dans chaque sous-page.
 import React from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space } from '@aureak/theme'
+import { colors, space } from '@aureak/theme'
 
 const TABS = [
-  { key: 'stages',      label: 'STAGES',      href: '/evenements' },
-  { key: 'tournois',    label: 'TOURNOIS',     href: '/evenements/tournois' },
-  { key: 'fun-days',    label: 'FUN DAYS',     href: '/evenements/fun-days' },
+  { key: 'stages',      label: 'STAGES',      href: '/evenements/stages'      },
+  { key: 'tournois',    label: 'TOURNOIS',     href: '/evenements/tournois'    },
+  { key: 'fun-days',    label: 'FUN DAYS',     href: '/evenements/fun-days'    },
   { key: 'detect-days', label: 'DETECT DAYS',  href: '/evenements/detect-days' },
-  { key: 'seminaires',  label: 'SÉMINAIRES',   href: '/evenements/seminaires' },
+  { key: 'seminaires',  label: 'SÉMINAIRES',   href: '/evenements/seminaires'  },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
 
-function getActiveTab(pathname: string): TabKey {
-  if (pathname.endsWith('/tournois'))    return 'tournois'
-  if (pathname.endsWith('/fun-days'))    return 'fun-days'
-  if (pathname.endsWith('/detect-days')) return 'detect-days'
-  if (pathname.endsWith('/seminaires'))  return 'seminaires'
-  return 'stages'
+function getActiveTab(pathname: string): TabKey | null {
+  if (pathname.endsWith('/tournois')    || pathname.includes('/tournois/'))    return 'tournois'
+  if (pathname.endsWith('/fun-days')    || pathname.includes('/fun-days/'))    return 'fun-days'
+  if (pathname.endsWith('/detect-days') || pathname.includes('/detect-days/')) return 'detect-days'
+  if (pathname.endsWith('/seminaires')  || pathname.includes('/seminaires/'))  return 'seminaires'
+  if (pathname.includes('/stages'))                                            return 'stages'
+  return null
 }
 
 export function EvenementsHeader() {
@@ -30,76 +34,34 @@ export function EvenementsHeader() {
   const activeTab = getActiveTab(pathname)
 
   return (
-    <View style={styles.headerBlock}>
-      {/* Titre + bouton */}
-      <View style={styles.headerTopRow}>
-        <AureakText style={styles.pageTitle}>ÉVÉNEMENTS</AureakText>
-        <Pressable
-          onPress={() => router.push('/(admin)/stages/new' as Parameters<typeof router.push>[0])}
-          style={styles.newBtn}
-        >
-          <AureakText style={styles.newBtnLabel}>+ Nouvel événement</AureakText>
-        </Pressable>
-      </View>
-
-      {/* Nav tabs */}
-      <View style={styles.tabsRow}>
-        {TABS.map(tab => {
-          const isActive = tab.key === activeTab
-          return (
-            <Pressable
-              key={tab.key}
-              onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
-              style={styles.tabItem}
-            >
-              <AureakText style={{ ...styles.tabLabel, ...(isActive ? styles.tabLabelActive : {}) } as TextStyle}>
-                {tab.label}
-              </AureakText>
-              {isActive && <View style={styles.tabUnderline} />}
-            </Pressable>
-          )
-        })}
-      </View>
+    <View style={styles.tabsRow}>
+      {TABS.map(tab => {
+        const isActive = tab.key === activeTab
+        return (
+          <Pressable
+            key={tab.key}
+            onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
+            style={styles.tabItem}
+          >
+            <AureakText style={{ ...styles.tabLabel, ...(isActive ? styles.tabLabelActive : {}) } as TextStyle}>
+              {tab.label}
+            </AureakText>
+            {isActive && <View style={styles.tabUnderline} />}
+          </Pressable>
+        )
+      })}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  headerBlock: {
-    backgroundColor  : colors.light.primary,
-    gap              : 12,
-  },
-  headerTopRow: {
-    flexDirection    : 'row',
-    justifyContent   : 'space-between',
-    alignItems       : 'center',
-    paddingHorizontal: space.lg,
-    paddingTop       : space.lg,
-  },
-  pageTitle: {
-    fontSize     : 24,
-    fontWeight   : '700',
-    fontFamily   : fonts.display,
-    color        : colors.text.dark,
-    letterSpacing: 0.5,
-  },
-  newBtn: {
-    backgroundColor  : colors.accent.gold,
-    paddingHorizontal: space.md,
-    paddingVertical  : 8,
-    borderRadius     : 8,
-  },
-  newBtnLabel: {
-    color     : colors.text.dark,
-    fontWeight: '700',
-    fontSize  : 13,
-  },
   tabsRow: {
     flexDirection    : 'row',
     gap              : 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
     paddingHorizontal: space.lg,
+    backgroundColor  : colors.light.primary,
   },
   tabItem: {
     paddingBottom: 10,

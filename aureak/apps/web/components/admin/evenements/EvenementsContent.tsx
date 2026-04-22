@@ -1,4 +1,5 @@
 'use client'
+// Story 97.10 — AdminPageHeader v2 (titre = typeLabel) + EvenementsHeader tabs
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
@@ -9,6 +10,7 @@ import { listEvents } from '@aureak/api-client'
 import type { StageWithMeta } from '@aureak/types'
 import type { EventType } from '@aureak/types'
 
+import { AdminPageHeader }          from '../AdminPageHeader'
 import { EvenementsHeader }         from './EvenementsHeader'
 import { PseudoFiltresTemporels }   from '../activites/PseudoFiltresTemporels'
 import type { TemporalFilter }      from '../activites/PseudoFiltresTemporels'
@@ -118,13 +120,15 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 type Props = {
-  eventType: EventType
-  typeLabel: string
+  eventType    : EventType
+  typeLabel    : string
+  actionLabel? : string
+  onActionPress?: () => void
 }
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
-export function EvenementsContent({ eventType, typeLabel }: Props) {
+export function EvenementsContent({ eventType, typeLabel, actionLabel, onActionPress }: Props) {
   const router = useRouter()
 
   const [events,         setEvents]         = useState<StageWithMeta[]>([])
@@ -186,6 +190,11 @@ export function EvenementsContent({ eventType, typeLabel }: Props) {
   // ─── Rendu ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      {/* Story 97.10 — AdminPageHeader v2 (titre = typeLabel) */}
+      <AdminPageHeader
+        title={typeLabel}
+        actionButton={actionLabel && onActionPress ? { label: actionLabel, onPress: onActionPress } : undefined}
+      />
       <EvenementsHeader />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -264,7 +273,7 @@ export function EvenementsContent({ eventType, typeLabel }: Props) {
               <Pressable
                 key={row.id}
                 style={[styles.tableRow, idx % 2 === 1 && styles.tableRowAlt]}
-                onPress={() => router.push(`/(admin)/stages/${row.id}` as Parameters<typeof router.push>[0])}
+                onPress={() => router.push(`/evenements/stages/${row.id}` as Parameters<typeof router.push>[0])}
               >
                 <View style={[styles.cell, styles.colName]}>
                   <AureakText style={styles.nameText} numberOfLines={1}>{row.name}</AureakText>
