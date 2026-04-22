@@ -1,9 +1,11 @@
 name: "QA Gate 1 — Code Review Automatique"
 
+# Trigger desactive sur PR — consomme le credit Anthropic API alors que
+# `/review-pr` local (cf. commits #54/#55) fait la meme chose gratuitement via
+# l'abonnement Claude Code. Coherent avec PR #58 (cto-review.yml + check-secret.yml).
+# Pour relancer manuellement : Actions -> "QA Gate 1 — Code Review Automatique" -> Run workflow.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   qa-gate1:
