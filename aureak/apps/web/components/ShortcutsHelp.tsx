@@ -12,20 +12,20 @@ import { CHORD_MAP } from '../hooks/useKeyboardShortcuts'
 // ── Labels humains ────────────────────────────────────────────────────────────
 
 const NAVIGATE_LABELS: Record<string, string> = {
-  '/children'   : 'Joueurs',
-  '/seances'    : 'Séances',
-  '/clubs'      : 'Clubs',
-  '/presences'  : 'Présences',
-  '/evaluations': 'Évaluations',
-  '/methodologie': 'Méthodologie',
-  '/stages'     : 'Stages',
-  '/dashboard'  : 'Tableau de bord',
+  '/children'           : 'Joueurs',
+  '/activites/seances'  : 'Séances',
+  '/clubs'              : 'Clubs',
+  '/presences'          : 'Présences',
+  '/evaluations'        : 'Évaluations',
+  '/methodologie'       : 'Méthodologie',
+  '/evenements/stages'  : 'Stages',
+  '/dashboard'          : 'Tableau de bord',
 }
 
 const CREATE_LABELS: Record<string, string> = {
-  '/seances/new' : 'Nouvelle Séance',
-  '/children/new': 'Nouveau Joueur',
-  '/clubs/new'   : 'Nouveau Club',
+  '/activites/seances/new' : 'Nouvelle Séance',
+  '/children/new'          : 'Nouveau Joueur',
+  '/clubs/new'             : 'Nouveau Club',
 }
 
 // ── KbdBadge ─────────────────────────────────────────────────────────────────

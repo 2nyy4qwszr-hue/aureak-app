@@ -292,7 +292,7 @@ function BriefingDuJour({
 
         {/* Bouton Voir planning */}
         <button
-          onClick={() => router.push('/seances' as never)}
+          onClick={() => router.push('/activites/seances' as never)}
           style={{
             marginTop  : 'auto',
             background : 'none',
@@ -2883,7 +2883,7 @@ export default function DashboardPage() {
 
         {/* Lien vers le planning */}
         <button
-          onClick={() => router.push('/seances' as never)}
+          onClick={() => router.push('/activites/seances' as never)}
           style={{
             background : 'none',
             border     : 'none',
@@ -3421,7 +3421,7 @@ export default function DashboardPage() {
         <CountdownTile
           session={upcomingSession}
           loading={loadingUpcoming}
-          onNavigate={id => router.push(`/seances/${id}` as never)}
+          onNavigate={id => router.push(`/activites/seances/${id}` as never)}
         />
 
       </div>

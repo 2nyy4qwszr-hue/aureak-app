@@ -76,7 +76,7 @@ function buildResultsFromSearch(
       type    : 'session',
       label   : s.groupName ?? 'Séance',
       sublabel: [date, s.status].filter(Boolean).join(' · '),
-      href    : `/seances/${s.id}`,
+      href    : `/activites/seances/${s.id}`,
       icon    : '📅',
     })
   })

@@ -428,7 +428,7 @@ function SessionDetailModal({
             )}
 
             <button
-              onClick={() => router.push(`/seances/${detail.id}` as never)}
+              onClick={() => router.push(`/activites/seances/${detail.id}` as never)}
               style={{
                 marginTop    : 8,
                 padding      : '8px 16px',

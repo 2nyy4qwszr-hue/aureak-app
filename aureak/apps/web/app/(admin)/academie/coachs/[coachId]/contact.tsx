@@ -58,7 +58,7 @@ export default function ContactCoachPage() {
   return (
     <div style={styles.container}>
       <div style={styles.breadcrumb}>
-        <a href="/coaches" style={styles.breadcrumbLink}>Coachs</a>
+        <a href="/academie/coachs" style={styles.breadcrumbLink}>Coachs</a>
         <span style={styles.breadcrumbSep}>/</span>
         <span style={styles.breadcrumbCurrent}>Contact</span>
       </div>

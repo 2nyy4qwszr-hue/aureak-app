@@ -20,11 +20,11 @@ import type { SessionWorkshopDraft } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
-import { TYPE_COLOR } from '../../../lib/admin/seances/constants'
+import { TYPE_COLOR } from '../../../../lib/admin/seances/constants'
 import type { Implantation, Group, GroupStaffWithName, SessionType, SessionContentRef, GroupMethod, SituationalBlocCode, MethodologySituation } from '@aureak/types'
 import { SESSION_TYPES, SESSION_TYPE_LABELS, SITUATIONAL_BLOC_LABELS, MODULE_LABELS, MODULE_TYPES } from '@aureak/types'
-import { generateSessionLabel } from '../../../lib/admin/seances/utils'
-import { useToast } from '../../../components/ToastContext'
+import { generateSessionLabel } from '../../../../lib/admin/seances/utils'
+import { useToast } from '../../../../components/ToastContext'
 
 // SessionType → category filter pour listThemes (Story 21.2)
 const SESSION_TYPE_TO_METHOD: Partial<Record<SessionType, string>> = {

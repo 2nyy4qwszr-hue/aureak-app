@@ -78,7 +78,7 @@ export default function CoachGradePage() {
     <div style={styles.container}>
       {/* Breadcrumb */}
       <div style={styles.breadcrumb}>
-        <a href="/coaches" style={styles.breadcrumbLink}>Coachs</a>
+        <a href="/academie/coachs" style={styles.breadcrumbLink}>Coachs</a>
         <span style={styles.breadcrumbSep}>/</span>
         <span style={styles.breadcrumbPart}>{coachName}</span>
         <span style={styles.breadcrumbSep}>/</span>

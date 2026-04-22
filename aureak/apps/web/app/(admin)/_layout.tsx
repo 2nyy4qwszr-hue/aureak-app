@@ -690,10 +690,10 @@ function AdminLayoutInner() {
                                   {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
                                     <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
                                   )}
-                                  {href === '/seances' && navBadges?.sessionsUpcoming24h && (
+                                  {href === '/activites' && navBadges?.sessionsUpcoming24h && (
                                     <NavBadge dot color={colors.accent.gold} />
                                   )}
-                                  {href === '/stages' && stagesActifsCount > 0 && (
+                                  {href === '/evenements' && stagesActifsCount > 0 && (
                                     <NavBadge count={stagesActifsCount} color={colors.accent.gold} />
                                   )}
                                 </YStack>
@@ -712,10 +712,10 @@ function AdminLayoutInner() {
                                   {href === '/presences' && navBadges && navBadges.presencesUnvalidated > 0 && (
                                     <NavBadge count={navBadges.presencesUnvalidated} color={colors.status.absent} />
                                   )}
-                                  {href === '/seances' && navBadges?.sessionsUpcoming24h && (
+                                  {href === '/activites' && navBadges?.sessionsUpcoming24h && (
                                     <NavBadge dot color={colors.accent.gold} />
                                   )}
-                                  {href === '/stages' && stagesActifsCount > 0 && (
+                                  {href === '/evenements' && stagesActifsCount > 0 && (
                                     <NavBadge count={stagesActifsCount} color={colors.accent.gold} />
                                   )}
                                 </YStack>
@@ -1072,7 +1072,7 @@ function AdminLayoutInner() {
             presentCount={presentCount}
             totalCount  ={totalCount}
             isMobile    ={isMobile}
-            onPress     ={() => router.push(`/seances/${activeSession.sessionId}` as never)}
+            onPress     ={() => router.push(`/activites/seances/${activeSession.sessionId}` as never)}
           />
         )}
 

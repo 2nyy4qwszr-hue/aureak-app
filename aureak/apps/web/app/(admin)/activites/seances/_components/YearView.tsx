@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { SessionRowAdmin } from '@aureak/api-client'
-import { MONTHS_FR } from '../../../../lib/admin/seances/constants'
+import { MONTHS_FR } from '../../../../../lib/admin/seances/constants'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
