@@ -1,4 +1,5 @@
 // Story 13.2 — Settings : Calendrier scolaire belge
+// Story 99.4 — AdminPageHeader v2 ("Calendrier scolaire")
 // Permet à l'admin d'ajouter, visualiser et supprimer les exceptions de calendrier
 // (jours sans séance : vacances, jours fériés, etc.)
 import React, { useEffect, useState } from 'react'
@@ -12,6 +13,7 @@ import {
 import { AureakText, AureakButton } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { SchoolCalendarException } from '@aureak/types'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 function fmtDate(iso: string): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {
@@ -85,20 +87,19 @@ export default function SchoolCalendarPage() {
   }, {})
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* ── Header ── */}
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.4 — AdminPageHeader v2 */}
+      <AdminPageHeader
+        title="Calendrier scolaire"
+        actionButton={{
+          label  : '+ Ajouter une exception',
+          onPress: () => { setAdding(v => !v); setFormError(null) },
+        }}
+      />
+
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* ── Header (retrait — titre via AdminPageHeader) ── */}
       <View style={styles.header}>
-        <View>
-          <View style={styles.breadcrumb}>
-            <Pressable onPress={() => router.back()}>
-              <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Retour</AureakText>
-            </Pressable>
-          </View>
-          <AureakText variant="h2" color={colors.accent.gold}>Calendrier scolaire</AureakText>
-          <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-            Jours sans séance (vacances, jours fériés) utilisés lors de l'auto-génération.
-          </AureakText>
-        </View>
         <Pressable
           style={styles.addBtn}
           onPress={() => { setAdding(v => !v); setFormError(null) }}
@@ -190,7 +191,8 @@ export default function SchoolCalendarPage() {
           ℹ️ Ces exceptions s'appliquent uniquement à votre tenant. Elles sont utilisées lors de la génération automatique des séances (⚡ Générer les séances). Les séances déjà générées ne sont pas modifiées.
         </AureakText>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 

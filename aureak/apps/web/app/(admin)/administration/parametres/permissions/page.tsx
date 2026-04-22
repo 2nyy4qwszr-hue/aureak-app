@@ -1,5 +1,6 @@
 'use client'
 // Story 86-3 — Page admin : matrice permissions rôles × sections + overrides individuels
+// Story 99.4 — AdminPageHeader v2 ("Permissions")
 // Accès : admin uniquement (redirect sinon). Tokens @aureak/theme uniquement.
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -18,6 +19,7 @@ import type { UserRow } from '@aureak/api-client'
 import type { SectionKey, UserRole, SectionPermissionRow, UserSectionOverrideRow } from '@aureak/types'
 import { SECTION_KEYS, SECTION_KEY_LABELS } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 import { colors, space, radius } from '@aureak/theme'
 
 // ── Constantes UI ────────────────────────────────────────────────────────────
@@ -59,12 +61,11 @@ export default function PermissionsPage() {
   if (role !== 'admin') return null
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <AureakText variant="h2" style={{ marginBottom: space.xs }}>Permissions par rôle</AureakText>
-      <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.md }}>
-        Configurez quelles sections de l'app chaque rôle voit par défaut, avec possibilité d'overrides individuels.
-      </AureakText>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.4 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Permissions" />
 
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* Tabs */}
       <View style={s.tabs}>
         {(['matrix', 'overrides'] as Tab[]).map((t) => (
@@ -83,7 +84,8 @@ export default function PermissionsPage() {
       </View>
 
       {tab === 'matrix' ? <PermissionMatrix /> : <UserOverridesPanel />}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
