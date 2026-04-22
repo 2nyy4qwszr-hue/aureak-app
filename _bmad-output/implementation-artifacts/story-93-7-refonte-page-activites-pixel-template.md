@@ -1,6 +1,6 @@
 # Story 93.7 — Refonte page Activités : alignement pixel-près sur le template
 
-Status: review
+Status: done
 
 ## Metadata
 

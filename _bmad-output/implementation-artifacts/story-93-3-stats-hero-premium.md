@@ -1,6 +1,6 @@
 # Story 93.3 — StatsHero premium : card hero avec sparkline + 3 cards variants (bars/progress/trend)
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

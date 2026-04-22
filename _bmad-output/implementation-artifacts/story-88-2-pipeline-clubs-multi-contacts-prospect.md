@@ -1,6 +1,6 @@
 # Story 88.2 — Pipeline clubs — multi-contacts par prospect
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

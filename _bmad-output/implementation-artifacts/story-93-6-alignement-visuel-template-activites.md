@@ -1,6 +1,6 @@
 # Story 93.6 : Alignement visuel page Activités sur le template design de référence
 
-Status: review
+Status: done
 
 ## Story
 
