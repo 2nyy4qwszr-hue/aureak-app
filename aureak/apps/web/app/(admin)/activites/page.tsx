@@ -5,7 +5,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 
 import { AdminPageHeader }          from '../../../components/admin/AdminPageHeader'
-import { formatEyebrow, formatPeriodLabel } from '../../../lib/admin/formatPeriodLabel'
+import { formatPeriodLabel }        from '../../../lib/admin/formatPeriodLabel'
 import { ActivitesCountsContext }   from './_layout'
 import { ActivitesHeader }          from '../../../components/admin/activites/ActivitesHeader'
 import { ActivitesToolbar }         from '../../../components/admin/activites/ActivitesToolbar'
@@ -14,8 +14,6 @@ import { TableauSeances }           from '../../../components/admin/activites/Ta
 import type { ScopeState }          from '../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }      from '../../../components/admin/activites/PseudoFiltresTemporels'
 
-const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
-
 export default function ActivitesPage() {
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('today')
@@ -23,12 +21,9 @@ export default function ActivitesPage() {
 
   return (
     <View style={styles.container}>
-      {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
-      {/* Story 93.7 — Filtre période mois (periodButton) à droite du header */}
+      {/* Story 97.3 — Header simplifié (titre seul + filtre période) */}
       <AdminPageHeader
-        eyebrow={formatEyebrow('Pilotage')}
-        title="Activités"
-        subtitle={ACTIVITES_SUBTITLE}
+        title="Séances"
         periodButton={{
           label  : formatPeriodLabel(),
           onPress: () => { /* TODO 93-X : ouvrir picker mois */ },

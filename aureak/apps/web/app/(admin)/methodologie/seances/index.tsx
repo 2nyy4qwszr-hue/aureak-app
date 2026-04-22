@@ -13,7 +13,6 @@ import {
 import type { MethodologySession, MethodologyExercise } from '@aureak/types'
 import { useToast } from '../../../../components/ToastContext'
 import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
-import { formatEyebrow }   from '../../../../lib/admin/formatPeriodLabel'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
 import { StatsHero } from '../../../../components/admin/stats'
@@ -21,8 +20,6 @@ import { buildMethodologySparklineData } from './sparkline-data'
 
 type FilterMethod  = MethodologyMethod | 'all'
 type ContentType   = 'entrainement' | 'exercice'
-
-const METHODOLOGIE_SUBTITLE = 'Entraînements, programmes, thèmes, situations et évaluations — la bibliothèque pédagogique utilisée par les coachs sur le terrain.'
 
 const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Goal and Player' : '⚽',
@@ -125,12 +122,8 @@ export default function SeancesPage() {
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* Story 93.5 — AdminPageHeader premium (eyebrow + H1 + subtitle) */}
-      <AdminPageHeader
-        eyebrow={formatEyebrow('Bibliothèque')}
-        title="Méthodologie"
-        subtitle={METHODOLOGIE_SUBTITLE}
-      />
+      {/* Story 97.3 — Header simplifié */}
+      <AdminPageHeader title="Entraînements" />
 
       {/* Story 93.5 — NavBar 5 onglets + counts via Context */}
       <MethodologieHeader

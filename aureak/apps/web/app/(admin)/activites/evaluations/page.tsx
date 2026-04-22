@@ -12,14 +12,11 @@ import {
 import type { AdminEvalRow } from '@aureak/api-client'
 
 import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
-import { formatEyebrow }          from '../../../../lib/admin/formatPeriodLabel'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
 import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
-
-const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
 
 // ─── Types internes ───────────────────────────────────────────────────────────
 
@@ -346,12 +343,8 @@ export default function EvaluationsPage() {
   // ─── Rendu ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
-      <AdminPageHeader
-        eyebrow={formatEyebrow('Pilotage')}
-        title="Activités"
-        subtitle={ACTIVITES_SUBTITLE}
-      />
+      {/* Story 97.3 — Header simplifié */}
+      <AdminPageHeader title="Évaluations" />
       <ActivitesHeader counts={activitesCnts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
