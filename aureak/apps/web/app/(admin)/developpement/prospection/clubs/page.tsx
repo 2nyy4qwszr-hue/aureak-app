@@ -15,6 +15,8 @@ import { useAuthStore } from '@aureak/business-logic'
 import { ProspectionStatCards } from '../../../../../components/admin/prospection/ProspectionStatCards'
 import { ProspectTable } from '../../../../../components/admin/prospection/ProspectTable'
 import { CreateProspectModal } from '../../../../../components/admin/prospection/CreateProspectModal'
+import { ConvertProspectModal } from '../../../../../components/admin/prospection/ConvertProspectModal'
+import { LostProspectModal } from '../../../../../components/admin/prospection/LostProspectModal'
 
 export default function ProspectionClubsCRMPage() {
   const role = useAuthStore(s => s.role)
@@ -26,6 +28,10 @@ export default function ProspectionClubsCRMPage() {
 
   const [filterStatus, setFilterStatus]         = useState<ClubProspectStatus | null>(null)
   const [filterCommercial, setFilterCommercial] = useState<string | null>(null)
+  // Story 88.6 — filtre closing (toggle)
+  const [closingOnly, setClosingOnly] = useState(false)
+  const [convertTarget, setConvertTarget] = useState<ClubProspectListRow | null>(null)
+  const [lostTarget, setLostTarget]       = useState<ClubProspectListRow | null>(null)
 
   async function load() {
     setLoading(true)
@@ -50,6 +56,13 @@ export default function ProspectionClubsCRMPage() {
 
   useEffect(() => { load() }, [filterStatus, filterCommercial])
 
+  // Story 88.6 — filtrage closing côté client (après load)
+  const displayRows = closingOnly
+    ? rows.filter(r => r.status === 'rdv_qualifie' || r.status === 'closing')
+    : rows
+
+  const closingCount = rows.filter(r => r.status === 'rdv_qualifie' || r.status === 'closing').length
+
   const isAdmin = role === 'admin'
 
   return (
@@ -67,6 +80,28 @@ export default function ProspectionClubsCRMPage() {
       </View>
 
       <ProspectionStatCards stats={stats} loading={loading} />
+
+      {/* Story 88.6 — pill closing */}
+      <View style={st.closingRow}>
+        <Pressable
+          onPress={() => setClosingOnly(v => !v)}
+          style={[st.closingPill, closingOnly && st.closingPillActive] as never}
+        >
+          <AureakText style={(closingOnly ? st.closingPillActiveLabel : st.closingPillLabel) as never}>
+            🔥 CLOSING
+          </AureakText>
+          <View style={[st.closingCount, closingOnly && st.closingCountActive] as never}>
+            <AureakText style={(closingOnly ? st.closingCountActiveLabel : st.closingCountLabel) as never}>
+              {closingCount}
+            </AureakText>
+          </View>
+        </Pressable>
+        {closingOnly && (
+          <AureakText style={st.closingHint as never}>
+            Vue filtrée : prospects en rdv_qualifie ou closing — actions rapides Converti/Perdu disponibles.
+          </AureakText>
+        )}
+      </View>
 
       <View style={st.filtersBlock}>
         <AureakText style={st.filterLabel as never}>Statut</AureakText>
@@ -106,7 +141,11 @@ export default function ProspectionClubsCRMPage() {
       {loading ? (
         <AureakText style={st.loading as never}>Chargement…</AureakText>
       ) : (
-        <ProspectTable rows={rows} />
+        <ProspectTable
+          rows={displayRows}
+          onConvertClick={closingOnly ? setConvertTarget : undefined}
+          onLostClick={closingOnly ? setLostTarget : undefined}
+        />
       )}
 
       <CreateProspectModal
@@ -114,6 +153,25 @@ export default function ProspectionClubsCRMPage() {
         onClose={() => setModalOpen(false)}
         onSuccess={() => load()}
       />
+
+      {/* Story 88.6 — modales actions rapides */}
+      {convertTarget && (
+        <ConvertProspectModal
+          visible={!!convertTarget}
+          clubProspectId={convertTarget.id}
+          onClose={() => setConvertTarget(null)}
+          onSuccess={() => { setConvertTarget(null); load() }}
+        />
+      )}
+      {lostTarget && (
+        <LostProspectModal
+          visible={!!lostTarget}
+          clubProspectId={lostTarget.id}
+          clubName={lostTarget.clubName}
+          onClose={() => setLostTarget(null)}
+          onSuccess={() => { setLostTarget(null); load() }}
+        />
+      )}
     </ScrollView>
   )
 }
@@ -152,4 +210,33 @@ const st = StyleSheet.create({
   pillActiveLabel : { color: colors.light.surface, fontSize: 12, fontWeight: '700' },
 
   loading: { color: colors.text.muted, fontStyle: 'italic', fontSize: 13 },
+
+  // Story 88.6 — pill closing
+  closingRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, flexWrap: 'wrap' },
+  closingPill: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    gap              : 8,
+    paddingHorizontal: space.lg,
+    paddingVertical  : 10,
+    borderRadius     : 999,
+    borderWidth      : 2,
+    borderColor      : colors.accent.gold,
+    backgroundColor  : colors.light.surface,
+  },
+  closingPillActive     : { backgroundColor: colors.accent.gold },
+  closingPillLabel      : { color: colors.accent.gold, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  closingPillActiveLabel: { color: colors.text.dark, fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  closingCount: {
+    minWidth         : 24,
+    paddingHorizontal: 6,
+    paddingVertical  : 2,
+    borderRadius     : 999,
+    backgroundColor  : colors.accent.gold + '33',
+    alignItems       : 'center',
+  },
+  closingCountActive     : { backgroundColor: colors.text.dark + '22' },
+  closingCountLabel      : { color: colors.accent.gold, fontSize: 11, fontWeight: '800' },
+  closingCountActiveLabel: { color: colors.text.dark, fontSize: 11, fontWeight: '800' },
+  closingHint            : { color: colors.text.muted, fontSize: 12, flex: 1, minWidth: 200 },
 })
