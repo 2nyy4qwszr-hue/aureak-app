@@ -1,6 +1,6 @@
 'use client'
 // Story 93.1 — AdminPageHeader : composant partagé premium (eyebrow + title + subtitle + période/action)
-// Basé sur template _bmad-output/design-references/Template - page admin Dashboard.zip (app.jsx lignes 70-85).
+// Story 97.3 — v2 : eyebrow/subtitle optionnels, alignItems center pour centrer les boutons sur le H1.
 // Tokens @aureak/theme uniquement — React Native pur (pas de DOM).
 import React from 'react'
 import { View, Pressable, StyleSheet, useWindowDimensions, type TextStyle } from 'react-native'
@@ -8,8 +8,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
 
 export type AdminPageHeaderProps = {
-  eyebrow      : string
   title        : string
+  eyebrow?     : string
   subtitle?    : string
   periodButton?: {
     label  : string
@@ -34,18 +34,17 @@ export function AdminPageHeader({
   const { width }  = useWindowDimensions()
   const isMobile   = width < MOBILE_BREAKPOINT
   const isDesktop  = width >= DESKTOP_BREAKPOINT
-  // Story 93.7 — Title responsive : 38px desktop / 34px tablet / 32px mobile (≈ template clamp 2rem 3.2vw 2.6rem)
   const titleSize  = isDesktop ? 38 : isMobile ? 32 : 34
 
   return (
     <View style={[s.container, isMobile && s.containerMobile] as never}>
-      {/* Zone gauche : eyebrow + title + subtitle */}
       <View style={s.left}>
-        {/* Story 93.6 — eyebrow doré + barre 36×1px à droite */}
-        <View style={s.eyebrowRow}>
-          <AureakText style={s.eyebrow as TextStyle}>{eyebrow}</AureakText>
-          <View style={s.eyebrowBar} />
-        </View>
+        {eyebrow && (
+          <View style={s.eyebrowRow}>
+            <AureakText style={s.eyebrow as TextStyle}>{eyebrow}</AureakText>
+            <View style={s.eyebrowBar} />
+          </View>
+        )}
         <AureakText style={[s.title, { fontSize: titleSize, lineHeight: titleSize * 1.05 }] as never}>{title}</AureakText>
         {subtitle && (
           <AureakText style={[s.subtitle, isMobile && s.subtitleMobile] as never}>
@@ -54,7 +53,6 @@ export function AdminPageHeader({
         )}
       </View>
 
-      {/* Zone droite : bouton période + bouton action (si fournis) */}
       {(periodButton || actionButton) && (
         <View style={[s.right, isMobile && s.rightMobile] as never}>
           {periodButton && (
@@ -88,18 +86,18 @@ export default AdminPageHeader
 
 const s = StyleSheet.create({
   container: {
-    // Story 93.7 — alignement template `.page-header { align-items: flex-end }`
     flexDirection    : 'row',
     justifyContent   : 'space-between',
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
     gap              : 24,
-    paddingHorizontal: 36, // template `.page` padding 32px 36px
+    paddingHorizontal: 36,
     paddingTop       : 32,
-    paddingBottom    : 8,  // template `.page-header { margin-bottom: 8px }`
+    paddingBottom    : 8,
     backgroundColor  : colors.light.primary,
   },
   containerMobile: {
     flexDirection: 'column',
+    alignItems   : 'stretch',
     gap          : space.md,
   },
   left: {
@@ -112,7 +110,6 @@ const s = StyleSheet.create({
     gap          : 10,
   },
   eyebrow: {
-    // Story 93.7 — letterSpacing 2.5 (template-spec 0.22em sur 11px ≈ 2.42)
     fontSize      : 11,
     fontWeight    : '900',
     letterSpacing : 2.5,
@@ -134,7 +131,6 @@ const s = StyleSheet.create({
     lineHeight   : 38,
   },
   subtitle: {
-    // Story 93.7 — alignement template `.page-subtitle` (lineHeight 1.6, marginTop 10, maxWidth 56ch ≈ 520)
     fontSize  : 14,
     fontWeight: '400',
     color     : colors.text.subtle,
@@ -148,14 +144,13 @@ const s = StyleSheet.create({
   },
   right: {
     flexDirection: 'row',
-    alignItems   : 'flex-start',
+    alignItems   : 'center',
     gap          : space.sm,
   },
   rightMobile: {
     flexWrap: 'wrap',
   },
   periodBtn: {
-    // Story 93.7 — pill template (borderRadius 999, padding 18×10)
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
     borderColor      : colors.text.faint,
@@ -170,7 +165,6 @@ const s = StyleSheet.create({
     fontFamily: fonts.body,
   },
   actionBtn: {
-    // Story 93.7 — pill gold template
     backgroundColor  : colors.accent.gold,
     paddingHorizontal: 18,
     paddingVertical  : 10,

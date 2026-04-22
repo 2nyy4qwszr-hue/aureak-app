@@ -8,11 +8,8 @@ import { colors, fonts, space, shadows, radius } from '@aureak/theme'
 import type { Theme, ThemeGroup } from '@aureak/types'
 import BlocsManagerModal from '../_components/BlocsManagerModal'
 import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
-import { formatEyebrow }   from '../../../../lib/admin/formatPeriodLabel'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
-
-const METHODOLOGIE_SUBTITLE = 'Entraînements, programmes, thèmes, situations et évaluations — la bibliothèque pédagogique utilisée par les coachs sur le terrain.'
 
 const BLOC_PICTOS: Record<string, string> = {
   'tir au but'         : '🎯',
@@ -90,12 +87,8 @@ export default function ThemesPage() {
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* Story 93.5 — AdminPageHeader premium */}
-      <AdminPageHeader
-        eyebrow={formatEyebrow('Bibliothèque')}
-        title="Méthodologie"
-        subtitle={METHODOLOGIE_SUBTITLE}
-      />
+      {/* Story 97.3 — Header simplifié */}
+      <AdminPageHeader title="Thèmes" />
 
       {/* Story 93.5 — NavBar 5 onglets + counts via Context */}
       <MethodologieHeader

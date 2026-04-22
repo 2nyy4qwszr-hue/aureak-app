@@ -18,15 +18,12 @@ import type { GroupWithMeta, GroupMemberWithName, ChildDirectoryEntry } from '@a
 import type { SessionAttendanceSummary, AttendanceHistoryRow } from '@aureak/api-client'
 
 import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
-import { formatEyebrow }          from '../../../../lib/admin/formatPeriodLabel'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
 import { PseudoFiltresTemporels } from '../../../../components/admin/activites/PseudoFiltresTemporels'
 import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
-
-const ACTIVITES_SUBTITLE = "Séances programmées, présences des joueurs et évaluations des coachs — tout le pouls de l'académie au même endroit."
 import type { AttendanceStatus }  from '@aureak/types'
 
 // ─── Types internes ───────────────────────────────────────────────────────────
@@ -1219,12 +1216,8 @@ export default function PresencesPage() {
 
   return (
     <View style={pageStyles.container}>
-      {/* Story 93.1 — Header premium (eyebrow + title + subtitle) */}
-      <AdminPageHeader
-        eyebrow={formatEyebrow('Pilotage')}
-        title="Activités"
-        subtitle={ACTIVITES_SUBTITLE}
-      />
+      {/* Story 97.3 — Header simplifié */}
+      <AdminPageHeader title="Présences" />
       <ActivitesHeader counts={activitesCnts ?? undefined} />
       <ScrollView style={pageStyles.scroll} contentContainerStyle={pageStyles.scrollContent}>
         {/* Stat cards */}

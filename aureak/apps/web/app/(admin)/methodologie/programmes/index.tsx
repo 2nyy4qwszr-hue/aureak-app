@@ -12,11 +12,8 @@ import {
 } from '@aureak/types'
 import type { MethodologyProgramme } from '@aureak/types'
 import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
-import { formatEyebrow }   from '../../../../lib/admin/formatPeriodLabel'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
-
-const METHODOLOGIE_SUBTITLE = 'Entraînements, programmes, thèmes, situations et évaluations — la bibliothèque pédagogique utilisée par les coachs sur le terrain.'
 
 const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Goal and Player' : '⚽',
@@ -70,12 +67,8 @@ export default function ProgrammesPage() {
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* Story 93.5 — AdminPageHeader premium */}
-      <AdminPageHeader
-        eyebrow={formatEyebrow('Bibliothèque')}
-        title="Méthodologie"
-        subtitle={METHODOLOGIE_SUBTITLE}
-      />
+      {/* Story 97.3 — Header simplifié */}
+      <AdminPageHeader title="Programmes" />
 
       {/* Story 93.5 — NavBar 5 onglets + counts via Context */}
       <MethodologieHeader
