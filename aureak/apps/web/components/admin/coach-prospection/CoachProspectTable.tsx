@@ -55,9 +55,19 @@ export function CoachProspectTable({ rows }: Props) {
             style={({ pressed }) => [s.row, { backgroundColor: rowBg }, pressed && { opacity: 0.75 }] as never}
           >
             <View style={{ flex: 2 }}>
-              <AureakText style={s.name as never}>
-                {r.firstName} {r.lastName}
-              </AureakText>
+              <View style={s.nameRow}>
+                <AureakText style={s.name as never}>
+                  {r.firstName} {r.lastName}
+                </AureakText>
+                {r.recommendedByCoachId && (
+                  <AureakText style={s.recoIcon as never}>🤝</AureakText>
+                )}
+              </View>
+              {r.recommendedByDisplayName && (
+                <AureakText style={s.subline as never}>
+                  Recommandé par {r.recommendedByDisplayName}
+                </AureakText>
+              )}
               {r.currentClub && (
                 <AureakText style={s.subline as never}>Club actuel : {r.currentClub}</AureakText>
               )}
@@ -117,11 +127,13 @@ const s = StyleSheet.create({
     borderBottomColor: colors.border.divider,
     gap              : space.md,
   },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   name: {
     color     : colors.text.dark,
     fontSize  : 14,
     fontWeight: '700',
   },
+  recoIcon: { fontSize: 14 },
   subline: {
     color    : colors.text.muted,
     fontSize : 11,
