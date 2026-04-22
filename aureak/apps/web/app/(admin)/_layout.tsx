@@ -224,12 +224,15 @@ function AdminLayoutInner() {
 
   // ── Story 51.7 — Sidebar collapse avec animation smooth ──────────────────
   // État initial chargé depuis localStorage sans déclencher d'animation (AC6)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+  // Story 100.1 — `rawSidebarCollapsed` = état utilisateur (toggle desktop 51.7).
+  // `sidebarCollapsed` plus bas = valeur effective (rail variant force collapsed).
+  const [rawSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
   })
 
   // labelsVisible séparé de sidebarCollapsed pour contrôle d'opacity avec timing décalé (AC2/AC3)
-  const [labelsVisible, setLabelsVisible] = useState<boolean>(() => {
+  // Story 100.1 — `rawLabelsVisible` = animation timing (Story 51.7). Rail variant force hidden.
+  const [rawLabelsVisible, setLabelsVisible] = useState<boolean>(() => {
     try { return localStorage.getItem('sidebar-collapsed') !== 'true' } catch { return true }
   })
 
@@ -246,9 +249,22 @@ function AdminLayoutInner() {
     )
   ).current
 
-  const sidebarWidth = sidebarCollapsed ? 52 : 220
+  // ── Story 100.1 — Sidebar variants responsifs ───────────────────────────
+  // drawer (< 640px) = slide-in mobile · rail (640-1023px) = 64px icônes seules
+  // · full (≥ 1024px) = 220px extensible / 52px collapsed (Story 51.7 toggle)
+  const sidebarVariant: 'drawer' | 'rail' | 'full' =
+    width < 640 ? 'drawer' : width < 1024 ? 'rail' : 'full'
+  const isDrawerVariant = sidebarVariant === 'drawer'
+  const isRailVariant   = sidebarVariant === 'rail'
+  // Rail variant : largeur fixe 64px, labels masqués systématiquement
+  // Valeurs EFFECTIVES (consommées par le JSX) — shadowing volontaire des noms
+  // d'origine pour minimiser le diff de rendu vs. Story 51.7.
+  const sidebarCollapsed = isRailVariant ? true  : rawSidebarCollapsed
+  const labelsVisible    = isRailVariant ? false : rawLabelsVisible
+  const sidebarWidth     = isRailVariant ? 64 : (rawSidebarCollapsed ? 52 : 220)
 
-  const isMobile = width < 768
+  // Backward compat : le reste du layout (HUD/session bar) reste indexé sur isMobile(<768)
+  const isMobile = isDrawerVariant
 
   /**
    * toggleSidebar — Story 51.7
@@ -258,7 +274,7 @@ function AdminLayoutInner() {
    * Rotation bouton synchronisée 280ms ease dans les deux cas (AC7).
    */
   const toggleSidebar = () => {
-    const next = !sidebarCollapsed
+    const next = !rawSidebarCollapsed
 
     // Animation rotation bouton toggle synchronisée avec l'animation largeur (AC7)
     Animated.timing(toggleRotation, {
@@ -408,6 +424,26 @@ function AdminLayoutInner() {
     setAdminPanelOpen(false)
   }, [pathname, isMobile, closeMobile])
 
+  // ── Story 100.1 — Fermeture drawer via Escape (a11y) ──────────────────
+  useEffect(() => {
+    if (!isDrawerVariant || !mobileOpen) return
+    if (typeof window === 'undefined') return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeMobile() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isDrawerVariant, mobileOpen, closeMobile])
+
+  // ── Story 100.1 — Respect prefers-reduced-motion pour le drawer ────────
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mql.matches)
+    const onChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
+
   // Epic 85 — commerciaux accèdent au layout admin (vue réduite)
   const isAdminOrCommercial = role === 'admin' || role === 'commercial'
 
@@ -508,7 +544,8 @@ function AdminLayoutInner() {
             position  : 'fixed',
             top       : 0,
             left      : mobileOpen ? 0 : -sidebarWidth,
-            transition: `left ${transitions.normal}`,
+            // Story 100.1 — respect prefers-reduced-motion : snap immédiat
+            transition: prefersReducedMotion ? 'none' : `left ${transitions.normal}`,
             zIndex    : 50,
             boxShadow : mobileOpen ? shadows.lg : 'none',
           } : {}),
@@ -549,20 +586,23 @@ function AdminLayoutInner() {
               </Text>
             </YStack>
 
-            {/* Story 51.7 — bouton toggle avec rotation animée (AC7) */}
-            <Pressable
-              onPress={toggleSidebar}
-              style={{
-                padding     : 4,
-                borderRadius: 4,
-                marginLeft  : sidebarCollapsed ? 'auto' : 0,
-                flexShrink  : 0,
-              } as never}
-            >
-              <Animated.View style={{ transform: [{ rotate: rotateInterp }] }}>
-                <Text fontSize={12} color={colors.text.secondary}>‹</Text>
-              </Animated.View>
-            </Pressable>
+            {/* Story 51.7 — bouton toggle avec rotation animée (AC7).
+                Story 100.1 — masqué sur rail variant (largeur verrouillée 64px). */}
+            {!isRailVariant && (
+              <Pressable
+                onPress={toggleSidebar}
+                style={{
+                  padding     : 4,
+                  borderRadius: 4,
+                  marginLeft  : sidebarCollapsed ? 'auto' : 0,
+                  flexShrink  : 0,
+                } as never}
+              >
+                <Animated.View style={{ transform: [{ rotate: rotateInterp }] }}>
+                  <Text fontSize={12} color={colors.text.secondary}>‹</Text>
+                </Animated.View>
+              </Pressable>
+            )}
           </XStack>
         </YStack>
 
@@ -988,18 +1028,23 @@ function AdminLayoutInner() {
             </>
           )}
 
-          {/* Sign out */}
+          {/* Sign out — Story 100.1 : icône-only sur rail/collapsed */}
           <Pressable onPress={handleSignOut}>
             {({ pressed }) => (
               <YStack
                 paddingVertical={7}
-                paddingHorizontal={12}
+                paddingHorizontal={sidebarCollapsed ? 0 : 12}
                 borderRadius={radius.xs}
                 backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : 'transparent'}
+                alignItems={sidebarCollapsed ? 'center' : undefined}
               >
-                <Text fontFamily="$body" fontSize={13} color={colors.text.secondary}>
-                  Déconnexion
-                </Text>
+                {sidebarCollapsed ? (
+                  <Text fontFamily="$body" fontSize={16} color={colors.text.secondary}>⏻</Text>
+                ) : (
+                  <Text fontFamily="$body" fontSize={13} color={colors.text.secondary}>
+                    Déconnexion
+                  </Text>
+                )}
               </YStack>
             )}
           </Pressable>
