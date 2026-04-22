@@ -167,10 +167,12 @@ export async function getClubProspect(id: string): Promise<ClubProspectWithConta
 // ── Mutations prospect ─────────────────────────────────────────────────────
 
 export async function createClubProspect(params: CreateClubProspectParams): Promise<ClubProspect> {
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData?.user) throw new Error('Non authentifié')
-  const tenantId = (userData.user.app_metadata as Record<string, unknown>)?.tenant_id as string
-  if (!tenantId) throw new Error('Tenant ID manquant')
+  const { data: session } = await supabase.auth.getSession()
+  const user = session.session?.user
+  if (!user) throw new Error('Non authentifié')
+  const tenantId = (user.user_metadata?.tenant_id as string | undefined)
+    ?? (user.app_metadata?.tenant_id as string | undefined)
+  if (!tenantId) throw new Error('tenant_id absent du JWT')
 
   const payload: Record<string, unknown> = {
     tenant_id              : tenantId,
@@ -178,7 +180,7 @@ export async function createClubProspect(params: CreateClubProspectParams): Prom
     city                   : params.city ?? null,
     target_implantation_id : params.targetImplantationId ?? null,
     status                 : params.status ?? 'premier_contact',
-    assigned_commercial_id : params.assignedCommercialId ?? userData.user.id,
+    assigned_commercial_id : params.assignedCommercialId ?? user.id,
     source                 : params.source ?? null,
     notes                  : params.notes ?? null,
   }
