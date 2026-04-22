@@ -722,6 +722,12 @@ export {
   listProspectActions,
   addProspectAction,
   listMyActions,
+  listAttributionRules,
+  createAttributionRule,
+  updateAttributionRule,
+  deleteAttributionRule,
+  suggestAttribution,
+  saveAttributionResult,
 } from './admin/prospection'
 export type {
   ListClubProspectsFilters,
