@@ -59,54 +59,98 @@ CREATE INDEX IF NOT EXISTS idx_media_items_uploader_created
 ALTER TABLE media_items ENABLE ROW LEVEL SECURITY;
 
 -- SELECT : coach own OR admin/marketeur all-tenant
-CREATE POLICY media_items_select
-  ON media_items FOR SELECT
-  USING (
-    tenant_id = public.current_tenant_id_with_fallback()
-    AND (
-      uploaded_by = auth.uid()
-      OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
-    )
-  );
+DO $$ BEGIN
+  CREATE POLICY media_items_select
+    ON media_items FOR SELECT
+    USING (
+      tenant_id = public.current_tenant_id_with_fallback()
+      AND (
+        uploaded_by = auth.uid()
+        OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- INSERT : tout utilisateur authentifié du tenant (uploaded_by = auth.uid())
-CREATE POLICY media_items_insert
-  ON media_items FOR INSERT
-  WITH CHECK (
-    tenant_id = public.current_tenant_id_with_fallback()
-    AND uploaded_by = auth.uid()
-  );
+-- INSERT : tout utilisateur authentifié du tenant — statut forcé à 'pending'
+-- Anti self-escalation : coach ne peut pas POST avec status='approved' ou pré-rempli
+-- Seul admin/marketeur peut pré-insérer un statut validé (usage interne).
+DO $$ BEGIN
+  CREATE POLICY media_items_insert
+    ON media_items FOR INSERT
+    WITH CHECK (
+      tenant_id = public.current_tenant_id_with_fallback()
+      AND uploaded_by = auth.uid()
+      AND (
+        -- Coach / parent / autre : insertion obligatoirement pending, sans champs de validation
+        (
+          public.current_user_role_with_fallback() NOT IN ('admin', 'marketeur')
+          AND status = 'pending'
+          AND approved_by IS NULL
+          AND approved_at IS NULL
+          AND rejection_reason IS NULL
+        )
+        -- Admin / marketeur : aucune contrainte (peuvent insérer validé d'office si besoin)
+        OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- UPDATE : coach own (tant que pending) OR admin/marketeur all-tenant
-CREATE POLICY media_items_update
-  ON media_items FOR UPDATE
-  USING (
-    tenant_id = public.current_tenant_id_with_fallback()
-    AND (
-      (uploaded_by = auth.uid() AND status = 'pending')
-      OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
+-- UPDATE : coach own (tant que pending, ne peut PAS self-promote) OR admin/marketeur all-tenant
+-- WITH CHECK empêche le coach de sortir de 'pending' via UPDATE.
+DO $$ BEGIN
+  CREATE POLICY media_items_update
+    ON media_items FOR UPDATE
+    USING (
+      tenant_id = public.current_tenant_id_with_fallback()
+      AND (
+        (uploaded_by = auth.uid() AND status = 'pending')
+        OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
+      )
     )
-  );
+    WITH CHECK (
+      tenant_id = public.current_tenant_id_with_fallback()
+      AND (
+        -- Coach owner : reste en 'pending', ne peut pas éditer les champs de validation
+        (
+          uploaded_by = auth.uid()
+          AND public.current_user_role_with_fallback() NOT IN ('admin', 'marketeur')
+          AND status = 'pending'
+          AND approved_by IS NULL
+          AND approved_at IS NULL
+          AND rejection_reason IS NULL
+        )
+        -- Admin / marketeur : liberté complète
+        OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- DELETE : coach own OR admin/marketeur all-tenant (soft-delete côté app)
-CREATE POLICY media_items_delete
-  ON media_items FOR DELETE
-  USING (
-    tenant_id = public.current_tenant_id_with_fallback()
-    AND (
-      uploaded_by = auth.uid()
-      OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
-    )
-  );
+DO $$ BEGIN
+  CREATE POLICY media_items_delete
+    ON media_items FOR DELETE
+    USING (
+      tenant_id = public.current_tenant_id_with_fallback()
+      AND (
+        uploaded_by = auth.uid()
+        OR public.current_user_role_with_fallback() IN ('admin', 'marketeur')
+      )
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- 5. Trigger updated_at
+-- 5. Trigger updated_at (SET search_path pour durcissement)
 CREATE OR REPLACE FUNCTION update_media_items_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+SET search_path = public, pg_temp;
 
 DROP TRIGGER IF EXISTS trg_media_items_updated_at ON media_items;
 CREATE TRIGGER trg_media_items_updated_at

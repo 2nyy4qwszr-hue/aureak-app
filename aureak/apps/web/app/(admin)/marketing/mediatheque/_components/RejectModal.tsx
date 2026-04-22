@@ -92,7 +92,7 @@ export function RejectModal({ visible, item, onClose, onSubmit }: Props) {
 }
 
 const s = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: space.md },
+  backdrop: { flex: 1, backgroundColor: colors.overlay.dark, justifyContent: 'center', alignItems: 'center', padding: space.md },
   modal   : { backgroundColor: colors.light.surface, borderRadius: radius.card, width: '100%', maxWidth: 500, maxHeight: '92%' },
   body    : { padding: space.lg, gap: space.md },
   title   : { color: colors.text.dark, fontWeight: '700' },

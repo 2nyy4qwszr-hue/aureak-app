@@ -212,7 +212,7 @@ const s = StyleSheet.create({
     alignItems       : 'center',
   },
   filePickerLabel: { color: colors.text.dark, fontSize: 13, fontWeight: '600' },
-  fileMeta       : { color: colors.text.subtle, fontSize: 11, marginTop: 4 },
+  fileMeta       : { color: colors.text.subtle, fontSize: 11, marginTop: space.xs },
   preview: {
     marginTop   : space.sm,
     width       : '100%',

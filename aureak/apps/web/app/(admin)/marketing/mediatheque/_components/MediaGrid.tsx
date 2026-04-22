@@ -1,6 +1,6 @@
 'use client'
 // Story 91.2 — Galerie admin/marketeur : filtres statut + grille MediaCard + actions validation
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { View, StyleSheet, Pressable, useWindowDimensions } from 'react-native'
 import { listMediaItems, approveMediaItem, rejectMediaItem } from '@aureak/api-client'
 import type { MediaItem, MediaItemStatus } from '@aureak/types'
@@ -26,27 +26,27 @@ export function MediaGrid() {
   const [loading, setLoading] = useState(false)
   const [rejectTarget, setRejectTarget] = useState<MediaItem | null>(null)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
       const data = await listMediaItems(filter === 'all' ? {} : { status: filter })
       setItems(data)
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('[MediaGrid] load error:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter])
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    listMediaItems(filter === 'all' ? {} : { status: filter })
-      .then(data => { if (!cancelled) setItems(data) })
-      .catch(err => {
-        if (process.env.NODE_ENV !== 'production') console.error('[MediaGrid] load error:', err)
-      })
-      .finally(() => { if (!cancelled) setLoading(false) })
+    void load().finally(() => {
+      if (cancelled && process.env.NODE_ENV !== 'production') {
+        console.debug('[MediaGrid] load cancelled')
+      }
+    })
     return () => { cancelled = true }
-  }, [filter])
+  }, [load])
 
   async function handleApprove(item: MediaItem) {
     try {
