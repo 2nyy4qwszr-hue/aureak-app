@@ -1,126 +1,202 @@
 'use client'
-// Story 60.1 — Stats Room landing hub
-// Header dark premium + 4 section cards + 4 KPI globaux + skeleton loading
+// Story 60.1 — Stats Room landing (original)
+// Story 98.4 — Hub Performance dashboard-style
+//
+// REFONTE : remplace le header dark premium + ExportModal par une vue
+// dashboard tokenisée alignée avec le reste de l'admin.
+//
+// Structure :
+//   - AdminPageHeader "Performance" (+ action export PDF mensuel)
+//   - 4 KPIs de synthèse via StatsStandardCard (getStatsRoomKpis)
+//   - Grille raccourcis vers les 5 sous-pages (charge, clubs, présences,
+//     progression, implantations)
+//   - LiveCounter si séances en cours
 
 import React, { useEffect, useState } from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, Modal, TextInput, useWindowDimensions } from 'react-native'
+import type { TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
-import { getStatsRoomKpis, getMonthlyReportData, useLiveSessionCounts } from '@aureak/api-client'
+import {
+  getStatsRoomKpis, getMonthlyReportData, useLiveSessionCounts,
+} from '@aureak/api-client'
 import type { StatsRoomKpis } from '@aureak/api-client'
-import { LiveCounter } from '@aureak/ui'
-import { colors, fonts, radius, shadows, transitions, space, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
-import { generateMonthlyReport } from '../../../lib/admin/performance/generateMonthlyReport'
 import type { ReportOptions } from '@aureak/types'
+import { AureakText, LiveCounter } from '@aureak/ui'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { AdminPageHeader } from '../../../components/admin/AdminPageHeader'
+import { StatsStandardCard } from '../../../components/admin/stats'
+import { generateMonthlyReport } from '../../../lib/admin/performance/generateMonthlyReport'
 
-// ── Section cards config ──────────────────────────────────────────────────────
-interface SectionConfig {
+// ── Raccourcis vers les 5 sous-pages ──────────────────────────────────────────
+interface ShortcutConfig {
   title      : string
   description: string
   href       : string
   accent     : string
   icon       : string
-  kpiLabel   : string
 }
 
-const SECTIONS: SectionConfig[] = [
-  {
-    title      : 'Présences',
-    description: 'Taux de présence par groupe et période',
-    href       : '/performance/presences',
-    accent     : colors.accent.gold,
-    icon       : '📅',
-    kpiLabel   : 'Taux moyen',
-  },
-  {
-    title      : 'Progression',
-    description: 'Niveaux et maîtrise des joueurs',
-    href       : '/performance/progression',
-    accent     : colors.status.success,
-    icon       : '📈',
-    kpiLabel   : 'Joueurs actifs',
-  },
-  {
-    title      : 'Charge',
-    description: 'Heatmap jours/heures et intensité séances',
-    href       : '/performance/charge',
-    accent     : colors.status.warning,
-    icon       : '🌡️',
-    kpiLabel   : 'Séances ce mois',
-  },
-  {
-    title      : 'Clubs',
-    description: 'Classement implantations et performance',
-    href       : '/performance/clubs',
-    accent     : colors.status.info,
-    icon       : '🛡️',
-    kpiLabel   : 'Clubs liés',
-  },
+const SHORTCUTS: ShortcutConfig[] = [
+  { title: 'Charge',        description: 'Heatmap jours/heures et intensité séances', href: '/performance/charge',       accent: colors.status.warning, icon: '🌡️' },
+  { title: 'Clubs',          description: 'Classement implantations et performance',   href: '/performance/clubs',        accent: colors.status.info,    icon: '🛡️' },
+  { title: 'Présences',     description: 'Taux de présence par groupe et période',    href: '/performance/presences',    accent: colors.accent.gold,    icon: '📅' },
+  { title: 'Progression',   description: 'Niveaux et maîtrise des joueurs',           href: '/performance/progression',  accent: colors.status.success, icon: '📈' },
+  { title: 'Implantations', description: 'Dashboard analytique par implantation',     href: '/performance/implantation', accent: colors.text.subtle,    icon: '🏟️' },
 ]
 
-// ── KPI Skeleton ──────────────────────────────────────────────────────────────
-function KpiSkeleton() {
+// ── Main page ─────────────────────────────────────────────────────────────────
+
+export default function PerformanceHubPage() {
+  const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isDesktop = width >= 1024
+  const isTablet  = width >= 640 && width < 1024
+
+  const [kpis, setKpis]                       = useState<StatsRoomKpis | null>(null)
+  const [loading, setLoading]                 = useState(true)
+  const [showExportModal, setShowExportModal] = useState(false)
+
+  const liveCounters = useLiveSessionCounts()
+
+  useEffect(() => {
+    setLoading(true)
+    getStatsRoomKpis()
+      .then(({ data }) => { setKpis(data) })
+      .catch(err => {
+        if (process.env.NODE_ENV !== 'production') console.error('[PerformanceHub] getStatsRoomKpis error:', err)
+      })
+      .finally(() => { setLoading(false) })
+  }, [])
+
+  const getRateTrend = (rate: number): { direction: 'up' | 'down' | 'neutral'; label: string } => {
+    if (rate >= 80) return { direction: 'up',      label: 'Objectif atteint' }
+    if (rate >= 60) return { direction: 'neutral', label: 'À surveiller'     }
+    return             { direction: 'down',        label: 'Sous l\'objectif' }
+  }
+
+  const shortcutColumns = isDesktop ? 5 : isTablet ? 3 : 1
+  const kpiColumns      = isDesktop ? 4 : isTablet ? 2 : 1
+
   return (
-    <View style={s.kpiCard}>
-      <View style={[s.skeletonLine, { width: 60, marginBottom: 8 }]} />
-      <View style={[s.skeletonLine, { width: 80, height: 28 }]} />
-    </View>
-  )
-}
+    <View style={s.page}>
+      <AdminPageHeader
+        title="Performance"
+        actionButton={{
+          label  : '⬇ Exporter PDF mensuel',
+          onPress: () => setShowExportModal(true),
+        }}
+      />
 
-// ── KPI Card ──────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, color }: { label: string; value: string | number; color?: string }) {
-  return (
-    <View style={s.kpiCard}>
-      <Text style={s.kpiLabel}>{label}</Text>
-      <Text style={[s.kpiValue, color ? { color } : {}]}>{value}</Text>
-    </View>
-  )
-}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
+        {/* LiveCounter si séances en cours */}
+        {liveCounters.sessionCount > 0 && (
+          <LiveCounter
+            sessionCount={liveCounters.sessionCount}
+            presentCount={liveCounters.presentCount}
+            totalCount={liveCounters.totalCount}
+            isLive={liveCounters.isLive}
+          />
+        )}
 
-// ── Section Card ──────────────────────────────────────────────────────────────
-function SectionCard({ section, kpiValue, loading }: { section: SectionConfig; kpiValue?: string; loading?: boolean }) {
-  const router  = useRouter()
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <Pressable
-      onPress={() => router.push(section.href as never)}
-      style={({ pressed }) => [
-        s.sectionCard,
-        (pressed || hovered) && s.sectionCardHover,
-      ]}
-      {...({
-        onMouseEnter: () => setHovered(true),
-        onMouseLeave: () => setHovered(false),
-      } as object)}
-    >
-      {/* Accent stripe */}
-      <View style={[s.accentStripe, { backgroundColor: section.accent }]} />
-
-      <View style={s.sectionCardBody}>
-        <Text style={s.sectionIcon}>{section.icon}</Text>
-        <Text style={s.sectionTitle}>{section.title}</Text>
-        <Text style={s.sectionDescription}>{section.description}</Text>
-
-        {/* Quick stat */}
-        <View style={s.quickStatRow}>
-          <Text style={s.quickStatLabel}>{section.kpiLabel}</Text>
-          {loading ? (
-            <View style={[s.skeletonLine, { width: 50, height: 18 }]} />
-          ) : (
-            <Text style={[s.quickStatValue, { color: section.accent }]}>{kpiValue ?? '—'}</Text>
-          )}
+        {/* 4 KPIs de synthèse */}
+        <AureakText style={s.sectionTitle as TextStyle}>VUE D'ENSEMBLE</AureakText>
+        <View style={[s.kpiGrid, { gap: space.md }]}>
+          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
+            <StatsStandardCard
+              label="Taux présence"
+              value={kpis ? String(kpis.avgAttendanceRate) : '—'}
+              unit={kpis ? '%' : undefined}
+              trend={kpis ? getRateTrend(kpis.avgAttendanceRate) : undefined}
+              meta={loading ? 'Chargement…' : 'Sur toutes les séances'}
+              iconTone="gold"
+            />
+          </View>
+          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
+            <StatsStandardCard
+              label="Joueurs actifs"
+              value={kpis ? String(kpis.activePlayers) : '—'}
+              meta={loading ? 'Chargement…' : 'Inscrits annuaire actifs'}
+              iconTone="gold"
+            />
+          </View>
+          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
+            <StatsStandardCard
+              label="Séances totales"
+              value={kpis ? String(kpis.totalSessions) : '—'}
+              meta={loading ? 'Chargement…' : 'Séances non annulées'}
+              iconTone="gold"
+            />
+          </View>
+          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
+            <StatsStandardCard
+              label="Clubs liés"
+              value={kpis ? String(kpis.linkedClubs) : '—'}
+              meta={loading ? 'Chargement…' : 'Actifs dans l\'annuaire'}
+              iconTone="neutral"
+            />
+          </View>
         </View>
 
-        {/* CTA */}
-        <Text style={[s.ctaLink, { color: section.accent }]}>Voir les stats →</Text>
-      </View>
-    </Pressable>
+        {/* Grille raccourcis */}
+        <AureakText style={s.sectionTitle as TextStyle}>EXPLORER EN DÉTAIL</AureakText>
+        <View style={[s.shortcutGrid, { gap: space.md }]}>
+          {SHORTCUTS.map(sc => (
+            <Pressable
+              key={sc.href}
+              onPress={() => router.push(sc.href as never)}
+              style={({ pressed }) => [
+                s.shortcutCard,
+                { flexBasis: `calc(100% / ${shortcutColumns} - ${space.md}px)` as never },
+                pressed && s.shortcutPressed,
+              ] as never}
+            >
+              <View style={[s.shortcutAccent, { backgroundColor: sc.accent }]} />
+              <View style={s.shortcutBody}>
+                <AureakText style={s.shortcutIcon as TextStyle}>{sc.icon}</AureakText>
+                <AureakText style={s.shortcutTitle as TextStyle}>{sc.title}</AureakText>
+                <AureakText style={s.shortcutDesc as TextStyle}>{sc.description}</AureakText>
+                <AureakText style={[s.shortcutCta, { color: sc.accent }] as never}>Voir →</AureakText>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Comparaisons */}
+        <AureakText style={s.sectionTitle as TextStyle}>COMPARAISONS</AureakText>
+        <View style={[s.shortcutGrid, { gap: space.md }]}>
+          <Pressable
+            onPress={() => router.push('/performance/comparaisons/evaluations' as never)}
+            style={({ pressed }) => [s.shortcutCard, pressed && s.shortcutPressed, { minWidth: 280, flex: 1 }] as never}
+          >
+            <View style={[s.shortcutAccent, { backgroundColor: colors.accent.gold }]} />
+            <View style={s.shortcutBody}>
+              <AureakText style={s.shortcutIcon as TextStyle}>⚖️</AureakText>
+              <AureakText style={s.shortcutTitle as TextStyle}>Comparaison évaluations</AureakText>
+              <AureakText style={s.shortcutDesc as TextStyle}>Radar 2 joueurs sur 6 axes</AureakText>
+              <AureakText style={[s.shortcutCta, { color: colors.accent.gold }] as never}>Voir →</AureakText>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/performance/comparaisons/implantations' as never)}
+            style={({ pressed }) => [s.shortcutCard, pressed && s.shortcutPressed, { minWidth: 280, flex: 1 }] as never}
+          >
+            <View style={[s.shortcutAccent, { backgroundColor: colors.status.info }]} />
+            <View style={s.shortcutBody}>
+              <AureakText style={s.shortcutIcon as TextStyle}>🏟️</AureakText>
+              <AureakText style={s.shortcutTitle as TextStyle}>Comparaison implantations</AureakText>
+              <AureakText style={s.shortcutDesc as TextStyle}>Côte-à-côte sur métriques clés</AureakText>
+              <AureakText style={[s.shortcutCta, { color: colors.status.info }] as never}>Voir →</AureakText>
+            </View>
+          </Pressable>
+        </View>
+      </ScrollView>
+
+      <ExportModal visible={showExportModal} onClose={() => setShowExportModal(false)} />
+    </View>
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-// ── ExportModal ───────────────────────────────────────────────────────────────
+// ── ExportModal (conservé de la version originale) ──────────────────────────
 
 function getLastMonths(n: number): string[] {
   const months: string[] = []
@@ -132,18 +208,12 @@ function getLastMonths(n: number): string[] {
   return months
 }
 
-function ExportModal({
-  visible,
-  onClose,
-}: {
-  visible: boolean
-  onClose: () => void
-}) {
-  const months    = getLastMonths(12)
-  const [month,        setMonth]        = useState(months[0] ?? '')
+function ExportModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const months = getLastMonths(12)
+  const [month, setMonth]               = useState(months[0] ?? '')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [errorMsg,     setErrorMsg]     = useState<string | null>(null)
-  const [sections,     setSections]     = useState({ presences: true, progression: true, topPlayers: true })
+  const [errorMsg, setErrorMsg]         = useState<string | null>(null)
+  const [sections, setSections]         = useState({ presences: true, progression: true, topPlayers: true })
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -151,14 +221,8 @@ function ExportModal({
     try {
       const { data, error } = await getMonthlyReportData(month, null)
       if (error || !data) throw new Error('Données indisponibles')
-
       const filename = `aureak-rapport-${month}-all.pdf`
-      const options: ReportOptions = {
-        month,
-        implantationId: null,
-        sections,
-        filename,
-      }
+      const options: ReportOptions = { month, implantationId: null, sections, filename }
       await generateMonthlyReport(data, options)
       onClose()
     } catch (err) {
@@ -169,96 +233,145 @@ function ExportModal({
     }
   }
 
-  if (!visible) return null
-
   return (
-    <View style={em.overlay}>
-      <View style={em.modal}>
-        <Text style={em.title}>Exporter PDF mensuel</Text>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={em.overlay} onPress={onClose}>
+        <Pressable style={em.modal} onPress={e => e.stopPropagation?.()}>
+          <AureakText style={em.title as TextStyle}>Exporter PDF mensuel</AureakText>
 
-        {/* Sélecteur mois */}
-        <Text style={em.label}>Mois</Text>
-        <View style={em.monthRow}>
-          {months.slice(0, 6).map(m => (
-            <Pressable key={m} onPress={() => setMonth(m)} style={[em.monthChip, m === month && em.monthChipActive]}>
-              <Text style={[em.monthChipText, m === month && em.monthChipTextActive]}>{m}</Text>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* Checkboxes sections */}
-        <Text style={em.label}>Sections incluses</Text>
-        <View style={em.checkboxRow}>
-          {(['presences', 'progression', 'topPlayers'] as const).map(sec => {
-            const labels = { presences: 'Présences', progression: 'Progression', topPlayers: 'Top joueurs' }
-            return (
-              <Pressable key={sec} onPress={() => setSections(prev => ({ ...prev, [sec]: !prev[sec] }))} style={em.checkboxItem}>
-                <View style={[em.checkbox, sections[sec] && em.checkboxChecked]}>
-                  {sections[sec] && <Text style={em.checkmark}>✓</Text>}
-                </View>
-                <Text style={em.checkboxLabel}>{labels[sec]}</Text>
+          <AureakText style={em.label as TextStyle}>MOIS</AureakText>
+          <View style={em.monthRow}>
+            {months.slice(0, 6).map(m => (
+              <Pressable key={m} onPress={() => setMonth(m)} style={[em.monthChip, m === month && em.monthChipActive]}>
+                <AureakText style={{ ...em.monthChipText, ...(m === month ? em.monthChipTextActive : {}) } as TextStyle}>{m}</AureakText>
               </Pressable>
-            )
-          })}
-        </View>
+            ))}
+          </View>
 
-        {/* Erreur */}
-        {errorMsg && <Text style={em.errorText}>{errorMsg}</Text>}
+          <AureakText style={em.label as TextStyle}>SECTIONS INCLUSES</AureakText>
+          <View style={em.checkboxCol}>
+            {(['presences', 'progression', 'topPlayers'] as const).map(sec => {
+              const labels = { presences: 'Présences', progression: 'Progression', topPlayers: 'Top joueurs' }
+              return (
+                <Pressable key={sec} onPress={() => setSections(prev => ({ ...prev, [sec]: !prev[sec] }))} style={em.checkboxItem}>
+                  <View style={[em.checkbox, sections[sec] && em.checkboxChecked]}>
+                    {sections[sec] && <AureakText style={em.checkmark as TextStyle}>✓</AureakText>}
+                  </View>
+                  <AureakText style={em.checkboxLabel as TextStyle}>{labels[sec]}</AureakText>
+                </Pressable>
+              )
+            })}
+          </View>
 
-        {/* Actions */}
-        <View style={em.actions}>
-          <Pressable onPress={onClose} style={em.cancelBtn}>
-            <Text style={em.cancelText}>Annuler</Text>
-          </Pressable>
-          <Pressable
-            onPress={handleGenerate}
-            disabled={isGenerating}
-            style={[em.generateBtn, isGenerating && em.generateBtnDisabled]}
-          >
-            <Text style={em.generateText}>{isGenerating ? 'Génération...' : 'Générer PDF'}</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+          {errorMsg && <AureakText style={em.errorText as TextStyle}>{errorMsg}</AureakText>}
+
+          <View style={em.actions}>
+            <Pressable onPress={onClose} style={em.cancelBtn}>
+              <AureakText style={em.cancelText as TextStyle}>Annuler</AureakText>
+            </Pressable>
+            <Pressable
+              onPress={handleGenerate}
+              disabled={isGenerating}
+              style={[em.generateBtn, isGenerating && em.generateBtnDisabled]}
+            >
+              <AureakText style={em.generateText as TextStyle}>
+                {isGenerating ? 'Génération…' : 'Générer PDF'}
+              </AureakText>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   )
 }
 
-const em = StyleSheet.create({
-  overlay: {
-    position       : 'fixed' as never,
-    inset          : 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems     : 'center',
-    justifyContent : 'center',
-    zIndex         : 1000,
-  } as never,
-  modal: {
+const s = StyleSheet.create({
+  page   : { flex: 1, backgroundColor: colors.light.primary },
+  content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
+
+  sectionTitle: {
+    fontSize     : 11,
+    fontWeight   : '700',
+    fontFamily   : fonts.display,
+    color        : colors.text.muted,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginTop    : space.sm,
+  },
+
+  kpiGrid     : { flexDirection: 'row', flexWrap: 'wrap' },
+  kpiSlot     : { minWidth: 200, flexGrow: 1 },
+
+  shortcutGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  shortcutCard: {
+    minWidth       : 220,
+    flexGrow       : 1,
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
-    padding        : 28,
-    width          : 400,
-    maxWidth       : '90vw' as never,
+    borderWidth    : 1,
+    borderColor    : colors.border.divider,
+    overflow       : 'hidden',
+    // @ts-ignore web
+    boxShadow      : shadows.sm,
+  },
+  shortcutPressed: { opacity: 0.88 },
+  shortcutAccent : { height: 3 },
+  shortcutBody   : { padding: space.md, gap: 6 },
+  shortcutIcon   : { fontSize: 28 },
+  shortcutTitle  : {
+    fontSize  : 16,
+    fontWeight: '700',
+    fontFamily: fonts.display,
+    color     : colors.text.dark,
+  },
+  shortcutDesc: {
+    fontSize  : 12,
+    color     : colors.text.muted,
+    lineHeight: 18,
+  },
+  shortcutCta: {
+    fontSize  : 12,
+    fontWeight: '700',
+    marginTop : 4,
+  },
+})
+
+const em = StyleSheet.create({
+  overlay: {
+    flex           : 1,
+    backgroundColor: colors.overlay.dark,
+    justifyContent : 'center',
+    alignItems     : 'center',
+    padding        : space.xl,
+  },
+  modal: {
+    backgroundColor: colors.light.surface,
+    borderRadius   : radius.cardLg,
+    padding        : space.xl,
+    width          : '100%' as never,
+    maxWidth       : 440,
+    gap            : space.sm,
+    // @ts-ignore web
     boxShadow      : shadows.lg,
-  } as never,
+  },
   title: {
     fontSize    : 18,
     fontWeight  : '700',
     color       : colors.text.dark,
     fontFamily  : fonts.display,
-    marginBottom: 20,
+    marginBottom: space.sm,
   },
   label: {
-    fontSize    : 12,
-    fontWeight  : '600',
-    color       : colors.text.muted,
-    textTransform: 'uppercase' as never,
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    marginTop   : 14,
+    fontSize     : 11,
+    fontWeight   : '700',
+    color        : colors.text.muted,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginTop    : space.sm,
   },
   monthRow: {
     flexDirection: 'row',
-    flexWrap     : 'wrap' as never,
+    flexWrap     : 'wrap',
     gap          : 6,
   },
   monthChip: {
@@ -271,26 +384,26 @@ const em = StyleSheet.create({
   monthChipActive    : { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
   monthChipText      : { fontSize: 11, color: colors.text.muted },
   monthChipTextActive: { color: colors.text.dark, fontWeight: '700' },
-  checkboxRow        : { gap: 8 },
+  checkboxCol        : { gap: 8 },
   checkboxItem       : { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
   checkbox: {
-    width          : 18,
-    height         : 18,
-    borderRadius   : 4,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    alignItems     : 'center',
-    justifyContent : 'center',
+    width         : 18,
+    height        : 18,
+    borderRadius  : 4,
+    borderWidth   : 1,
+    borderColor   : colors.border.light,
+    alignItems    : 'center',
+    justifyContent: 'center',
   },
   checkboxChecked: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
   checkmark      : { fontSize: 10, color: colors.text.dark, fontWeight: '700' },
   checkboxLabel  : { fontSize: 13, color: colors.text.dark },
   errorText      : { fontSize: 12, color: colors.accent.red, marginTop: 12 },
   actions: {
-    flexDirection  : 'row',
-    justifyContent : 'flex-end',
-    gap            : 10,
-    marginTop      : 24,
+    flexDirection : 'row',
+    justifyContent: 'flex-end',
+    gap           : 10,
+    marginTop     : space.md,
   },
   cancelBtn: {
     paddingVertical  : 9,
@@ -299,7 +412,7 @@ const em = StyleSheet.create({
     borderWidth      : 1,
     borderColor      : colors.border.light,
   },
-  cancelText  : { fontSize: 13, color: colors.text.muted },
+  cancelText : { fontSize: 13, color: colors.text.muted },
   generateBtn: {
     paddingVertical  : 9,
     paddingHorizontal: 18,
@@ -308,279 +421,4 @@ const em = StyleSheet.create({
   },
   generateBtnDisabled: { opacity: 0.6 },
   generateText       : { fontSize: 13, fontWeight: '700', color: colors.text.dark },
-})
-
-// ── Page principale ───────────────────────────────────────────────────────────
-
-export default function StatsRoomPage() {
-  const router = useRouter()
-  const [kpis, setKpis]               = useState<StatsRoomKpis | null>(null)
-  const [loading, setLoading]         = useState(true)
-  const [showExportModal, setShowExportModal] = useState(false)
-
-  // ── Live counters (Story 60.8) ──
-  const liveCounters = useLiveSessionCounts()
-
-  useEffect(() => {
-    setLoading(true)
-    getStatsRoomKpis()
-      .then(({ data }) => {
-        setKpis(data)
-      })
-      .catch(err => {
-        if (process.env.NODE_ENV !== 'production') console.error('[StatsRoomPage] getStatsRoomKpis error:', err)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [])
-
-  // KPI values per section
-  const sectionKpis: string[] = [
-    kpis ? `${kpis.avgAttendanceRate}%`  : '—',
-    kpis ? String(kpis.activePlayers)    : '—',
-    kpis ? `${kpis.totalSessions}`       : '—',
-    kpis ? String(kpis.linkedClubs)      : '—',
-  ]
-
-  return (
-    <View style={s.container}>
-      {/* ── Modale export PDF (Story 60.7) ── */}
-      <ExportModal visible={showExportModal} onClose={() => setShowExportModal(false)} />
-
-      {/* ── Header premium dark ── */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.push('/dashboard' as never)} style={s.backLink}>
-          <Text style={s.backText}>← Dashboard</Text>
-        </Pressable>
-        <View style={s.headerRow}>
-          <View>
-            <Text style={s.title}>Stats Room</Text>
-            <Text style={s.subtitle}>Tableau analytique de l'académie</Text>
-          </View>
-          <Pressable onPress={() => setShowExportModal(true)} style={s.exportBtn}>
-            <Text style={s.exportBtnText}>⬇ Exporter PDF mensuel</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* ── Live Counter (Story 60.8) — visible uniquement si séances en cours ── */}
-      {liveCounters.sessionCount > 0 && (
-        <View style={{ paddingHorizontal: space.xl, paddingTop: space.md }}>
-          <LiveCounter
-            sessionCount={liveCounters.sessionCount}
-            presentCount={liveCounters.presentCount}
-            totalCount={liveCounters.totalCount}
-            isLive={liveCounters.isLive}
-          />
-        </View>
-      )}
-
-      {/* ── KPI bandeau global ── */}
-      <View style={s.kpiBandeau}>
-        {loading ? (
-          <>
-            <KpiSkeleton />
-            <KpiSkeleton />
-            <KpiSkeleton />
-            <KpiSkeleton />
-          </>
-        ) : (
-          <>
-            <KpiCard label="Total séances"    value={kpis?.totalSessions    ?? '—'} color={colors.accent.gold} />
-            <KpiCard label="Taux présence"    value={kpis ? `${kpis.avgAttendanceRate}%` : '—'} color={kpis ? getStatColor(kpis.avgAttendanceRate, STAT_THRESHOLDS.attendance.high, STAT_THRESHOLDS.attendance.low) : colors.status.success} />
-            <KpiCard label="Joueurs actifs"   value={kpis?.activePlayers    ?? '—'} />
-            <KpiCard label="Séances ce mois"  value={kpis?.totalSessions    ?? '—'} />
-          </>
-        )}
-      </View>
-
-      {/* ── Section cards grille 2×2 ── */}
-      <View style={s.grid}>
-        {SECTIONS.map((section, idx) => (
-          <SectionCard
-            key={section.href}
-            section={section}
-            kpiValue={sectionKpis[idx]}
-            loading={loading}
-          />
-        ))}
-      </View>
-    </View>
-  )
-}
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-  container: {
-    flex           : 1,
-    backgroundColor: colors.light.primary,
-    minHeight      : '100%' as never,
-  },
-
-  // Header dark premium
-  header: {
-    backgroundColor: colors.background.primary,
-    paddingHorizontal: space.xl,
-    paddingTop     : space.xl,
-    paddingBottom  : space.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.dark,
-  },
-  backLink: {
-    marginBottom: space.md,
-    alignSelf   : 'flex-start',
-  },
-  backText: {
-    color    : colors.text.secondary,
-    fontSize : 13,
-  },
-  headerRow: {
-    flexDirection : 'row',
-    justifyContent: 'space-between',
-    alignItems    : 'flex-end',
-    flexWrap      : 'wrap' as never,
-    gap           : 12,
-  },
-  exportBtn: {
-    paddingVertical  : 8,
-    paddingHorizontal: 16,
-    borderRadius     : radius.button,
-    backgroundColor  : colors.accent.gold,
-    alignSelf        : 'flex-end' as never,
-  },
-  exportBtnText: {
-    fontSize  : 12,
-    fontWeight: '700',
-    color     : colors.text.dark,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize  : 32,
-    fontWeight: '900',
-    color     : colors.accent.gold,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize : 14,
-    color    : colors.text.secondary,
-    letterSpacing: 0.5,
-  },
-
-  // KPI bandeau
-  kpiBandeau: {
-    flexDirection  : 'row',
-    flexWrap       : 'wrap' as never,
-    paddingHorizontal: space.xl,
-    paddingVertical: space.md,
-    gap            : space.md,
-    backgroundColor: colors.background.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.dark,
-  },
-  kpiCard: {
-    flex       : 1,
-    minWidth   : 140,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: colors.background.elevated,
-    borderRadius: radius.card,
-  },
-  kpiLabel: {
-    fontSize : 10,
-    fontWeight: '700',
-    color    : colors.text.secondary,
-    letterSpacing: 1,
-    textTransform: 'uppercase' as never,
-    marginBottom: 4,
-  },
-  kpiValue: {
-    fontSize : 24,
-    fontWeight: '700',
-    color    : colors.text.primary,
-  },
-
-  // Skeleton
-  skeletonLine: {
-    height         : 12,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius   : 4,
-  },
-
-  // Grid 2×2
-  grid: {
-    flexDirection  : 'row',
-    flexWrap       : 'wrap' as never,
-    padding        : space.xl,
-    gap            : space.lg,
-  },
-
-  // Section card
-  sectionCard: {
-    flex           : 1,
-    minWidth       : 280,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    overflow       : 'hidden' as never,
-    boxShadow      : shadows.sm,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    transition     : `all ${transitions.fast}`,
-  } as never,
-  sectionCardHover: {
-    boxShadow : shadows.md,
-    transform : [{ translateY: -2 }],
-    borderColor: colors.border.gold,
-  } as never,
-
-  accentStripe: {
-    height: 3,
-    width : '100%',
-  },
-  sectionCardBody: {
-    padding: space.lg,
-  },
-  sectionIcon: {
-    fontSize    : 28,
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontFamily: fonts.display,
-    fontSize  : 18,
-    fontWeight: '700',
-    color     : colors.text.dark,
-    marginBottom: 6,
-  },
-  sectionDescription: {
-    fontSize: 13,
-    color   : colors.text.muted,
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  quickStatRow: {
-    flexDirection : 'row',
-    justifyContent: 'space-between',
-    alignItems    : 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: colors.light.muted,
-    borderRadius  : radius.xs,
-    marginBottom  : 12,
-  },
-  quickStatLabel: {
-    fontSize : 11,
-    color    : colors.text.muted,
-    fontWeight: '600',
-  },
-  quickStatValue: {
-    fontSize : 16,
-    fontWeight: '700',
-  },
-  ctaLink: {
-    fontSize : 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    textAlign : 'right' as never,
-  },
 })
