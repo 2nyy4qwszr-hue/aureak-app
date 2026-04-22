@@ -1,5 +1,6 @@
 'use client'
 // Story 60.2 — Présences 12 mois — Line chart multi-groupes
+// Story 98.2 — AdminPageHeader v2 ("Présences")
 import React, { useEffect, useState, useMemo } from 'react'
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -8,6 +9,7 @@ import type { AttendanceMonthlyData } from '@aureak/types'
 import { LineChart, SERIES_COLORS, SkeletonBase } from '@aureak/ui'
 import type { Implantation } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 export default function PresencesAnalyticsPage() {
   const router = useRouter()
@@ -64,15 +66,11 @@ export default function PresencesAnalyticsPage() {
   }, [rawData])
 
   return (
-    <ScrollView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.push('/performance' as never)} style={s.backLink}>
-          <Text style={s.backText}>← Stats Room</Text>
-        </Pressable>
-        <Text style={s.title}>Présences — 12 derniers mois</Text>
-      </View>
+    <View style={s.page}>
+      {/* Story 98.2 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Présences" />
 
+      <ScrollView style={s.container}>
       <View style={s.content}>
         {/* Sélecteur implantation */}
         <View style={s.filterRow}>
@@ -136,11 +134,13 @@ export default function PresencesAnalyticsPage() {
           )}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  page     : { flex: 1, backgroundColor: colors.light.primary },
   container: { flex: 1, backgroundColor: colors.light.primary },
 
   header: {

@@ -1,5 +1,6 @@
 'use client'
 // Story tbd-vue-implantation — Dashboard analytique par implantation
+// Story 98.2 — AdminPageHeader v2 ("Implantations")
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { listImplantations, getImplantationStats, listGroupsByImplantation } from '@aureak/api-client'
@@ -7,6 +8,7 @@ import type { ImplantationStats } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Implantation, Group } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 // ── Progress bar ───────────────────────────────────────────────────────────────
 function ProgressBar({ value, color }: { value: number; color: string }) {
@@ -105,15 +107,11 @@ export default function ImplantationDashboardPage() {
     : null
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-      {/* ── Header ── */}
-      <View>
-        <AureakText variant="h2">Par implantation</AureakText>
-        <AureakText variant="caption" style={{ color: colors.text.muted }}>
-          Statistiques de la période des 30 derniers jours
-        </AureakText>
-      </View>
+    <View style={s.page}>
+      {/* Story 98.2 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Implantations" />
 
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* ── Sélecteur implantation ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }}>
         <View style={{ flexDirection: 'row', gap: space.sm, paddingHorizontal: space.xl }}>
@@ -215,11 +213,13 @@ export default function ImplantationDashboardPage() {
           </View>
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  page         : { flex: 1, backgroundColor: colors.light.primary },
   container    : { flex: 1, backgroundColor: colors.light.primary },
   content      : { padding: space.xl, gap: space.md },
 

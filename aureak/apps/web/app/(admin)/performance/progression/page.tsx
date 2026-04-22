@@ -1,5 +1,6 @@
 'use client'
 // Story 60.6 — Analytics Progression — Top 10 joueurs classements multiples
+// Story 98.2 — AdminPageHeader v2 ("Progression")
 import React, { useEffect, useState } from 'react'
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -7,6 +8,7 @@ import { listImplantations, getPlayerRankings } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
 import type { PlayerRankingItem, RankingMetric } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -161,15 +163,11 @@ export default function ProgressionPage() {
   }, [activeMetric, implantationId])
 
   return (
-    <ScrollView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.push('/performance' as never)} style={s.backLink}>
-          <Text style={s.backText}>← Stats Room</Text>
-        </Pressable>
-        <Text style={s.title}>Progression — Classements joueurs</Text>
-      </View>
+    <View style={s.page}>
+      {/* Story 98.2 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Progression" />
 
+      <ScrollView style={s.container}>
       <View style={s.content}>
         {/* Sélecteur implantation */}
         <View style={s.filterRow}>
@@ -222,12 +220,14 @@ export default function ProgressionPage() {
           )}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
+  page     : { flex: 1, backgroundColor: colors.light.primary },
   container: { flex: 1, backgroundColor: colors.light.primary },
 
   header: {

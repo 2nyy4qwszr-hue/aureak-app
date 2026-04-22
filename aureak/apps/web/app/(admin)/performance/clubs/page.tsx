@@ -1,5 +1,6 @@
 'use client'
 // Story 60.4 — Classement implantations bar chart
+// Story 98.2 — AdminPageHeader v2 ("Clubs")
 import React, { useEffect, useState } from 'react'
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -8,6 +9,7 @@ import type { ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
 import { BarChart, SkeletonBase } from '@aureak/ui'
 import type { BarChartItem } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 // ── Couleur selon performance — délégue à getStatColor de @aureak/theme ────────
 function getStatColor(value: number, metric: 'attendance' | 'mastery'): string {
@@ -66,16 +68,11 @@ export default function ClubsAnalyticsPage() {
   const periodLabel = PERIOD_OPTIONS.find(p => p.value === period)?.label ?? ''
 
   return (
-    <ScrollView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.push('/performance' as never)} style={s.backLink}>
-          <Text style={s.backText}>← Stats Room</Text>
-        </Pressable>
-        <Text style={s.title}>Clubs — Classement implantations</Text>
-        <Text style={s.subtitle}>{currentMetricOpt.label} · {periodLabel}</Text>
-      </View>
+    <View style={s.page}>
+      {/* Story 98.2 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Clubs" />
 
+      <ScrollView style={s.container}>
       <View style={s.content}>
         {/* Filtres métriques */}
         <View style={s.filterRow}>
@@ -127,11 +124,13 @@ export default function ClubsAnalyticsPage() {
           )}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  page     : { flex: 1, backgroundColor: colors.light.primary },
   container: { flex: 1, backgroundColor: colors.light.primary },
 
   header: {

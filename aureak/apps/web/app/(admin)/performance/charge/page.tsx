@@ -1,5 +1,6 @@
 'use client'
 // Story 60.3 — Heatmap jours/heures séances
+// Story 98.2 — AdminPageHeader v2 ("Charge coaches")
 import React, { useEffect, useState } from 'react'
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -9,6 +10,7 @@ import type { Implantation } from '@aureak/types'
 import { HeatmapGrid } from '@aureak/ui'
 import { colors, fonts, radius, space, shadows } from '@aureak/theme'
 import type { HeatmapCell } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 const PERIOD_OPTIONS: { value: HeatmapPeriod; label: string }[] = [
   { value: 'month',   label: 'Ce mois' },
@@ -52,16 +54,11 @@ export default function ChargeAnalyticsPage() {
   }, [period, implantationId])
 
   return (
-    <ScrollView style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.push('/performance' as never)} style={s.backLink}>
-          <Text style={s.backText}>← Stats Room</Text>
-        </Pressable>
-        <Text style={s.title}>Charge — Heatmap séances</Text>
-        <Text style={s.subtitle}>Densité des créneaux sur 7 jours × 24h</Text>
-      </View>
+    <View style={s.page}>
+      {/* Story 98.2 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Charge coaches" />
 
+      <ScrollView style={s.container}>
       <View style={s.content}>
         {/* Filtres */}
         <View style={s.filterRow}>
@@ -117,11 +114,13 @@ export default function ChargeAnalyticsPage() {
           )}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  page     : { flex: 1, backgroundColor: colors.light.primary },
   container: { flex: 1, backgroundColor: colors.light.primary },
 
   header: {
