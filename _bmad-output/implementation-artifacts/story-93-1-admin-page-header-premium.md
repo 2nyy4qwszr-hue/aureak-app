@@ -1,6 +1,6 @@
 # Story 93.1 — AdminPageHeader : composant partagé premium (eyebrow + title + subtitle + période/action)
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

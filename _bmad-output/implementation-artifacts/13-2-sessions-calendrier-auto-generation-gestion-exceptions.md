@@ -1,6 +1,6 @@
 # Story 13.2 : Sessions — Calendrier, Auto-génération & Gestion des Exceptions
 
-Status: review
+Status: done
 
 ## Story
 

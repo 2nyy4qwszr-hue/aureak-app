@@ -2,7 +2,7 @@
 
 Status: done
 
-Status: review
+Status: done
 
 ## Story
 

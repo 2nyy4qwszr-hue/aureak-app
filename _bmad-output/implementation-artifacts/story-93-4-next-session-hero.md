@@ -1,6 +1,6 @@
 # Story 93.4 — NextSessionHero : état vide premium "prochaine séance" sur /activites
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

@@ -1,6 +1,6 @@
 # Story 88.6 — Handoff commercial -> fondateur (vue closing)
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

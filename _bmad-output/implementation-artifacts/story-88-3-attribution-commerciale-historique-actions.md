@@ -1,6 +1,6 @@
 # Story 88.3 — Attribution commerciale — historique d'actions
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

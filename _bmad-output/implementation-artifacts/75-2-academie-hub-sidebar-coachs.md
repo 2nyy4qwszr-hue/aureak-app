@@ -1,6 +1,6 @@
 # Story 75.2 : Académie Hub — Sidebar Refactor + Structure Hub + Coachs Redesign
 
-Status: review
+Status: done
 
 ## Story
 

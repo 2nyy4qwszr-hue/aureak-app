@@ -1,6 +1,6 @@
 # Story 93.2 — Subtabs premium avec count badges (Activités, Méthodologie, Académie)
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 

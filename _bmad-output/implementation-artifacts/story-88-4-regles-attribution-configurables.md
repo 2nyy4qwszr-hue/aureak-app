@@ -1,6 +1,6 @@
 # Story 88.4 — Règles d'attribution configurables
 
-Status: review
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
