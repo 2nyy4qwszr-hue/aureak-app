@@ -1,5 +1,6 @@
 'use client'
 // Story 92.2 — Liste des sponsors (parrainage académie)
+// Story 97.13 — AdminPageHeader v2 ("Sponsors") + PartenariatNavBar
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -7,6 +8,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { listSponsors } from '@aureak/api-client'
 import type { SponsorType, SponsorWithCounts } from '@aureak/types'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { PartenariatNavBar } from '../../../../components/admin/partenariat/PartenariatNavBar'
 import { StatsStandardCard } from '../../../../components/admin/stats'
 import { SponsorFormModal } from '../../../../components/admin/partenariat/SponsorFormModal'
 
@@ -53,19 +56,18 @@ export default function PartenariatSponsorsPage() {
   )
 
   return (
-    <ScrollView style={st.wrapper} contentContainerStyle={st.content}>
-      <View style={st.headerRow}>
-        <View style={st.headerText}>
-          <AureakText variant="h1" style={st.title}>Sponsors</AureakText>
-          <AureakText style={st.subtitle}>
-            Parrainage enfants — entreprises, individuels, associations et clubs financeurs
-          </AureakText>
-        </View>
-        <Pressable style={st.primaryBtn} onPress={() => setShowModal(true)}>
-          <AureakText style={st.primaryBtnLabel}>+ Nouveau sponsor</AureakText>
-        </Pressable>
-      </View>
+    <View style={st.page}>
+      {/* Story 97.13 — AdminPageHeader v2 + PartenariatNavBar */}
+      <AdminPageHeader
+        title="Sponsors"
+        actionButton={{
+          label  : '+ Nouveau sponsor',
+          onPress: () => setShowModal(true),
+        }}
+      />
+      <PartenariatNavBar />
 
+      <ScrollView style={st.wrapper} contentContainerStyle={st.content}>
       <View style={st.statsRow}>
         <StatsStandardCard label="Sponsors actifs"          value={activeSponsorCount} iconTone="gold"    />
         <StatsStandardCard label="Parrainages actifs"       value={totalLinksActive}   iconTone="neutral" />
@@ -126,29 +128,22 @@ export default function PartenariatSponsorsPage() {
         onClose={() => setShowModal(false)}
         onSuccess={load}
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const st = StyleSheet.create({
-  wrapper: {
+  page: {
     flex           : 1,
     backgroundColor: colors.light.primary,
+  },
+  wrapper: {
+    flex: 1,
   },
   content: {
     padding: space.lg,
     gap    : space.lg,
-  },
-  headerRow: {
-    flexDirection : 'row',
-    alignItems    : 'flex-end',
-    justifyContent: 'space-between',
-    gap           : space.md,
-    flexWrap      : 'wrap',
-  },
-  headerText: {
-    flex: 1,
-    gap : 4,
   },
   title: {
     color: colors.text.dark,
