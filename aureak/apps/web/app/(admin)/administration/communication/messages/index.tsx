@@ -1,11 +1,13 @@
 'use client'
 // Story 9.5 — Messagerie admin → coach
+// Story 99.6 — AdminPageHeader v2 ("Messages")
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { sendAdminMessage, listAdminMessages, listCoaches } from '@aureak/api-client'
 import type { CoachListRow } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 type AdminMessage = {
   id          : string
@@ -84,12 +86,11 @@ export default function AdminMessagesPage() {
     : messages
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <AureakText variant="h2" style={{ marginBottom: space.xs }}>Messagerie coaches</AureakText>
-      <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.lg }}>
-        Envoyez des messages directs aux coaches — visible dans leur espace.
-      </AureakText>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.6 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Messages" />
 
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* ── Formulaire envoi ── */}
       <View style={s.card}>
         <AureakText variant="label" style={s.sectionLabel}>NOUVEAU MESSAGE</AureakText>
@@ -217,7 +218,8 @@ export default function AdminMessagesPage() {
           </View>
         ))
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 

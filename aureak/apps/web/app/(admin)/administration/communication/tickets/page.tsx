@@ -1,4 +1,5 @@
 // Story 7.4 — Liste tickets support (Admin/Coach)
+// Story 99.6 — AdminPageHeader v2 ("Tickets")
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -6,6 +7,7 @@ import { listAllTickets, updateTicketStatus } from '@aureak/api-client'
 import type { Ticket, TicketStatus } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const STATUS_COLORS: Record<TicketStatus, string> = {
   open       : colors.accent.gold,
@@ -73,11 +75,11 @@ export default function TicketsAdminPage() {
   useEffect(() => { fetchTickets() }, [filter])
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <AureakText variant="h2">Tickets support</AureakText>
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.6 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Tickets" />
 
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Filtres */}
       <View style={styles.filterRow}>
         {STATUS_FILTERS.map((f) => (
@@ -126,6 +128,7 @@ export default function TicketsAdminPage() {
           </AureakText>
         </Pressable>
       ))}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }

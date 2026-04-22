@@ -1,10 +1,12 @@
 'use client'
 // Story 10.5 — Exports conformes (admin)
+// Story 99.6 — AdminPageHeader v2 ("Exports")
 import { useEffect, useState } from 'react'
 import { createExportJob, listExportJobs, triggerExport } from '@aureak/api-client'
 import type { ExportJob, ExportType } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 const EXPORT_TYPES: { value: ExportType; label: string }[] = [
   { value: 'attendance_report',            label: 'Rapport de présences' },
@@ -68,9 +70,10 @@ export default function ExportsPage() {
   }
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Exports conformes</h1>
-
+    <div>
+      {/* Story 99.6 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Exports" />
+      <div style={styles.container}>
       {/* Formulaire création */}
       <div style={styles.card}>
         <h2 style={styles.sectionTitle}>Nouvel export</h2>
@@ -138,6 +141,7 @@ export default function ExportsPage() {
           </div>
         ))
       )}
+      </div>
     </div>
   )
 }
