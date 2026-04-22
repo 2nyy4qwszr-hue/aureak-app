@@ -1,5 +1,6 @@
 'use client'
 // Story 92.3 — Récap clubs partenaires (vue synthétique)
+// Story 97.13 — AdminPageHeader v2 ("Clubs partenaires") + PartenariatNavBar
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { AureakText } from '@aureak/ui'
@@ -10,6 +11,8 @@ import {
   updatePartnership,
 } from '@aureak/api-client'
 import type { ClubPartnership } from '@aureak/api-client'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { PartenariatNavBar } from '../../../../components/admin/partenariat/PartenariatNavBar'
 import { StatsStandardCard } from '../../../../components/admin/stats'
 import { PartnershipCard } from '../../../../components/admin/partenariat/PartnershipCard'
 import { PartnershipFormModal } from '../../../../components/admin/partenariat/PartnershipFormModal'
@@ -91,19 +94,18 @@ export default function PartenariatClubsPage() {
   }
 
   return (
-    <ScrollView style={s.wrapper} contentContainerStyle={s.content}>
-      <View style={s.headerRow}>
-        <View style={s.headerText}>
-          <AureakText variant="h1" style={s.title}>Clubs partenaires</AureakText>
-          <AureakText style={s.subtitle}>
-            Vue synthétique des clubs avec accès à la plateforme
-          </AureakText>
-        </View>
-        <Pressable style={s.primaryBtn} onPress={() => setShowModal(true)}>
-          <AureakText style={s.primaryBtnLabel}>+ Nouveau partenariat</AureakText>
-        </Pressable>
-      </View>
+    <View style={s.page}>
+      {/* Story 97.13 — AdminPageHeader v2 + PartenariatNavBar */}
+      <AdminPageHeader
+        title="Clubs partenaires"
+        actionButton={{
+          label  : '+ Nouveau partenariat',
+          onPress: () => setShowModal(true),
+        }}
+      />
+      <PartenariatNavBar />
 
+      <ScrollView style={s.wrapper} contentContainerStyle={s.content}>
       <View style={s.statsRow}>
         <StatsStandardCard label="Partenariats actifs"  value={activeCount}    iconTone="gold"    />
         <StatsStandardCard label="Expirent dans 30j"    value={expiringCount}  iconTone="red"     />
@@ -164,14 +166,18 @@ export default function PartenariatClubsPage() {
         onClose={() => setShowModal(false)}
         onSuccess={load}
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
-  wrapper: {
+  page: {
     flex           : 1,
     backgroundColor: colors.light.primary,
+  },
+  wrapper: {
+    flex: 1,
   },
   content: {
     padding: space.lg,
