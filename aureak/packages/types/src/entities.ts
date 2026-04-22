@@ -2727,6 +2727,77 @@ export type UpdateProspectContactParams = {
 }
 
 // ============================================================
+// Epic 90 — Story 90.1 : Pipeline Prospection Entraîneurs (migration 00167)
+// ============================================================
+
+/** CoachProspect — entrée pipeline prospection entraîneurs.
+ *  Table autonome (séparée de `profiles` des coachs actifs).
+ *  Le pipeline reste tracé même après conversion en coach actif. */
+export type CoachProspect = {
+  id                     : string
+  tenantId               : string
+  firstName              : string
+  lastName               : string
+  email                  : string | null
+  phone                  : string | null
+  city                   : string | null
+  status                 : import('./enums').CoachProspectStatus
+  currentClub            : string | null
+  specialite             : string | null
+  assignedCommercialId   : string | null
+  /** FK profiles(user_id) — coach interne ayant recommandé (Story 90.2). */
+  recommendedByCoachId   : string | null
+  source                 : string | null
+  notes                  : string | null
+  createdAt              : string
+  updatedAt              : string
+  deletedAt              : string | null
+}
+
+/** CoachProspect enrichi pour vue liste (display name commercial assigné + recommandeur). */
+export type CoachProspectListRow = CoachProspect & {
+  assignedDisplayName    : string | null
+  recommendedByDisplayName : string | null
+  /** Date dernière action (placeholder pour story 90-2 ou future timeline). */
+  lastActionAt           : string | null
+}
+
+/** CoachProspect détail — équivalent à CoachProspectListRow pour l'instant. */
+export type CoachProspectDetail = CoachProspectListRow
+
+export type CreateCoachProspectParams = {
+  firstName              : string
+  lastName               : string
+  email?                 : string
+  phone?                 : string
+  city?                  : string
+  status?                : import('./enums').CoachProspectStatus
+  currentClub?           : string
+  specialite?            : string
+  /** Admin seulement — commercial assigne à lui-même par défaut. NULL accepté. */
+  assignedCommercialId?  : string | null
+  recommendedByCoachId?  : string
+  source?                : string
+  notes?                 : string
+}
+
+export type UpdateCoachProspectParams = {
+  id                     : string
+  firstName?             : string
+  lastName?              : string
+  email?                 : string | null
+  phone?                 : string | null
+  city?                  : string | null
+  status?                : import('./enums').CoachProspectStatus
+  currentClub?           : string | null
+  specialite?            : string | null
+  assignedCommercialId?  : string | null
+  recommendedByCoachId?  : string | null
+  source?                : string | null
+  notes?                 : string | null
+}
+
+// ============================================================
 // Epic 88 — Story 88.3 : Historique actions commerciales (append-only)
 // ============================================================
 

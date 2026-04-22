@@ -418,6 +418,33 @@ export const CLUB_CONTACT_ROLE_LABELS: Record<ClubContactRole, string> = {
   autre            : 'Autre',
 }
 
+// ── Epic 90 — Pipeline Prospection Entraîneurs ─────────────────────────────
+
+/** Statut pipeline d'un coach prospect — miroir enum PostgreSQL `coach_prospect_status` (migration 00167).
+ *  4 étapes (`identifie` → `info_envoyee` → `en_formation` → `actif`) + 1 dead end (`perdu`). */
+export type CoachProspectStatus =
+  | 'identifie'
+  | 'info_envoyee'
+  | 'en_formation'
+  | 'actif'
+  | 'perdu'
+
+export const COACH_PROSPECT_STATUSES: CoachProspectStatus[] = [
+  'identifie',
+  'info_envoyee',
+  'en_formation',
+  'actif',
+  'perdu',
+]
+
+export const COACH_PROSPECT_STATUS_LABELS: Record<CoachProspectStatus, string> = {
+  identifie    : 'Identifié',
+  info_envoyee : 'Info envoyée',
+  en_formation : 'En formation',
+  actif        : 'Actif',
+  perdu        : 'Perdu',
+}
+
 // ── Epic 88 — Story 88.3 : Historique actions prospect ─────────────────────
 
 /** Type d'action commerciale — miroir enum PostgreSQL `prospect_action_type` (migration 00163) */

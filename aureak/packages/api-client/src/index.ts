@@ -754,6 +754,16 @@ export type {
   ListMyActionsFilters,
 } from './admin/prospection'
 
+// ── Epic 90 — Story 90.1 : Pipeline prospection entraîneurs ─────────────────
+export {
+  listCoachProspects,
+  getCoachProspect,
+  createCoachProspect,
+  updateCoachProspect,
+  updateCoachProspectStatus,
+} from './admin/coach-prospection'
+export type { ListCoachProspectsFilters } from './admin/coach-prospection'
+
 // ── Story 87.4 — Invitation dédiée commercial/manager/marketeur ──────────────
 export { invitePerson } from './admin/invite-person'
 export type { InvitePersonParams, InvitePersonResult, InvitePersonMode, InvitePersonRole } from './admin/invite-person'

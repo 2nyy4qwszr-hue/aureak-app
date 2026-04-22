@@ -1,6 +1,8 @@
 # Story 90.1 — Pipeline entraîneurs — 4 étapes
 
-Status: ready-for-dev
+Status: done
+
+> **Drift de numérotation** : la story réservait `00166`. Au moment de l'implémentation, ce numéro était déjà pris par story 96.1 (mergée 2026-04-21). Migration créée en **00167** à la place.
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -37,48 +39,48 @@ afin de suivre le recrutement des coachs candidats depuis le premier contact jus
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase `00166_create_coach_prospects_pipeline.sql` (AC: #1, #2, #10)
-  - [ ] Enum `coach_prospect_status` (5 valeurs : `identifie`, `info_envoyee`, `en_formation`, `actif`, `perdu`)
-  - [ ] Table `coach_prospects` avec colonnes spécifiées, FK `tenants`, FK nullable `auth.users` (assigned_commercial_id), FK nullable `profiles` (recommended_by_coach_id — préparation 90-2)
-  - [ ] Index sur `coach_prospects(tenant_id, status)`, `coach_prospects(assigned_commercial_id)`, `coach_prospects(recommended_by_coach_id)`
-  - [ ] RLS enable
-  - [ ] Policies SELECT/INSERT/UPDATE : admin = tout tenant, commercial = `assigned_commercial_id = auth.uid()`, coach recommendeur = SELECT sur ses propres recommandations
-  - [ ] Trigger `updated_at`
-  - [ ] Soft-delete : filtrer `WHERE deleted_at IS NULL` dans les policies SELECT
-- [ ] Task 2 — Types TypeScript (AC: #3)
-  - [ ] `CoachProspectStatus` type union dans `enums.ts` + `COACH_PROSPECT_STATUS_LABELS` map
-  - [ ] `CoachProspect` entity dans `entities.ts`
-  - [ ] `CreateCoachProspectParams`, `UpdateCoachProspectParams`
-  - [ ] Exporter dans `index.ts`
-- [ ] Task 3 — API client (AC: #4)
-  - [ ] Créer `aureak/packages/api-client/src/admin/coach-prospection.ts`
-  - [ ] `listCoachProspects(filters?: { status?, commercialId? })` — select + snake→camel mapping
-  - [ ] `getCoachProspect(id)` — select single
-  - [ ] `createCoachProspect(params)` — insert + return
-  - [ ] `updateCoachProspect(id, params)` — update partiel
-  - [ ] `updateCoachProspectStatus(id, status)` — update status seul
-  - [ ] Snake_case → camelCase mapping explicite sur chaque fonction (jamais `as Type[]`)
-  - [ ] Exporter dans `index.ts` du package
-- [ ] Task 4 — UI StatCards (AC: #5)
-  - [ ] Composant `CoachProspectionStatCards` dans `entraineurs/_components/`
-  - [ ] 4 cards : Total prospects, En formation, Actifs ce trimestre, Perdus
-  - [ ] Pattern `StatCards` de `/activites/components/StatCards.tsx`
-- [ ] Task 5 — UI tableau prospects (AC: #5, #6, #7)
-  - [ ] Remplacer le contenu de `/prospection/entraineurs/page.tsx` (placeholder story 88-1) par le tableau pipeline
-  - [ ] 6 colonnes : PRÉNOM NOM | VILLE | STATUT (badge coloré) | SPÉCIALITÉ | COMMERCIAL | DERNIÈRE ACTION (date relative)
-  - [ ] Filtres : pills par statut pipeline + dropdown commercial
-  - [ ] `Pressable` sur chaque ligne → navigation vers fiche détail
-- [ ] Task 6 — UI fiche détail prospect entraîneur (AC: #7, #8)
-  - [ ] Page `/developpement/prospection/entraineurs/[prospectId]/page.tsx` + `index.tsx`
-  - [ ] En-tête : prénom nom, ville, statut (dropdown changement 5 valeurs), commercial assigné
-  - [ ] Section coordonnées : email, phone (cliquables `mailto:` / `tel:`)
-  - [ ] Section profil : club actuel, spécialité (formats libres)
-  - [ ] Section notes : textarea notes commercial/admin
-  - [ ] Placeholder section "Recommandation" (à remplir par story 90-2)
-- [ ] Task 7 — Formulaire ajout prospect entraîneur (AC: #9)
-  - [ ] Modale `CreateCoachProspectModal` — React Hook Form + Zod
-  - [ ] Champs : prénom, nom, email, phone, ville, club actuel, spécialité, commercial assigné (select), source, notes
-  - [ ] Bouton "Ajouter un entraîneur" en haut de la page liste
+- [x] Task 1 — Migration Supabase `00166_create_coach_prospects_pipeline.sql` (AC: #1, #2, #10)
+  - [x] Enum `coach_prospect_status` (5 valeurs : `identifie`, `info_envoyee`, `en_formation`, `actif`, `perdu`)
+  - [x] Table `coach_prospects` avec colonnes spécifiées, FK `tenants`, FK nullable `auth.users` (assigned_commercial_id), FK nullable `profiles` (recommended_by_coach_id — préparation 90-2)
+  - [x] Index sur `coach_prospects(tenant_id, status)`, `coach_prospects(assigned_commercial_id)`, `coach_prospects(recommended_by_coach_id)`
+  - [x] RLS enable
+  - [x] Policies SELECT/INSERT/UPDATE : admin = tout tenant, commercial = `assigned_commercial_id = auth.uid()`, coach recommendeur = SELECT sur ses propres recommandations
+  - [x] Trigger `updated_at`
+  - [x] Soft-delete : filtrer `WHERE deleted_at IS NULL` dans les policies SELECT
+- [x] Task 2 — Types TypeScript (AC: #3)
+  - [x] `CoachProspectStatus` type union dans `enums.ts` + `COACH_PROSPECT_STATUS_LABELS` map
+  - [x] `CoachProspect` entity dans `entities.ts`
+  - [x] `CreateCoachProspectParams`, `UpdateCoachProspectParams`
+  - [x] Exporter dans `index.ts`
+- [x] Task 3 — API client (AC: #4)
+  - [x] Créer `aureak/packages/api-client/src/admin/coach-prospection.ts`
+  - [x] `listCoachProspects(filters?: { status?, commercialId? })` — select + snake→camel mapping
+  - [x] `getCoachProspect(id)` — select single
+  - [x] `createCoachProspect(params)` — insert + return
+  - [x] `updateCoachProspect(id, params)` — update partiel
+  - [x] `updateCoachProspectStatus(id, status)` — update status seul
+  - [x] Snake_case → camelCase mapping explicite sur chaque fonction (jamais `as Type[]`)
+  - [x] Exporter dans `index.ts` du package
+- [x] Task 4 — UI StatCards (AC: #5)
+  - [x] Composant `CoachProspectionStatCards` dans `entraineurs/_components/`
+  - [x] 4 cards : Total prospects, En formation, Actifs ce trimestre, Perdus
+  - [x] Pattern `StatCards` de `/activites/components/StatCards.tsx`
+- [x] Task 5 — UI tableau prospects (AC: #5, #6, #7)
+  - [x] Remplacer le contenu de `/prospection/entraineurs/page.tsx` (placeholder story 88-1) par le tableau pipeline
+  - [x] 6 colonnes : PRÉNOM NOM | VILLE | STATUT (badge coloré) | SPÉCIALITÉ | COMMERCIAL | DERNIÈRE ACTION (date relative)
+  - [x] Filtres : pills par statut pipeline + dropdown commercial
+  - [x] `Pressable` sur chaque ligne → navigation vers fiche détail
+- [x] Task 6 — UI fiche détail prospect entraîneur (AC: #7, #8)
+  - [x] Page `/developpement/prospection/entraineurs/[prospectId]/page.tsx` + `index.tsx`
+  - [x] En-tête : prénom nom, ville, statut (dropdown changement 5 valeurs), commercial assigné
+  - [x] Section coordonnées : email, phone (cliquables `mailto:` / `tel:`)
+  - [x] Section profil : club actuel, spécialité (formats libres)
+  - [x] Section notes : textarea notes commercial/admin
+  - [x] Placeholder section "Recommandation" (à remplir par story 90-2)
+- [x] Task 7 — Formulaire ajout prospect entraîneur (AC: #9)
+  - [x] Modale `CreateCoachProspectModal` — React Hook Form + Zod
+  - [x] Champs : prénom, nom, email, phone, ville, club actuel, spécialité, commercial assigné (select), source, notes
+  - [x] Bouton "Ajouter un entraîneur" en haut de la page liste
 
 ## Dev Notes
 
