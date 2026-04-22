@@ -6,6 +6,7 @@ import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import { SubtabCount } from '../SubtabCount'
+import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
   { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },
@@ -27,6 +28,10 @@ export type AcademieNavBarProps = {
 export function AcademieNavBar({ counts }: AcademieNavBarProps = {}) {
   const router   = useRouter()
   const pathname = usePathname()
+  const activeKey = TABS.find(t => pathname === t.href || pathname.startsWith(t.href + '/'))?.key ?? null
+
+  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
+  useScrollTabIntoView('tab-academie', activeKey)
 
   return (
     <View style={s.wrapper}>
@@ -41,6 +46,7 @@ export function AcademieNavBar({ counts }: AcademieNavBarProps = {}) {
           return (
             <Pressable
               key={tab.href}
+              nativeID={`tab-academie-${tab.key}`}
               onPress={() => router.push(tab.href as never)}
               style={({ pressed }) => [
                 s.tab,

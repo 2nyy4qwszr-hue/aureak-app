@@ -3,11 +3,12 @@
 // (Stages / Tournois / Fun Days / Detect Days / Séminaires). Titre + action
 // déplacés vers <AdminPageHeader /> dans chaque sous-page.
 import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
+import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
   { key: 'stages',      label: 'STAGES',      href: '/evenements/stages'      },
@@ -33,13 +34,22 @@ export function EvenementsHeader() {
   const pathname  = usePathname()
   const activeTab = getActiveTab(pathname)
 
+  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
+  useScrollTabIntoView('tab-evenements', activeTab)
+
   return (
-    <View style={styles.tabsRow}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.tabsRow}
+      style={styles.tabsScroll}
+    >
       {TABS.map(tab => {
         const isActive = tab.key === activeTab
         return (
           <Pressable
             key={tab.key}
+            nativeID={`tab-evenements-${tab.key}`}
             onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
             style={styles.tabItem}
           >
@@ -50,11 +60,15 @@ export function EvenementsHeader() {
           </Pressable>
         )
       })}
-    </View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
+  tabsScroll: {
+    flexGrow       : 0,
+    backgroundColor: colors.light.primary,
+  },
   tabsRow: {
     flexDirection    : 'row',
     gap              : 24,
