@@ -1,5 +1,6 @@
 'use client'
 // Story 11.2 — Permissions de contenu par grade
+// Story 99.3 — AdminPageHeader v2 ("Permissions par grade")
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import {
@@ -9,6 +10,7 @@ import {
 import type { GradeContentItem, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const GRADES: CoachGradeLevel[] = ['bronze', 'silver', 'gold', 'platinum']
 
@@ -81,12 +83,11 @@ export default function GradePermissionsPage() {
   const counts = countByGrade(items)
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <AureakText variant="h2" style={{ marginBottom: space.xs }}>Permissions par grade</AureakText>
-      <AureakText variant="caption" style={{ color: colors.text.muted, marginBottom: space.md }}>
-        Définissez le grade minimum requis pour accéder à chaque thème et situation pédagogique.
-      </AureakText>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.3 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Permissions par grade" />
 
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* Tabs */}
       <View style={s.tabs}>
         {(['themes', 'situations'] as Tab[]).map(t => (
@@ -156,7 +157,8 @@ export default function GradePermissionsPage() {
           )
         })
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 

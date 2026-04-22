@@ -1,5 +1,6 @@
 'use client'
 // Story tbd-onboarding — Wizard d'onboarding administrateur (4 étapes)
+// Story 99.3 — AdminPageHeader v2 ("Onboarding")
 import React, { useState } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -7,6 +8,7 @@ import { createImplantation, createGroup } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import { GROUP_METHODS } from '@aureak/business-logic'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 // ── Step config ────────────────────────────────────────────────────────────────
 const STEPS = [
@@ -125,7 +127,11 @@ export default function OnboardingPage() {
   }
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.3 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Onboarding" />
+
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
       <ProgressStepper current={step} />
 
       {/* ── Étape 1 : Bienvenue ── */}
@@ -273,7 +279,8 @@ export default function OnboardingPage() {
           </View>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
