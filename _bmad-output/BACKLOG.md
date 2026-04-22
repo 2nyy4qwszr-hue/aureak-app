@@ -773,6 +773,26 @@ Refonte visuelle de la page Activités/Séances pour correspondre précisément 
 
 ---
 
+## Epic 88 — Prospection Clubs (CRM)
+
+> Vrai CRM club : hub 3 onglets, pipeline multi-contacts par club avec mapping organisationnel, audit trail d'actions, règles d'attribution configurables, bibliothèque ressources commerciales, vue closing fondateur. S'appuie sur la fondation Epic 85 (`commercial_contacts`, migration 00147) qui reste en place pour le registre simple.
+> Source : brainstorming `_bmad-output/brainstorming/brainstorming-session-2026-04-18-1000.md` — idées #1, #8, #9, #10, #11, #12, #13, #14, #37, #38.
+
+- [ ] 88-1 : prospection-sidebar-page-hub (**P1 FEATURE** — `ProspectionNavBar` 3 onglets (CLUBS / GARDIENS / ENTRAÎNEURS) pattern `AcademieNavBar`, `_layout.tsx` avec `Slot`, redirect `/developpement/prospection/` → `/clubs`, 2 pages placeholder (gardiens, entraineurs), migration du contenu Epic 85 sous `clubs/page.tsx`, aucune migration DB) `ready-for-dev`
+- [ ] 88-2 : pipeline-clubs-multi-contacts-prospect (**P1 FEATURE** — migration 00161 : enums `prospect_status` (7) + `club_contact_role` (5), tables `club_prospects` + `prospect_contacts` avec RLS admin-tenant/commercial-own, types + API CRUD `prospection.ts`, page CRM `/clubs` (StatCards + tableau 7 colonnes), fiche détail `/clubs/[prospectId]`, 2 modales RHF+Zod) `ready-for-dev`
+- [ ] 88-3 : attribution-commerciale-historique-actions (**P1 FEATURE** — migration 00162 : enum `prospect_action_type` (8) + table append-only `prospect_actions` + trigger auto-log `changement_statut`, API `listProspectActions`/`addProspectAction`/`listMyActions`, composant `ProspectTimeline` intégré fiche prospect, modale ajout action, vue "Mes actions" commercial) `ready-for-dev`
+- [ ] 88-4 : regles-attribution-configurables (**P2 FEATURE** — migration 00163 : table `attribution_rules` + partial unique index sur `is_default` + seed "Standard 50/50", page `/prospection/attribution` (4e onglet NavBar), CRUD règles, modale conversion `converti` avec suggestion auto basée sur `prospect_actions` + ajustable manuellement) `ready-for-dev`
+- [ ] 88-5 : bibliotheque-ressources-commerciales (**P2 FEATURE** — migration 00164 : table `commercial_resources` + enum `commercial_resource_type` (4) + seed 4 ressources + bucket Supabase Storage `commercial-resources`, page `/prospection/ressources` (5e onglet), cards download/link, modale upload admin, URL signées 1h) `ready-for-dev`
+- [ ] 88-6 : handoff-commercial-fondateur-closing (**P2 FEATURE** — pill filtre CLOSING sur `/clubs`, vue enrichie `rdv_qualifie`+`closing` avec décisionnaire et dernière action, badges gold/orange, actions rapides "Converti"/"Perdu" avec modales, notif in-app admin quand statut → `rdv_qualifie` (migration 00165 optionnelle)) `ready-for-dev`
+
+**Dépendances** : Epic 86 done ✅ (rôles commercial/manager/marketeur + permissions) + Epic 85 done ✅ (fondation registre `commercial_contacts`). Ordre strict : 88-1 → 88-2 → 88-3 → 88-4 (parallèle possible avec 88-5) → 88-6.
+
+**Migrations réservées** : 00161 (88-2), 00162 (88-3), 00163 (88-4), 00164 (88-5), 00165 (88-6 optionnel). 88-1 sans migration.
+
+**Note historique** : code initial implémenté dans mega-PR #20 (closed 2026-04-18, collisions migrations 00148-00158 vs. main). Stories extraites de cette PR et ré-adaptées sur main (migrations renumérotées 00148→00161 etc.).
+
+---
+
 ### Epic 89 — Prospection Gardiens (funnel commercial)
 
 Objectif : outiller le scout/commercial pour identifier, inviter, tracer et convertir des gardiens prospects — de la détection terrain jusqu'à l'inscription Académie.
