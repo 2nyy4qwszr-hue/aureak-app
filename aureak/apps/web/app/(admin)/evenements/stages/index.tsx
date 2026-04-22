@@ -1,5 +1,6 @@
 'use client'
 // Liste des stages — vue admin globale
+// Story 97.10 — AdminPageHeader v2 "Stages" + EvenementsHeader tabs
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -8,6 +9,8 @@ import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
 import { SkeletonCard } from '../../../../components/SkeletonCard'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { EvenementsHeader } from '../../../../components/admin/evenements/EvenementsHeader'
 
 const STATUS_LABELS: Record<StageStatus, string> = {
   planifié : 'Planifié',
@@ -79,27 +82,23 @@ export default function StagesPage() {
   })
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <View style={s.container}>
+      {/* Story 97.10 — AdminPageHeader v2 + EvenementsHeader tabs */}
+      <AdminPageHeader
+        title="Stages"
+        actionButton={{
+          label  : '+ Nouveau stage',
+          onPress: () => router.push('/evenements/stages/new' as never),
+        }}
+      />
+      <EvenementsHeader />
 
-      {/* Header */}
-      <View style={s.header}>
-        <View>
-          <AureakText variant="h2" color={colors.accent.gold}>Stages</AureakText>
-          {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {filtered.length} stage{filtered.length !== 1 ? 's' : ''}
-            </AureakText>
-          )}
-        </View>
-        <Pressable
-          style={s.newBtn}
-          onPress={() => router.push('/stages/new' as never)}
-        >
-          <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
-            + Nouveau stage
-          </AureakText>
-        </Pressable>
-      </View>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
+      {!loading && (
+        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.xl }}>
+          {filtered.length} stage{filtered.length !== 1 ? 's' : ''}
+        </AureakText>
+      )}
 
       {/* Search */}
       <TextInput
@@ -150,7 +149,7 @@ export default function StagesPage() {
           variant="no-stages"
           subtitle={search ? 'Aucun résultat pour cette recherche.' : undefined}
           ctaLabel="+ Nouveau stage"
-          onCta={() => router.push('/stages/new' as never)}
+          onCta={() => router.push('/evenements/stages/new' as never)}
         />
       ) : (
         <View style={s.grid}>
@@ -158,7 +157,7 @@ export default function StagesPage() {
             <Pressable
               key={stage.id}
               style={s.card}
-              onPress={() => router.push(`/stages/${stage.id}` as never)}
+              onPress={() => router.push(`/evenements/stages/${stage.id}` as never)}
             >
               {/* Top accent by status */}
               <View style={[s.cardAccent, { backgroundColor: STATUS_COLORS[stage.status] }]} />
@@ -212,21 +211,14 @@ export default function StagesPage() {
           ))}
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
-  header     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-
-  newBtn: {
-    backgroundColor  : colors.accent.gold,
-    paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    borderRadius     : 7,
-  },
 
   searchInput: {
     backgroundColor  : colors.light.surface,
