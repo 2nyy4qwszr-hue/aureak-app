@@ -1,6 +1,7 @@
 'use client'
 // Story 32.2 — Métriques qualité coach (vue admin)
 // Story 59-5 — Quêtes hebdomadaires coaches
+// Story 97.6 — AdminPageHeader v2 (titre = nom dynamique du coach)
 // Taux de remplissage débrief, taux de présence, délai moyen
 import { useEffect, useState } from 'react'
 import { useLocalSearchParams } from 'expo-router'
@@ -8,6 +9,7 @@ import { getCoachQualityMetrics, getProfileDisplayName, listGroupsByCoach, getCo
 import type { CoachGroupEntry, CoachSessionStats, CoachRecentSession } from '@aureak/api-client'
 import type { CoachQualityMetrics, CoachQuestWithDefinition } from '@aureak/types'
 import { colors, shadows, radius, transitions, gamification } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 function MetricTile({
   label, value, unit = '', note,
@@ -144,21 +146,20 @@ export default function CoachQualityPage() {
   }
 
   return (
-    <div style={{ padding: 32, maxWidth: 900, margin: '0 auto' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+      {/* Story 97.6 — AdminPageHeader v2 avec titre dynamique (nom du coach) */}
+      <AdminPageHeader title={coachName || 'Coach'} />
+
+      <div style={{ padding: '0 32px' }}>
       {/* Breadcrumb */}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 16 }}>
         <a href='/academie/coachs' style={{ fontSize: 12, color: colors.accent.gold, textDecorationLine: 'none' }}>
           Coachs
         </a>
         <span style={{ color: colors.text.subtle, fontSize: 12 }}>/</span>
-        <span style={{ fontSize: 12, color: colors.text.muted }}>{coachName || coachId}</span>
-        <span style={{ color: colors.text.subtle, fontSize: 12 }}>/</span>
         <span style={{ fontSize: 12, color: colors.text.muted }}>Métriques qualité</span>
       </div>
 
-      <h1 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: colors.text.dark }}>
-        {coachName || 'Coach'}
-      </h1>
       <p style={{ margin: '0 0 16px', fontSize: 13, color: colors.text.muted }}>
         Données non publiques — usage interne uniquement.
       </p>
@@ -503,6 +504,7 @@ export default function CoachQualityPage() {
             {link.label}
           </a>
         ))}
+      </div>
       </div>
     </div>
   )

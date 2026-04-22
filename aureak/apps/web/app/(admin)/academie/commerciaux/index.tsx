@@ -50,6 +50,7 @@ export default function AcademieCommerciauxPage() {
   return (
     <PeopleListPage
       role={'commercial'}
+      title={'Commerciaux'}
       newButtonLabel={'+ Nouveau commercial'}
       newButtonHref={'/academie/commerciaux/new'}
       emptyLabel={'Aucun commercial'}

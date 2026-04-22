@@ -30,6 +30,7 @@ export default function AcademieManagersPage() {
   return (
     <PeopleListPage
       role={'manager'}
+      title={'Managers'}
       newButtonLabel={'+ Nouveau manager'}
       newButtonHref={'/academie/managers/new'}
       emptyLabel={'Aucun manager'}

@@ -3,10 +3,12 @@
 // (commercial | manager | marketeur). Inspiré du pattern coachs/index.tsx mais
 // factorisé pour éviter 3 duplications. Les pages concrètes passent leurs stat
 // cards et une colonne optionnelle (ex: PIPELINE pour commerciaux).
+// Story 97.6 — remplacement du headerBlock custom par <AdminPageHeader /> v2 +
+// <AcademieNavBar /> (cohérence avec Activités/Méthodologie).
 
 import { useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, TextInput, Image, type TextStyle } from 'react-native'
-import { useRouter, usePathname } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useAuthStore } from '@aureak/business-logic'
 import { listProfilesByRole, getEffectivePermissions } from '@aureak/api-client'
 import type { ProfileListRow, ProfileRoleFilter } from '@aureak/api-client'
@@ -15,7 +17,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { splitName } from './splitName'
 import { formatRelativeDate } from './formatRelativeDate'
-import { SubtabCount } from '../SubtabCount'
+import { AdminPageHeader } from '../AdminPageHeader'
+import { AcademieNavBar } from './AcademieNavBar'
 import { AcademieCountsContext } from '../../../app/(admin)/academie/_layout'
 
 type StatusFilter = 'actifs' | 'tous' | 'supprimes'
@@ -29,6 +32,7 @@ type ExtraColumn = {
 
 type PeopleListPageProps = {
   role              : ProfileRoleFilter
+  title             : string
   newButtonLabel    : string
   newButtonHref     : string
   emptyLabel        : string
@@ -36,25 +40,11 @@ type PeopleListPageProps = {
   renderExtraColumn?: ExtraColumn
 }
 
-// Miroir exact de AcademieNavBar — 8 onglets Story 87.1
-// Story 93.2 — ajout des `key` pour indexer les counts du Context
-const ACADEMIE_TABS = [
-  { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },
-  { key: 'coachs',        label: 'COACHS',        href: '/academie/coachs'        },
-  { key: 'scouts',        label: 'SCOUTS',        href: '/academie/scouts'        },
-  { key: 'managers',      label: 'MANAGERS',      href: '/academie/managers'      },
-  { key: 'commerciaux',   label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
-  { key: 'marketeurs',    label: 'MARKETEURS',    href: '/academie/marketeurs'    },
-  { key: 'clubs',         label: 'CLUBS',         href: '/academie/clubs'         },
-  { key: 'implantations', label: 'IMPLANTATIONS', href: '/academie/implantations' },
-] as const
-
 export function PeopleListPage({
-  role, newButtonLabel, newButtonHref,
+  role, title, newButtonLabel, newButtonHref,
   emptyLabel, renderStatCards, renderExtraColumn,
 }: PeopleListPageProps) {
   const router   = useRouter()
-  const pathname = usePathname()
   const { user, role: authRole } = useAuthStore()
   const academieCounts = useContext(AcademieCountsContext)
 
@@ -153,37 +143,17 @@ export function PeopleListPage({
 
   return (
     <View style={s.page}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+      {/* Story 97.6 — AdminPageHeader v2 (titre = sous-section) + AcademieNavBar */}
+      <AdminPageHeader
+        title={title}
+        actionButton={{
+          label  : newButtonLabel,
+          onPress: () => router.push(newButtonHref as never),
+        }}
+      />
+      <AcademieNavBar counts={academieCounts ?? undefined} />
 
-        {/* headerBlock */}
-        <View style={s.headerBlock}>
-          <View style={s.headerTopRow}>
-            <AureakText style={s.pageTitle as TextStyle}>ACADÉMIE</AureakText>
-            <Pressable
-              onPress={() => router.push(newButtonHref as never)}
-              style={({ pressed }) => [s.newBtn, pressed && s.newBtnPressed] as never}
-            >
-              <AureakText style={s.newBtnLabel as TextStyle}>{newButtonLabel}</AureakText>
-            </Pressable>
-          </View>
-          <View style={s.tabsRow}>
-            {ACADEMIE_TABS.map(tab => {
-              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
-              const count    = academieCounts?.[tab.key] ?? null
-              return (
-                <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
-                  <View style={s.tabLabelRow}>
-                    <AureakText style={[s.tabLabel, isActive && s.tabLabelActive] as never}>
-                      {tab.label}
-                    </AureakText>
-                    <SubtabCount value={count} active={isActive} />
-                  </View>
-                  {isActive && <View style={s.tabUnderline} />}
-                </Pressable>
-              )
-            })}
-          </View>
-        </View>
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
 
         {/* StatCards — délégué à chaque page concrète */}
         {renderStatCards ? renderStatCards(rows) : null}
@@ -385,45 +355,6 @@ const s = StyleSheet.create({
   denied      : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, backgroundColor: colors.light.primary },
   deniedTitle : { color: colors.text.dark, marginBottom: space.sm },
   deniedSub   : { color: colors.text.muted, textAlign: 'center' },
-
-  // header
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnPressed: { opacity: 0.8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
-
-  tabsRow: {
-    flexDirection    : 'row',
-    gap              : 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-    flexWrap         : 'wrap',
-  },
-  tabLabelRow: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    gap          : space.xs,
-    paddingBottom: 10,
-  },
-  tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-    color        : colors.text.subtle,
-    textTransform: 'uppercase',
-  },
-  tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
-    position       : 'absolute',
-    bottom         : 0,
-    left           : 0,
-    right          : 0,
-    height         : 2,
-    backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
-  },
 
   // StatCards
   statCardsRow: {

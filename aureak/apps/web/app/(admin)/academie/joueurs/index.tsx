@@ -1,13 +1,17 @@
 'use client'
 // Story 83.1 — Académie Joueurs : refonte LayoutActivités
 // header + StatCards + filtresRow pills/dropdowns + search row + table alignée
-import { useEffect, useState, useMemo, useCallback } from 'react'
+// Story 97.6 — AdminPageHeader v2 ("Joueurs") + AcademieNavBar partagé
+import { useContext, useEffect, useState, useMemo, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, Image, TextInput } from 'react-native'
-import { useRouter, usePathname } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { avatarBgColor } from '../../../../lib/admin/children/avatarHelpers'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
+import { AcademieCountsContext } from '../_layout'
 
 // ── Badges statut ─────────────────────────────────────────────────────────────────
 const BADGE_IMAGES: Record<string, ReturnType<typeof require>> = {
@@ -17,18 +21,6 @@ const BADGE_IMAGES: Record<string, ReturnType<typeof require>> = {
   STAGE_UNIQUEMENT   : require('../../../../assets/badges/badge-stage.webp'),
   PROSPECT           : require('../../../../assets/badges/badge-prospect.webp'),
 }
-
-// ── Navigation Académie ───────────────────────────────────────────────────────────
-const ACADEMIE_TABS = [
-  { label: 'JOUEURS',       href: '/academie/joueurs'       },
-  { label: 'COACHS',        href: '/academie/coachs'        },
-  { label: 'SCOUTS',        href: '/academie/scouts'        },
-  { label: 'MANAGERS',      href: '/academie/managers'      },
-  { label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
-  { label: 'MARKETEURS',    href: '/academie/marketeurs'    },
-  { label: 'CLUBS',         href: '/academie/clubs'         },
-  { label: 'IMPLANTATIONS', href: '/academie/implantations' },
-] as const
 
 // ── Constantes ───────────────────────────────────────────────────────────────────
 type MainToggle   = 'aureak' | 'prospect'
@@ -92,8 +84,8 @@ function Stars({ count }: { count: number | null }) {
 
 // ── Page principale ───────────────────────────────────────────────────────────────
 export default function AcademieJoueursPage() {
-  const router   = useRouter()
-  const pathname = usePathname()
+  const router         = useRouter()
+  const academieCounts = useContext(AcademieCountsContext)
 
   // ── Data ──
   const [joueurs,        setJoueurs]        = useState<JoueurListItem[]>([])
@@ -231,30 +223,18 @@ export default function AcademieJoueursPage() {
   const clubLabel   = clubFilter !== 'all'  ? `${clubFilter} ▾`  : 'CLUB ▾'
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <View style={st.container}>
+      {/* Story 97.6 — AdminPageHeader v2 + AcademieNavBar partagé */}
+      <AdminPageHeader
+        title="Joueurs"
+        actionButton={{
+          label  : '+ Nouveau joueur',
+          onPress: () => router.push('/children/new' as never),
+        }}
+      />
+      <AcademieNavBar counts={academieCounts ?? undefined} />
 
-      {/* ── Header ── */}
-      <View style={st.headerBlock}>
-        <View style={st.headerTopRow}>
-          <AureakText style={st.pageTitle}>ACADÉMIE</AureakText>
-          <Pressable style={st.newBtn} onPress={() => router.push('/children/new' as never)}>
-            <AureakText style={st.newBtnLabel}>+ Nouveau joueur</AureakText>
-          </Pressable>
-        </View>
-        <View style={st.tabsRow}>
-          {ACADEMIE_TABS.map(tab => {
-            const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
-            return (
-              <Pressable key={tab.href} onPress={() => router.push(tab.href as never)}>
-                <AureakText style={[st.tabLabel, isActive && st.tabLabelActive] as never}>
-                  {tab.label}
-                </AureakText>
-                {isActive && <View style={st.tabUnderline} />}
-              </Pressable>
-            )
-          })}
-        </View>
-      </View>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={st.content}>
 
       {/* ── StatCards ── */}
       <View style={st.statCardsRow}>
@@ -574,7 +554,8 @@ export default function AcademieJoueursPage() {
           </View>
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
@@ -582,38 +563,6 @@ export default function AcademieJoueursPage() {
 const st = StyleSheet.create({
   container : { flex: 1, backgroundColor: colors.light.primary },
   content   : { padding: space.lg, gap: space.md, paddingBottom: space.xxl },
-
-  // Header
-  headerBlock  : { gap: 12 },
-  headerTopRow : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pageTitle    : { fontSize: 24, fontWeight: '700', fontFamily: fonts.display, color: colors.text.dark, letterSpacing: 0.5 },
-  newBtn       : { backgroundColor: colors.accent.gold, paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8 },
-  newBtnLabel  : { color: colors.text.dark, fontWeight: '700', fontSize: 13 },
-  // Nav tabs (pattern exact séances)
-  tabsRow: {
-    flexDirection    : 'row',
-    gap              : 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-  },
-  tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-    color        : colors.text.subtle,
-    paddingBottom: 10,
-    textTransform: 'uppercase',
-  },
-  tabLabelActive: { color: colors.accent.gold },
-  tabUnderline  : {
-    position       : 'absolute',
-    bottom         : 0,
-    left           : 0,
-    right          : 0,
-    height         : 2,
-    backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
-  },
 
   // StatCards
   statCardsRow: {
