@@ -1,0 +1,66 @@
+'use client'
+// Story 88.2 — 4 StatCards pipeline CRM clubs prospects
+import React from 'react'
+import { View, StyleSheet } from 'react-native'
+import { AureakText } from '@aureak/ui'
+import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import type { ProspectPipelineStats } from '@aureak/api-client'
+
+type Props = {
+  stats  : ProspectPipelineStats
+  loading: boolean
+}
+
+function Card({ label, value, color }: { label: string; value: number | string; color?: string }) {
+  return (
+    <View style={s.card}>
+      <AureakText style={s.label as never}>{label}</AureakText>
+      <AureakText style={[s.value, color ? { color } : null] as never}>{value}</AureakText>
+    </View>
+  )
+}
+
+export function ProspectionStatCards({ stats, loading }: Props) {
+  const display = (n: number) => (loading ? '—' : n.toLocaleString('fr-FR'))
+  return (
+    <View style={s.row}>
+      <Card label="TOTAL PROSPECTS"      value={display(stats.total)} />
+      <Card label="EN CLOSING"           value={display(stats.inClosing)}      color={colors.accent.gold} />
+      <Card label="CONVERTIS CE MOIS"    value={display(stats.convertedMonth)} color={colors.status.present} />
+      <Card label="CONTACTS AJOUTÉS / MOIS" value={display(stats.contactsMonth)} />
+    </View>
+  )
+}
+
+const s = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    gap          : space.md,
+    flexWrap     : 'wrap',
+  },
+  card: {
+    flex           : 1,
+    minWidth       : 180,
+    backgroundColor: colors.light.surface,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    borderRadius   : radius.card,
+    padding        : space.lg,
+    gap            : 6,
+    // @ts-ignore RN Web
+    boxShadow      : shadows.sm,
+  },
+  label: {
+    color        : colors.text.muted,
+    fontSize     : 10,
+    fontWeight   : '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  value: {
+    fontSize  : 28,
+    fontFamily: fonts.display,
+    fontWeight: '900',
+    color     : colors.text.dark,
+  },
+})

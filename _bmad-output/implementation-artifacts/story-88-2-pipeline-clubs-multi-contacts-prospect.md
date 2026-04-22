@@ -1,6 +1,6 @@
 # Story 88.2 — Pipeline clubs — multi-contacts par prospect
 
-Status: ready-for-dev
+Status: review
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -38,7 +38,14 @@ afin de cartographier l'organisation du club et remonter jusqu'au décisionnaire
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Migration Supabase `00161_create_club_prospects_pipeline.sql` (AC: #1, #2, #3, #4, #12)
+> **Notes d'implémentation (2026-04-22)** :
+> - `prospect_status` renommé en `club_prospect_status` (DB) et `ClubProspectStatus` (TS) — collision avec enum existant `prospect_status` (epic 89, enfants).
+> - `updateClubProspectStatus` renommé en `updateClubProspectStatusById` pour respecter la convention du generator renommage bulk.
+> - Composants UI placés dans `aureak/apps/web/components/admin/prospection/` (respect ADR 005, pas dans `app/_components/`).
+> - Lien timeline actions = placeholder dans fiche détail (sera intégré en story 88.3).
+> - Les imports dans `page.tsx` utilisent `type ProfileListRow` depuis `@aureak/api-client` (le type n'est pas re-exporté par `@aureak/types`).
+
+- [x] Task 1 — Migration Supabase `00161_create_club_prospects_pipeline.sql` (AC: #1, #2, #3, #4, #12)
   - [ ] Enum `prospect_status` (7 valeurs)
   - [ ] Enum `club_contact_role` (5 valeurs)
   - [ ] Table `club_prospects` avec colonnes spécifiées, FK `tenants`, FK nullable `implantations`, FK `auth.users`

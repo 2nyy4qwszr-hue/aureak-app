@@ -2614,6 +2614,99 @@ export type UpdateCommercialContactParams = {
 }
 
 // ============================================================
+// Epic 88 — Pipeline CRM Clubs Prospects (Story 88-2, migration 00161)
+// ============================================================
+
+/** ClubProspect — entrée pipeline CRM. Séparé de club_directory (annuaire). */
+export type ClubProspect = {
+  id                    : string
+  tenantId              : string
+  clubName              : string
+  city                  : string | null
+  targetImplantationId  : string | null
+  status                : import('./enums').ClubProspectStatus
+  assignedCommercialId  : string
+  source                : string | null
+  notes                 : string | null
+  createdAt             : string
+  updatedAt             : string
+  deletedAt             : string | null
+}
+
+/** ProspectContact — contact rattaché à un club_prospects (multi-contacts par club) */
+export type ProspectContact = {
+  id              : string
+  clubProspectId  : string
+  firstName       : string
+  lastName        : string
+  role            : import('./enums').ClubContactRole
+  email           : string | null
+  phone           : string | null
+  isDecisionnaire : boolean
+  notes           : string | null
+  createdAt       : string
+  updatedAt       : string
+  deletedAt       : string | null
+}
+
+/** ClubProspect enrichi des contacts + nom commercial assigné (vue liste/détail) */
+export type ClubProspectWithContacts = ClubProspect & {
+  contacts             : ProspectContact[]
+  assignedDisplayName  : string | null
+}
+
+/** Row agrégé pour la vue liste : nb contacts + décisionnaire (évite les contacts complets) */
+export type ClubProspectListRow = ClubProspect & {
+  contactsCount        : number
+  decisionnaireName    : string | null
+  assignedDisplayName  : string | null
+}
+
+export type CreateClubProspectParams = {
+  clubName              : string
+  city?                 : string
+  targetImplantationId? : string
+  status?               : import('./enums').ClubProspectStatus
+  source?               : string
+  notes?                : string
+  /** Admin seulement — commercial assigne à lui-même par défaut */
+  assignedCommercialId? : string
+}
+
+export type UpdateClubProspectParams = {
+  id                    : string
+  clubName?             : string
+  city?                 : string | null
+  targetImplantationId? : string | null
+  status?               : import('./enums').ClubProspectStatus
+  source?               : string | null
+  notes?                : string | null
+  assignedCommercialId? : string
+}
+
+export type CreateProspectContactParams = {
+  clubProspectId   : string
+  firstName        : string
+  lastName         : string
+  role             : import('./enums').ClubContactRole
+  email?           : string
+  phone?           : string
+  isDecisionnaire? : boolean
+  notes?           : string
+}
+
+export type UpdateProspectContactParams = {
+  id               : string
+  firstName?       : string
+  lastName?        : string
+  role?            : import('./enums').ClubContactRole
+  email?           : string | null
+  phone?           : string | null
+  isDecisionnaire? : boolean
+  notes?           : string | null
+}
+
+// ============================================================
 // Epic 86 — Permissions granulaires (Story 86-3, migrations 00150/00151)
 // ============================================================
 
