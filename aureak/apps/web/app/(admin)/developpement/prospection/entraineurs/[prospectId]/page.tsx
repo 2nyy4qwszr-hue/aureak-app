@@ -202,16 +202,28 @@ export default function CoachProspectDetailPage() {
         />
       </View>
 
-      <View style={st.section}>
-        <AureakText style={st.sectionTitle as never}>Recommandation</AureakText>
-        <View style={st.placeholder}>
-          <AureakText style={st.placeholderText as never}>
-            {prospect.recommendedByDisplayName
-              ? `Recommandé par ${prospect.recommendedByDisplayName}`
-              : 'Aucune recommandation interne — fonctionnalité activée par la story 90.2.'}
-          </AureakText>
+      {prospect.recommendedByDisplayName && (
+        <View style={st.section}>
+          <AureakText style={st.sectionTitle as never}>Recommandation</AureakText>
+          <View style={st.recoBadge}>
+            <AureakText style={st.recoBadgeIcon as never}>🤝</AureakText>
+            <View style={{ flex: 1 }}>
+              <AureakText style={st.recoBadgeTitle as never}>
+                Recommandé par {prospect.recommendedByDisplayName}
+              </AureakText>
+              <AureakText style={st.recoBadgeSub as never}>
+                Source : recommandation coach interne
+              </AureakText>
+            </View>
+          </View>
+          {prospect.notes && prospect.source === 'recommandation_coach' && (
+            <View style={st.recoContext}>
+              <AureakText style={st.recoContextLabel as never}>CONTEXTE DE LA RECOMMANDATION</AureakText>
+              <AureakText style={st.recoContextText as never}>{prospect.notes}</AureakText>
+            </View>
+          )}
         </View>
-      </View>
+      )}
     </ScrollView>
   )
 }
@@ -292,14 +304,31 @@ const st = StyleSheet.create({
   },
   saveBtnLabel: { color: colors.text.dark, fontSize: 12, fontWeight: '700' },
 
-  placeholder: {
-    paddingVertical  : space.md,
+  // Story 90.2 — badge recommandation
+  recoBadge: {
+    flexDirection   : 'row',
+    alignItems      : 'center',
+    gap             : space.md,
+    paddingVertical : space.md,
     paddingHorizontal: space.md,
-    backgroundColor  : colors.light.surface,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    borderRadius     : radius.card,
-    borderStyle      : 'dashed',
+    backgroundColor : colors.border.goldBg,
+    borderWidth     : 1,
+    borderColor     : colors.accent.gold,
+    borderRadius    : radius.card,
   },
-  placeholderText: { color: colors.text.muted, fontSize: 13, fontStyle: 'italic' },
+  recoBadgeIcon : { fontSize: 22 },
+  recoBadgeTitle: { color: colors.text.dark, fontSize: 14, fontWeight: '700' },
+  recoBadgeSub  : { color: colors.text.muted, fontSize: 12, marginTop: 2 },
+  recoContext: {
+    marginTop       : space.sm,
+    paddingVertical : space.sm,
+    paddingHorizontal: space.md,
+    backgroundColor : colors.light.surface,
+    borderWidth     : 1,
+    borderColor     : colors.border.light,
+    borderRadius    : radius.xs,
+    gap             : space.xs,
+  },
+  recoContextLabel: { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  recoContextText : { color: colors.text.dark, fontSize: 13, lineHeight: 18 },
 })

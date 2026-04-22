@@ -7,6 +7,8 @@ import { listSessionsByCoach, getActiveSessionsForCoach, listEvaluatedSessionIds
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
 import type { Session } from '@aureak/types'
+import { RecommendCoachProspectModal } from '../../../../components/coach/RecommendCoachProspectModal'
+import { MyCoachRecommendations } from '../../../../components/coach/MyCoachRecommendations'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 function fmtDate(d: Date, opts: Intl.DateTimeFormatOptions) {
@@ -66,6 +68,9 @@ export default function CoachDashboardPage() {
   const [sessions,     setSessions]     = useState<Session[]>([])
   const [missingEvals, setMissingEvals] = useState<string[]>([])
   const [loading,      setLoading]      = useState(true)
+  // Story 90.2 — recommandation entraîneur
+  const [recommendOpen, setRecommendOpen] = useState(false)
+  const [recommendKey, setRecommendKey]   = useState(0)
 
   useEffect(() => {
     if (!user?.id) return
@@ -364,6 +369,35 @@ export default function CoachDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Story 90.2 — Recommander un entraîneur ── */}
+      <div style={{ marginTop: 24 }}>
+        <div style={S.sectionLabel}>Recrutement</div>
+        <div style={S.recommendCard}>
+          <div style={{ flex: 1 }}>
+            <div style={S.recommendTitle}>Recommander un entraîneur</div>
+            <div style={S.recommendSub}>
+              Présente un coach que tu connais. L'admin prendra contact ensuite.
+            </div>
+          </div>
+          <button
+            className="cd-btn"
+            style={S.btnPrimary}
+            onClick={() => setRecommendOpen(true)}
+          >
+            + Recommander
+          </button>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <MyCoachRecommendations refreshKey={recommendKey} />
+        </div>
+      </div>
+
+      <RecommendCoachProspectModal
+        visible={recommendOpen}
+        onClose={() => setRecommendOpen(false)}
+        onSuccess={() => setRecommendKey(k => k + 1)}
+      />
     </div>
   )
 }
@@ -395,4 +429,8 @@ const S: Record<string, React.CSSProperties> = {
   activeBanner : { display: 'flex', alignItems: 'center', gap: 16, backgroundColor: colors.status.present, borderRadius: 12, padding: '16px 20px', marginBottom: 20, boxShadow: '0 4px 12px rgba(76,175,80,0.25)' },
   activeDot    : { width: 10, height: 10, borderRadius: 5, backgroundColor: '#fff', flexShrink: 0, boxShadow: '0 0 0 3px rgba(255,255,255,0.35)' },
   btnAnimer    : { padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: '#fff', color: colors.status.present, fontWeight: 800, fontSize: 14, cursor: 'pointer', flexShrink: 0 },
+  // Story 90.2 — card recommandation entraîneur
+  recommendCard: { display: 'flex', alignItems: 'center', gap: 16, backgroundColor: colors.light.surface, borderRadius: 10, padding: '16px 18px', border: `1px solid ${colors.accent.gold}` },
+  recommendTitle: { fontSize: 14, fontWeight: 700, color: colors.text.dark, marginBottom: 4 },
+  recommendSub : { fontSize: 12, color: colors.text.muted },
 }
