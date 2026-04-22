@@ -1,4 +1,5 @@
 // Story 88.5 — Page Ressources commerciales : 4 cards prédéfinies
+// Story 97.11 — AdminPageHeader v2 ("Ressources") + ProspectionNavBar
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 import { View, StyleSheet, Pressable, ScrollView, Linking } from 'react-native'
@@ -8,6 +9,8 @@ import { listCommercialResources, getResourceDownloadUrl } from '@aureak/api-cli
 import type { CommercialResource } from '@aureak/types'
 import { COMMERCIAL_RESOURCE_TYPE_ICONS, COMMERCIAL_RESOURCE_TYPE_LABELS } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { UploadResourceModal } from '../../../../components/admin/prospection/UploadResourceModal'
 
 export default function CommercialResourcesPage() {
@@ -53,13 +56,12 @@ export default function CommercialResourcesPage() {
   }
 
   return (
-    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
-      <View style={st.header}>
-        <AureakText style={st.title as never}>Ressources commerciales</AureakText>
-        <AureakText style={st.sub as never}>
-          Documents à jour à envoyer aux prospects. Seul l'admin peut uploader les nouvelles versions.
-        </AureakText>
-      </View>
+    <View style={st.page}>
+      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
+      <AdminPageHeader title="Ressources" />
+      <ProspectionNavBar />
+
+      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
 
       {loading ? (
         <AureakText style={st.loading as never}>Chargement…</AureakText>
@@ -116,17 +118,15 @@ export default function CommercialResourcesPage() {
         onClose={() => setModalOpen(false)}
         onSuccess={() => load()}
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const st = StyleSheet.create({
-  scroll : { flex: 1, backgroundColor: colors.light.primary },
+  page   : { flex: 1, backgroundColor: colors.light.primary },
+  scroll : { flex: 1 },
   content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-
-  header: { gap: 4 },
-  title : { color: colors.text.dark, fontWeight: '700', fontFamily: fonts.display, fontSize: 26 },
-  sub   : { color: colors.text.muted, fontSize: 13 },
 
   loading: { color: colors.text.muted, fontStyle: 'italic' },
 

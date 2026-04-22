@@ -1,5 +1,6 @@
 // Story 88.2 — Pipeline CRM Clubs Prospects
 // Remplace la vue epic 85 (registre commercial_contacts) par le nouveau pipeline multi-contacts.
+// Story 97.11 — AdminPageHeader v2 ("Clubs") + ProspectionNavBar
 'use client'
 import React, { useEffect, useMemo, useState } from 'react'
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
@@ -12,6 +13,8 @@ import {
 import type { ClubProspectListRow, ClubProspectStatus } from '@aureak/types'
 import { CLUB_PROSPECT_STATUS_LABELS, CLUB_PROSPECT_STATUSES } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { ProspectionStatCards } from '../../../../components/admin/prospection/ProspectionStatCards'
 import { ProspectTable } from '../../../../components/admin/prospection/ProspectTable'
 import { CreateProspectModal } from '../../../../components/admin/prospection/CreateProspectModal'
@@ -66,19 +69,18 @@ export default function ProspectionClubsCRMPage() {
   const isAdmin = role === 'admin'
 
   return (
-    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
-      <View style={st.header}>
-        <View style={st.headerText}>
-          <AureakText variant="h1" style={st.title as never}>Pipeline Clubs</AureakText>
-          <AureakText variant="body" style={st.sub as never}>
-            Prospection CRM — cartographie organisationnelle et suivi pipeline
-          </AureakText>
-        </View>
-        <Pressable style={st.addBtn} onPress={() => setModalOpen(true)}>
-          <AureakText style={st.addBtnLabel as never}>+ Ajouter un prospect</AureakText>
-        </Pressable>
-      </View>
+    <View style={st.page}>
+      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
+      <AdminPageHeader
+        title="Clubs"
+        actionButton={{
+          label  : '+ Ajouter un prospect',
+          onPress: () => setModalOpen(true),
+        }}
+      />
+      <ProspectionNavBar />
 
+      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
       <ProspectionStatCards stats={stats} loading={loading} />
 
       {/* Story 88.6 — pill closing */}
@@ -172,28 +174,15 @@ export default function ProspectionClubsCRMPage() {
           onSuccess={() => { setLostTarget(null); load() }}
         />
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const st = StyleSheet.create({
-  scroll : { flex: 1, backgroundColor: colors.light.primary },
+  page   : { flex: 1, backgroundColor: colors.light.primary },
+  scroll : { flex: 1 },
   content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-
-  header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.md, flexWrap: 'wrap' },
-  headerText: { gap: 4, flex: 1, minWidth: 240 },
-  title     : { color: colors.text.dark, fontWeight: '700', fontFamily: fonts.display },
-  sub       : { color: colors.text.muted, fontSize: 13 },
-
-  addBtn: {
-    paddingHorizontal: space.lg,
-    paddingVertical  : space.sm,
-    borderRadius     : radius.button,
-    backgroundColor  : colors.accent.gold,
-    // @ts-ignore RN web
-    boxShadow        : shadows.sm,
-  },
-  addBtnLabel: { color: colors.text.dark, fontSize: 14, fontWeight: '700', letterSpacing: 0.3 },
 
   filtersBlock: { gap: space.xs },
   filterLabel : { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: space.sm },

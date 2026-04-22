@@ -1,5 +1,6 @@
 // Story 90.1 — Pipeline prospection entraîneurs (4 étapes + perdu).
 // Remplace le placeholder créé par la story 88.1.
+// Story 97.11 — AdminPageHeader v2 ("Entraîneurs") + ProspectionNavBar
 'use client'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
@@ -12,6 +13,8 @@ import {
 import type { CoachProspectListRow, CoachProspectStatus } from '@aureak/types'
 import { COACH_PROSPECT_STATUS_LABELS, COACH_PROSPECT_STATUSES } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
+import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { CoachProspectionStatCards, type CoachProspectionStats } from '../../../../components/admin/coach-prospection/CoachProspectionStatCards'
 import { CoachProspectTable } from '../../../../components/admin/coach-prospection/CoachProspectTable'
 import { CreateCoachProspectModal } from '../../../../components/admin/coach-prospection/CreateCoachProspectModal'
@@ -76,19 +79,18 @@ export default function ProspectionEntraineursPage() {
   const isAdmin = role === 'admin'
 
   return (
-    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
-      <View style={st.header}>
-        <View style={st.headerText}>
-          <AureakText variant="h1" style={st.title as never}>Pipeline Entraîneurs</AureakText>
-          <AureakText variant="body" style={st.sub as never}>
-            Prospection coachs — 4 étapes (identifié → info → formation → actif)
-          </AureakText>
-        </View>
-        <Pressable style={st.addBtn} onPress={() => setModalOpen(true)}>
-          <AureakText style={st.addBtnLabel as never}>+ Ajouter un entraîneur</AureakText>
-        </Pressable>
-      </View>
+    <View style={st.page}>
+      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
+      <AdminPageHeader
+        title="Entraîneurs"
+        actionButton={{
+          label  : '+ Ajouter un entraîneur',
+          onPress: () => setModalOpen(true),
+        }}
+      />
+      <ProspectionNavBar />
 
+      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
       <CoachProspectionStatCards stats={stats} loading={loading} />
 
       <View style={st.filtersBlock}>
@@ -137,28 +139,15 @@ export default function ProspectionEntraineursPage() {
         onClose={() => setModalOpen(false)}
         onSuccess={() => load()}
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const st = StyleSheet.create({
-  scroll : { flex: 1, backgroundColor: colors.light.primary },
+  page   : { flex: 1, backgroundColor: colors.light.primary },
+  scroll : { flex: 1 },
   content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-
-  header    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.md, flexWrap: 'wrap' },
-  headerText: { gap: 4, flex: 1, minWidth: 240 },
-  title     : { color: colors.text.dark, fontWeight: '700', fontFamily: fonts.display },
-  sub       : { color: colors.text.muted, fontSize: 13 },
-
-  addBtn: {
-    paddingHorizontal: space.lg,
-    paddingVertical  : space.sm,
-    borderRadius     : radius.button,
-    backgroundColor  : colors.accent.gold,
-    // @ts-ignore RN web
-    boxShadow        : shadows.sm,
-  },
-  addBtnLabel: { color: colors.text.dark, fontSize: 14, fontWeight: '700', letterSpacing: 0.3 },
 
   filtersBlock: { gap: space.xs },
   filterLabel : { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: space.sm },
