@@ -60,7 +60,17 @@ export function ProspectTable({ rows, onConvertClick, onLostClick }: Props) {
             style={({ pressed }) => [s.row, { backgroundColor: rowBg }, pressed && { opacity: 0.75 }] as never}
           >
             <View style={{ flex: 2 }}>
-              <AureakText style={s.clubName as never}>{r.clubName}</AureakText>
+              <View style={s.clubCell}>
+                <AureakText style={s.clubName as never}>{r.clubName}</AureakText>
+                {r.clubDirectoryId === null && (
+                  <View style={s.notLinkedBadge}>
+                    <AureakText style={s.notLinkedLabel as never}>NON LIÉ</AureakText>
+                  </View>
+                )}
+              </View>
+              {r.directory?.matricule && (
+                <AureakText style={s.clubMatricule as never}>Matricule {r.directory.matricule}</AureakText>
+              )}
             </View>
             <AureakText style={[s.cellMuted, { flex: 1 }] as never}>{r.city ?? '—'}</AureakText>
             <View style={{ width: 170 }}>
@@ -138,10 +148,28 @@ const s = StyleSheet.create({
     borderBottomColor: colors.border.divider,
     gap              : space.md,
   },
+  clubCell: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexWrap: 'wrap' },
   clubName: {
     color     : colors.text.dark,
     fontSize  : 14,
     fontWeight: '700',
+  },
+  clubMatricule: {
+    color   : colors.text.muted,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  notLinkedBadge: {
+    paddingHorizontal: 6,
+    paddingVertical  : 1,
+    backgroundColor  : colors.status.amberText + '22',
+    borderRadius     : radius.xs,
+  },
+  notLinkedLabel: {
+    color        : colors.status.amberText,
+    fontSize     : 10,
+    fontWeight   : '700',
+    letterSpacing: 0.3,
   },
   cellMuted: {
     color   : colors.text.muted,

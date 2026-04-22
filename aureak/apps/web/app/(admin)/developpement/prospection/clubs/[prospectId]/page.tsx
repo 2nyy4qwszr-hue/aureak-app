@@ -122,6 +122,27 @@ export default function ProspectDetailPage() {
           <AureakText style={st.clubSub as never}>
             {prospect.city ?? '—'} · Commercial : {prospect.assignedDisplayName ?? '—'}
           </AureakText>
+
+          {/* Story 96.1 — bloc Annuaire si prospect rattaché */}
+          {prospect.directory ? (
+            <View style={st.directoryCard}>
+              <AureakText style={st.directoryLabel as never}>ANNUAIRE CLUB</AureakText>
+              <AureakText style={st.directoryValue as never}>
+                {[
+                  prospect.directory.matricule ? `Matricule ${prospect.directory.matricule}` : null,
+                  prospect.directory.ville,
+                  prospect.directory.province,
+                ].filter(Boolean).join(' · ') || '—'}
+              </AureakText>
+            </View>
+          ) : (
+            <View style={st.notLinkedWarn}>
+              <AureakText style={st.notLinkedWarnLabel as never}>
+                ⚠ Club hors annuaire — aucun lien vers club_directory.
+              </AureakText>
+            </View>
+          )}
+
           <View style={{ marginTop: space.xs }}>
             <ProspectStatusBadge status={prospect.status} />
           </View>
@@ -268,6 +289,29 @@ const st = StyleSheet.create({
   headerInfo: { gap: 6 },
   clubTitle : { fontSize: 26, fontFamily: fonts.display, fontWeight: '700', color: colors.text.dark },
   clubSub   : { color: colors.text.muted, fontSize: 13 },
+
+  directoryCard: {
+    marginTop        : space.sm,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm,
+    backgroundColor  : colors.accent.gold + '15',
+    borderLeftWidth  : 3,
+    borderLeftColor  : colors.accent.gold,
+    borderRadius     : radius.xs,
+    gap              : 2,
+  },
+  directoryLabel: { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  directoryValue: { color: colors.text.dark, fontSize: 13, fontWeight: '600' },
+  notLinkedWarn: {
+    marginTop        : space.sm,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.xs,
+    backgroundColor  : colors.status.amberText + '15',
+    borderLeftWidth  : 3,
+    borderLeftColor  : colors.status.amberText,
+    borderRadius     : radius.xs,
+  },
+  notLinkedWarnLabel: { color: colors.text.dark, fontSize: 12 },
 
   section      : { gap: space.sm },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.md, flexWrap: 'wrap' },
