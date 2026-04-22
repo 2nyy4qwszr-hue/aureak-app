@@ -14,7 +14,7 @@ interface DevSection {
 
 const SECTIONS: DevSection[] = [
   {
-    href       : '/developpement/prospection',
+    href       : '/prospection',
     icon       : '🎯',
     title      : 'Prospection',
     description: 'Suivez vos contacts, rendez-vous et taux de conversion pour développer l\'académie.',

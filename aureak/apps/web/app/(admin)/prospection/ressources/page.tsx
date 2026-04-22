@@ -8,7 +8,7 @@ import { listCommercialResources, getResourceDownloadUrl } from '@aureak/api-cli
 import type { CommercialResource } from '@aureak/types'
 import { COMMERCIAL_RESOURCE_TYPE_ICONS, COMMERCIAL_RESOURCE_TYPE_LABELS } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
-import { UploadResourceModal } from '../../../../../components/admin/prospection/UploadResourceModal'
+import { UploadResourceModal } from '../../../../components/admin/prospection/UploadResourceModal'
 
 export default function CommercialResourcesPage() {
   const role = useAuthStore(s => s.role)

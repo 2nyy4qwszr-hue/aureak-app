@@ -14,7 +14,7 @@ import {
   COACH_PROSPECT_STATUS_LABELS,
   COACH_PROSPECT_STATUSES,
 } from '@aureak/types'
-import { CoachProspectStatusBadge } from '../../../../../../components/admin/coach-prospection/CoachProspectStatusBadge'
+import { CoachProspectStatusBadge } from '../../../../../components/admin/coach-prospection/CoachProspectStatusBadge'
 
 export default function CoachProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()

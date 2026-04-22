@@ -1,5 +1,5 @@
 // Story 89.1 — Page ajout rapide gardien prospect terrain (mobile-first)
-// Route: /developpement/prospection/gardiens/ajouter
+// Route: /prospection/gardiens/ajouter
 // Accès: admin | commercial (AC #1)
 'use client'
 

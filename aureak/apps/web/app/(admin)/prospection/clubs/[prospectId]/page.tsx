@@ -17,11 +17,11 @@ import {
   CLUB_PROSPECT_STATUSES,
   CLUB_CONTACT_ROLE_LABELS,
 } from '@aureak/types'
-import { ProspectStatusBadge } from '../../../../../../components/admin/prospection/ProspectStatusBadge'
-import { AddProspectContactModal } from '../../../../../../components/admin/prospection/AddProspectContactModal'
-import { ProspectTimeline } from '../../../../../../components/admin/prospection/ProspectTimeline'
-import { AddProspectActionModal } from '../../../../../../components/admin/prospection/AddProspectActionModal'
-import { ConvertProspectModal } from '../../../../../../components/admin/prospection/ConvertProspectModal'
+import { ProspectStatusBadge } from '../../../../../components/admin/prospection/ProspectStatusBadge'
+import { AddProspectContactModal } from '../../../../../components/admin/prospection/AddProspectContactModal'
+import { ProspectTimeline } from '../../../../../components/admin/prospection/ProspectTimeline'
+import { AddProspectActionModal } from '../../../../../components/admin/prospection/AddProspectActionModal'
+import { ConvertProspectModal } from '../../../../../components/admin/prospection/ConvertProspectModal'
 
 export default function ProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()

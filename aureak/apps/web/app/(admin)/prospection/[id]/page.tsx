@@ -8,8 +8,8 @@ import { colors, space, radius, shadows } from '@aureak/theme'
 import { getClubDirectoryEntry, listCommercialContactsByClub } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import type { ClubDirectoryEntry, CommercialContactWithCommercial } from '@aureak/types'
-import { ContactList } from '../../../../../components/admin/prospection/ContactList'
-import { ContactForm } from '../../../../../components/admin/prospection/ContactForm'
+import { ContactList } from '../../../../components/admin/prospection/ContactList'
+import { ContactForm } from '../../../../components/admin/prospection/ContactForm'
 
 export default function ClubDetailPage() {
   const { id }  = useLocalSearchParams<{ id: string }>()

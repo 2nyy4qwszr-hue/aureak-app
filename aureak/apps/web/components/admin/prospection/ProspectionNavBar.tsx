@@ -8,11 +8,11 @@ import { colors, space } from '@aureak/theme'
 import { SubtabCount } from '../SubtabCount'
 
 const TABS = [
-  { key: 'clubs',       label: 'CLUBS',       href: '/developpement/prospection/clubs'       },
-  { key: 'gardiens',    label: 'GARDIENS',    href: '/developpement/prospection/gardiens'    },
-  { key: 'entraineurs', label: 'ENTRAÎNEURS', href: '/developpement/prospection/entraineurs' },
-  { key: 'attribution', label: 'ATTRIBUTION', href: '/developpement/prospection/attribution' },
-  { key: 'ressources',  label: 'RESSOURCES',  href: '/developpement/prospection/ressources'  },
+  { key: 'clubs',       label: 'CLUBS',       href: '/prospection/clubs'       },
+  { key: 'gardiens',    label: 'GARDIENS',    href: '/prospection/gardiens'    },
+  { key: 'entraineurs', label: 'ENTRAÎNEURS', href: '/prospection/entraineurs' },
+  { key: 'attribution', label: 'ATTRIBUTION', href: '/prospection/attribution' },
+  { key: 'ressources',  label: 'RESSOURCES',  href: '/prospection/ressources'  },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
