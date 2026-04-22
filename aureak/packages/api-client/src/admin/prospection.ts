@@ -166,13 +166,31 @@ export async function getClubProspect(id: string): Promise<ClubProspectWithConta
 
 // ── Mutations prospect ─────────────────────────────────────────────────────
 
-export async function createClubProspect(params: CreateClubProspectParams): Promise<ClubProspect> {
-  const { data: session } = await supabase.auth.getSession()
-  const user = session.session?.user
+async function resolveTenantId(): Promise<{ userId: string; tenantId: string }> {
+  const { data: userData } = await supabase.auth.getUser()
+  const user = userData?.user
   if (!user) throw new Error('Non authentifié')
-  const tenantId = (user.user_metadata?.tenant_id as string | undefined)
-    ?? (user.app_metadata?.tenant_id as string | undefined)
-  if (!tenantId) throw new Error('tenant_id absent du JWT')
+
+  // 1) JWT claims (app_metadata ou user_metadata) — source rapide
+  const jwtTenant = (user.app_metadata?.tenant_id as string | undefined)
+    ?? (user.user_metadata?.tenant_id as string | undefined)
+  if (jwtTenant) return { userId: user.id, tenantId: jwtTenant }
+
+  // 2) Fallback : lookup dans profiles (user_id → tenant_id)
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('tenant_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (error || !profile?.tenant_id) {
+    throw new Error('tenant_id introuvable (ni JWT, ni profiles)')
+  }
+  return { userId: user.id, tenantId: profile.tenant_id as string }
+}
+
+export async function createClubProspect(params: CreateClubProspectParams): Promise<ClubProspect> {
+  const { userId, tenantId } = await resolveTenantId()
 
   const payload: Record<string, unknown> = {
     tenant_id              : tenantId,
@@ -180,7 +198,7 @@ export async function createClubProspect(params: CreateClubProspectParams): Prom
     city                   : params.city ?? null,
     target_implantation_id : params.targetImplantationId ?? null,
     status                 : params.status ?? 'premier_contact',
-    assigned_commercial_id : params.assignedCommercialId ?? user.id,
+    assigned_commercial_id : params.assignedCommercialId ?? userId,
     source                 : params.source ?? null,
     notes                  : params.notes ?? null,
   }
