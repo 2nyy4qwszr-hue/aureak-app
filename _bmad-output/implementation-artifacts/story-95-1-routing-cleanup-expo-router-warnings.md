@@ -1,6 +1,6 @@
 # Story 95.1 — Cleanup routing Expo Router : supprimer les warnings "missing default export"
 
-Status: review
+Status: done
 
 ## Metadata
 
