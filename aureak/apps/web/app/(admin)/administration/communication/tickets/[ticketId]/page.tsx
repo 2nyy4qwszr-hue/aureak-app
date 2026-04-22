@@ -1,4 +1,5 @@
 // Story 7.4 — Détail ticket + fil de réponses (Admin/Coach)
+// Story 99.6 — AdminPageHeader v2 (titre dynamique = sujet du ticket)
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, TextInput } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -6,6 +7,7 @@ import { getTicketWithReplies, replyToTicket, updateTicketStatus } from '@aureak
 import type { Ticket, TicketReply, TicketStatus } from '@aureak/api-client'
 import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../../components/admin/AdminPageHeader'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   open       : 'Ouvert',
@@ -118,12 +120,15 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.6 — AdminPageHeader v2 avec titre dynamique */}
+      <AdminPageHeader title={ticket.subject ?? 'Ticket'} />
+
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
 
-      {/* En-tête ticket */}
+      {/* En-tête ticket (détails meta sous le header) */}
       <View style={styles.card}>
-        <AureakText variant="h3">{ticket.subject}</AureakText>
         <AureakText variant="caption" style={{ color: colors.text.muted }}>
           {ticket.category} · {new Date(ticket.createdAt).toLocaleDateString('fr-BE')} · {STATUS_LABELS[ticket.status]}
         </AureakText>
@@ -184,6 +189,7 @@ export default function TicketDetailPage() {
           />
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
