@@ -1,6 +1,6 @@
 # Story 91.1 — Hub Marketing (4 onglets : Médiathèque, Réseaux, Campagnes, Analytics)
 
-Status: ready-for-dev
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -34,31 +34,31 @@ afin d'organiser toutes les activités marketing depuis un hub centralisé.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — `MarketingNavBar` composant (AC: #1, #2, #4)
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/_components/MarketingNavBar.tsx`
-  - [ ] 4 onglets dans l'ordre : MÉDIATHÈQUE (`/marketing/mediatheque`), RÉSEAUX (`/marketing/reseaux`), CAMPAGNES (`/marketing/campagnes`), ANALYTICS (`/marketing/analytics`)
-  - [ ] Pattern exact de `AcademieNavBar` : `useRouter`, `usePathname`, `ScrollView horizontal`, `Pressable`, `borderBottomColor: colors.accent.gold` pour actif
-  - [ ] Styles : `@aureak/theme` tokens uniquement (`colors`, `space`)
-- [ ] Task 2 — Layout marketing (AC: #1, #6)
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/_layout.tsx` avec `MarketingNavBar` + `Slot`
-  - [ ] Modifier `aureak/apps/web/app/(admin)/marketing/page.tsx` pour `<Redirect href="/marketing/mediatheque" />`
-  - [ ] Garder/créer `aureak/apps/web/app/(admin)/marketing/index.tsx` (re-export de `page.tsx`)
-- [ ] Task 3 — Page placeholder Médiathèque (AC: #5)
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/mediatheque/page.tsx` — empty state "Médiathèque — bientôt disponible"
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/mediatheque/index.tsx` (re-export)
-- [ ] Task 4 — Page placeholder Réseaux (AC: #5)
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/reseaux/page.tsx` — empty state
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/reseaux/index.tsx` (re-export)
-- [ ] Task 5 — Page placeholder Campagnes (AC: #5)
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/campagnes/page.tsx` — empty state
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/campagnes/index.tsx` (re-export)
-- [ ] Task 6 — Page placeholder Analytics (AC: #5)
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/analytics/page.tsx` — empty state
-  - [ ] Créer `aureak/apps/web/app/(admin)/marketing/analytics/index.tsx` (re-export)
-- [ ] Task 7 — Cleanup legacy `developpement/marketing` (AC: #8)
-  - [ ] Option A (recommandée) : supprimer `aureak/apps/web/app/(admin)/developpement/marketing/page.tsx` + `index.tsx`
-  - [ ] Option B : remplacer par `<Redirect href="/marketing" />` si besoin de garder le lien
-  - [ ] Vérifier qu'aucun lien dans le code ne pointe encore vers `/developpement/marketing` (grep)
+- [x] Task 1 — `MarketingNavBar` composant (AC: #1, #2, #4)
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/_components/MarketingNavBar.tsx`
+  - [x] 4 onglets dans l'ordre : MÉDIATHÈQUE (`/marketing/mediatheque`), RÉSEAUX (`/marketing/reseaux`), CAMPAGNES (`/marketing/campagnes`), ANALYTICS (`/marketing/analytics`)
+  - [x] Pattern exact de `AcademieNavBar` : `useRouter`, `usePathname`, `ScrollView horizontal`, `Pressable`, `borderBottomColor: colors.accent.gold` pour actif
+  - [x] Styles : `@aureak/theme` tokens uniquement (`colors`, `space`)
+- [x] Task 2 — Layout marketing (AC: #1, #6)
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/_layout.tsx` avec `MarketingNavBar` + `Slot`
+  - [x] Modifier `aureak/apps/web/app/(admin)/marketing/page.tsx` pour `<Redirect href="/marketing/mediatheque" />`
+  - [x] Garder/créer `aureak/apps/web/app/(admin)/marketing/index.tsx` (re-export de `page.tsx`)
+- [x] Task 3 — Page placeholder Médiathèque (AC: #5)
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/mediatheque/page.tsx` — empty state "Médiathèque — bientôt disponible"
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/mediatheque/index.tsx` (re-export)
+- [x] Task 4 — Page placeholder Réseaux (AC: #5)
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/reseaux/page.tsx` — empty state
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/reseaux/index.tsx` (re-export)
+- [x] Task 5 — Page placeholder Campagnes (AC: #5)
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/campagnes/page.tsx` — empty state
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/campagnes/index.tsx` (re-export)
+- [x] Task 6 — Page placeholder Analytics (AC: #5)
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/analytics/page.tsx` — empty state
+  - [x] Créer `aureak/apps/web/app/(admin)/marketing/analytics/index.tsx` (re-export)
+- [x] Task 7 — Cleanup legacy `developpement/marketing` (AC: #8)
+  - [x] Option A (recommandée) : supprimer `aureak/apps/web/app/(admin)/developpement/marketing/page.tsx` + `index.tsx`
+  - [x] Option B : remplacer par `<Redirect href="/marketing" />` si besoin de garder le lien
+  - [x] Vérifier qu'aucun lien dans le code ne pointe encore vers `/developpement/marketing` (grep)
 
 ## Dev Notes
 
