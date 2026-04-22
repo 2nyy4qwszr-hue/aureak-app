@@ -122,7 +122,7 @@ export const NAV_COMMANDS: CommandResult[] = [
     type   : 'navigation',
     label  : 'Journal d\'audit',
     sublabel: 'Traçabilité des actions',
-    href   : '/audit',
+    href   : '/administration/conformite/audit',
     icon   : '🔍',
   },
 ]
