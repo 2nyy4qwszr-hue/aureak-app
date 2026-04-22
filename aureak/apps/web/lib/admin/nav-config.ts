@@ -7,15 +7,15 @@ import type { ComponentType } from 'react'
 import type { SectionKey, UserRole, EffectivePermissions } from '@aureak/types'
 import { SECTION_KEYS } from '@aureak/types'
 import {
-  HomeIcon,
-  CalendarDaysIcon,
+  LayoutGridIcon,
+  ActivityIcon,
   BookOpenIcon,
   UsersIcon,
-  TargetIcon,
-  SearchIcon,
-  MessageSquareIcon,
-  ShieldIcon,
-  BarChartIcon,
+  CalendarIcon,
+  CompassIcon,
+  MegaphoneIcon,
+  HandshakeIcon,
+  TrendingUpIcon,
   UserIcon,
 } from '@aureak/ui'
 import type { NavIconProps } from '@aureak/ui'
@@ -48,15 +48,15 @@ export type NavGroup = {
  * (pages "À venir" ou 404 acceptable jusqu'aux Epics 88/91/92).
  */
 export const SECTION_TO_NAV: Record<SectionKey, Omit<NavItem, 'sectionKey'>> = {
-  dashboard   : { label: 'Dashboard',      href: '/dashboard',                 Icon: HomeIcon },
-  activites   : { label: 'Activités',      href: '/activites',                 Icon: CalendarDaysIcon },
+  dashboard   : { label: 'Dashboard',      href: '/dashboard',                 Icon: LayoutGridIcon },
+  activites   : { label: 'Activités',      href: '/activites',                 Icon: ActivityIcon },
   methodologie: { label: 'Méthodologie',   href: '/methodologie/seances',      Icon: BookOpenIcon },
   academie    : { label: 'Académie',       href: '/academie',                  Icon: UsersIcon },
-  evenements  : { label: 'Événements',     href: '/evenements',                Icon: TargetIcon },
-  prospection : { label: 'Prospection',    href: '/developpement/prospection', Icon: SearchIcon },
-  marketing   : { label: 'Marketing',      href: '/marketing',                 Icon: MessageSquareIcon },
-  partenariat : { label: 'Partenariat',    href: '/partenariat',               Icon: ShieldIcon },
-  performances: { label: 'Performance',    href: '/analytics',                 Icon: BarChartIcon },
+  evenements  : { label: 'Événements',     href: '/evenements',                Icon: CalendarIcon },
+  prospection : { label: 'Prospection',    href: '/developpement/prospection', Icon: CompassIcon },
+  marketing   : { label: 'Marketing',      href: '/marketing',                 Icon: MegaphoneIcon },
+  partenariat : { label: 'Partenariat',    href: '/partenariat',               Icon: HandshakeIcon },
+  performances: { label: 'Performance',    href: '/analytics',                 Icon: TrendingUpIcon },
   admin       : { label: 'Administration', href: '/users',                     Icon: UserIcon },
 }
 

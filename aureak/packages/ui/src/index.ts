@@ -198,4 +198,10 @@ export {
   LockIcon,
   SunIcon,
   MoonIcon,
+  ActivityIcon,
+  CompassIcon,
+  MegaphoneIcon,
+  HandshakeIcon,
+  TrendingUpIcon,
+  LayoutGridIcon,
 } from './icons'
