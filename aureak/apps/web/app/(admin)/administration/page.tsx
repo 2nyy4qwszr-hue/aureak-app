@@ -31,25 +31,25 @@ const GROUPS: GroupConfig[] = [
     Icon       : LockIcon,
     title      : 'Paramètres académie',
     description: 'Permissions globales et calendrier scolaire.',
-    href       : '/settings/permissions',
+    href       : '/administration/parametres/permissions',
   },
   {
     Icon       : ShieldIcon,
     title      : 'Conformité (RGPD & Audit)',
     description: 'RGPD, audit, anomalies et accès prospects.',
-    href       : '/gdpr',
+    href       : '/administration/conformite/rgpd',
   },
   {
     Icon       : MessageSquareIcon,
     title      : 'Communication',
     description: 'Tickets support et messages coaches.',
-    href       : '/tickets',
+    href       : '/administration/communication/tickets',
   },
   {
     Icon       : LayersIcon,
     title      : 'Exports',
     description: 'Export CSV, Excel et rapports académie.',
-    href       : '/exports',
+    href       : '/administration/exports',
   },
 ]
 

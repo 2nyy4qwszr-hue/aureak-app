@@ -108,17 +108,18 @@ type NavItem = { label: string; href: string; Icon: NavIconComponent }
 // Le type `NavGroup` est importé de `_nav-config.ts`.
 
 // Séparé — accessible via ⚙️ uniquement (Story 63.1)
+// Story 99.2 — URLs migrées sous /administration/<groupe>/<page>
 const ADMIN_ITEMS: NavItem[] = [
-  { label: 'Utilisateurs',        href: '/users',                    Icon: UserIcon },
-  { label: 'Accès temporaires',   href: '/access-grants',            Icon: KeyIcon },
-  { label: 'RGPD Prospects',      href: '/admin/rgpd/prospect-access', Icon: ShieldIcon },
-  { label: 'Tickets support',     href: '/tickets',                  Icon: MessageSquareIcon },
-  { label: 'Journal d\'audit',    href: '/audit',                    Icon: SearchIcon },
-  { label: 'Calendrier scolaire', href: '/settings/school-calendar', Icon: CalendarDaysIcon },
-  { label: 'Anomalies',           href: '/anomalies',                Icon: AlertTriangleIcon },
-  { label: 'Messages coaches',    href: '/messages',                 Icon: ChatIcon },
-  { label: 'Permissions grades',  href: '/grade-permissions',        Icon: LockIcon },
-  { label: 'Permissions',         href: '/settings/permissions',     Icon: ShieldIcon },
+  { label: 'Utilisateurs',        href: '/users',                                              Icon: UserIcon },
+  { label: 'Accès temporaires',   href: '/administration/utilisateurs/access-grants',          Icon: KeyIcon },
+  { label: 'RGPD Prospects',      href: '/administration/conformite/rgpd-prospects',           Icon: ShieldIcon },
+  { label: 'Tickets support',     href: '/administration/communication/tickets',               Icon: MessageSquareIcon },
+  { label: 'Journal d\'audit',    href: '/administration/conformite/audit',                    Icon: SearchIcon },
+  { label: 'Calendrier scolaire', href: '/administration/parametres/calendrier-scolaire',      Icon: CalendarDaysIcon },
+  { label: 'Anomalies',           href: '/administration/conformite/anomalies',                Icon: AlertTriangleIcon },
+  { label: 'Messages coaches',    href: '/administration/communication/messages',              Icon: ChatIcon },
+  { label: 'Permissions grades',  href: '/administration/utilisateurs/grade-permissions',      Icon: LockIcon },
+  { label: 'Permissions',         href: '/administration/parametres/permissions',              Icon: ShieldIcon },
 ]
 
 // ── AdminLayout wrappé dans ThemeProvider + ActiveSessionProvider ─────────────
@@ -836,30 +837,30 @@ function AdminLayoutInner() {
           )}
 
           {/* ── Story 59-8 — Lien Mon profil admin ── */}
-          <Pressable onPress={() => router.push('/profile' as never)}>
+          <Pressable onPress={() => router.push('/administration/utilisateurs/profile' as never)}>
             {({ pressed }) => (
               <YStack
                 paddingVertical={7}
                 paddingHorizontal={12}
                 borderRadius={radius.xs}
                 marginBottom={2}
-                backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : (pathname === '/profile' ? `${colors.accent.gold}18` : 'transparent')}
+                backgroundColor={pressed ? 'rgba(255,255,255,0.08)' : (pathname === '/administration/utilisateurs/profile' ? `${colors.accent.gold}18` : 'transparent')}
                 borderLeftWidth={3}
-                borderLeftColor={pathname === '/profile' ? colors.accent.gold : 'transparent' as never}
+                borderLeftColor={pathname === '/administration/utilisateurs/profile' ? colors.accent.gold : 'transparent' as never}
                 style={{ transition: `background-color ${transitions.fast}` } as never}
               >
                 {sidebarCollapsed ? (
                   <YStack alignItems="center" justifyContent="center">
-                    <UserIcon color={pathname === '/profile' ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
+                    <UserIcon color={pathname === '/administration/utilisateurs/profile' ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
                   </YStack>
                 ) : (
                   <XStack alignItems="center" gap={8}>
-                    <UserIcon color={pathname === '/profile' ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
+                    <UserIcon color={pathname === '/administration/utilisateurs/profile' ? colors.accent.gold : colors.text.secondary} size={16} strokeWidth={1.5} />
                     <Text
                       fontFamily="$body"
                       fontSize={13}
-                      fontWeight={pathname === '/profile' ? '700' : '400'}
-                      color={pathname === '/profile' ? colors.accent.gold : colors.text.secondary}
+                      fontWeight={pathname === '/administration/utilisateurs/profile' ? '700' : '400'}
+                      color={pathname === '/administration/utilisateurs/profile' ? colors.accent.gold : colors.text.secondary}
                       style={{ opacity: labelsVisible ? 1 : 0, transition: 'opacity 0.1s ease' } as never}
                     >
                       Mon profil

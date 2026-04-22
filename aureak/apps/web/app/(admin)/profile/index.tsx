@@ -1,2 +1,4 @@
-// Route re-export — Expo Router pattern (page.tsx = contenu, index.tsx = route)
-export { default } from './page'
+// Story 99.2 — Redirect 301 → /administration/utilisateurs/profile
+'use client'
+import { Redirect } from 'expo-router'
+export default function Redirect301() { return <Redirect href="/administration/utilisateurs/profile" /> }
