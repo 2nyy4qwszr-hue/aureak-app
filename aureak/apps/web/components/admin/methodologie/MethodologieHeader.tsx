@@ -2,11 +2,12 @@
 // Story 93.5 — MethodologieHeader : NavBar 5 onglets + count badges (mirror ActivitesHeader)
 // Bouton CTA conservé sur mobile uniquement (AdminTopbar prend le relais desktop).
 import React from 'react'
-import { View, Pressable, StyleSheet, useWindowDimensions, type TextStyle } from 'react-native'
+import { View, Pressable, ScrollView, StyleSheet, useWindowDimensions, type TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
 import { SubtabCount } from '../SubtabCount'
+import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
   { key: 'seances',     label: 'ENTRAÎNEMENTS', href: '/methodologie/seances'     },
@@ -53,6 +54,9 @@ export function MethodologieHeader({
   const activeTab = getActiveTab(pathname)
   const isMobile  = width < MOBILE_BREAKPOINT
 
+  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
+  useScrollTabIntoView('tab-methodologie', activeTab)
+
   return (
     <View style={styles.headerBlock}>
       {isMobile && !hideNewButton && (
@@ -66,13 +70,20 @@ export function MethodologieHeader({
         </View>
       )}
 
-      <View style={styles.tabsRow}>
+      {/* Story 100.2 — scrollable horizontal sur mobile */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
+      >
         {TABS.map(tab => {
           const isActive = tab.key === activeTab
           const count    = counts?.[tab.key] ?? null
           return (
             <Pressable
               key={tab.key}
+              nativeID={`tab-methodologie-${tab.key}`}
               onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
               style={styles.tabItem}
             >
@@ -86,7 +97,7 @@ export function MethodologieHeader({
             </Pressable>
           )
         })}
-      </View>
+      </ScrollView>
     </View>
   )
 }
@@ -117,14 +128,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize  : 13,
   },
+  tabsScroll: {
+    flexGrow : 0,
+    marginTop: space.sm,
+  },
   tabsRow: {
     flexDirection    : 'row',
     gap              : 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
     paddingHorizontal: space.lg,
-    marginTop        : space.sm,
-    flexWrap         : 'wrap',
   },
   tabItem: {
     paddingHorizontal: 20,
