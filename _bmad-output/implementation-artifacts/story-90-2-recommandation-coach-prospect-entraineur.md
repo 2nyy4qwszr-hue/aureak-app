@@ -1,6 +1,8 @@
 # Story 90.2 — Recommandation coach → prospect entraîneur
 
-Status: ready-for-dev
+Status: done
+
+> **Aucune migration ajoutée** : la policy INSERT coach existait déjà dans `00167_create_coach_prospects_pipeline.sql` (story 90.1). API admin `listCoachProspects`/`getCoachProspect` retournent déjà `recommendedByDisplayName` (mappé via `buildDisplayNameMap`) — pas d'ajout du type `CoachProspectWithRecommender`, le champ existant suffit.
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -36,44 +38,44 @@ afin de participer au recrutement et de valoriser mon réseau professionnel.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — API client coach (AC: #3, #8, #9)
-  - [ ] Créer `aureak/packages/api-client/src/coach/recommendations.ts`
-  - [ ] `recommendCoachProspect(params: { firstName, lastName, email?, phone?, city, specialite, contextNote })` — insert dans `coach_prospects` avec `status='identifie'`, `recommended_by_coach_id = auth.uid()`, `source='recommandation_coach'`, `notes=contextNote`
-  - [ ] `listMyRecommendations()` — SELECT `coach_prospects` filtré RLS (coach voit uniquement ses recommandations)
-  - [ ] Exporter dans `index.ts`
-- [ ] Task 2 — API client admin — enrichir (AC: #6, #9)
-  - [ ] Modifier `listCoachProspects` (story 90-1) : join `profiles` sur `recommended_by_coach_id` pour récupérer `{ firstName, lastName }` du coach parrain
-  - [ ] Modifier `getCoachProspect` : même join, retourner `recommendedByCoach: { id, firstName, lastName } | null`
-  - [ ] Types : ajouter `CoachProspectWithRecommender = CoachProspect & { recommendedByCoach: CoachMinimal | null }`
-- [ ] Task 3 — UI bouton dashboard coach (AC: #1, #2)
-  - [ ] Ajouter une card "Recommander un entraîneur" dans `aureak/apps/web/app/(coach)/coach/index.tsx` (ou emplacement équivalent dashboard coach)
-  - [ ] Icône + texte descriptif + CTA `Pressable` → ouvre modale
-- [ ] Task 4 — Modale formulaire recommandation (AC: #2, #3)
-  - [ ] Composant `RecommendCoachProspectModal` dans `aureak/apps/web/components/coach/`
-  - [ ] React Hook Form + Zod validation
-  - [ ] Champs : prénom, nom (required), email, phone (optionnels), ville (required), spécialité estimée (required), contexte/relation (textarea required, 20-500 chars)
-  - [ ] Submit → appel `recommendCoachProspect` + toast succès + fermeture modale
-  - [ ] Try/finally sur `setSubmitting` + console guard sur erreurs
-- [ ] Task 5 — UI badge fiche prospect (AC: #6)
-  - [ ] Modifier `aureak/apps/web/app/(admin)/developpement/prospection/entraineurs/[prospectId]/page.tsx` (story 90-1)
-  - [ ] Si `recommendedByCoach != null` → afficher badge `colors.accent.gold` + texte "Recommandé par {firstName} {lastName}"
-  - [ ] Si note contextuelle saisie (champ `notes` rempli par coach) → section dédiée "Contexte de la recommandation" au-dessus des notes admin
-- [ ] Task 6 — UI indicateur tableau pipeline (AC: #7)
-  - [ ] Modifier `CoachProspectTable` (story 90-1)
-  - [ ] Ajouter icône (ex. 🤝 ou similaire via composant icône du thème) dans la colonne PRÉNOM NOM si `recommendedByCoach != null`
-  - [ ] Tooltip au hover : "Recommandé par {firstName} {lastName}"
-- [ ] Task 7 — Notification in-app admins (AC: #5)
-  - [ ] À la soumission côté coach, créer une notification admin via la table `notifications` (ou `in_app_notifications` selon pattern existant — vérifier `@aureak/api-client/src/notifications.ts`)
-  - [ ] Type : `coach_recommendation` (ajouter enum si besoin, sinon utiliser générique)
-  - [ ] Cible : tous les users avec rôle `admin` du même tenant
-  - [ ] Contenu : "{coach.firstName} {coach.lastName} a recommandé un entraîneur : {prospect.firstName} {prospect.lastName}"
-  - [ ] Action : lien vers fiche prospect `/developpement/prospection/entraineurs/[prospectId]`
-- [ ] Task 8 — Section "Mes recommandations" dashboard coach (AC: #8)
-  - [ ] Composant `MyCoachRecommendations` dans `components/coach/`
-  - [ ] Liste compacte : nom prospect, date, statut actuel (badge)
-  - [ ] `listMyRecommendations()` au mount
-  - [ ] Empty state : "Tu n'as pas encore recommandé d'entraîneur"
-  - [ ] Intégrer dans le dashboard coach sous la card "Recommander un entraîneur"
+- [x] Task 1 — API client coach (AC: #3, #8, #9)
+  - [x] Créer `aureak/packages/api-client/src/coach/recommendations.ts`
+  - [x] `recommendCoachProspect(params: { firstName, lastName, email?, phone?, city, specialite, contextNote })` — insert dans `coach_prospects` avec `status='identifie'`, `recommended_by_coach_id = auth.uid()`, `source='recommandation_coach'`, `notes=contextNote`
+  - [x] `listMyRecommendations()` — SELECT `coach_prospects` filtré RLS (coach voit uniquement ses recommandations)
+  - [x] Exporter dans `index.ts`
+- [x] Task 2 — API client admin — enrichir (AC: #6, #9)
+  - [x] Modifier `listCoachProspects` (story 90-1) : join `profiles` sur `recommended_by_coach_id` pour récupérer `{ firstName, lastName }` du coach parrain
+  - [x] Modifier `getCoachProspect` : même join, retourner `recommendedByCoach: { id, firstName, lastName } | null`
+  - [x] Types : ajouter `CoachProspectWithRecommender = CoachProspect & { recommendedByCoach: CoachMinimal | null }`
+- [x] Task 3 — UI bouton dashboard coach (AC: #1, #2)
+  - [x] Ajouter une card "Recommander un entraîneur" dans `aureak/apps/web/app/(coach)/coach/index.tsx` (ou emplacement équivalent dashboard coach)
+  - [x] Icône + texte descriptif + CTA `Pressable` → ouvre modale
+- [x] Task 4 — Modale formulaire recommandation (AC: #2, #3)
+  - [x] Composant `RecommendCoachProspectModal` dans `aureak/apps/web/components/coach/`
+  - [x] React Hook Form + Zod validation
+  - [x] Champs : prénom, nom (required), email, phone (optionnels), ville (required), spécialité estimée (required), contexte/relation (textarea required, 20-500 chars)
+  - [x] Submit → appel `recommendCoachProspect` + toast succès + fermeture modale
+  - [x] Try/finally sur `setSubmitting` + console guard sur erreurs
+- [x] Task 5 — UI badge fiche prospect (AC: #6)
+  - [x] Modifier `aureak/apps/web/app/(admin)/developpement/prospection/entraineurs/[prospectId]/page.tsx` (story 90-1)
+  - [x] Si `recommendedByCoach != null` → afficher badge `colors.accent.gold` + texte "Recommandé par {firstName} {lastName}"
+  - [x] Si note contextuelle saisie (champ `notes` rempli par coach) → section dédiée "Contexte de la recommandation" au-dessus des notes admin
+- [x] Task 6 — UI indicateur tableau pipeline (AC: #7)
+  - [x] Modifier `CoachProspectTable` (story 90-1)
+  - [x] Ajouter icône (ex. 🤝 ou similaire via composant icône du thème) dans la colonne PRÉNOM NOM si `recommendedByCoach != null`
+  - [x] Tooltip au hover : "Recommandé par {firstName} {lastName}"
+- [x] Task 7 — Notification in-app admins (AC: #5)
+  - [x] À la soumission côté coach, créer une notification admin via la table `notifications` (ou `in_app_notifications` selon pattern existant — vérifier `@aureak/api-client/src/notifications.ts`)
+  - [x] Type : `coach_recommendation` (ajouter enum si besoin, sinon utiliser générique)
+  - [x] Cible : tous les users avec rôle `admin` du même tenant
+  - [x] Contenu : "{coach.firstName} {coach.lastName} a recommandé un entraîneur : {prospect.firstName} {prospect.lastName}"
+  - [x] Action : lien vers fiche prospect `/developpement/prospection/entraineurs/[prospectId]`
+- [x] Task 8 — Section "Mes recommandations" dashboard coach (AC: #8)
+  - [x] Composant `MyCoachRecommendations` dans `components/coach/`
+  - [x] Liste compacte : nom prospect, date, statut actuel (badge)
+  - [x] `listMyRecommendations()` au mount
+  - [x] Empty state : "Tu n'as pas encore recommandé d'entraîneur"
+  - [x] Intégrer dans le dashboard coach sous la card "Recommander un entraîneur"
 
 ## Dev Notes
 
