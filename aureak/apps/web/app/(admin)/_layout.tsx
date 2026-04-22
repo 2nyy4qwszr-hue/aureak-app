@@ -59,6 +59,8 @@ import { BreadcrumbProvider } from '../../contexts/BreadcrumbContext'
 import { Breadcrumb } from '../../components/Breadcrumb'
 // Story 61.2 — ActiveSessionContext
 import { ActiveSessionProvider, useActiveSession } from '../../contexts/admin/ActiveSessionContext'
+// Story 100.3 — SidebarContext (topbar burger ↔ drawer)
+import { SidebarProvider, useSidebar } from '../../contexts/admin/SidebarContext'
 // Story 61.6 — SplashScreen
 import { SplashScreen, SPLASH_MIN_MS, SPLASH_TIMEOUT_MS } from '../../components/SplashScreen'
 // Story 86-2 — Multi-rôle : switcher "Changer de casquette"
@@ -128,7 +130,9 @@ export default function AdminLayout() {
   return (
     <ThemeProvider>
       <ActiveSessionProvider>
-        <AdminLayoutInner />
+        <SidebarProvider>
+          <AdminLayoutInner />
+        </SidebarProvider>
       </ActiveSessionProvider>
     </ThemeProvider>
   )
@@ -171,7 +175,8 @@ function AdminLayoutInner() {
   const { role, isLoading, signOut, user } = useAuthStore()
   useTheme()
   const themeColors = useThemeColors()
-  const [mobileOpen,      setMobileOpen]      = useState(false)
+  // Story 100.3 — sidebarOpen (ex-mobileOpen) pilote par SidebarContext
+  const { isOpen: mobileOpen, close: closeMobile } = useSidebar()
   // Story 63.1 — panneau Administration caché derrière ⚙️
   const [adminPanelOpen, setAdminPanelOpen] = useState(false)
 
@@ -398,10 +403,10 @@ function AdminLayoutInner() {
   }, [role]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (isMobile) setMobileOpen(false)
+    if (isMobile) closeMobile()
     // Story 63.1 — fermer le panneau admin au changement de route
     setAdminPanelOpen(false)
-  }, [pathname, isMobile])
+  }, [pathname, isMobile, closeMobile])
 
   // Epic 85 — commerciaux accèdent au layout admin (vue réduite)
   const isAdminOrCommercial = role === 'admin' || role === 'commercial'
@@ -475,7 +480,7 @@ function AdminLayoutInner() {
       {/* ── Mobile overlay ── */}
       {isMobile && mobileOpen && (
         <Pressable
-          onPress={() => setMobileOpen(false)}
+          onPress={closeMobile}
           style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             zIndex: 40, backgroundColor: 'rgba(0,0,0,0.35)',
@@ -1010,53 +1015,10 @@ function AdminLayoutInner() {
           transition     : 'background-color 0.2s ease',
         } as never}
       >
-        {/* Mobile top bar */}
-        {isMobile && (
-          <XStack
-            data-topbar="true"
-            height={52}
-            borderBottomWidth={1}
-            alignItems="center"
-            paddingHorizontal={16}
-            gap={12}
-            style={{
-              backgroundColor: themeColors.surface,
-              borderBottomColor: themeColors.divider,
-              flexShrink  : 0,
-              transition  : 'background-color 0.2s ease, border-color 0.2s ease',
-            } as never}
-          >
-            <Pressable onPress={() => setMobileOpen(v => !v)}>
-              {({ pressed }) => (
-                <YStack
-                  width={36}
-                  height={36}
-                  borderRadius={7}
-                  borderWidth={1}
-                  alignItems="center"
-                  justifyContent="center"
-                  style={{
-                    backgroundColor: pressed ? themeColors.hover : themeColors.muted,
-                    borderColor    : themeColors.border,
-                  } as never}
-                >
-                  <Text fontSize={14} color={colors.accent.gold}>
-                    {mobileOpen ? '✕' : '☰'}
-                  </Text>
-                </YStack>
-              )}
-            </Pressable>
-            <Text
-              fontFamily="$heading"
-              fontSize={16}
-              fontWeight="800"
-              color={colors.accent.gold}
-              letterSpacing={3}
-            >
-              AUREAK
-            </Text>
-          </XStack>
-        )}
+        {/* Story 100.3 — Topbar responsive (mobile/tablet/desktop).
+            Le topbar mobile inline (burger + AUREAK) est supprimé : AdminTopbar
+            gère désormais les 3 variants lui-même. */}
+        <AdminTopbar />
 
         {/* ── Story 61.5 — Offline banner ── */}
         <OfflineBanner
@@ -1080,19 +1042,14 @@ function AdminLayoutInner() {
         {/* ── Story 51.2 — Topbar séance active (desktop uniquement) ── */}
         {!isMobile && <ActiveSessionBar sessions={activeSessions} />}
 
-        {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement) ── */}
-        {/* Story 93.7 — AdminTopbar (template-based) prend le relais sur les hubs Epic 93/87 */}
-        {!isMobile
+        {/* ── Story 51.5 — Breadcrumb animé cliquable (desktop uniquement, hors hubs) ── */}
+        {/* Story 100.3 — AdminTopbar rendu ci-dessus gère mobile/tablette + desktop-hubs.
+            Breadcrumb reste le fallback desktop pour les pages hors hubs (≥ 1024px). */}
+        {width >= 1024
           && !pathname.startsWith('/activites')
           && !pathname.startsWith('/methodologie')
           && !pathname.startsWith('/academie')
           && <Breadcrumb />}
-
-        {/* Story 93.7 — Topbar premium (breadcrumbs + icon-btn + actions) sur les hubs alignés template */}
-        {(pathname.startsWith('/activites')
-          || pathname.startsWith('/methodologie')
-          || pathname.startsWith('/academie'))
-          && <AdminTopbar />}
 
         {/* Story 62.5 — conteneur page-enter animation */}
         <div ref={contentAreaRef} style={{ flex: 1 }}>
