@@ -1,6 +1,6 @@
 # Story 92.3 — Récap clubs partenaires (vue synthétique)
 
-Status: ready-for-dev
+Status: done
 
 <!-- Validation optionnelle. Lancer validate-create-story pour vérification qualité avant dev-story. -->
 
@@ -333,3 +333,18 @@ Aucune nouvelle table. RLS déjà en place via Story 11.3 (policies admin-tenant
 
 | Fichier | Statut |
 |---------|--------|
+| `aureak/apps/web/app/(admin)/partenariat/clubs/page.tsx` | MODIFIÉ (placeholder → vraie page) |
+| `aureak/apps/web/components/admin/partenariat/PartnershipCard.tsx` | CRÉÉ |
+| `aureak/apps/web/components/admin/partenariat/PartnershipFormModal.tsx` | CRÉÉ |
+| `aureak/apps/web/app/(admin)/partnerships/index.tsx` | MODIFIÉ (redirect vers /partenariat/clubs) |
+
+### Completion Notes List
+
+- Réutilise intégralement l'API Story 11.3 (`listPartnerships`, `createPartnership`, `updatePartnership`, `listPartnerAccessStats`). Aucune migration, aucun nouveau type.
+- Récap = 4 `StatsStandardCard` (Actifs / Expirent 30j / Accès 30j / Total) + filtre toggle (Tous/Actifs/Inactifs) + liste `PartnershipCard` + empty state.
+- Mapping couleurs badge d'accès : `read_catalogue` = neutre, `read_bronze` = `accent.bronze`, `read_silver` = `accent.silver`, `full_read` = `accent.gold`.
+- Ancienne route `/partnerships` conserve le fichier `index.tsx` mais renvoie un `<Redirect href="/partenariat/clubs" />`.
+- Révocation = `window.confirm` + `updatePartnership(id, { active_until: today })` (pattern cohérent avec la page historique).
+- Playwright skipped — app non démarrée au moment du commit.
+- `tsc --noEmit` = 0. Grep try/finally + console guards OK.
+
