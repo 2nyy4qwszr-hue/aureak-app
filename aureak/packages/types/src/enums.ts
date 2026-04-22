@@ -501,3 +501,33 @@ export const COMMERCIAL_RESOURCE_TYPE_ICONS: Record<CommercialResourceType, stri
   webpage   : '🌐',
   tarifs    : '💰',
 }
+
+// ── Epic 91 — Story 91.2 : Médiathèque ─────────────────────────────────────
+
+/** Type de fichier média — miroir enum PostgreSQL `media_file_type` (migration 00168) */
+export type MediaFileType = 'image' | 'video'
+
+export const MEDIA_FILE_TYPES: MediaFileType[] = ['image', 'video']
+
+export const MEDIA_FILE_TYPE_LABELS: Record<MediaFileType, string> = {
+  image: 'Photo',
+  video: 'Vidéo',
+}
+
+/** Statut de validation d'un média — miroir enum PostgreSQL `media_item_status` (migration 00168) */
+export type MediaItemStatus = 'pending' | 'approved' | 'rejected'
+
+export const MEDIA_ITEM_STATUSES: MediaItemStatus[] = ['pending', 'approved', 'rejected']
+
+export const MEDIA_ITEM_STATUS_LABELS: Record<MediaItemStatus, string> = {
+  pending : 'En attente',
+  approved: 'Validé',
+  rejected: 'Rejeté',
+}
+
+/** Couleur sémantique (tokens @aureak/theme.colors.*) par statut média */
+export const MEDIA_ITEM_STATUS_COLORS: Record<MediaItemStatus, 'warning' | 'success' | 'danger'> = {
+  pending : 'warning',
+  approved: 'success',
+  rejected: 'danger',
+}

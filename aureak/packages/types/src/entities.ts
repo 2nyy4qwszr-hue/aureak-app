@@ -2882,3 +2882,38 @@ export type EffectivePermissions = Record<SectionKey, boolean>
 // Re-export des enums Permission pour les consommateurs de ces types
 export type { SectionKey, PermissionAccess }
 
+// ============================================================
+// Epic 91 — Story 91.2 : Médiathèque
+// ============================================================
+
+/** MediaItem — miroir de la table `media_items` (migration 00168) */
+export type MediaItem = {
+  id              : string
+  tenantId        : string
+  uploadedBy      : string
+  filePath        : string
+  fileType        : import('./enums').MediaFileType
+  title           : string
+  description     : string | null
+  status          : import('./enums').MediaItemStatus
+  approvedBy      : string | null
+  approvedAt      : string | null
+  rejectionReason : string | null
+  fileSize        : number | null
+  mimeType        : string | null
+  createdAt       : string
+  updatedAt       : string
+  deletedAt       : string | null
+  /** Nom affiché de l'uploader (hydraté côté API via join profiles) */
+  uploaderDisplayName? : string | null
+}
+
+export type CreateMediaItemParams = {
+  title       : string
+  description?: string | null
+  fileType    : import('./enums').MediaFileType
+  filePath    : string
+  fileSize?   : number | null
+  mimeType?   : string | null
+}
+
