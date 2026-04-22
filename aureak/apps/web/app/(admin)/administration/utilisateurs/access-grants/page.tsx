@@ -1,3 +1,4 @@
+// Story 99.3 — AdminPageHeader v2 ("Accès accordés")
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -6,6 +7,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { AureakButton } from '@aureak/ui'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 type Grant = {
   id            : string
@@ -115,15 +117,17 @@ export default function AccessGrantsPage() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <AureakText variant="h2">Accès temporaires actifs</AureakText>
-        <AureakButton
-          label="Nouveau grant"
-          onPress={() => router.push('/(admin)/access-grants/new' as never)}
-          variant="primary"
-        />
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
+      {/* Story 99.3 — AdminPageHeader v2 */}
+      <AdminPageHeader
+        title="Accès accordés"
+        actionButton={{
+          label  : '+ Nouveau grant',
+          onPress: () => router.push('/administration/utilisateurs/access-grants/new' as never),
+        }}
+      />
+
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
       {/* Alerte expiration imminente */}
       {!loading && expiringSoon.length > 0 && (
@@ -180,6 +184,7 @@ export default function AccessGrantsPage() {
           </View>
         )
       })}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }

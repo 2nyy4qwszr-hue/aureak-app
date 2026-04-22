@@ -1,6 +1,7 @@
 'use client'
 // Story 89.5 — Liste d'attente admin : vue consolidée par groupe
 // Affiche l'ensemble des entrées trial_waitlist du tenant avec leur statut.
+// Story 99.3 — AdminPageHeader v2 ("Liste d'attente")
 // AC7 : "Vue admin : liste d'attente par groupe avec statuts"
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -15,6 +16,7 @@ import type {
   TrialWaitlistEntry, WaitlistStatus,
   GroupWithMeta, Implantation, ChildDirectoryEntry,
 } from '@aureak/types'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const STATUS_LABEL: Record<WaitlistStatus, string> = {
   waiting  : 'En attente',
@@ -117,15 +119,10 @@ export default function WaitlistAdminPage() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <AureakText style={styles.pageTitle}>LISTE D'ATTENTE</AureakText>
-          <AureakText variant="caption" style={styles.pageSubtitle}>
-            Prospects en attente d'une place dans un groupe
-          </AureakText>
-        </View>
+      {/* Story 99.3 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Liste d'attente" />
 
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* StatCards — counts par statut */}
         <View style={styles.statCards}>
           {(['waiting', 'notified', 'confirmed', 'expired'] as WaitlistStatus[]).map(st => (

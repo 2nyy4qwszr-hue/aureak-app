@@ -1,5 +1,6 @@
 'use client'
 // Admin Profile — niveau XP + badges + stats d'activité (Story 59-8)
+// Story 99.3 — AdminPageHeader v2 ("Mon profil")
 
 import { useEffect, useState } from 'react'
 import { getAdminProfile, getAdminActivityStats } from '@aureak/api-client'
@@ -8,6 +9,7 @@ import { useAuthStore } from '@aureak/business-logic'
 import { colors, shadows, radius, transitions, gamification, typography, resolveLevel } from '@aureak/theme'
 import { BadgeGrid } from '@aureak/ui'
 import type { BadgeItem } from '@aureak/types'
+import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 // ── Niveaux admin — 5 badges intégrés (Story 59-8, AC5) ─────────────────────
 
@@ -153,7 +155,10 @@ export default function AdminProfilePage() {
     : '?'
 
   return (
-    <div style={{ padding: 32, maxWidth: 800, margin: '0 auto' }}>
+    <div>
+      {/* Story 99.3 — AdminPageHeader v2 */}
+      <AdminPageHeader title="Mon profil" />
+      <div style={{ padding: 32, maxWidth: 800, margin: '0 auto' }}>
       <style>{`
         @keyframes admin-pulse {
           0%,100% { opacity:.12 }
@@ -390,6 +395,7 @@ export default function AdminProfilePage() {
           Mes badges
         </div>
         <BadgeGrid badges={adminBadges} size="md" />
+      </div>
       </div>
     </div>
   )
