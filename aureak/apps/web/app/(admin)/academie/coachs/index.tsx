@@ -3,6 +3,7 @@
 // Story 82.1 — Appliquer LayoutActivités (headerBlock + StatCards + FiltresRow + CoachsTable)
 // Story 97.6 — AdminPageHeader v2 ("Coachs") + AcademieNavBar partagé
 // Story 101.1 — DataCard responsive pilot (table → stack cards mobile-first)
+// Story 101.2 — FilterSheet pilot (filtres inline desktop / bottom sheet mobile)
 import { useContext, useEffect, useState } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -13,6 +14,7 @@ import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { DataCard, type DataCardColumn } from '../../../../components/admin/DataCard'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { AcademieCountsContext } from '../_layout'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────
@@ -173,37 +175,44 @@ export default function AcademieCoachsPage() {
         </View>
 
         {/* ── FiltresRow : pill TOUS + SegmentedToggle COACH/ASSISTANT ── */}
-        <View style={s.filtresRow}>
-          {/* Gauche : pill TOUS */}
-          <Pressable
-            onPress={() => { setRoleFilter('all'); setPage(0) }}
-            style={roleFilter === 'all' ? s.pillActive : s.pillInactive}
-          >
-            <AureakText style={(roleFilter === 'all' ? s.pillTextActive : s.pillTextInactive) as TextStyle}>
-              TOUS
-            </AureakText>
-          </Pressable>
+        {/* Story 101.2 — Wrap dans FilterSheet : inline desktop ≥640 / bottom sheet mobile <640 */}
+        <FilterSheet
+          activeCount={roleFilter === 'all' ? 0 : 1}
+          onReset={() => { setRoleFilter('all'); setPage(0) }}
+          triggerLabel="Filtres coachs"
+        >
+          <View style={s.filtresRow}>
+            {/* Gauche : pill TOUS */}
+            <Pressable
+              onPress={() => { setRoleFilter('all'); setPage(0) }}
+              style={roleFilter === 'all' ? s.pillActive : s.pillInactive}
+            >
+              <AureakText style={(roleFilter === 'all' ? s.pillTextActive : s.pillTextInactive) as TextStyle}>
+                TOUS
+              </AureakText>
+            </Pressable>
 
-          {/* Droite : SegmentedToggle COACH / ASSISTANT */}
-          <View style={s.toggleRow}>
-            <Pressable
-              style={[s.toggleBtn, roleFilter === 'coach' && s.toggleBtnActive] as never}
-              onPress={() => handleRoleFilter('coach')}
-            >
-              <AureakText style={[s.toggleLabel, roleFilter === 'coach' && s.toggleLabelActive] as never}>
-                COACH
-              </AureakText>
-            </Pressable>
-            <Pressable
-              style={[s.toggleBtn, roleFilter === 'assistant' && s.toggleBtnActive] as never}
-              onPress={() => handleRoleFilter('assistant')}
-            >
-              <AureakText style={[s.toggleLabel, roleFilter === 'assistant' && s.toggleLabelActive] as never}>
-                ASSISTANT
-              </AureakText>
-            </Pressable>
+            {/* Droite : SegmentedToggle COACH / ASSISTANT */}
+            <View style={s.toggleRow}>
+              <Pressable
+                style={[s.toggleBtn, roleFilter === 'coach' && s.toggleBtnActive] as never}
+                onPress={() => handleRoleFilter('coach')}
+              >
+                <AureakText style={[s.toggleLabel, roleFilter === 'coach' && s.toggleLabelActive] as never}>
+                  COACH
+                </AureakText>
+              </Pressable>
+              <Pressable
+                style={[s.toggleBtn, roleFilter === 'assistant' && s.toggleBtnActive] as never}
+                onPress={() => handleRoleFilter('assistant')}
+              >
+                <AureakText style={[s.toggleLabel, roleFilter === 'assistant' && s.toggleLabelActive] as never}>
+                  ASSISTANT
+                </AureakText>
+              </Pressable>
+            </View>
           </View>
-        </View>
+        </FilterSheet>
 
         {/* ── CoachsTable (Story 101.1 — via <DataCard /> responsive) ── */}
         <DataCard<CoachWithGrade>
