@@ -26,6 +26,8 @@ import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { InfiniteScrollContainer } from '../../../../components/admin/InfiniteScrollContainer'
+import { EmptyState } from '../../../../components/admin/states'
+import { ShieldIcon } from '@aureak/ui'
 import { usePaginatedList } from '../../../../hooks/admin/usePaginatedList'
 import { AcademieCountsContext } from '../_layout'
 
@@ -170,13 +172,14 @@ function StatCards({ total, rows, loading }: { total: number; rows: ClubDirector
 }
 
 function EmptyStateView({ hasFilters }: { hasFilters: boolean }) {
+  // Story 101.5 — consommation pilote du composant générique <EmptyState />
   return (
     <View style={s.emptyState}>
-      <AureakText style={s.emptyIcon}>🏛️</AureakText>
-      <AureakText style={s.emptyHeading as never}>Aucun club</AureakText>
-      <AureakText style={s.emptyText as never}>
-        {hasFilters ? 'Aucun résultat pour ces filtres.' : 'L\'annuaire des clubs est vide.'}
-      </AureakText>
+      <EmptyState
+        icon={ShieldIcon}
+        title="Aucun club"
+        message={hasFilters ? 'Aucun résultat pour ces filtres.' : 'L\'annuaire des clubs est vide.'}
+      />
     </View>
   )
 }
