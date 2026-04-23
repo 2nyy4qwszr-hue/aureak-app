@@ -534,3 +534,13 @@ development_status:
   epic-95: in-progress
   95-1-routing-cleanup-expo-router-warnings: review
   epic-95-retrospective: optional
+
+  # Epic 101 : Composants data mobile-first
+  # Primitives UI responsive (DataCard, FilterSheet, FabAction, InfiniteScroll)
+  # consommées massivement par Epic 103 (zones admin). 101.1 = fondation DataCard.
+  epic-101: in-progress
+  101-1-datacard-responsive: done
+  101-2-filtersheet-bottom-sheet: done
+  101-3-fab-action-mobile: done
+  101-4-infinite-scroll-mobile: done
+  epic-101-retrospective: optional
