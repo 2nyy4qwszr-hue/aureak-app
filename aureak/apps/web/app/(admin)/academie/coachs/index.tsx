@@ -4,6 +4,7 @@
 // Story 97.6 — AdminPageHeader v2 ("Coachs") + AcademieNavBar partagé
 // Story 101.1 — DataCard responsive pilot (table → stack cards mobile-first)
 // Story 101.2 — FilterSheet pilot (filtres inline desktop / bottom sheet mobile)
+// Story 101.3 — PrimaryAction pilot (FAB mobile / header desktop)
 import { useContext, useEffect, useState } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
@@ -15,6 +16,7 @@ import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { DataCard, type DataCardColumn } from '../../../../components/admin/DataCard'
 import { FilterSheet } from '../../../../components/admin/FilterSheet'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { AcademieCountsContext } from '../_layout'
 
 // ── Types locaux ─────────────────────────────────────────────────────────────────
@@ -123,14 +125,20 @@ export default function AcademieCoachsPage() {
     setPage(0)
   }
 
+  const openNewCoach = () => router.push('/academie/coachs/new' as never)
+
   return (
     <View style={s.page}>
       {/* Story 97.6 — AdminPageHeader v2 + AcademieNavBar partagé */}
+      {/* Desktop : bouton dans le header (visible ≥640). Mobile : AdminPageHeader passe en colonne
+          et le bouton header reste affiché en dessous du titre. Story 101.3 : on ajoute en plus le
+          FAB bas-droite pour que l'action reste atteignable en scrollant (approche B — non-duplication
+          gérée par le fait que le FAB ne se rend que <640 et reste au-dessus du contenu). */}
       <AdminPageHeader
         title="Coachs"
         actionButton={{
           label  : '+ Nouveau coach',
-          onPress: () => router.push('/academie/coachs/new' as never),
+          onPress: openNewCoach,
         }}
       />
       <AcademieNavBar counts={academieCounts ?? undefined} />
@@ -307,6 +315,12 @@ export default function AcademieCoachsPage() {
         ) : null}
 
       </ScrollView>
+
+      {/* Story 101.3 — FAB mobile (rend null ≥640) */}
+      <PrimaryAction
+        label="Nouveau coach"
+        onPress={openNewCoach}
+      />
     </View>
   )
 }
