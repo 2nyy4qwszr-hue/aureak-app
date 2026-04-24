@@ -3,7 +3,6 @@
 // + implantation + groupe) et tableau pagination (TableauSeances).
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native'
-import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, radius, space } from '@aureak/theme'
 import { listImplantations, listAllGroups } from '@aureak/api-client'
@@ -43,7 +42,6 @@ function computeRange(view: TimeView): { from: string; to: string } {
 }
 
 export default function SeancesPage() {
-  const router        = useRouter()
   const activitesCnts = useContext(ActivitesCountsContext)
 
   const [timeView,       setTimeView]       = useState<TimeView>('week')
@@ -81,20 +79,6 @@ export default function SeancesPage() {
       <ActivitesHeader counts={activitesCnts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <AureakText variant="caption" style={{ color: colors.text.muted }}>
-            {timeView === 'day' ? "Aujourd'hui" : timeView === 'week' ? 'Cette semaine' : 'Ce mois'}
-          </AureakText>
-          <Pressable
-            style={styles.newBtn}
-            onPress={() => router.push('/activites/seances/new' as never)}
-          >
-            <AureakText variant="caption" style={styles.newBtnText}>
-              + Nouvelle séance
-            </AureakText>
-          </Pressable>
-        </View>
-
         <View style={styles.controls}>
           <View style={styles.timeToggle}>
             {(['day', 'week', 'month'] as TimeView[]).map(v => {
@@ -167,24 +151,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.primary },
   scroll   : { flex: 1, backgroundColor: colors.light.primary },
   content  : { paddingTop: space.md, paddingBottom: 64, gap: space.md },
-
-  header: {
-    flexDirection    : 'row',
-    alignItems       : 'center',
-    justifyContent   : 'space-between',
-    paddingHorizontal: space.lg,
-  },
-
-  newBtn: {
-    backgroundColor  : colors.accent.gold,
-    paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    borderRadius     : 7,
-  },
-  newBtnText: {
-    color     : colors.text.dark,
-    fontWeight: '700',
-  },
 
   controls: {
     flexDirection    : 'row',
