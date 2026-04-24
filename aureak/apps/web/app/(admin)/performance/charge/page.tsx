@@ -2,7 +2,7 @@
 // Story 60.3 — Heatmap jours/heures séances
 // Story 98.2 — AdminPageHeader v2 ("Charge coaches")
 import React, { useEffect, useState } from 'react'
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listImplantations, getSessionHeatmap } from '@aureak/api-client'
 import type { HeatmapPeriod } from '@aureak/types'
@@ -21,6 +21,8 @@ const PERIOD_OPTIONS: { value: HeatmapPeriod; label: string }[] = [
 
 export default function ChargeAnalyticsPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [implantations,  setImplantations]  = useState<Implantation[]>([])
   const [implantationId, setImplantationId] = useState<string | undefined>(undefined)
@@ -59,7 +61,7 @@ export default function ChargeAnalyticsPage() {
       <AdminPageHeader title="Charge coaches" />
 
       <ScrollView style={s.container}>
-      <View style={s.content}>
+      <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Filtres */}
         <View style={s.filterRow}>
           {/* Période */}

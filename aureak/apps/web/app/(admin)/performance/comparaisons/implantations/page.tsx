@@ -3,7 +3,7 @@
 // Story 98.3 — Migrée /implantations/compare → /performance/comparaisons/implantations
 //              AdminPageHeader v2 ("Comparaison des implantations")
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import {
@@ -36,6 +36,8 @@ const METRICS: Metric[] = [
 // ── ComparePage ───────────────────────────────────────────────────────────────
 
 export default function ComparePage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const router = useRouter()
 
   const [implantations, setImplantations] = useState<Implantation[]>([])
@@ -86,13 +88,13 @@ export default function ComparePage() {
       {/* Story 98.3 — AdminPageHeader v2 */}
       <AdminPageHeader title="Comparaison des implantations" />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {loadError && (
         <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>
       )}
 
       {/* ── Sélecteurs côte à côte ── */}
-      <View style={styles.selectorsRow}>
+      <View style={[styles.selectorsRow, isMobile && { flexDirection: 'column', gap: space.md }]}>
         {/* Colonne 1 */}
         <View style={styles.selectorCol}>
           <AureakText variant="label" style={styles.colLabel}>IMPLANTATION A</AureakText>

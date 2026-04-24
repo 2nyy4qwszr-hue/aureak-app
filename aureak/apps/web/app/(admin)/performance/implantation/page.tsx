@@ -2,7 +2,7 @@
 // Story tbd-vue-implantation — Dashboard analytique par implantation
 // Story 98.2 — AdminPageHeader v2 ("Implantations")
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { listImplantations, getImplantationStats, listGroupsByImplantation } from '@aureak/api-client'
 import type { ImplantationStats } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -53,6 +53,8 @@ function rateColor(pct: number): string {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function ImplantationDashboardPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [implantations, setImplantations] = useState<Implantation[]>([])
   const [stats,         setStats]         = useState<ImplantationStats[]>([])
   const [groups,        setGroups]        = useState<Group[]>([])
@@ -111,7 +113,7 @@ export default function ImplantationDashboardPage() {
       {/* Story 98.2 — AdminPageHeader v2 */}
       <AdminPageHeader title="Implantations" />
 
-      <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
       {/* ── Sélecteur implantation ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }}>
         <View style={{ flexDirection: 'row', gap: space.sm, paddingHorizontal: space.xl }}>

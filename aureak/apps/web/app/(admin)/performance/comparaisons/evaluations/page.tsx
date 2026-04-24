@@ -5,7 +5,7 @@
 //              AdminPageHeader v2 ("Comparaison des évaluations")
 
 import { useEffect, useState, useMemo } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listChildDirectory, getAverageEvaluationsByPlayer } from '@aureak/api-client'
 import { AureakText, ComparisonRadarChart } from '@aureak/ui'
@@ -23,6 +23,8 @@ type PlayerSlot = 'A' | 'B'
 
 export default function EvaluationsComparisonPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   // Liste de joueurs disponibles
   const [joueurs, setJoueurs]     = useState<ChildDirectoryEntry[]>([])
@@ -176,9 +178,9 @@ export default function EvaluationsComparisonPage() {
       {/* Story 98.3 — AdminPageHeader v2 */}
       <AdminPageHeader title="Comparaison des évaluations" />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* ── Sélecteurs ── */}
-      <View style={styles.selectors}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
+      {/* ── Sélecteurs — stack en mobile ── */}
+      <View style={[styles.selectors, isMobile && { flexDirection: 'column', gap: space.md }]}>
         <PlayerPicker
           slot="A" selected={playerA} onSelect={setPlayerA}
           search={searchA} setSearch={setSearchA}

@@ -2,7 +2,7 @@
 // Story 60.4 — Classement implantations bar chart
 // Story 98.2 — AdminPageHeader v2 ("Clubs")
 import React, { useEffect, useState } from 'react'
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { getImplantationRankings } from '@aureak/api-client'
 import type { ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
@@ -32,6 +32,8 @@ const METRIC_OPTIONS: { value: 'attendance' | 'mastery'; label: string; unit: st
 ]
 
 export default function ClubsAnalyticsPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const router = useRouter()
 
   const [metric, setMetric]   = useState<'attendance' | 'mastery'>('attendance')
@@ -73,7 +75,7 @@ export default function ClubsAnalyticsPage() {
       <AdminPageHeader title="Clubs" />
 
       <ScrollView style={s.container}>
-      <View style={s.content}>
+      <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Filtres métriques */}
         <View style={s.filterRow}>
           <View style={s.filterGroup}>
