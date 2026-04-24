@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Image, Platform } from 'react-native'
+import { View, StyleSheet, ScrollView, Image, Platform, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getSituationByKey,
@@ -87,6 +87,8 @@ const styles = StyleSheet.create({
 export default function SituationDetailPage() {
   const { situationKey } = useLocalSearchParams<{ situationKey: string }>()
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const tenantId = useAuthStore((s) => s.tenantId)
 
   const [situation, setSituation] = useState<Situation | null>(null)
@@ -254,7 +256,7 @@ export default function SituationDetailPage() {
     const qrUrl = `${process.env.EXPO_PUBLIC_APP_URL ?? 'https://app.aureak.be'}/methodologie/situations/${situationKey}`
     return (
       <View style={{ flex: 1 }}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: 16 }]}>
           {/* Barre d'actions */}
           <View style={styles.actionRow}>
             <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />

@@ -1,7 +1,7 @@
 'use client'
 // Évaluations pédagogiques — bibliothèque de grilles d'évaluation
 import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, type TextStyle, useWindowDimensions } from 'react-native'
 import { listMethodologyExercises } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
@@ -33,6 +33,8 @@ const COL_WIDTHS = { method: 52, num: 90, title: 1, themes: 100, status: 60 }
 
 export default function EvaluationsPage() {
   const counts = useContext(MethodologieCountsContext)
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [exercises,      setExercises]      = useState<MethodologyExercise[]>([])
   const [loading,        setLoading]        = useState(true)
@@ -68,7 +70,7 @@ export default function EvaluationsPage() {
   const isGlobal = methodFilter === 'all' && contextFilter === 'all'
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <ScrollView style={st.container} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
 
       {/* Story 97.3 — Header simplifié */}
       <AdminPageHeader title="Évaluations" />
