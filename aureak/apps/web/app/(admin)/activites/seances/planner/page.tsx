@@ -224,7 +224,7 @@ export default function SeasonPlannerPage() {
         </View>
         <Pressable
           style={st.backBtn}
-          onPress={() => router.push('/seances' as never)}
+          onPress={() => router.push('/activites/seances' as never)}
         >
           <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
             ← Retour aux séances

@@ -1687,7 +1687,7 @@ export default function SessionDetailPage() {
         : true
       if (!ok) return
     }
-    router.push('/(admin)/activites')
+    router.push('/(admin)/activites/seances')
   }
 
   // Story 65-9 — beforeunload guard pour rechargement / fermeture onglet
@@ -1724,7 +1724,7 @@ export default function SessionDetailPage() {
         </AureakText>
         <Pressable
           style={{ marginTop: space.lg, paddingHorizontal: space.md, paddingVertical: space.sm, backgroundColor: colors.accent.gold, borderRadius: 8 }}
-          onPress={() => router.push('/(admin)/activites')}
+          onPress={() => router.push('/(admin)/activites/seances')}
         >
           <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>
             ← Retour aux séances

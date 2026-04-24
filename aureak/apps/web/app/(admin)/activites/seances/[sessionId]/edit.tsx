@@ -348,7 +348,7 @@ export default function EditSessionPage() {
         </AureakText>
         <Pressable
           style={[st.btnPrimary, { marginTop: space.lg }]}
-          onPress={() => router.push('/seances' as never)}
+          onPress={() => router.push('/activites/seances' as never)}
         >
           <AureakText style={st.btnPrimaryText}>← Retour aux séances</AureakText>
         </Pressable>
@@ -365,7 +365,7 @@ export default function EditSessionPage() {
     return (
       <ScrollView style={st.container} contentContainerStyle={st.content}>
         <View style={st.breadcrumb}>
-          <Pressable onPress={() => router.push('/seances' as never)}>
+          <Pressable onPress={() => router.push('/activites/seances' as never)}>
             <AureakText variant="caption" style={st.breadcrumbLink}>Séances</AureakText>
           </Pressable>
           <AureakText variant="caption" style={st.breadcrumbSep}>›</AureakText>
@@ -390,7 +390,7 @@ export default function EditSessionPage() {
 
       {/* Breadcrumb */}
       <View style={st.breadcrumb}>
-        <Pressable onPress={() => router.push('/seances' as never)}>
+        <Pressable onPress={() => router.push('/activites/seances' as never)}>
           <AureakText variant="caption" style={st.breadcrumbLink}>Séances</AureakText>
         </Pressable>
         <AureakText variant="caption" style={st.breadcrumbSep}>›</AureakText>

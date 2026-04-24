@@ -1243,7 +1243,7 @@ export default function NewSessionPage() {
             >
               <AureakText variant="body" style={{ color: colors.text.dark }}>Nouvelle séance</AureakText>
             </Pressable>
-            <Pressable style={[p.btn, p.btnPrimary]} onPress={() => router.push('/seances' as never)}>
+            <Pressable style={[p.btn, p.btnPrimary]} onPress={() => router.push('/activites/seances' as never)}>
               <AureakText variant="body" style={{ color: colors.text.dark, fontWeight: '700' as never }}>Voir les séances →</AureakText>
             </Pressable>
           </View>

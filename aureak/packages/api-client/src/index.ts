@@ -812,3 +812,18 @@ export type {
   ActivitesCounts, MethodologieCounts, AcademieCounts,
 } from './admin/hub-counts'
 
+// ── Story 108.1 — Hub Activités : KPIs + 3 mini-widgets ──────────────────────
+export {
+  getActivitesHubKpis,
+  getHubNextSession,
+  getHubRecentEvaluations,
+  getHubAtRiskPlayers,
+} from './admin/activites-hub'
+export type {
+  HubScope,
+  ActivitesHubKpis,
+  HubNextSession,
+  HubRecentEvaluation,
+  HubAtRiskPlayer,
+} from './admin/activites-hub'
+

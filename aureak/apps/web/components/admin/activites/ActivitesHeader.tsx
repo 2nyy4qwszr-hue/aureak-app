@@ -13,9 +13,10 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'seances',     label: 'SÉANCES',     href: '/activites' },
-  { key: 'presences',   label: 'PRÉSENCES',   href: '/activites/presences' },
-  { key: 'evaluations', label: 'ÉVALUATIONS', href: '/activites/evaluations' },
+  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/activites' },
+  { key: 'seances',     label: 'SÉANCES',         href: '/activites/seances' },
+  { key: 'presences',   label: 'PRÉSENCES',       href: '/activites/presences' },
+  { key: 'evaluations', label: 'ÉVALUATIONS',     href: '/activites/evaluations' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -31,9 +32,10 @@ export type ActivitesHeaderProps = {
 }
 
 function getActiveTab(pathname: string): TabKey {
+  if (pathname.endsWith('/seances') || pathname.includes('/seances/')) return 'seances'
   if (pathname.endsWith('/presences'))   return 'presences'
   if (pathname.endsWith('/evaluations')) return 'evaluations'
-  return 'seances'
+  return 'overview'
 }
 
 export function ActivitesHeader({ counts }: ActivitesHeaderProps = {}) {
@@ -50,7 +52,7 @@ export function ActivitesHeader({ counts }: ActivitesHeaderProps = {}) {
     <View style={styles.headerBlock}>
       {/* Story 103.2 — Bouton "Nouvelle séance" mobile remplacé par PrimaryAction FAB sur /activites.
           Conservé sur /presences et /evaluations (pas de FAB sur ces pages). */}
-      {isMobile && activeTab !== 'seances' && (
+      {isMobile && activeTab !== 'overview' && activeTab !== 'seances' && (
         <View style={styles.headerTopRow}>
           <Pressable
             onPress={() => router.push('/(admin)/seances/new')}
@@ -70,7 +72,7 @@ export function ActivitesHeader({ counts }: ActivitesHeaderProps = {}) {
       >
         {TABS.map(tab => {
           const isActive = tab.key === activeTab
-          const count    = counts?.[tab.key] ?? null
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
           return (
             <Pressable
               key={tab.key}

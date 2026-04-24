@@ -2,9 +2,13 @@
 // Page pilotage séances — vues Jour / Semaine / Mois / Année
 // Story 19.4 — Refonte UI/UX : cards visuelles, coaches sans N+1, calendrier mensuel
 // Story 47.3 — Hub séances unifié : tabs Séances | Présences | Évaluations
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+// Story 108.1 — ActivitesHeader unifié + suppression HUB_TABS interne
+import React, { useEffect, useState, useMemo, useCallback, useContext } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, Modal, TextInput } from 'react-native'
-import { useRouter, usePathname } from 'expo-router'
+import { useRouter } from 'expo-router'
+import { ActivitesHeader }      from '../../../../components/admin/activites/ActivitesHeader'
+import { AdminPageHeader }      from '../../../../components/admin/AdminPageHeader'
+import { ActivitesCountsContext } from '../_layout'
 import {
   listImplantations,
   listAllGroups,
@@ -260,20 +264,12 @@ const gn = StyleSheet.create({
   btnPrimary: { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
 })
 
-// ── Hub tabs ────────────────────────────────────────────────────────────────────
-
-const HUB_TABS = [
-  { label: 'Séances',      route: '/(admin)/seances'     },
-  { label: 'Présences',    route: '/(admin)/presences'   },
-  { label: 'Évaluations',  route: '/(admin)/evaluations' },
-] as const
-
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function SeancesPage() {
-  const router   = useRouter()
-  const pathname = usePathname()
-  const { user } = useAuthStore()
+  const router         = useRouter()
+  const { user }       = useAuthStore()
+  const activitesCnts  = useContext(ActivitesCountsContext)
 
   // ── Period ──────────────────────────────────────────────────────────────────
   const [period,  setPeriod]  = useState<PeriodType>('month')
@@ -514,7 +510,12 @@ export default function SeancesPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <View style={st.container}>
+      {/* Story 108.1 — Header standardisé hub Activités (remplace HUB_TABS interne + h2 local) */}
+      <AdminPageHeader title="Séances" />
+      <ActivitesHeader counts={activitesCnts ?? undefined} />
+
+    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
 
       {/* Toast */}
       {toast ? (
@@ -523,10 +524,9 @@ export default function SeancesPage() {
         </View>
       ) : null}
 
-      {/* ── Header ── */}
+      {/* ── Header actions ── */}
       <View style={st.header}>
         <View>
-          <AureakText variant="h2" color={colors.accent.gold}>Séances</AureakText>
           {!loading ? (
             <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
               {filteredSessions.length}{filterStatus ? `/${sessions.length}` : null} séance{filteredSessions.length !== 1 ? 's' : null} sur la période
@@ -554,39 +554,18 @@ export default function SeancesPage() {
           {/* Story 53-8 — Season Planner */}
           <Pressable
             style={[st.newBtn, { backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light }]}
-            onPress={() => router.push('/seances/planner' as never)}
+            onPress={() => router.push('/activites/seances/planner' as never)}
           >
             <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
               📅 Planner
             </AureakText>
           </Pressable>
-          <Pressable style={st.newBtn} onPress={() => router.push('/seances/new' as never)}>
+          <Pressable style={st.newBtn} onPress={() => router.push('/activites/seances/new' as never)}>
             <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
               + Nouvelle séance
             </AureakText>
           </Pressable>
         </View>
-      </View>
-
-      {/* ── Hub tabs : Séances | Présences | Évaluations ── */}
-      <View style={st.hubTabsRow}>
-        {HUB_TABS.map(tab => {
-          const active = pathname === tab.route || (tab.route === '/(admin)/seances' && pathname.startsWith('/seances'))
-          return (
-            <Pressable
-              key={tab.route}
-              style={[st.hubTab, active && st.hubTabActive]}
-              onPress={() => router.push(tab.route as never)}
-            >
-              <AureakText
-                variant="caption"
-                style={{ color: active ? colors.accent.gold : colors.text.muted, fontWeight: active ? '700' : '400' }}
-              >
-                {tab.label}
-              </AureakText>
-            </Pressable>
-          )
-        })}
       </View>
 
       {/* ── Period selector ── */}
@@ -817,7 +796,7 @@ export default function SeancesPage() {
           </AureakText>
           <Pressable
             style={[st.newBtn, { marginTop: space.md }]}
-            onPress={() => router.push('/seances/new' as never)}
+            onPress={() => router.push('/activites/seances/new' as never)}
           >
             <AureakText variant="caption" style={{ color: colors.text.dark, fontWeight: '700' }}>
               + Créer une séance
@@ -878,6 +857,7 @@ export default function SeancesPage() {
       )}
 
     </ScrollView>
+    </View>
   )
 }
 
@@ -885,6 +865,7 @@ export default function SeancesPage() {
 
 const st = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
+  scroll     : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
 
   toast      : { backgroundColor: colors.status.successBg, borderWidth: 1, borderColor: colors.status.success, borderRadius: 8, padding: space.sm },
