@@ -478,6 +478,7 @@ export type Implantation = {
   id         : string
   tenantId   : string
   name       : string
+  shortName  : string | null   // Story 107-1 — nom court pour génération auto nom stage
   address    : string | null
   gpsLat     : number | null
   gpsLon     : number | null

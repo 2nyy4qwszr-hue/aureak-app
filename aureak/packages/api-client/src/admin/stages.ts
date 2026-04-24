@@ -108,6 +108,32 @@ function mapBlock(row: Record<string, unknown>): StageBlock {
 }
 
 // ============================================================
+// tenant resolution (Story 107-1 — fix RLS INSERT)
+// Mirroir du pattern utilisé dans prospection.ts / sponsors.ts
+// ============================================================
+
+async function resolveTenantId(): Promise<string> {
+  const { data: userData } = await supabase.auth.getUser()
+  const user = userData?.user
+  if (!user) throw new Error('Non authentifié')
+
+  const jwtTenant = (user.app_metadata?.tenant_id as string | undefined)
+    ?? (user.user_metadata?.tenant_id as string | undefined)
+  if (jwtTenant) return jwtTenant
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('tenant_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (error || !profile?.tenant_id) {
+    throw new Error('tenant_id introuvable (ni JWT, ni profiles)')
+  }
+  return profile.tenant_id as string
+}
+
+// ============================================================
 // Stages CRUD
 // ============================================================
 
@@ -214,9 +240,12 @@ export async function getStage(id: string): Promise<StageWithMeta | null> {
 }
 
 export async function createStage(params: CreateStageParams): Promise<Stage> {
+  const tenantId = await resolveTenantId()
+
   const { data, error } = await supabase
     .from('stages')
     .insert({
+      tenant_id       : tenantId,
       name            : params.name,
       start_date      : params.startDate,
       end_date        : params.endDate,

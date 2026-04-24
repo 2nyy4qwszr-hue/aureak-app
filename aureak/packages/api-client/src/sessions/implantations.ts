@@ -23,6 +23,7 @@ function mapImplantation(row: Record<string, unknown>): Implantation {
     id         : row.id          as string,
     tenantId   : row.tenant_id   as string,
     name       : row.name        as string,
+    shortName  : (row.short_name as string | null) ?? null,   // Story 107-1
     address    : (row.address    as string | null) ?? null,
     gpsLat     : (row.gps_lat    as number | null) ?? null,
     gpsLon     : (row.gps_lon    as number | null) ?? null,
