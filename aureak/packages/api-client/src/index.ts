@@ -827,3 +827,19 @@ export type {
   HubAtRiskPlayer,
 } from './admin/activites-hub'
 
+// ── Hub Méthodologie : KPIs + situation de la semaine + widgets ──────────────
+export {
+  getMethodologieHubKpis,
+  getHubSituationOfWeek,
+  getHubRecentTrainings,
+  getHubRecentSituations,
+  getHubOrphanThemes,
+} from './admin/methodologie-hub'
+export type {
+  MethodologieHubKpis,
+  HubMethodologySituationOfWeek,
+  HubRecentTraining,
+  HubRecentSituation,
+  HubOrphanTheme,
+} from './admin/methodologie-hub'
+
