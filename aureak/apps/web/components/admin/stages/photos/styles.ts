@@ -96,7 +96,7 @@ export const paniniStyles = {
   restoreBanner: {
     marginTop   : space.xs,
     padding     : `${space.xs}px ${space.sm}px`,
-    background  : '#fff4e5',
+    background  : colors.status.warningBg,
     borderLeft  : `3px solid ${colors.accent.gold}`,
     borderRadius: radius.xs,
     fontSize    : 12.5,
@@ -186,7 +186,7 @@ export const paniniStyles = {
     cursor       : 'pointer',
     background   : colors.light.muted,
     border       : `2px solid ${selected ? colors.accent.gold : 'transparent'}`,
-    boxShadow    : selected ? `0 0 0 3px rgba(193,172,92,0.25)` : 'none',
+    boxShadow    : selected ? `0 0 0 3px ${colors.border.gold}` : 'none',
     transition   : 'border-color 0.12s, transform 0.12s, box-shadow 0.12s',
     userSelect   : 'none',
   }),
@@ -213,8 +213,8 @@ export const paniniStyles = {
     height        : 22,
     border        : 'none',
     borderRadius  : '50%',
-    background    : 'rgba(0,0,0,0.65)',
-    color         : '#fff',
+    background    : colors.overlay.modal,
+    color         : colors.text.primary,
     fontSize      : 16,
     lineHeight    : 1,
     padding       : 0,
@@ -249,7 +249,7 @@ export const paniniStyles = {
     flexDirection: 'column',
     transform    : state.dragOver ? 'scale(1.02)' : 'scale(1)',
     boxShadow    : (state.hasPhoto && state.canAssign)
-      ? `0 0 0 2px rgba(193,172,92,0.25)`
+      ? `0 0 0 2px ${colors.border.gold}`
       : 'none',
     transition   : 'border-color 0.15s, transform 0.15s, box-shadow 0.15s',
     userSelect   : 'none',
@@ -279,7 +279,7 @@ export const paniniStyles = {
     bottom    : 0,
     padding   : `${space.sm}px ${space.xs}px`,
     textAlign : 'center',
-    background: 'linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0))',
+    background: `linear-gradient(to top, ${colors.overlay.light}, transparent)`,
   } as CSSProperties,
 
   childCardPrenom: { fontSize: 12, color: colors.text.muted } as CSSProperties,
@@ -315,8 +315,8 @@ export const paniniStyles = {
     height        : 32,
     border        : 'none',
     borderRadius  : '50%',
-    background    : 'rgba(0,0,0,0.65)',
-    color         : '#fff',
+    background    : colors.overlay.modal,
+    color         : colors.text.primary,
     fontSize      : 14,
     lineHeight    : 1,
     padding       : 0,
@@ -384,7 +384,7 @@ export const paniniStyles = {
   modalOverlay: {
     position      : 'fixed',
     inset         : 0,
-    background    : 'rgba(0,0,0,0.75)',
+    background    : colors.overlay.modal,
     display       : 'flex',
     alignItems    : 'stretch',
     justifyContent: 'stretch',
@@ -453,7 +453,7 @@ export const paniniStyles = {
 
   cropperContainerMobile: {
     position    : 'relative',
-    background  : '#222',
+    background  : colors.background.elevated,
     borderRadius: radius.button,
     overflow    : 'hidden',
     height      : '40vh',
@@ -509,8 +509,8 @@ export const paniniStyles = {
   paniniPreviewError: {
     position      : 'absolute',
     inset         : 0,
-    background    : 'rgba(220,0,0,0.85)',
-    color         : '#fff',
+    background    : colors.accent.red,
+    color         : colors.text.primary,
     padding       : space.xs,
     fontSize      : 11,
     display       : 'flex',
