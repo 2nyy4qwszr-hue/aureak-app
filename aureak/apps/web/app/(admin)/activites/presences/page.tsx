@@ -1303,6 +1303,7 @@ const pageStyles = StyleSheet.create({
   scrollContent: {
     paddingTop     : space.md,
     paddingBottom  : space.xxl,
+    gap            : space.md,
     backgroundColor: colors.light.primary,
   },
   filtresRow: {
@@ -1310,7 +1311,6 @@ const pageStyles = StyleSheet.create({
     justifyContent   : 'space-between',
     alignItems       : 'center',
     paddingHorizontal: space.lg,
-    paddingVertical  : space.sm,
     zIndex           : 9999,
   },
   filtresRowMobile: {
