@@ -4,7 +4,7 @@
 // Accès : admin uniquement (redirect sinon). Tokens @aureak/theme uniquement.
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useAuthStore } from '@aureak/business-logic'
 import {
@@ -47,6 +47,8 @@ type Tab = 'matrix' | 'overrides'
 export default function PermissionsPage() {
   const router = useRouter()
   const { role, isLoading } = useAuthStore()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   // Garde d'accès admin (AC6)
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function PermissionsPage() {
       {/* Story 99.4 — AdminPageHeader v2 */}
       <AdminPageHeader title="Permissions" />
 
-      <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
       {/* Tabs */}
       <View style={s.tabs}>
         {(['matrix', 'overrides'] as Tab[]).map((t) => (

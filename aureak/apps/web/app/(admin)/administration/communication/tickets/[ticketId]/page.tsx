@@ -1,7 +1,7 @@
 // Story 7.4 — Détail ticket + fil de réponses (Admin/Coach)
 // Story 99.6 — AdminPageHeader v2 (titre dynamique = sujet du ticket)
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getTicketWithReplies, replyToTicket, updateTicketStatus } from '@aureak/api-client'
 import type { Ticket, TicketReply, TicketStatus } from '@aureak/api-client'
@@ -50,6 +50,8 @@ const styles = StyleSheet.create({
 export default function TicketDetailPage() {
   const { ticketId } = useLocalSearchParams<{ ticketId: string }>()
   const router       = useRouter()
+  const { width }    = useWindowDimensions()
+  const isMobile     = width <= 640
 
   const [ticket,  setTicket]  = useState<Ticket | null>(null)
   const [replies, setReplies] = useState<TicketReply[]>([])
@@ -124,7 +126,7 @@ export default function TicketDetailPage() {
       {/* Story 99.6 — AdminPageHeader v2 avec titre dynamique */}
       <AdminPageHeader title={ticket.subject ?? 'Ticket'} />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
 
       {/* En-tête ticket (détails meta sous le header) */}

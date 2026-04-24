@@ -1,7 +1,7 @@
 // Story 7.4 — Liste tickets support (Admin/Coach)
 // Story 99.6 — AdminPageHeader v2 ("Tickets")
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listAllTickets, updateTicketStatus } from '@aureak/api-client'
 import type { Ticket, TicketStatus } from '@aureak/api-client'
@@ -56,6 +56,8 @@ const STATUS_FILTERS: { value: TicketStatus | 'all'; label: string }[] = [
 
 export default function TicketsAdminPage() {
   const router   = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const [filter,  setFilter]  = useState<TicketStatus | 'all'>('all')
@@ -79,7 +81,7 @@ export default function TicketsAdminPage() {
       {/* Story 99.6 — AdminPageHeader v2 */}
       <AdminPageHeader title="Tickets" />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {/* Filtres */}
       <View style={styles.filterRow}>
         {STATUS_FILTERS.map((f) => (

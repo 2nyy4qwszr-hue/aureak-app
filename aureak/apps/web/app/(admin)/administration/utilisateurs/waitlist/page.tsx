@@ -5,7 +5,7 @@
 // AC7 : "Vue admin : liste d'attente par groupe avec statuts"
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space, fonts, radius } from '@aureak/theme'
 import {
@@ -41,6 +41,8 @@ type EnrichedEntry = TrialWaitlistEntry & {
 }
 
 export default function WaitlistAdminPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [entries,       setEntries]       = useState<EnrichedEntry[]>([])
   const [loading,       setLoading]       = useState(true)
   const [statusFilter,  setStatusFilter]  = useState<FilterStatus>('all')
@@ -122,7 +124,7 @@ export default function WaitlistAdminPage() {
       {/* Story 99.3 — AdminPageHeader v2 */}
       <AdminPageHeader title="Liste d'attente" />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, isMobile && { paddingHorizontal: space.md }]}>
         {/* StatCards — counts par statut */}
         <View style={styles.statCards}>
           {(['waiting', 'notified', 'confirmed', 'expired'] as WaitlistStatus[]).map(st => (
