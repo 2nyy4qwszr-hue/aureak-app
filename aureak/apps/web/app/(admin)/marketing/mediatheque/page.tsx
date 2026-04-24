@@ -2,7 +2,7 @@
 // Story 91.2 — Médiathèque : vue role-aware (coach = upload + liste perso ; admin/marketeur = galerie validation)
 // Story 97.12 — AdminPageHeader v2 ("Médiathèque") + MarketingNavBar
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
 import { useAuthStore } from '@aureak/business-logic'
 import { listMediaItems } from '@aureak/api-client'
 import type { MediaItem } from '@aureak/types'
@@ -17,6 +17,8 @@ import { MediaCard } from './_components/MediaCard'
 
 export default function MediathequePage() {
   const { user } = useAuthStore()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const { activeRole } = useCurrentRole()
   const isAdminOrMarketeur = activeRole === 'admin' || activeRole === 'marketeur'
   const isCoach = activeRole === 'coach'
@@ -49,11 +51,11 @@ export default function MediathequePage() {
       <MarketingNavBar />
 
       {isAdminOrMarketeur ? (
-        <ScrollView contentContainerStyle={s.container}>
+        <ScrollView contentContainerStyle={[s.container, isMobile && { padding: space.md }]}>
           <MediaGrid />
         </ScrollView>
       ) : isCoach ? (
-        <ScrollView contentContainerStyle={s.container}>
+        <ScrollView contentContainerStyle={[s.container, isMobile && { padding: space.md }]}>
           <UploadForm onSuccess={() => setReloadToken(t => t + 1)} />
 
           <View style={s.section}>
