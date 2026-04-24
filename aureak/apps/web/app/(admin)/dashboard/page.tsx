@@ -23,6 +23,7 @@ import type { PlayerOfWeek, LeaderboardEntry, StageWithMeta } from '@aureak/type
 import { colors, shadows, radius, transitions, gamification, typography, fonts, getStatColor, STAT_THRESHOLDS, TERRAIN_GRADIENT_DARK, TERRAIN_GRADIENT_HEADER } from '@aureak/theme'
 import { PlayerOfWeekTile, MilestoneCelebration, SeasonTrophy, exportTrophyAsPng, LiveCounter, HelpTooltip, HELP_TEXTS } from '@aureak/ui'
 import { useLiveSessionCounts } from '@aureak/api-client'
+import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
 // ── Design tokens (local helpers) ─────────────────────────────────────────────
 
@@ -81,18 +82,20 @@ function SkeletonBlock({ h, w = '100%', r = 8 }: { h: number; w?: string; r?: nu
 }
 
 function DashboardSkeleton() {
+  const bp = useBreakpoint()
+  const isDesktop = bp === 'desktop'
   return (
-    <div style={S.container}>
+    <div style={{ ...S.container, padding: isDesktop ? '28px 32px' : '16px 12px' }}>
       <style>{`
         @keyframes a-pulse{0%,100%{opacity:.12}50%{opacity:.25}}
         .a-skel{background:${colors.border.divider};animation:a-pulse 1.8s ease-in-out infinite}
       `}</style>
 
       {/* ── Layout 3 colonnes skeleton ── */}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', flexDirection: isDesktop ? 'row' : 'column', gap: isDesktop ? 20 : 16, alignItems: 'flex-start' }}>
 
         {/* Colonne gauche */}
-        <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ width: isDesktop ? 260 : '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <SkeletonBlock h={12} w="80px" r={4} />
           <SkeletonBlock h={100} r={radius.card} />
           <SkeletonBlock h={100} r={radius.card} />
@@ -103,9 +106,9 @@ function DashboardSkeleton() {
         </div>
 
         {/* Colonne milieu */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ flex: 1, width: isDesktop ? 'auto' : '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <SkeletonBlock h={12} w="100px" r={4} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: bp === 'mobile' ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
             {[0,1,2,3].map(i => <SkeletonBlock key={i} h={80} r={radius.card} />)}
           </div>
           <SkeletonBlock h={80} r={radius.card} />
@@ -114,7 +117,7 @@ function DashboardSkeleton() {
         </div>
 
         {/* Colonne droite */}
-        <div style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ width: isDesktop ? 240 : '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <SkeletonBlock h={12} w="100px" r={4} />
           <SkeletonBlock h={200} r={radius.card} />
           <SkeletonBlock h={160} r={radius.card} />
@@ -1290,6 +1293,8 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
   upcomingSession: UpcomingSessionRow | null
   loadingUpcoming: boolean
 }) {
+  const bp = useBreakpoint()
+  const isMobile = bp === 'mobile'
   const [now,     setNow]     = useState(() => new Date())
   const [weather, setWeather] = useState<WeatherData | null>(null)
 
@@ -1319,15 +1324,17 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
   return (
     <div style={{
       display        : 'flex',
-      alignItems     : 'center',
+      flexDirection  : isMobile ? 'column' : 'row',
+      alignItems     : isMobile ? 'flex-start' : 'center',
       justifyContent : 'space-between',
+      gap            : isMobile ? 8 : 0,
       backgroundColor: colors.light.primary,
       borderBottom   : `1px solid ${colors.border.divider}`,
       padding        : '8px 0',
-      marginBottom   : 20,
+      marginBottom   : isMobile ? 14 : 20,
     }}>
       {/* ── Gauche : date + heure + météo + statut ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 14, flexWrap: 'wrap' }}>
         <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 14, color: colors.text.dark }}>
           {dateStr}
         </span>
@@ -1335,7 +1342,7 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
         <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 600, color: colors.text.muted }}>
           {timeLabel}
         </span>
-        {weather && (
+        {!isMobile && weather && (
           <>
             <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
@@ -1349,7 +1356,7 @@ function DashboardTopBar({ pendingSessions, upcomingSession, loadingUpcoming }: 
             </span>
           </>
         )}
-        {!loadingUpcoming && upcomingSession && (
+        {!isMobile && !loadingUpcoming && upcomingSession && (
           <>
             <span style={{ color: colors.border.light, fontSize: 14 }}>|</span>
             <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 13, fontWeight: 700, color: colors.text.dark }}>
@@ -2095,6 +2102,9 @@ function LeaderboardTile({
 
 export default function DashboardPage() {
   const router = useRouter()
+  const bp = useBreakpoint()
+  const isDesktop = bp === 'desktop'
+  const isMobile = bp === 'mobile'
 
   // ── Live counters (Story 60.8) ──
   const liveCounters = useLiveSessionCounts()
@@ -2616,6 +2626,7 @@ export default function DashboardPage() {
   )
 
   // ── Focus Mode container style (Story 50-9) ──
+  const responsivePadding = isDesktop ? '28px 32px' : isMobile ? '16px 12px' : '20px 20px'
   const containerStyle: React.CSSProperties = focusMode
     ? {
         ...S.container,
@@ -2627,7 +2638,7 @@ export default function DashboardPage() {
         padding  : 24,
         animation: 'focus-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }
-    : S.container
+    : { ...S.container, padding: responsivePadding }
 
   return (
     <div style={containerStyle} className={focusMode ? 'focus-mode-enter' : undefined}>
@@ -2652,19 +2663,20 @@ export default function DashboardPage() {
         .groups-scroll::-webkit-scrollbar { display: none; }
         .groups-scroll { scrollbar-width: none; }
 
-        /* ── Dashboard 3 colonnes responsive (Story 67.1) ── */
+        /* ── Dashboard 3 colonnes responsive (Story 67.1 + 103.1) ── */
         .dashboard-3col { display: flex; flex-direction: row; gap: 20px; align-items: flex-start; }
 
-        @media (max-width: 1100px) {
-          /* Col droite passe en bas de col milieu */
-          .dashboard-3col { flex-wrap: wrap; }
+        /* Tablette 640-1023 : col gauche + milieu côte à côte, droite pleine largeur dessous */
+        @media (max-width: 1023px) {
+          .dashboard-3col { flex-wrap: wrap; gap: 16px; }
           .dashboard-3col > div:first-child  { width: 280px; flex-shrink: 0; }
           .dashboard-3col > div:nth-child(2) { flex: 1; min-width: 300px; }
           .dashboard-3col > div:last-child   { width: 100%; }
         }
 
-        @media (max-width: 768px) {
-          .dashboard-3col { flex-direction: column; }
+        /* Mobile < 640 : stack vertical complet */
+        @media (max-width: 639px) {
+          .dashboard-3col { flex-direction: column; gap: 14px; }
           .dashboard-3col > div { width: 100% !important; flex-shrink: unset; }
         }
 
@@ -2752,12 +2764,12 @@ export default function DashboardPage() {
       {/* ══════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES — STORY 67.1
       ══════════════════════════════════════════════════════════ */}
-      <div className="dashboard-3col" style={{ display: 'flex', flexDirection: 'row', gap: 20, alignItems: 'flex-start' }}>
+      <div className="dashboard-3col" style={{ display: 'flex', flexDirection: isDesktop ? 'row' : 'column', gap: isDesktop ? 20 : isMobile ? 14 : 16, alignItems: 'flex-start' }}>
 
       {/* ════════════════════════════════
           COL GAUCHE — LA JOURNÉE (280px)
       ════════════════════════════════ */}
-      <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <div style={{ width: isDesktop ? 280 : '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
 
         {/* Label section */}
         <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10, fontFamily: 'Montserrat, sans-serif' }}>
@@ -2974,43 +2986,48 @@ export default function DashboardPage() {
       {/* ════════════════════════════════
           COL MILIEU — L'ACADÉMIE (flex 1)
       ════════════════════════════════ */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, minWidth: 0, width: isDesktop ? 'auto' : '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Label section */}
         <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 0, fontFamily: 'Montserrat, sans-serif' }}>
           L&apos;Académie
         </div>
 
-      {/* ── Ligne stats 4 chiffres ── */}
+      {/* ── Ligne stats 4 chiffres (grid 2x2 sous desktop, row desktop) ── */}
         <div style={{
-          display        : 'flex',
-          flexDirection  : 'row',
-          backgroundColor: colors.light.surface,
-          borderRadius   : radius.card,
-          border         : `1px solid ${colors.border.light}`,
-          boxShadow      : shadows.sm,
-          padding        : '16px 20px',
-          gap            : 0,
+          display              : isDesktop ? 'flex' : 'grid',
+          flexDirection        : 'row',
+          gridTemplateColumns  : isDesktop ? undefined : 'repeat(2, 1fr)',
+          gap                  : isDesktop ? 0 : 12,
+          backgroundColor      : colors.light.surface,
+          borderRadius         : radius.card,
+          border               : `1px solid ${colors.border.light}`,
+          boxShadow            : shadows.sm,
+          padding              : isDesktop ? '16px 20px' : '14px 16px',
         }}>
           {[
             { label: 'Joueurs',  value: countVal(childrenTotal) },
             { label: 'Coachs',   value: countVal(coachesTotal)  },
             { label: 'Groupes',  value: countVal(groupsTotal)   },
             { label: 'Sites',    value: stats.length > 0 ? stats.length : '—' },
-          ].map(({ label, value }, idx, arr) => (
-            <div key={label} style={{
-              flex          : 1,
-              textAlign     : 'center',
-              borderRight   : idx < arr.length - 1 ? `1px solid ${colors.border.divider}` : 'none',
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: colors.accent.gold, fontFamily: 'Montserrat, sans-serif', lineHeight: 1 }}>
-                {value}
+          ].map(({ label, value }, idx, arr) => {
+            const isLastCol = isDesktop ? idx === arr.length - 1 : (idx % 2 === 1)
+            return (
+              <div key={label} style={{
+                flex          : isDesktop ? 1 : undefined,
+                textAlign     : 'center',
+                borderRight   : isLastCol ? 'none' : `1px solid ${colors.border.divider}`,
+                paddingBlock  : isDesktop ? 0 : 4,
+              }}>
+                <div style={{ fontSize: isDesktop ? 22 : 28, fontWeight: 900, color: colors.accent.gold, fontFamily: 'Montserrat, sans-serif', lineHeight: 1 }}>
+                  {value}
+                </div>
+                <div style={{ fontSize: 11, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1, marginTop: 4, fontFamily: 'Montserrat, sans-serif' }}>
+                  {label}
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: colors.text.muted, textTransform: 'uppercase', letterSpacing: 1, marginTop: 4, fontFamily: 'Montserrat, sans-serif' }}>
-                {label}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* ── Card Activité 4 semaines ── */}
@@ -3232,7 +3249,7 @@ export default function DashboardPage() {
       {/* ════════════════════════════════
           COL DROITE — PERFORMANCE (280px)
       ════════════════════════════════ */}
-      <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ width: isDesktop ? 280 : '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Label section */}
         <div style={{ fontSize: 12, fontWeight: 700, color: colors.text.dark, textTransform: 'uppercase' as React.CSSProperties['textTransform'], letterSpacing: 1.5, marginBottom: 12, fontFamily: 'Montserrat, sans-serif' }}>
