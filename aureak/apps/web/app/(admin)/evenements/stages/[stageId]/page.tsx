@@ -2,7 +2,7 @@
 // Vue détail d'un stage — planning visuel jour par jour
 // Structure : Stage → StageDays (onglets) → StageBlocks (timeline)
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput, Modal } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, Modal, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getStage, updateStage,
@@ -469,6 +469,8 @@ const m = StyleSheet.create({
 export default function StageDetailPage() {
   const { stageId } = useLocalSearchParams<{ stageId: string }>()
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [stage,   setStage]   = useState<StageWithMeta | null>(null)
   const [days,    setDays]    = useState<StageDay[]>([])
@@ -723,7 +725,7 @@ export default function StageDetailPage() {
   return (
     <>
       <style>{`.stage-date-inp:focus { outline: none; border-color: ${colors.accent.gold} !important; }`}</style>
-      <ScrollView style={p.container} contentContainerStyle={p.content}>
+      <ScrollView style={p.container} contentContainerStyle={[p.content, isMobile && { padding: 16 }]}>
 
         {/* ── Back + Export ── */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
