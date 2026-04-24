@@ -843,3 +843,21 @@ export type {
   HubOrphanTheme,
 } from './admin/methodologie-hub'
 
+// ── Hub Académie : KPIs + résumé semaine + widgets ───────────────────────────
+export {
+  getAcademieHubKpis,
+  getAcademieWeekSummary,
+  getAcademieLatestJoueur,
+  getAcademieRecentJoueurs,
+  getAcademieHubImplantations,
+  getAcademieOldAcademiciens,
+} from './admin/academie-hub'
+export type {
+  AcademieHubKpis,
+  AcademieWeekSummary,
+  AcademieLatestJoueur,
+  AcademieRecentJoueur,
+  AcademieHubImplantation,
+  AcademieHubOldAcademicien,
+} from './admin/academie-hub'
+
