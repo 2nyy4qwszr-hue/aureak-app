@@ -1,6 +1,6 @@
 'use client'
 import React, { useContext, useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, type TextStyle, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listSituations, listThemeGroups } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -27,6 +27,8 @@ function getBlocPicto(name: string): string {
 export default function SituationsPage() {
   const router = useRouter()
   const counts = useContext(MethodologieCountsContext)
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [situations,     setSituations]     = useState<Situation[]>([])
   const [groups,         setGroups]         = useState<ThemeGroup[]>([])
@@ -64,7 +66,7 @@ export default function SituationsPage() {
     : situations
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={st.content}>
+    <ScrollView style={st.container} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
 
       {/* Story 97.3 — Header simplifié */}
       <AdminPageHeader title="Situations" />

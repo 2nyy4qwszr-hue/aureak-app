@@ -1,7 +1,7 @@
 'use client'
 // Fiche entraînement pédagogique — détail, édition inline, thèmes/situations liés
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable, Linking } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, Linking, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   getMethodologySession, updateMethodologySession, toggleMethodologySession,
@@ -265,6 +265,8 @@ const bl = StyleSheet.create({
 export default function SeanceDetailPage() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>()
   const router        = useRouter()
+  const { width }     = useWindowDimensions()
+  const isMobile      = width <= 640
 
   const [session,          setSession]          = useState<MethodologySession | null>(null)
   const [linkedThemes,     setLinkedThemes]     = useState<MethodologyTheme[]>([])
@@ -388,7 +390,7 @@ export default function SeanceDetailPage() {
   const methodColor = session.method ? (methodologyMethodColors[session.method as MethodologyMethod] ?? colors.border.light) : colors.border.light
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
 
       {/* ── Back ── */}
       <Pressable onPress={() => router.push('/methodologie/seances' as never)}>

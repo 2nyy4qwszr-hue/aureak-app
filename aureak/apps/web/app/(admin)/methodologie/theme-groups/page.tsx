@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listThemeGroups, createThemeGroup, updateThemeGroupOrder } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
@@ -51,6 +51,8 @@ const styles = StyleSheet.create({
 })
 
 export default function ThemeGroupsPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const router = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
 
@@ -90,7 +92,7 @@ export default function ThemeGroupsPage() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: 16 }]}>
       <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
       <AureakText variant="h2">Blocs</AureakText>
       <AureakText variant="body" style={{ color: colors.text.muted, marginTop: -8, marginBottom: 8 }}>
