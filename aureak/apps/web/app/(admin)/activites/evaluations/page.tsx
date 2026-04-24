@@ -11,7 +11,6 @@ import {
 } from '@aureak/api-client'
 import type { AdminEvalRow } from '@aureak/api-client'
 
-import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
@@ -345,8 +344,6 @@ export default function EvaluationsPage() {
   // ─── Rendu ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Story 97.3 — Header simplifié */}
-      <AdminPageHeader title="Évaluations" />
       <ActivitesHeader counts={activitesCnts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -362,52 +359,21 @@ export default function EvaluationsPage() {
           </View>
         )}
 
-        {/* 4 Stat Cards — AVANT les filtres (alignement Séances/Présences) */}
-        <View style={styles.statCardsRow}>
-          {/* Card 1 — Note Moyenne */}
-          <StatCard
-            icon="📊"
-            label="Note Moyenne"
-            value={stats ? `${stats.avgDisplay}/10` : '—'}
-            badge={stats?.progression !== null && stats?.progression !== undefined ? `${stats.progression > 0 ? '+' : ''}${stats.progression.toFixed(1)}%` : undefined}
-            badgeColor={colors.status.success}
-          />
-          {/* Card 2 — Évals ce mois */}
-          <StatCard
-            icon="📋"
-            label="Évals ce mois"
-            value={stats ? String(stats.evalsThisMonth) : '—'}
-          />
-          {/* Card 3 — Progression Technique */}
-          <StatCard
-            icon="📈"
-            label="Progression Technique"
-            value={stats?.progression !== null && stats?.progression !== undefined ? `${stats.progression > 0 ? '+' : ''}${stats.progression.toFixed(1)}%` : '—'}
-            valueColor={colors.accent.gold}
-          />
-          {/* Card 4 — Top performer */}
-          <StatCard
-            icon="👤"
-            label="Top performer"
-            value={stats?.topName ? truncate(stats.topName, 14) : '—'}
-            dark
-          />
-        </View>
-
         {/* Filtres scope + toggle evalType sur une ligne (stack mobile) */}
         <View style={[styles.filtresRow, isMobile && styles.filtresRowMobile]}>
           <FiltresScope value={scope} onChange={setScope} />
           <View style={styles.toggleRow}>
             {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
               const isActive = type === evalType
+              const label = type === 'badges' ? 'Badges' : type === 'connaissances' ? 'Connaissances' : 'Compétences'
               return (
                 <Pressable
                   key={type}
                   onPress={() => setEvalType(type)}
                   style={[styles.toggleBtn, isActive && styles.toggleBtnActive] as never}
                 >
-                  <AureakText variant="label" style={[styles.toggleLabel, isActive && styles.toggleLabelActive] as never}>
-                    {type.toUpperCase()}
+                  <AureakText style={[styles.toggleLabel, isActive && styles.toggleLabelActive] as never}>
+                    {label}
                   </AureakText>
                 </Pressable>
               )
@@ -738,32 +704,34 @@ const styles = StyleSheet.create({
     color       : colors.text.primary,
   },
 
-  // ── Eval Type SegmentedToggle ──────────────────────────────────────────────
+  // ── Eval Type SegmentedToggle (aligné sur SeancesPage.timeToggle) ──────────
   toggleRow: {
-    flexDirection: 'row',
-    gap          : 0,
-    alignSelf    : 'flex-start',
-    borderRadius : radius.xs,
-    overflow     : 'hidden',
-    borderWidth  : 1,
-    borderColor  : colors.border.light,
+    flexDirection  : 'row',
+    gap            : 4,
+    alignSelf      : 'flex-start',
+    backgroundColor: colors.light.muted,
+    borderRadius   : radius.xs,
+    padding        : 3,
   },
   toggleBtn: {
-    paddingVertical  : 8,
-    paddingHorizontal: space.lg,
-    backgroundColor  : colors.light.surface,
+    paddingHorizontal: 14,
+    paddingVertical  : 5,
+    borderRadius     : radius.xs - 2,
+    borderWidth      : 1,
+    borderColor      : 'transparent',
   },
   toggleBtnActive: {
-    backgroundColor: colors.accent.gold,
+    backgroundColor: colors.light.surface,
+    borderColor    : colors.border.divider,
   },
   toggleLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 0.8,
-    color        : colors.text.muted,
+    fontSize  : 12,
+    color     : colors.text.muted,
+    fontFamily: fonts.body,
   },
   toggleLabelActive: {
-    color: colors.text.dark,
+    color     : colors.text.dark,
+    fontWeight: '600',
   },
 
   // ── Tableau évaluations ───────────────────────────────────────────────────

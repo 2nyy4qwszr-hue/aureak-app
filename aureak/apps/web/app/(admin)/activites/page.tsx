@@ -6,7 +6,6 @@ import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { colors, space } from '@aureak/theme'
 
-import { AdminPageHeader }               from '../../../components/admin/AdminPageHeader'
 import { ActivitesCountsContext }        from './_layout'
 import { ActivitesHeader }               from '../../../components/admin/activites/ActivitesHeader'
 import { ActivitesHubKpis }              from '../../../components/admin/activites/ActivitesHubKpis'
@@ -27,8 +26,6 @@ export default function ActivitesHubPage() {
 
   return (
     <View style={styles.container}>
-      <AdminPageHeader title="Activités" />
-
       <ActivitesHeader counts={counts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>

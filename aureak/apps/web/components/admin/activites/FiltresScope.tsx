@@ -104,11 +104,11 @@ export function FiltresScope({ value, onChange }: Props) {
   function pillStyle(active: boolean, disabled = false): ViewStyle {
     return {
       paddingHorizontal: 14,
-      paddingVertical  : 6,
-      borderRadius     : radius.badge,
-      backgroundColor  : active ? colors.accent.gold : colors.light.muted,
+      paddingVertical  : 5,
+      borderRadius     : radius.xs,
+      backgroundColor  : active ? colors.light.surface : colors.light.muted,
       borderWidth      : 1,
-      borderColor      : active ? colors.accent.gold : colors.border.light,
+      borderColor      : active ? colors.border.divider : 'transparent',
       opacity          : disabled ? 0.45 : 1,
       cursor           : disabled ? 'not-allowed' : 'pointer',
     } as ViewStyle
@@ -117,7 +117,7 @@ export function FiltresScope({ value, onChange }: Props) {
   function pillTextStyle(active: boolean): TextStyle {
     return {
       fontSize  : 12,
-      fontWeight: '600',
+      fontWeight: active ? '600' : '400',
       fontFamily: fonts.body,
       color     : active ? colors.text.dark : colors.text.muted,
     }

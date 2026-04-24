@@ -8,7 +8,6 @@ import { colors, fonts, radius, space } from '@aureak/theme'
 import { listImplantations, listAllGroups } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
 
-import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { ActivitesCountsContext } from '../_layout'
 import { TableauSeances }         from '../../../../components/admin/activites/TableauSeances'
@@ -75,7 +74,6 @@ export default function SeancesPage() {
 
   return (
     <View style={styles.container}>
-      <AdminPageHeader title="Séances" />
       <ActivitesHeader counts={activitesCnts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
