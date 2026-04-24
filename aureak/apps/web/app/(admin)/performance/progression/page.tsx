@@ -2,7 +2,7 @@
 // Story 60.6 — Analytics Progression — Top 10 joueurs classements multiples
 // Story 98.2 — AdminPageHeader v2 ("Progression")
 import React, { useEffect, useState } from 'react'
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listImplantations, getPlayerRankings } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
@@ -128,6 +128,8 @@ function SkeletonRows() {
 
 export default function ProgressionPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [implantations,    setImplantations]    = useState<Implantation[]>([])
   const [implantationId,   setImplantationId]   = useState<string>('')
@@ -168,7 +170,7 @@ export default function ProgressionPage() {
       <AdminPageHeader title="Progression" />
 
       <ScrollView style={s.container}>
-      <View style={s.content}>
+      <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Sélecteur implantation */}
         <View style={s.filterRow}>
           <Text style={s.filterLabel}>Implantation :</Text>

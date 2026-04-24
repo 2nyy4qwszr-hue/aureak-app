@@ -2,7 +2,7 @@
 // Story 60.2 — Présences 12 mois — Line chart multi-groupes
 // Story 98.2 — AdminPageHeader v2 ("Présences")
 import React, { useEffect, useState, useMemo } from 'react'
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listImplantations, getAttendanceByGroupMonth } from '@aureak/api-client'
 import type { AttendanceMonthlyData } from '@aureak/types'
@@ -13,6 +13,8 @@ import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 export default function PresencesAnalyticsPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [implantations, setImplantations]   = useState<Implantation[]>([])
   const [implantationId, setImplantationId] = useState<string>('')
@@ -71,7 +73,7 @@ export default function PresencesAnalyticsPage() {
       <AdminPageHeader title="Présences" />
 
       <ScrollView style={s.container}>
-      <View style={s.content}>
+      <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Sélecteur implantation */}
         <View style={s.filterRow}>
           <Text style={s.filterLabel}>Implantation :</Text>
