@@ -736,21 +736,39 @@ export default function StageDetailPage() {
             { label: 'Stages', onPress: () => router.push('/stages' as never) },
             { label: stage?.name ?? 'Stage' },
           ]} />
-          <Pressable
-            style={{
-              paddingHorizontal: space.md,
-              paddingVertical  : 5,
-              borderRadius     : 6,
-              borderWidth      : 1,
-              borderColor      : colors.border.light,
-              backgroundColor  : colors.light.surface,
-            }}
-            onPress={() => { if (typeof window !== 'undefined') window.print() }}
-          >
-            <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
-              Exporter PDF
-            </AureakText>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: space.sm }}>
+            {/* Story 105.1 — Accès générateur cartes Panini */}
+            <Pressable
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                borderWidth      : 1,
+                borderColor      : colors.accent.gold,
+                backgroundColor  : colors.accent.gold + '15',
+              }}
+              onPress={() => router.push(`/evenements/stages/${stageId}/photos` as never)}
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+                🃏 Cartes Panini
+              </AureakText>
+            </Pressable>
+            <Pressable
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                borderWidth      : 1,
+                borderColor      : colors.border.light,
+                backgroundColor  : colors.light.surface,
+              }}
+              onPress={() => { if (typeof window !== 'undefined') window.print() }}
+            >
+              <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '600' }}>
+                Exporter PDF
+              </AureakText>
+            </Pressable>
+          </View>
         </View>
 
         {/* ── Mutation error banner ── */}

@@ -46,10 +46,14 @@ export {
   listStageDays, createStageDay, updateStageDay, deleteStageDay,
   listStageBlocks, createStageBlock, updateStageBlock, deleteStageBlock,
   listStageBlockParticipants, addStageBlockParticipant, removeStageBlockParticipant,
+  // Story 105.1 — cartes Panini
+  listStageChildren,
 } from './admin/stages'
 export type {
   CreateStageParams, UpdateStageParams,
   CreateStageDayParams, CreateStageBlockParams, UpdateStageBlockParams,
+  // Story 105.1
+  StageChild,
 } from './admin/stages'
 export type { SignInParams, InviteUserParams } from './auth'
 

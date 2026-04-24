@@ -108,6 +108,32 @@ function mapBlock(row: Record<string, unknown>): StageBlock {
 }
 
 // ============================================================
+// tenant resolution (Story 107-1 — fix RLS INSERT)
+// Mirroir du pattern utilisé dans prospection.ts / sponsors.ts
+// ============================================================
+
+async function resolveTenantId(): Promise<string> {
+  const { data: userData } = await supabase.auth.getUser()
+  const user = userData?.user
+  if (!user) throw new Error('Non authentifié')
+
+  const jwtTenant = (user.app_metadata?.tenant_id as string | undefined)
+    ?? (user.user_metadata?.tenant_id as string | undefined)
+  if (jwtTenant) return jwtTenant
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('tenant_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (error || !profile?.tenant_id) {
+    throw new Error('tenant_id introuvable (ni JWT, ni profiles)')
+  }
+  return profile.tenant_id as string
+}
+
+// ============================================================
 // Stages CRUD
 // ============================================================
 
@@ -214,9 +240,12 @@ export async function getStage(id: string): Promise<StageWithMeta | null> {
 }
 
 export async function createStage(params: CreateStageParams): Promise<Stage> {
+  const tenantId = await resolveTenantId()
+
   const { data, error } = await supabase
     .from('stages')
     .insert({
+      tenant_id       : tenantId,
       name            : params.name,
       start_date      : params.startDate,
       end_date        : params.endDate,
@@ -404,4 +433,43 @@ export async function removeStageBlockParticipant(stageBlockId: string, childId:
     .eq('stage_block_id', stageBlockId)
     .eq('child_id', childId)
   if (error) throw error
+}
+
+// ============================================================
+// Story 105.1 — Stage children (génération cartes Panini)
+// ============================================================
+
+export type StageChild = {
+  id           : string
+  stageId      : string
+  prenom       : string
+  nom          : string
+  ageCategory  : string | null
+}
+
+/**
+ * Liste les enfants inscrits à un stage (via child_stage_participations → child_directory).
+ * Utilisé par la feature "cartes Panini" (story 105-1).
+ */
+export async function listStageChildren(stageId: string): Promise<StageChild[]> {
+  const { data, error } = await supabase
+    .from('child_stage_participations')
+    .select('id, stage_id, child_directory ( id, prenom, nom, age_category )')
+    .eq('stage_id', stageId)
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row: Record<string, unknown>) => {
+      const child = row.child_directory as Record<string, unknown> | null
+      if (!child) return null
+      return {
+        id          : child.id           as string,
+        stageId     : row.stage_id       as string,
+        prenom      : (child.prenom as string | null) ?? '',
+        nom         : (child.nom    as string | null) ?? '',
+        ageCategory : (child.age_category as string | null) ?? null,
+      }
+    })
+    .filter((c): c is StageChild => c !== null && (c.prenom !== '' || c.nom !== ''))
 }
