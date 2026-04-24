@@ -1,7 +1,7 @@
 'use client'
 // Story 65-1 — Activités Hub : Tableau des séances avec pagination
 import React, { useEffect, useState, useMemo } from 'react'
-import { View, Pressable, StyleSheet, StyleProp } from 'react-native'
+import { View, Pressable, StyleSheet, StyleProp, useWindowDimensions } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
@@ -240,6 +240,8 @@ type Props = {
 
 export function TableauSeances({ scope, temporalFilter }: Props) {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [sessions,    setSessions]    = useState<SessionAttendanceSummary[]>([])
   const [groupNames,  setGroupNames]  = useState<Map<string, string>>(new Map())
@@ -354,18 +356,20 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
   const COL_HEADERS = ['STATUT', 'DATE', 'MÉTHODE', 'GROUPE', 'COACH', 'PRÉSENCE', 'BADGES', 'ANOMALIE', '']
 
   return (
-    <View style={styles.card}>
-      {/* En-tête tableau */}
-      <View style={styles.tableHeader}>
-        {COL_HEADERS.map((col, i) => (
-          <AureakText
-            key={i}
-            style={i === COL_HEADERS.length - 1 ? styles.colHeaderChevron : styles.colHeader}
-          >
-            {col}
-          </AureakText>
-        ))}
-      </View>
+    <View style={[styles.card, isMobile && styles.cardMobile]}>
+      {/* En-tête tableau — caché mobile */}
+      {!isMobile && (
+        <View style={styles.tableHeader}>
+          {COL_HEADERS.map((col, i) => (
+            <AureakText
+              key={i}
+              style={i === COL_HEADERS.length - 1 ? styles.colHeaderChevron : styles.colHeader}
+            >
+              {col}
+            </AureakText>
+          ))}
+        </View>
+      )}
 
       {/* Story 93.4 — État vide premium : NextSessionHero si today+nextSession dispo, sinon fallback textuel */}
       {enriched.length === 0 && temporalFilter === 'today' && nextSession && (
@@ -388,6 +392,44 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
       {/* Lignes de données */}
       {enriched.map((s, idx) => {
         const isCancelled = s.status === 'annulée' || s.status === 'cancelled'
+        const textModifier: TextStyle = isCancelled
+          ? { fontStyle: 'italic', color: colors.text.subtle }
+          : {}
+
+        if (isMobile) {
+          return (
+            <Pressable
+              key={s.sessionId}
+              style={[styles.mobileRow, { opacity: isCancelled ? 0.55 : 1 }]}
+              onPress={() => router.push(`/(admin)/activites/seances/${s.sessionId}` as Parameters<typeof router.push>[0])}
+            >
+              <View style={styles.mobileRowTop}>
+                <AureakText style={StyleSheet.flatten([styles.mobileDate, textModifier])}>
+                  {formatDate(s.scheduledAt)}
+                </AureakText>
+                <AureakText style={styles.chevron}>›</AureakText>
+              </View>
+              <View style={styles.mobileBadges}>
+                <StatusBadge status={s.status} />
+                <MethodeBadge method={s.methodName} />
+                {s.hasAnomaly && <AureakText style={styles.mobileAnomaly}>⚠️</AureakText>}
+              </View>
+              <AureakText style={StyleSheet.flatten([styles.mobileGroup, textModifier])}>
+                {s.groupName ?? '—'}
+              </AureakText>
+              <View style={styles.mobileFooter}>
+                <CoachAvatars coachIds={s.coachIds} coachNames={coachNames} />
+                <View style={styles.mobilePresence}>
+                  <PresenceBar present={s.presentCount} total={s.totalAttendance} />
+                </View>
+                {s.badgeCount > 0 && (
+                  <AureakText style={styles.mobileBadgeCount}>🏅 {s.badgeCount}</AureakText>
+                )}
+              </View>
+            </Pressable>
+          )
+        }
+
         const rowStyle: ViewStyle = {
           flexDirection    : 'row',
           alignItems       : 'center',
@@ -398,9 +440,6 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
           backgroundColor  : idx % 2 === 0 ? colors.light.surface : colors.light.muted,
           opacity          : isCancelled ? 0.55 : 1,
         }
-        const textModifier: TextStyle = isCancelled
-          ? { fontStyle: 'italic', color: colors.text.subtle }
-          : {}
 
         return (
           <Pressable
@@ -667,5 +706,60 @@ const styles = StyleSheet.create({
     fontSize  : 14,
     fontFamily: fonts.body,
     color     : colors.text.muted,
+  },
+
+  // ── Mobile stack card (story 103.2) ────────────────────────────────────────
+  cardMobile: {
+    marginHorizontal: space.sm,
+  },
+  mobileRow: {
+    flexDirection    : 'column',
+    paddingVertical  : 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+    backgroundColor  : colors.light.surface,
+    gap              : 8,
+  },
+  mobileRowTop: {
+    flexDirection : 'row',
+    justifyContent: 'space-between',
+    alignItems    : 'center',
+  },
+  mobileDate: {
+    fontSize  : 14,
+    fontFamily: fonts.body,
+    fontWeight: '700',
+    color     : colors.text.dark,
+  },
+  mobileBadges: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : 6,
+    flexWrap     : 'wrap',
+  },
+  mobileAnomaly: {
+    fontSize: 14,
+  },
+  mobileGroup: {
+    fontSize  : 13,
+    fontFamily: fonts.body,
+    color     : colors.text.muted,
+  },
+  mobileFooter: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : 10,
+    flexWrap     : 'wrap',
+  },
+  mobilePresence: {
+    flex: 1,
+    minWidth: 80,
+  },
+  mobileBadgeCount: {
+    fontSize  : 12,
+    fontFamily: fonts.display,
+    fontWeight: '700',
+    color     : colors.accent.gold,
   },
 })

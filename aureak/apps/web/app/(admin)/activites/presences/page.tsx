@@ -1,7 +1,7 @@
 'use client'
 // Story 65-2 — Activités Hub : onglet Présences (vue transversale)
 import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react'
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows, fonts } from '@aureak/theme'
@@ -298,6 +298,8 @@ type TableauGroupesProps = {
 }
 
 function TableauGroupes({ rows, page, onPage, onClickGroup }: TableauGroupesProps) {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const totalPages = Math.ceil(rows.length / PAGE_SIZE)
   const sliced = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
@@ -332,8 +334,8 @@ function TableauGroupes({ rows, page, onPage, onClickGroup }: TableauGroupesProp
     )
   }
 
-  return (
-    <View style={tableStyles.container}>
+  const content = (
+    <View style={[tableStyles.container, isMobile && { marginHorizontal: 0, minWidth: 640 }]}>
       {/* Légende compacte */}
       <View style={tableStyles.legend}>
         <View style={tableStyles.legendItem}>
@@ -426,6 +428,19 @@ function TableauGroupes({ rows, page, onPage, onClickGroup }: TableauGroupesProp
       </AureakText>
     </View>
   )
+
+  if (isMobile) {
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator
+        contentContainerStyle={{ paddingHorizontal: space.md }}
+      >
+        {content}
+      </ScrollView>
+    )
+  }
+  return content
 }
 
 const tableStyles = StyleSheet.create({
@@ -1028,6 +1043,8 @@ const vueJoueurStyles = StyleSheet.create({
 export default function PresencesPage() {
   const router        = useRouter()
   const activitesCnts = useContext(ActivitesCountsContext)
+  const { width }     = useWindowDimensions()
+  const isMobile      = width <= 640
 
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('past')
@@ -1223,8 +1240,8 @@ export default function PresencesPage() {
         {/* Stat cards */}
         <StatCardsPresences sessions={sessions} />
 
-        {/* Filtres scope + temporels sur une ligne */}
-        <View style={pageStyles.filtresRow}>
+        {/* Filtres scope + temporels — row desktop, stack mobile */}
+        <View style={[pageStyles.filtresRow, isMobile && pageStyles.filtresRowMobile]}>
           <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />
           <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
         </View>
@@ -1301,6 +1318,12 @@ const pageStyles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingVertical  : space.sm,
     zIndex           : 9999,
+  },
+  filtresRowMobile: {
+    flexDirection    : 'column',
+    alignItems       : 'stretch',
+    gap              : space.sm,
+    paddingHorizontal: space.md,
   },
   loadingWrapper: {
     padding    : space.xl,
