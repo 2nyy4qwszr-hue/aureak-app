@@ -3,7 +3,7 @@
 // Story 97.11 — AdminPageHeader v2 ("Entraîneurs") + ProspectionNavBar
 'use client'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
+import { View, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import {
@@ -39,6 +39,8 @@ function computeStats(rows: CoachProspectListRow[]): CoachProspectionStats {
 }
 
 export default function ProspectionEntraineursPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const role = useAuthStore(s => s.role)
   const [allRows, setAllRows]         = useState<CoachProspectListRow[]>([])
   const [commercials, setCommercials] = useState<ProfileListRow[]>([])
@@ -90,7 +92,7 @@ export default function ProspectionEntraineursPage() {
       />
       <ProspectionNavBar />
 
-      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
+      <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
       <CoachProspectionStatCards stats={stats} loading={loading} />
 
       <View style={st.filtersBlock}>

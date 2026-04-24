@@ -1,7 +1,7 @@
 // Story 90.1 — Fiche détail prospect entraîneur (coordonnées, profil, statut, notes)
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput, Linking } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, Linking, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -19,6 +19,8 @@ import { CoachProspectStatusBadge } from '../../../../../components/admin/coach-
 export default function CoachProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()
   const router                          = useRouter()
+  const { width }                       = useWindowDimensions()
+  const isMobile                        = width <= 640
   const [prospect, setProspect]         = useState<CoachProspectDetail | null>(null)
   const [loading, setLoading]           = useState(true)
   const [notFound, setNotFound]         = useState(false)
@@ -92,7 +94,7 @@ export default function CoachProspectDetailPage() {
   const notesDirty = (notesDraft ?? '') !== (prospect.notes ?? '')
 
   return (
-    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
+    <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
       <Pressable onPress={() => router.back()} style={st.backLink}>
         <AureakText style={st.backLinkLabel as never}>← Retour au pipeline</AureakText>
       </Pressable>

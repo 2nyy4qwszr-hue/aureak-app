@@ -5,7 +5,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
+import { View, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -87,6 +87,8 @@ function OutcomeBadge({ outcome }: { outcome: TrialOutcome | null }) {
 // ── Page principale ───────────────────────────────────────────────────────────
 
 export default function ProspectionGardiensPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const router                    = useRouter()
   const role                      = useAuthStore(s => s.role)
   const [stats, setStats]         = useState<ProspectFunnelStats | null>(null)
@@ -181,7 +183,7 @@ export default function ProspectionGardiensPage() {
       />
       <ProspectionNavBar />
 
-      <ScrollView style={st.container} contentContainerStyle={st.content}>
+      <ScrollView style={st.container} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
 
       {error && (
         <View style={st.errorBanner}>
