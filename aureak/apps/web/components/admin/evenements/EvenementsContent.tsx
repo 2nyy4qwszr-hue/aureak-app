@@ -1,7 +1,7 @@
 'use client'
 // Story 97.10 — AdminPageHeader v2 (titre = typeLabel) + EvenementsHeader tabs
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
@@ -130,6 +130,8 @@ type Props = {
 
 export function EvenementsContent({ eventType, typeLabel, actionLabel, onActionPress }: Props) {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [events,         setEvents]         = useState<StageWithMeta[]>([])
   const [loading,        setLoading]        = useState(false)
@@ -197,7 +199,7 @@ export function EvenementsContent({ eventType, typeLabel, actionLabel, onActionP
       />
       <EvenementsHeader />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, isMobile && { paddingHorizontal: 16 }]}>
         {/* 4 Stat Cards */}
         <View style={styles.statCardsRow}>
           <StatCard

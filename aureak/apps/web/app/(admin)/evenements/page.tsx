@@ -3,7 +3,7 @@
 // fun-days, detect-days, séminaires). Chaque carte affiche un count + CTA "Voir".
 // Le filtrage unifié précédent (Story 63.2) est remplacé par 5 sous-pages dédiées.
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listEvents } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -30,6 +30,8 @@ const TYPES: TypeMeta[] = [
 
 export default function EvenementsHubPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [counts,  setCounts]  = useState<Record<EventType, number | null>>({
     stage      : null,
     tournoi    : null,
@@ -68,7 +70,7 @@ export default function EvenementsHubPage() {
       <AdminPageHeader title="Événements" />
       <EvenementsHeader />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
         <View style={s.grid}>
           {TYPES.map(t => {
             const count = counts[t.key]
