@@ -15,7 +15,7 @@
 //   - redirige vers /prospection/gardiens où les observations scout sont saisies
 //   - ne crée PAS de fonctionnalité métier nouvelle (AC #11 non-goals)
 import { useContext } from 'react'
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -26,13 +26,15 @@ import { AcademieCountsContext } from '../_layout'
 export default function AcademieScoutsPage() {
   const router         = useRouter()
   const academieCounts = useContext(AcademieCountsContext)
+  const { width }      = useWindowDimensions()
+  const isMobile       = width <= 640
 
   return (
     <View style={s.page}>
       <AdminPageHeader title="Scouts" />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
-      <ScrollView contentContainerStyle={s.content}>
+      <ScrollView contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
         <View style={s.card}>
           <AureakText style={s.emoji}>🔍</AureakText>
           <AureakText style={s.heading as never}>Pas de profil scout dédié</AureakText>

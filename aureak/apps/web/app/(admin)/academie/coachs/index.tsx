@@ -6,7 +6,7 @@
 // Story 101.2 — FilterSheet pilot (filtres inline desktop / bottom sheet mobile)
 // Story 101.3 — PrimaryAction pilot (FAB mobile / header desktop)
 import { useContext, useEffect, useState } from 'react'
-import { View, ScrollView, Pressable, StyleSheet, type TextStyle } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, type TextStyle, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
@@ -64,6 +64,8 @@ function splitName(displayName: string | null): { prenom: string; nom: string } 
 export default function AcademieCoachsPage() {
   const router         = useRouter()
   const academieCounts = useContext(AcademieCountsContext)
+  const { width }      = useWindowDimensions()
+  const isMobile       = width <= 640
 
   const [coaches,    setCoaches]    = useState<CoachWithGrade[]>([])
   const [loading,    setLoading]    = useState(true)
@@ -143,7 +145,7 @@ export default function AcademieCoachsPage() {
       />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+      <ScrollView style={s.scroll} contentContainerStyle={[s.scrollContent, isMobile && { paddingHorizontal: 16 }]}>
 
         {/* ── StatCards ── */}
         <View style={s.statCardsRow}>
