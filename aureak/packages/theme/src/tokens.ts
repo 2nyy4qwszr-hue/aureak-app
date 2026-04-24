@@ -13,10 +13,10 @@ export const colors = {
     surface : '#171717',  // cards, listes, rows (dark)
     elevated: '#242424',  // modals, drawers, overlays (dark)
   },
-  // ── Sidebar admin (brun chaud intermédiaire) ──────────────────────────────
+  // ── Sidebar admin (noir) ──────────────────────────────────────────────────
   sidebar: {
-    bg    : '#2D2318',  // brun chaud — fond sidebar admin (entre #1A1A1A et beige)
-    border: '#3D3020',  // bordure latérale sidebar
+    bg    : '#0A0A0A',  // noir — fond sidebar admin
+    border: '#1F1F1F',  // bordure latérale sidebar
   },
   // ── Light theme (admin web, inspiré aureak.be) ────────────────────────────
   light: {

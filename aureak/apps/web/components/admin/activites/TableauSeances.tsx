@@ -1,7 +1,9 @@
 'use client'
-// Story 65-1 — Activités Hub : Tableau des séances avec pagination
+// Tableau des séances avec pagination.
+// Story 108.2 — accepte désormais { from, to, implantationId, groupId } directement
+// (aligné sur les filtres /presences), remplace l'ancienne API scope + temporalFilter.
 import React, { useEffect, useState, useMemo } from 'react'
-import { View, Pressable, StyleSheet, StyleProp, useWindowDimensions } from 'react-native'
+import { View, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
@@ -10,16 +12,11 @@ import {
   listEvaluationsBySession,
   listActiveAbsenceAlerts,
   batchResolveCoachNames,
-  listNextUpcomingSessionRich,
 } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows, methodologyMethodColors } from '@aureak/theme'
-import type { SessionAttendanceSummary, UpcomingSessionRich } from '@aureak/api-client'
+import { colors, fonts, space, radius, methodologyMethodColors } from '@aureak/theme'
+import type { SessionAttendanceSummary } from '@aureak/api-client'
 import type { Evaluation } from '@aureak/types'
-import type { ScopeState } from './FiltresScope'
-import type { TemporalFilter } from './PseudoFiltresTemporels'
-import { NextSessionHero } from './NextSessionHero'
-import { TodaySessionCards } from './TodaySessionCards'
 
 const PAGE_SIZE = 20
 
@@ -35,30 +32,6 @@ function formatDate(iso: string): string {
   const hh  = String(d.getHours()).padStart(2, '0')
   const min = String(d.getMinutes()).padStart(2, '0')
   return `${day} ${dd}/${mm} · ${hh}h${min}`
-}
-
-function isToday(iso: string): boolean {
-  const d = new Date(iso)
-  const n = new Date()
-  return (
-    d.getFullYear() === n.getFullYear() &&
-    d.getMonth()    === n.getMonth()    &&
-    d.getDate()     === n.getDate()
-  )
-}
-
-function applyTemporalFilter(
-  sessions: SessionAttendanceSummary[],
-  filter  : TemporalFilter,
-): SessionAttendanceSummary[] {
-  const now = new Date()
-  return sessions.filter(s => {
-    const d = new Date(s.scheduledAt)
-    if (filter === 'today')    return isToday(s.scheduledAt)
-    if (filter === 'upcoming') return d > now && !isToday(s.scheduledAt)
-    // past (default)
-    return d < now && !isToday(s.scheduledAt)
-  })
 }
 
 // ── Badge STATUT ──────────────────────────────────────────────────────────────
@@ -134,14 +107,12 @@ function MethodeBadge({ method }: { method: string | null }) {
 
 // ── Avatars Coach ─────────────────────────────────────────────────────────────
 
-// Palette avatars coach — couleurs conformes à la charte AUREAK uniquement
-// Aucune couleur violette (#8B5CF6) ni bleue (#3B82F6) autorisée
 const COACH_AVATAR_COLORS = [
-  colors.accent.gold,    // '#C1AC5C' — or champagne AUREAK
-  colors.status.success, // '#10B981' — vert émeraude
-  colors.accent.red,     // '#E05252' — rouge CTA
-  colors.status.warning, // '#F59E0B' — ambre/orange
-  colors.accent.silver,  // '#9CA3AF' — argent/gris
+  colors.accent.gold,
+  colors.status.success,
+  colors.accent.red,
+  colors.status.warning,
+  colors.accent.silver,
 ] as const
 
 function getInitials(name: string): string {
@@ -234,11 +205,13 @@ type EnrichedSession = SessionAttendanceSummary & {
 // ── Composant principal ───────────────────────────────────────────────────────
 
 type Props = {
-  scope         : ScopeState
-  temporalFilter: TemporalFilter
+  from?          : string
+  to?            : string
+  implantationId?: string
+  groupId?       : string
 }
 
-export function TableauSeances({ scope, temporalFilter }: Props) {
+export function TableauSeances({ from, to, implantationId, groupId }: Props) {
   const router = useRouter()
   const { width } = useWindowDimensions()
   const isMobile = width <= 640
@@ -250,33 +223,30 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
   const [anomalies,   setAnomalies]   = useState<Set<string>>(new Set())
   const [loading,     setLoading]     = useState(false)
   const [page,        setPage]        = useState(0)
-  // Story 93.4 — prochaine séance pour NextSessionHero (empty state today)
-  const [nextSession, setNextSession] = useState<UpcomingSessionRich | null>(null)
 
   useEffect(() => {
     setLoading(true)
     setPage(0)
     ;(async () => {
       try {
-        const params: { implantationId?: string; groupId?: string } = {}
-        if (scope.scope === 'implantation' && scope.implantationId) params.implantationId = scope.implantationId
-        if (scope.scope === 'groupe'        && scope.groupId)        params.groupId        = scope.groupId
+        const params: { from?: string; to?: string; implantationId?: string; groupId?: string } = {}
+        if (from)           params.from           = from
+        if (to)             params.to             = to
+        if (implantationId) params.implantationId = implantationId
+        if (groupId)        params.groupId        = groupId
 
         const sessData = await listSessionsWithAttendance(params)
         setSessions(sessData)
 
-        // Résoudre noms de coaches en batch (aucun N+1)
         const allCoachIds = [...new Set(sessData.flatMap(s => s.coachIds))]
         const cNames = await batchResolveCoachNames(allCoachIds)
         setCoachNames(cNames)
 
-        // Résoudre noms de groupes (listAllGroups retourne GroupWithMeta[] directement)
         const allGroups = await listAllGroups()
         const gMap      = new Map<string, string>()
         allGroups.forEach(g => gMap.set(g.id, g.name))
         setGroupNames(gMap)
 
-        // Enrichir chaque séance avec badges + anomalies
         const evalMap  = new Map<string, number>()
         const anomaSet = new Set<string>()
 
@@ -303,30 +273,11 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
         setLoading(false)
       }
     })()
-  }, [scope.scope, scope.implantationId, scope.groupId])
+  }, [from, to, implantationId, groupId])
 
-  // Story 93.4 — charge la prochaine séance pour le NextSessionHero (une seule fois)
-  useEffect(() => {
-    let cancelled = false
-    listNextUpcomingSessionRich({ daysAhead: 7 })
-      .then(({ data }) => { if (!cancelled) setNextSession(data) })
-      .catch(err => {
-        if (process.env.NODE_ENV !== 'production') console.error('[TableauSeances] next session fetch error:', err)
-      })
-    return () => { cancelled = true }
-  }, [])
+  const pageCount = Math.ceil(sessions.length / PAGE_SIZE)
+  const paginated = sessions.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  // Filtrer par temporel
-  const filtered = useMemo(
-    () => applyTemporalFilter(sessions, temporalFilter),
-    [sessions, temporalFilter],
-  )
-
-  // Paginer
-  const pageCount = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
-
-  // Enrichir les lignes de la page courante
   const enriched: EnrichedSession[] = useMemo(
     () => paginated.map(s => ({
       ...s,
@@ -345,19 +296,13 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
     )
   }
 
-  const start = filtered.length === 0 ? 0 : page * PAGE_SIZE + 1
-  const end   = Math.min((page + 1) * PAGE_SIZE, filtered.length)
-
-  // Story 93.7 T8 — Switching cards/table : si "today" + données → cards (pas table)
-  if (temporalFilter === 'today' && enriched.length > 0) {
-    return <TodaySessionCards sessions={enriched} groupNames={groupNames} coachNames={coachNames} />
-  }
+  const start = sessions.length === 0 ? 0 : page * PAGE_SIZE + 1
+  const end   = Math.min((page + 1) * PAGE_SIZE, sessions.length)
 
   const COL_HEADERS = ['STATUT', 'DATE', 'MÉTHODE', 'GROUPE', 'COACH', 'PRÉSENCE', 'BADGES', 'ANOMALIE', '']
 
   return (
     <View style={[styles.card, isMobile && styles.cardMobile]}>
-      {/* En-tête tableau — caché mobile */}
       {!isMobile && (
         <View style={styles.tableHeader}>
           {COL_HEADERS.map((col, i) => (
@@ -371,25 +316,14 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
         </View>
       )}
 
-      {/* Story 93.4 — État vide premium : NextSessionHero si today+nextSession dispo, sinon fallback textuel */}
-      {enriched.length === 0 && temporalFilter === 'today' && nextSession && (
-        <NextSessionHero
-          session={nextSession}
-          onOpen ={() => router.push(`/activites/seances/${nextSession.id}` as never)}
-          onEdit ={() => router.push(`/activites/seances/${nextSession.id}/edit` as never)}
-        />
-      )}
-      {enriched.length === 0 && (temporalFilter !== 'today' || !nextSession) && (
+      {enriched.length === 0 && (
         <View style={styles.emptyRow}>
           <AureakText style={styles.emptyText}>
-            {temporalFilter === 'today'
-              ? 'Aucune séance planifiée dans les 7 prochains jours.'
-              : 'Aucune séance pour ce filtre.'}
+            Aucune séance sur cette période.
           </AureakText>
         </View>
       )}
 
-      {/* Lignes de données */}
       {enriched.map((s, idx) => {
         const isCancelled = s.status === 'annulée' || s.status === 'cancelled'
         const textModifier: TextStyle = isCancelled
@@ -447,58 +381,40 @@ export function TableauSeances({ scope, temporalFilter }: Props) {
             style={rowStyle}
             onPress={() => router.push(`/(admin)/activites/seances/${s.sessionId}` as Parameters<typeof router.push>[0])}
           >
-            {/* STATUT */}
             <View style={styles.colCell}>
               <StatusBadge status={s.status} />
             </View>
-
-            {/* DATE */}
             <AureakText style={StyleSheet.flatten([styles.colDate, textModifier])}>
               {formatDate(s.scheduledAt)}
             </AureakText>
-
-            {/* MÉTHODE */}
             <View style={styles.colCell}>
               <MethodeBadge method={s.methodName} />
             </View>
-
-            {/* GROUPE */}
             <AureakText style={StyleSheet.flatten([styles.colText, textModifier])}>
               {s.groupName ?? '—'}
             </AureakText>
-
-            {/* COACH */}
             <View style={styles.colCell}>
               <CoachAvatars coachIds={s.coachIds} coachNames={coachNames} />
             </View>
-
-            {/* PRÉSENCE */}
             <View style={styles.colCell}>
               <PresenceBar present={s.presentCount} total={s.totalAttendance} />
             </View>
-
-            {/* BADGES */}
             <AureakText
               style={s.badgeCount > 0 ? styles.colBadgeCount : styles.colBadgeCountZero}
             >
               {s.badgeCount > 0 ? String(s.badgeCount) : '—'}
             </AureakText>
-
-            {/* ANOMALIE */}
             <AureakText style={styles.colAnomaly}>
               {s.hasAnomaly ? '⚠️' : ''}
             </AureakText>
-
-            {/* Chevron */}
             <AureakText style={styles.chevron}>›</AureakText>
           </Pressable>
         )
       })}
 
-      {/* Pagination */}
       <View style={styles.pagination}>
         <AureakText style={styles.paginationInfo}>
-          Affichage de {start}–{end} sur {filtered.length} séances
+          Affichage de {start}–{end} sur {sessions.length} séances
         </AureakText>
         <View style={styles.paginationActions}>
           <Pressable
@@ -708,7 +624,6 @@ const styles = StyleSheet.create({
     color     : colors.text.muted,
   },
 
-  // ── Mobile stack card (story 103.2) ────────────────────────────────────────
   cardMobile: {
     marginHorizontal: space.sm,
   },
