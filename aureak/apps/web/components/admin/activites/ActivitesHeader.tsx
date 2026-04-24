@@ -48,8 +48,9 @@ export function ActivitesHeader({ counts }: ActivitesHeaderProps = {}) {
 
   return (
     <View style={styles.headerBlock}>
-      {/* Story 93.7 — Bouton "+ Nouvelle séance" conservé uniquement sur mobile (Topbar masquée) */}
-      {isMobile && (
+      {/* Story 103.2 — Bouton "Nouvelle séance" mobile remplacé par PrimaryAction FAB sur /activites.
+          Conservé sur /presences et /evaluations (pas de FAB sur ces pages). */}
+      {isMobile && activeTab !== 'seances' && (
         <View style={styles.headerTopRow}>
           <Pressable
             onPress={() => router.push('/(admin)/seances/new')}

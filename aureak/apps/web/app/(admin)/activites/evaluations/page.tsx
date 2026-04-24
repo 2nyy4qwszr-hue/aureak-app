@@ -1,7 +1,7 @@
 'use client'
 // Story 65-3 — Activités Hub : onglet Évaluations (vue transversale, 3 sous-filtres)
 import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react'
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
 import type { TextStyle, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
@@ -230,6 +230,8 @@ function PlayerSummaryCard({
 export default function EvaluationsPage() {
   const router        = useRouter()
   const activitesCnts = useContext(ActivitesCountsContext)
+  const { width }     = useWindowDimensions()
+  const isMobile      = width <= 640
 
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter]                    = useState<TemporalFilter>('past')
@@ -392,8 +394,8 @@ export default function EvaluationsPage() {
           />
         </View>
 
-        {/* Filtres scope + toggle evalType sur une ligne */}
-        <View style={styles.filtresRow}>
+        {/* Filtres scope + toggle evalType sur une ligne (stack mobile) */}
+        <View style={[styles.filtresRow, isMobile && styles.filtresRowMobile]}>
           <FiltresScope value={scope} onChange={setScope} />
           <View style={styles.toggleRow}>
             {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
@@ -426,6 +428,69 @@ export default function EvaluationsPage() {
                 <AureakText style={styles.emptyTitle}>Aucune évaluation</AureakText>
                 <AureakText style={styles.emptyText}>Aucune évaluation sur cette période.</AureakText>
               </View>
+            ) : isMobile ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator>
+                <View style={[styles.tableContainer, { minWidth: 640 }]}>
+                  {/* En-tête tableau (scrollable mobile) */}
+                  <View style={styles.tableHeader}>
+                    <View style={styles.colJoueur}>
+                      <AureakText style={styles.colHeader}>JOUEUR</AureakText>
+                    </View>
+                    <Pressable
+                      style={styles.colDate}
+                      onPress={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
+                    >
+                      <AureakText style={styles.colHeader}>
+                        DATE {sortDir === 'desc' ? '↓' : '↑'}
+                      </AureakText>
+                    </Pressable>
+                    <View style={styles.colSignal}>
+                      <AureakText style={styles.colHeader}>NOTE K</AureakText>
+                    </View>
+                    <View style={styles.colSignal}>
+                      <AureakText style={styles.colHeader}>NOTE C</AureakText>
+                    </View>
+                    <View style={styles.colComment}>
+                      <AureakText style={styles.colHeader}>COMMENTAIRE</AureakText>
+                    </View>
+                  </View>
+                  {paginated.map((row, idx) => (
+                    <Pressable
+                      key={row.id}
+                      style={[styles.tableRow, idx % 2 === 1 && styles.tableRowAlt]}
+                      onPress={() => router.push(`/(admin)/seances/${row.sessionId}` as Parameters<typeof router.push>[0])}
+                    >
+                      <View style={[styles.cell, styles.colJoueur, styles.playerCell]}>
+                        <PlayerAvatar name={row.childName} />
+                        <View style={styles.playerInfo}>
+                          <AureakText style={styles.playerName} numberOfLines={1}>
+                            {row.childName ?? 'Joueur inconnu'}
+                          </AureakText>
+                          {row.groupName ? (
+                            <AureakText style={styles.playerSubtitle} numberOfLines={1}>
+                              {row.groupName}
+                            </AureakText>
+                          ) : null}
+                        </View>
+                      </View>
+                      <View style={[styles.cell, styles.colDate]}>
+                        <AureakText style={styles.cellText}>{formatDate(row.evalAt)}</AureakText>
+                      </View>
+                      <View style={[styles.cell, styles.colSignal]}>
+                        <NoteCircle score={signalToScore(row.receptivite)} variant="K" />
+                      </View>
+                      <View style={[styles.cell, styles.colSignal]}>
+                        <NoteCircle score={signalToScore(row.goutEffort)} variant="C" />
+                      </View>
+                      <View style={[styles.cell, styles.colComment]}>
+                        <AureakText style={styles.commentText} numberOfLines={1}>
+                          {truncate((row as AdminEvalRow & { comment?: string }).comment ?? null, 40)}
+                        </AureakText>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
             ) : (
               <View style={styles.tableContainer}>
                 {/* En-tête tableau */}
@@ -573,6 +638,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingVertical  : space.sm,
     zIndex           : 9999,
+  },
+  filtresRowMobile: {
+    flexDirection    : 'column',
+    alignItems       : 'stretch',
+    gap              : space.sm,
+    paddingHorizontal: space.md,
   },
   section: {
     paddingHorizontal: space.lg,

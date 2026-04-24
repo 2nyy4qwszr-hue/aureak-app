@@ -1,6 +1,7 @@
 'use client'
 import React, { useContext, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 
@@ -11,10 +12,12 @@ import { ActivitesHeader }          from '../../../components/admin/activites/Ac
 import { ActivitesToolbar }         from '../../../components/admin/activites/ActivitesToolbar'
 import { StatCards }                from '../../../components/admin/activites/StatCards'
 import { TableauSeances }           from '../../../components/admin/activites/TableauSeances'
+import { PrimaryAction }            from '../../../components/admin/PrimaryAction'
 import type { ScopeState }          from '../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }      from '../../../components/admin/activites/PseudoFiltresTemporels'
 
 export default function ActivitesPage() {
+  const router                              = useRouter()
   const [scope,          setScope]          = useState<ScopeState>({ scope: 'global' })
   const [temporalFilter, setTemporalFilter] = useState<TemporalFilter>('today')
   const counts                              = useContext(ActivitesCountsContext)
@@ -50,6 +53,12 @@ export default function ActivitesPage() {
         {/* Tableau des séances */}
         <TableauSeances scope={scope} temporalFilter={temporalFilter} />
       </ScrollView>
+
+      {/* FAB mobile : Nouvelle séance (auto no-op desktop) */}
+      <PrimaryAction
+        label="Nouvelle séance"
+        onPress={() => router.push('/activites/seances/new' as never)}
+      />
     </View>
   )
 }
