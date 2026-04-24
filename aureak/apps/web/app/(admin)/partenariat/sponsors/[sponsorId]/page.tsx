@@ -1,7 +1,7 @@
 'use client'
 // Story 92.2 — Fiche sponsor : infos + enfants parrainés actifs/historique
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -46,6 +46,8 @@ function isSponsorActive(sp: Sponsor): boolean {
 export default function SponsorDetailPage() {
   const params   = useLocalSearchParams<{ sponsorId: string }>()
   const router   = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const sponsorId = typeof params.sponsorId === 'string' ? params.sponsorId : ''
 
   const [sponsor,      setSponsor]      = useState<Sponsor | null>(null)
@@ -92,14 +94,14 @@ export default function SponsorDetailPage() {
 
   if (loading && !sponsor) {
     return (
-      <ScrollView style={st.wrapper} contentContainerStyle={st.content}>
+      <ScrollView style={st.wrapper} contentContainerStyle={[st.content, isMobile && { padding: space.md }]}>
         <AureakText style={st.muted}>Chargement…</AureakText>
       </ScrollView>
     )
   }
   if (!sponsor) {
     return (
-      <ScrollView style={st.wrapper} contentContainerStyle={st.content}>
+      <ScrollView style={st.wrapper} contentContainerStyle={[st.content, isMobile && { padding: space.md }]}>
         <AureakText variant="h2" style={st.title}>Sponsor introuvable</AureakText>
         <Pressable onPress={() => router.push('/partenariat/sponsors' as never)}>
           <AureakText style={st.backLink}>← Retour à la liste</AureakText>
