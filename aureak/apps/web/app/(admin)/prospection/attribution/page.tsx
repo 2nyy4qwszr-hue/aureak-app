@@ -2,7 +2,7 @@
 // Story 97.11 — AdminPageHeader v2 + ProspectionNavBar
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
+import { View, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import {
@@ -14,6 +14,8 @@ import { ProspectionNavBar } from '../../../../components/admin/prospection/Pros
 import { AttributionRuleModal } from '../../../../components/admin/prospection/AttributionRuleModal'
 
 export default function AttributionRulesPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [rules, setRules]         = useState<AttributionRule[]>([])
   const [loading, setLoading]     = useState(true)
   const [editing, setEditing]     = useState<AttributionRule | null>(null)
@@ -79,7 +81,7 @@ export default function AttributionRulesPage() {
       />
       <ProspectionNavBar />
 
-      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
+      <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
 
       {error && (
         <View style={st.errorBanner}>

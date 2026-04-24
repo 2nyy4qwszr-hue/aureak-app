@@ -1,7 +1,7 @@
 // Story 88.2 — Fiche détail prospect : infos club + contacts + statut
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -26,6 +26,8 @@ import { ConvertProspectModal } from '../../../../../components/admin/prospectio
 export default function ProspectDetailPage() {
   const { prospectId } = useLocalSearchParams<{ prospectId: string }>()
   const router                              = useRouter()
+  const { width }                           = useWindowDimensions()
+  const isMobile                            = width <= 640
   const [prospect, setProspect]             = useState<ClubProspectWithContacts | null>(null)
   const [actions, setActions]               = useState<ProspectAction[]>([])
   const [loading, setLoading]               = useState(true)
@@ -111,7 +113,7 @@ export default function ProspectDetailPage() {
   }
 
   return (
-    <ScrollView style={st.scroll} contentContainerStyle={st.content}>
+    <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
       <Pressable onPress={() => router.back()} style={st.backLink}>
         <AureakText style={st.backLinkLabel as never}>← Retour au pipeline</AureakText>
       </Pressable>

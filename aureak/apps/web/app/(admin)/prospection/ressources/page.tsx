@@ -2,7 +2,7 @@
 // Story 97.11 — AdminPageHeader v2 ("Ressources") + ProspectionNavBar
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
-import { View, StyleSheet, Pressable, ScrollView, Linking } from 'react-native'
+import { View, StyleSheet, Pressable, ScrollView, Linking, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { listCommercialResources, getResourceDownloadUrl } from '@aureak/api-client'
@@ -14,6 +14,8 @@ import { ProspectionNavBar } from '../../../../components/admin/prospection/Pros
 import { UploadResourceModal } from '../../../../components/admin/prospection/UploadResourceModal'
 
 export default function CommercialResourcesPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const role = useAuthStore(s => s.role)
   const [resources, setResources] = useState<CommercialResource[]>([])
   const [loading, setLoading]     = useState(true)
@@ -61,7 +63,7 @@ export default function CommercialResourcesPage() {
       <AdminPageHeader title="Ressources" />
       <ProspectionNavBar />
 
-      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
+      <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
 
       {loading ? (
         <AureakText style={st.loading as never}>Chargement…</AureakText>

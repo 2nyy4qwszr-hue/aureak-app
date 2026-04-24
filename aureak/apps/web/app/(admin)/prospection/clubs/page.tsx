@@ -3,7 +3,7 @@
 // Story 97.11 — AdminPageHeader v2 ("Clubs") + ProspectionNavBar
 'use client'
 import React, { useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native'
+import { View, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import {
@@ -22,6 +22,8 @@ import { ConvertProspectModal } from '../../../../components/admin/prospection/C
 import { LostProspectModal } from '../../../../components/admin/prospection/LostProspectModal'
 
 export default function ProspectionClubsCRMPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const role = useAuthStore(s => s.role)
   const [rows, setRows]             = useState<ClubProspectListRow[]>([])
   const [stats, setStats]           = useState<ProspectPipelineStats>({ total: 0, inClosing: 0, convertedMonth: 0, contactsMonth: 0 })
@@ -80,7 +82,7 @@ export default function ProspectionClubsCRMPage() {
       />
       <ProspectionNavBar />
 
-      <ScrollView style={st.scroll} contentContainerStyle={st.content}>
+      <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
       <ProspectionStatCards stats={stats} loading={loading} />
 
       {/* Story 88.6 — pill closing */}
