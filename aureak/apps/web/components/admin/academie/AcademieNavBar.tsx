@@ -9,14 +9,15 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'joueurs',       label: 'JOUEURS',       href: '/academie/joueurs'       },
-  { key: 'coachs',        label: 'COACHS',        href: '/academie/coachs'        },
-  { key: 'scouts',        label: 'SCOUTS',        href: '/academie/scouts'        },
-  { key: 'managers',      label: 'MANAGERS',      href: '/academie/managers'      },
-  { key: 'commerciaux',   label: 'COMMERCIAUX',   href: '/academie/commerciaux'   },
-  { key: 'marketeurs',    label: 'MARKETEURS',    href: '/academie/marketeurs'    },
-  { key: 'clubs',         label: 'CLUBS',         href: '/academie/clubs'         },
-  { key: 'implantations', label: 'IMPLANTATIONS', href: '/academie/implantations' },
+  { key: 'overview',      label: "VUE D'ENSEMBLE", href: '/academie'               },
+  { key: 'joueurs',       label: 'JOUEURS',        href: '/academie/joueurs'       },
+  { key: 'coachs',        label: 'COACHS',         href: '/academie/coachs'        },
+  { key: 'scouts',        label: 'SCOUTS',         href: '/academie/scouts'        },
+  { key: 'managers',      label: 'MANAGERS',       href: '/academie/managers'      },
+  { key: 'commerciaux',   label: 'COMMERCIAUX',    href: '/academie/commerciaux'   },
+  { key: 'marketeurs',    label: 'MARKETEURS',     href: '/academie/marketeurs'    },
+  { key: 'clubs',         label: 'CLUBS',          href: '/academie/clubs'         },
+  { key: 'implantations', label: 'IMPLANTATIONS',  href: '/academie/implantations' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -25,10 +26,16 @@ export type AcademieNavBarProps = {
   counts?: Partial<Record<TabKey, number | null>>
 }
 
+function isTabActive(pathname: string, href: string): boolean {
+  // Overview (/academie) : match exact uniquement pour éviter de matcher les sous-routes
+  if (href === '/academie') return pathname === '/academie'
+  return pathname === href || pathname.startsWith(href + '/')
+}
+
 export function AcademieNavBar({ counts }: AcademieNavBarProps = {}) {
   const router   = useRouter()
   const pathname = usePathname()
-  const activeKey = TABS.find(t => pathname === t.href || pathname.startsWith(t.href + '/'))?.key ?? null
+  const activeKey = TABS.find(t => isTabActive(pathname, t.href))?.key ?? null
 
   // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
   useScrollTabIntoView('tab-academie', activeKey)
@@ -41,7 +48,7 @@ export function AcademieNavBar({ counts }: AcademieNavBarProps = {}) {
         contentContainerStyle={s.container}
       >
         {TABS.map(tab => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+          const isActive = isTabActive(pathname, tab.href)
           const count    = counts?.[tab.key] ?? null
           return (
             <Pressable

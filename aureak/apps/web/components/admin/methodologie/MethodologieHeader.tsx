@@ -10,11 +10,12 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'seances',     label: 'ENTRAÎNEMENTS', href: '/methodologie/seances'     },
-  { key: 'programmes',  label: 'PROGRAMMES',    href: '/methodologie/programmes'  },
-  { key: 'themes',      label: 'THÈMES',        href: '/methodologie/themes'      },
-  { key: 'situations',  label: 'SITUATIONS',    href: '/methodologie/situations'  },
-  { key: 'evaluations', label: 'ÉVALUATIONS',   href: '/methodologie/evaluations' },
+  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/methodologie'             },
+  { key: 'seances',     label: 'ENTRAÎNEMENTS',  href: '/methodologie/seances'     },
+  { key: 'programmes',  label: 'PROGRAMMES',     href: '/methodologie/programmes'  },
+  { key: 'themes',      label: 'THÈMES',         href: '/methodologie/themes'      },
+  { key: 'situations',  label: 'SITUATIONS',     href: '/methodologie/situations'  },
+  { key: 'evaluations', label: 'ÉVALUATIONS',    href: '/methodologie/evaluations' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -22,8 +23,8 @@ type TabKey = typeof TABS[number]['key']
 const MOBILE_BREAKPOINT = 768
 
 export type MethodologieHeaderProps = {
-  newLabel      : string
-  newHref       : string
+  newLabel      ?: string
+  newHref       ?: string
   hideNewButton?: boolean
   counts?: {
     seances    ?: number | null
@@ -35,11 +36,12 @@ export type MethodologieHeaderProps = {
 }
 
 function getActiveTab(pathname: string): TabKey {
+  if (pathname.endsWith('/seances')     || pathname.includes('/seances/'))     return 'seances'
   if (pathname.endsWith('/programmes')  || pathname.includes('/programmes/'))  return 'programmes'
   if (pathname.endsWith('/themes')      || pathname.includes('/themes/'))      return 'themes'
   if (pathname.endsWith('/situations')  || pathname.includes('/situations/'))  return 'situations'
   if (pathname.endsWith('/evaluations') || pathname.includes('/evaluations/')) return 'evaluations'
-  return 'seances'
+  return 'overview'
 }
 
 export function MethodologieHeader({
@@ -59,7 +61,7 @@ export function MethodologieHeader({
 
   return (
     <View style={styles.headerBlock}>
-      {isMobile && !hideNewButton && (
+      {isMobile && !hideNewButton && newLabel && newHref && (
         <View style={styles.headerTopRow}>
           <Pressable
             onPress={() => router.push(newHref as Parameters<typeof router.push>[0])}
@@ -79,7 +81,7 @@ export function MethodologieHeader({
       >
         {TABS.map(tab => {
           const isActive = tab.key === activeTab
-          const count    = counts?.[tab.key] ?? null
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
           return (
             <Pressable
               key={tab.key}
