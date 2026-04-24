@@ -405,3 +405,42 @@ export async function removeStageBlockParticipant(stageBlockId: string, childId:
     .eq('child_id', childId)
   if (error) throw error
 }
+
+// ============================================================
+// Story 105.1 — Stage children (génération cartes Panini)
+// ============================================================
+
+export type StageChild = {
+  id           : string
+  stageId      : string
+  prenom       : string
+  nom          : string
+  ageCategory  : string | null
+}
+
+/**
+ * Liste les enfants inscrits à un stage (via child_stage_participations → child_directory).
+ * Utilisé par la feature "cartes Panini" (story 105-1).
+ */
+export async function listStageChildren(stageId: string): Promise<StageChild[]> {
+  const { data, error } = await supabase
+    .from('child_stage_participations')
+    .select('id, stage_id, child_directory ( id, prenom, nom, age_category )')
+    .eq('stage_id', stageId)
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row: Record<string, unknown>) => {
+      const child = row.child_directory as Record<string, unknown> | null
+      if (!child) return null
+      return {
+        id          : child.id           as string,
+        stageId     : row.stage_id       as string,
+        prenom      : (child.prenom as string | null) ?? '',
+        nom         : (child.nom    as string | null) ?? '',
+        ageCategory : (child.age_category as string | null) ?? null,
+      }
+    })
+    .filter((c): c is StageChild => c !== null && (c.prenom !== '' || c.nom !== ''))
+}
