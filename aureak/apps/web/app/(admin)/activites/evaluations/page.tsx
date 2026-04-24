@@ -595,6 +595,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop      : space.md,
     paddingBottom   : space.xxl,
+    gap             : space.md,
     backgroundColor : colors.light.primary,
   },
   filtresRow: {
@@ -602,7 +603,6 @@ const styles = StyleSheet.create({
     justifyContent   : 'space-between',
     alignItems       : 'center',
     paddingHorizontal: space.lg,
-    paddingVertical  : space.sm,
     zIndex           : 9999,
   },
   filtresRowMobile: {
