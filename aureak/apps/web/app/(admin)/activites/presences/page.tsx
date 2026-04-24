@@ -17,7 +17,6 @@ import {
 import type { GroupWithMeta, GroupMemberWithName, ChildDirectoryEntry } from '@aureak/types'
 import type { SessionAttendanceSummary, AttendanceHistoryRow } from '@aureak/api-client'
 
-import { AdminPageHeader }        from '../../../../components/admin/AdminPageHeader'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
@@ -1233,13 +1232,8 @@ export default function PresencesPage() {
 
   return (
     <View style={pageStyles.container}>
-      {/* Story 97.3 — Header simplifié */}
-      <AdminPageHeader title="Présences" />
       <ActivitesHeader counts={activitesCnts ?? undefined} />
       <ScrollView style={pageStyles.scroll} contentContainerStyle={pageStyles.scrollContent}>
-        {/* Stat cards */}
-        <StatCardsPresences sessions={sessions} />
-
         {/* Filtres scope + temporels — row desktop, stack mobile */}
         <View style={[pageStyles.filtresRow, isMobile && pageStyles.filtresRowMobile]}>
           <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />

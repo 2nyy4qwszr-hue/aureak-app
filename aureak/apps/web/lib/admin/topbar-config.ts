@@ -8,49 +8,25 @@ export type TopbarAction = {
 }
 
 /** Retourne les breadcrumbs pour la route admin courante.
- *  Pattern: ['Aureak Admin', '<Section>', '<Page>'] */
+ *  Pattern: ['Aureak Admin', '<Page>'] — niveau catégorie intermédiaire supprimé. */
 export function getBreadcrumbs(pathname: string): string[] {
   const root = 'Aureak Admin'
 
-  if (pathname.startsWith('/dashboard')) {
-    return [root, 'Pilotage', 'Dashboard']
-  }
-  if (pathname.startsWith('/activites')) {
-    return [root, 'Pilotage', 'Activités']
-  }
-  if (pathname.startsWith('/methodologie')) {
-    return [root, 'Pédagogie', 'Méthodologie']
-  }
-  if (pathname.startsWith('/academie')) {
-    return [root, 'Académie', 'Annuaire']
-  }
-  if (pathname.startsWith('/activites/seances')) {
-    return [root, 'Pilotage', 'Séances']
-  }
-  if (pathname.startsWith('/academie/coachs')) {
-    return [root, 'Académie', 'Coachs']
-  }
-  if (pathname.startsWith('/academie/joueurs')) {
-    return [root, 'Académie', 'Joueurs']
-  }
-  if (pathname.startsWith('/academie/groupes')) {
-    return [root, 'Académie', 'Groupes']
-  }
-  if (pathname.startsWith('/evenements/stages')) {
-    return [root, 'Événements', 'Stages']
-  }
-  if (pathname.startsWith('/children')) {
-    return [root, 'Académie', 'Joueurs']
-  }
-  if (pathname.startsWith('/users')) {
-    return [root, 'Système', 'Utilisateurs']
-  }
-  if (pathname.startsWith('/profiles')) {
-    return [root, 'Académie', 'Profil']
-  }
-  if (pathname.startsWith('/settings')) {
-    return [root, 'Système', 'Paramètres']
-  }
+  if (pathname.startsWith('/dashboard'))            return [root, 'Dashboard']
+  if (pathname.startsWith('/activites/seances'))    return [root, 'Activités', 'Séances']
+  if (pathname.startsWith('/activites/presences'))  return [root, 'Activités', 'Présences']
+  if (pathname.startsWith('/activites/evaluations')) return [root, 'Activités', 'Évaluations']
+  if (pathname.startsWith('/activites'))            return [root, 'Activités']
+  if (pathname.startsWith('/methodologie'))     return [root, 'Méthodologie']
+  if (pathname.startsWith('/academie/coachs'))  return [root, 'Coachs']
+  if (pathname.startsWith('/academie/joueurs')) return [root, 'Joueurs']
+  if (pathname.startsWith('/academie/groupes')) return [root, 'Groupes']
+  if (pathname.startsWith('/academie'))         return [root, 'Annuaire']
+  if (pathname.startsWith('/evenements/stages')) return [root, 'Stages']
+  if (pathname.startsWith('/children'))         return [root, 'Joueurs']
+  if (pathname.startsWith('/users'))            return [root, 'Utilisateurs']
+  if (pathname.startsWith('/profiles'))         return [root, 'Profil']
+  if (pathname.startsWith('/settings'))         return [root, 'Paramètres']
 
   // Fallback générique : juste "Aureak Admin"
   return [root]

@@ -1,16 +1,16 @@
 'use client'
-// Story 80-1 — SegmentedToggle exact (pattern toggleRow de academie/joueurs/index.tsx)
+// Style segmented toggle aligné sur SeancesPage (timeToggle).
 import React from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space, radius } from '@aureak/theme'
+import { colors, fonts, radius } from '@aureak/theme'
 
 export type TemporalFilter = 'today' | 'upcoming' | 'past'
 
 const FILTERS: { key: TemporalFilter; label: string }[] = [
-  { key: 'today',    label: "AUJOURD'HUI" },
-  { key: 'upcoming', label: 'À VENIR'     },
-  { key: 'past',     label: 'PASSÉES'     },
+  { key: 'today',    label: "Aujourd'hui" },
+  { key: 'upcoming', label: 'À venir'     },
+  { key: 'past',     label: 'Passées'     },
 ]
 
 type Props = {
@@ -20,16 +20,18 @@ type Props = {
 
 export function PseudoFiltresTemporels({ value, onChange }: Props) {
   return (
-    <View style={styles.toggleRow}>
+    <View style={styles.toggle}>
       {FILTERS.map(f => {
-        const isActive = f.key === value
+        const active = f.key === value
         return (
           <Pressable
             key={f.key}
             onPress={() => onChange(f.key)}
-            style={[styles.toggleBtn, isActive && styles.toggleBtnActive] as never}
+            style={[styles.toggleBtn, active && styles.toggleBtnActive]}
           >
-            <AureakText variant="label" style={[styles.toggleLabel, isActive && styles.toggleLabelActive] as never}>
+            <AureakText
+              style={[styles.toggleText, active && styles.toggleTextActive] as never}
+            >
               {f.label}
             </AureakText>
           </Pressable>
@@ -40,30 +42,32 @@ export function PseudoFiltresTemporels({ value, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  toggleRow: {
+  toggle: {
     flexDirection  : 'row',
-    gap            : 0,
-    alignSelf      : 'flex-start',
+    gap            : 4,
+    backgroundColor: colors.light.muted,
     borderRadius   : radius.xs,
-    overflow       : 'hidden',
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
+    padding        : 3,
+    alignSelf      : 'flex-start',
   },
   toggleBtn: {
-    paddingVertical  : 8,
-    paddingHorizontal: space.lg,
-    backgroundColor  : colors.light.surface,
+    paddingHorizontal: 14,
+    paddingVertical  : 5,
+    borderRadius     : radius.xs - 2,
+    borderWidth      : 1,
+    borderColor      : 'transparent',
   },
   toggleBtnActive: {
-    backgroundColor: colors.accent.gold,
+    backgroundColor: colors.light.surface,
+    borderColor    : colors.border.divider,
   },
-  toggleLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 0.8,
-    color        : colors.text.muted,
+  toggleText: {
+    fontSize  : 12,
+    color     : colors.text.muted,
+    fontFamily: fonts.body,
   },
-  toggleLabelActive: {
-    color: colors.text.dark,
+  toggleTextActive: {
+    color     : colors.text.dark,
+    fontWeight: '600',
   },
 })
