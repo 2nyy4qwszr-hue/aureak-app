@@ -430,7 +430,7 @@ const s = StyleSheet.create({
     borderRadius     : radius.xs,
     borderWidth      : 1,
     borderColor      : colors.border.divider,
-    minHeight        : 36,
+    minHeight        : 44, // Epic 104.3 — Apple HIG touch target
     justifyContent   : 'center',
   },
   resetBtnPressed: {

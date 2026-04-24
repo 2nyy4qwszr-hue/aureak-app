@@ -130,7 +130,7 @@ export const colors = {
     secondary: '#A0A0A0',         // texte secondaire sur fond sombre
     dark     : '#18181B',         // texte principal sur fond clair (zinc-900)
     muted    : '#71717A',         // texte atténué sur fond clair (zinc-500)
-    subtle   : '#A1A1AA',         // labels discrets sur fond clair (zinc-400)
+    subtle   : '#71717A',         // Epic 104.3 — aligné sur muted pour WCAG AA (ancien #A1A1AA échouait contrast 2.56 sur blanc, zinc-500 passe à 4.83)
     faint    : '#D4D4D8',         // Story 93.7 — séparateurs très discrets (zinc-300)
     onDarkMuted: 'rgba(255,255,255,0.55)',  // Story 93.6 — labels/unit sur fond hero gradient sombre
     onGold   : '#1a1406',         // Story 93.7 — texte sur fond gold (boutons CTA gold + avatars)
