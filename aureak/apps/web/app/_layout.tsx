@@ -46,10 +46,11 @@ export default function RootLayout() {
     if (Platform.OS === 'web') injectPWAHead()
   }, [])
 
-  // Timeout fallback : si les fontes ne chargent pas en 3s, on affiche quand même l'app
+  // Timeout fallback perf (Epic 104.2) : 500ms puis fallback fonts système,
+  // les fontes custom swappent dès qu'elles arrivent
   const [fontTimeout, setFontTimeout] = useState(false)
   useEffect(() => {
-    const t = setTimeout(() => setFontTimeout(true), 3000)
+    const t = setTimeout(() => setFontTimeout(true), 500)
     return () => clearTimeout(t)
   }, [])
 
