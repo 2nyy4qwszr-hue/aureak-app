@@ -2,7 +2,7 @@
 // Story tbd-onboarding — Wizard d'onboarding administrateur (4 étapes)
 // Story 99.3 — AdminPageHeader v2 ("Onboarding")
 import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, TextInput, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { createImplantation, createGroup } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -54,6 +54,8 @@ function ProgressStepper({ current }: { current: number }) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const router = useRouter()
 
   const [step,             setStep]             = useState(1)
@@ -131,7 +133,7 @@ export default function OnboardingPage() {
       {/* Story 99.3 — AdminPageHeader v2 */}
       <AdminPageHeader title="Onboarding" />
 
-      <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
       <ProgressStepper current={step} />
 
       {/* ── Étape 1 : Bienvenue ── */}

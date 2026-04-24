@@ -1,6 +1,6 @@
 // Story 99.3 — AdminPageHeader v2 ("Accès accordés")
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listActiveGrants, revokeGrant } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
@@ -71,6 +71,8 @@ function formatExpiry(iso: string): string {
 }
 
 export default function AccessGrantsPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const [grants, setGrants] = useState<Grant[]>([])
@@ -127,7 +129,7 @@ export default function AccessGrantsPage() {
         }}
       />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
 
       {/* Alerte expiration imminente */}
       {!loading && expiringSoon.length > 0 && (

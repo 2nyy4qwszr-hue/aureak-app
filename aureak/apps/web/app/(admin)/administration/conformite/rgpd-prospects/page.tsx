@@ -9,7 +9,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { View, Pressable, ScrollView, StyleSheet, TextInput, Modal } from 'react-native'
+import { View, Pressable, ScrollView, StyleSheet, TextInput, Modal, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
@@ -56,6 +56,8 @@ function formatDate(iso: string | null): string {
 }
 
 export default function ProspectAccessAdminPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const role                       = useAuthStore(s => s.role)
   const toast                      = useToast()
 
@@ -184,7 +186,7 @@ export default function ProspectAccessAdminPage() {
       {/* Story 99.5 — AdminPageHeader v2 */}
       <AdminPageHeader title="RGPD prospects" />
 
-      <ScrollView style={st.container} contentContainerStyle={st.content}>
+      <ScrollView style={st.container} contentContainerStyle={[st.content, isMobile && { padding: space.md }]}>
       {/* Tabs */}
       <View style={st.tabs}>
         {TABS.map(t => (

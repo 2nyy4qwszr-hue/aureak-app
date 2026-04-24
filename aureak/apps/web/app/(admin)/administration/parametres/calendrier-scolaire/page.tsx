@@ -3,7 +3,7 @@
 // Permet à l'admin d'ajouter, visualiser et supprimer les exceptions de calendrier
 // (jours sans séance : vacances, jours fériés, etc.)
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
   listSchoolCalendarExceptions,
@@ -23,6 +23,8 @@ function fmtDate(iso: string): string {
 
 export default function SchoolCalendarPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
 
   const [exceptions, setExceptions] = useState<SchoolCalendarException[]>([])
   const [loading,    setLoading   ] = useState(true)
@@ -97,7 +99,7 @@ export default function SchoolCalendarPage() {
         }}
       />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {/* ── Header (retrait — titre via AdminPageHeader) ── */}
       <View style={styles.header}>
         <Pressable
