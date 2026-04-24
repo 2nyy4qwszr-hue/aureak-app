@@ -2,7 +2,7 @@
 // Story 92.3 — Récap clubs partenaires (vue synthétique)
 // Story 97.13 — AdminPageHeader v2 ("Clubs partenaires") + PartenariatNavBar
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius } from '@aureak/theme'
 import {
@@ -34,6 +34,8 @@ function isActive(p: ClubPartnership, today: string): boolean {
 }
 
 export default function PartenariatClubsPage() {
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [partnerships, setPartnerships] = useState<ClubPartnership[]>([])
   const [stats,        setStats]        = useState<Record<string, number>>({})
   const [loading,      setLoading]      = useState(true)
@@ -105,7 +107,7 @@ export default function PartenariatClubsPage() {
       />
       <PartenariatNavBar />
 
-      <ScrollView style={s.wrapper} contentContainerStyle={s.content}>
+      <ScrollView style={s.wrapper} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
       <View style={s.statsRow}>
         <StatsStandardCard label="Partenariats actifs"  value={activeCount}    iconTone="gold"    />
         <StatsStandardCard label="Expirent dans 30j"    value={expiringCount}  iconTone="red"     />

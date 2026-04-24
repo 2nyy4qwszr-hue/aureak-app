@@ -2,7 +2,7 @@
 // Story 92.2 — Liste des sponsors (parrainage académie)
 // Story 97.13 — AdminPageHeader v2 ("Sponsors") + PartenariatNavBar
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -28,6 +28,8 @@ function formatEuros(cents: number | null): string {
 
 export default function PartenariatSponsorsPage() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const [sponsors,  setSponsors]  = useState<SponsorWithCounts[]>([])
   const [loading,   setLoading]   = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -67,7 +69,7 @@ export default function PartenariatSponsorsPage() {
       />
       <PartenariatNavBar />
 
-      <ScrollView style={st.wrapper} contentContainerStyle={st.content}>
+      <ScrollView style={st.wrapper} contentContainerStyle={[st.content, isMobile && { padding: space.md }]}>
       <View style={st.statsRow}>
         <StatsStandardCard label="Sponsors actifs"          value={activeSponsorCount} iconTone="gold"    />
         <StatsStandardCard label="Parrainages actifs"       value={totalLinksActive}   iconTone="neutral" />
