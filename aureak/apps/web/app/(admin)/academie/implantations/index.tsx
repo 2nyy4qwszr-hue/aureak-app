@@ -9,7 +9,7 @@
 //
 // REFONTE : page native alignée au pattern Académie.
 import { useContext, useEffect, useState, useCallback } from 'react'
-import { View, ScrollView, Pressable, TextInput, StyleSheet } from 'react-native'
+import { View, ScrollView, Pressable, TextInput, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listImplantations } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
@@ -24,6 +24,8 @@ type ActifFilter = 'all' | 'actives' | 'fermees'
 export default function AcademieImplantationsPage() {
   const router         = useRouter()
   const academieCounts = useContext(AcademieCountsContext)
+  const { width }      = useWindowDimensions()
+  const isMobile       = width <= 640
 
   const [rows,    setRows]    = useState<Implantation[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,7 +70,7 @@ export default function AcademieImplantationsPage() {
       />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
         {/* Stat cards */}
         <View style={s.statCardsRow}>
           <View style={s.statCard}>

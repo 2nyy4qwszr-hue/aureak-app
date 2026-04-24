@@ -3,7 +3,7 @@
 // header + StatCards + filtresRow pills/dropdowns + search row + table alignée
 // Story 97.6 — AdminPageHeader v2 ("Joueurs") + AcademieNavBar partagé
 import { useContext, useEffect, useState, useMemo, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, Image, TextInput } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, Image, TextInput, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -86,6 +86,8 @@ function Stars({ count }: { count: number | null }) {
 export default function AcademieJoueursPage() {
   const router         = useRouter()
   const academieCounts = useContext(AcademieCountsContext)
+  const { width }      = useWindowDimensions()
+  const isMobile       = width <= 640
 
   // ── Data ──
   const [joueurs,        setJoueurs]        = useState<JoueurListItem[]>([])
@@ -234,7 +236,7 @@ export default function AcademieJoueursPage() {
       />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={st.content}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
 
       {/* ── StatCards ── */}
       <View style={st.statCardsRow}>

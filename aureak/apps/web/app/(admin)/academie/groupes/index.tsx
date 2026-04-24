@@ -5,7 +5,7 @@
 // Story 56-4 : Drag-drop transfert joueur entre groupes
 // Hiérarchie : Implantation → Groupe → Séances → Présences / Évaluations
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { View, StyleSheet, ScrollView, TextInput, Pressable, Modal } from 'react-native'
+import { View, StyleSheet, ScrollView, TextInput, Pressable, Modal, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
   listGroupsWithMembers, listImplantations, listAcademySeasons, createGroup,
@@ -47,6 +47,8 @@ type TransferConfirm = {
 
 export default function GroupsPage() {
   const router   = useRouter()
+  const { width } = useWindowDimensions()
+  const isMobile = width <= 640
   const tenantId = useAuthStore(s => s.tenantId) ?? ''
 
   const [groups,        setGroups]        = useState<GroupWithMembers[]>([])
@@ -248,7 +250,7 @@ export default function GroupsPage() {
 
   return (
     <>
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
 
       {/* ── Header ── */}
       <View style={s.header}>
