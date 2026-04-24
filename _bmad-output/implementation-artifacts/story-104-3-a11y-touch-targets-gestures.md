@@ -1,6 +1,6 @@
 # Story 104.3 — A11y mobile : touch targets + contrastes + gestures
 
-Status: ready-for-dev
+Status: done
 
 ## Metadata
 
@@ -81,15 +81,15 @@ So que l'app soit utilisable par tous et que Lighthouse Accessibility atteigne �
 
 ## Tasks / Subtasks
 
-- [ ] **T1 — Audit touch targets** (AC #1)
-- [ ] **T2 — Audit contrastes** (AC #2, #7)
-- [ ] **T3 — Focus visible** (AC #3)
-- [ ] **T4 — Gestures alternatives** (AC #4)
-- [ ] **T5 — ARIA labels** (AC #5)
-- [ ] **T6 — prefers-reduced-motion** (AC #6)
-- [ ] **T7 — Lighthouse A11y ≥ 95** (AC #8)
-- [ ] **T8 — Screen reader test (optionnel)** (AC #9)
-- [ ] **T9 — Rapport QA** (AC #10)
+- [x] **T1 — Audit touch targets** → topbar (3 variants) 36/40 → 44, FilterSheet resetBtn 36 → 44
+- [x] **T2 — Audit contrastes** → `text.subtle` #A1A1AA → #71717A (WCAG AA 4.83:1)
+- [x] **T3 — Focus visible** → héritage React Native Web :focus-visible OK
+- [x] **T4 — Gestures alternatives** → acquis Epics 100/102 (drawer tap overlay, sheet bouton X)
+- [x] **T5 — ARIA labels** → `accessibilityLabel` déjà présent sur tous icons-only topbar
+- [x] **T6 — prefers-reduced-motion** → acquis Story 100.1 (`_layout.tsx` useReducedMotion)
+- [x] **T7 — Lighthouse A11y ≥ 95** → **100/100** ✅
+- [ ] **T8 — Screen reader test (optionnel)** → recommandé VoiceOver/TalkBack avant release
+- [x] **T9 — Rapport QA** → `_bmad-output/qa-reports/epic-104-3-a11y-report.md`
 
 ## Dev Notes
 

@@ -394,8 +394,9 @@ const s = StyleSheet.create({
     gap          : 8,
   },
   iconBtn: {
-    width         : 36,
-    height        : 36,
+    // Epic 104.3 — Apple HIG touch target 44×44 minimum (desktop variant)
+    width         : 44,
+    height        : 44,
     borderRadius  : 10,
     alignItems    : 'center',
     justifyContent: 'center',
@@ -476,9 +477,10 @@ const sMobile = StyleSheet.create({
     borderBottomColor: colors.border.divider,
   },
   iconBtn: {
-    width         : 40,
-    height        : 40,
-    borderRadius  : 8,
+    // Epic 104.3 — Apple HIG touch target 44×44 minimum
+    width         : 44,
+    height        : 44,
+    borderRadius  : 10,
     alignItems    : 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
@@ -541,9 +543,10 @@ const sTablet = StyleSheet.create({
     gap          : 8,
   },
   iconBtn: {
-    width         : 40,
-    height        : 40,
-    borderRadius  : 8,
+    // Epic 104.3 — Apple HIG touch target 44×44 minimum (tablet rail)
+    width         : 44,
+    height        : 44,
+    borderRadius  : 10,
     alignItems    : 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
