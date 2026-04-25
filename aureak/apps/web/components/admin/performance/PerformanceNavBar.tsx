@@ -1,5 +1,5 @@
 'use client'
-// Hub Partenariat — 3 onglets : Vue d'ensemble / Sponsors / Clubs partenaires.
+// Hub Performance — 7 onglets : Vue d'ensemble + 5 sous-pages + Comparaisons.
 // Design aligné EXACTEMENT sur ActivitesHeader / MarketingNavBar.
 import { useRouter, usePathname } from 'expo-router'
 import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
@@ -10,28 +10,32 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'overview', label: "VUE D'ENSEMBLE", href: '/partenariat'          },
-  { key: 'sponsors', label: 'SPONSORS',        href: '/partenariat/sponsors' },
-  { key: 'clubs',    label: 'CLUBS PARTENAIRES', href: '/partenariat/clubs'  },
+  { key: 'overview',     label: "VUE D'ENSEMBLE", href: '/performance'              },
+  { key: 'charge',       label: 'CHARGE',         href: '/performance/charge'       },
+  { key: 'clubs',        label: 'CLUBS',          href: '/performance/clubs'        },
+  { key: 'presences',    label: 'PRÉSENCES',      href: '/performance/presences'    },
+  { key: 'progression',  label: 'PROGRESSION',    href: '/performance/progression'  },
+  { key: 'implantation', label: 'IMPLANTATIONS',  href: '/performance/implantation' },
+  { key: 'comparaisons', label: 'COMPARAISONS',   href: '/performance/comparaisons' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
 
-export type PartenariatNavBarProps = {
+export type PerformanceNavBarProps = {
   counts?: Partial<Record<TabKey, number | null>>
 }
 
 function isTabActive(pathname: string, href: string): boolean {
-  if (href === '/partenariat') return pathname === '/partenariat'
+  if (href === '/performance') return pathname === '/performance'
   return pathname === href || pathname.startsWith(href + '/')
 }
 
-export function PartenariatNavBar({ counts }: PartenariatNavBarProps = {}) {
+export function PerformanceNavBar({ counts }: PerformanceNavBarProps = {}) {
   const router    = useRouter()
   const pathname  = usePathname()
   const activeKey = TABS.find(t => isTabActive(pathname, t.href))?.key ?? null
 
-  useScrollTabIntoView('tab-partenariat', activeKey)
+  useScrollTabIntoView('tab-performance', activeKey)
 
   return (
     <View style={styles.headerBlock}>
@@ -47,7 +51,7 @@ export function PartenariatNavBar({ counts }: PartenariatNavBarProps = {}) {
           return (
             <Pressable
               key={tab.key}
-              nativeID={`tab-partenariat-${tab.key}`}
+              nativeID={`tab-performance-${tab.key}`}
               onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
               style={styles.tabItem}
             >

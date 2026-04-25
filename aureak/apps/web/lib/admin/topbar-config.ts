@@ -106,6 +106,13 @@ export function getTopbarActions(
     ]
   }
 
+  if (pathname.startsWith('/methodologie')) {
+    return [
+      { label: 'Exporter',              variant: 'outline', onPress: () => { /* TODO: export methodologie */ } },
+      { label: '+ Nouvel entraînement', variant: 'gold',    onPress: () => routerPush('/methodologie/entrainements/new') },
+    ]
+  }
+
   if (pathname.startsWith('/academie/coachs')) {
     return [
       { label: '+ Nouveau coach', variant: 'gold', onPress: () => routerPush('/academie/coachs/new') },
@@ -158,7 +165,8 @@ export function getTopbarActions(
 
   if (pathname.startsWith('/academie')) {
     return [
-      { label: '+ Nouveau joueur', variant: 'gold', onPress: () => routerPush('/children/new') },
+      { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export academie */ } },
+      { label: '+ Nouveau joueur', variant: 'gold',    onPress: () => routerPush('/children/new') },
     ]
   }
 
@@ -190,6 +198,33 @@ export function getTopbarActions(
     return [
       { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export events */ } },
       { label: '+ Nouveau stage',  variant: 'gold',    onPress: () => routerPush('/evenements/stages/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/prospection')) {
+    return [
+      { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export prospection */ } },
+      { label: '+ Nouveau prospect', variant: 'gold',  onPress: () => routerPush('/prospection/clubs') },
+    ]
+  }
+
+  if (pathname.startsWith('/marketing')) {
+    return [
+      { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export marketing */ } },
+      { label: '+ Nouveau média',  variant: 'gold',    onPress: () => routerPush('/marketing/mediatheque') },
+    ]
+  }
+
+  if (pathname.startsWith('/partenariat')) {
+    return [
+      { label: 'Exporter',          variant: 'outline', onPress: () => { /* TODO: export partenariat */ } },
+      { label: '+ Nouveau sponsor', variant: 'gold',    onPress: () => routerPush('/partenariat/sponsors') },
+    ]
+  }
+
+  if (pathname.startsWith('/performance')) {
+    return [
+      { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export performance */ } },
     ]
   }
 
