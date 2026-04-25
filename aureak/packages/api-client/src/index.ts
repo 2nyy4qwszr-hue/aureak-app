@@ -875,3 +875,17 @@ export type {
   HubPipelineFunnel,
   HubTopCommercial,
 } from './admin/prospection-hub'
+
+// ── Hub Événements : KPIs + 3 mini-widgets ───────────────────────────────────
+export {
+  getEvenementsHubKpis,
+  getEvenementsHubNextEvent,
+  getEvenementsHubRecentRegistrations,
+  getEvenementsHubAlmostFull,
+} from './admin/evenements-hub'
+export type {
+  EvenementsHubKpis,
+  EvenementsHubNextEvent,
+  EvenementsHubRecentRegistration,
+  EvenementsHubAlmostFull,
+} from './admin/evenements-hub'
