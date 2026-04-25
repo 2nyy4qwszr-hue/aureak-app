@@ -1,10 +1,12 @@
 'use client'
-// Story 88.1 — ProspectionNavBar : 3 onglets hub Prospection (Clubs / Gardiens / Entraîneurs)
-// Pattern aligné sur AcademieNavBar (horizontal, gold underline active, SubtabCount optionnel)
+// ProspectionNavBar — header onglets aligné sur le pattern ActivitesHeader
+// (texte noir + underline gold absolu sur tab actif, scrollable horizontal sur mobile).
+import React from 'react'
 import { useRouter, usePathname } from 'expo-router'
 import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
+import type { TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
@@ -27,48 +29,39 @@ export function ProspectionNavBar({ counts }: ProspectionNavBarProps = {}) {
   const router   = useRouter()
   const pathname = usePathname()
   // Overview matche uniquement /prospection exact ; les autres onglets matchent leur sous-arbre.
-  const activeKey =
+  const activeKey: TabKey | null =
     (pathname === '/prospection'
       ? 'overview'
       : TABS.find(t => t.key !== 'overview' && (pathname === t.href || pathname.startsWith(t.href + '/')))?.key
     ) ?? null
 
-  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
   useScrollTabIntoView('tab-prospection', activeKey)
 
   return (
-    <View style={s.wrapper}>
+    <View style={styles.headerBlock}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.container}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
       >
         {TABS.map(tab => {
           const isActive = tab.key === activeKey
-          const count    = counts?.[tab.key] ?? null
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
           return (
             <Pressable
               key={tab.href}
               nativeID={`tab-prospection-${tab.key}`}
               onPress={() => router.push(tab.href as never)}
-              style={({ pressed }) => [
-                s.tab,
-                isActive && s.tabActive,
-                pressed && !isActive && s.tabPressed,
-              ] as never}
+              style={styles.tabItem}
             >
-              <View style={s.tabInner}>
-                <AureakText
-                  variant="label"
-                  style={[
-                    s.tabLabel,
-                    isActive ? s.tabLabelActive : s.tabLabelInactive,
-                  ] as never}
-                >
+              <View style={styles.tabLabelRow}>
+                <AureakText style={(isActive ? styles.tabLabelActive : styles.tabLabel) as TextStyle}>
                   {tab.label}
                 </AureakText>
                 <SubtabCount value={count} active={isActive} />
               </View>
+              {isActive && <View style={styles.tabUnderline} />}
             </Pressable>
           )
         })}
@@ -77,46 +70,55 @@ export function ProspectionNavBar({ counts }: ProspectionNavBarProps = {}) {
   )
 }
 
-const s = StyleSheet.create({
-  wrapper: {
-    backgroundColor  : colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+const styles = StyleSheet.create({
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
   },
-  container: {
-    paddingHorizontal: space.md,
+  tabsScroll: {
+    flexGrow : 0,
+    marginTop: space.sm,
+  },
+  tabsRow: {
     flexDirection    : 'row',
-    alignItems       : 'stretch',
-    gap              : space.xs,
+    gap              : 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
-  tab: {
+  tabItem: {
+    paddingHorizontal: 20,
     paddingVertical  : 14,
-    paddingHorizontal: space.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    position         : 'relative',
   },
-  tabActive: {
-    borderBottomColor: colors.accent.gold,
-  },
-  tabPressed: {
-    opacity: 0.7,
-  },
-  tabInner: {
+  tabLabelRow: {
     flexDirection: 'row',
     alignItems   : 'center',
     gap          : space.xs,
   },
   tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-  },
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.muted,
+    textTransform: 'uppercase',
+  } as TextStyle,
   tabLabelActive: {
-    color  : colors.text.dark,
-    opacity: 1,
-  },
-  tabLabelInactive: {
-    color  : colors.text.dark,
-    opacity: 0.5,
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.dark,
+    textTransform: 'uppercase',
+  } as TextStyle,
+  tabUnderline: {
+    position       : 'absolute',
+    bottom         : -1,
+    left           : 12,
+    right          : 12,
+    height         : 2,
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 2,
   },
 })
