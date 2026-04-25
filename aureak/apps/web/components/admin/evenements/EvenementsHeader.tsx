@@ -11,22 +11,23 @@ import { colors, space } from '@aureak/theme'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'stages',      label: 'STAGES',      href: '/evenements/stages'      },
-  { key: 'tournois',    label: 'TOURNOIS',     href: '/evenements/tournois'    },
-  { key: 'fun-days',    label: 'FUN DAYS',     href: '/evenements/fun-days'    },
-  { key: 'detect-days', label: 'DETECT DAYS',  href: '/evenements/detect-days' },
-  { key: 'seminaires',  label: 'SÉMINAIRES',   href: '/evenements/seminaires'  },
+  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/evenements'             },
+  { key: 'stages',      label: 'STAGES',         href: '/evenements/stages'      },
+  { key: 'tournois',    label: 'TOURNOIS',       href: '/evenements/tournois'    },
+  { key: 'fun-days',    label: 'FUN DAYS',       href: '/evenements/fun-days'    },
+  { key: 'detect-days', label: 'DETECT DAYS',    href: '/evenements/detect-days' },
+  { key: 'seminaires',  label: 'SÉMINAIRES',     href: '/evenements/seminaires'  },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
 
-function getActiveTab(pathname: string): TabKey | null {
+function getActiveTab(pathname: string): TabKey {
   if (pathname.endsWith('/tournois')    || pathname.includes('/tournois/'))    return 'tournois'
   if (pathname.endsWith('/fun-days')    || pathname.includes('/fun-days/'))    return 'fun-days'
   if (pathname.endsWith('/detect-days') || pathname.includes('/detect-days/')) return 'detect-days'
   if (pathname.endsWith('/seminaires')  || pathname.includes('/seminaires/'))  return 'seminaires'
-  if (pathname.includes('/stages'))                                            return 'stages'
-  return null
+  if (pathname.endsWith('/stages')      || pathname.includes('/stages/'))      return 'stages'
+  return 'overview'
 }
 
 export function EvenementsHeader() {

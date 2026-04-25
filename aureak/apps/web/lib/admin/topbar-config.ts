@@ -22,7 +22,12 @@ export function getBreadcrumbs(pathname: string): string[] {
   if (pathname.startsWith('/academie/joueurs')) return [root, 'Joueurs']
   if (pathname.startsWith('/academie/groupes')) return [root, 'Groupes']
   if (pathname.startsWith('/academie'))         return [root, 'Annuaire']
-  if (pathname.startsWith('/evenements/stages')) return [root, 'Stages']
+  if (pathname.startsWith('/evenements/stages'))      return [root, 'Événements', 'Stages']
+  if (pathname.startsWith('/evenements/tournois'))     return [root, 'Événements', 'Tournois']
+  if (pathname.startsWith('/evenements/fun-days'))     return [root, 'Événements', 'Fun Days']
+  if (pathname.startsWith('/evenements/detect-days'))  return [root, 'Événements', 'Detect Days']
+  if (pathname.startsWith('/evenements/seminaires'))   return [root, 'Événements', 'Séminaires']
+  if (pathname.startsWith('/evenements'))              return [root, 'Événements']
   if (pathname.startsWith('/children'))         return [root, 'Joueurs']
   if (pathname.startsWith('/users'))            return [root, 'Utilisateurs']
   if (pathname.startsWith('/profiles'))         return [root, 'Profil']
@@ -72,6 +77,37 @@ export function getTopbarActions(
   if (pathname.startsWith('/academie/coachs')) {
     return [
       { label: '+ Nouveau coach', variant: 'gold', onPress: () => routerPush('/academie/coachs/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/evenements/tournois')) {
+    return [
+      { label: '+ Nouveau tournoi', variant: 'gold', onPress: () => routerPush('/evenements/tournois/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/evenements/fun-days')) {
+    return [
+      { label: '+ Nouveau fun day', variant: 'gold', onPress: () => routerPush('/evenements/fun-days/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/evenements/detect-days')) {
+    return [
+      { label: '+ Nouveau detect day', variant: 'gold', onPress: () => routerPush('/evenements/detect-days/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/evenements/seminaires')) {
+    return [
+      { label: '+ Nouveau séminaire', variant: 'gold', onPress: () => routerPush('/evenements/seminaires/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/evenements')) {
+    return [
+      { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export events */ } },
+      { label: '+ Nouveau stage',  variant: 'gold',    onPress: () => routerPush('/evenements/stages/new') },
     ]
   }
 
