@@ -17,8 +17,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { splitName } from './splitName'
 import { formatRelativeDate } from './formatRelativeDate'
-import { AdminPageHeader } from '../AdminPageHeader'
 import { AcademieNavBar } from './AcademieNavBar'
+import { PrimaryAction } from '../PrimaryAction'
 import { AcademieCountsContext } from '../../../app/(admin)/academie/_layout'
 
 type StatusFilter = 'actifs' | 'tous' | 'supprimes'
@@ -143,14 +143,6 @@ export function PeopleListPage({
 
   return (
     <View style={s.page}>
-      {/* Story 97.6 — AdminPageHeader v2 (titre = sous-section) + AcademieNavBar */}
-      <AdminPageHeader
-        title={title}
-        actionButton={{
-          label  : newButtonLabel,
-          onPress: () => router.push(newButtonHref as never),
-        }}
-      />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
@@ -279,6 +271,11 @@ export function PeopleListPage({
         )}
 
       </ScrollView>
+
+      <PrimaryAction
+        label={newButtonLabel.replace(/^\+\s*/, '')}
+        onPress={() => router.push(newButtonHref as never)}
+      />
     </View>
   )
 }

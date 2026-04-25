@@ -7,7 +7,6 @@ import { useRouter } from 'expo-router'
 import { colors, space } from '@aureak/theme'
 
 import { AcademieCountsContext }         from './_layout'
-import { AdminPageHeader }                from '../../../components/admin/AdminPageHeader'
 import { AcademieNavBar }                 from '../../../components/admin/academie/AcademieNavBar'
 import { AcademieHubKpis }                from '../../../components/admin/academie/AcademieHubKpis'
 import { AcademieHubWeekSummary }         from '../../../components/admin/academie/AcademieHubWeekSummary'
@@ -15,6 +14,7 @@ import { AcademieHubLatestJoueur }        from '../../../components/admin/academ
 import { AcademieHubRecentJoueurs }       from '../../../components/admin/academie/AcademieHubRecentJoueurs'
 import { AcademieHubImplantations }       from '../../../components/admin/academie/AcademieHubImplantations'
 import { AcademieHubOldAcademiciens }     from '../../../components/admin/academie/AcademieHubOldAcademiciens'
+import { PrimaryAction }                  from '../../../components/admin/PrimaryAction'
 
 export default function AcademieHubPage() {
   const router    = useRouter()
@@ -26,13 +26,6 @@ export default function AcademieHubPage() {
 
   return (
     <View style={styles.container}>
-      <AdminPageHeader
-        title="Académie"
-        actionButton={{
-          label  : '+ Nouveau joueur',
-          onPress: () => router.push('/children/new' as never),
-        }}
-      />
       <AcademieNavBar counts={counts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -49,6 +42,11 @@ export default function AcademieHubPage() {
           <AcademieHubOldAcademiciens />
         </View>
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouveau joueur"
+        onPress={() => router.push('/children/new' as never)}
+      />
     </View>
   )
 }

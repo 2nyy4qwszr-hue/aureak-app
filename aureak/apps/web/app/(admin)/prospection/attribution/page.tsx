@@ -9,7 +9,7 @@ import {
   listAttributionRules, updateAttributionRule, deleteAttributionRule,
 } from '@aureak/api-client'
 import type { AttributionRule } from '@aureak/types'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { AttributionRuleModal } from '../../../../components/admin/prospection/AttributionRuleModal'
 
@@ -71,14 +71,6 @@ export default function AttributionRulesPage() {
 
   return (
     <View style={st.page}>
-      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
-      <AdminPageHeader
-        title="Attribution"
-        actionButton={{
-          label  : '+ Ajouter une règle',
-          onPress: handleAdd,
-        }}
-      />
       <ProspectionNavBar />
 
       <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
@@ -155,6 +147,11 @@ export default function AttributionRulesPage() {
         onSuccess={() => load()}
       />
       </ScrollView>
+
+      <PrimaryAction
+        label="Ajouter une règle"
+        onPress={handleAdd}
+      />
     </View>
   )
 }

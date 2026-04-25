@@ -5,13 +5,11 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, space, radius } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { MarketingNavBar } from '../../../../components/admin/marketing/MarketingNavBar'
 
 export default function MarketingReseauxPage() {
   return (
     <View style={s.page}>
-      <AdminPageHeader title="Réseaux sociaux" />
       <MarketingNavBar />
 
       <View style={s.stateWrapper}>

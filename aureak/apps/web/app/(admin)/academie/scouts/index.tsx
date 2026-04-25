@@ -19,7 +19,6 @@ import { View, ScrollView, Pressable, StyleSheet, useWindowDimensions } from 're
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { AcademieCountsContext } from '../_layout'
 
@@ -31,7 +30,6 @@ export default function AcademieScoutsPage() {
 
   return (
     <View style={s.page}>
-      <AdminPageHeader title="Scouts" />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>

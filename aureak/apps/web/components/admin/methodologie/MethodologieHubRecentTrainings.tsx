@@ -63,7 +63,7 @@ export function MethodologieHubRecentTrainings() {
             <Pressable
               key={it.sessionId}
               style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-              onPress={() => router.push(`/methodologie/seances/${it.sessionId}` as never)}
+              onPress={() => router.push(`/methodologie/entrainements/${it.sessionId}` as never)}
             >
               <View style={[styles.methodDot, { backgroundColor: methodColor(it.method) }]} />
               <View style={styles.rowContent}>

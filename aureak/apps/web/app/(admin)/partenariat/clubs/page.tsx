@@ -11,8 +11,8 @@ import {
   updatePartnership,
 } from '@aureak/api-client'
 import type { ClubPartnership } from '@aureak/api-client'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { PartenariatNavBar } from '../../../../components/admin/partenariat/PartenariatNavBar'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { StatsStandardCard } from '../../../../components/admin/stats'
 import { PartnershipCard } from '../../../../components/admin/partenariat/PartnershipCard'
 import { PartnershipFormModal } from '../../../../components/admin/partenariat/PartnershipFormModal'
@@ -97,14 +97,6 @@ export default function PartenariatClubsPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 97.13 — AdminPageHeader v2 + PartenariatNavBar */}
-      <AdminPageHeader
-        title="Clubs partenaires"
-        actionButton={{
-          label  : '+ Nouveau partenariat',
-          onPress: () => setShowModal(true),
-        }}
-      />
       <PartenariatNavBar />
 
       <ScrollView style={s.wrapper} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
@@ -169,6 +161,11 @@ export default function PartenariatClubsPage() {
         onSuccess={load}
       />
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouveau partenariat"
+        onPress={() => setShowModal(true)}
+      />
     </View>
   )
 }
