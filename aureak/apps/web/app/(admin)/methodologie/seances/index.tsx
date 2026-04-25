@@ -1,25 +1,26 @@
 'use client'
 // Entraînements pédagogiques — bibliothèque de contenu réutilisable
-import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useContext, useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listMethodologySessions, softDeleteMethodologySession, listMethodologyExercises } from '@aureak/api-client'
 import { AureakText, ConfirmDialog } from '@aureak/ui'
-import { colors, fonts, space, shadows, radius, methodologyMethodColors } from '@aureak/theme'
+import { colors, fonts, space, radius, methodologyMethodColors } from '@aureak/theme'
 import {
   METHODOLOGY_METHODS,
   type MethodologyMethod, type MethodologyContextType,
 } from '@aureak/types'
 import type { MethodologySession, MethodologyExercise } from '@aureak/types'
 import { useToast } from '../../../../components/ToastContext'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
-import { StatsHero } from '../../../../components/admin/stats'
-import { buildMethodologySparklineData } from './sparkline-data'
+import {
+  MetFiltersRow, MetSegmented, MetSelect, MetPagination, usePagination, PAGE_SIZE,
+} from '../../../../components/admin/methodologie/methodologieFilters'
 
-type FilterMethod  = MethodologyMethod | 'all'
-type ContentType   = 'entrainement' | 'exercice'
+type FilterMethod = MethodologyMethod | 'all'
+type ContentType  = 'entrainement' | 'exercice'
+type ContextValue = MethodologyContextType | 'all'
 
 const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Goal and Player' : '⚽',
@@ -31,7 +32,7 @@ const METHOD_PICTOS: Record<MethodologyMethod, string> = {
   'Intégration'     : '👥',
 }
 
-const COL_WIDTHS = { method: 52, num: 90, title: 1, themes: 100, situations: 90, pdf: 50, status: 60 }
+const COL_WIDTHS    = { method: 52, num: 90, title: 1, themes: 100, situations: 90, pdf: 50, status: 60 }
 const COL_WIDTHS_EX = { method: 52, num: 90, title: 1, pdf: 50, status: 60 }
 
 export default function SeancesPage() {
@@ -43,9 +44,8 @@ export default function SeancesPage() {
   const [exercises,       setExercises]       = useState<MethodologyExercise[]>([])
   const [loading,         setLoading]         = useState(true)
   const [methodFilter,    setMethodFilter]    = useState<FilterMethod>('all')
-  const [contextFilter,   setContextFilter]   = useState<MethodologyContextType | 'all'>('all')
+  const [contextFilter,   setContextFilter]   = useState<ContextValue>('all')
   const [contentType,     setContentType]     = useState<ContentType>('entrainement')
-  const [methodDropOpen,  setMethodDropOpen]  = useState(false)
   const [deletingId,      setDeletingId]      = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
@@ -104,172 +104,66 @@ export default function SeancesPage() {
     return true
   })
 
-  // Stats counts — based on sessions (entrainements)
-  const methodCounts = METHODOLOGY_METHODS.map(m => ({
-    method: m,
-    count : sessions.filter(s => s.method === m).length,
-  }))
-
-  // Story 93.5 — StatsHero data
-  const publishedCount  = useMemo(() => sessions.filter(s => s.isActive).length, [sessions])
-  const draftCount      = sessions.length - publishedCount
-  const publishRate     = sessions.length > 0 ? Math.round((publishedCount / sessions.length) * 100) : 0
-  const sparkline       = useMemo(() => buildMethodologySparklineData(sessions), [sessions])
-  const methodBars      = methodCounts.map(({ count }) => count)
-
-  const isGlobal = methodFilter === 'all' && contextFilter === 'all'
-
   return (
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* Story 97.3 — Header simplifié */}
-      <AdminPageHeader title="Entraînements" />
-
-      {/* Story 93.5 — NavBar 5 onglets + counts via Context */}
       <MethodologieHeader
         newLabel="+ Nouvel entraînement"
         newHref="/methodologie/seances/new"
         counts={counts ?? undefined}
       />
 
-      {/* Story 93.5 — StatsHero : hero sparkline + 3 cards (bars méthodes / drafts / taux publication) */}
-      <StatsHero
-        hero={{
-          label    : 'Entraînements publiés',
-          value    : publishedCount,
-          trend    : sessions.length > 0 ? { direction: 'up', label: `${publishRate}% de la bibliothèque` } : undefined,
-          sparkline,
-          sparklineAriaLabel: 'Évolution cumulée des entraînements publiés sur 30 jours',
-        }}
-        cards={[
-          {
-            label : 'Par méthode',
-            value : sessions.length,
-            footer: { type: 'bars', bars: methodBars },
-          },
-          {
-            label   : 'Drafts',
-            value   : draftCount,
-            meta    : draftCount > 0 ? 'Non publiés' : 'Tout publié',
-            iconTone: 'neutral',
-          },
-          {
-            label : 'Taux de publication',
-            value : publishRate,
-            unit  : '%',
-            footer: { type: 'progress', progress: publishRate },
-          },
-        ]}
-      />
-
-      {/* ── FiltresRow + table : wrap padding horizontal ── */}
       <View style={st.bodyWrap}>
-      <View style={st.filtresRow}>
-        {/* Gauche : GLOBAL pill + MÉTHODE pill */}
-        <View style={st.filtresLeft}>
-          <Pressable
-            style={isGlobal ? st.pillActive : st.pillInactive}
-            onPress={() => { setMethodFilter('all'); setContextFilter('all'); setContentType('entrainement'); setMethodDropOpen(false) }}
-          >
-            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
-          </Pressable>
+        <MetFiltersRow>
+          <MetSegmented<ContentType>
+            value={contentType}
+            onChange={setContentType}
+            options={[
+              { value: 'entrainement', label: 'Entraînement' },
+              { value: 'exercice',     label: 'Exercice' },
+            ]}
+          />
+          <MetSelect
+            label="Méthode"
+            value={methodFilter}
+            onChange={(v) => setMethodFilter(v as FilterMethod)}
+            options={[
+              { value: 'all', label: 'Toutes' },
+              ...METHODOLOGY_METHODS.map(m => ({ value: m, label: `${METHOD_PICTOS[m]} ${m}` })),
+            ]}
+          />
+          <MetSelect
+            label="Contexte"
+            value={contextFilter}
+            onChange={(v) => setContextFilter(v as ContextValue)}
+            options={[
+              { value: 'all',      label: 'Tous' },
+              { value: 'academie', label: 'Académie' },
+              { value: 'stage',    label: 'Stage' },
+            ]}
+          />
+        </MetFiltersRow>
 
-          <View style={st.dropdownWrapper}>
-            <Pressable
-              style={methodFilter !== 'all' ? st.pillActive : st.pillInactive}
-              onPress={() => setMethodDropOpen(o => !o)}
-            >
-              <AureakText style={methodFilter !== 'all' ? st.pillTextActive : st.pillTextInactive}>
-                {methodFilter === 'all' ? 'MÉTHODE ▾' : `${methodFilter} ▾`}
-              </AureakText>
-            </Pressable>
-
-            {methodDropOpen && (
-              <View style={st.methodDropdown}>
-                {(['all', ...METHODOLOGY_METHODS] as FilterMethod[]).map(m => (
-                  <Pressable
-                    key={m}
-                    style={[st.methodDropdownItem, methodFilter === m && st.methodDropdownItemActive]}
-                    onPress={() => { setMethodFilter(m); setMethodDropOpen(false) }}
-                  >
-                    <AureakText style={{ fontSize: 12, fontWeight: methodFilter === m ? '700' : '400', color: methodFilter === m ? colors.text.dark : colors.text.muted }}>
-                      {m === 'all' ? 'Toutes les méthodes' : `${METHOD_PICTOS[m as MethodologyMethod]} ${m}`}
-                    </AureakText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Centre : Toggle ENTRAÎNEMENT / EXERCICE */}
-        <View style={st.filtresCenter}>
-          <View style={st.toggleRow}>
-            <Pressable
-              style={[st.toggleBtn, contentType === 'entrainement' && st.toggleBtnActive] as never}
-              onPress={() => { setContentType('entrainement'); setMethodDropOpen(false) }}
-            >
-              <AureakText style={[st.toggleLabel, contentType === 'entrainement' && st.toggleLabelActive] as never}>
-                ENTRAÎNEMENT
-              </AureakText>
-            </Pressable>
-            <Pressable
-              style={[st.toggleBtn, contentType === 'exercice' && st.toggleBtnActive] as never}
-              onPress={() => { setContentType('exercice'); setMethodDropOpen(false) }}
-            >
-              <AureakText style={[st.toggleLabel, contentType === 'exercice' && st.toggleLabelActive] as never}>
-                EXERCICE
-              </AureakText>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Droite : Toggle ACADÉMIE / STAGE */}
-        <View style={st.filtresRight}>
-          <View style={st.toggleRow}>
-            <Pressable
-              style={[st.toggleBtn, contextFilter === 'academie' && st.toggleBtnActive] as never}
-              onPress={() => { setContextFilter(contextFilter === 'academie' ? 'all' : 'academie'); setMethodDropOpen(false) }}
-            >
-              <AureakText style={[st.toggleLabel, contextFilter === 'academie' && st.toggleLabelActive] as never}>
-                ACADÉMIE
-              </AureakText>
-            </Pressable>
-            <Pressable
-              style={[st.toggleBtn, contextFilter === 'stage' && st.toggleBtnActive] as never}
-              onPress={() => { setContextFilter(contextFilter === 'stage' ? 'all' : 'stage'); setMethodDropOpen(false) }}
-            >
-              <AureakText style={[st.toggleLabel, contextFilter === 'stage' && st.toggleLabelActive] as never}>
-                STAGE
-              </AureakText>
-            </Pressable>
-          </View>
-        </View>
+        {loading ? (
+          <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
+        ) : contentType === 'entrainement' ? (
+          <EntraînementsTable
+            sessions={filteredSessions}
+            totalSessions={sessions.length}
+            deletingId={deletingId}
+            methodColors={methodologyMethodColors}
+            onPress={(id) => router.push(`/methodologie/seances/${id}` as never)}
+            onDelete={(id) => setConfirmDeleteId(id)}
+          />
+        ) : (
+          <ExercicesTable
+            exercises={filteredExercises}
+            totalExercises={exercises.length}
+            methodColors={methodologyMethodColors}
+          />
+        )}
       </View>
 
-      {/* ── Contenu : table entraînements ou exercices ── */}
-      {loading ? (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
-      ) : contentType === 'entrainement' ? (
-        <EntraînementsTable
-          sessions={filteredSessions}
-          totalSessions={sessions.length}
-          deletingId={deletingId}
-          methodColors={methodologyMethodColors}
-          onPress={(id) => router.push(`/methodologie/seances/${id}` as never)}
-          onDelete={(id) => setConfirmDeleteId(id)}
-        />
-      ) : (
-        <ExercicesTable
-          exercises={filteredExercises}
-          totalExercises={exercises.length}
-          methodColors={methodologyMethodColors}
-        />
-      )}
-
-      </View>
-
-      {/* ── ConfirmDialog ── */}
       <ConfirmDialog
         visible={confirmDeleteId !== null}
         title="Supprimer cet entraînement ?"
@@ -297,19 +191,22 @@ type EntraînementsTableProps = {
 }
 
 function EntraînementsTable({ sessions, totalSessions, deletingId, methodColors, onPress, onDelete }: EntraînementsTableProps) {
+  const { page, setPage, pageCount, paginated } = usePagination(sessions, PAGE_SIZE)
+
   if (sessions.length === 0) {
     return (
-      <View style={st.empty}>
-        <AureakText style={{ color: colors.text.muted, fontStyle: 'italic', fontSize: 13 }}>
-          {totalSessions === 0 ? 'Aucun entraînement pédagogique. Créez le premier.' : 'Aucun résultat pour ces filtres.'}
-        </AureakText>
+      <View style={st.tableWrapper}>
+        <View style={st.empty}>
+          <AureakText style={{ color: colors.text.muted, fontStyle: 'italic', fontSize: 13 }}>
+            {totalSessions === 0 ? 'Aucun entraînement pédagogique. Créez le premier.' : 'Aucun résultat pour ces filtres.'}
+          </AureakText>
+        </View>
       </View>
     )
   }
 
   return (
     <View style={st.tableWrapper}>
-      {/* Header */}
       <View style={st.tableHeader}>
         <View style={{ width: COL_WIDTHS.method }}>
           <AureakText style={st.thText}>MÉTHODE</AureakText>
@@ -334,8 +231,7 @@ function EntraînementsTable({ sessions, totalSessions, deletingId, methodColors
         </View>
       </View>
 
-      {/* Rows */}
-      {sessions.map((session, idx) => {
+      {paginated.map((session, idx) => {
         const isDeleting  = deletingId === session.id
         const isLinked    = (session.sessionsCount ?? 0) > 0
         const rowBg       = idx % 2 === 0 ? colors.light.surface : colors.light.muted
@@ -354,45 +250,38 @@ function EntraînementsTable({ sessions, totalSessions, deletingId, methodColors
               pressed && { opacity: 0.8 },
             ]}
           >
-            {/* MÉTHODE */}
             <View style={{ width: COL_WIDTHS.method, alignItems: 'center' }}>
               <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
                 <AureakText style={st.methodPicto}>{picto}</AureakText>
               </View>
             </View>
 
-            {/* NUM */}
             <View style={{ width: COL_WIDTHS.num, justifyContent: 'center' }}>
               <AureakText style={st.numText}>
                 {session.trainingRef ? `#${session.trainingRef}` : '—'}
               </AureakText>
             </View>
 
-            {/* TITRE */}
             <View style={{ flex: COL_WIDTHS.title, justifyContent: 'center' }}>
               <AureakText style={st.titleText} numberOfLines={2}>
                 {session.title}
               </AureakText>
             </View>
 
-            {/* THÈMES */}
             <View style={{ width: COL_WIDTHS.themes, justifyContent: 'center' }}>
               <AureakText style={st.dashText}>—</AureakText>
             </View>
 
-            {/* SITUATIONS */}
             <View style={{ width: COL_WIDTHS.situations, justifyContent: 'center' }}>
               <AureakText style={st.dashText}>—</AureakText>
             </View>
 
-            {/* PDF */}
             <View style={{ width: COL_WIDTHS.pdf, alignItems: 'center', justifyContent: 'center' }}>
               <View style={[st.statusDot, {
                 backgroundColor: session.pdfUrl ? colors.status.present : colors.border.light,
               }]} />
             </View>
 
-            {/* STATUT */}
             <View style={{ width: COL_WIDTHS.status, alignItems: 'center', justifyContent: 'center' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <View style={[st.statusDot, {
@@ -417,6 +306,15 @@ function EntraînementsTable({ sessions, totalSessions, deletingId, methodColors
           </Pressable>
         )
       })}
+
+      <MetPagination
+        page={page}
+        pageCount={pageCount}
+        total={sessions.length}
+        pageSize={PAGE_SIZE}
+        itemLabelPlural="entraînements"
+        onPageChange={setPage}
+      />
     </View>
   )
 }
@@ -430,19 +328,22 @@ type ExercicesTableProps = {
 }
 
 function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTableProps) {
+  const { page, setPage, pageCount, paginated } = usePagination(exercises, PAGE_SIZE)
+
   if (exercises.length === 0) {
     return (
-      <View style={st.empty}>
-        <AureakText style={{ color: colors.text.muted, fontStyle: 'italic', fontSize: 13 }}>
-          {totalExercises === 0 ? 'Aucun exercice. La table est vide.' : 'Aucun résultat pour ces filtres.'}
-        </AureakText>
+      <View style={st.tableWrapper}>
+        <View style={st.empty}>
+          <AureakText style={{ color: colors.text.muted, fontStyle: 'italic', fontSize: 13 }}>
+            {totalExercises === 0 ? 'Aucun exercice. La table est vide.' : 'Aucun résultat pour ces filtres.'}
+          </AureakText>
+        </View>
       </View>
     )
   }
 
   return (
     <View style={st.tableWrapper}>
-      {/* Header */}
       <View style={st.tableHeader}>
         <View style={{ width: COL_WIDTHS_EX.method }}>
           <AureakText style={st.thText}>MÉTHODE</AureakText>
@@ -461,8 +362,7 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
         </View>
       </View>
 
-      {/* Rows */}
-      {exercises.map((exercise, idx) => {
+      {paginated.map((exercise, idx) => {
         const rowBg       = idx % 2 === 0 ? colors.light.surface : colors.light.muted
         const methodColor = methodColors[exercise.method] ?? colors.border.light
         const picto       = METHOD_PICTOS[exercise.method] ?? '—'
@@ -472,35 +372,30 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
             key={exercise.id}
             style={[st.tableRow, { backgroundColor: rowBg }]}
           >
-            {/* MÉTHODE */}
             <View style={{ width: COL_WIDTHS_EX.method, alignItems: 'center' }}>
               <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
                 <AureakText style={st.methodPicto}>{picto}</AureakText>
               </View>
             </View>
 
-            {/* REF */}
             <View style={{ width: COL_WIDTHS_EX.num, justifyContent: 'center' }}>
               <AureakText style={st.numText}>
                 {exercise.trainingRef ? `#${exercise.trainingRef}` : '—'}
               </AureakText>
             </View>
 
-            {/* TITRE */}
             <View style={{ flex: COL_WIDTHS_EX.title, justifyContent: 'center' }}>
               <AureakText style={st.titleText} numberOfLines={2}>
                 {exercise.title}
               </AureakText>
             </View>
 
-            {/* PDF */}
             <View style={{ width: COL_WIDTHS_EX.pdf, alignItems: 'center', justifyContent: 'center' }}>
               <View style={[st.statusDot, {
                 backgroundColor: exercise.pdfUrl ? colors.status.present : colors.border.light,
               }]} />
             </View>
 
-            {/* STATUT */}
             <View style={{ width: COL_WIDTHS_EX.status, alignItems: 'center', justifyContent: 'center' }}>
               <View style={[st.statusDot, {
                 backgroundColor: exercise.isActive ? colors.status.present : colors.border.light,
@@ -509,6 +404,15 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
           </View>
         )
       })}
+
+      <MetPagination
+        page={page}
+        pageCount={pageCount}
+        total={exercises.length}
+        pageSize={PAGE_SIZE}
+        itemLabelPlural="exercices"
+        onPageChange={setPage}
+      />
     </View>
   )
 }
@@ -516,118 +420,12 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { paddingBottom: space.xxl, gap: space.md },
-  bodyWrap   : { paddingHorizontal: space.lg, gap: space.md },
+  container: { flex: 1, backgroundColor: colors.light.primary },
+  content  : { paddingBottom: space.xxl, gap: space.md },
+  bodyWrap : { paddingHorizontal: space.lg, gap: space.md },
 
-  // FiltresRow — gauche | centre | droite
-  filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
-    flexWrap      : 'wrap',
-    gap           : space.sm,
-    zIndex        : 9999,
-  },
-  filtresLeft: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    gap          : space.sm,
-  },
-  filtresCenter: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    justifyContent: 'center',
-  },
-  filtresRight: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-  },
+  empty: { padding: space.xl, alignItems: 'center', backgroundColor: colors.light.surface },
 
-  // Pills FiltresScope design (hauteur alignée sur toggles : paddingVertical 8)
-  pillActive: {
-    paddingHorizontal: 14,
-    paddingVertical  : 8,
-    borderRadius     : radius.badge,
-    backgroundColor  : colors.accent.gold,
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold,
-  },
-  pillInactive: {
-    paddingHorizontal: 14,
-    paddingVertical  : 8,
-    borderRadius     : radius.badge,
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-  },
-  pillTextActive: {
-    fontSize  : 12,
-    fontWeight: '600',
-    fontFamily: fonts.body,
-    color     : colors.text.dark,
-  },
-  pillTextInactive: {
-    fontSize  : 12,
-    fontWeight: '600',
-    fontFamily: fonts.body,
-    color     : colors.text.muted,
-  },
-
-  // Dropdown wrapper (for pill + dropdown positioning)
-  dropdownWrapper: {
-    position: 'relative',
-    zIndex  : 9999,
-  },
-
-  // SegmentedToggle (pattern exact de academie/joueurs)
-  toggleRow: {
-    flexDirection: 'row',
-    gap          : 0,
-    alignSelf    : 'flex-start',
-    borderRadius : radius.xs,
-    overflow     : 'hidden',
-    borderWidth  : 1,
-    borderColor  : colors.border.light,
-  },
-  toggleBtn: {
-    paddingVertical  : 8,
-    paddingHorizontal: space.lg,
-    backgroundColor  : colors.light.surface,
-  },
-  toggleBtnActive: {
-    backgroundColor: colors.accent.gold,
-  },
-  toggleLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 0.8,
-    color        : colors.text.muted,
-  },
-  toggleLabelActive: {
-    color: colors.text.dark,
-  },
-
-  // Méthode dropdown
-  methodDropdown: {
-    position       : 'absolute',
-    top            : 38,
-    left           : 0,
-    zIndex         : 9999,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.xs,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    padding        : 6,
-    minWidth       : 220,
-    // @ts-ignore web
-    boxShadow      : shadows.lg,
-  },
-  methodDropdownItem    : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
-  methodDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
-
-  // Table
-  empty: { padding: space.lg, alignItems: 'center' },
   tableWrapper: {
     borderRadius: 10,
     borderWidth : 1,
@@ -662,7 +460,6 @@ const st = StyleSheet.create({
     borderBottomColor: colors.border.divider,
   },
 
-  // Row cells
   methodCircle: {
     width         : 32,
     height        : 32,
@@ -676,7 +473,6 @@ const st = StyleSheet.create({
   dashText   : { fontSize: 12, color: colors.text.muted },
   statusDot  : { width: 8, height: 8, borderRadius: 4 },
 
-  // Delete button
   deleteBtn: {
     paddingHorizontal: 4,
     paddingVertical  : 2,
