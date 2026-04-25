@@ -9,11 +9,12 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'clubs',       label: 'CLUBS',       href: '/prospection/clubs'       },
-  { key: 'gardiens',    label: 'GARDIENS',    href: '/prospection/gardiens'    },
-  { key: 'entraineurs', label: 'ENTRAÎNEURS', href: '/prospection/entraineurs' },
-  { key: 'attribution', label: 'ATTRIBUTION', href: '/prospection/attribution' },
-  { key: 'ressources',  label: 'RESSOURCES',  href: '/prospection/ressources'  },
+  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/prospection'             },
+  { key: 'clubs',       label: 'CLUBS',          href: '/prospection/clubs'       },
+  { key: 'gardiens',    label: 'GARDIENS',       href: '/prospection/gardiens'    },
+  { key: 'entraineurs', label: 'ENTRAÎNEURS',    href: '/prospection/entraineurs' },
+  { key: 'attribution', label: 'ATTRIBUTION',    href: '/prospection/attribution' },
+  { key: 'ressources',  label: 'RESSOURCES',     href: '/prospection/ressources'  },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -25,7 +26,12 @@ export type ProspectionNavBarProps = {
 export function ProspectionNavBar({ counts }: ProspectionNavBarProps = {}) {
   const router   = useRouter()
   const pathname = usePathname()
-  const activeKey = TABS.find(t => pathname === t.href || pathname.startsWith(t.href + '/'))?.key ?? null
+  // Overview matche uniquement /prospection exact ; les autres onglets matchent leur sous-arbre.
+  const activeKey =
+    (pathname === '/prospection'
+      ? 'overview'
+      : TABS.find(t => t.key !== 'overview' && (pathname === t.href || pathname.startsWith(t.href + '/')))?.key
+    ) ?? null
 
   // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
   useScrollTabIntoView('tab-prospection', activeKey)
@@ -38,7 +44,7 @@ export function ProspectionNavBar({ counts }: ProspectionNavBarProps = {}) {
         contentContainerStyle={s.container}
       >
         {TABS.map(tab => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+          const isActive = tab.key === activeKey
           const count    = counts?.[tab.key] ?? null
           return (
             <Pressable
