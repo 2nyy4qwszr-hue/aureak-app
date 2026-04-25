@@ -50,7 +50,7 @@ export type NavGroup = {
 export const SECTION_TO_NAV: Record<SectionKey, Omit<NavItem, 'sectionKey'>> = {
   dashboard   : { label: 'Dashboard',      href: '/dashboard',                 Icon: LayoutGridIcon },
   activites   : { label: 'Activités',      href: '/activites',                 Icon: ActivityIcon },
-  methodologie: { label: 'Méthodologie',   href: '/methodologie/seances',      Icon: BookOpenIcon },
+  methodologie: { label: 'Méthodologie',   href: '/methodologie',              Icon: BookOpenIcon },
   academie    : { label: 'Académie',       href: '/academie',                  Icon: UsersIcon },
   evenements  : { label: 'Événements',     href: '/evenements',                Icon: CalendarIcon },
   prospection : { label: 'Prospection',    href: '/prospection',               Icon: CompassIcon },

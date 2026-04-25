@@ -23,7 +23,6 @@ import type { ClubDirectoryEntry, BelgianProvince } from '@aureak/types'
 import { BELGIAN_PROVINCES } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { InfiniteScrollContainer } from '../../../../components/admin/InfiniteScrollContainer'
 import { EmptyState } from '../../../../components/admin/states'
@@ -228,13 +227,6 @@ function MobileView(props: ViewProps) {
 
   return (
     <View style={s.page}>
-      <AdminPageHeader
-        title="Clubs"
-        actionButton={{
-          label  : 'Gestion avancée →',
-          onPress: () => router.push('/clubs' as never),
-        }}
-      />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <InfiniteScrollContainer
@@ -364,13 +356,6 @@ function DesktopView(props: ViewProps) {
 
   return (
     <View style={s.page}>
-      <AdminPageHeader
-        title="Clubs"
-        actionButton={{
-          label  : 'Gestion avancée →',
-          onPress: () => router.push('/clubs' as never),
-        }}
-      />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <View style={s.desktopScroll}>

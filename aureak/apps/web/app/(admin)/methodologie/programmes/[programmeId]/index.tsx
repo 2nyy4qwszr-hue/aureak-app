@@ -33,7 +33,7 @@ const METHOD_PICTOS: Record<string, string> = {
 // ── Nav tabs ──────────────────────────────────────────────────────────────────
 
 const NAV_TABS = [
-  { label: 'ENTRAÎNEMENTS', href: '/methodologie/seances',    active: false },
+  { label: 'ENTRAÎNEMENTS', href: '/methodologie/entrainements', active: false },
   { label: 'PROGRAMMES',    href: '/methodologie/programmes', active: true  },
   { label: 'THÈMES',        href: '/methodologie/themes',     active: false },
   { label: 'SITUATIONS',    href: '/methodologie/situations', active: false },

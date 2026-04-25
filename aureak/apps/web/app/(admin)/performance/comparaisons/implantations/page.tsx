@@ -14,7 +14,6 @@ import { computeImplantationHealth } from '@aureak/business-logic'
 import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Implantation, ImplantationHoverStats } from '@aureak/types'
-import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -85,9 +84,6 @@ export default function ComparePage() {
 
   return (
     <View style={styles.page}>
-      {/* Story 98.3 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Comparaison des implantations" />
-
       <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {loadError && (
         <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>

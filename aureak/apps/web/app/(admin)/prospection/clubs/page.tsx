@@ -13,8 +13,8 @@ import {
 import type { ClubProspectListRow, ClubProspectStatus } from '@aureak/types'
 import { CLUB_PROSPECT_STATUS_LABELS, CLUB_PROSPECT_STATUSES } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { ProspectionStatCards } from '../../../../components/admin/prospection/ProspectionStatCards'
 import { ProspectTable } from '../../../../components/admin/prospection/ProspectTable'
 import { CreateProspectModal } from '../../../../components/admin/prospection/CreateProspectModal'
@@ -72,14 +72,6 @@ export default function ProspectionClubsCRMPage() {
 
   return (
     <View style={st.page}>
-      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
-      <AdminPageHeader
-        title="Clubs"
-        actionButton={{
-          label  : '+ Ajouter un prospect',
-          onPress: () => setModalOpen(true),
-        }}
-      />
       <ProspectionNavBar />
 
       <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
@@ -177,6 +169,11 @@ export default function ProspectionClubsCRMPage() {
         />
       )}
       </ScrollView>
+
+      <PrimaryAction
+        label="Ajouter un prospect"
+        onPress={() => setModalOpen(true)}
+      />
     </View>
   )
 }

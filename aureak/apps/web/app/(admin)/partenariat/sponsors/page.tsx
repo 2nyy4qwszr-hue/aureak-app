@@ -8,8 +8,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { listSponsors } from '@aureak/api-client'
 import type { SponsorType, SponsorWithCounts } from '@aureak/types'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { PartenariatNavBar } from '../../../../components/admin/partenariat/PartenariatNavBar'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { StatsStandardCard } from '../../../../components/admin/stats'
 import { SponsorFormModal } from '../../../../components/admin/partenariat/SponsorFormModal'
 
@@ -59,14 +59,6 @@ export default function PartenariatSponsorsPage() {
 
   return (
     <View style={st.page}>
-      {/* Story 97.13 — AdminPageHeader v2 + PartenariatNavBar */}
-      <AdminPageHeader
-        title="Sponsors"
-        actionButton={{
-          label  : '+ Nouveau sponsor',
-          onPress: () => setShowModal(true),
-        }}
-      />
       <PartenariatNavBar />
 
       <ScrollView style={st.wrapper} contentContainerStyle={[st.content, isMobile && { padding: space.md }]}>
@@ -131,6 +123,11 @@ export default function PartenariatSponsorsPage() {
         onSuccess={load}
       />
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouveau sponsor"
+        onPress={() => setShowModal(true)}
+      />
     </View>
   )
 }

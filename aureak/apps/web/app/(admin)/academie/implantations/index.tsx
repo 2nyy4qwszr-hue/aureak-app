@@ -15,7 +15,6 @@ import { listImplantations } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { AcademieCountsContext } from '../_layout'
 
@@ -61,13 +60,6 @@ export default function AcademieImplantationsPage() {
 
   return (
     <View style={s.page}>
-      <AdminPageHeader
-        title="Implantations"
-        actionButton={{
-          label  : 'Gestion avancée →',
-          onPress: () => router.push('/implantations' as never),
-        }}
-      />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>

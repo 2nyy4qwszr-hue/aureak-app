@@ -13,7 +13,7 @@ import {
 import type { CoachProspectListRow, CoachProspectStatus } from '@aureak/types'
 import { COACH_PROSPECT_STATUS_LABELS, COACH_PROSPECT_STATUSES } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { CoachProspectionStatCards, type CoachProspectionStats } from '../../../../components/admin/coach-prospection/CoachProspectionStatCards'
 import { CoachProspectTable } from '../../../../components/admin/coach-prospection/CoachProspectTable'
@@ -82,14 +82,6 @@ export default function ProspectionEntraineursPage() {
 
   return (
     <View style={st.page}>
-      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
-      <AdminPageHeader
-        title="Entraîneurs"
-        actionButton={{
-          label  : '+ Ajouter un entraîneur',
-          onPress: () => setModalOpen(true),
-        }}
-      />
       <ProspectionNavBar />
 
       <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
@@ -142,6 +134,11 @@ export default function ProspectionEntraineursPage() {
         onSuccess={() => load()}
       />
       </ScrollView>
+
+      <PrimaryAction
+        label="Ajouter un entraîneur"
+        onPress={() => setModalOpen(true)}
+      />
     </View>
   )
 }

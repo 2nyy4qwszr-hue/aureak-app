@@ -12,7 +12,6 @@ import { AureakText, ComparisonRadarChart } from '@aureak/ui'
 import { colors, space, shadows, radius } from '@aureak/theme'
 import type { ChildDirectoryEntry } from '@aureak/types'
 import type { RadarPlayer } from '@aureak/ui'
-import { AdminPageHeader } from '../../../../../components/admin/AdminPageHeader'
 
 const AXES = ['Technique', 'Placement', 'Relance', 'Agilité', 'Mental', 'Communication']
 
@@ -175,9 +174,6 @@ export default function EvaluationsComparisonPage() {
 
   return (
     <View style={styles.page}>
-      {/* Story 98.3 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Comparaison des évaluations" />
-
       <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {/* ── Sélecteurs — stack en mobile ── */}
       <View style={[styles.selectors, isMobile && { flexDirection: 'column', gap: space.md }]}>

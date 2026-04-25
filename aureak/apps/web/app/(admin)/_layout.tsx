@@ -85,7 +85,7 @@ const ITEM_SHORTCUTS: Record<string, string> = {
   '/dashboard'                 : 'G D',
   '/activites'                 : 'G I',   // actIvités hub unifié
   '/academie'                  : 'G J',   // académie hub
-  '/methodologie/seances'      : 'G A',   // méthode
+  '/methodologie/entrainements': 'G A',   // méthode
   '/evenements'                : 'G V',   // Évènements
   '/performance'               : 'G R',   // peRformance
   '/prospection'               : 'G X',

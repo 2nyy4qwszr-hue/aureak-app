@@ -10,8 +10,8 @@ import { listEvents } from '@aureak/api-client'
 import type { StageWithMeta } from '@aureak/types'
 import type { EventType } from '@aureak/types'
 
-import { AdminPageHeader }          from '../AdminPageHeader'
 import { EvenementsHeader }         from './EvenementsHeader'
+import { PrimaryAction }            from '../PrimaryAction'
 import { PseudoFiltresTemporels }   from '../activites/PseudoFiltresTemporels'
 import type { TemporalFilter }      from '../activites/PseudoFiltresTemporels'
 
@@ -192,11 +192,6 @@ export function EvenementsContent({ eventType, typeLabel, actionLabel, onActionP
   // ─── Rendu ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Story 97.10 — AdminPageHeader v2 (titre = typeLabel) */}
-      <AdminPageHeader
-        title={typeLabel}
-        actionButton={actionLabel && onActionPress ? { label: actionLabel, onPress: onActionPress } : undefined}
-      />
       <EvenementsHeader />
 
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, isMobile && { paddingHorizontal: 16 }]}>
@@ -341,6 +336,13 @@ export function EvenementsContent({ eventType, typeLabel, actionLabel, onActionP
           </View>
         )}
       </ScrollView>
+
+      {actionLabel && onActionPress && (
+        <PrimaryAction
+          label={actionLabel.replace(/^\+\s*/, '')}
+          onPress={onActionPress}
+        />
+      )}
     </View>
   )
 }

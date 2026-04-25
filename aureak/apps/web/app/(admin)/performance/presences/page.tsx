@@ -9,7 +9,6 @@ import type { AttendanceMonthlyData } from '@aureak/types'
 import { LineChart, SERIES_COLORS, SkeletonBase } from '@aureak/ui'
 import type { Implantation } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 export default function PresencesAnalyticsPage() {
   const router = useRouter()
@@ -69,9 +68,6 @@ export default function PresencesAnalyticsPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 98.2 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Présences" />
-
       <ScrollView style={s.container}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Sélecteur implantation */}

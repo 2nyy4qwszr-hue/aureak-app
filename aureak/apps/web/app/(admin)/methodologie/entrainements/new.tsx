@@ -394,9 +394,9 @@ export default function NewSeancePage() {
         selectedSituations.map((id, i) => linkMethodologySessionSituation(data.id, id, i))
       )
 
-      router.replace(`/methodologie/seances/${data.id}` as never)
+      router.replace(`/methodologie/entrainements/${data.id}` as never)
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.error('[methodologie/seances/new] handleSave error:', e)
+      if (process.env.NODE_ENV !== 'production') console.error('[methodologie/entrainements/new] handleSave error:', e)
       setError('Erreur inattendue lors de la création.')
     } finally {
       setSaving(false)

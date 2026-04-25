@@ -8,7 +8,6 @@ import type { ImplantationStats } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Implantation, Group } from '@aureak/types'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 // ── Progress bar ───────────────────────────────────────────────────────────────
 function ProgressBar({ value, color }: { value: number; color: string }) {
@@ -110,9 +109,6 @@ export default function ImplantationDashboardPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 98.2 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Implantations" />
-
       <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
       {/* ── Sélecteur implantation ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }}>
