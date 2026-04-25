@@ -1,40 +1,27 @@
 'use client'
 import React, { useContext, useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, type TextStyle, useWindowDimensions } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listSituations, listThemeGroups } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, shadows, radius } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 import type { Situation, ThemeGroup } from '@aureak/types'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
+import {
+  MetFiltersRow, MetSelect, MetPagination, usePagination, PAGE_SIZE,
+} from '../../../../components/admin/methodologie/methodologieFilters'
 
-const BLOC_PICTOS: Record<string, string> = {
-  'tir au but'         : '🎯',
-  '1 contre 1'         : '⚔️',
-  'centre'             : '📐',
-  'balle en profondeur': '🚀',
-  'relance'            : '🔄',
-  'phase arrêtée'      : '⛔',
-  'communication'      : '📢',
-}
-
-function getBlocPicto(name: string): string {
-  return BLOC_PICTOS[name.toLowerCase()] ?? '📋'
-}
+const COL_WIDTHS = { name: 1, key: 200, bloc: 160, chevron: 40 }
 
 export default function SituationsPage() {
   const router = useRouter()
   const counts = useContext(MethodologieCountsContext)
-  const { width } = useWindowDimensions()
-  const isMobile = width <= 640
 
   const [situations,     setSituations]     = useState<Situation[]>([])
   const [groups,         setGroups]         = useState<ThemeGroup[]>([])
   const [loading,        setLoading]        = useState(true)
-  const [selectedBlocId, setSelectedBlocId] = useState<string | null>(null)
-  const [blocDropOpen,   setBlocDropOpen]   = useState(false)
+  const [selectedBlocId, setSelectedBlocId] = useState<string>('all')
   const [errorMsg,       setErrorMsg]       = useState<string | null>(null)
 
   const loadData = async () => {
@@ -58,20 +45,15 @@ export default function SituationsPage() {
 
   useEffect(() => { loadData() }, [])
 
-  const isGlobal = selectedBlocId === null
-  const selectedGroup = groups.find(g => g.id === selectedBlocId)
+  const groupMap = Object.fromEntries(groups.map(g => [g.id, g.name]))
 
-  const visibleSituations = selectedBlocId
-    ? situations.filter(s => s.blocId === selectedBlocId)
-    : situations
+  const visibleSituations = selectedBlocId === 'all'
+    ? situations
+    : situations.filter(s => s.blocId === selectedBlocId)
 
   return (
-    <ScrollView style={st.container} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
+    <ScrollView style={st.container} contentContainerStyle={st.content}>
 
-      {/* Story 97.3 — Header simplifié */}
-      <AdminPageHeader title="Situations" />
-
-      {/* Story 93.5 — NavBar 5 onglets + counts via Context */}
       <MethodologieHeader
         newLabel="+ Nouvelle situation"
         newHref="/methodologie/situations/new"
@@ -79,250 +61,167 @@ export default function SituationsPage() {
       />
 
       <View style={st.bodyWrap}>
+        <MetFiltersRow>
+          <MetSelect
+            label="Bloc"
+            value={selectedBlocId}
+            onChange={setSelectedBlocId}
+            options={[
+              { value: 'all', label: 'Tous' },
+              ...groups.map(g => ({ value: g.id, label: g.name })),
+            ]}
+          />
+        </MetFiltersRow>
 
-      {/* ── StatCards — 1 card par ThemeGroup ── */}
-      <View style={st.statCardsRow}>
-        {groups.map(g => {
-          const count = situations.filter(s => s.blocId === g.id).length
-          return (
-            <Pressable
-              key={g.id}
-              style={[st.statCard, selectedBlocId === g.id && st.statCardActive] as never}
-              onPress={() => setSelectedBlocId(g.id === selectedBlocId ? null : g.id)}
-            >
-              <AureakText style={st.statCardPicto}>{getBlocPicto(g.name)}</AureakText>
-              <AureakText style={st.statCardLabel}>{g.name}</AureakText>
-              <AureakText style={st.statCardValue}>{count}</AureakText>
-            </Pressable>
-          )
-        })}
-      </View>
+        {loading && (
+          <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
+        )}
 
-      {/* ── FiltresRow — gauche ── */}
-      <View style={st.filtresRow}>
-        <View style={st.filtresLeft}>
-          <Pressable
-            style={isGlobal ? st.pillActive : st.pillInactive}
-            onPress={() => { setSelectedBlocId(null); setBlocDropOpen(false) }}
-          >
-            <AureakText style={isGlobal ? st.pillTextActive : st.pillTextInactive}>GLOBAL</AureakText>
-          </Pressable>
+        {errorMsg && (
+          <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
+        )}
 
-          <View style={st.dropdownWrapper}>
-            <Pressable
-              style={!isGlobal ? st.pillActive : st.pillInactive}
-              onPress={() => setBlocDropOpen(o => !o)}
-            >
-              <AureakText style={!isGlobal ? st.pillTextActive : st.pillTextInactive}>
-                {isGlobal ? 'BLOC ▾' : `${selectedGroup?.name ?? 'BLOC'} ▾`}
-              </AureakText>
-            </Pressable>
-
-            {blocDropOpen && (
-              <View style={st.blocDropdown}>
-                {groups.map(g => (
-                  <Pressable
-                    key={g.id}
-                    style={[st.blocDropdownItem, selectedBlocId === g.id && st.blocDropdownItemActive]}
-                    onPress={() => { setSelectedBlocId(g.id); setBlocDropOpen(false) }}
-                  >
-                    <AureakText style={{ fontSize: 12, fontWeight: selectedBlocId === g.id ? '700' : '400', color: selectedBlocId === g.id ? colors.text.dark : colors.text.muted }}>
-                      {getBlocPicto(g.name)} {g.name}
-                    </AureakText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-
-      {/* ── Contenu ── */}
-      {loading && (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
-      )}
-
-      {errorMsg && (
-        <AureakText style={{ color: colors.accent.red, fontSize: 13 }}>{errorMsg}</AureakText>
-      )}
-
-      {!loading && !errorMsg && situations.length === 0 && (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
-          Aucune situation configurée.
-        </AureakText>
-      )}
-
-      {!loading && situations.length > 0 && visibleSituations.length === 0 && (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>
-          Aucune situation dans ce bloc.
-        </AureakText>
-      )}
-
-      {!loading && visibleSituations.length > 0 && (
-        <View style={st.grid}>
-          {visibleSituations.map(sit => (
-            <Pressable
-              key={sit.id}
-              onPress={() => router.push(`/methodologie/situations/${sit.situationKey}` as never)}
-              style={({ pressed }) => [st.situationCard, pressed && { opacity: 0.85 }]}
-            >
-              <AureakText style={st.situationName} numberOfLines={2}>{sit.name}</AureakText>
-              <AureakText style={st.situationKey}>{sit.situationKey}</AureakText>
-            </Pressable>
-          ))}
-        </View>
-      )}
+        {!loading && !errorMsg && (
+          <SituationsTable
+            situations={visibleSituations}
+            totalSituations={situations.length}
+            groupMap={groupMap}
+            onPress={(situationKey) => router.push(`/methodologie/situations/${situationKey}` as never)}
+          />
+        )}
       </View>
     </ScrollView>
+  )
+}
+
+// ── Sous-composant table situations ──────────────────────────────────────────
+
+type SituationsTableProps = {
+  situations      : Situation[]
+  totalSituations : number
+  groupMap        : Record<string, string>
+  onPress         : (situationKey: string) => void
+}
+
+function SituationsTable({ situations, totalSituations, groupMap, onPress }: SituationsTableProps) {
+  const { page, setPage, pageCount, paginated } = usePagination(situations, PAGE_SIZE)
+
+  if (situations.length === 0) {
+    return (
+      <View style={st.tableWrapper}>
+        <View style={st.empty}>
+          <AureakText style={{ color: colors.text.muted, fontStyle: 'italic', fontSize: 13 }}>
+            {totalSituations === 0 ? 'Aucune situation configurée.' : 'Aucune situation pour ce filtre.'}
+          </AureakText>
+        </View>
+      </View>
+    )
+  }
+
+  return (
+    <View style={st.tableWrapper}>
+      <View style={st.tableHeader}>
+        <View style={{ flex: COL_WIDTHS.name }}>
+          <AureakText style={st.thText}>NOM</AureakText>
+        </View>
+        <View style={{ width: COL_WIDTHS.key }}>
+          <AureakText style={st.thText}>CLÉ</AureakText>
+        </View>
+        <View style={{ width: COL_WIDTHS.bloc }}>
+          <AureakText style={st.thText}>BLOC</AureakText>
+        </View>
+        <View style={{ width: COL_WIDTHS.chevron }} />
+      </View>
+
+      {paginated.map((sit, idx) => {
+        const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
+        return (
+          <Pressable
+            key={sit.id}
+            onPress={() => onPress(sit.situationKey)}
+            style={({ pressed }) => [
+              st.tableRow,
+              { backgroundColor: rowBg },
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <View style={{ flex: COL_WIDTHS.name, justifyContent: 'center' }}>
+              <AureakText style={st.titleText} numberOfLines={2}>{sit.name}</AureakText>
+            </View>
+
+            <View style={{ width: COL_WIDTHS.key, justifyContent: 'center' }}>
+              <AureakText style={st.keyText}>{sit.situationKey}</AureakText>
+            </View>
+
+            <View style={{ width: COL_WIDTHS.bloc, justifyContent: 'center' }}>
+              <AureakText style={st.dashText}>
+                {groupMap[sit.blocId ?? ''] ?? '—'}
+              </AureakText>
+            </View>
+
+            <View style={{ width: COL_WIDTHS.chevron, alignItems: 'center', justifyContent: 'center' }}>
+              <AureakText style={{ fontSize: 16, color: colors.text.muted }}>›</AureakText>
+            </View>
+          </Pressable>
+        )
+      })}
+
+      <MetPagination
+        page={page}
+        pageCount={pageCount}
+        total={situations.length}
+        pageSize={PAGE_SIZE}
+        itemLabelPlural="situations"
+        onPageChange={setPage}
+      />
+    </View>
   )
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { paddingBottom: space.xxl, gap: space.md },
-  bodyWrap   : { paddingHorizontal: space.lg, gap: space.md },
+  container: { flex: 1, backgroundColor: colors.light.primary },
+  content  : { paddingBottom: space.xxl, gap: space.md },
+  bodyWrap : { paddingHorizontal: space.lg, gap: space.md },
 
-  // StatCards
-  statCardsRow: {
+  empty: { padding: space.xl, alignItems: 'center', backgroundColor: colors.light.surface },
+
+  tableWrapper: {
+    borderRadius: 10,
+    borderWidth : 1,
+    borderColor : colors.border.divider,
+    overflow    : 'hidden',
+  },
+  tableHeader: {
     flexDirection    : 'row',
-    gap              : space.md,
-    paddingHorizontal: space.lg,
-    paddingVertical  : space.md,
-    flexWrap         : 'wrap',
-  },
-  statCard: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    padding        : space.md,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    minWidth       : 130,
-    alignItems     : 'center',
-    gap            : 4,
-    // @ts-ignore web
-    boxShadow      : shadows.sm,
-  },
-  statCardActive: {
-    borderColor    : colors.accent.gold,
-    backgroundColor: colors.accent.gold + '10',
-  },
-  statCardPicto: {
-    fontSize    : 22,
-    marginBottom: 2,
-  },
-  statCardLabel: {
-    fontSize     : 10,
-    fontFamily   : fonts.display,
-    fontWeight   : '700',
-    color        : colors.text.muted,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    textAlign    : 'center',
-  },
-  statCardValue: {
-    fontSize  : 28,
-    fontFamily: fonts.display,
-    fontWeight: '900',
-    color     : colors.text.dark,
-  },
-
-  // FiltresRow
-  filtresRow: {
-    flexDirection : 'row',
-    alignItems    : 'center',
-    justifyContent: 'space-between',
-    flexWrap      : 'wrap',
-    gap           : space.sm,
-    zIndex        : 9999,
-  },
-  filtresLeft: {
-    flexDirection: 'row',
-    alignItems   : 'center',
-    gap          : space.sm,
-  },
-
-  // Pills
-  pillActive: {
-    paddingHorizontal: 14,
-    paddingVertical  : 8,
-    borderRadius     : radius.badge,
-    backgroundColor  : colors.accent.gold,
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold,
-  },
-  pillInactive: {
-    paddingHorizontal: 14,
-    paddingVertical  : 8,
-    borderRadius     : radius.badge,
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : 10,
+    gap              : 12,
     backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
-  pillTextActive: {
-    fontSize  : 12,
-    fontWeight: '600',
-    fontFamily: fonts.body,
-    color     : colors.text.dark,
+  thText: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    fontFamily   : fonts.display,
+    color        : colors.text.subtle,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  pillTextInactive: {
-    fontSize  : 12,
-    fontWeight: '600',
-    fontFamily: fonts.body,
-    color     : colors.text.muted,
+  tableRow: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : 12,
+    gap              : 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
 
-  // Dropdown
-  dropdownWrapper: {
-    position: 'relative',
-    zIndex  : 9999,
-  },
-  blocDropdown: {
-    position       : 'absolute',
-    top            : 38,
-    left           : 0,
-    zIndex         : 9999,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.xs,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    padding        : 6,
-    minWidth       : 220,
-    // @ts-ignore web
-    boxShadow      : shadows.lg,
-  },
-  blocDropdownItem      : { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
-  blocDropdownItemActive: { backgroundColor: colors.accent.gold + '18' },
-
-  // Grid + SituationCard
-  grid: {
-    flexDirection: 'row',
-    flexWrap     : 'wrap',
-    gap          : space.md,
-  },
-  situationCard: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    padding        : space.md,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    minWidth       : 220,
-    flexGrow       : 1,
-    flexBasis      : 240,
-    maxWidth       : 320,
-    gap            : 6,
-    // @ts-ignore web
-    boxShadow      : shadows.sm,
-  },
-  situationName: {
-    fontSize  : 14,
-    fontWeight: '700',
-    fontFamily: fonts.display,
-    color     : colors.text.dark,
-  },
-  situationKey: {
-    fontSize: 11,
-    color   : colors.text.muted,
-  },
+  titleText: { fontSize: 13, fontWeight: '600', color: colors.text.dark },
+  keyText  : { fontSize: 11, fontFamily: fonts.mono, color: colors.text.muted },
+  dashText : { fontSize: 12, color: colors.text.muted },
 })
