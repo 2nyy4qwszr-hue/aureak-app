@@ -1,13 +1,14 @@
 'use client'
-// Story 97.10 — EvenementsHeader simplifié : nav secondaire 5 onglets
-// (Stages / Tournois / Fun Days / Detect Days / Séminaires). Titre + action
-// déplacés vers <AdminPageHeader /> dans chaque sous-page.
+// Hub Événements — 6 onglets : Vue d'ensemble + 5 catégories d'événements.
+// Design aligné EXACTEMENT sur ActivitesHeader / MarketingNavBar (label actif noir,
+// underline gold absolu, paddings 20×14, gap 2, support pastilles count).
 import React from 'react'
 import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
+import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
@@ -21,84 +22,104 @@ const TABS = [
 
 type TabKey = typeof TABS[number]['key']
 
-function getActiveTab(pathname: string): TabKey {
-  if (pathname.endsWith('/tournois')    || pathname.includes('/tournois/'))    return 'tournois'
-  if (pathname.endsWith('/fun-days')    || pathname.includes('/fun-days/'))    return 'fun-days'
-  if (pathname.endsWith('/detect-days') || pathname.includes('/detect-days/')) return 'detect-days'
-  if (pathname.endsWith('/seminaires')  || pathname.includes('/seminaires/'))  return 'seminaires'
-  if (pathname.endsWith('/stages')      || pathname.includes('/stages/'))      return 'stages'
-  return 'overview'
+export type EvenementsHeaderProps = {
+  counts?: Partial<Record<TabKey, number | null>>
 }
 
-export function EvenementsHeader() {
+function isTabActive(pathname: string, href: string): boolean {
+  if (href === '/evenements') return pathname === '/evenements'
+  return pathname === href || pathname.startsWith(href + '/')
+}
+
+export function EvenementsHeader({ counts }: EvenementsHeaderProps = {}) {
   const router    = useRouter()
   const pathname  = usePathname()
-  const activeTab = getActiveTab(pathname)
+  const activeKey = TABS.find(t => isTabActive(pathname, t.href))?.key ?? null
 
-  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
-  useScrollTabIntoView('tab-evenements', activeTab)
+  useScrollTabIntoView('tab-evenements', activeKey)
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.tabsRow}
-      style={styles.tabsScroll}
-    >
-      {TABS.map(tab => {
-        const isActive = tab.key === activeTab
-        return (
-          <Pressable
-            key={tab.key}
-            nativeID={`tab-evenements-${tab.key}`}
-            onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
-            style={styles.tabItem}
-          >
-            <AureakText style={{ ...styles.tabLabel, ...(isActive ? styles.tabLabelActive : {}) } as TextStyle}>
-              {tab.label}
-            </AureakText>
-            {isActive && <View style={styles.tabUnderline} />}
-          </Pressable>
-        )
-      })}
-    </ScrollView>
+    <View style={styles.headerBlock}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
+      >
+        {TABS.map(tab => {
+          const isActive = isTabActive(pathname, tab.href)
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
+          return (
+            <Pressable
+              key={tab.key}
+              nativeID={`tab-evenements-${tab.key}`}
+              onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
+              style={styles.tabItem}
+            >
+              <View style={styles.tabLabelRow}>
+                <AureakText style={(isActive ? styles.tabLabelActive : styles.tabLabel) as TextStyle}>
+                  {tab.label}
+                </AureakText>
+                <SubtabCount value={count} active={isActive} />
+              </View>
+              {isActive && <View style={styles.tabUnderline} />}
+            </Pressable>
+          )
+        })}
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  tabsScroll: {
-    flexGrow       : 0,
+  headerBlock: {
     backgroundColor: colors.light.primary,
+    gap            : 12,
+  },
+  tabsScroll: {
+    flexGrow : 0,
+    marginTop: space.sm,
   },
   tabsRow: {
     flexDirection    : 'row',
-    gap              : 24,
+    gap              : 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
     paddingHorizontal: space.lg,
-    backgroundColor  : colors.light.primary,
   },
   tabItem: {
-    paddingBottom: 10,
-    position     : 'relative',
+    paddingHorizontal: 20,
+    paddingVertical  : 14,
+    position         : 'relative',
+  },
+  tabLabelRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.xs,
   },
   tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-    color        : colors.text.subtle,
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.muted,
     textTransform: 'uppercase',
   } as TextStyle,
   tabLabelActive: {
-    color: colors.accent.gold,
-  },
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.dark,
+    textTransform: 'uppercase',
+  } as TextStyle,
   tabUnderline: {
     position       : 'absolute',
-    bottom         : 0,
-    left           : 0,
-    right          : 0,
+    bottom         : -1,
+    left           : 12,
+    right          : 12,
     height         : 2,
     backgroundColor: colors.accent.gold,
-    borderRadius   : 1,
+    borderRadius   : 2,
   },
 })
