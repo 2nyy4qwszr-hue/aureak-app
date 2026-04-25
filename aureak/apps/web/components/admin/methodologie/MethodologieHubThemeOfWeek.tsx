@@ -134,6 +134,8 @@ const styles = StyleSheet.create({
     flexDirection  : 'row',
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
     overflow       : 'hidden' as never,
     minHeight      : 156,
   },
