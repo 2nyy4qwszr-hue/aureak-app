@@ -1,10 +1,17 @@
 'use client'
-// Story 75.2 — AcademieNavBar : barre de navigation horizontale partagée hub Académie
-// Story 93.2 — Prop counts optionnelle pour badges de count sur chaque tab
+// Hub Académie — 9 onglets : Vue d'ensemble + 8 sous-sections.
+// Design aligné EXACTEMENT sur ActivitesHeader / MarketingNavBar (label actif noir,
+// underline gold absolu, paddings 20×14, gap 2, support pastilles count).
+//
+// Story 75.2 — AcademieNavBar (origine).
+// Story 93.2 — Prop counts optionnelle.
+// Refonte design alignment epic — pattern strict /activites.
+import React from 'react'
 import { useRouter, usePathname } from 'expo-router'
 import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
+import type { TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
@@ -27,52 +34,42 @@ export type AcademieNavBarProps = {
 }
 
 function isTabActive(pathname: string, href: string): boolean {
-  // Overview (/academie) : match exact uniquement pour éviter de matcher les sous-routes
   if (href === '/academie') return pathname === '/academie'
   return pathname === href || pathname.startsWith(href + '/')
 }
 
 export function AcademieNavBar({ counts }: AcademieNavBarProps = {}) {
-  const router   = useRouter()
-  const pathname = usePathname()
+  const router    = useRouter()
+  const pathname  = usePathname()
   const activeKey = TABS.find(t => isTabActive(pathname, t.href))?.key ?? null
 
-  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
   useScrollTabIntoView('tab-academie', activeKey)
 
   return (
-    <View style={s.wrapper}>
+    <View style={styles.headerBlock}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.container}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
       >
         {TABS.map(tab => {
           const isActive = isTabActive(pathname, tab.href)
-          const count    = counts?.[tab.key] ?? null
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
           return (
             <Pressable
-              key={tab.href}
+              key={tab.key}
               nativeID={`tab-academie-${tab.key}`}
-              onPress={() => router.push(tab.href as never)}
-              style={({ pressed }) => [
-                s.tab,
-                isActive && s.tabActive,
-                pressed && !isActive && s.tabPressed,
-              ] as never}
+              onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
+              style={styles.tabItem}
             >
-              <View style={s.tabInner}>
-                <AureakText
-                  variant="label"
-                  style={[
-                    s.tabLabel,
-                    isActive ? s.tabLabelActive : s.tabLabelInactive,
-                  ] as never}
-                >
+              <View style={styles.tabLabelRow}>
+                <AureakText style={(isActive ? styles.tabLabelActive : styles.tabLabel) as TextStyle}>
                   {tab.label}
                 </AureakText>
                 <SubtabCount value={count} active={isActive} />
               </View>
+              {isActive && <View style={styles.tabUnderline} />}
             </Pressable>
           )
         })}
@@ -81,46 +78,55 @@ export function AcademieNavBar({ counts }: AcademieNavBarProps = {}) {
   )
 }
 
-const s = StyleSheet.create({
-  wrapper: {
-    backgroundColor  : colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+const styles = StyleSheet.create({
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
   },
-  container: {
-    paddingHorizontal: space.md,
+  tabsScroll: {
+    flexGrow : 0,
+    marginTop: space.sm,
+  },
+  tabsRow: {
     flexDirection    : 'row',
-    alignItems       : 'stretch',
-    gap              : space.xs,
+    gap              : 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
-  tab: {
+  tabItem: {
+    paddingHorizontal: 20,
     paddingVertical  : 14,
-    paddingHorizontal: space.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    position         : 'relative',
   },
-  tabActive: {
-    borderBottomColor: colors.accent.gold,
-  },
-  tabPressed: {
-    opacity: 0.7,
-  },
-  tabInner: {
+  tabLabelRow: {
     flexDirection: 'row',
     alignItems   : 'center',
     gap          : space.xs,
   },
   tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-  },
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.muted,
+    textTransform: 'uppercase',
+  } as TextStyle,
   tabLabelActive: {
-    color  : colors.text.dark,
-    opacity: 1,
-  },
-  tabLabelInactive: {
-    color  : colors.text.dark,
-    opacity: 0.5,
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.dark,
+    textTransform: 'uppercase',
+  } as TextStyle,
+  tabUnderline: {
+    position       : 'absolute',
+    bottom         : -1,
+    left           : 12,
+    right          : 12,
+    height         : 2,
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 2,
   },
 })
