@@ -1,18 +1,20 @@
 'use client'
-// Story 91.1 — MarketingNavBar : 4 onglets hub Marketing (Médiathèque / Réseaux / Campagnes / Analytics)
-// Pattern aligné sur AcademieNavBar (horizontal, gold underline active, SubtabCount optionnel)
+// Hub Marketing — 5 onglets : Vue d'ensemble / Médiathèque / Réseaux / Campagnes / Analytics.
+// Design aligné EXACTEMENT sur ActivitesHeader (mêmes tokens, paddings, underline gold).
 import { useRouter, usePathname } from 'expo-router'
 import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
+import type { TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
 import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'mediatheque', label: 'MÉDIATHÈQUE', href: '/marketing/mediatheque' },
-  { key: 'reseaux',     label: 'RÉSEAUX',     href: '/marketing/reseaux'     },
-  { key: 'campagnes',   label: 'CAMPAGNES',   href: '/marketing/campagnes'   },
-  { key: 'analytics',   label: 'ANALYTICS',   href: '/marketing/analytics'   },
+  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/marketing'             },
+  { key: 'mediatheque', label: 'MÉDIATHÈQUE',    href: '/marketing/mediatheque' },
+  { key: 'reseaux',     label: 'RÉSEAUX',        href: '/marketing/reseaux'     },
+  { key: 'campagnes',   label: 'CAMPAGNES',      href: '/marketing/campagnes'   },
+  { key: 'analytics',   label: 'ANALYTICS',      href: '/marketing/analytics'   },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -21,47 +23,43 @@ export type MarketingNavBarProps = {
   counts?: Partial<Record<TabKey, number | null>>
 }
 
-export function MarketingNavBar({ counts }: MarketingNavBarProps = {}) {
-  const router   = useRouter()
-  const pathname = usePathname()
-  const activeKey = TABS.find(t => pathname === t.href || pathname.startsWith(t.href + '/'))?.key ?? null
+function isTabActive(pathname: string, href: string): boolean {
+  if (href === '/marketing') return pathname === '/marketing'
+  return pathname === href || pathname.startsWith(href + '/')
+}
 
-  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
+export function MarketingNavBar({ counts }: MarketingNavBarProps = {}) {
+  const router    = useRouter()
+  const pathname  = usePathname()
+  const activeKey = TABS.find(t => isTabActive(pathname, t.href))?.key ?? null
+
   useScrollTabIntoView('tab-marketing', activeKey)
 
   return (
-    <View style={s.wrapper}>
+    <View style={styles.headerBlock}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.container}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
       >
         {TABS.map(tab => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
-          const count    = counts?.[tab.key] ?? null
+          const isActive = isTabActive(pathname, tab.href)
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
           return (
             <Pressable
-              key={tab.href}
+              key={tab.key}
               nativeID={`tab-marketing-${tab.key}`}
-              onPress={() => router.push(tab.href as never)}
-              style={({ pressed }) => [
-                s.tab,
-                isActive && s.tabActive,
-                pressed && !isActive && s.tabPressed,
-              ] as never}
+              onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
+              style={styles.tabItem}
             >
-              <View style={s.tabInner}>
-                <AureakText
-                  variant="label"
-                  style={[
-                    s.tabLabel,
-                    isActive ? s.tabLabelActive : s.tabLabelInactive,
-                  ] as never}
-                >
+              <View style={styles.tabLabelRow}>
+                <AureakText style={(isActive ? styles.tabLabelActive : styles.tabLabel) as TextStyle}>
                   {tab.label}
                 </AureakText>
                 <SubtabCount value={count} active={isActive} />
               </View>
+              {isActive && <View style={styles.tabUnderline} />}
             </Pressable>
           )
         })}
@@ -70,46 +68,55 @@ export function MarketingNavBar({ counts }: MarketingNavBarProps = {}) {
   )
 }
 
-const s = StyleSheet.create({
-  wrapper: {
-    backgroundColor  : colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+const styles = StyleSheet.create({
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
   },
-  container: {
-    paddingHorizontal: space.md,
+  tabsScroll: {
+    flexGrow : 0,
+    marginTop: space.sm,
+  },
+  tabsRow: {
     flexDirection    : 'row',
-    alignItems       : 'stretch',
-    gap              : space.xs,
+    gap              : 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
-  tab: {
+  tabItem: {
+    paddingHorizontal: 20,
     paddingVertical  : 14,
-    paddingHorizontal: space.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    position         : 'relative',
   },
-  tabActive: {
-    borderBottomColor: colors.accent.gold,
-  },
-  tabPressed: {
-    opacity: 0.7,
-  },
-  tabInner: {
+  tabLabelRow: {
     flexDirection: 'row',
     alignItems   : 'center',
     gap          : space.xs,
   },
   tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-  },
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.muted,
+    textTransform: 'uppercase',
+  } as TextStyle,
   tabLabelActive: {
-    color  : colors.text.dark,
-    opacity: 1,
-  },
-  tabLabelInactive: {
-    color  : colors.text.dark,
-    opacity: 0.5,
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.dark,
+    textTransform: 'uppercase',
+  } as TextStyle,
+  tabUnderline: {
+    position       : 'absolute',
+    bottom         : -1,
+    left           : 12,
+    right          : 12,
+    height         : 2,
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 2,
   },
 })
