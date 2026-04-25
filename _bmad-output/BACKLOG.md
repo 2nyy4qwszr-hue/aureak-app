@@ -91,6 +91,20 @@
 
 *Prochaine étape : DB Baseline Recovery + tests end-to-end*
 
+### Epic 109 — Design tokens & harmonisation tableaux admin (NEW 2026-04-25)
+
+Issue déclencheur : MR #10 (refactor méthodologie tableaux) — hook auto-fix a flaggé désalignement tokens entre `methodologie/*`, `activites/*`, etc.
+
+- [ ] **109-1** : audit + design tokens & API composants — VALIDATION HUMAINE OBLIGATOIRE en sortie
+- [ ] **109-2** : tokens dans `@aureak/theme` + composants `<DataTable>` `<FilterBar>` etc. dans `@aureak/ui` (POC sur 1 page avant migration)
+- [ ] **109-3** : migration Lot 1 — méthodologie 5 pages + `activites/seances` (canonique)
+- [ ] **109-4** : migration Lot 2 — `activites/evaluations`, `activites/presences`, `evaluations/index`
+- [ ] **109-5** : migration Lot 3 — administration + prospection (gardiens, coach, rgpd, waitlist)
+- [ ] **109-6** : migration Lot 4 — académie (joueurs) + enfants
+- [ ] **109-7** : cleanup final + ADR tokens tableaux + snapshots Playwright régression
+
+Détail : `_bmad-output/implementation-artifacts/epic-109-design-tokens-tableaux-admin.md`
+
 ---
 
 ### Epic 8 — Quiz & Apprentissage (complément coach)
