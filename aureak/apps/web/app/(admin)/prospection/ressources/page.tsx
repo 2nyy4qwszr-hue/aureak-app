@@ -9,7 +9,6 @@ import { listCommercialResources, getResourceDownloadUrl } from '@aureak/api-cli
 import type { CommercialResource } from '@aureak/types'
 import { COMMERCIAL_RESOURCE_TYPE_ICONS, COMMERCIAL_RESOURCE_TYPE_LABELS } from '@aureak/types'
 import { useAuthStore } from '@aureak/business-logic'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { UploadResourceModal } from '../../../../components/admin/prospection/UploadResourceModal'
 
@@ -59,8 +58,6 @@ export default function CommercialResourcesPage() {
 
   return (
     <View style={st.page}>
-      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
-      <AdminPageHeader title="Ressources" />
       <ProspectionNavBar />
 
       <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>

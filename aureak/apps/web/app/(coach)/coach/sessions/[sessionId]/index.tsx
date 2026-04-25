@@ -159,7 +159,7 @@ function TabContenu({ session }: { session: Session }) {
         </div>
         <button
           style={S.linkBtn}
-          onClick={() => window.open('/methodologie/seances', '_blank')}
+          onClick={() => window.open('/methodologie/entrainements', '_blank')}
         >
           Ouvrir le module Méthodologie →
         </button>

@@ -9,7 +9,6 @@ import type { ImplantationRankingItem, BarChartPeriod } from '@aureak/types'
 import { BarChart, SkeletonBase } from '@aureak/ui'
 import type { BarChartItem } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 // ── Couleur selon performance — délégue à getStatColor de @aureak/theme ────────
 function getStatColor(value: number, metric: 'attendance' | 'mastery'): string {
@@ -71,9 +70,6 @@ export default function ClubsAnalyticsPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 98.2 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Clubs" />
-
       <ScrollView style={s.container}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Filtres métriques */}

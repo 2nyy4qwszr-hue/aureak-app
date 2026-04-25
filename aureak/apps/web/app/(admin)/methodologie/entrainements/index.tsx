@@ -109,7 +109,7 @@ export default function SeancesPage() {
 
       <MethodologieHeader
         newLabel="+ Nouvel entraînement"
-        newHref="/methodologie/seances/new"
+        newHref="/methodologie/entrainements/new"
         counts={counts ?? undefined}
       />
 
@@ -152,7 +152,7 @@ export default function SeancesPage() {
             totalSessions={sessions.length}
             deletingId={deletingId}
             methodColors={methodologyMethodColors}
-            onPress={(id) => router.push(`/methodologie/seances/${id}` as never)}
+            onPress={(id) => router.push(`/methodologie/entrainements/${id}` as never)}
             onDelete={(id) => setConfirmDeleteId(id)}
           />
         ) : (

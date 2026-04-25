@@ -45,7 +45,7 @@ export default function MethodologieHubPage() {
 
       <PrimaryAction
         label="Nouvel entraînement"
-        onPress={() => router.push('/methodologie/seances/new' as never)}
+        onPress={() => router.push('/methodologie/entrainements/new' as never)}
       />
     </View>
   )

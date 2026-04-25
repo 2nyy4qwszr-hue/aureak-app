@@ -8,7 +8,6 @@ import { listImplantations, getPlayerRankings } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
 import type { PlayerRankingItem, RankingMetric } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -166,9 +165,6 @@ export default function ProgressionPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 98.2 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Progression" />
-
       <ScrollView style={s.container}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Sélecteur implantation */}

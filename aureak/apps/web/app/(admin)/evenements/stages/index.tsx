@@ -9,8 +9,8 @@ import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
 import { SkeletonCard } from '../../../../components/SkeletonCard'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { EvenementsHeader } from '../../../../components/admin/evenements/EvenementsHeader'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 
 const STATUS_LABELS: Record<StageStatus, string> = {
   planifié : 'Planifié',
@@ -83,14 +83,6 @@ export default function StagesPage() {
 
   return (
     <View style={s.container}>
-      {/* Story 97.10 — AdminPageHeader v2 + EvenementsHeader tabs */}
-      <AdminPageHeader
-        title="Stages"
-        actionButton={{
-          label  : '+ Nouveau stage',
-          onPress: () => router.push('/evenements/stages/new' as never),
-        }}
-      />
       <EvenementsHeader />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
@@ -212,6 +204,11 @@ export default function StagesPage() {
         </View>
       )}
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouveau stage"
+        onPress={() => router.push('/evenements/stages/new' as never)}
+      />
     </View>
   )
 }

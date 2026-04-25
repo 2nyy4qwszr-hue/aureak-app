@@ -23,8 +23,8 @@ import type { StatsRoomKpis } from '@aureak/api-client'
 import type { ReportOptions } from '@aureak/types'
 import { AureakText, LiveCounter } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { AdminPageHeader } from '../../../components/admin/AdminPageHeader'
 import { StatsStandardCard } from '../../../components/admin/stats'
+import { PrimaryAction } from '../../../components/admin/PrimaryAction'
 import { generateMonthlyReport } from '../../../lib/admin/performance/generateMonthlyReport'
 
 // ── Raccourcis vers les 5 sous-pages ──────────────────────────────────────────
@@ -79,14 +79,6 @@ export default function PerformanceHubPage() {
 
   return (
     <View style={s.page}>
-      <AdminPageHeader
-        title="Performance"
-        actionButton={{
-          label  : '⬇ Exporter PDF mensuel',
-          onPress: () => setShowExportModal(true),
-        }}
-      />
-
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
         {/* LiveCounter si séances en cours */}
         {liveCounters.sessionCount > 0 && (
@@ -190,6 +182,11 @@ export default function PerformanceHubPage() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <PrimaryAction
+        label="Exporter PDF"
+        onPress={() => setShowExportModal(true)}
+      />
 
       <ExportModal visible={showExportModal} onClose={() => setShowExportModal(false)} />
     </View>

@@ -17,17 +17,49 @@ export function getBreadcrumbs(pathname: string): string[] {
   if (pathname.startsWith('/activites/presences'))  return [root, 'Activités', 'Présences']
   if (pathname.startsWith('/activites/evaluations')) return [root, 'Activités', 'Évaluations']
   if (pathname.startsWith('/activites'))            return [root, 'Activités']
-  if (pathname.startsWith('/methodologie'))     return [root, 'Méthodologie']
-  if (pathname.startsWith('/academie/coachs'))  return [root, 'Coachs']
-  if (pathname.startsWith('/academie/joueurs')) return [root, 'Joueurs']
-  if (pathname.startsWith('/academie/groupes')) return [root, 'Groupes']
-  if (pathname.startsWith('/academie'))         return [root, 'Annuaire']
+  if (pathname.startsWith('/methodologie/entrainements')) return [root, 'Méthodologie', 'Entraînements']
+  if (pathname.startsWith('/methodologie/programmes'))    return [root, 'Méthodologie', 'Programmes']
+  if (pathname.startsWith('/methodologie/themes'))        return [root, 'Méthodologie', 'Thèmes']
+  if (pathname.startsWith('/methodologie/situations'))    return [root, 'Méthodologie', 'Situations']
+  if (pathname.startsWith('/methodologie/evaluations'))   return [root, 'Méthodologie', 'Évaluations']
+  if (pathname.startsWith('/methodologie'))               return [root, 'Méthodologie']
+  if (pathname.startsWith('/academie/coachs'))         return [root, 'Académie', 'Coachs']
+  if (pathname.startsWith('/academie/joueurs'))        return [root, 'Académie', 'Joueurs']
+  if (pathname.startsWith('/academie/groupes'))        return [root, 'Académie', 'Groupes']
+  if (pathname.startsWith('/academie/scouts'))         return [root, 'Académie', 'Scouts']
+  if (pathname.startsWith('/academie/managers'))       return [root, 'Académie', 'Managers']
+  if (pathname.startsWith('/academie/marketeurs'))     return [root, 'Académie', 'Marketeurs']
+  if (pathname.startsWith('/academie/commerciaux'))    return [root, 'Académie', 'Commerciaux']
+  if (pathname.startsWith('/academie/clubs'))          return [root, 'Académie', 'Clubs']
+  if (pathname.startsWith('/academie/implantations'))  return [root, 'Académie', 'Implantations']
+  if (pathname.startsWith('/academie'))                return [root, 'Académie']
   if (pathname.startsWith('/evenements/stages'))      return [root, 'Événements', 'Stages']
   if (pathname.startsWith('/evenements/tournois'))     return [root, 'Événements', 'Tournois']
   if (pathname.startsWith('/evenements/fun-days'))     return [root, 'Événements', 'Fun Days']
   if (pathname.startsWith('/evenements/detect-days'))  return [root, 'Événements', 'Detect Days']
   if (pathname.startsWith('/evenements/seminaires'))   return [root, 'Événements', 'Séminaires']
   if (pathname.startsWith('/evenements'))              return [root, 'Événements']
+  if (pathname.startsWith('/prospection/clubs'))       return [root, 'Prospection', 'Clubs']
+  if (pathname.startsWith('/prospection/gardiens'))    return [root, 'Prospection', 'Gardiens']
+  if (pathname.startsWith('/prospection/entraineurs')) return [root, 'Prospection', 'Entraîneurs']
+  if (pathname.startsWith('/prospection/attribution')) return [root, 'Prospection', 'Attribution']
+  if (pathname.startsWith('/prospection/ressources'))  return [root, 'Prospection', 'Ressources']
+  if (pathname.startsWith('/prospection'))             return [root, 'Prospection']
+  if (pathname.startsWith('/marketing/mediatheque'))   return [root, 'Marketing', 'Médiathèque']
+  if (pathname.startsWith('/marketing/reseaux'))       return [root, 'Marketing', 'Réseaux']
+  if (pathname.startsWith('/marketing/campagnes'))     return [root, 'Marketing', 'Campagnes']
+  if (pathname.startsWith('/marketing/analytics'))     return [root, 'Marketing', 'Analytics']
+  if (pathname.startsWith('/marketing'))               return [root, 'Marketing']
+  if (pathname.startsWith('/partenariat/sponsors'))    return [root, 'Partenariat', 'Sponsors']
+  if (pathname.startsWith('/partenariat/clubs'))       return [root, 'Partenariat', 'Clubs']
+  if (pathname.startsWith('/partenariat'))             return [root, 'Partenariat']
+  if (pathname.startsWith('/performance/clubs'))         return [root, 'Performance', 'Clubs']
+  if (pathname.startsWith('/performance/charge'))        return [root, 'Performance', 'Charge']
+  if (pathname.startsWith('/performance/presences'))     return [root, 'Performance', 'Présences']
+  if (pathname.startsWith('/performance/progression'))   return [root, 'Performance', 'Progression']
+  if (pathname.startsWith('/performance/implantation'))  return [root, 'Performance', 'Implantations']
+  if (pathname.startsWith('/performance/comparaisons'))  return [root, 'Performance', 'Comparaisons']
+  if (pathname.startsWith('/performance'))               return [root, 'Performance']
   if (pathname.startsWith('/children'))         return [root, 'Joueurs']
   if (pathname.startsWith('/users'))            return [root, 'Utilisateurs']
   if (pathname.startsWith('/profiles'))         return [root, 'Profil']
@@ -50,9 +82,9 @@ export function getTopbarActions(
     ]
   }
 
-  if (pathname.startsWith('/methodologie/seances')) {
+  if (pathname.startsWith('/methodologie/entrainements')) {
     return [
-      { label: '+ Nouvel entraînement', variant: 'gold', onPress: () => routerPush('/methodologie/seances/new') },
+      { label: '+ Nouvel entraînement', variant: 'gold', onPress: () => routerPush('/methodologie/entrainements/new') },
     ]
   }
 
@@ -77,6 +109,56 @@ export function getTopbarActions(
   if (pathname.startsWith('/academie/coachs')) {
     return [
       { label: '+ Nouveau coach', variant: 'gold', onPress: () => routerPush('/academie/coachs/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/managers')) {
+    return [
+      { label: '+ Nouveau manager', variant: 'gold', onPress: () => routerPush('/academie/managers/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/marketeurs')) {
+    return [
+      { label: '+ Nouveau marketeur', variant: 'gold', onPress: () => routerPush('/academie/marketeurs/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/commerciaux')) {
+    return [
+      { label: '+ Nouveau commercial', variant: 'gold', onPress: () => routerPush('/academie/commerciaux/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/joueurs')) {
+    return [
+      { label: '+ Nouveau joueur', variant: 'gold', onPress: () => routerPush('/children/new') },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/groupes')) {
+    return [
+      { label: '+ Nouveau groupe', variant: 'gold', onPress: () => routerPush('/academie/groupes' as never) },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/implantations')) {
+    return [
+      { label: '+ Nouvelle implantation', variant: 'gold', onPress: () => routerPush('/implantations' as never) },
+    ]
+  }
+
+  if (pathname.startsWith('/academie/clubs')) {
+    return []
+  }
+
+  if (pathname.startsWith('/academie/scouts')) {
+    return []
+  }
+
+  if (pathname.startsWith('/academie')) {
+    return [
+      { label: '+ Nouveau joueur', variant: 'gold', onPress: () => routerPush('/children/new') },
     ]
   }
 

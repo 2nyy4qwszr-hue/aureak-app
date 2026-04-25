@@ -360,7 +360,7 @@ export default function SeanceDetailPage() {
       setEditing(false)
       load()
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('[methodologie/seances/detail] handleSave error:', err)
+      if (process.env.NODE_ENV !== 'production') console.error('[methodologie/entrainements/detail] handleSave error:', err)
     } finally {
       setSaving(false)
     }
@@ -393,7 +393,7 @@ export default function SeanceDetailPage() {
     <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
 
       {/* ── Back ── */}
-      <Pressable onPress={() => router.push('/methodologie/seances' as never)}>
+      <Pressable onPress={() => router.push('/methodologie/entrainements' as never)}>
         <AureakText variant="caption" style={{ color: colors.accent.gold }}>← Entraînements pédagogiques</AureakText>
       </Pressable>
 

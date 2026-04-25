@@ -9,8 +9,8 @@ import { listJoueurs, type JoueurListItem } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { avatarBgColor } from '../../../../lib/admin/children/avatarHelpers'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { AcademieCountsContext } from '../_layout'
 
 // ── Badges statut ─────────────────────────────────────────────────────────────────
@@ -226,14 +226,6 @@ export default function AcademieJoueursPage() {
 
   return (
     <View style={st.container}>
-      {/* Story 97.6 — AdminPageHeader v2 + AcademieNavBar partagé */}
-      <AdminPageHeader
-        title="Joueurs"
-        actionButton={{
-          label  : '+ Nouveau joueur',
-          onPress: () => router.push('/children/new' as never),
-        }}
-      />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
@@ -557,6 +549,11 @@ export default function AcademieJoueursPage() {
         </>
       )}
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouveau joueur"
+        onPress={() => router.push('/children/new' as never)}
+      />
     </View>
   )
 }

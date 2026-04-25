@@ -10,7 +10,6 @@ import type { Implantation } from '@aureak/types'
 import { HeatmapGrid } from '@aureak/ui'
 import { colors, fonts, radius, space, shadows } from '@aureak/theme'
 import type { HeatmapCell } from '@aureak/types'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 
 const PERIOD_OPTIONS: { value: HeatmapPeriod; label: string }[] = [
   { value: 'month',   label: 'Ce mois' },
@@ -57,9 +56,6 @@ export default function ChargeAnalyticsPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 98.2 — AdminPageHeader v2 */}
-      <AdminPageHeader title="Charge coaches" />
-
       <ScrollView style={s.container}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Filtres */}

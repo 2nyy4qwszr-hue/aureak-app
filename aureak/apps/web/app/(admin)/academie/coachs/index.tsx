@@ -12,7 +12,6 @@ import { listCoaches, getCoachCurrentGrade } from '@aureak/api-client'
 import type { CoachListRow, CoachGrade, CoachGradeLevel } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { DataCard, type DataCardColumn } from '../../../../components/admin/DataCard'
 import { FilterSheet } from '../../../../components/admin/FilterSheet'
@@ -131,18 +130,6 @@ export default function AcademieCoachsPage() {
 
   return (
     <View style={s.page}>
-      {/* Story 97.6 — AdminPageHeader v2 + AcademieNavBar partagé */}
-      {/* Desktop : bouton dans le header (visible ≥640). Mobile : AdminPageHeader passe en colonne
-          et le bouton header reste affiché en dessous du titre. Story 101.3 : on ajoute en plus le
-          FAB bas-droite pour que l'action reste atteignable en scrollant (approche B — non-duplication
-          gérée par le fait que le FAB ne se rend que <640 et reste au-dessus du contenu). */}
-      <AdminPageHeader
-        title="Coachs"
-        actionButton={{
-          label  : '+ Nouveau coach',
-          onPress: openNewCoach,
-        }}
-      />
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView style={s.scroll} contentContainerStyle={[s.scrollContent, isMobile && { paddingHorizontal: 16 }]}>

@@ -9,7 +9,6 @@ import type { MediaItem } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import { useCurrentRole } from '../../../../hooks/admin/useCurrentRole'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
 import { MarketingNavBar } from '../../../../components/admin/marketing/MarketingNavBar'
 import { UploadForm } from './_components/UploadForm'
 import { MediaGrid } from './_components/MediaGrid'
@@ -47,7 +46,6 @@ export default function MediathequePage() {
 
   return (
     <View style={s.page}>
-      <AdminPageHeader title="Médiathèque" />
       <MarketingNavBar />
 
       {isAdminOrMarketeur ? (

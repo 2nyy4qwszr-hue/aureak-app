@@ -18,7 +18,7 @@ import {
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import type { ChildDirectoryEntry, TrialOutcome } from '@aureak/types'
-import { AdminPageHeader } from '../../../../components/admin/AdminPageHeader'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 
 // ── Funnel Card (1 étape) ─────────────────────────────────────────────────────
@@ -173,14 +173,6 @@ export default function ProspectionGardiensPage() {
 
   return (
     <View style={st.page}>
-      {/* Story 97.11 — AdminPageHeader v2 + ProspectionNavBar */}
-      <AdminPageHeader
-        title="Gardiens"
-        actionButton={canAddProspect ? {
-          label  : '+ Nouveau gardien',
-          onPress: () => router.push('/prospection/gardiens/ajouter' as never),
-        } : undefined}
-      />
       <ProspectionNavBar />
 
       <ScrollView style={st.container} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
@@ -337,6 +329,13 @@ export default function ProspectionGardiensPage() {
         </View>
       )}
       </ScrollView>
+
+      {canAddProspect && (
+        <PrimaryAction
+          label="Nouveau gardien"
+          onPress={() => router.push('/prospection/gardiens/ajouter' as never)}
+        />
+      )}
     </View>
   )
 }
