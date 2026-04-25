@@ -1,54 +1,63 @@
 'use client'
-// Story 92.1 — PartenariatNavBar : 2 onglets hub Partenariat (Sponsors / Clubs partenaires)
-// Pattern aligné sur MarketingNavBar / AcademieNavBar (horizontal, gold underline active)
+// Hub Partenariat — 3 onglets : Vue d'ensemble / Sponsors / Clubs partenaires.
+// Design aligné EXACTEMENT sur ActivitesHeader / MarketingNavBar.
 import { useRouter, usePathname } from 'expo-router'
 import { ScrollView, Pressable, View, StyleSheet } from 'react-native'
+import type { TextStyle } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, space } from '@aureak/theme'
+import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'sponsors', label: 'SPONSORS',          href: '/partenariat/sponsors' },
-  { key: 'clubs',    label: 'CLUBS PARTENAIRES', href: '/partenariat/clubs'    },
+  { key: 'overview', label: "VUE D'ENSEMBLE", href: '/partenariat'          },
+  { key: 'sponsors', label: 'SPONSORS',        href: '/partenariat/sponsors' },
+  { key: 'clubs',    label: 'CLUBS PARTENAIRES', href: '/partenariat/clubs'  },
 ] as const
 
-export function PartenariatNavBar() {
-  const router   = useRouter()
-  const pathname = usePathname()
-  const activeKey = TABS.find(t => pathname === t.href || pathname.startsWith(t.href + '/'))?.key ?? null
+type TabKey = typeof TABS[number]['key']
 
-  // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
+export type PartenariatNavBarProps = {
+  counts?: Partial<Record<TabKey, number | null>>
+}
+
+function isTabActive(pathname: string, href: string): boolean {
+  if (href === '/partenariat') return pathname === '/partenariat'
+  return pathname === href || pathname.startsWith(href + '/')
+}
+
+export function PartenariatNavBar({ counts }: PartenariatNavBarProps = {}) {
+  const router    = useRouter()
+  const pathname  = usePathname()
+  const activeKey = TABS.find(t => isTabActive(pathname, t.href))?.key ?? null
+
   useScrollTabIntoView('tab-partenariat', activeKey)
 
   return (
-    <View style={s.wrapper}>
+    <View style={styles.headerBlock}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.container}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
       >
         {TABS.map(tab => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+          const isActive = isTabActive(pathname, tab.href)
+          const count    = tab.key === 'overview' ? null : (counts?.[tab.key] ?? null)
           return (
             <Pressable
-              key={tab.href}
+              key={tab.key}
               nativeID={`tab-partenariat-${tab.key}`}
-              onPress={() => router.push(tab.href as never)}
-              style={({ pressed }) => [
-                s.tab,
-                isActive && s.tabActive,
-                pressed && !isActive && s.tabPressed,
-              ] as never}
+              onPress={() => router.push(tab.href as Parameters<typeof router.push>[0])}
+              style={styles.tabItem}
             >
-              <AureakText
-                variant="label"
-                style={[
-                  s.tabLabel,
-                  isActive ? s.tabLabelActive : s.tabLabelInactive,
-                ] as never}
-              >
-                {tab.label}
-              </AureakText>
+              <View style={styles.tabLabelRow}>
+                <AureakText style={(isActive ? styles.tabLabelActive : styles.tabLabel) as TextStyle}>
+                  {tab.label}
+                </AureakText>
+                <SubtabCount value={count} active={isActive} />
+              </View>
+              {isActive && <View style={styles.tabUnderline} />}
             </Pressable>
           )
         })}
@@ -57,41 +66,55 @@ export function PartenariatNavBar() {
   )
 }
 
-const s = StyleSheet.create({
-  wrapper: {
-    backgroundColor  : colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+const styles = StyleSheet.create({
+  headerBlock: {
+    backgroundColor: colors.light.primary,
+    gap            : 12,
   },
-  container: {
-    paddingHorizontal: space.md,
+  tabsScroll: {
+    flexGrow : 0,
+    marginTop: space.sm,
+  },
+  tabsRow: {
     flexDirection    : 'row',
-    alignItems       : 'stretch',
-    gap              : space.xs,
+    gap              : 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+    paddingHorizontal: space.lg,
   },
-  tab: {
+  tabItem: {
+    paddingHorizontal: 20,
     paddingVertical  : 14,
-    paddingHorizontal: space.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    position         : 'relative',
   },
-  tabActive: {
-    borderBottomColor: colors.accent.gold,
-  },
-  tabPressed: {
-    opacity: 0.7,
+  tabLabelRow: {
+    flexDirection: 'row',
+    alignItems   : 'center',
+    gap          : space.xs,
   },
   tabLabel: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    letterSpacing: 1,
-  },
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.muted,
+    textTransform: 'uppercase',
+  } as TextStyle,
   tabLabelActive: {
-    color  : colors.text.dark,
-    opacity: 1,
-  },
-  tabLabelInactive: {
-    color  : colors.text.dark,
-    opacity: 0.5,
+    fontFamily   : fonts.body,
+    fontSize     : 12,
+    fontWeight   : '600',
+    letterSpacing: 1.7,
+    color        : colors.text.dark,
+    textTransform: 'uppercase',
+  } as TextStyle,
+  tabUnderline: {
+    position       : 'absolute',
+    bottom         : -1,
+    left           : 12,
+    right          : 12,
+    height         : 2,
+    backgroundColor: colors.accent.gold,
+    borderRadius   : 2,
   },
 })
