@@ -1,7 +1,56 @@
-// Story 88.1 — Hub Prospection : redirige vers l'onglet Clubs par défaut
+// Hub Prospection — Vue d'ensemble : KPIs + 3 mini-widgets (pattern miroir /activites)
 'use client'
-import { Redirect } from 'expo-router'
+import React from 'react'
+import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+import { colors, space } from '@aureak/theme'
 
-export default function ProspectionHubIndex() {
-  return <Redirect href="/prospection/clubs" />
+import { AdminPageHeader } from '../../../components/admin/AdminPageHeader'
+import { ProspectionNavBar } from '../../../components/admin/prospection/ProspectionNavBar'
+import { ProspectionHubKpis } from '../../../components/admin/prospection/ProspectionHubKpis'
+import { ProspectionHubRecentActions } from '../../../components/admin/prospection/ProspectionHubRecentActions'
+import { ProspectionHubFunnel } from '../../../components/admin/prospection/ProspectionHubFunnel'
+import { ProspectionHubTopCommercials } from '../../../components/admin/prospection/ProspectionHubTopCommercials'
+
+export default function ProspectionHubPage() {
+  const { width } = useWindowDimensions()
+  const widgetCols = width >= 1024 ? 3 : 1
+
+  return (
+    <View style={styles.container}>
+      <AdminPageHeader title="Vue d'ensemble" />
+      <ProspectionNavBar />
+
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <ProspectionHubKpis />
+
+        <View style={[styles.widgetsGrid, { gridTemplateColumns: `repeat(${widgetCols}, 1fr)` } as never]}>
+          <ProspectionHubFunnel />
+          <ProspectionHubRecentActions />
+          <ProspectionHubTopCommercials />
+        </View>
+      </ScrollView>
+    </View>
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scroll: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scrollContent: {
+    paddingTop   : space.md,
+    paddingBottom: 64,
+    gap          : space.md,
+  },
+  widgetsGrid: {
+    display          : 'grid' as never,
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    paddingTop       : space.sm,
+  },
+})
