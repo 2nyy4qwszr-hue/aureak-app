@@ -861,3 +861,17 @@ export type {
   AcademieHubOldAcademicien,
 } from './admin/academie-hub'
 
+
+// ── Hub Prospection : KPIs + recent actions + funnel + top commerciaux ───────
+export {
+  getProspectionHubKpis,
+  getProspectionHubRecentActions,
+  getProspectionHubPipelineFunnel,
+  getProspectionHubTopCommercials,
+} from './admin/prospection-hub'
+export type {
+  ProspectionHubKpis,
+  HubProspectAction,
+  HubPipelineFunnel,
+  HubTopCommercial,
+} from './admin/prospection-hub'
