@@ -24,7 +24,16 @@ export type AdminTopbarProps = {
   showNotifDot? : boolean
 }
 
-const HUB_PREFIXES = ['/activites', '/methodologie', '/academie', '/evenements'] as const
+const HUB_PREFIXES = [
+  '/activites',
+  '/methodologie',
+  '/academie',
+  '/evenements',
+  '/prospection',
+  '/marketing',
+  '/partenariat',
+  '/performance',
+] as const
 
 function isHubPath(pathname: string) {
   return HUB_PREFIXES.some(prefix => pathname.startsWith(prefix))

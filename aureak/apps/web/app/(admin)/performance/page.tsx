@@ -1,185 +1,42 @@
 'use client'
-// Story 60.1 — Stats Room landing (original)
-// Story 98.4 — Hub Performance dashboard-style
+// Hub Performance — Vue d'ensemble : pattern strictement aligné sur /activites
+// (header tabs uniformisé, KPIs + 3 widgets, FAB "Exporter PDF").
 //
-// REFONTE : remplace le header dark premium + ExportModal par une vue
-// dashboard tokenisée alignée avec le reste de l'admin.
-//
-// Structure :
-//   - AdminPageHeader "Performance" (+ action export PDF mensuel)
-//   - 4 KPIs de synthèse via StatsStandardCard (getStatsRoomKpis)
-//   - Grille raccourcis vers les 5 sous-pages (charge, clubs, présences,
-//     progression, implantations)
-//   - LiveCounter si séances en cours
+// Story 60.1 — Stats Room landing (origine).
+// Story 98.4 — Hub Performance dashboard-style.
+// Refonte alignée sur pattern activites (Epic Design Alignment).
 
-import React, { useEffect, useState } from 'react'
-import { View, ScrollView, Pressable, StyleSheet, Modal, TextInput, useWindowDimensions } from 'react-native'
+import React, { useState } from 'react'
+import { View, ScrollView, Pressable, StyleSheet, Modal, useWindowDimensions } from 'react-native'
 import type { TextStyle } from 'react-native'
-import { useRouter } from 'expo-router'
-import {
-  getStatsRoomKpis, getMonthlyReportData, useLiveSessionCounts,
-} from '@aureak/api-client'
-import type { StatsRoomKpis } from '@aureak/api-client'
-import type { ReportOptions } from '@aureak/types'
-import { AureakText, LiveCounter } from '@aureak/ui'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
-import { StatsStandardCard } from '../../../components/admin/stats'
-import { PrimaryAction } from '../../../components/admin/PrimaryAction'
-import { generateMonthlyReport } from '../../../lib/admin/performance/generateMonthlyReport'
+import { AureakText } from '@aureak/ui'
+import { getMonthlyReportData } from '@aureak/api-client'
+import type { ReportOptions } from '@aureak/types'
 
-// ── Raccourcis vers les 5 sous-pages ──────────────────────────────────────────
-interface ShortcutConfig {
-  title      : string
-  description: string
-  href       : string
-  accent     : string
-  icon       : string
-}
-
-const SHORTCUTS: ShortcutConfig[] = [
-  { title: 'Charge',        description: 'Heatmap jours/heures et intensité séances', href: '/performance/charge',       accent: colors.status.warning, icon: '🌡️' },
-  { title: 'Clubs',          description: 'Classement implantations et performance',   href: '/performance/clubs',        accent: colors.status.info,    icon: '🛡️' },
-  { title: 'Présences',     description: 'Taux de présence par groupe et période',    href: '/performance/presences',    accent: colors.accent.gold,    icon: '📅' },
-  { title: 'Progression',   description: 'Niveaux et maîtrise des joueurs',           href: '/performance/progression',  accent: colors.status.success, icon: '📈' },
-  { title: 'Implantations', description: 'Dashboard analytique par implantation',     href: '/performance/implantation', accent: colors.text.subtle,    icon: '🏟️' },
-]
-
-// ── Main page ─────────────────────────────────────────────────────────────────
+import { PerformanceNavBar }                                                   from '../../../components/admin/performance/PerformanceNavBar'
+import { PerformanceHubKpis }                                                  from '../../../components/admin/performance/PerformanceHubKpis'
+import { PerformanceHubLive, PerformanceHubExploration, PerformanceHubComparaisons } from '../../../components/admin/performance/PerformanceHubWidgets'
+import { PrimaryAction }                                                       from '../../../components/admin/PrimaryAction'
+import { generateMonthlyReport }                                               from '../../../lib/admin/performance/generateMonthlyReport'
 
 export default function PerformanceHubPage() {
-  const router = useRouter()
   const { width } = useWindowDimensions()
-  const isDesktop = width >= 1024
-  const isTablet  = width >= 640 && width < 1024
+  const widgetCols = width >= 1024 ? 3 : 1
 
-  const [kpis, setKpis]                       = useState<StatsRoomKpis | null>(null)
-  const [loading, setLoading]                 = useState(true)
   const [showExportModal, setShowExportModal] = useState(false)
 
-  const liveCounters = useLiveSessionCounts()
-
-  useEffect(() => {
-    setLoading(true)
-    getStatsRoomKpis()
-      .then(({ data }) => { setKpis(data) })
-      .catch(err => {
-        if (process.env.NODE_ENV !== 'production') console.error('[PerformanceHub] getStatsRoomKpis error:', err)
-      })
-      .finally(() => { setLoading(false) })
-  }, [])
-
-  const getRateTrend = (rate: number): { direction: 'up' | 'down' | 'neutral'; label: string } => {
-    if (rate >= 80) return { direction: 'up',      label: 'Objectif atteint' }
-    if (rate >= 60) return { direction: 'neutral', label: 'À surveiller'     }
-    return             { direction: 'down',        label: 'Sous l\'objectif' }
-  }
-
-  const shortcutColumns = isDesktop ? 5 : isTablet ? 3 : 1
-  const kpiColumns      = isDesktop ? 4 : isTablet ? 2 : 1
-
   return (
-    <View style={s.page}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
-        {/* LiveCounter si séances en cours */}
-        {liveCounters.sessionCount > 0 && (
-          <LiveCounter
-            sessionCount={liveCounters.sessionCount}
-            presentCount={liveCounters.presentCount}
-            totalCount={liveCounters.totalCount}
-            isLive={liveCounters.isLive}
-          />
-        )}
+    <View style={styles.container}>
+      <PerformanceNavBar />
 
-        {/* 4 KPIs de synthèse */}
-        <AureakText style={s.sectionTitle as TextStyle}>VUE D'ENSEMBLE</AureakText>
-        <View style={[s.kpiGrid, { gap: space.md }]}>
-          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
-            <StatsStandardCard
-              label="Taux présence"
-              value={kpis ? String(kpis.avgAttendanceRate) : '—'}
-              unit={kpis ? '%' : undefined}
-              trend={kpis ? getRateTrend(kpis.avgAttendanceRate) : undefined}
-              meta={loading ? 'Chargement…' : 'Sur toutes les séances'}
-              iconTone="gold"
-            />
-          </View>
-          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
-            <StatsStandardCard
-              label="Joueurs actifs"
-              value={kpis ? String(kpis.activePlayers) : '—'}
-              meta={loading ? 'Chargement…' : 'Inscrits annuaire actifs'}
-              iconTone="gold"
-            />
-          </View>
-          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
-            <StatsStandardCard
-              label="Séances totales"
-              value={kpis ? String(kpis.totalSessions) : '—'}
-              meta={loading ? 'Chargement…' : 'Séances non annulées'}
-              iconTone="gold"
-            />
-          </View>
-          <View style={[s.kpiSlot, { flexBasis: `calc(100% / ${kpiColumns} - ${space.md}px)` as never }]}>
-            <StatsStandardCard
-              label="Clubs liés"
-              value={kpis ? String(kpis.linkedClubs) : '—'}
-              meta={loading ? 'Chargement…' : 'Actifs dans l\'annuaire'}
-              iconTone="neutral"
-            />
-          </View>
-        </View>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <PerformanceHubKpis />
 
-        {/* Grille raccourcis */}
-        <AureakText style={s.sectionTitle as TextStyle}>EXPLORER EN DÉTAIL</AureakText>
-        <View style={[s.shortcutGrid, { gap: space.md }]}>
-          {SHORTCUTS.map(sc => (
-            <Pressable
-              key={sc.href}
-              onPress={() => router.push(sc.href as never)}
-              style={({ pressed }) => [
-                s.shortcutCard,
-                { flexBasis: `calc(100% / ${shortcutColumns} - ${space.md}px)` as never },
-                pressed && s.shortcutPressed,
-              ] as never}
-            >
-              <View style={[s.shortcutAccent, { backgroundColor: sc.accent }]} />
-              <View style={s.shortcutBody}>
-                <AureakText style={s.shortcutIcon as TextStyle}>{sc.icon}</AureakText>
-                <AureakText style={s.shortcutTitle as TextStyle}>{sc.title}</AureakText>
-                <AureakText style={s.shortcutDesc as TextStyle}>{sc.description}</AureakText>
-                <AureakText style={[s.shortcutCta, { color: sc.accent }] as never}>Voir →</AureakText>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* Comparaisons */}
-        <AureakText style={s.sectionTitle as TextStyle}>COMPARAISONS</AureakText>
-        <View style={[s.shortcutGrid, { gap: space.md }]}>
-          <Pressable
-            onPress={() => router.push('/performance/comparaisons/evaluations' as never)}
-            style={({ pressed }) => [s.shortcutCard, pressed && s.shortcutPressed, { minWidth: 280, flex: 1 }] as never}
-          >
-            <View style={[s.shortcutAccent, { backgroundColor: colors.accent.gold }]} />
-            <View style={s.shortcutBody}>
-              <AureakText style={s.shortcutIcon as TextStyle}>⚖️</AureakText>
-              <AureakText style={s.shortcutTitle as TextStyle}>Comparaison évaluations</AureakText>
-              <AureakText style={s.shortcutDesc as TextStyle}>Radar 2 joueurs sur 6 axes</AureakText>
-              <AureakText style={[s.shortcutCta, { color: colors.accent.gold }] as never}>Voir →</AureakText>
-            </View>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/performance/comparaisons/implantations' as never)}
-            style={({ pressed }) => [s.shortcutCard, pressed && s.shortcutPressed, { minWidth: 280, flex: 1 }] as never}
-          >
-            <View style={[s.shortcutAccent, { backgroundColor: colors.status.info }]} />
-            <View style={s.shortcutBody}>
-              <AureakText style={s.shortcutIcon as TextStyle}>🏟️</AureakText>
-              <AureakText style={s.shortcutTitle as TextStyle}>Comparaison implantations</AureakText>
-              <AureakText style={s.shortcutDesc as TextStyle}>Côte-à-côte sur métriques clés</AureakText>
-              <AureakText style={[s.shortcutCta, { color: colors.status.info }] as never}>Voir →</AureakText>
-            </View>
-          </Pressable>
+        <View style={[styles.widgetsGrid, { gridTemplateColumns: `repeat(${widgetCols}, 1fr)` } as never]}>
+          <PerformanceHubLive />
+          <PerformanceHubExploration />
+          <PerformanceHubComparaisons />
         </View>
       </ScrollView>
 
@@ -192,6 +49,28 @@ export default function PerformanceHubPage() {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scroll: {
+    flex           : 1,
+    backgroundColor: colors.light.primary,
+  },
+  scrollContent: {
+    paddingTop   : space.md,
+    paddingBottom: 64,
+    gap          : space.md,
+  },
+  widgetsGrid: {
+    display          : 'grid' as never,
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    paddingTop       : space.sm,
+  },
+})
 
 // ── ExportModal (conservé de la version originale) ──────────────────────────
 
@@ -281,57 +160,6 @@ function ExportModal({ visible, onClose }: { visible: boolean; onClose: () => vo
     </Modal>
   )
 }
-
-const s = StyleSheet.create({
-  page   : { flex: 1, backgroundColor: colors.light.primary },
-  content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-
-  sectionTitle: {
-    fontSize     : 11,
-    fontWeight   : '700',
-    fontFamily   : fonts.display,
-    color        : colors.text.muted,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginTop    : space.sm,
-  },
-
-  kpiGrid     : { flexDirection: 'row', flexWrap: 'wrap' },
-  kpiSlot     : { minWidth: 200, flexGrow: 1 },
-
-  shortcutGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  shortcutCard: {
-    minWidth       : 220,
-    flexGrow       : 1,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    overflow       : 'hidden',
-    // @ts-ignore web
-    boxShadow      : shadows.sm,
-  },
-  shortcutPressed: { opacity: 0.88 },
-  shortcutAccent : { height: 3 },
-  shortcutBody   : { padding: space.md, gap: 6 },
-  shortcutIcon   : { fontSize: 28 },
-  shortcutTitle  : {
-    fontSize  : 16,
-    fontWeight: '700',
-    fontFamily: fonts.display,
-    color     : colors.text.dark,
-  },
-  shortcutDesc: {
-    fontSize  : 12,
-    color     : colors.text.muted,
-    lineHeight: 18,
-  },
-  shortcutCta: {
-    fontSize  : 12,
-    fontWeight: '700',
-    marginTop : 4,
-  },
-})
 
 const em = StyleSheet.create({
   overlay: {
