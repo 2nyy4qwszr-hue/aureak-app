@@ -9,6 +9,8 @@ import type { Implantation } from '@aureak/types'
 import type { PlayerRankingItem, RankingMetric } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor, STAT_THRESHOLDS } from '@aureak/theme'
 
+import { PerformanceNavBar } from '../../../../components/admin/performance/PerformanceNavBar'
+
 // ── Constantes ────────────────────────────────────────────────────────────────
 
 const PODIUM_COLORS: Record<number, string> = {
@@ -165,7 +167,8 @@ export default function ProgressionPage() {
 
   return (
     <View style={s.page}>
-      <ScrollView style={s.container}>
+      <PerformanceNavBar />
+      <ScrollView style={s.container} contentContainerStyle={s.scrollContent}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Sélecteur implantation */}
         <View style={s.filterRow}>
@@ -225,8 +228,9 @@ export default function ProgressionPage() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  page     : { flex: 1, backgroundColor: colors.light.primary },
-  container: { flex: 1, backgroundColor: colors.light.primary },
+  page         : { flex: 1, backgroundColor: colors.light.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
+  scrollContent: { paddingTop: space.md, paddingBottom: space.xxxl, gap: space.md },
 
   header: {
     backgroundColor  : colors.background.primary,

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native'
-import { useRouter } from 'expo-router'
 import { listThemeGroups, createThemeGroup, updateThemeGroupOrder } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { AureakButton, Input } from '@aureak/ui'
@@ -8,14 +7,22 @@ import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { ThemeGroup } from '@aureak/types'
 
+import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
+
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: colors.light.primary,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.light.primary,
   },
   content: {
-    padding: space.xl,
-    gap: space.lg,
+    paddingTop: space.md,
+    paddingBottom: space.xxxl,
+    paddingHorizontal: space.xl,
+    gap: space.md,
   },
   header: {
     flexDirection: 'row',
@@ -53,7 +60,6 @@ const styles = StyleSheet.create({
 export default function ThemeGroupsPage() {
   const { width } = useWindowDimensions()
   const isMobile = width <= 640
-  const router = useRouter()
   const tenantId = useAuthStore((s) => s.tenantId)
 
   const [groups, setGroups] = useState<ThemeGroup[]>([])
@@ -92,8 +98,9 @@ export default function ThemeGroupsPage() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: 16 }]}>
-      <AureakButton label="Retour" onPress={() => router.back()} variant="ghost" />
+    <View style={styles.page}>
+      <MethodologieHeader />
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { paddingHorizontal: space.md }]}>
       <AureakText variant="h2">Blocs</AureakText>
       <AureakText variant="body" style={{ color: colors.text.muted, marginTop: -8, marginBottom: 8 }}>
         Regroupement de haut niveau — Thèmes et Situations y font référence.
@@ -138,6 +145,7 @@ export default function ThemeGroupsPage() {
           Aucun bloc configuré. Exemple : Tir au but, 1vs1, Relance...
         </AureakText>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }

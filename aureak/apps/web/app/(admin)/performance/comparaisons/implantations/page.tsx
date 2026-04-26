@@ -15,6 +15,8 @@ import { AureakButton, AureakText } from '@aureak/ui'
 import { colors, space, radius, shadows } from '@aureak/theme'
 import type { Implantation, ImplantationHoverStats } from '@aureak/types'
 
+import { PerformanceNavBar } from '../../../../../components/admin/performance/PerformanceNavBar'
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 type CompareResult = { impl1: ImplantationHoverStats; impl2: ImplantationHoverStats }
@@ -84,6 +86,7 @@ export default function ComparePage() {
 
   return (
     <View style={styles.page}>
+      <PerformanceNavBar />
       <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {loadError && (
         <AureakText variant="body" style={{ color: colors.accent.red }}>{loadError}</AureakText>
@@ -251,7 +254,7 @@ export default function ComparePage() {
 const styles = StyleSheet.create({
   page          : { flex: 1, backgroundColor: colors.light.primary },
   container     : { flex: 1, backgroundColor: colors.light.primary },
-  content       : { padding: space.xl, gap: space.lg },
+  content       : { paddingTop: space.md, paddingBottom: space.xxxl, paddingHorizontal: space.xl, gap: space.md },
   header        : { gap: space.sm },
   backBtn       : {
     alignSelf        : 'flex-start',

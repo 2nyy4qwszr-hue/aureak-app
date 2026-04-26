@@ -225,6 +225,11 @@ export function getTopbarActions(
   if (pathname.startsWith('/performance')) {
     return [
       { label: 'Exporter',         variant: 'outline', onPress: () => { /* TODO: export performance */ } },
+      { label: '+ Rapport mensuel', variant: 'gold',    onPress: () => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('aureak:performance-export'))
+        }
+      } },
     ]
   }
 

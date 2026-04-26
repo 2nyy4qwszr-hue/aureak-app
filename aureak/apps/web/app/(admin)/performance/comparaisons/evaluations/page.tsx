@@ -13,6 +13,8 @@ import { colors, space, shadows, radius } from '@aureak/theme'
 import type { ChildDirectoryEntry } from '@aureak/types'
 import type { RadarPlayer } from '@aureak/ui'
 
+import { PerformanceNavBar } from '../../../../../components/admin/performance/PerformanceNavBar'
+
 const AXES = ['Technique', 'Placement', 'Relance', 'Agilité', 'Mental', 'Communication']
 
 const PLAYER_A_COLOR = colors.accent.gold
@@ -174,6 +176,7 @@ export default function EvaluationsComparisonPage() {
 
   return (
     <View style={styles.page}>
+      <PerformanceNavBar />
       <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { padding: space.md }]}>
       {/* ── Sélecteurs — stack en mobile ── */}
       <View style={[styles.selectors, isMobile && { flexDirection: 'column', gap: space.md }]}>
@@ -222,7 +225,7 @@ export default function EvaluationsComparisonPage() {
 const styles = StyleSheet.create({
   page         : { flex: 1, backgroundColor: colors.light.primary },
   container    : { flex: 1, backgroundColor: colors.light.primary },
-  content      : { padding: space.xl, gap: space.lg },
+  content      : { paddingTop: space.md, paddingBottom: space.xxxl, paddingHorizontal: space.xl, gap: space.md },
   header       : { gap: space.xs },
   backBtn      : { marginBottom: space.xs },
   backText     : { color: colors.text.muted, fontSize: 13 },

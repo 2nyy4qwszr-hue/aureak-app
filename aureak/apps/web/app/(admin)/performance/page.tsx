@@ -6,7 +6,7 @@
 // Story 98.4 — Hub Performance dashboard-style.
 // Refonte alignée sur pattern activites (Epic Design Alignment).
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, Modal, useWindowDimensions } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { colors, fonts, space, radius, shadows } from '@aureak/theme'
@@ -25,6 +25,14 @@ export default function PerformanceHubPage() {
   const widgetCols = width >= 1024 ? 3 : 1
 
   const [showExportModal, setShowExportModal] = useState(false)
+
+  // Ouvre le modal export depuis le bouton topbar "+ Rapport mensuel" (event custom).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handler = () => setShowExportModal(true)
+    window.addEventListener('aureak:performance-export', handler)
+    return () => window.removeEventListener('aureak:performance-export', handler)
+  }, [])
 
   return (
     <View style={styles.container}>

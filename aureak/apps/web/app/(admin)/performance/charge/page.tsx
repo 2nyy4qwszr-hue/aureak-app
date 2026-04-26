@@ -11,6 +11,8 @@ import { HeatmapGrid } from '@aureak/ui'
 import { colors, fonts, radius, space, shadows } from '@aureak/theme'
 import type { HeatmapCell } from '@aureak/types'
 
+import { PerformanceNavBar } from '../../../../components/admin/performance/PerformanceNavBar'
+
 const PERIOD_OPTIONS: { value: HeatmapPeriod; label: string }[] = [
   { value: 'month',   label: 'Ce mois' },
   { value: '3months', label: '3 derniers mois' },
@@ -56,7 +58,8 @@ export default function ChargeAnalyticsPage() {
 
   return (
     <View style={s.page}>
-      <ScrollView style={s.container}>
+      <PerformanceNavBar />
+      <ScrollView style={s.container} contentContainerStyle={s.scrollContent}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Filtres */}
         <View style={s.filterRow}>
@@ -118,8 +121,9 @@ export default function ChargeAnalyticsPage() {
 }
 
 const s = StyleSheet.create({
-  page     : { flex: 1, backgroundColor: colors.light.primary },
-  container: { flex: 1, backgroundColor: colors.light.primary },
+  page         : { flex: 1, backgroundColor: colors.light.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
+  scrollContent: { paddingTop: space.md, paddingBottom: space.xxxl, gap: space.md },
 
   header: {
     backgroundColor: colors.background.primary,

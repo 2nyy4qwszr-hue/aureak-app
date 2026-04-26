@@ -9,6 +9,8 @@ import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import type { Implantation, Group } from '@aureak/types'
 
+import { PerformanceNavBar } from '../../../../components/admin/performance/PerformanceNavBar'
+
 // ── Progress bar ───────────────────────────────────────────────────────────────
 function ProgressBar({ value, color }: { value: number; color: string }) {
   const pct = Math.min(100, Math.max(0, Math.round(value)))
@@ -109,6 +111,7 @@ export default function ImplantationDashboardPage() {
 
   return (
     <View style={s.page}>
+      <PerformanceNavBar />
       <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: space.md }]}>
       {/* ── Sélecteur implantation ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.xl }}>
@@ -219,7 +222,7 @@ export default function ImplantationDashboardPage() {
 const s = StyleSheet.create({
   page         : { flex: 1, backgroundColor: colors.light.primary },
   container    : { flex: 1, backgroundColor: colors.light.primary },
-  content      : { padding: space.xl, gap: space.md },
+  content      : { paddingTop: space.md, paddingBottom: space.xxxl, paddingHorizontal: space.xl, gap: space.md },
 
   implantChip  : {
     paddingHorizontal: 16,
