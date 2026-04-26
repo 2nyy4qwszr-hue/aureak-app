@@ -217,7 +217,7 @@ export default function ComparePage() {
                       <View style={[
                         styles.barFill,
                         { width: `${v1}%`, backgroundColor: higher1 ? colors.accent.gold : colors.border.light },
-                      ] as any} />
+                      ] as never} />
                     </View>
                   )}
                 </View>
@@ -235,7 +235,7 @@ export default function ComparePage() {
                       <View style={[
                         styles.barFill,
                         { width: `${v2}%`, backgroundColor: higher2 ? colors.accent.gold : colors.border.light },
-                      ] as any} />
+                      ] as never} />
                     </View>
                   )}
                 </View>
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     padding        : space.md,
     gap            : space.sm,
     boxShadow      : shadows.sm,
-  } as any,
+  } as never,
   skeletonRow   : {
     height         : 40,
     backgroundColor: colors.light.muted,
