@@ -1,10 +1,9 @@
 'use client'
-// Story 87.1 — Page liste générique pour les rôles "people" de l'Académie
-// (commercial | manager | marketeur). Inspiré du pattern coachs/index.tsx mais
-// factorisé pour éviter 3 duplications. Les pages concrètes passent leurs stat
-// cards et une colonne optionnelle (ex: PIPELINE pour commerciaux).
-// Story 97.6 — remplacement du headerBlock custom par <AdminPageHeader /> v2 +
-// <AcademieNavBar /> (cohérence avec Activités/Méthodologie).
+// Page liste générique pour les rôles "people" de l'Académie (commercial | manager | marketeur).
+// Refonte alignée sur /activites/seances :
+//  - Suppression des StatCards (renderStatCards et renderStatCardsRow legacy ignorés)
+//  - Filtres en <select> natif (Statut: Actifs/Tous/Supprimés) + recherche
+//  - Tableau style TableauSeances (border + lignes alternées + pagination)
 
 import { useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { View, ScrollView, Pressable, StyleSheet, TextInput, Image, type TextStyle } from 'react-native'
@@ -14,7 +13,7 @@ import { listProfilesByRole, getEffectivePermissions } from '@aureak/api-client'
 import type { ProfileListRow, ProfileRoleFilter } from '@aureak/api-client'
 import type { UserRole } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius } from '@aureak/theme'
 import { splitName } from './splitName'
 import { formatRelativeDate } from './formatRelativeDate'
 import { AcademieNavBar } from './AcademieNavBar'
@@ -36,28 +35,28 @@ type PeopleListPageProps = {
   newButtonLabel    : string
   newButtonHref     : string
   emptyLabel        : string
+  // Conservés pour compat API mais ignorés (plus de StatCards dans la refonte)
   renderStatCards?  : (rows: ProfileListRow[]) => ReactNode
   renderExtraColumn?: ExtraColumn
 }
 
 export function PeopleListPage({
-  role, title, newButtonLabel, newButtonHref,
-  emptyLabel, renderStatCards, renderExtraColumn,
+  role, newButtonLabel, newButtonHref,
+  emptyLabel, renderExtraColumn,
 }: PeopleListPageProps) {
   const router   = useRouter()
   const { user, role: authRole } = useAuthStore()
   const academieCounts = useContext(AcademieCountsContext)
 
-  const [rows,     setRows]     = useState<ProfileListRow[]>([])
-  const [loading,  setLoading]  = useState(true)
-  const [search,   setSearch]   = useState('')
-  const [status,   setStatus]   = useState<StatusFilter>('actifs')
-  const [page,     setPage]     = useState(0)
+  const [rows,    setRows]    = useState<ProfileListRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search,  setSearch]  = useState('')
+  const [status,  setStatus]  = useState<StatusFilter>('actifs')
+  const [page,    setPage]    = useState(0)
 
-  const [canAccess,     setCanAccess]     = useState<boolean | null>(null)
-  const [canReadEmail,  setCanReadEmail]  = useState(false)
+  const [canAccess,    setCanAccess]    = useState<boolean | null>(null)
+  const [canReadEmail, setCanReadEmail] = useState(false)
 
-  // Permissions : accès Académie + lecture emails
   useEffect(() => {
     if (!user?.id || !authRole) {
       setCanAccess(null)
@@ -81,7 +80,6 @@ export function PeopleListPage({
     return () => { cancelled = true }
   }, [user?.id, authRole])
 
-  // Chargement profils selon le toggle ACTIFS/TOUS/SUPPRIMÉS
   useEffect(() => {
     if (canAccess !== true) return
     let cancelled = false
@@ -122,13 +120,6 @@ export function PeopleListPage({
   const paginated    = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const displayStart = filtered.length === 0 ? 0 : page * PAGE_SIZE + 1
   const displayEnd   = Math.min((page + 1) * PAGE_SIZE, filtered.length)
-  const hasActiveFilters = status !== 'actifs' || search.trim().length > 0
-
-  const resetFilters = () => {
-    setSearch('')
-    setStatus('actifs')
-    setPage(0)
-  }
 
   if (canAccess === false) {
     return (
@@ -146,82 +137,64 @@ export function PeopleListPage({
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-
-        {/* StatCards — délégué à chaque page concrète */}
-        {renderStatCards ? renderStatCards(rows) : null}
-
-        {/* FiltresRow : recherche + pills ACTIFS/TOUS/SUPPRIMÉS + Réinitialiser */}
-        <View style={s.filtresRow}>
-          <View style={s.filtersLeft}>
-            <TextInput
-              placeholder="Rechercher par nom, prénom, email"
-              placeholderTextColor={colors.text.muted}
-              value={search}
-              onChangeText={t => { setSearch(t); setPage(0) }}
-              style={s.searchInput as never}
-            />
-            <View style={s.pillRow}>
-              {(['actifs', 'tous', 'supprimes'] as StatusFilter[]).map(k => (
-                <Pressable
-                  key={k}
-                  onPress={() => { setStatus(k); setPage(0) }}
-                  style={status === k ? s.pillActive : s.pillInactive}
-                >
-                  <AureakText style={(status === k ? s.pillTextActive : s.pillTextInactive) as TextStyle}>
-                    {k === 'actifs' ? 'ACTIFS' : k === 'tous' ? 'TOUS' : 'SUPPRIMÉS'}
-                  </AureakText>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-          {hasActiveFilters ? (
-            <Pressable
-              onPress={resetFilters}
-              style={({ pressed }) => [s.resetBtn, pressed && s.resetBtnPressed] as never}
+        <View style={s.controls}>
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Statut</AureakText>
+            <select
+              value={status}
+              onChange={e => { setStatus(e.target.value as StatusFilter); setPage(0) }}
+              style={selectNativeStyle}
             >
-              <AureakText style={s.resetBtnLabel as TextStyle}>Réinitialiser</AureakText>
-            </Pressable>
-          ) : null}
+              <option value="actifs">Actifs</option>
+              <option value="tous">Tous</option>
+              <option value="supprimes">Supprimés</option>
+            </select>
+          </View>
         </View>
 
-        {/* Tableau */}
+        <View style={s.searchWrap}>
+          <TextInput
+            placeholder="Rechercher par nom, prénom, email"
+            placeholderTextColor={colors.text.muted}
+            value={search}
+            onChangeText={t => { setSearch(t); setPage(0) }}
+            style={s.searchInput as never}
+          />
+        </View>
+
         {loading ? (
-          <View style={s.emptyState}>
-            <AureakText variant="body" style={s.emptyText}>Chargement…</AureakText>
-          </View>
-        ) : filtered.length === 0 ? (
-          <View style={s.emptyState}>
-            <AureakText variant="body" style={s.emptyText}>
-              {status === 'supprimes' ? 'Aucun profil supprimé' : emptyLabel}
-            </AureakText>
+          <View style={s.loadingState}>
+            <AureakText style={s.loadingText}>Chargement…</AureakText>
           </View>
         ) : (
-          <View style={s.tableWrapper}>
+          <View style={s.card}>
             <View style={s.tableHeader}>
               <View style={s.cellPhoto} />
-              <AureakText style={[s.thText, s.cellNom]    as never}>NOM</AureakText>
-              <AureakText style={[s.thText, s.cellPrenom] as never}>PRÉNOM</AureakText>
-              <AureakText style={[s.thText, s.cellEmail]  as never}>EMAIL</AureakText>
-              <AureakText style={[s.thText, s.cellDate]   as never}>DATE D'AJOUT</AureakText>
+              <AureakText style={[s.colHeader, s.cellNom]    as never}>NOM</AureakText>
+              <AureakText style={[s.colHeader, s.cellPrenom] as never}>PRÉNOM</AureakText>
+              <AureakText style={[s.colHeader, s.cellEmail]  as never}>EMAIL</AureakText>
+              <AureakText style={[s.colHeader, s.cellDate]   as never}>DATE D'AJOUT</AureakText>
               {renderExtraColumn ? (
-                <AureakText style={[s.thText, { width: renderExtraColumn.width ?? 100 }] as never}>
+                <AureakText style={[s.colHeader, { width: renderExtraColumn.width ?? 100 }] as never}>
                   {renderExtraColumn.header}
                 </AureakText>
               ) : null}
             </View>
 
-            {paginated.map((row, idx) => {
+            {filtered.length === 0 ? (
+              <View style={s.emptyRow}>
+                <AureakText style={s.emptyText}>
+                  {status === 'supprimes' ? 'Aucun profil supprimé' : emptyLabel}
+                </AureakText>
+              </View>
+            ) : paginated.map((row, idx) => {
               const { prenom, nom } = splitName(row.displayName)
               const rowBg = idx % 2 === 0 ? colors.light.surface : colors.light.muted
               return (
                 <Pressable
                   key={row.userId}
                   onPress={() => router.push(`/profiles/${row.userId}` as never)}
-                  style={({ pressed }) => [
-                    s.tableRow,
-                    { backgroundColor: rowBg },
-                    pressed && s.rowPressed,
-                  ] as never}
+                  style={({ pressed }) => [s.tableRow, { backgroundColor: rowBg }, pressed && s.rowPressed] as never}
                 >
                   <View style={[s.cellPhoto, s.cellCenter]}>
                     <Avatar url={row.avatarUrl} displayName={row.displayName} />
@@ -244,32 +217,31 @@ export function PeopleListPage({
             })}
 
             <View style={s.pagination}>
-              <AureakText variant="caption" style={s.paginationInfo}>
+              <AureakText style={s.paginationInfo}>
                 {filtered.length > 0
-                  ? `Affichage de ${displayStart}–${displayEnd} / ${filtered.length}`
+                  ? `Affichage de ${displayStart}–${displayEnd} sur ${filtered.length}`
                   : '0 résultat'}
               </AureakText>
-              <View style={s.paginationBtns}>
+              <View style={s.paginationActions}>
                 <Pressable
                   onPress={() => setPage(p => Math.max(0, p - 1))}
                   disabled={page === 0}
-                  style={[s.paginationBtn, page === 0 && s.paginationBtnDisabled] as never}
+                  style={[s.pageBtn, page === 0 && s.pageBtnDisabled] as never}
                 >
-                  <AureakText variant="caption" style={{ color: page === 0 ? colors.text.muted : colors.text.dark }}>←</AureakText>
+                  <AureakText style={s.pageBtnText}>‹</AureakText>
                 </Pressable>
-                <AureakText variant="caption" style={s.paginationPage}>{page + 1} / {totalPages}</AureakText>
+                <AureakText style={s.pageNum}>{page + 1} / {totalPages}</AureakText>
                 <Pressable
                   onPress={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
-                  style={[s.paginationBtn, page >= totalPages - 1 && s.paginationBtnDisabled] as never}
+                  style={[s.pageBtn, page >= totalPages - 1 && s.pageBtnDisabled] as never}
                 >
-                  <AureakText variant="caption" style={{ color: page >= totalPages - 1 ? colors.text.muted : colors.text.dark }}>→</AureakText>
+                  <AureakText style={s.pageBtnText}>›</AureakText>
                 </Pressable>
               </View>
             </View>
           </View>
         )}
-
       </ScrollView>
 
       <PrimaryAction
@@ -280,36 +252,21 @@ export function PeopleListPage({
   )
 }
 
-// ── StatCard helper exporté pour les pages concrètes ─────────────────────────
-
-export function StatCard({
-  picto, label, value, valueColor, subLabel,
-}: {
+// Exports legacy conservés pour compat des appels existants ;
+// rendus no-op afin que les anciens renderStatCards={…} ne provoquent rien.
+export function StatCard(_props: {
   picto     : string
   label     : string
   value     : string
   valueColor?: string
   subLabel? : string
 }) {
-  return (
-    <View style={s.statCard as never}>
-      <AureakText style={s.statCardPicto as TextStyle}>{picto}</AureakText>
-      <AureakText style={s.statCardLabel as TextStyle}>{label}</AureakText>
-      <AureakText style={{ ...s.statCardValue, color: valueColor ?? colors.text.dark } as TextStyle}>
-        {value}
-      </AureakText>
-      {subLabel ? (
-        <AureakText style={s.statCardSubLabel as TextStyle}>{subLabel}</AureakText>
-      ) : null}
-    </View>
-  )
+  return null
 }
 
-export function StatCardsRow({ children }: { children: ReactNode }) {
-  return <View style={s.statCardsRow}>{children}</View>
+export function StatCardsRow(_props: { children: ReactNode }) {
+  return null
 }
-
-// ── Avatar ───────────────────────────────────────────────────────────────────
 
 function Avatar({ url, displayName }: { url: string | null; displayName: string | null }) {
   if (url) return <Image source={{ uri: url }} style={avatarS.img} />
@@ -341,104 +298,67 @@ const avatarS = StyleSheet.create({
   },
 })
 
-// ── Styles principaux ────────────────────────────────────────────────────────
+const selectNativeStyle: React.CSSProperties = {
+  width        : '100%',
+  padding      : '7px 10px',
+  fontSize     : 13,
+  color        : colors.text.dark,
+  background   : colors.light.muted,
+  border       : `1px solid ${colors.border.divider}`,
+  borderRadius : radius.xs,
+  outline      : 'none',
+  fontFamily   : fonts.body,
+}
 
 const s = StyleSheet.create({
   page         : { flex: 1, backgroundColor: colors.light.primary },
-  scroll       : { flex: 1 },
-  scrollContent: { padding: space.lg, paddingBottom: space.xl, gap: space.md },
+  scroll       : { flex: 1, backgroundColor: colors.light.primary },
+  scrollContent: { paddingTop: space.md, paddingBottom: 64, gap: space.md },
 
-  // denied
   denied      : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, backgroundColor: colors.light.primary },
   deniedTitle : { color: colors.text.dark, marginBottom: space.sm },
   deniedSub   : { color: colors.text.muted, textAlign: 'center' },
 
-  // StatCards
-  statCardsRow: {
+  controls: {
     flexDirection    : 'row',
+    flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    paddingVertical  : space.md,
-    flexWrap         : 'wrap',
+    alignItems       : 'flex-end',
   },
-  statCard: {
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    padding        : space.md,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    minWidth       : 160,
-    alignItems     : 'center',
-    gap            : 4,
-    // @ts-ignore web
-    boxShadow      : shadows.sm,
+  selectField: {
+    flexGrow : 1,
+    flexBasis: 160,
+    gap      : 4,
   },
-  statCardPicto : { fontSize: 22, marginBottom: 2 },
-  statCardLabel : {
+  selectLabel: {
     fontSize     : 10,
-    fontFamily   : fonts.display,
     fontWeight   : '700',
-    color        : colors.text.muted,
+    color        : colors.text.subtle,
     letterSpacing: 1,
-    textTransform: 'uppercase',
-    textAlign    : 'center',
-  },
-  statCardValue: {
-    fontSize  : 28,
-    fontFamily: fonts.display,
-    fontWeight: '900',
-  },
-  statCardSubLabel: {
-    fontSize  : 10,
-    color     : colors.text.muted,
-    fontStyle : 'italic',
+    textTransform: 'uppercase' as never,
+    fontFamily   : fonts.display,
   },
 
-  // FiltresRow
-  filtresRow  : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
-  filtersLeft : { flexDirection: 'row', alignItems: 'center', gap: space.md, flexWrap: 'wrap', flex: 1 },
-  searchInput : {
-    minWidth         : 240,
+  searchWrap : { paddingHorizontal: space.lg },
+  searchInput: {
+    backgroundColor  : colors.light.surface,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : radius.xs,
     paddingHorizontal: space.md,
     paddingVertical  : 8,
-    borderRadius     : radius.xs,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    backgroundColor  : colors.light.surface,
-    color            : colors.text.dark,
     fontSize         : 13,
-    fontFamily       : fonts.body,
+    color            : colors.text.dark,
   },
-  pillRow: { flexDirection: 'row', gap: space.xs },
-  pillActive: {
-    paddingHorizontal: 14,
-    paddingVertical  : 8,
-    borderRadius     : radius.badge,
-    backgroundColor  : colors.accent.gold,
-    borderWidth      : 1,
-    borderColor      : colors.accent.gold,
-  },
-  pillInactive: {
-    paddingHorizontal: 14,
-    paddingVertical  : 8,
-    borderRadius     : radius.badge,
-    backgroundColor  : colors.light.muted,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-  },
-  pillTextActive  : { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.dark },
-  pillTextInactive: { fontSize: 12, fontWeight: '600', fontFamily: fonts.body, color: colors.text.muted },
 
-  resetBtn       : { paddingHorizontal: space.md, paddingVertical: 8, borderRadius: radius.xs, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.surface },
-  resetBtnPressed: { opacity: 0.75 },
-  resetBtnLabel  : { color: colors.text.muted, fontSize: 12, fontWeight: '600' },
-
-  // Table
-  tableWrapper: {
-    borderRadius: 10,
-    borderWidth : 1,
-    borderColor : colors.border.divider,
-    overflow    : 'hidden',
+  card: {
+    borderRadius    : 10,
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
+    overflow        : 'hidden',
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
   },
   tableHeader: {
     flexDirection    : 'row',
@@ -449,7 +369,7 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.divider,
   },
-  thText: {
+  colHeader: {
     fontSize     : 10,
     fontWeight   : '700',
     fontFamily   : fonts.display,
@@ -477,23 +397,35 @@ const s = StyleSheet.create({
   cellText  : { color: colors.text.dark,  fontSize: 13 },
   cellMuted : { color: colors.text.muted, fontSize: 13 },
 
-  // Pagination
   pagination: {
     flexDirection    : 'row',
     justifyContent   : 'space-between',
     alignItems       : 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: space.md,
     paddingVertical  : space.sm,
     backgroundColor  : colors.light.muted,
     borderTopWidth   : 1,
     borderTopColor   : colors.border.divider,
   },
-  paginationInfo       : { color: colors.text.muted, fontSize: 12 },
-  paginationBtns       : { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  paginationBtn        : { paddingHorizontal: space.sm, paddingVertical: 4, borderRadius: radius.xs, backgroundColor: colors.light.surface, borderWidth: 1, borderColor: colors.border.light },
-  paginationBtnDisabled: { opacity: 0.4 },
-  paginationPage       : { color: colors.text.muted, fontSize: 12, paddingHorizontal: space.xs },
+  paginationInfo   : { color: colors.text.muted, fontSize: 12 },
+  paginationActions: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  pageBtn: {
+    width          : 28,
+    height         : 28,
+    borderRadius   : radius.xs,
+    borderWidth    : 1,
+    borderColor    : colors.border.light,
+    justifyContent : 'center',
+    alignItems     : 'center',
+    backgroundColor: colors.light.surface,
+  },
+  pageBtnDisabled: { opacity: 0.35 },
+  pageBtnText    : { fontSize: 16, color: colors.text.dark },
+  pageNum        : { fontSize: 12, color: colors.text.muted },
 
-  emptyState: { alignItems: 'center', paddingVertical: space.xl },
-  emptyText : { color: colors.text.muted },
+  emptyRow : { padding: space.xl, alignItems: 'center', backgroundColor: colors.light.surface },
+  emptyText: { color: colors.text.muted, fontSize: 14, fontFamily: fonts.body },
+
+  loadingState: { padding: space.xl, alignItems: 'center' },
+  loadingText : { color: colors.text.muted, fontSize: 14 },
 })

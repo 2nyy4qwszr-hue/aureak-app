@@ -15,7 +15,7 @@ import type { GroupWithMembers } from '@aureak/api-client'
 import { GroupGeneratorModal } from '../../../../components/admin/groups/GroupGeneratorModal'
 import { AureakText } from '@aureak/ui'
 import { GroupCard } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, radius, space } from '@aureak/theme'
 import {
   GROUP_METHODS, METHOD_COLOR,
 } from '@aureak/business-logic'
@@ -252,18 +252,45 @@ export default function GroupsPage() {
     <>
     <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
 
-      {/* ── Header ── */}
-      <View style={s.header}>
-        <View>
-          <AureakText variant="h2" color={colors.accent.gold}>Groupes</AureakText>
-          {!loading && (
-            <AureakText variant="caption" style={{ color: colors.text.muted, marginTop: 2 }}>
-              {filtered.length} groupe{filtered.length !== 1 ? 's' : ''}
-            </AureakText>
-          )}
+      {/* Filtres alignés sur /activites/seances */}
+      <View style={s.controls}>
+        <View style={s.selectField}>
+          <AureakText style={s.selectLabel}>Implantation</AureakText>
+          <select
+            value={implantFilter}
+            onChange={e => setImplantFilter(e.target.value)}
+            style={selectNativeStyle}
+          >
+            <option value="all">Toutes</option>
+            {implantations.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+          </select>
         </View>
-        <View style={{ flexDirection: 'row', gap: space.xs }}>
-          {/* Story 56-7 — Générer par âge (admin only) */}
+
+        <View style={s.selectField}>
+          <AureakText style={s.selectLabel}>Méthode</AureakText>
+          <select
+            value={methodFilter}
+            onChange={e => setMethodFilter(e.target.value as FilterMethod)}
+            style={selectNativeStyle}
+          >
+            <option value="all">Toutes</option>
+            {GROUP_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </View>
+
+        <View style={s.selectField}>
+          <AureakText style={s.selectLabel}>Badge période</AureakText>
+          <select
+            value={badgePeriod}
+            onChange={e => setBadgePeriod(e.target.value as 'month' | 'season')}
+            style={selectNativeStyle}
+          >
+            <option value="month">Mois en cours</option>
+            <option value="season">Cette saison</option>
+          </select>
+        </View>
+
+        <View style={[s.selectField, { flexBasis: 'auto', flexDirection: 'row', gap: space.xs }] as never}>
           <Pressable style={s.genBtn} onPress={() => setShowAgeModal(true)}>
             <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
               👶 Par âge
@@ -277,87 +304,22 @@ export default function GroupsPage() {
         </View>
       </View>
 
-      {/* ── Sélecteur période badge (Story 56-5) ── */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-        <AureakText variant="caption" style={{ color: colors.text.muted, fontWeight: '700', letterSpacing: 0.5 }}>
-          🏆 Badge :
+      <View style={s.searchWrap}>
+        <TextInput
+          style={s.searchInput as never}
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Rechercher par nom…"
+          placeholderTextColor={colors.text.muted}
+        />
+      </View>
+
+      {!loading && (
+        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.lg }}>
+          {filtered.length} groupe{filtered.length !== 1 ? 's' : ''}
+          {badgeLoading ? ' · chargement badge…' : ''}
         </AureakText>
-        {(['month', 'season'] as const).map(p => (
-          <Pressable
-            key={p}
-            style={[s.tab, badgePeriod === p && s.tabActive]}
-            onPress={() => setBadgePeriod(p)}
-          >
-            <AureakText variant="caption" style={{
-              color     : badgePeriod === p ? colors.accent.gold : colors.text.muted,
-              fontWeight: badgePeriod === p ? '700' : '400',
-            }}>
-              {p === 'month' ? 'Mois en cours' : 'Cette saison'}
-            </AureakText>
-          </Pressable>
-        ))}
-        {badgeLoading && (
-          <AureakText variant="caption" style={{ color: colors.text.subtle, fontSize: 10 }}>…</AureakText>
-        )}
-      </View>
-
-      {/* ── Search ── */}
-      <TextInput
-        style={s.searchInput}
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Rechercher par nom…"
-        placeholderTextColor={colors.text.muted}
-      />
-
-      {/* ── Filters ── */}
-      <View style={s.filterRow}>
-        {/* Implantation filter */}
-        <View style={s.filterGroup}>
-          <Pressable
-            style={[s.tab, implantFilter === 'all' && s.tabActive]}
-            onPress={() => setImplantFilter('all')}
-          >
-            <AureakText variant="caption" style={{ color: implantFilter === 'all' ? colors.accent.gold : colors.text.muted, fontWeight: implantFilter === 'all' ? '700' : '400' }}>
-              Toutes
-            </AureakText>
-          </Pressable>
-          {implantations.map(i => (
-            <Pressable
-              key={i.id}
-              style={[s.tab, implantFilter === i.id && s.tabActive]}
-              onPress={() => setImplantFilter(prev => prev === i.id ? 'all' : i.id)}
-            >
-              <AureakText variant="caption" style={{ color: implantFilter === i.id ? colors.accent.gold : colors.text.muted, fontWeight: implantFilter === i.id ? '700' : '400' }}>
-                {i.name}
-              </AureakText>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* Method filter */}
-        <View style={s.filterGroup}>
-          <Pressable
-            style={[s.tab, methodFilter === 'all' && s.tabActive]}
-            onPress={() => setMethodFilter('all')}
-          >
-            <AureakText variant="caption" style={{ color: methodFilter === 'all' ? colors.accent.gold : colors.text.muted, fontWeight: methodFilter === 'all' ? '700' : '400' }}>
-              Toutes méthodes
-            </AureakText>
-          </Pressable>
-          {GROUP_METHODS.map(m => (
-            <Pressable
-              key={m}
-              style={[s.tab, methodFilter === m && s.tabActive]}
-              onPress={() => setMethodFilter(prev => prev === m ? 'all' : m)}
-            >
-              <AureakText variant="caption" style={{ color: methodFilter === m ? METHOD_COLOR[m] : colors.text.muted, fontWeight: methodFilter === m ? '700' : '400' }}>
-                {m}
-              </AureakText>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+      )}
 
       {/* ── Grid ── */}
       {loading ? (
@@ -623,10 +585,21 @@ const s2 = StyleSheet.create({
   },
 })
 
+const selectNativeStyle: React.CSSProperties = {
+  width        : '100%',
+  padding      : '7px 10px',
+  fontSize     : 13,
+  color        : colors.text.dark,
+  background   : colors.light.muted,
+  border       : `1px solid ${colors.border.divider}`,
+  borderRadius : radius.xs,
+  outline      : 'none',
+  fontFamily   : fonts.body,
+}
+
 const s = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
-  content    : { padding: space.xl, gap: space.md },
-  header     : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  content    : { paddingTop: space.md, gap: space.md, paddingBottom: 64 },
   genBtn     : {
     paddingHorizontal: space.md,
     paddingVertical  : 6,
@@ -636,36 +609,47 @@ const s = StyleSheet.create({
     backgroundColor  : colors.accent.gold + '08',
   },
 
+  controls: {
+    flexDirection    : 'row',
+    flexWrap         : 'wrap',
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    alignItems       : 'flex-end',
+  },
+  selectField: {
+    flexGrow : 1,
+    flexBasis: 160,
+    gap      : 4,
+  },
+  selectLabel: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    color        : colors.text.subtle,
+    letterSpacing: 1,
+    textTransform: 'uppercase' as never,
+    fontFamily   : fonts.display,
+  },
+
+  searchWrap : { paddingHorizontal: space.lg },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
     borderColor      : colors.border.light,
-    borderRadius     : 7,
+    borderRadius     : radius.xs,
     paddingHorizontal: space.md,
-    paddingVertical  : space.xs + 2,
-    color            : colors.text.dark,
+    paddingVertical  : 8,
     fontSize         : 13,
+    color            : colors.text.dark,
   },
-
-  filterRow  : { gap: space.sm },
-  filterGroup: {
-    flexDirection    : 'row',
-    gap              : space.xs,
-    flexWrap         : 'wrap',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.divider,
-    paddingBottom    : space.sm,
-  },
-  tab        : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 5 },
-  tabActive  : { backgroundColor: colors.light.muted },
 
   grid       : {
-    flexDirection: 'row',
-    flexWrap     : 'wrap',
-    gap          : space.md,
+    flexDirection    : 'row',
+    flexWrap         : 'wrap',
+    gap              : space.md,
+    paddingHorizontal: space.lg,
   },
 
-  skeletonBox : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  skeletonBox : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, paddingHorizontal: space.lg },
   skeletonCard: {
     width  : 280, height : 200,
     backgroundColor: colors.light.surface,
@@ -673,12 +657,13 @@ const s = StyleSheet.create({
     borderWidth    : 1, borderColor: colors.border.light,
   },
   emptyState  : {
-    backgroundColor: colors.light.surface,
-    borderRadius   : 10,
-    padding        : space.xxl,
-    alignItems     : 'center',
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
+    backgroundColor : colors.light.surface,
+    borderRadius    : 10,
+    padding         : space.xxl,
+    alignItems      : 'center',
+    borderWidth     : 1,
+    borderColor     : colors.border.light,
+    marginHorizontal: space.lg,
   },
 
   // Modal transfert

@@ -1,20 +1,16 @@
 'use client'
-// Story 97.9 — Refonte /academie/implantations
-//
-// DIAGNOSTIC :
-//   - Avant : redirect vers /implantations → onglet IMPLANTATIONS d'AcademieNavBar
-//     jamais actif (pathname !== /academie/implantations après redirect).
-//   - Page legacy /implantations reste disponible (1729 lignes, riche — map,
-//     bulk ops, compare) via CTA "Gestion avancée".
-//
-// REFONTE : page native alignée au pattern Académie.
+// Refonte alignée sur /activites/seances :
+//  - Suppression des StatCards
+//  - Filtres (Statut) en <select> natif + recherche
+//  - Tableau style TableauSeances (border + lignes alternées)
+//  - Le grid de cards est remplacé par une vraie table.
 import { useContext, useEffect, useState, useCallback } from 'react'
 import { View, ScrollView, Pressable, TextInput, StyleSheet, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listImplantations } from '@aureak/api-client'
 import type { Implantation } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius } from '@aureak/theme'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { AcademieCountsContext } from '../_layout'
 
@@ -48,46 +44,32 @@ export default function AcademieImplantationsPage() {
 
   const filtered = rows.filter(r => {
     if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false
-    // Implantation a un deletedAt → soft-delete. Pour "fermees" on utiliserait deletedAt.
-    // Le load() filtre déjà deleted_at null, donc toutes les rows sont actives.
+    // Le load() ne renvoie que les implantations non supprimées (deleted_at IS NULL).
     if (filter === 'fermees') return false
     return true
   })
-
-  const withGps    = rows.filter(r => r.gpsLat !== null && r.gpsLon !== null).length
-  const withPhoto  = rows.filter(r => r.photoUrl !== null).length
-  const hasFilters = search || filter !== 'all'
 
   return (
     <View style={s.page}>
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
-        {/* Stat cards */}
-        <View style={s.statCardsRow}>
-          <View style={s.statCard}>
-            <AureakText style={s.statPicto}>🏟️</AureakText>
-            <AureakText style={s.statLabel as never}>IMPLANTATIONS</AureakText>
-            <AureakText style={s.statValue as never}>{loading ? '—' : String(rows.length)}</AureakText>
-          </View>
-          <View style={s.statCard}>
-            <AureakText style={s.statPicto}>📍</AureakText>
-            <AureakText style={s.statLabel as never}>GPS CONFIGURÉS</AureakText>
-            <AureakText style={[s.statValue, { color: colors.status.present }] as never}>
-              {loading ? '—' : String(withGps)}
-            </AureakText>
-          </View>
-          <View style={s.statCard}>
-            <AureakText style={s.statPicto}>📸</AureakText>
-            <AureakText style={s.statLabel as never}>AVEC PHOTO</AureakText>
-            <AureakText style={[s.statValue, { color: colors.accent.gold }] as never}>
-              {loading ? '—' : String(withPhoto)}
-            </AureakText>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
+        <View style={s.controls}>
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Statut</AureakText>
+            <select
+              value={filter}
+              onChange={e => setFilter(e.target.value as ActifFilter)}
+              style={selectNativeStyle}
+            >
+              <option value="all">Toutes</option>
+              <option value="actives">Actives</option>
+              <option value="fermees">Fermées</option>
+            </select>
           </View>
         </View>
 
-        {/* Filtres */}
-        <View style={s.filtersRow}>
+        <View style={s.searchWrap}>
           <TextInput
             style={s.searchInput as never}
             value={search}
@@ -95,70 +77,67 @@ export default function AcademieImplantationsPage() {
             placeholder="Rechercher par nom…"
             placeholderTextColor={colors.text.muted}
           />
-          <View style={s.pillRow}>
-            {(['all', 'actives', 'fermees'] as ActifFilter[]).map(k => (
-              <Pressable
-                key={k}
-                onPress={() => setFilter(k)}
-                style={filter === k ? s.pillActive : s.pillInactive}
-              >
-                <AureakText style={(filter === k ? s.pillTextActive : s.pillTextInactive) as never}>
-                  {k === 'all' ? 'Toutes' : k === 'actives' ? 'Actives' : 'Fermées'}
-                </AureakText>
-              </Pressable>
-            ))}
-          </View>
-          {hasFilters && (
-            <Pressable onPress={() => { setSearch(''); setFilter('all') }} style={s.resetBtn}>
-              <AureakText style={s.resetLabel as never}>✕ Réinit.</AureakText>
-            </Pressable>
-          )}
         </View>
 
-        {/* Grid cards */}
         {loading ? (
-          <View style={s.emptyState}>
-            <AureakText style={s.emptyText as never}>Chargement…</AureakText>
-          </View>
-        ) : filtered.length === 0 ? (
-          <View style={s.emptyState}>
-            <AureakText style={s.emptyIcon}>🏟️</AureakText>
-            <AureakText style={s.emptyHeading as never}>Aucune implantation</AureakText>
-            <AureakText style={s.emptyText as never}>
-              {hasFilters ? 'Aucun résultat pour ces filtres.' : 'Aucune implantation configurée.'}
-            </AureakText>
+          <View style={s.loadingState}>
+            <AureakText style={s.loadingText}>Chargement…</AureakText>
           </View>
         ) : (
-          <View style={s.grid}>
-            {filtered.map(impl => (
-              <Pressable
-                key={impl.id}
-                onPress={() => router.push('/implantations' as never)}
-                style={({ pressed }) => [s.card, pressed && s.cardPressed] as never}
-              >
-                <View style={s.cardAccent} />
-                <View style={s.cardBody}>
-                  <AureakText style={s.cardTitle as never} numberOfLines={1}>{impl.name}</AureakText>
-                  {impl.address && (
-                    <AureakText style={s.cardMeta as never} numberOfLines={2}>
-                      📍 {impl.address}
-                    </AureakText>
-                  )}
-                  <View style={s.cardChips}>
-                    {impl.gpsLat !== null && impl.gpsLon !== null && (
-                      <View style={[s.chip, { backgroundColor: colors.status.present + '22', borderColor: colors.status.present }]}>
-                        <AureakText style={[s.chipText, { color: colors.status.present }] as never}>GPS</AureakText>
+          <View style={[s.card, isMobile && s.cardMobile]}>
+            {!isMobile && (
+              <View style={s.tableHeader}>
+                <AureakText style={[s.colHeader, { flex: 1.5, minWidth: 120 }] as never}>NOM</AureakText>
+                <AureakText style={[s.colHeader, { flex: 2,   minWidth: 160 }] as never}>ADRESSE</AureakText>
+                <AureakText style={[s.colHeader, { width: 80 }] as never}>GPS</AureakText>
+                <AureakText style={[s.colHeader, { width: 80 }] as never}>PHOTO</AureakText>
+                <View style={{ width: 28 }} />
+              </View>
+            )}
+
+            {filtered.length === 0 ? (
+              <View style={s.emptyRow}>
+                <AureakText style={s.emptyText}>Aucune implantation pour ces filtres.</AureakText>
+              </View>
+            ) : filtered.map((impl, idx) => {
+              const rowBg  = idx % 2 === 0 ? colors.light.surface : colors.light.muted
+              const hasGps = impl.gpsLat !== null && impl.gpsLon !== null
+              return (
+                <Pressable
+                  key={impl.id}
+                  onPress={() => router.push('/implantations' as never)}
+                  style={({ pressed }) => [s.tableRow, { backgroundColor: rowBg }, pressed && { opacity: 0.8 }] as never}
+                >
+                  <AureakText style={[s.cellText, { flex: 1.5, minWidth: 120, fontWeight: '600' }] as never} numberOfLines={1}>
+                    {impl.name}
+                  </AureakText>
+                  <AureakText style={[s.cellMuted, { flex: 2, minWidth: 160 }] as never} numberOfLines={1}>
+                    {impl.address ?? '—'}
+                  </AureakText>
+                  <View style={{ width: 80 }}>
+                    {hasGps ? (
+                      <View style={[s.miniBadge, { backgroundColor: colors.status.present + '22', borderColor: colors.status.present }]}>
+                        <AureakText style={[s.miniBadgeText, { color: colors.status.present }] as never}>GPS</AureakText>
                       </View>
-                    )}
-                    {impl.photoUrl && (
-                      <View style={[s.chip, { backgroundColor: colors.accent.gold + '22', borderColor: colors.accent.gold }]}>
-                        <AureakText style={[s.chipText, { color: colors.accent.gold }] as never}>PHOTO</AureakText>
-                      </View>
+                    ) : (
+                      <AureakText style={s.cellMuted}>—</AureakText>
                     )}
                   </View>
-                </View>
-              </Pressable>
-            ))}
+                  <View style={{ width: 80 }}>
+                    {impl.photoUrl ? (
+                      <View style={[s.miniBadge, { backgroundColor: colors.accent.gold + '22', borderColor: colors.accent.gold }]}>
+                        <AureakText style={[s.miniBadgeText, { color: colors.accent.gold }] as never}>PHOTO</AureakText>
+                      </View>
+                    ) : (
+                      <AureakText style={s.cellMuted}>—</AureakText>
+                    )}
+                  </View>
+                  <View style={{ width: 28, alignItems: 'center', justifyContent: 'center' }}>
+                    <AureakText style={{ color: colors.text.muted }}>›</AureakText>
+                  </View>
+                </Pressable>
+              )
+            })}
           </View>
         )}
       </ScrollView>
@@ -166,135 +145,104 @@ export default function AcademieImplantationsPage() {
   )
 }
 
+const selectNativeStyle: React.CSSProperties = {
+  width        : '100%',
+  padding      : '7px 10px',
+  fontSize     : 13,
+  color        : colors.text.dark,
+  background   : colors.light.muted,
+  border       : `1px solid ${colors.border.divider}`,
+  borderRadius : radius.xs,
+  outline      : 'none',
+  fontFamily   : fonts.body,
+}
+
 const s = StyleSheet.create({
   page    : { flex: 1, backgroundColor: colors.light.primary },
-  content : { padding: space.xl, gap: space.md, paddingBottom: space.xxl },
+  content : { paddingTop: space.md, paddingBottom: 64, gap: space.md },
 
-  statCardsRow: {
-    flexDirection: 'row',
-    gap          : space.md,
-    flexWrap     : 'wrap',
+  controls: {
+    flexDirection    : 'row',
+    flexWrap         : 'wrap',
+    gap              : space.md,
+    paddingHorizontal: space.lg,
+    alignItems       : 'flex-end',
   },
-  statCard: {
-    flex           : 1,
-    minWidth       : 180,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    padding        : space.md,
-    alignItems     : 'center',
-    gap            : 4,
-    // @ts-ignore web
-    boxShadow      : shadows.sm,
+  selectField: {
+    flexGrow : 1,
+    flexBasis: 160,
+    gap      : 4,
   },
-  statPicto: { fontSize: 22 },
-  statLabel: {
+  selectLabel: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    color        : colors.text.subtle,
+    letterSpacing: 1,
+    textTransform: 'uppercase' as never,
+    fontFamily   : fonts.display,
+  },
+
+  searchWrap : { paddingHorizontal: space.lg },
+  searchInput: {
+    backgroundColor  : colors.light.surface,
+    borderWidth      : 1,
+    borderColor      : colors.border.light,
+    borderRadius     : radius.xs,
+    paddingHorizontal: space.md,
+    paddingVertical  : 8,
+    fontSize         : 13,
+    color            : colors.text.dark,
+  },
+
+  card: {
+    borderRadius    : 10,
+    marginHorizontal: space.lg,
+    marginBottom    : space.lg,
+    overflow        : 'hidden',
+    borderWidth     : 1,
+    borderColor     : colors.border.divider,
+  },
+  cardMobile: { marginHorizontal: space.sm },
+
+  tableHeader: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    paddingVertical  : 10,
+    backgroundColor  : colors.light.muted,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  colHeader: {
     fontSize     : 10,
     fontWeight   : '700',
     fontFamily   : fonts.display,
-    color        : colors.text.muted,
-    letterSpacing: 1,
+    color        : colors.text.subtle,
     textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  statValue: {
-    fontSize  : 28,
-    fontWeight: '900',
-    fontFamily: fonts.display,
-    color     : colors.text.dark,
+  tableRow: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    paddingHorizontal: 16,
+    minHeight        : 52,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
+  cellText : { color: colors.text.dark,  fontSize: 13 },
+  cellMuted: { color: colors.text.muted, fontSize: 13 },
 
-  filtersRow: {
-    flexDirection: 'row',
-    gap          : space.sm,
-    alignItems   : 'center',
-    flexWrap     : 'wrap',
-  },
-  searchInput: {
-    flex             : 1,
-    minWidth         : 240,
-    paddingHorizontal: space.md,
-    paddingVertical  : 8,
-    borderRadius     : radius.xs,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    backgroundColor  : colors.light.surface,
-    color            : colors.text.dark,
-    fontSize         : 13,
-    fontFamily       : fonts.body,
-  },
-  pillRow     : { flexDirection: 'row', gap: space.xs },
-  pillActive  : {
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius   : radius.badge,
-    backgroundColor: colors.accent.gold,
-    borderWidth    : 1,
-    borderColor    : colors.accent.gold,
-  },
-  pillInactive: {
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius   : radius.badge,
-    backgroundColor: colors.light.muted,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-  },
-  pillTextActive  : { fontSize: 12, fontWeight: '600', color: colors.text.dark },
-  pillTextInactive: { fontSize: 12, fontWeight: '600', color: colors.text.muted },
-  resetBtn: {
-    paddingHorizontal: space.md,
-    paddingVertical  : 8,
-    borderRadius     : radius.xs,
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
-    backgroundColor  : colors.light.surface,
-  },
-  resetLabel: { color: colors.status.absent, fontSize: 12, fontWeight: '600' },
-
-  grid: {
-    flexDirection: 'row',
-    flexWrap     : 'wrap',
-    gap          : space.md,
-  },
-  card: {
-    flex           : 1,
-    minWidth       : 260,
-    maxWidth       : 360,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-    overflow       : 'hidden',
-    // @ts-ignore web
-    boxShadow      : shadows.sm,
-  },
-  cardPressed: { opacity: 0.85 },
-  cardAccent : { height: 3, backgroundColor: colors.accent.gold },
-  cardBody   : { padding: space.md, gap: space.xs },
-  cardTitle  : {
-    fontSize  : 15,
-    fontWeight: '700',
-    fontFamily: fonts.display,
-    color     : colors.text.dark,
-  },
-  cardMeta   : { fontSize: 12, color: colors.text.muted, lineHeight: 18 },
-  cardChips  : { flexDirection: 'row', gap: space.xs, marginTop: 4 },
-  chip       : {
+  miniBadge: {
     paddingHorizontal: 8, paddingVertical: 3,
     borderRadius     : radius.badge,
     borderWidth      : 1,
+    alignSelf        : 'flex-start',
   },
-  chipText   : { fontSize: 10, fontWeight: '700' },
+  miniBadgeText: { fontSize: 10, fontWeight: '700' },
 
-  emptyState: {
-    padding        : space.xxl,
-    alignItems     : 'center',
-    gap            : space.xs,
-    backgroundColor: colors.light.surface,
-    borderRadius   : radius.card,
-    borderWidth    : 1,
-    borderColor    : colors.border.divider,
-  },
-  emptyIcon   : { fontSize: 40 },
-  emptyHeading: { fontSize: 16, fontWeight: '700', color: colors.text.dark },
-  emptyText   : { color: colors.text.muted, fontSize: 13 },
+  emptyRow : { padding: space.xl, alignItems: 'center', backgroundColor: colors.light.surface },
+  emptyText: { color: colors.text.muted, fontSize: 14, fontFamily: fonts.body },
+
+  loadingState: { padding: space.xl, alignItems: 'center' },
+  loadingText : { color: colors.text.muted, fontSize: 14 },
 })
