@@ -10,6 +10,8 @@ import { BarChart, SkeletonBase } from '@aureak/ui'
 import type { BarChartItem } from '@aureak/types'
 import { colors, fonts, radius, space, shadows, getStatColor as getStatColorBase, STAT_THRESHOLDS } from '@aureak/theme'
 
+import { PerformanceNavBar } from '../../../../components/admin/performance/PerformanceNavBar'
+
 // ── Couleur selon performance — délégue à getStatColor de @aureak/theme ────────
 function getStatColor(value: number, metric: 'attendance' | 'mastery'): string {
   if (metric === 'attendance') {
@@ -70,7 +72,8 @@ export default function ClubsAnalyticsPage() {
 
   return (
     <View style={s.page}>
-      <ScrollView style={s.container}>
+      <PerformanceNavBar />
+      <ScrollView style={s.container} contentContainerStyle={s.scrollContent}>
       <View style={[s.content, isMobile && { padding: space.md }]}>
         {/* Filtres métriques */}
         <View style={s.filterRow}>
@@ -128,8 +131,9 @@ export default function ClubsAnalyticsPage() {
 }
 
 const s = StyleSheet.create({
-  page     : { flex: 1, backgroundColor: colors.light.primary },
-  container: { flex: 1, backgroundColor: colors.light.primary },
+  page         : { flex: 1, backgroundColor: colors.light.primary },
+  container    : { flex: 1, backgroundColor: colors.light.primary },
+  scrollContent: { paddingTop: space.md, paddingBottom: space.xxxl, gap: space.md },
 
   header: {
     backgroundColor: colors.background.primary,

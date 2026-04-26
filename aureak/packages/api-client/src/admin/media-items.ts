@@ -11,12 +11,12 @@ const BUCKET = 'media-library'
 
 type Row = Record<string, unknown>
 
-function mapRow(r: Row): MediaItem {
-  const profile = r.profile as { display_name?: string | null } | null | undefined
+function mapRow(r: Row, displayNameByUploader?: Map<string, string | null>): MediaItem {
+  const uploaderId = r.uploaded_by as string
   return {
     id              : r.id as string,
     tenantId        : r.tenant_id as string,
-    uploadedBy      : r.uploaded_by as string,
+    uploadedBy      : uploaderId,
     filePath        : r.file_path as string,
     fileType        : r.file_type as MediaFileType,
     title           : r.title as string,
@@ -30,8 +30,24 @@ function mapRow(r: Row): MediaItem {
     createdAt       : r.created_at as string,
     updatedAt       : r.updated_at as string,
     deletedAt       : (r.deleted_at as string | null) ?? null,
-    uploaderDisplayName: profile?.display_name ?? null,
+    uploaderDisplayName: displayNameByUploader?.get(uploaderId) ?? null,
   }
+}
+
+// FK media_items.uploaded_by → auth.users(id), donc PostgREST ne peut pas joindre
+// directement profiles. On résout les display_name via un fetch séparé.
+async function resolveUploaderNames(rows: Row[]): Promise<Map<string, string | null>> {
+  const ids = [...new Set(rows.map(r => r.uploaded_by as string).filter(Boolean))]
+  if (ids.length === 0) return new Map()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name')
+    .in('id', ids)
+  if (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('[media-items] profiles fetch error:', error)
+    return new Map()
+  }
+  return new Map((data ?? []).map(p => [p.id as string, (p.display_name as string | null) ?? null]))
 }
 
 export type ListMediaItemsFilters = {
@@ -42,7 +58,7 @@ export type ListMediaItemsFilters = {
 export async function listMediaItems(filters: ListMediaItemsFilters = {}): Promise<MediaItem[]> {
   let q = supabase
     .from('media_items')
-    .select('*, profile:profiles!media_items_uploaded_by_fkey(display_name)')
+    .select('*')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
@@ -54,7 +70,9 @@ export async function listMediaItems(filters: ListMediaItemsFilters = {}): Promi
     if (process.env.NODE_ENV !== 'production') console.error('[media-items] list error:', error)
     return []
   }
-  return ((data ?? []) as Row[]).map(mapRow)
+  const rows  = (data ?? []) as Row[]
+  const names = await resolveUploaderNames(rows)
+  return rows.map(r => mapRow(r, names))
 }
 
 export async function uploadMediaItem(
@@ -102,7 +120,7 @@ export async function uploadMediaItem(
       file_size   : metadata.fileSize ?? file.size,
       mime_type   : metadata.mimeType ?? file.type ?? null,
     })
-    .select('*, profile:profiles!media_items_uploaded_by_fkey(display_name)')
+    .select('*')
     .single()
 
   if (insertErr) {
@@ -110,7 +128,9 @@ export async function uploadMediaItem(
     await supabase.storage.from(BUCKET).remove([path])
     throw insertErr
   }
-  return mapRow(data as Row)
+  const row   = data as Row
+  const names = await resolveUploaderNames([row])
+  return mapRow(row, names)
 }
 
 export async function approveMediaItem(id: string): Promise<MediaItem> {
@@ -126,14 +146,16 @@ export async function approveMediaItem(id: string): Promise<MediaItem> {
       rejection_reason : null,
     })
     .eq('id', id)
-    .select('*, profile:profiles!media_items_uploaded_by_fkey(display_name)')
+    .select('*')
     .single()
 
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('[media-items] approve error:', error)
     throw error
   }
-  return mapRow(data as Row)
+  const row   = data as Row
+  const names = await resolveUploaderNames([row])
+  return mapRow(row, names)
 }
 
 export async function rejectMediaItem(id: string, reason: string): Promise<MediaItem> {
@@ -152,14 +174,16 @@ export async function rejectMediaItem(id: string, reason: string): Promise<Media
       rejection_reason : trimmed,
     })
     .eq('id', id)
-    .select('*, profile:profiles!media_items_uploaded_by_fkey(display_name)')
+    .select('*')
     .single()
 
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('[media-items] reject error:', error)
     throw error
   }
-  return mapRow(data as Row)
+  const row   = data as Row
+  const names = await resolveUploaderNames([row])
+  return mapRow(row, names)
 }
 
 export async function softDeleteMediaItem(id: string): Promise<void> {
