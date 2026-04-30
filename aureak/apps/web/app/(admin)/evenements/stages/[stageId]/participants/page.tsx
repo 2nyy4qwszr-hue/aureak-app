@@ -108,7 +108,7 @@ export default function StageParticipantsPage() {
           style={styles.primaryBtn}
           onPress={() => setShowAddModal(true)}
         >
-          <AureakText variant="caption" style={{ color: '#fff', fontWeight: '700' as never }}>
+          <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700' as never }}>
             + Ajouter un gardien
           </AureakText>
         </Pressable>

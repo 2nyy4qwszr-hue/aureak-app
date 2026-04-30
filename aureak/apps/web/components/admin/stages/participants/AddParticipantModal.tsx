@@ -219,7 +219,7 @@ export function AddParticipantModal({ visible, stageId, existingParticipantIds, 
                       </AureakText>
                     </View>
                     <View style={styles.addBtn}>
-                      <AureakText variant="caption" style={{ color: '#fff', fontWeight: '700' as never }}>
+                      <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700' as never }}>
                         {adding === r.id ? 'Ajout…' : 'Inscrire'}
                       </AureakText>
                     </View>
@@ -299,7 +299,7 @@ export function AddParticipantModal({ visible, stageId, existingParticipantIds, 
                       onPress={() => onSubmitCreate(true)}
                       disabled={saving}
                     >
-                      <AureakText variant="caption" style={{ color: '#fff', fontWeight: '700' as never }}>
+                      <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700' as never }}>
                         {saving ? 'Création…' : 'Créer quand même'}
                       </AureakText>
                     </Pressable>
@@ -316,7 +316,7 @@ export function AddParticipantModal({ visible, stageId, existingParticipantIds, 
                   onPress={() => onSubmitCreate(false)}
                   disabled={saving}
                 >
-                  <AureakText variant="caption" style={{ color: '#fff', fontWeight: '700' as never }}>
+                  <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700' as never }}>
                     {saving ? 'Enregistrement…' : 'Enregistrer & inscrire'}
                   </AureakText>
                 </Pressable>

@@ -31,7 +31,7 @@ export function ParticipantsList({ participants, loading, onRequestRemove, onAdd
           Ajoute un premier gardien pour commencer la préparation du stage.
         </AureakText>
         <Pressable style={styles.emptyCta} onPress={onAdd}>
-          <AureakText variant="caption" style={{ color: '#fff', fontWeight: '700' as never }}>
+          <AureakText variant="caption" style={{ color: colors.text.primary, fontWeight: '700' as never }}>
             + Ajouter un gardien
           </AureakText>
         </Pressable>
