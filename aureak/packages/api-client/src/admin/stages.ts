@@ -445,16 +445,18 @@ export type StageChild = {
   prenom       : string
   nom          : string
   ageCategory  : string | null
+  birthDate    : string | null
+  displayName  : string
 }
 
 /**
  * Liste les enfants inscrits à un stage (via child_stage_participations → child_directory).
- * Utilisé par la feature "cartes Panini" (story 105-1).
+ * Utilisé par la feature "cartes Panini" (story 105-1) et "Participants" (story 105-2).
  */
 export async function listStageChildren(stageId: string): Promise<StageChild[]> {
   const { data, error } = await supabase
     .from('child_stage_participations')
-    .select('id, stage_id, child_directory ( id, prenom, nom, age_category )')
+    .select('id, stage_id, child_directory ( id, prenom, nom, age_category, birth_date, display_name )')
     .eq('stage_id', stageId)
 
   if (error) throw error
@@ -464,12 +466,109 @@ export async function listStageChildren(stageId: string): Promise<StageChild[]> 
       const child = row.child_directory as Record<string, unknown> | null
       if (!child) return null
       return {
-        id          : child.id           as string,
-        stageId     : row.stage_id       as string,
-        prenom      : (child.prenom as string | null) ?? '',
-        nom         : (child.nom    as string | null) ?? '',
+        id          : child.id            as string,
+        stageId     : row.stage_id        as string,
+        prenom      : (child.prenom       as string | null) ?? '',
+        nom         : (child.nom          as string | null) ?? '',
         ageCategory : (child.age_category as string | null) ?? null,
+        birthDate   : (child.birth_date   as string | null) ?? null,
+        displayName : (child.display_name as string | null) ?? '',
       }
     })
-    .filter((c): c is StageChild => c !== null && (c.prenom !== '' || c.nom !== ''))
+    .filter((c): c is StageChild => c !== null && (c.prenom !== '' || c.nom !== '' || c.displayName !== ''))
+}
+
+// ============================================================
+// Story 105.2 — Stage participants management (add / remove / search)
+// ============================================================
+
+/**
+ * Recherche dans child_directory pour ajout au stage, en excluant les enfants déjà inscrits.
+ * - Recherche `display_name` ilike (cohérent avec searchChildDirectoryByName)
+ * - Filtre deleted_at IS NULL et actif=true
+ * - Exclut les enfants présents dans child_stage_participations pour ce stageId
+ * - Retourne max `limit` résultats (défaut 20)
+ */
+export async function searchChildrenForStageParticipation(
+  stageId : string,
+  query   : string,
+  limit   : number = 20,
+): Promise<Array<{
+  id          : string
+  prenom      : string | null
+  nom         : string | null
+  birthDate   : string | null
+  displayName : string
+  ageCategory : string | null
+}>> {
+  const trimmed = query.trim()
+  if (trimmed.length < 2) return []
+
+  const { data: registered, error: regErr } = await supabase
+    .from('child_stage_participations')
+    .select('child_id')
+    .eq('stage_id', stageId)
+  if (regErr) throw regErr
+  const registeredIds = new Set((registered ?? []).map((r) => (r as { child_id: string }).child_id))
+
+  const { data, error } = await supabase
+    .from('child_directory')
+    .select('id, prenom, nom, birth_date, display_name, age_category')
+    .is('deleted_at', null)
+    .eq('actif', true)
+    .ilike('display_name', `%${trimmed}%`)
+    .order('display_name', { ascending: true })
+    .limit(limit + registeredIds.size)
+  if (error) throw error
+
+  return (data ?? [])
+    .filter((row) => !registeredIds.has((row as { id: string }).id))
+    .slice(0, limit)
+    .map((row) => {
+      const r = row as Record<string, unknown>
+      return {
+        id          : r.id            as string,
+        prenom      : (r.prenom       as string | null) ?? null,
+        nom         : (r.nom          as string | null) ?? null,
+        birthDate   : (r.birth_date   as string | null) ?? null,
+        displayName : (r.display_name as string)        ?? '',
+        ageCategory : (r.age_category as string | null) ?? null,
+      }
+    })
+}
+
+/**
+ * Inscrit un enfant à un stage. Le tenant_id est résolu côté DB via le default
+ * de la colonne (pattern current_tenant_with_fallback) — sinon le récupère via le stage.
+ */
+export async function addChildToStage(stageId: string, childId: string): Promise<void> {
+  const { data: stage, error: stageErr } = await supabase
+    .from('stages')
+    .select('tenant_id')
+    .eq('id', stageId)
+    .single()
+  if (stageErr) throw stageErr
+  const tenantId = (stage as { tenant_id: string }).tenant_id
+
+  const { error } = await supabase
+    .from('child_stage_participations')
+    .insert({
+      tenant_id           : tenantId,
+      stage_id            : stageId,
+      child_id            : childId,
+      participation_status: 'confirmed',
+    })
+  if (error) throw error
+}
+
+/**
+ * Retire un enfant d'un stage (DELETE — la table n'a pas de soft-delete).
+ */
+export async function removeChildFromStage(stageId: string, childId: string): Promise<void> {
+  const { error } = await supabase
+    .from('child_stage_participations')
+    .delete()
+    .eq('stage_id', stageId)
+    .eq('child_id', childId)
+  if (error) throw error
 }

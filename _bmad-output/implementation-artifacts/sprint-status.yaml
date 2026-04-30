@@ -551,3 +551,12 @@ development_status:
   epic-107: in-progress
   107-1-stage-form-v2: review
   epic-107-retrospective: optional
+
+  # Epic 105 : Cartes Panini & Gestion enfants stages
+  # Module photo/Panini (105.1 done) + gestion participants stage (105.2)
+  # + répartition en groupes au sein du stage (105.3).
+  epic-105: in-progress
+  105-1-generation-cartes-panini-stages: done
+  105-2-stage-participants-add-create: review
+  105-3-stage-groupes: ready-for-dev
+  epic-105-retrospective: optional

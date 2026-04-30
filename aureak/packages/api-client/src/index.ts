@@ -48,6 +48,10 @@ export {
   listStageBlockParticipants, addStageBlockParticipant, removeStageBlockParticipant,
   // Story 105.1 — cartes Panini
   listStageChildren,
+  // Story 105.2 — gestion participants stage
+  searchChildrenForStageParticipation,
+  addChildToStage,
+  removeChildFromStage,
 } from './admin/stages'
 export type {
   CreateStageParams, UpdateStageParams,
