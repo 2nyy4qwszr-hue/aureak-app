@@ -452,12 +452,14 @@ export type StageChild = {
 /**
  * Liste les enfants inscrits à un stage (via child_stage_participations → child_directory).
  * Utilisé par la feature "cartes Panini" (story 105-1) et "Participants" (story 105-2).
+ * Filtre les inscriptions soft-deleted (deleted_at IS NULL).
  */
 export async function listStageChildren(stageId: string): Promise<StageChild[]> {
   const { data, error } = await supabase
     .from('child_stage_participations')
     .select('id, stage_id, child_directory ( id, prenom, nom, age_category, birth_date, display_name )')
     .eq('stage_id', stageId)
+    .is('deleted_at', null)
 
   if (error) throw error
 
@@ -508,6 +510,7 @@ export async function searchChildrenForStageParticipation(
     .from('child_stage_participations')
     .select('child_id')
     .eq('stage_id', stageId)
+    .is('deleted_at', null)
   if (regErr) throw regErr
   const registeredIds = new Set((registered ?? []).map((r) => (r as { child_id: string }).child_id))
 
@@ -538,8 +541,9 @@ export async function searchChildrenForStageParticipation(
 }
 
 /**
- * Inscrit un enfant à un stage. Le tenant_id est résolu côté DB via le default
- * de la colonne (pattern current_tenant_with_fallback) — sinon le récupère via le stage.
+ * Inscrit un enfant à un stage. Si une participation soft-deleted existe déjà
+ * pour ce (stage_id, child_id), elle est ré-activée par UPDATE deleted_at = NULL
+ * (au lieu de violer la contrainte d'unicité partielle uq_child_stage_active).
  */
 export async function addChildToStage(stageId: string, childId: string): Promise<void> {
   const { data: stage, error: stageErr } = await supabase
@@ -549,6 +553,26 @@ export async function addChildToStage(stageId: string, childId: string): Promise
     .single()
   if (stageErr) throw stageErr
   const tenantId = (stage as { tenant_id: string }).tenant_id
+
+  // 1. Cherche une inscription existante (active OU soft-deleted)
+  const { data: existing, error: lookupErr } = await supabase
+    .from('child_stage_participations')
+    .select('id, deleted_at')
+    .eq('stage_id', stageId)
+    .eq('child_id', childId)
+    .maybeSingle()
+  if (lookupErr) throw lookupErr
+
+  if (existing) {
+    const row = existing as { id: string; deleted_at: string | null }
+    if (row.deleted_at === null) return // déjà inscrit, no-op
+    const { error } = await supabase
+      .from('child_stage_participations')
+      .update({ deleted_at: null, participation_status: 'confirmed' })
+      .eq('id', row.id)
+    if (error) throw error
+    return
+  }
 
   const { error } = await supabase
     .from('child_stage_participations')
@@ -562,13 +586,15 @@ export async function addChildToStage(stageId: string, childId: string): Promise
 }
 
 /**
- * Retire un enfant d'un stage (DELETE — la table n'a pas de soft-delete).
+ * Retire un enfant d'un stage (soft-delete — UPDATE deleted_at = now()).
+ * Cohérent avec la règle absolue Aureak "soft-delete uniquement" (CLAUDE.md).
  */
 export async function removeChildFromStage(stageId: string, childId: string): Promise<void> {
   const { error } = await supabase
     .from('child_stage_participations')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('stage_id', stageId)
     .eq('child_id', childId)
+    .is('deleted_at', null)
   if (error) throw error
 }

@@ -28,7 +28,7 @@ afin d'**organiser le travail terrain en sous-groupes cohérents (par âge, nive
 ## Tasks / Subtasks
 
 - [ ] **Task 1 — Migration Supabase** (AC: #1, #2, #3)
-  - [ ] Créer `supabase/migrations/00171_stage_groups.sql` (numéro après `00170_stage_form_v2.sql`)
+  - [ ] Créer `supabase/migrations/00172_stage_groups.sql` (numéro après `00171_csp_soft_delete.sql` — story 105.2)
   - [ ] DDL : table `stage_groups` (PK, FK tenant_id/stage_id avec ON DELETE CASCADE, CHECK length(name) BETWEEN 1 AND 50, `position INT NOT NULL DEFAULT 0`, `is_default BOOLEAN NOT NULL DEFAULT false`, `created_at`, `deleted_at`)
   - [ ] Index : `idx_stage_groups_stage(stage_id, tenant_id) WHERE deleted_at IS NULL`
   - [ ] Index unique : `uq_stage_groups_default(stage_id) WHERE is_default = true AND deleted_at IS NULL`
@@ -90,7 +90,7 @@ afin d'**organiser le travail terrain en sous-groupes cohérents (par âge, nive
 - **Couche API** : `@aureak/api-client/src/admin/stages.ts` uniquement. Pas de `from('stage_groups')` direct dans `apps/`.
 - **State serveur** : TanStack Query. Clés stables : `['stage-groups', stageId]`, `['stage-participants', stageId]`. Invalider après chaque mutation (create/rename/delete/move).
 - **Theme tokens** uniquement (`@aureak/theme`).
-- **Migration numérotée 00171** (après `00170_stage_form_v2.sql`). Lancer Supabase **depuis la racine** du dépôt, pas depuis `aureak/` (cf. CLAUDE.md "Migrations Supabase — Source de vérité unique").
+- **Migration numérotée 00172** (après `00171_csp_soft_delete.sql` — story 105.2). Lancer Supabase **depuis la racine** du dépôt, pas depuis `aureak/` (cf. CLAUDE.md "Migrations Supabase — Source de vérité unique").
 - **RLS pattern** : utiliser `current_tenant_with_fallback()` (cf. memory `project_rls_fallback_helpers`) pour rester aligné avec le pattern obligatoire des nouvelles tables tenant-scoped.
 - **Soft-delete** sur `stage_groups` (`deleted_at TIMESTAMPTZ`) — cohérent avec la règle absolue "Soft-delete uniquement" (CLAUDE.md).
 
@@ -148,7 +148,7 @@ aureak/
 ├── packages/types/src/
 │   └── (fichier approprié)                        ← MODIFIER (ajout type StageGroup)
 └── supabase/migrations/
-    └── 00171_stage_groups.sql                     ← CRÉER
+    └── 00172_stage_groups.sql                     ← CRÉER
 ```
 
 ### Testing standards
@@ -164,7 +164,7 @@ aureak/
 
 ### Variations / risques à anticiper
 
-- **`current_tenant_with_fallback()`** : si le helper n'est pas disponible côté policies sur ce dépôt, utiliser le pattern existant des autres migrations récentes (cf. `00170_stage_form_v2.sql`) avant d'écrire les policies.
+- **`current_tenant_with_fallback()`** : si le helper n'est pas disponible côté policies sur ce dépôt, utiliser le pattern existant des autres migrations récentes (cf. `00171_csp_soft_delete.sql` — story 105.2) avant d'écrire les policies.
 - **Trigger** sur `stages` : SECURITY DEFINER nécessaire si `tenant_id` n'est pas accessible au rôle inserter direct. Tester en mode RLS strict.
 - **Backfill** : safe car idempotent (`WHERE NOT EXISTS`). Ne jamais le re-jouer dans une migration future.
 - **Tenant isolation** : tous les `INSERT` côté API client doivent positionner `tenant_id = current_tenant_with_fallback()` (ou laisser RLS le faire si une policy WITH CHECK le force). Vérifier le pattern utilisé dans `createStage` (`packages/api-client/src/admin/stages.ts:242`).
