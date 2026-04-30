@@ -14,12 +14,14 @@ export type PersistedState = {
   version    : 1
   stageId    : string | null
   assignments: PersistedAssignment[]
+  customTitle?: string | null
 }
 
 const DEFAULT_STATE: PersistedState = {
   version    : 1,
   stageId    : null,
   assignments: [],
+  customTitle: null,
 }
 
 function keyFor(stageId: string): string {
