@@ -737,6 +737,22 @@ export default function StageDetailPage() {
             { label: stage?.name ?? 'Stage' },
           ]} />
           <View style={{ flexDirection: 'row', gap: space.sm }}>
+            {/* Story 105.2 — Gestion des participants au stage */}
+            <Pressable
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                borderWidth      : 1,
+                borderColor      : colors.accent.gold,
+                backgroundColor  : colors.accent.gold + '15',
+              }}
+              onPress={() => router.push(`/evenements/stages/${stageId}/participants` as never)}
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+                👥 Gérer les participants
+              </AureakText>
+            </Pressable>
             {/* Story 105.1 — Accès générateur cartes Panini */}
             <Pressable
               style={{
