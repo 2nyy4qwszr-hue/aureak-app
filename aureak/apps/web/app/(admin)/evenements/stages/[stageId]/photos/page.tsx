@@ -21,6 +21,7 @@ import {
 import { PhotoAdjuster } from '../../../../../../components/admin/stages/photos/PhotoAdjuster'
 import { ExportButtons } from '../../../../../../components/admin/stages/photos/ExportButtons'
 import { paniniStyles } from '../../../../../../components/admin/stages/photos/styles'
+import { formatNom, formatPrenom } from '../../../../../../lib/format-names'
 
 const DEFAULT_CROP: CropState = {
   crop: { x: 0, y: 0 },
@@ -145,7 +146,8 @@ export default function StagePaniniPhotosPage() {
   }, [stage])
 
   const enfantsForCards = useMemo<ChildCardEnfant[]>(
-    () => enfants.map((e) => ({ id: e.id, prenom: e.prenom, nom: e.nom })),
+    // NOM en MAJUSCULES + Prénom Capitalisé — convention Panini Aureak.
+    () => enfants.map((e) => ({ id: e.id, prenom: formatPrenom(e.prenom), nom: formatNom(e.nom) })),
     [enfants],
   )
 
