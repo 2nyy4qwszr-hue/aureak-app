@@ -72,6 +72,7 @@ export default function StagePaniniPhotosPage() {
   const [assignments, setAssignments] = useState<PhotoAssignment[]>([])
   const [adjustingEnfantId, setAdjustingEnfantId] = useState<string | null>(null)
   const [selectedPhotoId, setSelectedPhotoId]     = useState<string | null>(null)
+  const [customTitle, setCustomTitle] = useState<string>('')
 
   const pendingRestoreRef = useRef<PersistedAssignment[]>([])
 
@@ -97,6 +98,7 @@ export default function StagePaniniPhotosPage() {
         setEnfants(enfantsRes)
         setCalque(calqueParsed)
         pendingRestoreRef.current = persisted.assignments
+        if (persisted.customTitle) setCustomTitle(persisted.customTitle)
       } catch (err) {
         if (!cancelled) {
           if (process.env.NODE_ENV !== 'production') console.error('[panini] init load failed:', err)
@@ -130,20 +132,22 @@ export default function StagePaniniPhotosPage() {
             } as PersistedAssignment
           })
           .filter((x): x is PersistedAssignment => x !== null),
+        customTitle: customTitle.trim() || null,
       })
     }, 500)
     return () => clearTimeout(handle)
-  }, [stageId, assignments, photos])
+  }, [stageId, assignments, photos, customTitle])
 
   const childCardStage = useMemo<ChildCardStage | null>(() => {
     if (!stage) return null
+    const effectiveTitle = customTitle.trim() || stage.name
     return {
-      titre      : stage.name,
-      titreCourt : stage.seasonLabel ?? stage.name,
+      titre      : effectiveTitle,
+      titreCourt : customTitle.trim() || (stage.seasonLabel ?? stage.name),
       dates      : formatStageDates(stage.startDate, stage.endDate),
       categorie  : stage.type ?? '',
     }
-  }, [stage])
+  }, [stage, customTitle])
 
   const enfantsForCards = useMemo<ChildCardEnfant[]>(
     // NOM en MAJUSCULES + Prénom Capitalisé — convention Panini Aureak.
@@ -338,9 +342,44 @@ export default function StagePaniniPhotosPage() {
 
           <section style={{ ...paniniStyles.cards, ...(isDesktop ? paniniStyles.cardsDesktop : {}) }}>
             <div style={paniniStyles.cardsHeader}>
-              <h2 style={paniniStyles.cardsHeaderTitle}>{stage.name}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  value={customTitle || stage.name}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder={stage.name}
+                  aria-label="Titre affiché sur les cartes Panini"
+                  style={{
+                    ...paniniStyles.cardsHeaderTitle,
+                    border         : '1px solid transparent',
+                    borderRadius   : 6,
+                    padding        : '4px 8px',
+                    background     : 'transparent',
+                    width          : '100%',
+                    maxWidth       : 640,
+                    outline        : 'none',
+                    cursor         : 'text',
+                  } as never}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = colors.accent.gold; e.currentTarget.style.background = colors.light.surface }}
+                  onBlur ={(e) => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
+                />
+                {customTitle.trim() && customTitle.trim() !== stage.name && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomTitle('')}
+                    title="Réinitialiser le titre"
+                    style={{
+                      ...paniniStyles.btnSecondary,
+                      padding: '4px 8px',
+                      fontSize: 12,
+                    } as never}
+                  >
+                    ↻ Titre du stage
+                  </button>
+                )}
+              </div>
               <p style={paniniStyles.cardsHint}>
-                Tape une photo puis la carte enfant à assigner — ou glisse directement sur la carte
+                Clique le titre pour le modifier — il s'imprimera ainsi sur chaque carte et dans le nom des fichiers exportés.
               </p>
               {pendingRestoreCount > 0 && (
                 <div style={paniniStyles.restoreBanner}>
