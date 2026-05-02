@@ -10,9 +10,9 @@ import { AureakText } from '@aureak/ui'
 import { colors, space } from '@aureak/theme'
 import { useCurrentRole } from '../../../../hooks/admin/useCurrentRole'
 import { MarketingNavBar } from '../../../../components/admin/marketing/MarketingNavBar'
-import { UploadForm } from './_components/UploadForm'
-import { MediaGrid } from './_components/MediaGrid'
-import { MediaCard } from './_components/MediaCard'
+import { UploadForm } from '../../../../components/admin/marketing/mediatheque/UploadForm'
+import { MediaGrid } from '../../../../components/admin/marketing/mediatheque/MediaGrid'
+import { MediaCard } from '../../../../components/admin/marketing/mediatheque/MediaCard'
 
 export default function MediathequePage() {
   const { user } = useAuthStore()
