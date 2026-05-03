@@ -13,6 +13,7 @@ import { ActivitesHeader }        from '../../../../components/admin/activites/A
 import { ActivitesCountsContext } from '../_layout'
 import { TableauSeances }         from '../../../../components/admin/activites/TableauSeances'
 import { PrimaryAction }          from '../../../../components/admin/PrimaryAction'
+import { FilterSheet }            from '../../../../components/admin/FilterSheet'
 
 type TimeView = 'day' | 'week' | 'month'
 
@@ -75,6 +76,14 @@ export default function SeancesPage() {
 
   const { from, to } = useMemo(() => computeRange(timeView), [timeView])
 
+  // Story 110.2 — count filtres actifs (implantation + groupe), période exclue
+  const activeFilterCount = (implantationId ? 1 : 0) + (groupId ? 1 : 0)
+
+  const resetFilters = () => {
+    setImplantationId('')
+    setGroupId('')
+  }
+
   return (
     <View style={styles.container}>
       <ActivitesHeader counts={activitesCnts ?? undefined} />
@@ -100,29 +109,31 @@ export default function SeancesPage() {
             })}
           </View>
 
-          <View style={styles.selectField}>
-            <AureakText style={styles.selectLabel}>Implantation</AureakText>
-            <select
-              value={implantationId}
-              onChange={e => setImplantationId(e.target.value)}
-              style={selectNativeStyle}
-            >
-              <option value=''>Toutes</option>
-              {implantations.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-            </select>
-          </View>
+          <FilterSheet activeCount={activeFilterCount} onReset={resetFilters} triggerLabel="Filtrer les séances">
+            <View style={styles.selectField}>
+              <AureakText style={styles.selectLabel}>Implantation</AureakText>
+              <select
+                value={implantationId}
+                onChange={e => setImplantationId(e.target.value)}
+                style={selectNativeStyle}
+              >
+                <option value=''>Toutes</option>
+                {implantations.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+              </select>
+            </View>
 
-          <View style={styles.selectField}>
-            <AureakText style={styles.selectLabel}>Groupe</AureakText>
-            <select
-              value={groupId}
-              onChange={e => setGroupId(e.target.value)}
-              style={selectNativeStyle}
-            >
-              <option value=''>Tous</option>
-              {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
-          </View>
+            <View style={styles.selectField}>
+              <AureakText style={styles.selectLabel}>Groupe</AureakText>
+              <select
+                value={groupId}
+                onChange={e => setGroupId(e.target.value)}
+                style={selectNativeStyle}
+              >
+                <option value=''>Tous</option>
+                {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+            </View>
+          </FilterSheet>
         </View>
 
         <TableauSeances
