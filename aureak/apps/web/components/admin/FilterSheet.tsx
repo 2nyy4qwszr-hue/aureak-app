@@ -310,12 +310,15 @@ const s = StyleSheet.create({
   },
 
   // ── Bouton trigger mobile (Story 110.7 — style segmented Jour/Semaine/Mois) ──
+  // marginLeft auto : pousse toujours le bouton Filtres contre le bord droit,
+  // peu importe les siblings (segmented ou seul) dans le flex parent.
   triggerRow: {
     flexDirection  : 'row',
     alignItems     : 'center',
     backgroundColor: colors.light.muted,
     borderRadius   : radius.xs,
     padding        : 3,
+    marginLeft     : 'auto' as never,
   },
   trigger: {
     flexDirection    : 'row',

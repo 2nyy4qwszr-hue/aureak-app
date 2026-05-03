@@ -2,7 +2,7 @@
 // Story 108.2 — Page Séances refondue : filtres alignés /presences (jour/semaine/mois
 // + implantation + groupe) et tableau pagination (TableauSeances).
 import React, { useContext, useEffect, useMemo, useState } from 'react'
-import { View, ScrollView, StyleSheet, Pressable, useWindowDimensions } from 'react-native'
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, radius, space } from '@aureak/theme'
@@ -46,8 +46,6 @@ function computeRange(view: TimeView): { from: string; to: string } {
 export default function SeancesPage() {
   const router        = useRouter()
   const activitesCnts = useContext(ActivitesCountsContext)
-  const { width }     = useWindowDimensions()
-  const isMobile      = width < 640
 
   const [timeView,       setTimeView]       = useState<TimeView>('week')
   const [implantationId, setImplantationId] = useState('')
@@ -102,7 +100,7 @@ export default function SeancesPage() {
       <ActivitesHeader counts={activitesCnts ?? undefined} />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={[styles.controls, !isMobile && styles.controlsDesktop]}>
+        <View style={styles.controls}>
           <View style={styles.timeToggle}>
             {(['day', 'week', 'month'] as TimeView[]).map(v => {
               const active = timeView === v
@@ -186,14 +184,9 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection    : 'row',
     flexWrap         : 'wrap',
-    // Mobile: Filtres à gauche (flex-start). Desktop: à droite (space-between, override ci-dessous).
-    justifyContent   : 'flex-start',
     gap              : space.md,
     paddingHorizontal: space.lg,
     alignItems       : 'center',
-  },
-  controlsDesktop: {
-    justifyContent: 'space-between',
   },
 
   timeToggle: {
