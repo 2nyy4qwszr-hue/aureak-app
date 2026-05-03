@@ -91,6 +91,20 @@
 
 *Prochaine étape : DB Baseline Recovery + tests end-to-end*
 
+### Epic 110 — Uniformisation section Activités mobile/desktop (NEW 2026-05-03)
+
+Demande utilisateur : 4 onglets Activités (Vue d'ensemble · Séances · Présences · Évaluations) avec 3 patterns FAB/bouton différents + onglet hub mal nommé + back-nav "Séance" mobile + bug clic implantation Présences + tableau présences vertical mobile illisible + onglet évaluations vide.
+
+- [ ] **110.1** : FAB unifié sur 4 onglets + rename "Vue d'ensemble" → "Activités" + suppression back-nav mobile détail séance
+- [ ] **110.2** : Refonte filtres Séances en popover/sheet compact (mobile + desktop), aligné Présences
+- [ ] **110.3** : Ligne d'ajout inline dans le tableau Séances (préfill query params new.tsx)
+- [ ] **110.4** : Fix Présences — bug implantation reset à aujourd'hui + cards mobile vertical
+- [ ] **110.5** : Seed évaluation démo + audit décision FAB Évaluations (Option A : pas de FAB)
+
+Détail : `_bmad-output/implementation-artifacts/epic-110-uniformisation-section-activites-mobile.md`
+
+---
+
 ### Epic 109 — Design tokens & harmonisation tableaux admin (NEW 2026-04-25)
 
 Issue déclencheur : MR #10 (refactor méthodologie tableaux) — hook auto-fix a flaggé désalignement tokens entre `methodologie/*`, `activites/*`, etc.
