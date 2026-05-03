@@ -15,6 +15,7 @@ import { CLUB_PROSPECT_STATUS_LABELS, CLUB_PROSPECT_STATUSES } from '@aureak/typ
 import { useAuthStore } from '@aureak/business-logic'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { ProspectTable } from '../../../../components/admin/prospection/ProspectTable'
 import { CreateProspectModal } from '../../../../components/admin/prospection/CreateProspectModal'
 import { ConvertProspectModal } from '../../../../components/admin/prospection/ConvertProspectModal'
@@ -97,39 +98,43 @@ export default function ProspectionClubsCRMPage() {
         )}
       </View>
 
-      <View style={st.filtersBlock}>
-        <AureakText style={st.filterLabel as never}>Statut</AureakText>
-        <View style={st.filterRow}>
-          <Pressable onPress={() => setFilterStatus(null)} style={[st.pill, !filterStatus && st.pillActive]}>
-            <AureakText style={(!filterStatus ? st.pillActiveLabel : st.pillLabel) as never}>Tous</AureakText>
-          </Pressable>
-          {CLUB_PROSPECT_STATUSES.map(s => (
-            <Pressable key={s} onPress={() => setFilterStatus(s)} style={[st.pill, filterStatus === s && st.pillActive]}>
-              <AureakText style={(filterStatus === s ? st.pillActiveLabel : st.pillLabel) as never}>
-                {CLUB_PROSPECT_STATUS_LABELS[s]}
-              </AureakText>
-            </Pressable>
-          ))}
-        </View>
-
-        {isAdmin && commercials.length > 0 && (
-          <>
-            <AureakText style={st.filterLabel as never}>Commercial</AureakText>
-            <View style={st.filterRow}>
-              <Pressable onPress={() => setFilterCommercial(null)} style={[st.pill, !filterCommercial && st.pillActive]}>
-                <AureakText style={(!filterCommercial ? st.pillActiveLabel : st.pillLabel) as never}>Tous</AureakText>
-              </Pressable>
-              {commercials.map(c => (
-                <Pressable key={c.userId} onPress={() => setFilterCommercial(c.userId)}
-                  style={[st.pill, filterCommercial === c.userId && st.pillActive]}>
-                  <AureakText style={(filterCommercial === c.userId ? st.pillActiveLabel : st.pillLabel) as never}>
-                    {c.displayName}
-                  </AureakText>
-                </Pressable>
+      {/* Story 110.x — pills statut/commercial → FilterSheet (cohérent /activites) */}
+      <View style={st.controls}>
+        <FilterSheet
+          activeCount={(filterStatus ? 1 : 0) + (filterCommercial ? 1 : 0)}
+          onReset={() => { setFilterStatus(null); setFilterCommercial(null) }}
+          triggerLabel="Filtrer les prospects clubs"
+        >
+          <View style={st.selectField}>
+            <AureakText style={st.selectLabel}>Statut</AureakText>
+            <select
+              value={filterStatus ?? ''}
+              onChange={e => setFilterStatus(e.target.value ? (e.target.value as ClubProspectStatus) : null)}
+              style={selectNativeStyle}
+            >
+              <option value="">Tous</option>
+              {CLUB_PROSPECT_STATUSES.map(s => (
+                <option key={s} value={s}>{CLUB_PROSPECT_STATUS_LABELS[s]}</option>
               ))}
+            </select>
+          </View>
+
+          {isAdmin && commercials.length > 0 && (
+            <View style={st.selectField}>
+              <AureakText style={st.selectLabel}>Commercial</AureakText>
+              <select
+                value={filterCommercial ?? ''}
+                onChange={e => setFilterCommercial(e.target.value || null)}
+                style={selectNativeStyle}
+              >
+                <option value="">Tous</option>
+                {commercials.map(c => (
+                  <option key={c.userId} value={c.userId}>{c.displayName}</option>
+                ))}
+              </select>
             </View>
-          </>
-        )}
+          )}
+        </FilterSheet>
       </View>
 
       {loading ? (
@@ -176,24 +181,34 @@ export default function ProspectionClubsCRMPage() {
   )
 }
 
+const selectNativeStyle: React.CSSProperties = {
+  width        : '100%',
+  padding      : '7px 10px',
+  fontSize     : 13,
+  color        : colors.text.dark,
+  background   : colors.light.muted,
+  border       : `1px solid ${colors.border.divider}`,
+  borderRadius : radius.xs,
+  outline      : 'none',
+  fontFamily   : fonts.body,
+}
+
 const st = StyleSheet.create({
   page   : { flex: 1, backgroundColor: colors.light.primary },
   scroll : { flex: 1 },
   content: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
 
-  filtersBlock: { gap: space.xs },
-  filterLabel : { color: colors.text.muted, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: space.sm },
-  filterRow   : { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  pill: {
-    paddingHorizontal: space.md, paddingVertical: 6,
-    borderRadius     : 999,
-    borderWidth      : 1,
-    borderColor      : colors.border.divider,
-    backgroundColor  : colors.light.surface,
+  // Story 110.x — controls row : FilterSheet trigger aligné droite via marginLeft auto
+  controls    : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md, alignItems: 'center' },
+  selectField : { flexGrow: 1, flexBasis: 160, gap: 4 },
+  selectLabel : {
+    fontSize     : 10,
+    fontWeight   : '700',
+    color        : colors.text.subtle,
+    letterSpacing: 1,
+    textTransform: 'uppercase' as never,
+    fontFamily   : fonts.display,
   },
-  pillActive      : { backgroundColor: colors.accent.gold, borderColor: colors.accent.gold },
-  pillLabel       : { color: colors.text.muted, fontSize: 12 },
-  pillActiveLabel : { color: colors.light.surface, fontSize: 12, fontWeight: '700' },
 
   loading: { color: colors.text.muted, fontStyle: 'italic', fontSize: 13 },
 
