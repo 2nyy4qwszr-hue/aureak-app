@@ -13,6 +13,7 @@ import { colors, fonts, space, radius } from '@aureak/theme'
 import { avatarBgColor } from '../../../../lib/admin/children/avatarHelpers'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { AcademieCountsContext } from '../_layout'
 
 const BADGE_IMAGES: Record<string, ReturnType<typeof require>> = {
@@ -180,52 +181,58 @@ export default function AcademieJoueursPage() {
             })}
           </View>
 
-          <View style={st.selectField}>
-            <AureakText style={st.selectLabel}>Statut</AureakText>
-            <select
-              value={statusFilter}
-              onChange={e => { setStatusFilter(e.target.value as StatusFilter); setPage(0) }}
-              style={selectNativeStyle}
-            >
-              {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </View>
+          <FilterSheet
+            activeCount={(statusFilter !== 'all' ? 1 : 0) + (birthYear !== 'all' ? 1 : 0) + (niveau !== 'all' ? 1 : 0) + (clubFilter !== 'all' ? 1 : 0)}
+            onReset={() => { setStatusFilter('all'); setBirthYear('all'); setNiveau('all'); setClubFilter('all'); setPage(0) }}
+            triggerLabel="Filtrer les joueurs"
+          >
+            <View style={st.selectField}>
+              <AureakText style={st.selectLabel}>Statut</AureakText>
+              <select
+                value={statusFilter}
+                onChange={e => { setStatusFilter(e.target.value as StatusFilter); setPage(0) }}
+                style={selectNativeStyle}
+              >
+                {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </View>
 
-          <View style={st.selectField}>
-            <AureakText style={st.selectLabel}>Année</AureakText>
-            <select
-              value={birthYear}
-              onChange={e => { setBirthYear(e.target.value); setPage(0) }}
-              style={selectNativeStyle}
-            >
-              <option value="all">Toutes les années</option>
-              {BIRTH_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </View>
+            <View style={st.selectField}>
+              <AureakText style={st.selectLabel}>Année</AureakText>
+              <select
+                value={birthYear}
+                onChange={e => { setBirthYear(e.target.value); setPage(0) }}
+                style={selectNativeStyle}
+              >
+                <option value="all">Toutes les années</option>
+                {BIRTH_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </View>
 
-          <View style={st.selectField}>
-            <AureakText style={st.selectLabel}>Niveau</AureakText>
-            <select
-              value={niveau}
-              onChange={e => { setNiveau(e.target.value); setPage(0) }}
-              style={selectNativeStyle}
-            >
-              <option value="all">Tous les niveaux</option>
-              {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </View>
+            <View style={st.selectField}>
+              <AureakText style={st.selectLabel}>Niveau</AureakText>
+              <select
+                value={niveau}
+                onChange={e => { setNiveau(e.target.value); setPage(0) }}
+                style={selectNativeStyle}
+              >
+                <option value="all">Tous les niveaux</option>
+                {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </View>
 
-          <View style={st.selectField}>
-            <AureakText style={st.selectLabel}>Club</AureakText>
-            <select
-              value={clubFilter}
-              onChange={e => { setClubFilter(e.target.value); setPage(0) }}
-              style={selectNativeStyle}
-            >
-              <option value="all">Tous les clubs</option>
-              {clubs.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </View>
+            <View style={st.selectField}>
+              <AureakText style={st.selectLabel}>Club</AureakText>
+              <select
+                value={clubFilter}
+                onChange={e => { setClubFilter(e.target.value); setPage(0) }}
+                style={selectNativeStyle}
+              >
+                <option value="all">Tous les clubs</option>
+                {clubs.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </View>
+          </FilterSheet>
         </View>
 
         <View style={st.searchWrap}>

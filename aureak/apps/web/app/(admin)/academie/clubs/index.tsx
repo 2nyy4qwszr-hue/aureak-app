@@ -15,6 +15,7 @@ import { colors, fonts, space, radius, shadows } from '@aureak/theme'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { InfiniteScrollContainer } from '../../../../components/admin/InfiniteScrollContainer'
 import { EmptyState } from '../../../../components/admin/states'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { ShieldIcon } from '@aureak/ui'
 import { usePaginatedList } from '../../../../hooks/admin/usePaginatedList'
 import { AcademieCountsContext } from '../_layout'
@@ -71,30 +72,36 @@ function Filters({
   return (
     <>
       <View style={s.controls}>
-        <View style={s.selectField}>
-          <AureakText style={s.selectLabel}>Province</AureakText>
-          <select
-            value={province}
-            onChange={e => setProvince(e.target.value as BelgianProvince | '')}
-            style={selectNativeStyle}
-          >
-            <option value="">Toutes</option>
-            {BELGIAN_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </View>
+        <FilterSheet
+          activeCount={(province !== '' ? 1 : 0) + (actif !== 'all' ? 1 : 0)}
+          onReset={() => { setProvince(''); setActif('all') }}
+          triggerLabel="Filtrer les clubs"
+        >
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Province</AureakText>
+            <select
+              value={province}
+              onChange={e => setProvince(e.target.value as BelgianProvince | '')}
+              style={selectNativeStyle}
+            >
+              <option value="">Toutes</option>
+              {BELGIAN_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </View>
 
-        <View style={s.selectField}>
-          <AureakText style={s.selectLabel}>Statut</AureakText>
-          <select
-            value={actif}
-            onChange={e => setActif(e.target.value as ActifFilter)}
-            style={selectNativeStyle}
-          >
-            <option value="all">Tous</option>
-            <option value="actif">Actifs</option>
-            <option value="inactif">Inactifs</option>
-          </select>
-        </View>
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Statut</AureakText>
+            <select
+              value={actif}
+              onChange={e => setActif(e.target.value as ActifFilter)}
+              style={selectNativeStyle}
+            >
+              <option value="all">Tous</option>
+              <option value="actif">Actifs</option>
+              <option value="inactif">Inactifs</option>
+            </select>
+          </View>
+        </FilterSheet>
       </View>
 
       <View style={s.searchWrap}>
