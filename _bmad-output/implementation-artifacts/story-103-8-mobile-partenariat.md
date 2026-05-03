@@ -1,6 +1,6 @@
 # Story 103.8 — Partenariat mobile-first (3 pages)
 
-Status: ready-for-dev
+Status: done
 
 ## Metadata
 
