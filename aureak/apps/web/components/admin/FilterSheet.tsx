@@ -24,7 +24,7 @@ import {
   type TextStyle,
 } from 'react-native'
 import { AureakText } from '@aureak/ui'
-import { colors, fonts, space, radius, shadows } from '@aureak/theme'
+import { colors, fonts, space, radius } from '@aureak/theme'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Breakpoints — aligné sur DataCard / AdminTopbar (story 100.3 / 101.1)
@@ -309,42 +309,42 @@ const s = StyleSheet.create({
     gap           : space.sm,
   },
 
-  // ── Bouton trigger mobile ──
+  // ── Bouton trigger mobile (Story 110.7 — style segmented Jour/Semaine/Mois) ──
   triggerRow: {
-    flexDirection: 'row',
-    alignItems   : 'center',
+    flexDirection  : 'row',
+    alignItems     : 'center',
+    backgroundColor: colors.light.muted,
+    borderRadius   : radius.xs,
+    padding        : 3,
   },
   trigger: {
     flexDirection    : 'row',
     alignItems       : 'center',
     gap              : space.xs,
-    paddingHorizontal: space.md,
-    paddingVertical  : space.sm + 2,
-    borderRadius     : radius.badge,
+    paddingHorizontal: 14,
+    paddingVertical  : 5,
+    borderRadius     : radius.xs - 2,
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
     borderColor      : colors.border.divider,
-    minHeight        : 44, // touch target
-    // @ts-ignore web only
-    boxShadow        : shadows.sm,
   },
   triggerPressed: {
-    backgroundColor: colors.light.muted,
+    backgroundColor: colors.light.elevated,
   },
   triggerEmoji: {
-    fontSize: 14,
+    fontSize: 12,
   },
   triggerLabel: {
     fontFamily: fonts.body,
-    fontSize  : 13,
+    fontSize  : 12,
     fontWeight: '600',
     color     : colors.text.dark,
   },
   triggerBadge: {
-    minWidth       : 20,
-    height         : 20,
-    paddingHorizontal: 6,
-    borderRadius   : 10,
+    minWidth       : 18,
+    height         : 18,
+    paddingHorizontal: 5,
+    borderRadius   : 9,
     backgroundColor: colors.accent.gold,
     alignItems     : 'center',
     justifyContent : 'center',
@@ -352,7 +352,7 @@ const s = StyleSheet.create({
   },
   triggerBadgeText: {
     fontFamily: fonts.body,
-    fontSize  : 11,
+    fontSize  : 10,
     fontWeight: '700',
     color     : colors.text.onGold,
   },
