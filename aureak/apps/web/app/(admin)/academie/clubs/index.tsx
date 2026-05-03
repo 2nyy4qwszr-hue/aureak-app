@@ -70,40 +70,7 @@ function Filters({
   search, setSearch, province, setProvince, actif, setActif,
 }: Pick<ViewProps, 'search' | 'setSearch' | 'province' | 'setProvince' | 'actif' | 'setActif'>) {
   return (
-    <>
-      <View style={s.controls}>
-        <FilterSheet
-          activeCount={(province !== '' ? 1 : 0) + (actif !== 'all' ? 1 : 0)}
-          onReset={() => { setProvince(''); setActif('all') }}
-          triggerLabel="Filtrer les clubs"
-        >
-          <View style={s.selectField}>
-            <AureakText style={s.selectLabel}>Province</AureakText>
-            <select
-              value={province}
-              onChange={e => setProvince(e.target.value as BelgianProvince | '')}
-              style={selectNativeStyle}
-            >
-              <option value="">Toutes</option>
-              {BELGIAN_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </View>
-
-          <View style={s.selectField}>
-            <AureakText style={s.selectLabel}>Statut</AureakText>
-            <select
-              value={actif}
-              onChange={e => setActif(e.target.value as ActifFilter)}
-              style={selectNativeStyle}
-            >
-              <option value="all">Tous</option>
-              <option value="actif">Actifs</option>
-              <option value="inactif">Inactifs</option>
-            </select>
-          </View>
-        </FilterSheet>
-      </View>
-
+    <View style={s.controls}>
       <View style={s.searchWrap}>
         <TextInput
           style={s.searchInput as never}
@@ -113,7 +80,37 @@ function Filters({
           placeholderTextColor={colors.text.muted}
         />
       </View>
-    </>
+      <FilterSheet
+        activeCount={(province !== '' ? 1 : 0) + (actif !== 'all' ? 1 : 0)}
+        onReset={() => { setProvince(''); setActif('all') }}
+        triggerLabel="Filtrer les clubs"
+      >
+        <View style={s.selectField}>
+          <AureakText style={s.selectLabel}>Province</AureakText>
+          <select
+            value={province}
+            onChange={e => setProvince(e.target.value as BelgianProvince | '')}
+            style={selectNativeStyle}
+          >
+            <option value="">Toutes</option>
+            {BELGIAN_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </View>
+
+        <View style={s.selectField}>
+          <AureakText style={s.selectLabel}>Statut</AureakText>
+          <select
+            value={actif}
+            onChange={e => setActif(e.target.value as ActifFilter)}
+            style={selectNativeStyle}
+          >
+            <option value="all">Tous</option>
+            <option value="actif">Actifs</option>
+            <option value="inactif">Inactifs</option>
+          </select>
+        </View>
+      </FilterSheet>
+    </View>
   )
 }
 
@@ -399,7 +396,7 @@ const s = StyleSheet.create({
     flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
   selectField: {
     flexGrow : 1,
@@ -415,7 +412,7 @@ const s = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  searchWrap : { paddingHorizontal: space.lg },
+  searchWrap : { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,

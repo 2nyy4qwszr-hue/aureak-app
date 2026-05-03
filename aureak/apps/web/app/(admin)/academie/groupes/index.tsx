@@ -13,6 +13,7 @@ import {
 } from '@aureak/api-client'
 import type { GroupWithMembers } from '@aureak/api-client'
 import { GroupGeneratorModal } from '../../../../components/admin/groups/GroupGeneratorModal'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { AureakText } from '@aureak/ui'
 import { GroupCard } from '@aureak/ui'
 import { colors, fonts, radius, space } from '@aureak/theme'
@@ -252,45 +253,18 @@ export default function GroupsPage() {
     <>
     <ScrollView style={s.container} contentContainerStyle={[s.content, isMobile && { padding: 16 }]}>
 
-      {/* Filtres alignés sur /activites/seances */}
+      {/* Story 110.x — actions + (search inline + FilterSheet) */}
       <View style={s.controls}>
-        <View style={s.selectField}>
-          <AureakText style={s.selectLabel}>Implantation</AureakText>
-          <select
-            value={implantFilter}
-            onChange={e => setImplantFilter(e.target.value)}
-            style={selectNativeStyle}
-          >
-            <option value="all">Toutes</option>
-            {implantations.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-          </select>
+        <View style={s.searchWrap}>
+          <TextInput
+            style={s.searchInput as never}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher par nom…"
+            placeholderTextColor={colors.text.muted}
+          />
         </View>
-
-        <View style={s.selectField}>
-          <AureakText style={s.selectLabel}>Méthode</AureakText>
-          <select
-            value={methodFilter}
-            onChange={e => setMethodFilter(e.target.value as FilterMethod)}
-            style={selectNativeStyle}
-          >
-            <option value="all">Toutes</option>
-            {GROUP_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </View>
-
-        <View style={s.selectField}>
-          <AureakText style={s.selectLabel}>Badge période</AureakText>
-          <select
-            value={badgePeriod}
-            onChange={e => setBadgePeriod(e.target.value as 'month' | 'season')}
-            style={selectNativeStyle}
-          >
-            <option value="month">Mois en cours</option>
-            <option value="season">Cette saison</option>
-          </select>
-        </View>
-
-        <View style={[s.selectField, { flexBasis: 'auto', flexDirection: 'row', gap: space.xs }] as never}>
+        <View style={[{ flexDirection: 'row', gap: space.xs }] as never}>
           <Pressable style={s.genBtn} onPress={() => setShowAgeModal(true)}>
             <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
               👶 Par âge
@@ -302,16 +276,47 @@ export default function GroupsPage() {
             </AureakText>
           </Pressable>
         </View>
-      </View>
+        <FilterSheet
+          activeCount={(implantFilter !== 'all' ? 1 : 0) + (methodFilter !== 'all' ? 1 : 0) + (badgePeriod !== 'month' ? 1 : 0)}
+          onReset={() => { setImplantFilter('all'); setMethodFilter('all'); setBadgePeriod('month') }}
+          triggerLabel="Filtrer les groupes"
+        >
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Implantation</AureakText>
+            <select
+              value={implantFilter}
+              onChange={e => setImplantFilter(e.target.value)}
+              style={selectNativeStyle}
+            >
+              <option value="all">Toutes</option>
+              {implantations.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+            </select>
+          </View>
 
-      <View style={s.searchWrap}>
-        <TextInput
-          style={s.searchInput as never}
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Rechercher par nom…"
-          placeholderTextColor={colors.text.muted}
-        />
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Méthode</AureakText>
+            <select
+              value={methodFilter}
+              onChange={e => setMethodFilter(e.target.value as FilterMethod)}
+              style={selectNativeStyle}
+            >
+              <option value="all">Toutes</option>
+              {GROUP_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </View>
+
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Badge période</AureakText>
+            <select
+              value={badgePeriod}
+              onChange={e => setBadgePeriod(e.target.value as 'month' | 'season')}
+              style={selectNativeStyle}
+            >
+              <option value="month">Mois en cours</option>
+              <option value="season">Cette saison</option>
+            </select>
+          </View>
+        </FilterSheet>
       </View>
 
       {!loading && (
@@ -614,7 +619,7 @@ const s = StyleSheet.create({
     flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
   selectField: {
     flexGrow : 1,
@@ -630,7 +635,7 @@ const s = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  searchWrap : { paddingHorizontal: space.lg },
+  searchWrap : { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,

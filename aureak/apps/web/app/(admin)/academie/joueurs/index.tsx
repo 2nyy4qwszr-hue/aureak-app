@@ -181,6 +181,16 @@ export default function AcademieJoueursPage() {
             })}
           </View>
 
+          <View style={st.searchWrap}>
+            <TextInput
+              value={search}
+              onChangeText={(v) => { setSearch(v); setPage(0) }}
+              placeholder="Rechercher un joueur…"
+              placeholderTextColor={colors.text.muted}
+              style={st.searchInput as never}
+            />
+          </View>
+
           <FilterSheet
             activeCount={(statusFilter !== 'all' ? 1 : 0) + (birthYear !== 'all' ? 1 : 0) + (niveau !== 'all' ? 1 : 0) + (clubFilter !== 'all' ? 1 : 0)}
             onReset={() => { setStatusFilter('all'); setBirthYear('all'); setNiveau('all'); setClubFilter('all'); setPage(0) }}
@@ -233,16 +243,6 @@ export default function AcademieJoueursPage() {
               </select>
             </View>
           </FilterSheet>
-        </View>
-
-        <View style={st.searchWrap}>
-          <TextInput
-            value={search}
-            onChangeText={(v) => { setSearch(v); setPage(0) }}
-            placeholder="Rechercher un joueur…"
-            placeholderTextColor={colors.text.muted}
-            style={st.searchInput as never}
-          />
         </View>
 
         {loading ? (
@@ -392,7 +392,7 @@ const st = StyleSheet.create({
     flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
 
   timeToggle: {
@@ -437,7 +437,7 @@ const st = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  searchWrap: { paddingHorizontal: space.lg },
+  searchWrap: { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
