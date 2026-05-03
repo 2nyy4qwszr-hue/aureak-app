@@ -1,10 +1,8 @@
 'use client'
-// Story 80-1 — Uniformisation design headerBlock (pattern Méthodologie)
-// Story 93-2 — Prop counts optionnelle pour badges de count sur onglets
-// Story 93-7 — Bouton "+ Nouvelle séance" déplacé en AdminTopbar (desktop), conservé sur mobile.
-//             Subtab actif : texte noir + underline gold (alignement template).
+// Story 110.1 — FAB unifié sur les 4 onglets : suppression du bouton conditionnel header,
+// rename de l'onglet hub en "ACTIVITÉS" pour cohérence avec la sidebar.
 import React from 'react'
-import { View, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+import { View, Pressable, ScrollView, StyleSheet } from 'react-native'
 import type { TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
@@ -13,15 +11,13 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/activites' },
-  { key: 'seances',     label: 'SÉANCES',         href: '/activites/seances' },
-  { key: 'presences',   label: 'PRÉSENCES',       href: '/activites/presences' },
-  { key: 'evaluations', label: 'ÉVALUATIONS',     href: '/activites/evaluations' },
+  { key: 'overview',    label: 'ACTIVITÉS',  href: '/activites' },
+  { key: 'seances',     label: 'SÉANCES',    href: '/activites/seances' },
+  { key: 'presences',   label: 'PRÉSENCES',  href: '/activites/presences' },
+  { key: 'evaluations', label: 'ÉVALUATIONS', href: '/activites/evaluations' },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
-
-const MOBILE_BREAKPOINT = 768
 
 export type ActivitesHeaderProps = {
   counts?: {
@@ -41,28 +37,13 @@ function getActiveTab(pathname: string): TabKey {
 export function ActivitesHeader({ counts }: ActivitesHeaderProps = {}) {
   const router    = useRouter()
   const pathname  = usePathname()
-  const { width } = useWindowDimensions()
   const activeTab = getActiveTab(pathname)
-  const isMobile  = width < MOBILE_BREAKPOINT
 
   // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
   useScrollTabIntoView('tab-activites', activeTab)
 
   return (
     <View style={styles.headerBlock}>
-      {/* Story 103.2 — Bouton "Nouvelle séance" mobile remplacé par PrimaryAction FAB sur /activites.
-          Conservé sur /presences et /evaluations (pas de FAB sur ces pages). */}
-      {isMobile && activeTab !== 'overview' && activeTab !== 'seances' && (
-        <View style={styles.headerTopRow}>
-          <Pressable
-            onPress={() => router.push('/(admin)/seances/new')}
-            style={styles.newBtn}
-          >
-            <AureakText style={styles.newBtnLabel as TextStyle}>+ Nouvelle séance</AureakText>
-          </Pressable>
-        </View>
-      )}
-
       {/* Nav tabs — Story 100.2 : scrollable horizontal sur mobile, flex row desktop */}
       <ScrollView
         horizontal
@@ -99,25 +80,6 @@ const styles = StyleSheet.create({
   headerBlock: {
     backgroundColor: colors.light.primary,
     gap            : 12,
-  },
-  headerTopRow: {
-    flexDirection    : 'row',
-    justifyContent   : 'flex-end',
-    alignItems       : 'center',
-    paddingHorizontal: space.lg,
-    paddingTop       : space.sm,
-  },
-  newBtn: {
-    backgroundColor  : colors.accent.gold,
-    paddingHorizontal: 18,
-    paddingVertical  : 10,
-    borderRadius     : 999,
-  },
-  newBtnLabel: {
-    color     : colors.text.onGold,
-    fontFamily: fonts.body,
-    fontWeight: '600',
-    fontSize  : 13,
   },
   tabsScroll: {
     flexGrow    : 0,

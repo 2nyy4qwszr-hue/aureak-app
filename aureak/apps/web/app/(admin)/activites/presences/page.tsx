@@ -21,6 +21,7 @@ import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
 import { PseudoFiltresTemporels } from '../../../../components/admin/activites/PseudoFiltresTemporels'
+import { PrimaryAction }          from '../../../../components/admin/PrimaryAction'
 import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
 import type { AttendanceStatus }  from '@aureak/types'
@@ -1287,6 +1288,11 @@ export default function PresencesPage() {
           )
         )}
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouvelle séance"
+        onPress={() => router.push('/activites/seances/new' as never)}
+      />
     </View>
   )
 }

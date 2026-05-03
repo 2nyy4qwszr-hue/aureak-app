@@ -3,6 +3,7 @@
 // + implantation + groupe) et tableau pagination (TableauSeances).
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, radius, space } from '@aureak/theme'
 import { listImplantations, listAllGroups } from '@aureak/api-client'
@@ -11,6 +12,7 @@ import type { Implantation } from '@aureak/types'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { ActivitesCountsContext } from '../_layout'
 import { TableauSeances }         from '../../../../components/admin/activites/TableauSeances'
+import { PrimaryAction }          from '../../../../components/admin/PrimaryAction'
 
 type TimeView = 'day' | 'week' | 'month'
 
@@ -41,6 +43,7 @@ function computeRange(view: TimeView): { from: string; to: string } {
 }
 
 export default function SeancesPage() {
+  const router        = useRouter()
   const activitesCnts = useContext(ActivitesCountsContext)
 
   const [timeView,       setTimeView]       = useState<TimeView>('week')
@@ -129,6 +132,11 @@ export default function SeancesPage() {
           groupId       ={groupId        || undefined}
         />
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouvelle séance"
+        onPress={() => router.push('/activites/seances/new' as never)}
+      />
     </View>
   )
 }

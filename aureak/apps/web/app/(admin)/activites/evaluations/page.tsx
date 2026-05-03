@@ -14,6 +14,7 @@ import type { AdminEvalRow } from '@aureak/api-client'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
+import { PrimaryAction }          from '../../../../components/admin/PrimaryAction'
 import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
 
@@ -578,6 +579,11 @@ export default function EvaluationsPage() {
           </View>
         )}
       </ScrollView>
+
+      <PrimaryAction
+        label="Nouvelle évaluation"
+        onPress={() => router.push('/activites/evaluations/new' as never)}
+      />
     </View>
   )
 }

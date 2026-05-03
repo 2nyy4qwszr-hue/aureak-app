@@ -1,6 +1,6 @@
 # Story 110.1 : FAB unifié sur 4 onglets Activités + rename "Activités" + suppression back-nav mobile détail séance
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
