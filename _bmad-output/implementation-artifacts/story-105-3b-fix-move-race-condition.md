@@ -1,6 +1,6 @@
 # Story 105.3.b : Fix race condition move kanban stage groupes
 
-Status: ready-for-dev
+Status: done
 
 Dépend de : 105.3 (feature livrée)
 
