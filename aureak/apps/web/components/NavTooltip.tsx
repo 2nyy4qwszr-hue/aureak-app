@@ -30,10 +30,8 @@ export function NavTooltip({ label, visible, children }: NavTooltipProps) {
             paddingHorizontal: 8,
             paddingVertical  : 4,
             zIndex           : 100,
-            shadowColor      : '#000',
-            shadowOpacity    : 0.25,
-            shadowRadius     : 4,
-            shadowOffset     : { width: 0, height: 2 },
+            // Story 110.10 — boxShadow web (replace deprecated shadow* props)
+            boxShadow        : '0 2px 4px rgba(0,0,0,0.25)',
             // CSS-only on web
             opacity          : 1,
             pointerEvents    : 'none',
