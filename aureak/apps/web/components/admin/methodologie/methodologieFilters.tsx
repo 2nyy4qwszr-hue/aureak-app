@@ -139,12 +139,13 @@ export function MetFiltersRow({ children }: MetFiltersRowProps) {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  // Filters row
+  // Filters row — segmented à gauche, bouton Filtres aligné à droite (cohérent /activites)
   controls: {
     flexDirection : 'row',
     flexWrap      : 'wrap',
+    justifyContent: 'space-between',
     gap           : space.md,
-    alignItems    : 'flex-end',
+    alignItems    : 'center',
   },
 
   // Segmented toggle
