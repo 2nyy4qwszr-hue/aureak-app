@@ -1,6 +1,6 @@
 # Story 110.5 : Seed évaluation démo + audit parcours création évaluation
 
-Status: ready-for-dev
+Status: done
 
 Dépend de : 110.1 (FAB Évaluations posé) — la décision de routing du FAB est prise ici
 
