@@ -1,6 +1,6 @@
 # Story 110.4 : Fix Présences — bug clic implantation reset à aujourd'hui + refonte affichage tableau vertical mobile
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
