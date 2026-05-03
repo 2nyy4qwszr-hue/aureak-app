@@ -12,6 +12,7 @@ import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius } from '@aureak/theme'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { AcademieCountsContext } from '../_layout'
 
 type CoachWithGrade = CoachListRow & {
@@ -116,18 +117,24 @@ export default function AcademieCoachsPage() {
 
       <ScrollView style={st.scroll} contentContainerStyle={st.content}>
         <View style={st.controls}>
-          <View style={st.selectField}>
-            <AureakText style={st.selectLabel}>Rôle</AureakText>
-            <select
-              value={roleFilter}
-              onChange={e => { setRoleFilter(e.target.value as RoleFilter); setPage(0) }}
-              style={selectNativeStyle}
-            >
-              <option value="all">Tous</option>
-              <option value="coach">Coach</option>
-              <option value="assistant">Assistant</option>
-            </select>
-          </View>
+          <FilterSheet
+            activeCount={roleFilter !== 'all' ? 1 : 0}
+            onReset={() => { setRoleFilter('all' as RoleFilter); setPage(0) }}
+            triggerLabel="Filtrer les coachs"
+          >
+            <View style={st.selectField}>
+              <AureakText style={st.selectLabel}>Rôle</AureakText>
+              <select
+                value={roleFilter}
+                onChange={e => { setRoleFilter(e.target.value as RoleFilter); setPage(0) }}
+                style={selectNativeStyle}
+              >
+                <option value="all">Tous</option>
+                <option value="coach">Coach</option>
+                <option value="assistant">Assistant</option>
+              </select>
+            </View>
+          </FilterSheet>
         </View>
 
         <View style={st.searchWrap}>
