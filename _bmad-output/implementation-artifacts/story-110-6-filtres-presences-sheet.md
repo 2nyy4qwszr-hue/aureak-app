@@ -1,14 +1,16 @@
-# Story 110.6 : Refonte filtres /presences en sheet compact (pattern 110.2)
+# Story 110.6 : Refonte filtres /presences (dashboard standalone) en sheet compact
 
 Status: ready-for-dev
+
+> **Note de scope post-110.8** : `/activites/presences` (alias dans la section Activités) a été traité par story 110.8 (PR #162) avec le pattern FilterSheet uniformisé. Cette story 110.6 reste valide UNIQUEMENT pour `/presences/page.tsx` (le dashboard standalone, 910 lignes, en HTML/divs, hors section Activités). Si le dashboard finit par être fusionné avec `/activites/presences`, cette story devient obsolète.
 
 Dépend de : 110.2 (FilterSheet pattern validé sur /activites/seances)
 
 ## Story
 
 En tant qu'**admin**,
-je veux **un seul bouton "Filtres" qui ouvre un sheet/popover compact contenant période + implantation + groupe sur /presences**,
-afin de **gagner de l'espace mobile vertical et avoir le même geste de filtrage que sur /activites/seances**.
+je veux **un seul bouton "Filtres" qui ouvre un sheet/popover compact contenant période + implantation + groupe sur /presences (dashboard standalone)**,
+afin de **gagner de l'espace mobile vertical et avoir le même geste de filtrage que sur les autres pages activités**.
 
 ## Contexte
 
