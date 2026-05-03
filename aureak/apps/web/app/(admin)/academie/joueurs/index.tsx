@@ -162,24 +162,27 @@ export default function AcademieJoueursPage() {
 
       <ScrollView style={st.scroll} contentContainerStyle={st.content}>
         <View style={st.controls}>
-          <View style={st.timeToggle}>
-            {(['aureak', 'prospect'] as MainToggle[]).map(v => {
-              const active = toggle === v
-              return (
-                <Pressable
-                  key={v}
-                  onPress={() => handleToggle(v)}
-                  style={[st.timeToggleBtn, active && st.timeToggleBtnActive]}
-                >
-                  <AureakText
-                    style={[st.timeToggleText, active && st.timeToggleTextActive] as never}
+          {/* Toggle Aureak/Prospect : externe sur desktop, dans FilterSheet sur mobile */}
+          {!isMobile && (
+            <View style={st.timeToggle}>
+              {(['aureak', 'prospect'] as MainToggle[]).map(v => {
+                const active = toggle === v
+                return (
+                  <Pressable
+                    key={v}
+                    onPress={() => handleToggle(v)}
+                    style={[st.timeToggleBtn, active && st.timeToggleBtnActive]}
                   >
-                    {v === 'aureak' ? 'Aureak' : 'Prospect'}
-                  </AureakText>
-                </Pressable>
-              )
-            })}
-          </View>
+                    <AureakText
+                      style={[st.timeToggleText, active && st.timeToggleTextActive] as never}
+                    >
+                      {v === 'aureak' ? 'Aureak' : 'Prospect'}
+                    </AureakText>
+                  </Pressable>
+                )
+              })}
+            </View>
+          )}
 
           <View style={st.searchWrap}>
             <TextInput
@@ -192,10 +195,23 @@ export default function AcademieJoueursPage() {
           </View>
 
           <FilterSheet
-            activeCount={(statusFilter !== 'all' ? 1 : 0) + (birthYear !== 'all' ? 1 : 0) + (niveau !== 'all' ? 1 : 0) + (clubFilter !== 'all' ? 1 : 0)}
-            onReset={() => { setStatusFilter('all'); setBirthYear('all'); setNiveau('all'); setClubFilter('all'); setPage(0) }}
+            activeCount={(statusFilter !== 'all' ? 1 : 0) + (birthYear !== 'all' ? 1 : 0) + (niveau !== 'all' ? 1 : 0) + (clubFilter !== 'all' ? 1 : 0) + (isMobile && toggle !== 'aureak' ? 1 : 0)}
+            onReset={() => { setStatusFilter('all'); setBirthYear('all'); setNiveau('all'); setClubFilter('all'); if (isMobile) handleToggle('aureak'); setPage(0) }}
             triggerLabel="Filtrer les joueurs"
           >
+            {isMobile && (
+              <View style={st.selectField}>
+                <AureakText style={st.selectLabel}>Type</AureakText>
+                <select
+                  value={toggle}
+                  onChange={e => handleToggle(e.target.value as MainToggle)}
+                  style={selectNativeStyle}
+                >
+                  <option value="aureak">Aureak</option>
+                  <option value="prospect">Prospect</option>
+                </select>
+              </View>
+            )}
             <View style={st.selectField}>
               <AureakText style={st.selectLabel}>Statut</AureakText>
               <select
