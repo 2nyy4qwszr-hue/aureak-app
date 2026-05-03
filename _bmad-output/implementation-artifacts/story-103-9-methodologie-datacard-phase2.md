@@ -1,6 +1,6 @@
 # Story 103.9 : Méthodologie phase 2 — DataCard mobile-first sur 4 pages
 
-Status: partial-done
+Status: done
 
 > **Scope livré** : EntraînementsTable migré en stack de cards mobile (<640px). Plus de scroll horizontal sur cette table. Pattern `useWindowDimensions + isMobile ? <Cards /> : <Table />` utilisé.
 >

@@ -1,6 +1,6 @@
 'use client'
 import React, { useContext, useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listSituations, listThemeGroups } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -113,6 +113,8 @@ type SituationsTableProps = {
 
 function SituationsTable({ situations, totalSituations, groupMap, onPress }: SituationsTableProps) {
   const { page, setPage, pageCount, paginated } = usePagination(situations, PAGE_SIZE)
+  const { width } = useWindowDimensions()
+  const isMobile = width < 640
 
   if (situations.length === 0) {
     return (
@@ -122,6 +124,35 @@ function SituationsTable({ situations, totalSituations, groupMap, onPress }: Sit
             {totalSituations === 0 ? 'Aucune situation configurée.' : 'Aucune situation pour ce filtre.'}
           </AureakText>
         </View>
+      </View>
+    )
+  }
+
+  // Story 103.9.e — rendu mobile en stack de cards
+  if (isMobile) {
+    return (
+      <View style={st.tableWrapper}>
+        {paginated.map((sit) => (
+          <Pressable
+            key={sit.id}
+            onPress={() => onPress(sit.situationKey)}
+            style={({ pressed }) => [st.mobileCard, pressed && { opacity: 0.8 }]}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <AureakText style={st.titleText} numberOfLines={2}>{sit.name}</AureakText>
+              <AureakText style={st.dashText}>{groupMap[sit.blocId ?? ''] ?? '—'} · {sit.situationKey}</AureakText>
+            </View>
+            <AureakText style={{ fontSize: 16, color: colors.text.muted }}>›</AureakText>
+          </Pressable>
+        ))}
+        <MetPagination
+          page={page}
+          pageCount={pageCount}
+          total={situations.length}
+          pageSize={PAGE_SIZE}
+          itemLabelPlural="situations"
+          onPageChange={setPage}
+        />
       </View>
     )
   }
@@ -200,6 +231,17 @@ const st = StyleSheet.create({
     borderWidth : 1,
     borderColor : colors.border.divider,
     overflow    : 'hidden',
+  },
+  // Story 103.9.e — card mobile
+  mobileCard: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    gap              : space.md,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm + 2,
+    backgroundColor  : colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
   tableHeader: {
     flexDirection    : 'row',

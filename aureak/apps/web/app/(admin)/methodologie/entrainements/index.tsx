@@ -392,6 +392,8 @@ type ExercicesTableProps = {
 
 function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTableProps) {
   const { page, setPage, pageCount, paginated } = usePagination(exercises, PAGE_SIZE)
+  const { width } = useWindowDimensions()
+  const isMobile = width < 640
 
   if (exercises.length === 0) {
     return (
@@ -401,6 +403,42 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
             {totalExercises === 0 ? 'Aucun exercice. La table est vide.' : 'Aucun résultat pour ces filtres.'}
           </AureakText>
         </View>
+      </View>
+    )
+  }
+
+  // Story 103.9.b — rendu mobile en stack de cards
+  if (isMobile) {
+    return (
+      <View style={st.tableWrapper}>
+        {paginated.map((exercise) => {
+          const methodColor = methodColors[exercise.method] ?? colors.border.light
+          const picto = METHOD_PICTOS[exercise.method] ?? '—'
+          return (
+            <View key={exercise.id} style={st.mobileCard}>
+              <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
+                <AureakText style={st.methodPicto}>{picto}</AureakText>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <AureakText style={st.titleText} numberOfLines={2}>{exercise.title}</AureakText>
+                <AureakText style={st.numText}>
+                  {exercise.trainingRef ? `#${exercise.trainingRef}` : '—'} · {exercise.method}
+                </AureakText>
+              </View>
+              <View style={[st.statusDot, {
+                backgroundColor: exercise.isActive ? colors.status.present : colors.border.light,
+              }]} />
+            </View>
+          )
+        })}
+        <MetPagination
+          page={page}
+          pageCount={pageCount}
+          total={exercises.length}
+          pageSize={PAGE_SIZE}
+          itemLabelPlural="exercices"
+          onPageChange={setPage}
+        />
       </View>
     )
   }
