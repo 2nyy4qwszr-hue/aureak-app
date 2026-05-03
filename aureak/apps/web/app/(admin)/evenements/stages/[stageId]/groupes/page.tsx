@@ -1,7 +1,8 @@
 'use client'
 // Story 105.3 — Page gestion sous-groupes d'un stage (kanban simple)
+// Story 105.4 — Drag & drop natif HTML5 desktop (≥1024px)
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { View, ScrollView, Pressable, StyleSheet, TextInput } from 'react-native'
+import { View, ScrollView, Pressable, StyleSheet, TextInput, Platform, useWindowDimensions } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, radius, space } from '@aureak/theme'
@@ -26,6 +27,9 @@ function computeAge(birthDate: string | null): number | null {
 export default function StageGroupesPage() {
   const router = useRouter()
   const { stageId } = useLocalSearchParams<{ stageId: string }>()
+  const { width } = useWindowDimensions()
+  // Story 105.4 — drag & drop activé seulement sur web desktop (≥ 1024px)
+  const dragEnabled = Platform.OS === 'web' && width >= 1024
 
   const [groups,   setGroups]   = useState<StageGroup[]>([])
   const [children, setChildren] = useState<StageChild[]>([])
@@ -36,6 +40,9 @@ export default function StageGroupesPage() {
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [movingChildId, setMovingChildId] = useState<string | null>(null)
+  // Story 105.4 — état drag & drop
+  const [draggedChildId, setDraggedChildId] = useState<string | null>(null)
+  const [hoveredGroupId, setHoveredGroupId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!stageId || typeof stageId !== 'string') return
@@ -177,8 +184,31 @@ export default function StageGroupesPage() {
         {groups.map(group => {
           const groupChildren = childrenByGroup.get(group.id) ?? []
           const isEditing = editingGroupId === group.id
+          const isHovered = hoveredGroupId === group.id
+          // Story 105.4 — handlers drag & drop pour la colonne (drop zone)
+          const dropProps = dragEnabled ? {
+            onDragOver: (e: React.DragEvent) => { e.preventDefault() },
+            onDragEnter: () => setHoveredGroupId(group.id),
+            onDragLeave: (e: React.DragEvent) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) setHoveredGroupId(null)
+            },
+            onDrop: async (e: React.DragEvent) => {
+              e.preventDefault()
+              setHoveredGroupId(null)
+              const childId = e.dataTransfer.getData('text/plain')
+              setDraggedChildId(null)
+              if (!childId || !stageId || typeof stageId !== 'string') return
+              if (group.id === childrenByGroup.get(group.id)?.find(c => c.id === childId)?.stageGroupId) return
+              try {
+                await moveChildToGroup(stageId, childId, group.id)
+                await load()
+              } catch (err) {
+                if (process.env.NODE_ENV !== 'production') console.error('[stages/groupes] drop error:', err)
+              }
+            },
+          } as Record<string, unknown> : {}
           return (
-            <View key={group.id} style={s.column}>
+            <View key={group.id} style={[s.column, isHovered && s.columnHovered] as never} {...dropProps}>
               <View style={s.columnHeader}>
                 {isEditing ? (
                   <View style={s.editRow}>
@@ -225,8 +255,19 @@ export default function StageGroupesPage() {
                     const age = computeAge(child.birthDate)
                     const otherGroups = groups.filter(g => g.id !== group.id)
                     const showMenu = movingChildId === child.id
+                    const isDragging = draggedChildId === child.id
+                    // Story 105.4 — handlers drag pour la card (draggable source)
+                    const dragProps = dragEnabled ? {
+                      draggable: true,
+                      onDragStart: (e: React.DragEvent) => {
+                        e.dataTransfer.setData('text/plain', child.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                        setDraggedChildId(child.id)
+                      },
+                      onDragEnd: () => setDraggedChildId(null),
+                    } as Record<string, unknown> : {}
                     return (
-                      <View key={child.id} style={s.childCard}>
+                      <View key={child.id} style={[s.childCard, isDragging && s.childCardDragging] as never} {...dragProps}>
                         <View style={s.childInfo}>
                           <AureakText style={s.childName}>{child.prenom} {child.nom}</AureakText>
                           <AureakText style={s.childAge}>{age !== null ? `${age} ans` : '—'}</AureakText>
@@ -310,6 +351,15 @@ const s = StyleSheet.create({
     width: 280, backgroundColor: colors.light.surface, borderRadius: radius.card,
     borderWidth: 1, borderColor: colors.border.divider, marginRight: space.md,
     minHeight: 200, maxHeight: 600,
+  },
+  // Story 105.4 — drop zone hover (desktop drag&drop)
+  columnHovered: {
+    borderColor    : colors.accent.gold,
+    borderWidth    : 2,
+    backgroundColor: colors.accent.gold + '0F',
+  },
+  childCardDragging: {
+    opacity: 0.4,
   },
   columnHeader: {
     padding: space.md, borderBottomWidth: 1, borderBottomColor: colors.border.divider,

@@ -1,6 +1,6 @@
 # Story 105.4 : Drag & drop kanban stage groupes (v1.1)
 
-Status: ready-for-dev
+Status: done
 
 Dépend de : 105.3 (table stage_groups + API + UI kanban menu déplacer)
 
