@@ -84,6 +84,17 @@ export default function SeancesPage() {
     setGroupId('')
   }
 
+  // Story 110.3 — URL "new séance" préfilled avec contexte filtré courant
+  const buildNewSessionUrl = () => {
+    const params = new URLSearchParams()
+    if (from)           params.set('from', from)
+    if (to)             params.set('to', to)
+    if (implantationId) params.set('implantationId', implantationId)
+    if (groupId)        params.set('groupId', groupId)
+    const qs = params.toString()
+    return qs ? `/activites/seances/new?${qs}` : '/activites/seances/new'
+  }
+
   return (
     <View style={styles.container}>
       <ActivitesHeader counts={activitesCnts ?? undefined} />
@@ -141,12 +152,13 @@ export default function SeancesPage() {
           to            ={to}
           implantationId={implantationId || undefined}
           groupId       ={groupId        || undefined}
+          onAddSession  ={() => router.push(buildNewSessionUrl() as never)}
         />
       </ScrollView>
 
       <PrimaryAction
         label="Nouvelle séance"
-        onPress={() => router.push('/activites/seances/new' as never)}
+        onPress={() => router.push(buildNewSessionUrl() as never)}
       />
     </View>
   )

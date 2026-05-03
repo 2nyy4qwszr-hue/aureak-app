@@ -1,6 +1,6 @@
 # Story 110.3 : Ligne d'ajout inline dans le tableau Séances
 
-Status: ready-for-dev
+Status: done
 
 Dépend de : 110.2 (filtres compactés) — non bloquant, mais le contexte filtré sera prérempli
 

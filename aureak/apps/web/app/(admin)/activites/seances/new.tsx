@@ -770,7 +770,8 @@ export default function NewSessionPage() {
   const router    = useRouter()
   const toast     = useToast()
   const tenantId  = useAuthStore(s => s.tenantId) ?? ''
-  const { prefill } = useLocalSearchParams<{ prefill?: string }>()
+  const { prefill, from: paramFrom, to: paramTo, implantationId: paramImplantationId, groupId: paramGroupId } =
+    useLocalSearchParams<{ prefill?: string; from?: string; to?: string; implantationId?: string; groupId?: string }>()
 
   // ── Step 1 — Contexte ────────────────────────────────────────
   const [step,                setStep]                = useState<Step>(1)
@@ -924,6 +925,26 @@ export default function NewSessionPage() {
       setTimeout(() => setDuplicateToast(false), 6000)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[seances/new] prefill decode error:', err)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Story 110.3 — Préfill query params (contexte filtré /activites/seances) ──
+  useEffect(() => {
+    if (paramImplantationId && typeof paramImplantationId === 'string') {
+      setImplantationId(paramImplantationId)
+    }
+    if (paramGroupId && typeof paramGroupId === 'string') {
+      setGroupId(paramGroupId)
+    }
+    // Date par défaut intelligente : si range ≤ 7 jours, prend `from` comme date séance
+    if (paramFrom && typeof paramFrom === 'string' && paramTo && typeof paramTo === 'string') {
+      const fromDate = new Date(paramFrom)
+      const toDate = new Date(paramTo)
+      const daysDiff = (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)
+      if (daysDiff <= 7 && !Number.isNaN(daysDiff)) {
+        setSelectedDates([paramFrom])
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
