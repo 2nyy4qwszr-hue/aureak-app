@@ -15,7 +15,6 @@ import { CLUB_PROSPECT_STATUS_LABELS, CLUB_PROSPECT_STATUSES } from '@aureak/typ
 import { useAuthStore } from '@aureak/business-logic'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
-import { ProspectionStatCards } from '../../../../components/admin/prospection/ProspectionStatCards'
 import { ProspectTable } from '../../../../components/admin/prospection/ProspectTable'
 import { CreateProspectModal } from '../../../../components/admin/prospection/CreateProspectModal'
 import { ConvertProspectModal } from '../../../../components/admin/prospection/ConvertProspectModal'
@@ -75,7 +74,6 @@ export default function ProspectionClubsCRMPage() {
       <ProspectionNavBar />
 
       <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
-      <ProspectionStatCards stats={stats} loading={loading} />
 
       {/* Story 88.6 — pill closing */}
       <View style={st.closingRow}>

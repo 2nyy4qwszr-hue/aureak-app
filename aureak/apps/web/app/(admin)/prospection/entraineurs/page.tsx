@@ -15,28 +15,8 @@ import { COACH_PROSPECT_STATUS_LABELS, COACH_PROSPECT_STATUSES } from '@aureak/t
 import { useAuthStore } from '@aureak/business-logic'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
-import { CoachProspectionStatCards, type CoachProspectionStats } from '../../../../components/admin/coach-prospection/CoachProspectionStatCards'
 import { CoachProspectTable } from '../../../../components/admin/coach-prospection/CoachProspectTable'
 import { CreateCoachProspectModal } from '../../../../components/admin/coach-prospection/CreateCoachProspectModal'
-
-function startOfQuarter(d: Date): Date {
-  const month = d.getMonth()
-  const qStart = month - (month % 3)
-  return new Date(d.getFullYear(), qStart, 1)
-}
-
-function computeStats(rows: CoachProspectListRow[]): CoachProspectionStats {
-  const quarterStart = startOfQuarter(new Date()).getTime()
-  let inFormation = 0, activeQuarter = 0, lost = 0
-  for (const r of rows) {
-    if (r.status === 'en_formation') inFormation++
-    if (r.status === 'perdu')        lost++
-    if (r.status === 'actif' && new Date(r.updatedAt).getTime() >= quarterStart) {
-      activeQuarter++
-    }
-  }
-  return { total: rows.length, inFormation, activeQuarter, lost }
-}
 
 export default function ProspectionEntraineursPage() {
   const { width } = useWindowDimensions()
@@ -68,8 +48,6 @@ export default function ProspectionEntraineursPage() {
 
   useEffect(() => { load() }, [load])
 
-  const stats = useMemo(() => computeStats(allRows), [allRows])
-
   const displayRows = useMemo(() => {
     return allRows.filter(r => {
       if (filterStatus     && r.status !== filterStatus)                    return false
@@ -85,7 +63,6 @@ export default function ProspectionEntraineursPage() {
       <ProspectionNavBar />
 
       <ScrollView style={st.scroll} contentContainerStyle={[st.content, isMobile && { padding: 16 }]}>
-      <CoachProspectionStatCards stats={stats} loading={loading} />
 
       <View style={st.filtersBlock}>
         <AureakText style={st.filterLabel as never}>Statut</AureakText>
