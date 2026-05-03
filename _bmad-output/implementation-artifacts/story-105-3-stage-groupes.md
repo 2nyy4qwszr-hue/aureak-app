@@ -1,6 +1,6 @@
 # Story 105.3 : Répartir les gardiens du stage en groupes
 
-Status: deferred
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

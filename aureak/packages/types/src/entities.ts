@@ -647,6 +647,17 @@ export type StageWithMeta = Stage & {
   participantCount : number
 }
 
+/** Sous-groupe de gardiens dans un stage (story 105.3 / migration 00173) */
+export type StageGroup = {
+  id        : string
+  tenantId  : string
+  stageId   : string
+  name      : string
+  position  : number
+  isDefault : boolean
+  createdAt : string
+}
+
 /** Participation d'un enfant (child_directory) à un stage */
 export type ChildStageParticipation = {
   id                  : string

@@ -447,6 +447,8 @@ export type StageChild = {
   ageCategory  : string | null
   birthDate    : string | null
   displayName  : string
+  /** Story 105.3 — sous-groupe du gardien (null = traité comme groupe par défaut côté UI) */
+  stageGroupId : string | null
 }
 
 /**
@@ -457,7 +459,7 @@ export type StageChild = {
 export async function listStageChildren(stageId: string): Promise<StageChild[]> {
   const { data, error } = await supabase
     .from('child_stage_participations')
-    .select('id, stage_id, child_directory ( id, prenom, nom, age_category, birth_date, display_name )')
+    .select('id, stage_id, stage_group_id, child_directory ( id, prenom, nom, age_category, birth_date, display_name )')
     .eq('stage_id', stageId)
     .is('deleted_at', null)
 
@@ -468,13 +470,14 @@ export async function listStageChildren(stageId: string): Promise<StageChild[]> 
       const child = row.child_directory as Record<string, unknown> | null
       if (!child) return null
       return {
-        id          : child.id            as string,
-        stageId     : row.stage_id        as string,
-        prenom      : (child.prenom       as string | null) ?? '',
-        nom         : (child.nom          as string | null) ?? '',
-        ageCategory : (child.age_category as string | null) ?? null,
-        birthDate   : (child.birth_date   as string | null) ?? null,
-        displayName : (child.display_name as string | null) ?? '',
+        id           : child.id            as string,
+        stageId      : row.stage_id        as string,
+        prenom       : (child.prenom       as string | null) ?? '',
+        nom          : (child.nom          as string | null) ?? '',
+        ageCategory  : (child.age_category as string | null) ?? null,
+        birthDate    : (child.birth_date   as string | null) ?? null,
+        displayName  : (child.display_name as string | null) ?? '',
+        stageGroupId : (row.stage_group_id as string | null) ?? null,
       }
     })
     .filter((c): c is StageChild => c !== null && (c.prenom !== '' || c.nom !== '' || c.displayName !== ''))
@@ -574,6 +577,16 @@ export async function addChildToStage(stageId: string, childId: string): Promise
     return
   }
 
+  // Story 105.3 — positionne automatiquement le gardien dans le groupe par défaut
+  const { data: defaultGroup } = await supabase
+    .from('stage_groups')
+    .select('id')
+    .eq('stage_id', stageId)
+    .eq('is_default', true)
+    .is('deleted_at', null)
+    .maybeSingle()
+  const defaultGroupId = (defaultGroup as { id: string } | null)?.id ?? null
+
   const { error } = await supabase
     .from('child_stage_participations')
     .insert({
@@ -581,6 +594,7 @@ export async function addChildToStage(stageId: string, childId: string): Promise
       stage_id            : stageId,
       child_id            : childId,
       participation_status: 'confirmed',
+      stage_group_id      : defaultGroupId,
     })
   if (error) throw error
 }
@@ -593,6 +607,143 @@ export async function removeChildFromStage(stageId: string, childId: string): Pr
   const { error } = await supabase
     .from('child_stage_participations')
     .update({ deleted_at: new Date().toISOString() })
+    .eq('stage_id', stageId)
+    .eq('child_id', childId)
+    .is('deleted_at', null)
+  if (error) throw error
+}
+
+// ============================================================
+// Story 105.3 — Stage groups (sous-groupes de gardiens)
+// ============================================================
+
+import type { StageGroup } from '@aureak/types'
+
+function mapStageGroup(row: Record<string, unknown>): StageGroup {
+  return {
+    id        : row.id          as string,
+    tenantId  : row.tenant_id   as string,
+    stageId   : row.stage_id    as string,
+    name      : row.name        as string,
+    position  : row.position    as number,
+    isDefault : row.is_default  as boolean,
+    createdAt : row.created_at  as string,
+  }
+}
+
+/** Liste les groupes d'un stage, ordonnés par position. */
+export async function listStageGroups(stageId: string): Promise<StageGroup[]> {
+  const { data, error } = await supabase
+    .from('stage_groups')
+    .select('id, tenant_id, stage_id, name, position, is_default, created_at')
+    .eq('stage_id', stageId)
+    .is('deleted_at', null)
+    .order('position', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map(r => mapStageGroup(r as Record<string, unknown>))
+}
+
+/** Crée un nouveau groupe (position = max+1, is_default=false). */
+export async function createStageGroup(stageId: string, name: string): Promise<StageGroup> {
+  const trimmed = name.trim()
+  if (trimmed.length < 1 || trimmed.length > 50) {
+    throw new Error('Le nom du groupe doit faire 1-50 caractères')
+  }
+
+  const { data: stage, error: stageErr } = await supabase
+    .from('stages')
+    .select('tenant_id')
+    .eq('id', stageId)
+    .single()
+  if (stageErr) throw stageErr
+  const tenantId = (stage as { tenant_id: string }).tenant_id
+
+  const { data: maxRow } = await supabase
+    .from('stage_groups')
+    .select('position')
+    .eq('stage_id', stageId)
+    .is('deleted_at', null)
+    .order('position', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const nextPosition = ((maxRow as { position: number } | null)?.position ?? -1) + 1
+
+  const { data, error } = await supabase
+    .from('stage_groups')
+    .insert({
+      tenant_id  : tenantId,
+      stage_id   : stageId,
+      name       : trimmed,
+      position   : nextPosition,
+      is_default : false,
+    })
+    .select('id, tenant_id, stage_id, name, position, is_default, created_at')
+    .single()
+  if (error) throw error
+  return mapStageGroup(data as Record<string, unknown>)
+}
+
+/** Renomme un groupe (any group, default inclus). */
+export async function renameStageGroup(groupId: string, name: string): Promise<void> {
+  const trimmed = name.trim()
+  if (trimmed.length < 1 || trimmed.length > 50) {
+    throw new Error('Le nom du groupe doit faire 1-50 caractères')
+  }
+  const { error } = await supabase
+    .from('stage_groups')
+    .update({ name: trimmed })
+    .eq('id', groupId)
+  if (error) throw error
+}
+
+/**
+ * Supprime un groupe (soft-delete) après réaffectation des gardiens
+ * vers le groupe par défaut du même stage. Refuse de supprimer le groupe par défaut.
+ */
+export async function deleteStageGroup(groupId: string): Promise<void> {
+  const { data: group, error: groupErr } = await supabase
+    .from('stage_groups')
+    .select('id, stage_id, is_default')
+    .eq('id', groupId)
+    .single()
+  if (groupErr) throw groupErr
+  const g = group as { id: string; stage_id: string; is_default: boolean }
+  if (g.is_default) {
+    throw new Error('Le groupe par défaut ne peut pas être supprimé')
+  }
+
+  const { data: defaultGroup, error: defErr } = await supabase
+    .from('stage_groups')
+    .select('id')
+    .eq('stage_id', g.stage_id)
+    .eq('is_default', true)
+    .is('deleted_at', null)
+    .single()
+  if (defErr) throw defErr
+  const defaultGroupId = (defaultGroup as { id: string }).id
+
+  const { error: moveErr } = await supabase
+    .from('child_stage_participations')
+    .update({ stage_group_id: defaultGroupId })
+    .eq('stage_group_id', groupId)
+  if (moveErr) throw moveErr
+
+  const { error: deleteErr } = await supabase
+    .from('stage_groups')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', groupId)
+  if (deleteErr) throw deleteErr
+}
+
+/** Déplace un gardien vers un autre groupe du même stage. */
+export async function moveChildToGroup(
+  stageId : string,
+  childId : string,
+  groupId : string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('child_stage_participations')
+    .update({ stage_group_id: groupId })
     .eq('stage_id', stageId)
     .eq('child_id', childId)
     .is('deleted_at', null)
