@@ -8,6 +8,11 @@ const config = getDefaultConfig(projectRoot)
 
 config.watchFolders = [workspaceRoot]
 
+// Story 110.11 — empêche Metro de bundler les fichiers test/setup vitest
+// (ils utilisent `import.meta` qui casse le runtime web non-module).
+// blockList accepte un RegExp unique combinant tous les patterns.
+config.resolver.blockList = /(.*\/__tests__\/.*|.*\.test\.(ts|tsx|js|jsx)$|.*\/vitest\.(setup|config)\.(ts|js)$)/
+
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(workspaceRoot, 'node_modules'),
