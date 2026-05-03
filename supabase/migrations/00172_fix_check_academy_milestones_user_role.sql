@@ -5,6 +5,7 @@ CREATE OR REPLACE FUNCTION check_academy_milestones(p_tenant_id UUID)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_sessions_count    INTEGER;

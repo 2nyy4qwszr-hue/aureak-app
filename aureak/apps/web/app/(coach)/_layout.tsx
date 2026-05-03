@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
-import { Pressable } from 'react-native'
+import { Platform, Pressable } from 'react-native'
 import { Slot, useRouter, usePathname } from 'expo-router'
 import { XStack, YStack, Text, Separator } from 'tamagui'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors } from '@aureak/theme'
+import { SplashScreen } from '../../components/SplashScreen'
 
 const NAV_ITEMS = [
   { label: 'Dashboard',   href: '/coach/dashboard' },
@@ -22,7 +23,8 @@ export default function CoachLayout() {
     }
   }, [role, isLoading, router])
 
-  if (isLoading || role !== 'coach') return null
+  if (isLoading) return Platform.OS === 'web' ? <SplashScreen dismiss={false} /> : null
+  if (role !== 'coach') return null
 
   const handleSignOut = async () => {
     await signOut()

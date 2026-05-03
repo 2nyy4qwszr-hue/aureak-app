@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Stack } from 'expo-router'
 import { useFonts } from 'expo-font'
 import * as SplashScreen from 'expo-splash-screen'
@@ -7,7 +7,11 @@ import { tamaguiConfig } from '@aureak/theme'
 import { useAuthStore } from '@aureak/business-logic'
 import { Platform } from 'react-native'
 
-SplashScreen.preventAutoHideAsync()
+// Sur web, on n'empêche pas l'auto-hide : on veut afficher l'app
+// immédiatement avec les fontes système, puis swap quand les custom arrivent.
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync()
+}
 
 // Story 62.6 — Injection balises PWA/favicon dans <head> (web uniquement)
 let pwaHeadInjected = false
@@ -46,12 +50,10 @@ export default function RootLayout() {
     if (Platform.OS === 'web') injectPWAHead()
   }, [])
 
-  // Timeout fallback perf (Epic 104.2) : 500ms puis fallback fonts système,
-  // les fontes custom swappent dès qu'elles arrivent
-  const [fontTimeout, setFontTimeout] = useState(false)
+  // Sur web, masquer le splash dès le montage : l'app rend immédiatement avec
+  // les fontes système, Tamagui swappe quand les custom arrivent.
   useEffect(() => {
-    const t = setTimeout(() => setFontTimeout(true), 500)
-    return () => clearTimeout(t)
+    if (Platform.OS === 'web') SplashScreen.hideAsync()
   }, [])
 
   const [fontsLoaded, fontError] = useFonts({
@@ -78,7 +80,8 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError])
 
-  if (!fontsLoaded && !fontError && !fontTimeout) return null
+  // Pas de blocage : on rend l'app immédiatement. Sur natif, le splash Expo
+  // reste visible jusqu'à hideAsync(); sur web, il a déjà été masqué.
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme="dark">
