@@ -121,12 +121,15 @@ export default function StageGroupesPage() {
 
   const handleMove = async (childId: string, targetGroupId: string) => {
     if (!stageId || typeof stageId !== 'string') return
-    setMovingChildId(null)
+    // Story 105.3.b — setState menu close en finally pour éviter race condition
+    // RN-web : démonter le Pressable parent avant que onPress termine peut interrompre la mutation.
     try {
       await moveChildToGroup(stageId, childId, targetGroupId)
       await load()
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[stages/groupes] move error:', err)
+    } finally {
+      setMovingChildId(null)
     }
   }
 
