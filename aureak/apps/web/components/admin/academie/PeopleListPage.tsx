@@ -18,6 +18,7 @@ import { splitName } from './splitName'
 import { formatRelativeDate } from './formatRelativeDate'
 import { AcademieNavBar } from './AcademieNavBar'
 import { PrimaryAction } from '../PrimaryAction'
+import { FilterSheet } from '../FilterSheet'
 import { AcademieCountsContext } from '../../../app/(admin)/academie/_layout'
 
 type StatusFilter = 'actifs' | 'tous' | 'supprimes'
@@ -137,29 +138,35 @@ export function PeopleListPage({
       <AcademieNavBar counts={academieCounts ?? undefined} />
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+        {/* Story 110.x — Search inline avec bouton Filtres aligné droite (marginLeft auto) */}
         <View style={s.controls}>
-          <View style={s.selectField}>
-            <AureakText style={s.selectLabel}>Statut</AureakText>
-            <select
-              value={status}
-              onChange={e => { setStatus(e.target.value as StatusFilter); setPage(0) }}
-              style={selectNativeStyle}
-            >
-              <option value="actifs">Actifs</option>
-              <option value="tous">Tous</option>
-              <option value="supprimes">Supprimés</option>
-            </select>
+          <View style={s.searchWrap}>
+            <TextInput
+              placeholder="Rechercher par nom, prénom, email"
+              placeholderTextColor={colors.text.muted}
+              value={search}
+              onChangeText={t => { setSearch(t); setPage(0) }}
+              style={s.searchInput as never}
+            />
           </View>
-        </View>
-
-        <View style={s.searchWrap}>
-          <TextInput
-            placeholder="Rechercher par nom, prénom, email"
-            placeholderTextColor={colors.text.muted}
-            value={search}
-            onChangeText={t => { setSearch(t); setPage(0) }}
-            style={s.searchInput as never}
-          />
+          <FilterSheet
+            activeCount={status !== 'actifs' ? 1 : 0}
+            onReset={() => { setStatus('actifs'); setPage(0) }}
+            triggerLabel="Filtrer"
+          >
+            <View style={s.selectField}>
+              <AureakText style={s.selectLabel}>Statut</AureakText>
+              <select
+                value={status}
+                onChange={e => { setStatus(e.target.value as StatusFilter); setPage(0) }}
+                style={selectNativeStyle}
+              >
+                <option value="actifs">Actifs</option>
+                <option value="tous">Tous</option>
+                <option value="supprimes">Supprimés</option>
+              </select>
+            </View>
+          </FilterSheet>
         </View>
 
         {loading ? (
@@ -324,7 +331,7 @@ const s = StyleSheet.create({
     flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
   selectField: {
     flexGrow : 1,
@@ -340,7 +347,7 @@ const s = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  searchWrap : { paddingHorizontal: space.lg },
+  searchWrap : { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,

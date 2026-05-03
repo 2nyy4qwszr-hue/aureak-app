@@ -117,6 +117,15 @@ export default function AcademieCoachsPage() {
 
       <ScrollView style={st.scroll} contentContainerStyle={st.content}>
         <View style={st.controls}>
+          <View style={st.searchWrap}>
+            <TextInput
+              value={search}
+              onChangeText={(v) => { setSearch(v); setPage(0) }}
+              placeholder="Rechercher un coach…"
+              placeholderTextColor={colors.text.muted}
+              style={st.searchInput as never}
+            />
+          </View>
           <FilterSheet
             activeCount={roleFilter !== 'all' ? 1 : 0}
             onReset={() => { setRoleFilter('all' as RoleFilter); setPage(0) }}
@@ -135,16 +144,6 @@ export default function AcademieCoachsPage() {
               </select>
             </View>
           </FilterSheet>
-        </View>
-
-        <View style={st.searchWrap}>
-          <TextInput
-            value={search}
-            onChangeText={(v) => { setSearch(v); setPage(0) }}
-            placeholder="Rechercher un coach…"
-            placeholderTextColor={colors.text.muted}
-            style={st.searchInput as never}
-          />
         </View>
 
         {loading ? (
@@ -273,7 +272,7 @@ const st = StyleSheet.create({
     flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
 
   selectField: {
@@ -290,7 +289,7 @@ const st = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  searchWrap: { paddingHorizontal: space.lg },
+  searchWrap: { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,

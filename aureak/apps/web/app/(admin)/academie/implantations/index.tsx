@@ -12,6 +12,7 @@ import type { Implantation } from '@aureak/types'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius } from '@aureak/theme'
 import { AcademieNavBar } from '../../../../components/admin/academie/AcademieNavBar'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { AcademieCountsContext } from '../_layout'
 
 type ActifFilter = 'all' | 'actives' | 'fermees'
@@ -55,28 +56,33 @@ export default function AcademieImplantationsPage() {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
         <View style={s.controls}>
-          <View style={s.selectField}>
-            <AureakText style={s.selectLabel}>Statut</AureakText>
-            <select
-              value={filter}
-              onChange={e => setFilter(e.target.value as ActifFilter)}
-              style={selectNativeStyle}
-            >
-              <option value="all">Toutes</option>
-              <option value="actives">Actives</option>
-              <option value="fermees">Fermées</option>
-            </select>
+          <View style={s.searchWrap}>
+            <TextInput
+              style={s.searchInput as never}
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Rechercher par nom…"
+              placeholderTextColor={colors.text.muted}
+            />
           </View>
-        </View>
-
-        <View style={s.searchWrap}>
-          <TextInput
-            style={s.searchInput as never}
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Rechercher par nom…"
-            placeholderTextColor={colors.text.muted}
-          />
+          <FilterSheet
+            activeCount={filter !== 'all' ? 1 : 0}
+            onReset={() => setFilter('all')}
+            triggerLabel="Filtrer les implantations"
+          >
+            <View style={s.selectField}>
+              <AureakText style={s.selectLabel}>Statut</AureakText>
+              <select
+                value={filter}
+                onChange={e => setFilter(e.target.value as ActifFilter)}
+                style={selectNativeStyle}
+              >
+                <option value="all">Toutes</option>
+                <option value="actives">Actives</option>
+                <option value="fermees">Fermées</option>
+              </select>
+            </View>
+          </FilterSheet>
         </View>
 
         {loading ? (
@@ -166,7 +172,7 @@ const s = StyleSheet.create({
     flexWrap         : 'wrap',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
   selectField: {
     flexGrow : 1,
@@ -182,7 +188,7 @@ const s = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  searchWrap : { paddingHorizontal: space.lg },
+  searchWrap : { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
