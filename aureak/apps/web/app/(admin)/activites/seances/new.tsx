@@ -164,7 +164,7 @@ const ss = StyleSheet.create({
     backgroundColor: colors.light.muted,
     borderWidth: 1, borderColor: colors.accent.gold + '50',
     borderRadius: 8, marginTop: 2,
-    ...(Platform.OS === 'web' ? { boxShadow: '0 8px 32px rgba(0,0,0,0.5)' } as never : {}),
+    ...(Platform.OS === 'web' ? { boxShadow: shadows.lg } as never : {}),
   },
   searchInput  : { borderBottomWidth: 1, borderBottomColor: colors.border.light, paddingHorizontal: space.md, paddingVertical: space.sm, color: colors.text.dark, fontSize: 13 },
   option       : { paddingHorizontal: space.md, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: colors.border.divider },
@@ -452,7 +452,7 @@ function StepBar({ current }: { current: Step }) {
           <React.Fragment key={n}>
             <View style={sb.item}>
               <View style={[sb.dot, done && sb.dotDone, active && sb.dotActive]}>
-                <AureakText style={{ fontSize: 11, fontWeight: '700' as never, color: done ? '#FFFFFF' : active ? colors.text.dark : colors.text.muted }}>
+                <AureakText style={{ fontSize: 11, fontWeight: '700' as never, color: done ? colors.text.primary : active ? colors.text.dark : colors.text.muted }}>
                   {done ? '✓' : n}
                 </AureakText>
               </View>
@@ -770,7 +770,8 @@ export default function NewSessionPage() {
   const router    = useRouter()
   const toast     = useToast()
   const tenantId  = useAuthStore(s => s.tenantId) ?? ''
-  const { prefill } = useLocalSearchParams<{ prefill?: string }>()
+  const { prefill, from: paramFrom, to: paramTo, implantationId: paramImplantationId, groupId: paramGroupId } =
+    useLocalSearchParams<{ prefill?: string; from?: string; to?: string; implantationId?: string; groupId?: string }>()
 
   // ── Step 1 — Contexte ────────────────────────────────────────
   const [step,                setStep]                = useState<Step>(1)
@@ -924,6 +925,26 @@ export default function NewSessionPage() {
       setTimeout(() => setDuplicateToast(false), 6000)
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('[seances/new] prefill decode error:', err)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Story 110.3 — Préfill query params (contexte filtré /activites/seances) ──
+  useEffect(() => {
+    if (paramImplantationId && typeof paramImplantationId === 'string') {
+      setImplantationId(paramImplantationId)
+    }
+    if (paramGroupId && typeof paramGroupId === 'string') {
+      setGroupId(paramGroupId)
+    }
+    // Date par défaut intelligente : si range ≤ 7 jours, prend `from` comme date séance
+    if (paramFrom && typeof paramFrom === 'string' && paramTo && typeof paramTo === 'string') {
+      const fromDate = new Date(paramFrom)
+      const toDate = new Date(paramTo)
+      const daysDiff = (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)
+      if (daysDiff <= 7 && !Number.isNaN(daysDiff)) {
+        setSelectedDates([paramFrom])
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

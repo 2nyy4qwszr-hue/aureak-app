@@ -209,9 +209,11 @@ type Props = {
   to?            : string
   implantationId?: string
   groupId?       : string
+  /** Story 110.3 — callback row "+ Ajouter une séance" en pied de tableau (desktop). */
+  onAddSession?  : () => void
 }
 
-export function TableauSeances({ from, to, implantationId, groupId }: Props) {
+export function TableauSeances({ from, to, implantationId, groupId, onAddSession }: Props) {
   const router = useRouter()
   const { width } = useWindowDimensions()
   const isMobile = width <= 640
@@ -324,6 +326,13 @@ export function TableauSeances({ from, to, implantationId, groupId }: Props) {
         </View>
       )}
 
+      {/* Story 110.3 — row "+ Ajouter une séance" desktop only, en haut quand vide pour invitation */}
+      {!isMobile && onAddSession && enriched.length === 0 && (
+        <Pressable style={styles.addRow} onPress={onAddSession}>
+          <AureakText style={styles.addRowText}>+ Ajouter une séance</AureakText>
+        </Pressable>
+      )}
+
       {enriched.map((s, idx) => {
         const isCancelled = s.status === 'annulée' || s.status === 'cancelled'
         const textModifier: TextStyle = isCancelled
@@ -411,6 +420,13 @@ export function TableauSeances({ from, to, implantationId, groupId }: Props) {
           </Pressable>
         )
       })}
+
+      {/* Story 110.3 — row "+ Ajouter une séance" en pied (desktop, quand il y a des séances) */}
+      {!isMobile && onAddSession && enriched.length > 0 && (
+        <Pressable style={styles.addRow} onPress={onAddSession}>
+          <AureakText style={styles.addRowText}>+ Ajouter une séance</AureakText>
+        </Pressable>
+      )}
 
       <View style={styles.pagination}>
         <AureakText style={styles.paginationInfo}>
@@ -571,6 +587,22 @@ const styles = StyleSheet.create({
     fontSize  : 14,
     fontFamily: fonts.body,
     color     : colors.text.muted,
+  },
+  // Story 110.3 — row "+ Ajouter une séance" en pied de tableau
+  addRow: {
+    paddingVertical  : space.md,
+    paddingHorizontal: 16,
+    backgroundColor  : colors.light.muted,
+    borderTopWidth   : 1,
+    borderTopColor   : colors.border.divider,
+    alignItems       : 'center',
+  },
+  addRowText: {
+    fontSize  : 13,
+    fontFamily: fonts.body,
+    fontWeight: '600',
+    color     : colors.accent.gold,
+    letterSpacing: 0.3,
   },
   pagination: {
     flexDirection    : 'row',
