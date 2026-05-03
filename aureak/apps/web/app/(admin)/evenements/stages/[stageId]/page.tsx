@@ -769,6 +769,22 @@ export default function StageDetailPage() {
                 🃏 Cartes Panini
               </AureakText>
             </Pressable>
+            {/* Story 105.3 — Accès gestion sous-groupes */}
+            <Pressable
+              style={{
+                paddingHorizontal: space.md,
+                paddingVertical  : 5,
+                borderRadius     : 6,
+                borderWidth      : 1,
+                borderColor      : colors.accent.gold,
+                backgroundColor  : colors.accent.gold + '15',
+              }}
+              onPress={() => router.push(`/evenements/stages/${stageId}/groupes` as never)}
+            >
+              <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700' }}>
+                📋 Groupes
+              </AureakText>
+            </Pressable>
             <Pressable
               style={{
                 paddingHorizontal: space.md,

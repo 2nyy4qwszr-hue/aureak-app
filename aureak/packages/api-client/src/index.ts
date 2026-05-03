@@ -52,6 +52,12 @@ export {
   searchChildrenForStageParticipation,
   addChildToStage,
   removeChildFromStage,
+  // Story 105.3 — sous-groupes de gardiens
+  listStageGroups,
+  createStageGroup,
+  renameStageGroup,
+  deleteStageGroup,
+  moveChildToGroup,
 } from './admin/stages'
 export type {
   CreateStageParams, UpdateStageParams,
