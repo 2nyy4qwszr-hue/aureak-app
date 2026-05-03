@@ -1,6 +1,6 @@
 # Story 103.6 — Prospection mobile-first (9 pages)
 
-Status: ready-for-dev
+Status: done
 
 ## Metadata
 
