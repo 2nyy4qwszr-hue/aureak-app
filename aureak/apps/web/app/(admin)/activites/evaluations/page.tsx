@@ -365,7 +365,7 @@ export default function EvaluationsPage() {
           <View style={styles.toggleRow}>
             {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
               const isActive = type === evalType
-              const label = type === 'badges' ? 'Badges' : type === 'connaissances' ? 'Connaissances' : 'Compétences'
+              const label = type === 'badges' ? 'Badges' : type === 'connaissances' ? 'Théorie' : 'Pratique'
               return (
                 <Pressable
                   key={type}
@@ -570,8 +570,8 @@ export default function EvaluationsPage() {
           <View style={styles.section}>
             <PlaceholderModule
               icon="📚"
-              title="Module Connaissances"
-              description="disponible prochainement. Les évaluations de connaissances seront liées aux thèmes pédagogiques des séances."
+              title="Module Théorie"
+              description="disponible prochainement. Les évaluations théoriques seront liées aux thèmes pédagogiques des séances."
             />
           </View>
         )}
@@ -580,8 +580,8 @@ export default function EvaluationsPage() {
           <View style={styles.section}>
             <PlaceholderModule
               icon="🎯"
-              title="Module Compétences"
-              description="disponible prochainement. Les évaluations de compétences seront liées au référentiel technique gardien."
+              title="Module Pratique"
+              description="disponible prochainement. Les évaluations pratiques seront liées au référentiel technique gardien."
             />
           </View>
         )}
