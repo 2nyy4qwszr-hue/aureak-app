@@ -11,6 +11,7 @@ import { COMMERCIAL_RESOURCE_TYPE_ICONS, COMMERCIAL_RESOURCE_TYPE_LABELS } from 
 import { useAuthStore } from '@aureak/business-logic'
 import { ProspectionNavBar } from '../../../../components/admin/prospection/ProspectionNavBar'
 import { UploadResourceModal } from '../../../../components/admin/prospection/UploadResourceModal'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 
 export default function CommercialResourcesPage() {
   const { width } = useWindowDimensions()
@@ -118,6 +119,13 @@ export default function CommercialResourcesPage() {
         onSuccess={() => load()}
       />
       </ScrollView>
+
+      {isAdmin && (
+        <PrimaryAction
+          label="Nouvelle ressource"
+          onPress={() => { setEditing(null); setModalOpen(true) }}
+        />
+      )}
     </View>
   )
 }
