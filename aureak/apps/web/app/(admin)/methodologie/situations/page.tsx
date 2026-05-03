@@ -8,6 +8,7 @@ import { colors, fonts, space } from '@aureak/theme'
 import type { Situation, ThemeGroup } from '@aureak/types'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import {
   MetFiltersRow, MetSelect, MetPagination, usePagination, PAGE_SIZE,
 } from '../../../../components/admin/methodologie/methodologieFilters'
@@ -52,6 +53,7 @@ export default function SituationsPage() {
     : situations.filter(s => s.blocId === selectedBlocId)
 
   return (
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
       <MethodologieHeader
@@ -91,6 +93,12 @@ export default function SituationsPage() {
         )}
       </View>
     </ScrollView>
+
+      <PrimaryAction
+        label="Nouvelle situation"
+        onPress={() => router.push('/methodologie/situations/new' as never)}
+      />
+    </View>
   )
 }
 
