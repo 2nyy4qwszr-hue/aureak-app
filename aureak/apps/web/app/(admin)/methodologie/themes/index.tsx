@@ -35,7 +35,8 @@ export default function ThemesPage() {
       const [t, g, meta, vids] = await Promise.all([
         listThemes(),
         listThemeGroups(),
-        supabase.from('theme_metaphors').select('theme_id').is('deleted_at', null),
+        // theme_metaphors n'a pas de colonne deleted_at (pas de soft-delete sur cette table)
+        supabase.from('theme_metaphors').select('theme_id'),
         supabase.from('theme_sequences').select('theme_id').not('coach_video_url', 'is', null),
       ])
       if (t.error || g.error) {
