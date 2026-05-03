@@ -89,7 +89,7 @@ async function getSignedPhotoUrl(path: string): Promise<string | null> {
 
 /** Génère des Signed URLs en batch — 1 seul appel Storage (évite N+1).
  *  Cache mémoire 50 min : évite de re-générer des URLs encore valides (Story 25.4). */
-async function getSignedPhotoUrls(paths: string[]): Promise<Record<string, string>> {
+export async function getSignedPhotoUrls(paths: string[]): Promise<Record<string, string>> {
   if (paths.length === 0) return {}
   const result: Record<string, string> = {}
   const uncached: string[] = []
