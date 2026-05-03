@@ -614,10 +614,10 @@ const styles = StyleSheet.create({
     zIndex           : 9999,
   },
   filtresRowMobile: {
-    // Story 110.7+ — segmented à gauche, bouton Filtres aligné à droite
+    // Story 110.7+ — Mobile : segmented + Filtres collés à gauche (justifyContent flex-start)
     flexDirection    : 'row',
     alignItems       : 'center',
-    justifyContent   : 'space-between',
+    justifyContent   : 'flex-start',
     gap              : space.sm,
     paddingHorizontal: space.md,
     flexWrap         : 'wrap',
