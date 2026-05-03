@@ -183,50 +183,6 @@ export default function ProspectionGardiensPage() {
         </View>
       )}
 
-      {/* Funnel Stats */}
-      {loading ? (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Chargement…</AureakText>
-      ) : !stats ? (
-        <AureakText style={{ color: colors.text.muted, fontSize: 13 }}>Stats indisponibles</AureakText>
-      ) : (
-        <>
-          {/* Conversion globale */}
-          <View style={st.globalCard}>
-            <View>
-              <AureakText style={st.globalLabel as never}>TAUX DE CONVERSION GLOBAL</AureakText>
-              <AureakText style={st.globalSub as never}>Prospect → Inscrit</AureakText>
-            </View>
-            <AureakText style={st.globalValue as never}>{globalConversion ?? '—'}</AureakText>
-          </View>
-
-          {/* Funnel row */}
-          <View style={st.funnelRow}>
-            {funnelValues.map(({ step, value, prevValue }) => (
-              <FunnelStepCard
-                key={step.key as string}
-                step={step}
-                value={value}
-                prevValue={prevValue}
-              />
-            ))}
-          </View>
-
-          {/* Compteurs essais consommés */}
-          <View style={st.secondaryRow}>
-            <View style={st.kpiMini}>
-              <AureakText style={st.kpiMiniLabel as never}>ESSAIS CONSOMMÉS</AureakText>
-              <AureakText style={st.kpiMiniValue as never}>{stats.trialsUsed}</AureakText>
-            </View>
-            <View style={st.kpiMini}>
-              <AureakText style={st.kpiMiniLabel as never}>ABSENCES ESSAIS</AureakText>
-              <AureakText style={[st.kpiMiniValue, { color: colors.status.absent }] as never}>
-                {stats.trialsAbsent}
-              </AureakText>
-            </View>
-          </View>
-        </>
-      )}
-
       {/* Liste des essais consommés */}
       <View style={st.sectionHeader}>
         <AureakText style={st.sectionTitle as never}>Essais consommés</AureakText>
