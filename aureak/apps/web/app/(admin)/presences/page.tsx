@@ -605,10 +605,18 @@ export default function DashboardPresencesPage() {
   const detailSession = sessions.find(s => s.sessionId === detailSessionId)
 
   return (
-    <div style={{ padding: 32, maxWidth: 1200, margin: '0 auto' }}>
+    <div className="presences-page" style={{ maxWidth: 1200, margin: '0 auto' }}>
       <style>{`
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
         select { appearance: auto; }
+        /* Story 110.4 — responsive vertical mobile : padding réduit + contrôles stack */
+        .presences-page { padding: 16px; }
+        @media (min-width: 640px) { .presences-page { padding: 32px; } }
+        @media (max-width: 639px) {
+          .presences-page .controls-row { flex-direction: column; align-items: stretch; }
+          .presences-page .controls-row > * { width: 100%; }
+          .presences-page .controls-row .time-toggle { align-self: flex-start; }
+        }
       `}</style>
 
       {/* ── Header ── */}
@@ -699,19 +707,22 @@ export default function DashboardPresencesPage() {
       )}
 
       {/* ── Controls ── */}
-      <div style={{
-        background   : colors.light.surface,
-        borderRadius : radius.card,
-        padding      : 16,
-        marginBottom : 24,
-        boxShadow    : shadows.sm,
-        display      : 'flex',
-        gap          : 12,
-        flexWrap     : 'wrap',
-        alignItems   : 'flex-end',
-      }}>
-        {/* Time view toggle */}
-        <div style={{ display: 'flex', gap: 4, background: colors.light.muted, borderRadius: radius.xs, padding: 3 }}>
+      <div
+        className="controls-row"
+        style={{
+          background   : colors.light.surface,
+          borderRadius : radius.card,
+          padding      : 16,
+          marginBottom : 24,
+          boxShadow    : shadows.sm,
+          display      : 'flex',
+          gap          : 12,
+          flexWrap     : 'wrap',
+          alignItems   : 'flex-end',
+        }}
+      >
+        {/* Time view toggle — Story 110.4 : isolé de implantationId, ne reset jamais */}
+        <div className="time-toggle" style={{ display: 'flex', gap: 4, background: colors.light.muted, borderRadius: radius.xs, padding: 3 }}>
           {(['day', 'week', 'month'] as TimeView[]).map(v => (
             <button
               key={v}
