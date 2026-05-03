@@ -6,7 +6,6 @@ import { listThemes, listThemeGroups, supabase } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
 import type { Theme, ThemeGroup } from '@aureak/types'
-import BlocsManagerModal from '../_components/BlocsManagerModal'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
@@ -25,7 +24,6 @@ export default function ThemesPage() {
   const [groups,                 setGroups]                 = useState<ThemeGroup[]>([])
   const [loading,                setLoading]                = useState(true)
   const [selectedGroupId,        setSelectedGroupId]        = useState<string>('all')
-  const [modalVisible,           setModalVisible]           = useState(false)
   const [errorMsg,               setErrorMsg]               = useState<string | null>(null)
   const [themeIdsWithMetaphors,  setThemeIdsWithMetaphors]  = useState<Set<string>>(new Set())
   const [themeIdsWithVideo,      setThemeIdsWithVideo]      = useState<Set<string>>(new Set())
@@ -80,13 +78,6 @@ export default function ThemesPage() {
       />
 
       <View style={st.bodyWrap}>
-
-        <View style={st.actionRow}>
-          <Pressable style={st.manageBtn} onPress={() => setModalVisible(true)}>
-            <AureakText style={st.manageBtnLabel}>⚙ Gérer les blocs</AureakText>
-          </Pressable>
-        </View>
-
         <MetFiltersRow>
           <FilterSheet
             activeCount={selectedGroupId !== 'all' ? 1 : 0}
@@ -142,14 +133,6 @@ export default function ThemesPage() {
 
       </View>
 
-      <BlocsManagerModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onBlocChanged={() => {
-          setLoading(true)
-          loadData()
-        }}
-      />
     </ScrollView>
 
       <PrimaryAction
@@ -316,9 +299,6 @@ const st = StyleSheet.create({
   content  : { paddingBottom: space.xxl, gap: space.md },
   bodyWrap : { paddingHorizontal: space.lg, gap: space.md },
 
-  actionRow     : { flexDirection: 'row', justifyContent: 'flex-end' },
-  manageBtn     : { paddingHorizontal: space.md, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: colors.border.light, backgroundColor: colors.light.surface },
-  manageBtnLabel: { color: colors.text.muted, fontWeight: '600', fontSize: 13 },
 
   empty: { padding: space.xl, alignItems: 'center', backgroundColor: colors.light.surface },
 
