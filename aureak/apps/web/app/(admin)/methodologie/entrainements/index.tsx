@@ -1,7 +1,7 @@
 'use client'
 // Entraînements pédagogiques — bibliothèque de contenu réutilisable
 import React, { useContext, useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable, type TextStyle } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions, type TextStyle } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listMethodologySessions, softDeleteMethodologySession, listMethodologyExercises } from '@aureak/api-client'
 import { AureakText, ConfirmDialog } from '@aureak/ui'
@@ -201,6 +201,8 @@ type EntraînementsTableProps = {
 
 function EntraînementsTable({ sessions, totalSessions, deletingId, methodColors, onPress, onDelete }: EntraînementsTableProps) {
   const { page, setPage, pageCount, paginated } = usePagination(sessions, PAGE_SIZE)
+  const { width } = useWindowDimensions()
+  const isMobile = width < 640
 
   if (sessions.length === 0) {
     return (
@@ -210,6 +212,58 @@ function EntraînementsTable({ sessions, totalSessions, deletingId, methodColors
             {totalSessions === 0 ? 'Aucun entraînement pédagogique. Créez le premier.' : 'Aucun résultat pour ces filtres.'}
           </AureakText>
         </View>
+      </View>
+    )
+  }
+
+  // Story 103.9 — rendu mobile en stack de cards (pas de scroll horizontal)
+  if (isMobile) {
+    return (
+      <View style={st.tableWrapper}>
+        {paginated.map((session) => {
+          const isDeleting  = deletingId === session.id
+          const isLinked    = (session.sessionsCount ?? 0) > 0
+          const methodColor = session.method ? methodColors[session.method] ?? colors.border.light : colors.border.light
+          const picto = session.method ? METHOD_PICTOS[session.method] : '—'
+          return (
+            <Pressable
+              key={session.id}
+              onPress={() => onPress(session.id)}
+              style={({ pressed }) => [st.mobileCard, pressed && { opacity: 0.8 }]}
+            >
+              <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
+                <AureakText style={st.methodPicto}>{picto}</AureakText>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <AureakText style={st.titleText} numberOfLines={2}>{session.title}</AureakText>
+                <AureakText style={st.numText}>
+                  {session.trainingRef ? `#${session.trainingRef}` : '—'}
+                  {session.method ? ` · ${session.method}` : ''}
+                </AureakText>
+              </View>
+              <View style={[st.statusDot, {
+                backgroundColor: session.isActive ? colors.status.present : colors.border.light,
+              }]} />
+              {!isLinked && (
+                <Pressable
+                  style={[st.deleteBtn, isDeleting && { opacity: 0.5 }]}
+                  onPress={(e) => { e.stopPropagation?.(); onDelete(session.id) }}
+                  disabled={isDeleting}
+                >
+                  <AureakText style={st.deleteBtnLabel}>{isDeleting ? '…' : '✕'}</AureakText>
+                </Pressable>
+              )}
+            </Pressable>
+          )
+        })}
+        <MetPagination
+          page={page}
+          pageCount={pageCount}
+          total={sessions.length}
+          pageSize={PAGE_SIZE}
+          itemLabelPlural="entraînements"
+          onPageChange={setPage}
+        />
       </View>
     )
   }
@@ -441,6 +495,17 @@ const st = StyleSheet.create({
     borderWidth : 1,
     borderColor : colors.border.divider,
     overflow    : 'hidden',
+  },
+  // Story 103.9 — card mobile (stack vertical, pas de scroll horizontal)
+  mobileCard: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    gap              : space.md,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm + 2,
+    backgroundColor  : colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
   tableHeader: {
     flexDirection    : 'row',
