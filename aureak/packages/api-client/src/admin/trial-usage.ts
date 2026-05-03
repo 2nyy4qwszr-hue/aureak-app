@@ -2,7 +2,7 @@
 // API client : enregistrement de l'issue d'un essai, override admin, stats funnel.
 
 import { supabase } from '../supabase'
-import { processTrialOutcome } from '@aureak/business-logic'
+import { processTrialOutcome } from './processTrialOutcome'
 import type { ProspectStatus, TrialOutcome } from '@aureak/types'
 
 // ── Enregistrement issue séance d'essai (AC #4/#5/#6) ─────────────────────────

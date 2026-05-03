@@ -1,6 +1,6 @@
 # Story 110.9 : Casser le require cycle business-logic ↔ api-client
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
