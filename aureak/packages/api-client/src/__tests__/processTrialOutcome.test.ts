@@ -1,7 +1,7 @@
 // Story 89.6 — tests unitaires fonction pure processTrialOutcome
 
 import { describe, expect, it } from 'vitest'
-import { processTrialOutcome } from '../prospection/processTrialOutcome'
+import { processTrialOutcome } from '../admin/processTrialOutcome'
 
 describe('processTrialOutcome', () => {
   const FIXED = '2026-04-19T10:00:00.000Z'
