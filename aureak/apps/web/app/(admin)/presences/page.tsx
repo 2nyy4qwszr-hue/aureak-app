@@ -517,6 +517,9 @@ export default function DashboardPresencesPage() {
   const [modalGroupId,  setModalGroupId]  = useState('')
   const [modalError,    setModalError]    = useState<string | null>(null)
 
+  // Story 110.4 bug 1 — timeView est intentionnellement indépendant des autres
+  // filtres. Aucun effect ni setter caché ne doit le reset. Si tu modifies cette
+  // page : NE PAS ajouter de dépendance qui repasse setTimeView.
   const [timeView,       setTimeView]       = useState<TimeView>('week')
   const [implantationId, setImplantationId] = useState('')
   const [groupId,        setGroupId]        = useState('')
