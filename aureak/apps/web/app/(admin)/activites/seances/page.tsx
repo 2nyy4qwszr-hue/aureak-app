@@ -184,9 +184,10 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection    : 'row',
     flexWrap         : 'wrap',
+    justifyContent   : 'space-between',
     gap              : space.md,
     paddingHorizontal: space.lg,
-    alignItems       : 'flex-end',
+    alignItems       : 'center',
   },
 
   timeToggle: {
