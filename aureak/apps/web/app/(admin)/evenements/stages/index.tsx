@@ -6,10 +6,11 @@ import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native
 import { useRouter } from 'expo-router'
 import { listStages } from '@aureak/api-client'
 import { AureakText, EmptyStateIllustrated } from '@aureak/ui'
-import { colors, space } from '@aureak/theme'
+import { colors, fonts, radius, space } from '@aureak/theme'
 import type { StageWithMeta, StageStatus, StageType } from '@aureak/types'
 import { SkeletonCard } from '../../../../components/SkeletonCard'
 import { EvenementsHeader } from '../../../../components/admin/evenements/EvenementsHeader'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 
 const STATUS_LABELS: Record<StageStatus, string> = {
@@ -92,37 +93,37 @@ export default function StagesPage() {
         </AureakText>
       )}
 
-      {/* Search */}
-      <TextInput
-        style={s.searchInput}
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Rechercher par nom…"
-        placeholderTextColor={colors.text.muted}
-      />
-
-      {/* Status filter tabs */}
-      <View style={s.filterRow}>
-        {(['all', 'planifié', 'en_cours', 'terminé', 'annulé'] as FilterStatus[]).map(st => {
-          const isActive = filter === st
-          return (
-            <Pressable
-              key={st}
-              style={[s.tab, isActive && s.tabActive] as never}
-              onPress={() => setFilter(st)}
+      {/* Story 110.x — Search inline + bouton Filtres aligné droite (pattern uniforme) */}
+      <View style={s.controls}>
+        <View style={s.searchWrap}>
+          <TextInput
+            style={s.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher par nom…"
+            placeholderTextColor={colors.text.muted}
+          />
+        </View>
+        <FilterSheet
+          activeCount={filter !== 'all' ? 1 : 0}
+          onReset={() => setFilter('all')}
+          triggerLabel="Filtrer les stages"
+        >
+          <View style={s.selectField}>
+            <AureakText style={s.selectLabel}>Statut</AureakText>
+            <select
+              value={filter}
+              onChange={e => setFilter(e.target.value as FilterStatus)}
+              style={selectNativeStyle}
             >
-              <AureakText
-                variant="caption"
-                style={{
-                  color     : isActive ? colors.text.dark : colors.text.muted,
-                  fontWeight: isActive ? '700' : '400',
-                }}
-              >
-                {st === 'all' ? 'Tous' : STATUS_LABELS[st as StageStatus]}
-              </AureakText>
-            </Pressable>
-          )
-        })}
+              <option value="all">Tous</option>
+              <option value="planifié">{STATUS_LABELS['planifié' as StageStatus]}</option>
+              <option value="en_cours">{STATUS_LABELS['en_cours' as StageStatus]}</option>
+              <option value="terminé">{STATUS_LABELS['terminé' as StageStatus]}</option>
+              <option value="annulé">{STATUS_LABELS['annulé' as StageStatus]}</option>
+            </select>
+          </View>
+        </FilterSheet>
       </View>
 
       {/* Error — affiché seul, sans état vide simultané */}
@@ -213,10 +214,30 @@ export default function StagesPage() {
   )
 }
 
+const selectNativeStyle: React.CSSProperties = {
+  width        : '100%',
+  padding      : '7px 10px',
+  fontSize     : 13,
+  color        : colors.text.dark,
+  background   : colors.light.muted,
+  border       : `1px solid ${colors.border.divider}`,
+  borderRadius : radius.xs,
+  outline      : 'none',
+  fontFamily   : fonts.body,
+}
+
 const s = StyleSheet.create({
   container  : { flex: 1, backgroundColor: colors.light.primary },
   content    : { padding: space.xl, gap: space.md },
 
+  // Story 110.x — controls row : search inline + bouton Filtres aligné droite
+  controls   : {
+    flexDirection: 'row',
+    flexWrap     : 'wrap',
+    gap          : space.md,
+    alignItems   : 'center',
+  },
+  searchWrap : { flex: 1, minWidth: 200 },
   searchInput: {
     backgroundColor  : colors.light.surface,
     borderWidth      : 1,
@@ -227,10 +248,19 @@ const s = StyleSheet.create({
     color            : colors.text.dark,
     fontSize         : 13,
   },
-
-  filterRow : { flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' as never },
-  tab       : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 5 },
-  tabActive : { backgroundColor: colors.light.muted },
+  selectField: {
+    flexGrow : 1,
+    flexBasis: 160,
+    gap      : 4,
+  },
+  selectLabel: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    color        : colors.text.subtle,
+    letterSpacing: 1,
+    textTransform: 'uppercase' as never,
+    fontFamily   : fonts.display,
+  },
 
   grid        : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   card        : {
