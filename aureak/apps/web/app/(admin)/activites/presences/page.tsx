@@ -22,6 +22,7 @@ import { ActivitesHeader }        from '../../../../components/admin/activites/A
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
 import { PseudoFiltresTemporels } from '../../../../components/admin/activites/PseudoFiltresTemporels'
 import { PrimaryAction }          from '../../../../components/admin/PrimaryAction'
+import { FilterSheet }            from '../../../../components/admin/FilterSheet'
 import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
 import type { AttendanceStatus }  from '@aureak/types'
@@ -1235,10 +1236,16 @@ export default function PresencesPage() {
     <View style={pageStyles.container}>
       <ActivitesHeader counts={activitesCnts ?? undefined} />
       <ScrollView style={pageStyles.scroll} contentContainerStyle={pageStyles.scrollContent}>
-        {/* Filtres scope + temporels — row desktop, stack mobile */}
+        {/* Story 110.8 — Filtres uniformisés : segmented temporel + bouton Filtres (sheet) */}
         <View style={[pageStyles.filtresRow, isMobile && pageStyles.filtresRowMobile]}>
-          <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />
           <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
+          <FilterSheet
+            activeCount={scope.scope === 'global' ? 0 : 1}
+            onReset={() => { setScope({ scope: 'global' }); setPage(0) }}
+            triggerLabel="Filtrer le scope"
+          >
+            <FiltresScope value={scope} onChange={next => { setScope(next); setPage(0) }} />
+          </FilterSheet>
         </View>
 
         {/* Vue selon filtre */}

@@ -14,6 +14,7 @@ import type { AdminEvalRow } from '@aureak/api-client'
 import { ActivitesCountsContext } from '../_layout'
 import { ActivitesHeader }        from '../../../../components/admin/activites/ActivitesHeader'
 import { FiltresScope }           from '../../../../components/admin/activites/FiltresScope'
+import { FilterSheet }            from '../../../../components/admin/FilterSheet'
 import type { ScopeState }        from '../../../../components/admin/activites/FiltresScope'
 import type { TemporalFilter }    from '../../../../components/admin/activites/PseudoFiltresTemporels'
 
@@ -359,9 +360,8 @@ export default function EvaluationsPage() {
           </View>
         )}
 
-        {/* Filtres scope + toggle evalType sur une ligne (stack mobile) */}
+        {/* Story 110.8 — Filtres uniformisés : segmented evalType + bouton Filtres (sheet) */}
         <View style={[styles.filtresRow, isMobile && styles.filtresRowMobile]}>
-          <FiltresScope value={scope} onChange={setScope} />
           <View style={styles.toggleRow}>
             {(['badges', 'connaissances', 'competences'] as EvalType[]).map(type => {
               const isActive = type === evalType
@@ -379,6 +379,13 @@ export default function EvaluationsPage() {
               )
             })}
           </View>
+          <FilterSheet
+            activeCount={scope.scope === 'global' ? 0 : 1}
+            onReset={() => setScope({ scope: 'global' })}
+            triggerLabel="Filtrer le scope"
+          >
+            <FiltresScope value={scope} onChange={setScope} />
+          </FilterSheet>
         </View>
 
         {/* Contenu selon sous-filtre */}
