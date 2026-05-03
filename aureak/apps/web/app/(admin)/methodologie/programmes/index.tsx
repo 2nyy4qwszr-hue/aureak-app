@@ -13,6 +13,7 @@ import {
 import type { MethodologyProgramme } from '@aureak/types'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import {
   MetFiltersRow, MetSelect, MetPagination, usePagination, PAGE_SIZE,
 } from '../../../../components/admin/methodologie/methodologieFilters'
@@ -64,6 +65,7 @@ export default function ProgrammesPage() {
   })
 
   return (
+    <View style={{ flex: 1, backgroundColor: colors.light.primary }}>
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
       <MethodologieHeader
@@ -107,6 +109,12 @@ export default function ProgrammesPage() {
         )}
       </View>
     </ScrollView>
+
+      <PrimaryAction
+        label="Nouveau programme"
+        onPress={() => router.push('/methodologie/programmes/new' as never)}
+      />
+    </View>
   )
 }
 
