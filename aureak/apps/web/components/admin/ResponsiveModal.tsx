@@ -279,11 +279,10 @@ const s = StyleSheet.create({
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     overflow       : 'hidden',
-    shadowColor    : '#000',
-    shadowOpacity  : 0.18,
-    shadowRadius   : 24,
-    shadowOffset   : { width: 0, height: 8 },
     elevation      : 12,
+    // Story 110.10 — boxShadow web (replace deprecated shadow* props)
+    // @ts-ignore web-only
+    boxShadow      : '0 8px 24px rgba(0,0,0,0.18)',
   } as ViewStyle,
   // Mobile : full-screen
   modalMobile: {

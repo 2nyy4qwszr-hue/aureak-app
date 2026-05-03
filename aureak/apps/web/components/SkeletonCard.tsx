@@ -68,12 +68,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     padding        : 16,
-    shadowColor    : '#000',
-    shadowOffset   : { width: 0, height: 1 },
-    shadowOpacity  : 0.06,
-    shadowRadius   : 2,
     elevation      : 1,
     overflow       : 'hidden',
+    // Story 110.10 — boxShadow web
+    // @ts-ignore web-only
+    boxShadow      : '0 1px 2px rgba(0,0,0,0.06)',
   },
   topRow: {
     flexDirection : 'row',

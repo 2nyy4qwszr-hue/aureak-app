@@ -61,11 +61,10 @@ const s = StyleSheet.create({
     borderRadius     : radius.badge,
     paddingHorizontal: 7,
     paddingVertical  : 3,
-    shadowColor      : colors.accent.gold,
-    shadowOffset     : { width: 0, height: 1 },
-    shadowOpacity    : 0.4,
-    shadowRadius     : 3,
     elevation        : 3,
+    // Story 110.10 — boxShadow web (replace deprecated shadow* props)
+    // @ts-ignore web-only boxShadow
+    boxShadow        : '0 1px 3px rgba(193,172,92,0.4)',
   },
   iconWrap: {
     width : 11,

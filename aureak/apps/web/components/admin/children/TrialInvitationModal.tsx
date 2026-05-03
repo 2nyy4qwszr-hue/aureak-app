@@ -289,11 +289,10 @@ const s = StyleSheet.create({
     backgroundColor: colors.light.surface,
     borderRadius   : radius.card,
     overflow       : 'hidden',
-    shadowColor    : '#000',
-    shadowOffset   : { width: 0, height: 2 },
-    shadowOpacity  : 0.10,
-    shadowRadius   : 10,
     elevation      : 5,
+    // Story 110.10 — boxShadow web
+    // @ts-ignore web-only
+    boxShadow      : '0 2px 10px rgba(0,0,0,0.10)',
   },
   field         : { gap: 4 },
   label         : { color: colors.text.muted, fontSize: 11, fontWeight: '700' as never, letterSpacing: 0.5, textTransform: 'uppercase' as never },

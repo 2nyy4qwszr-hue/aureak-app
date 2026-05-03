@@ -62,11 +62,10 @@ const styles = StyleSheet.create({
     borderRadius   : radius.card,
     padding        : space.xl,
     gap            : space.sm,
-    shadowColor    : '#000',
-    shadowOffset   : { width: 0, height: 2 },
-    shadowOpacity  : 0.08,
-    shadowRadius   : 8,
     elevation      : 4,
+    // Story 110.10 — boxShadow web
+    // @ts-ignore web-only
+    boxShadow      : '0 2px 8px rgba(0,0,0,0.08)',
   },
   title      : { color: colors.text.dark },
   message    : { color: colors.text.muted },

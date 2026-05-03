@@ -1,6 +1,6 @@
 # Story 110.10 : Migrer `shadow*` props vers `boxShadow` (RN-web deprecation)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
