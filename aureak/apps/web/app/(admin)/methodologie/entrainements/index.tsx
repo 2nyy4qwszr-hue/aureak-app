@@ -14,6 +14,7 @@ import type { MethodologySession, MethodologyExercise } from '@aureak/types'
 import { useToast } from '../../../../components/ToastContext'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
+import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
 import {
   MetFiltersRow, MetSegmented, MetSelect, MetPagination, usePagination, PAGE_SIZE,
 } from '../../../../components/admin/methodologie/methodologieFilters'
@@ -105,6 +106,7 @@ export default function SeancesPage() {
   })
 
   return (
+    <View style={st.root}>
     <ScrollView style={st.container} contentContainerStyle={st.content}>
 
       <MethodologieHeader
@@ -176,6 +178,13 @@ export default function SeancesPage() {
       />
 
     </ScrollView>
+
+      {/* Story 103.3 — FAB mobile cohérent avec pattern PrimaryAction */}
+      <PrimaryAction
+        label="Nouvel entraînement"
+        onPress={() => router.push('/methodologie/entrainements/new' as never)}
+      />
+    </View>
   )
 }
 
@@ -420,6 +429,7 @@ function ExercicesTable({ exercises, totalExercises, methodColors }: ExercicesTa
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
+  root     : { flex: 1, backgroundColor: colors.light.primary },
   container: { flex: 1, backgroundColor: colors.light.primary },
   content  : { paddingBottom: space.xxl, gap: space.md },
   bodyWrap : { paddingHorizontal: space.lg, gap: space.md },

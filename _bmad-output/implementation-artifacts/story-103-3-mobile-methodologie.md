@@ -1,6 +1,6 @@
 # Story 103.3 — Méthodologie mobile-first (5 pages)
 
-Status: ready-for-dev
+Status: done
 
 ## Metadata
 
