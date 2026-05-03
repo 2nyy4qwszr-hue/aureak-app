@@ -18,6 +18,8 @@ import type {
 } from '@aureak/api-client'
 import { useAuthStore } from '@aureak/business-logic'
 import { colors, fonts, shadows, radius, space, transitions } from '@aureak/theme'
+import { View } from 'react-native'
+import { FilterSheet } from '../../../components/admin/FilterSheet'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -746,7 +748,13 @@ export default function DashboardPresencesPage() {
           ))}
         </div>
 
-        {/* Implantation */}
+        {/* Story 110.6 — Filtres impl/groupe wrappés dans FilterSheet (mobile sheet, desktop inline) */}
+        <FilterSheet
+          activeCount={(implantationId ? 1 : 0) + (groupId ? 1 : 0)}
+          onReset={() => { setImplantationId(''); setGroupId('') }}
+          triggerLabel="Filtrer les présences"
+        >
+          <View style={{ flexDirection: 'row', gap: 12, flex: 1, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 140px' }}>
           <label style={S.filterLabel}>Implantation</label>
           <select value={implantationId} onChange={e => setImplantationId(e.target.value)} style={S.select}>
@@ -755,7 +763,6 @@ export default function DashboardPresencesPage() {
           </select>
         </div>
 
-        {/* Groupe */}
         <div style={{ flex: '1 1 140px' }}>
           <label style={S.filterLabel}>Groupe</label>
           <select value={groupId} onChange={e => setGroupId(e.target.value)} style={S.select}>
@@ -763,6 +770,8 @@ export default function DashboardPresencesPage() {
             {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
         </div>
+          </View>
+        </FilterSheet>
       </div>
 
       {/* ── Cards Grid ── */}
