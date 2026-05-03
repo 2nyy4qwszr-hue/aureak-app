@@ -5,8 +5,6 @@ import { usePathname, useRouter } from 'expo-router'
 import { colors, transitions } from '@aureak/theme'
 import { parseBreadcrumbs } from '../utils/breadcrumbs'
 import { useBreadcrumbContext } from '../contexts/BreadcrumbContext'
-// Story 100.4 — Helper chemin parent pour breadcrumb mobile compact
-import { getParentPath } from '../lib/admin/breadcrumb-parent'
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 
@@ -29,70 +27,8 @@ export function Breadcrumb() {
   // Si 1 seul segment → pas de breadcrumb utile (on est déjà au niveau racine du hub)
   if (items.length <= 1) return null
 
-  // Story 100.4 — Variant mobile compact (< 640) : flèche retour + niveau courant
-  if (width < 640) {
-    const currentItem = items[items.length - 1]
-    const parentItem  = items.length >= 2 ? items[items.length - 2] : null
-    const parentPath  = parentItem?.href ?? getParentPath(pathname)
-    const parentLabel = parentItem?.label ?? 'Retour'
-    // Capitalise les labels lowercase (fallback parseBreadcrumbs via URL segment)
-    const displayLabel = currentItem.label.charAt(0).toUpperCase() + currentItem.label.slice(1)
-
-    // Navigation explicite vers le parent — plus prévisible que router.back()
-    // (qui peut ne pas changer l'URL si la stack Expo est incohérente).
-    const handleBack = () => {
-      router.push(parentPath as never)
-    }
-
-    return (
-      <BreadcrumbAnimated key={pathname}>
-        <XStack
-          alignItems="center"
-          paddingHorizontal={12}
-          paddingVertical={10}
-          gap={8}
-          style={{ flexShrink: 0 } as never}
-        >
-          <Pressable
-            onPress={handleBack}
-            accessibilityRole="link"
-            accessibilityLabel={`Retour à ${parentLabel}`}
-          >
-            {({ pressed }) => (
-              <XStack
-                alignItems="center"
-                gap={6}
-                paddingHorizontal={8}
-                paddingVertical={6}
-                borderRadius={8}
-                style={{
-                  backgroundColor: pressed ? colors.light.muted : 'transparent',
-                  transition     : `background-color ${transitions.fast}`,
-                  cursor         : 'pointer',
-                } as never}
-              >
-                <Text fontFamily="$body" fontSize={18} color={colors.text.dark} style={{ lineHeight: 18 } as never}>
-                  ←
-                </Text>
-                <Text
-                  fontFamily="$body"
-                  fontSize={14}
-                  fontWeight="600"
-                  color={colors.text.dark}
-                  numberOfLines={1}
-                >
-                  {displayLabel}
-                </Text>
-              </XStack>
-            )}
-          </Pressable>
-        </XStack>
-      </BreadcrumbAnimated>
-    )
-  }
-
-  // Tablet (640-1024) : le topbar tablet (Story 100.3) affiche déjà le dernier crumb.
-  // On évite le double-render.
+  // Story 110.7 — pas de back-nav mobile/tablet. L'utilisateur navigue via le
+  // burger drawer ou le geste natif du navigateur.
   if (width < 1024) return null
 
   return (
