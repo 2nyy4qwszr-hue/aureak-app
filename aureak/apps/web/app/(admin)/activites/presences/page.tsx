@@ -1327,9 +1327,10 @@ const pageStyles = StyleSheet.create({
     zIndex           : 9999,
   },
   filtresRowMobile: {
-    // Story 110.7+ — segmented temporel + bouton Filtres sur même ligne (gap, wrap si étroit)
+    // Story 110.7+ — segmented temporel à gauche, bouton Filtres aligné à droite
     flexDirection    : 'row',
     alignItems       : 'center',
+    justifyContent   : 'space-between',
     gap              : space.sm,
     paddingHorizontal: space.md,
     flexWrap         : 'wrap',
