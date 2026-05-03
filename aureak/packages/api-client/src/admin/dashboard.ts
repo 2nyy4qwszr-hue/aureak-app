@@ -415,9 +415,10 @@ export async function getPlayerOfWeek(): Promise<{ data: PlayerOfWeek | null; er
     .maybeSingle()
 
   // 5. Photo depuis child_directory_photos
+  // Colonne actuelle = photo_path (chemin Storage), URL signée générée via helper
   const { data: photoData } = await supabase
     .from('child_directory_photos')
-    .select('photo_url')
+    .select('photo_path')
     .eq('child_id', winnerId)
     .eq('is_current', true)
     .is('deleted_at', null)
@@ -425,13 +426,20 @@ export async function getPlayerOfWeek(): Promise<{ data: PlayerOfWeek | null; er
 
   const child   = childData   as { id: string; display_name: string } | null
   const session = sessionData as { name: string; scheduled_at: string } | null
-  const photo   = photoData   as { photo_url: string } | null
+  const photo   = photoData   as { photo_path: string } | null
+
+  let photoUrl: string | null = null
+  if (photo?.photo_path) {
+    const { getSignedPhotoUrls } = await import('./child-directory')
+    const signed = await getSignedPhotoUrls([photo.photo_path])
+    photoUrl = signed[photo.photo_path] ?? null
+  }
 
   return {
     data: {
       childId    : winnerId,
       displayName: child?.display_name ?? 'Joueur',
-      photoUrl   : photo?.photo_url    ?? null,
+      photoUrl,
       score      : Math.round(maxScore * 10) / 10,
       sessionName: session?.name ?? null,
       sessionDate: winnerEval.date,

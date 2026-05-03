@@ -40,10 +40,11 @@ export async function listCoachGradeHistory(
 export async function getCoachCurrentGrade(
   coachId: string,
 ): Promise<{ data: CoachGrade | null; error: unknown }> {
+  // maybeSingle() : retourne null si pas de row au lieu de 406 Not Acceptable
   const { data, error } = await supabase
     .from('coach_current_grade')
     .select('*')
     .eq('coach_id', coachId)
-    .single()
+    .maybeSingle()
   return { data: data as CoachGrade | null, error }
 }

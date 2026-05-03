@@ -105,11 +105,12 @@ function mapStatusView(r: Record<string, unknown>): ChildAcademyStatusData {
 export async function getChildAcademyStatus(
   childId: string
 ): Promise<{ data: ChildAcademyStatusData | null; error: unknown }> {
+  // maybeSingle() : retourne null si pas de row (vs 406 single() / 400 sur uuid invalide géré par RLS)
   const { data, error } = await supabase
     .from('v_child_academy_status')
     .select('*')
     .eq('child_id', childId)
-    .single()
+    .maybeSingle()
 
   if (error || !data) return { data: null, error }
   return { data: mapStatusView(data as Record<string, unknown>), error: null }
