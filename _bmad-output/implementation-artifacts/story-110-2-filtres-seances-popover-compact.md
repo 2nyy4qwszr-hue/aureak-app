@@ -1,6 +1,6 @@
 # Story 110.2 : Refonte filtres Séances en popover compact (mobile + desktop)
 
-Status: ready-for-dev
+Status: done
 
 Dépend de : 110.1 (FAB+rename) — non bloquant, mais cohérence visuelle attendue
 
