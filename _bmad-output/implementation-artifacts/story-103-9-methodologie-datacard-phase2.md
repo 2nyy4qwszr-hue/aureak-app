@@ -1,6 +1,16 @@
 # Story 103.9 : Méthodologie phase 2 — DataCard mobile-first sur 4 pages
 
-Status: ready-for-dev
+Status: partial-done
+
+> **Scope livré** : EntraînementsTable migré en stack de cards mobile (<640px). Plus de scroll horizontal sur cette table. Pattern `useWindowDimensions + isMobile ? <Cards /> : <Table />` utilisé.
+>
+> **Scope restant** (sous-stories à créer si besoin) :
+> - 103.9.b : ExercicesTable (méthodologie/entrainements onglet exercices)
+> - 103.9.c : ProgrammesTable
+> - 103.9.d : ThemesTable
+> - 103.9.e : SituationsTable
+>
+> Le pattern à reproduire est dans `entrainements/index.tsx` lignes 207-265 (mobile branch).
 
 Dépend de : 103.3 (FAB méthodologie phase 1 livré) · Epic 101 (DataCard composant)
 
