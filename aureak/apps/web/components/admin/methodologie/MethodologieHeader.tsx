@@ -2,7 +2,7 @@
 // Story 93.5 — MethodologieHeader : NavBar 5 onglets + count badges (mirror ActivitesHeader)
 // Bouton CTA conservé sur mobile uniquement (AdminTopbar prend le relais desktop).
 import React from 'react'
-import { View, Pressable, ScrollView, StyleSheet, useWindowDimensions, type TextStyle } from 'react-native'
+import { View, Pressable, ScrollView, StyleSheet, type TextStyle } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space } from '@aureak/theme'
@@ -19,8 +19,6 @@ const TABS = [
 ] as const
 
 type TabKey = typeof TABS[number]['key']
-
-const MOBILE_BREAKPOINT = 768
 
 export type MethodologieHeaderProps = {
   newLabel      ?: string
@@ -52,25 +50,15 @@ export function MethodologieHeader({
 }: MethodologieHeaderProps) {
   const router    = useRouter()
   const pathname  = usePathname()
-  const { width } = useWindowDimensions()
   const activeTab = getActiveTab(pathname)
-  const isMobile  = width < MOBILE_BREAKPOINT
 
   // Story 100.2 — scroll automatique de l'onglet actif en vue sur mobile
   useScrollTabIntoView('tab-methodologie', activeTab)
 
   return (
     <View style={styles.headerBlock}>
-      {isMobile && !hideNewButton && newLabel && newHref && (
-        <View style={styles.headerTopRow}>
-          <Pressable
-            onPress={() => router.push(newHref as Parameters<typeof router.push>[0])}
-            style={styles.newBtn}
-          >
-            <AureakText style={styles.newBtnLabel as TextStyle}>{newLabel}</AureakText>
-          </Pressable>
-        </View>
-      )}
+      {/* Story 110.x — Bouton CTA mobile retiré : remplacé par <PrimaryAction> FAB.
+          Conservé desktop via AdminTopbar (cf. props newLabel/newHref toujours acceptées). */}
 
       {/* Story 100.2 — scrollable horizontal sur mobile */}
       <ScrollView
@@ -110,25 +98,6 @@ const styles = StyleSheet.create({
   headerBlock: {
     backgroundColor: colors.light.primary,
     gap            : 12,
-  },
-  headerTopRow: {
-    flexDirection    : 'row',
-    justifyContent   : 'flex-end',
-    alignItems       : 'center',
-    paddingHorizontal: space.lg,
-    paddingTop       : space.sm,
-  },
-  newBtn: {
-    backgroundColor  : colors.accent.gold,
-    paddingHorizontal: 18,
-    paddingVertical  : 10,
-    borderRadius     : 999,
-  },
-  newBtnLabel: {
-    color     : colors.text.onGold,
-    fontFamily: fonts.body,
-    fontWeight: '600',
-    fontSize  : 13,
   },
   tabsScroll: {
     flexGrow : 0,

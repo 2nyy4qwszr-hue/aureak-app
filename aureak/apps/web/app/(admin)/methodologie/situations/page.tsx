@@ -9,6 +9,7 @@ import type { Situation, ThemeGroup } from '@aureak/types'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import {
   MetFiltersRow, MetSelect, MetPagination, usePagination, PAGE_SIZE,
 } from '../../../../components/admin/methodologie/methodologieFilters'
@@ -64,15 +65,21 @@ export default function SituationsPage() {
 
       <View style={st.bodyWrap}>
         <MetFiltersRow>
-          <MetSelect
-            label="Bloc"
-            value={selectedBlocId}
-            onChange={setSelectedBlocId}
-            options={[
-              { value: 'all', label: 'Tous' },
-              ...groups.map(g => ({ value: g.id, label: g.name })),
-            ]}
-          />
+          <FilterSheet
+            activeCount={selectedBlocId !== 'all' ? 1 : 0}
+            onReset={() => setSelectedBlocId('all')}
+            triggerLabel="Filtrer les situations"
+          >
+            <MetSelect
+              label="Bloc"
+              value={selectedBlocId}
+              onChange={setSelectedBlocId}
+              options={[
+                { value: 'all', label: 'Tous' },
+                ...groups.map(g => ({ value: g.id, label: g.name })),
+              ]}
+            />
+          </FilterSheet>
         </MetFiltersRow>
 
         {loading && (
