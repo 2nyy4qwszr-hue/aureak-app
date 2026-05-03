@@ -139,61 +139,46 @@ export default function StagesPage() {
           onCta={() => router.push('/evenements/stages/new' as never)}
         />
       ) : (
-        <View style={s.grid}>
-          {filtered.map(stage => (
+        /* Story 110.x — Tableau style /activites/seances */
+        <View style={s.tableCard}>
+          <View style={s.tableHeader}>
+            <AureakText style={[s.thText, s.colName] as never}>NOM</AureakText>
+            <AureakText style={[s.thText, s.colDates] as never}>DATES</AureakText>
+            <AureakText style={[s.thText, s.colInfo] as never}>TYPE</AureakText>
+            <AureakText style={[s.thText, s.colCountSm] as never}>JOURS</AureakText>
+            <AureakText style={[s.thText, s.colCountSm] as never}>JOUEURS</AureakText>
+            <AureakText style={[s.thText, s.colStatus] as never}>STATUT</AureakText>
+            <AureakText style={[s.thText, s.colChevron] as never}>{''}</AureakText>
+          </View>
+
+          {filtered.map((stage, idx) => (
             <Pressable
               key={stage.id}
-              style={s.card}
               onPress={() => router.push(`/evenements/stages/${stage.id}` as never)}
+              style={({ pressed }) => [
+                s.tableRow,
+                { backgroundColor: idx % 2 === 0 ? colors.light.surface : colors.light.muted },
+                pressed && { opacity: 0.8 },
+              ]}
             >
-              {/* Top accent by status */}
-              <View style={[s.cardAccent, { backgroundColor: STATUS_COLORS[stage.status] }]} />
-
-              <View style={{ padding: space.md, gap: space.xs }}>
-                {/* Name + status */}
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space.xs }}>
-                  <AureakText variant="body" style={{ fontWeight: '700', flex: 1, fontSize: 14 }}>
-                    {stage.name}
-                  </AureakText>
-                  <StatusBadge status={stage.status} />
-                </View>
-
-                {/* Type + season */}
-                {(stage.type || stage.seasonLabel) && (
-                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                    {[stage.type ? TYPE_LABELS[stage.type] : null, stage.seasonLabel].filter(Boolean).join(' · ')}
-                  </AureakText>
-                )}
-
-                {/* Implantation */}
+              <View style={s.colName}>
+                <AureakText style={s.nameText} numberOfLines={1}>{stage.name}</AureakText>
                 {stage.implantationName && (
-                  <AureakText variant="caption" style={{ color: colors.text.muted }}>
-                    📍 {stage.implantationName}
-                  </AureakText>
+                  <AureakText style={s.subText} numberOfLines={1}>📍 {stage.implantationName}</AureakText>
                 )}
-
-                {/* Dates */}
-                <View style={s.chip}>
-                  <AureakText variant="caption" style={{ fontSize: 11 }}>
-                    {formatDate(stage.startDate)} → {formatDate(stage.endDate)}
-                  </AureakText>
-                </View>
-
-                {/* Footer stats */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space.xs }}>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                      {stage.dayCount} jour{stage.dayCount !== 1 ? 's' : ''}
-                    </AureakText>
-                    <AureakText variant="caption" style={{ color: colors.text.muted, fontSize: 11 }}>
-                      · {stage.participantCount} joueur{stage.participantCount !== 1 ? 's' : ''}
-                    </AureakText>
-                  </View>
-                  <AureakText variant="caption" style={{ color: colors.accent.gold, fontWeight: '700', fontSize: 11 }}>
-                    Planifier →
-                  </AureakText>
-                </View>
               </View>
+              <AureakText style={[s.cellText, s.colDates] as never} numberOfLines={1}>
+                {formatDate(stage.startDate)} → {formatDate(stage.endDate)}
+              </AureakText>
+              <AureakText style={[s.cellTextMuted, s.colInfo] as never} numberOfLines={1}>
+                {[stage.type ? TYPE_LABELS[stage.type] : null, stage.seasonLabel].filter(Boolean).join(' · ') || '—'}
+              </AureakText>
+              <AureakText style={[s.cellNum, s.colCountSm] as never}>{stage.dayCount}</AureakText>
+              <AureakText style={[s.cellNum, s.colCountSm] as never}>{stage.participantCount}</AureakText>
+              <View style={s.colStatus}>
+                <StatusBadge status={stage.status} />
+              </View>
+              <AureakText style={[s.chevron, s.colChevron] as never}>›</AureakText>
             </Pressable>
           ))}
         </View>
@@ -256,26 +241,79 @@ const s = StyleSheet.create({
     fontFamily   : fonts.display,
   },
 
-  grid        : { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  card        : {
+  // Story 110.x — Tableau style /activites/seances
+  tableCard: {
+    borderRadius: 10,
+    borderWidth : 1,
+    borderColor : colors.border.divider,
+    overflow    : 'hidden',
     backgroundColor: colors.light.surface,
-    borderRadius   : 10,
-    borderWidth    : 1,
-    borderColor    : colors.border.light,
-    overflow       : 'hidden',
-    width          : '100%' as never,
-    maxWidth       : 360,
-    minWidth       : 280,
   },
-  cardAccent  : { height: 3 },
-  chip        : {
+  tableHeader: {
+    flexDirection    : 'row',
     backgroundColor  : colors.light.muted,
-    borderRadius     : 12,
-    paddingHorizontal: 8,
-    paddingVertical  : 3,
-    alignSelf        : 'flex-start',
-    borderWidth      : 1,
-    borderColor      : colors.border.light,
+    paddingVertical  : 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
+  thText: {
+    fontSize     : 10,
+    fontWeight   : '700',
+    fontFamily   : fonts.display,
+    letterSpacing: 1,
+    color        : colors.text.subtle,
+    textTransform: 'uppercase' as never,
+  },
+  tableRow: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    minHeight        : 52,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+    gap              : space.sm,
+  },
+  // Cellules
+  colName     : { flex: 2, minWidth: 140 },
+  colDates    : { flex: 1.4, minWidth: 130 },
+  colInfo     : { flex: 1.5, minWidth: 110 },
+  colCountSm  : { width: 70, textAlign: 'center' as never },
+  colStatus   : { width: 100, alignItems: 'flex-start' },
+  colChevron  : { width: 20 },
+  nameText: {
+    fontFamily: fonts.body,
+    fontSize  : 13,
+    fontWeight: '600',
+    color     : colors.text.dark,
+  },
+  subText: {
+    fontFamily: fonts.body,
+    fontSize  : 11,
+    color     : colors.text.muted,
+    marginTop : 1,
+  },
+  cellText: {
+    fontFamily: fonts.body,
+    fontSize  : 12,
+    color     : colors.text.dark,
+  },
+  cellTextMuted: {
+    fontFamily: fonts.body,
+    fontSize  : 12,
+    color     : colors.text.muted,
+  },
+  cellNum: {
+    fontFamily: fonts.body,
+    fontSize  : 13,
+    fontWeight: '700',
+    color     : colors.text.dark,
+  },
+  chevron: {
+    fontFamily: fonts.body,
+    fontSize  : 18,
+    color     : colors.text.muted,
+    textAlign : 'center' as never,
   },
 
   skeletonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
