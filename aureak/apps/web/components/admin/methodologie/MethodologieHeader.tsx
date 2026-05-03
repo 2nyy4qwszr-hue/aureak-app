@@ -10,7 +10,7 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/methodologie'             },
+  { key: 'overview',    label: 'MÉTHODOLOGIE',   href: '/methodologie'             },
   { key: 'seances',     label: 'ENTRAÎNEMENTS',  href: '/methodologie/entrainements' },
   { key: 'programmes',  label: 'PROGRAMMES',     href: '/methodologie/programmes'  },
   { key: 'themes',      label: 'THÈMES',         href: '/methodologie/themes'      },
