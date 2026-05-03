@@ -473,7 +473,10 @@ function AdminLayoutInner() {
     return () => clearTimeout(timeout) // BLOCKER cleanup
   }, [pathname])
 
-  if (isLoading || !isAdminOrCommercial) return null
+  // Pendant que l'auth résout (premier chargement) : afficher le splash plutôt
+  // qu'une page blanche. Si non autorisé, le useEffect ci-dessus redirige.
+  if (isLoading) return Platform.OS === 'web' ? <SplashScreen dismiss={false} /> : null
+  if (!isAdminOrCommercial) return null
 
   // ── Story 86-4 — Sidebar dynamique pilotée par permissions effectives ─────
   // Fallback sécurité : admin voit toujours toutes les sections même si permissions
