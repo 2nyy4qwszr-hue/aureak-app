@@ -1,6 +1,6 @@
 # Story 110.6 : Refonte filtres /presences (dashboard standalone) en sheet compact
 
-Status: ready-for-dev
+Status: done
 
 > **Note de scope post-110.8** : `/activites/presences` (alias dans la section Activités) a été traité par story 110.8 (PR #162) avec le pattern FilterSheet uniformisé. Cette story 110.6 reste valide UNIQUEMENT pour `/presences/page.tsx` (le dashboard standalone, 910 lignes, en HTML/divs, hors section Activités). Si le dashboard finit par être fusionné avec `/activites/presences`, cette story devient obsolète.
 
