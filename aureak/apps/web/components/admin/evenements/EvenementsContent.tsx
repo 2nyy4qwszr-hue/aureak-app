@@ -195,38 +195,8 @@ export function EvenementsContent({ eventType, typeLabel, actionLabel, onActionP
       <EvenementsHeader />
 
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, isMobile && { paddingHorizontal: 16 }]}>
-        {/* 4 Stat Cards */}
-        <View style={styles.statCardsRow}>
-          <StatCard
-            icon="📅"
-            label={`TOTAL ${typeLabel.toUpperCase()}`}
-            value={String(stats.total)}
-            sub={`${stats.upcoming} planifié${stats.upcoming > 1 ? 's' : ''}`}
-          />
-          <StatCard
-            icon="🟢"
-            label="EN COURS"
-            value={String(stats.inProgress)}
-            sub={`${stats.done} terminé${stats.done > 1 ? 's' : ''}`}
-          />
-          <StatCard
-            icon="⚠️"
-            label="ANNULÉS"
-            value={String(stats.cancelled)}
-            sub={`sur ${stats.total}`}
-          />
-          <StatCard
-            icon="👥"
-            label="PARTICIPANTS"
-            value={String(stats.totalParticipants)}
-            sub={`${stats.totalDays} jour${stats.totalDays > 1 ? 's' : ''} au total`}
-            dark
-          />
-        </View>
-
-        {/* Filtres temporels */}
+        {/* Filtres temporels — alignés à gauche */}
         <View style={styles.filtresRow}>
-          <View />
           <PseudoFiltresTemporels value={temporalFilter} onChange={setTemporalFilter} />
         </View>
 
@@ -365,7 +335,7 @@ const styles = StyleSheet.create({
   },
   filtresRow: {
     flexDirection    : 'row',
-    justifyContent   : 'space-between',
+    justifyContent   : 'flex-start',
     alignItems       : 'center',
     paddingHorizontal: space.lg,
     paddingVertical  : space.sm,
