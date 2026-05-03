@@ -34,11 +34,14 @@ export type MethodologieHeaderProps = {
 }
 
 function getActiveTab(pathname: string): TabKey {
-  if (pathname.endsWith('/seances')     || pathname.includes('/seances/'))     return 'seances'
-  if (pathname.endsWith('/programmes')  || pathname.includes('/programmes/'))  return 'programmes'
-  if (pathname.endsWith('/themes')      || pathname.includes('/themes/'))      return 'themes'
-  if (pathname.endsWith('/situations')  || pathname.includes('/situations/'))  return 'situations'
-  if (pathname.endsWith('/evaluations') || pathname.includes('/evaluations/')) return 'evaluations'
+  // Note : la route est /methodologie/entrainements mais la TabKey est 'seances'
+  // (legacy story 93.5). On match les deux patterns pour rétrocompat.
+  if (pathname.endsWith('/entrainements') || pathname.includes('/entrainements/')) return 'seances'
+  if (pathname.endsWith('/seances')       || pathname.includes('/seances/'))       return 'seances'
+  if (pathname.endsWith('/programmes')    || pathname.includes('/programmes/'))    return 'programmes'
+  if (pathname.endsWith('/themes')        || pathname.includes('/themes/'))        return 'themes'
+  if (pathname.endsWith('/situations')    || pathname.includes('/situations/'))    return 'situations'
+  if (pathname.endsWith('/evaluations')   || pathname.includes('/evaluations/'))   return 'evaluations'
   return 'overview'
 }
 
