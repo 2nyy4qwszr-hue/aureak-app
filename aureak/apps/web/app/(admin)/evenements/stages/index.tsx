@@ -87,12 +87,6 @@ export default function StagesPage() {
       <EvenementsHeader />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.content}>
-      {!loading && (
-        <AureakText variant="caption" style={{ color: colors.text.muted, paddingHorizontal: space.xl }}>
-          {filtered.length} stage{filtered.length !== 1 ? 's' : ''}
-        </AureakText>
-      )}
-
       {/* Story 110.x — Search inline + bouton Filtres aligné droite (pattern uniforme) */}
       <View style={s.controls}>
         <View style={s.searchWrap}>
