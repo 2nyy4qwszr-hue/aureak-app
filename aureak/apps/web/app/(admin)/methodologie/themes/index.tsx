@@ -1,6 +1,6 @@
 'use client'
 import React, { useContext, useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listThemes, listThemeGroups, supabase } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -166,6 +166,8 @@ type ThemesTableProps = {
 
 function ThemesTable({ themes, totalThemes, groupMap, themeIdsWithMetaphors, themeIdsWithVideo, onPress }: ThemesTableProps) {
   const { page, setPage, pageCount, paginated } = usePagination(themes, PAGE_SIZE)
+  const { width } = useWindowDimensions()
+  const isMobile = width < 640
 
   if (themes.length === 0) {
     return (
@@ -175,6 +177,41 @@ function ThemesTable({ themes, totalThemes, groupMap, themeIdsWithMetaphors, the
             {totalThemes === 0 ? 'Aucun thème configuré.' : 'Aucun thème pour ce filtre.'}
           </AureakText>
         </View>
+      </View>
+    )
+  }
+
+  // Story 103.9.d — rendu mobile en stack de cards
+  if (isMobile) {
+    return (
+      <View style={st.tableWrapper}>
+        {paginated.map((theme) => (
+          <Pressable
+            key={theme.id}
+            onPress={() => onPress(theme.themeKey)}
+            style={({ pressed }) => [st.mobileCard, pressed && { opacity: 0.8 }]}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <AureakText style={st.titleText} numberOfLines={2}>{theme.name}</AureakText>
+              <AureakText style={st.numText}>
+                {theme.orderIndex != null ? `#${theme.orderIndex} · ` : ''}{groupMap[theme.groupId ?? ''] ?? '—'}
+              </AureakText>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              <View style={[st.statusDot, { backgroundColor: themeIdsWithMetaphors.has(theme.id) ? colors.status.present : colors.border.light }]} />
+              <View style={[st.statusDot, { backgroundColor: themeIdsWithVideo.has(theme.id) ? colors.status.present : colors.border.light }]} />
+              <View style={[st.statusDot, { backgroundColor: theme.isCurrent ? colors.status.present : colors.border.light }]} />
+            </View>
+          </Pressable>
+        ))}
+        <MetPagination
+          page={page}
+          pageCount={pageCount}
+          total={themes.length}
+          pageSize={PAGE_SIZE}
+          itemLabelPlural="thèmes"
+          onPageChange={setPage}
+        />
       </View>
     )
   }
@@ -283,6 +320,17 @@ const st = StyleSheet.create({
     borderWidth : 1,
     borderColor : colors.border.divider,
     overflow    : 'hidden',
+  },
+  // Story 103.9.d — card mobile
+  mobileCard: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    gap              : space.md,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm + 2,
+    backgroundColor  : colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
   },
   tableHeader: {
     flexDirection    : 'row',

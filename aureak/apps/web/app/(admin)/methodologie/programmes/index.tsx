@@ -1,7 +1,7 @@
 'use client'
 // Programmes pédagogiques — bibliothèque de programmes par méthode et saison
 import React, { useContext, useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
+import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { listMethodologyProgrammes } from '@aureak/api-client'
 import { AureakText } from '@aureak/ui'
@@ -129,6 +129,8 @@ type ProgrammesTableProps = {
 
 function ProgrammesTable({ programmes, totalProgrammes, methodColors, onPress }: ProgrammesTableProps) {
   const { page, setPage, pageCount, paginated } = usePagination(programmes, PAGE_SIZE)
+  const { width } = useWindowDimensions()
+  const isMobile = width < 640
 
   if (programmes.length === 0) {
     return (
@@ -140,6 +142,44 @@ function ProgrammesTable({ programmes, totalProgrammes, methodColors, onPress }:
               : 'Aucun résultat pour ces filtres.'}
           </AureakText>
         </View>
+      </View>
+    )
+  }
+
+  // Story 103.9.c — rendu mobile en stack de cards
+  if (isMobile) {
+    return (
+      <View style={st.tableWrapper}>
+        {paginated.map((programme) => {
+          const methodColor = methodColors[programme.method] ?? colors.border.light
+          const picto = METHOD_PICTOS[programme.method] ?? '—'
+          return (
+            <Pressable
+              key={programme.id}
+              onPress={() => onPress(programme.id)}
+              style={({ pressed }) => [st.mobileCard, pressed && { opacity: 0.8 }]}
+            >
+              <View style={[st.methodCircle, { backgroundColor: methodColor + '44', borderWidth: 1, borderColor: methodColor }]}>
+                <AureakText style={st.methodPicto}>{picto}</AureakText>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <AureakText style={st.titleText} numberOfLines={2}>{programme.title}</AureakText>
+                <AureakText style={st.numText}>
+                  {programme.seasonLabel ?? '—'} · {programme.accomplishment.done}/{programme.accomplishment.total}
+                </AureakText>
+              </View>
+              <AureakText style={{ fontSize: 16, color: colors.text.muted }}>›</AureakText>
+            </Pressable>
+          )
+        })}
+        <MetPagination
+          page={page}
+          pageCount={pageCount}
+          total={programmes.length}
+          pageSize={PAGE_SIZE}
+          itemLabelPlural="programmes"
+          onPageChange={setPage}
+        />
       </View>
     )
   }
@@ -229,6 +269,17 @@ const st = StyleSheet.create({
 
   empty: { padding: space.xl, alignItems: 'center', backgroundColor: colors.light.surface },
 
+  // Story 103.9.c — card mobile (stack vertical)
+  mobileCard: {
+    flexDirection    : 'row',
+    alignItems       : 'center',
+    gap              : space.md,
+    paddingHorizontal: space.md,
+    paddingVertical  : space.sm + 2,
+    backgroundColor  : colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.divider,
+  },
   tableWrapper: {
     borderRadius: 10,
     borderWidth : 1,
