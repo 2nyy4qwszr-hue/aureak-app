@@ -1,6 +1,6 @@
 # Story 103.4 — Académie mobile-first (10 pages)
 
-Status: ready-for-dev
+Status: done
 
 ## Metadata
 
