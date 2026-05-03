@@ -10,6 +10,7 @@ import BlocsManagerModal from '../_components/BlocsManagerModal'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import {
   MetFiltersRow, MetSelect, MetPagination, usePagination, PAGE_SIZE,
 } from '../../../../components/admin/methodologie/methodologieFilters'
@@ -87,15 +88,21 @@ export default function ThemesPage() {
         </View>
 
         <MetFiltersRow>
-          <MetSelect
-            label="Bloc"
-            value={selectedGroupId}
-            onChange={setSelectedGroupId}
-            options={[
-              { value: 'all', label: 'Tous' },
-              ...groups.map(g => ({ value: g.id, label: g.name })),
-            ]}
-          />
+          <FilterSheet
+            activeCount={selectedGroupId !== 'all' ? 1 : 0}
+            onReset={() => setSelectedGroupId('all')}
+            triggerLabel="Filtrer les thèmes"
+          >
+            <MetSelect
+              label="Bloc"
+              value={selectedGroupId}
+              onChange={setSelectedGroupId}
+              options={[
+                { value: 'all', label: 'Tous' },
+                ...groups.map(g => ({ value: g.id, label: g.name })),
+              ]}
+            />
+          </FilterSheet>
         </MetFiltersRow>
 
         {loading && (

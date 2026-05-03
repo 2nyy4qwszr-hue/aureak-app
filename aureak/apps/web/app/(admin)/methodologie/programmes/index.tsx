@@ -14,6 +14,7 @@ import type { MethodologyProgramme } from '@aureak/types'
 import { MethodologieHeader } from '../../../../components/admin/methodologie/MethodologieHeader'
 import { MethodologieCountsContext } from '../_layout'
 import { PrimaryAction } from '../../../../components/admin/PrimaryAction'
+import { FilterSheet } from '../../../../components/admin/FilterSheet'
 import {
   MetFiltersRow, MetSelect, MetPagination, usePagination, PAGE_SIZE,
 } from '../../../../components/admin/methodologie/methodologieFilters'
@@ -76,25 +77,31 @@ export default function ProgrammesPage() {
 
       <View style={st.bodyWrap}>
         <MetFiltersRow>
-          <MetSelect
-            label="Méthode"
-            value={methodFilter}
-            onChange={(v) => setMethodFilter(v as FilterMethod)}
-            options={[
-              { value: 'all', label: 'Toutes' },
-              ...METHODOLOGY_METHODS.map(m => ({ value: m, label: `${METHOD_PICTOS[m]} ${m}` })),
-            ]}
-          />
-          <MetSelect
-            label="Contexte"
-            value={contextFilter}
-            onChange={(v) => setContextFilter(v as ContextValue)}
-            options={[
-              { value: 'all',      label: 'Tous' },
-              { value: 'academie', label: 'Académie' },
-              { value: 'stage',    label: 'Stage' },
-            ]}
-          />
+          <FilterSheet
+            activeCount={(methodFilter !== 'all' ? 1 : 0) + (contextFilter !== 'all' ? 1 : 0)}
+            onReset={() => { setMethodFilter('all'); setContextFilter('all') }}
+            triggerLabel="Filtrer les programmes"
+          >
+            <MetSelect
+              label="Méthode"
+              value={methodFilter}
+              onChange={(v) => setMethodFilter(v as FilterMethod)}
+              options={[
+                { value: 'all', label: 'Toutes' },
+                ...METHODOLOGY_METHODS.map(m => ({ value: m, label: `${METHOD_PICTOS[m]} ${m}` })),
+              ]}
+            />
+            <MetSelect
+              label="Contexte"
+              value={contextFilter}
+              onChange={(v) => setContextFilter(v as ContextValue)}
+              options={[
+                { value: 'all',      label: 'Tous' },
+                { value: 'academie', label: 'Académie' },
+                { value: 'stage',    label: 'Stage' },
+              ]}
+            />
+          </FilterSheet>
         </MetFiltersRow>
 
         {loading ? (
