@@ -1,7 +1,7 @@
 'use client'
 // Filtres + pagination style activités/seances — réutilisés par toutes les pages méthodologie
 import React from 'react'
-import { View, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
+import { View, Pressable, StyleSheet } from 'react-native'
 import { AureakText } from '@aureak/ui'
 import { colors, fonts, space, radius } from '@aureak/theme'
 
@@ -133,26 +133,20 @@ export function usePagination<T>(items: T[], pageSize: number = PAGE_SIZE) {
 type MetFiltersRowProps = { children: React.ReactNode }
 
 export function MetFiltersRow({ children }: MetFiltersRowProps) {
-  const { width } = useWindowDimensions()
-  const isMobile = width < 640
-  // Mobile : Filtres à gauche (flex-start). Desktop : Filtres à droite (space-between).
-  return <View style={[st.controls, isMobile && st.controlsMobile]}>{children}</View>
+  // FilterSheet trigger a marginLeft:auto → toujours aligné à droite
+  // peu importe le breakpoint et le nombre de siblings.
+  return <View style={st.controls}>{children}</View>
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  // Filters row desktop — segmented à gauche, bouton Filtres aligné à droite
+  // Filters row — flex row simple, FilterSheet trigger a marginLeft:auto qui le push droite
   controls: {
     flexDirection : 'row',
     flexWrap      : 'wrap',
-    justifyContent: 'space-between',
     gap           : space.md,
     alignItems    : 'center',
-  },
-  // Mobile — Filtres aligné à gauche (segmented + Filtres collés au bord gauche)
-  controlsMobile: {
-    justifyContent: 'flex-start',
   },
 
   // Segmented toggle

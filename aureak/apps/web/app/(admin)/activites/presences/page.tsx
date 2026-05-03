@@ -1327,10 +1327,9 @@ const pageStyles = StyleSheet.create({
     zIndex           : 9999,
   },
   filtresRowMobile: {
-    // Story 110.7+ — Mobile : segmented + Filtres collés à gauche (justifyContent flex-start)
+    // Story 110.7+ — Mobile : flex row simple, FilterSheet trigger a marginLeft:auto
     flexDirection    : 'row',
     alignItems       : 'center',
-    justifyContent   : 'flex-start',
     gap              : space.sm,
     paddingHorizontal: space.md,
     flexWrap         : 'wrap',
