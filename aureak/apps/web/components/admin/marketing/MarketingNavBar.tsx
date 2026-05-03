@@ -10,7 +10,7 @@ import { SubtabCount } from '../SubtabCount'
 import { useScrollTabIntoView } from '../../../hooks/admin/useScrollTabIntoView'
 
 const TABS = [
-  { key: 'overview',    label: "VUE D'ENSEMBLE", href: '/marketing'             },
+  { key: 'overview',    label: 'MARKETING',      href: '/marketing'             },
   { key: 'mediatheque', label: 'MÉDIATHÈQUE',    href: '/marketing/mediatheque' },
   { key: 'reseaux',     label: 'RÉSEAUX',        href: '/marketing/reseaux'     },
   { key: 'campagnes',   label: 'CAMPAGNES',      href: '/marketing/campagnes'   },
