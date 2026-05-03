@@ -3,7 +3,7 @@
   "short_name"      : "Aureak",
   "description"     : "Plateforme de gestion d'académie de gardiens de but",
   "theme_color"     : "#C9A84C",
-  "background_color": "#0F0F0F",
+  "background_color": "#FFFFFF",
   "display"         : "standalone",
   "start_url"       : "/",
   "orientation"     : "portrait-primary",

@@ -3,6 +3,8 @@
 
 export { ROLE_LABELS } from './labels/roles'
 
+export { AureakLogo } from './components/AureakLogo'
+
 export { Button, AureakButton } from './components/Button'
 export type { ButtonProps, ButtonVariant } from './components/Button'
 
